@@ -3,7 +3,7 @@ edit=nano
 Aliases=~/.bash_aliases
 
 Head="cl[ide]"
-Version="0.11"
+Version="0.14"
 
 ProgDir=~/Programs
 
@@ -27,11 +27,11 @@ JavaBin=${JavaHome}/bin
 
 Project=""
 
-#Clide help page
-Help()
+#Clide menu help page
+MenuHelp()
 {
 	echo ""
-	echo "----------------[(${Head})]----------------"
+	echo "----------------[(${Head}) Menu]----------------"
 	echo "ls: \"list progams\""
 	echo "unset: \"deselect source code\""
 	echo "use {Bash|Python|C++|Java}: \"choose language\""
@@ -46,7 +46,19 @@ Help()
 	echo "compile|cpl: \"make code executable\""
 	#echo "execute|exe|run: \"run active program\""
 	echo "exit|close: \"close ide\""
-	echo "-------------------------------------------"
+	echo "------------------------------------------------"
+	echo ""
+}
+
+#Clide cli help page
+CliHelp()
+{
+	echo ""
+	echo "----------------[(${Head}) CLI]----------------"
+	echo "-v|--version: \"Get Clide Version\""
+	echo "-p|--projects: \"List Clide Projects\""
+	echo "-h|--help: \"Get CLI Help Page (Cl[ide] Menu: \"help\") \""
+	echo "-----------------------------------------------"
 	echo ""
 }
 
@@ -64,14 +76,21 @@ Banner()
 errorCode()
 {
 	ecd=$1
-	bin=$2
-	arg=$3
+	sec=$2
+	thr=$3
 	case $ecd in
+		alias)
+			echo "\"${sec}\" already installed"
+			;;
 		install)
-			echo "\"${bin}\" needs to be an executable"
-			echo "[to compile]: cpl"
-			echo "OR"
-			echo "[swap to executable]: swp bin"
+			if [[ "${sec}" == "choose" ]]; then
+				echo "hint: please choose script"
+			else
+				echo "\"${sec}\" needs to be an executable"
+				echo "[to compile]: cpl"
+				echo "OR"
+				echo "[swap to executable]: swp bin"
+			fi
 			;;
 		noCode)
 			echo "No Code Found"
@@ -90,11 +109,28 @@ errorCode()
 			echo "code is not found in project"
 			;;
 		project)
-			echo "Project error"
+			if [[ "${sec}" == "~none~" ]]; then
+				echo "hint: must be a project"
+				echo "No project name given"
+			elif [[ "${sec}" == "exists" ]]; then
+				echo "\"${thr}\" is already a project"
+			elif [[ "${sec}" == "NotAProject" ]]; then
+				echo "No \"${thr}\" project found"
+			else
+				echo "Project error"
+			fi
 			;;
 		cpl)
-			echo "Nothing to Compile"
-			echo "[to set code]: set <name>"
+			if [[ "${sec}" == "choose" ]]; then
+				echo "hint: please choose script"
+			elif [[ "${sec}" == "already" ]]; then
+				echo "\"${thr}\" already compiled"
+			elif [[ "${sec}" == "not" ]]; then
+				echo "code not found"
+			else
+				echo "Nothing to Compile"
+				echo "[to set code]: set <name>"
+			fi
 			;;
 		*)
 			;;
@@ -106,7 +142,7 @@ lookFor()
 	project=$1
 	search=$2
 	if [[ "${project}" == "~none~" ]]; then
-		echo "hint: must be a project"
+		errorCode "project" "~none~"
 	else
 		grep -i ${search} *
 	fi
@@ -123,11 +159,11 @@ newProject()
 	fi
 	#No Project is found
 	if [ -z ${project} ]; then
-		echo "No project name given"
+		errorCode "project" "~none~"
 	else
 		#Locate Project Directory
 		if [ -f "${ProgDir}/.clide/${project}.clide" ]; then
-			echo "\"${project}\" is already a project"
+			errorCode "project" "exists" ${project}
 		else
 			#Grab Project Data
 			#Name Value
@@ -169,7 +205,7 @@ updateProject()
 	if [ ! -z ${src} ]; then
 		#Locate Project Directory
 		if [ ! -f "${ProgDir}/.clide/${project}.clide" ]; then
-			echo "No \"${project}\" project found"
+			errorCode "project" "NotAProject" ${project}
 		else
 			grep -v "src=" ${ProgDir}/.clide/${project}.clide > new
 			mv new ${ProgDir}/.clide/${project}.clide
@@ -708,10 +744,10 @@ AddAlias()
 	CheckFor=$(echo ${Insert} | sed "s/${Replace}/${With}/g")
 	touch ${Aliases}
 	if grep -q "alias ${AliasName}=" ${Aliases}; then
-		echo "\"${AliasName}\" already installed"
+		errorCode "alias" ${AliasName}
 	else
 		if grep -q "${CheckFor}" ${Aliases}; then
-			echo "\"${AliasName}\" already installed"
+			errorCode "alias" ${AliasName}
 		else
 			echo ${Insert} >> ${Aliases}
 			cat ${Aliases} | sort | uniq > ${Aliases}.new
@@ -793,7 +829,7 @@ compileCode()
 		if [[ "${src}" == *","* ]]; then
 			#varable is empty
 			if [ -z ${num} ]; then
-				echo "hint: please choose script"
+				errorCode "cpl" "choose"
 			else
 				#chosen file is in the list of files
 				if [[ "${src}" == *"${num}"* ]]; then
@@ -814,10 +850,10 @@ compileCode()
 						cd "${BashSrc}/${project}"
 						echo "[Code Bash Compiled]"
 					else
-						echo "\"${num}\" already compiled"
+						errorCode "cpl" "already" ${num}
 					fi
 				else
-					echo "code not found"
+					errorCode "cpl" "not"
 				fi
 			fi
 		#single code selected
@@ -834,7 +870,7 @@ compileCode()
 				cd "${BashSrc}/${project}"
 				echo "[Code Bash Compiled]"
 			else
-				echo "\"${src}\" already compiled"
+				errorCode "cpl" "already" ${src}
 			fi
 		fi
 	#Python
@@ -851,7 +887,7 @@ compileCode()
 		if [[ "${src}" == *","* ]]; then
 			#variable is empty
 			if [ -z ${num} ]; then
-				echo "hint: please choose script"
+				errorCode "cpl" "choose"
 			#variable found
 			else
 				#chosen file is in the list of files
@@ -873,7 +909,7 @@ compileCode()
 						cd "${PythonSrc}/${project}"
 						echo "[Code Python Compiled]"
 					else
-						echo "\"${num}\" already compiled"
+						errorCode "cpl" "already" ${num}
 					fi
 				else
 					echo "code not found"
@@ -894,7 +930,7 @@ compileCode()
 				echo "[Code Python Compiled]"
 			#Code is already found
 			else
-				echo "\"${src}\" already compiled"
+				errorCode "cpl" "already" ${src}
 			fi
 		fi
 	#C++
@@ -903,7 +939,7 @@ compileCode()
 		if [[ "${src}" == *","* ]]; then
 			#num is empty
 			if [ -z ${num} ]; then
-				echo "hint: please provide program name"
+				errorCode "cpl" "choose"
 			else
 				#Separate list of selected code
 				prog=$(echo ${src} | sed "s/,/ /g")
@@ -1057,10 +1093,11 @@ Actions()
 	Lang=$1
 	pLangs=$2
 	CodeDir=$(pgDir ${Lang})
+	#No Project Given
 	CodeProject="~none~"
 	if [[ ! "${CodeDir}" == "no" ]]; then
 		cd ${CodeDir}
-		Code=""
+		Code=$(selectCode ${Lang} $3 "")
 		Banner
 		while true
 		do
@@ -1164,7 +1201,7 @@ Actions()
 					ClideVersion
 					;;
 				help)
-					Help
+					MenuHelp
 					;;
 				exit|close)
 					break
@@ -1186,6 +1223,7 @@ main()
 	pg="${Bash}; ${Python}; ${Cpp}; ${Java}"
 	if [ -z "$1" ]; then
 		clear
+		CliHelp
 		getLang=""
 		while [ "$getLang" == "" ] || [[ "$getLang" == "no" ]];
 		do
@@ -1196,13 +1234,17 @@ main()
 			clear
 		done
 		Actions ${Lang} "$pg"
-	elif [[ "$1" == "v" ]] || [[ "$1" == "version" ]]; then
+	elif [[ "$1" == "-v" ]] || [[ "$1" == "--version" ]]; then
 		ClideVersion
+	elif [[ "$1" == "-p" ]] || [[ "$1" == "--projects" ]]; then
+		listProjects
+	elif [[ "$1" == "-h" ]] || [[ "$1" == "--help" ]]; then
+		CliHelp
 	else
 		Lang=$(pgLang $1)
-		Actions ${Lang} "$pg"
+		Actions ${Lang} "$pg" $2
 	fi
 }
 
 #Run clide
-main $1
+main $@
