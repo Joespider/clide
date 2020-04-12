@@ -3,7 +3,7 @@ edit=nano
 Aliases=~/.bash_aliases
 
 Head="cl[ide]"
-Version="0.10"
+Version="0.11"
 
 ProgDir=~/Programs
 
@@ -1195,10 +1195,13 @@ main()
 			Lang=$(pgLang ${getLang})
 			clear
 		done
+		Actions ${Lang} "$pg"
+	elif [[ "$1" == "v" ]] || [[ "$1" == "version" ]]; then
+		ClideVersion
 	else
 		Lang=$(pgLang $1)
+		Actions ${Lang} "$pg"
 	fi
-	Actions ${Lang} "$pg"
 }
 
 #Run clide
