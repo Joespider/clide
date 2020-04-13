@@ -1,9 +1,11 @@
 #!/bin/bash
+#cl[ide] config
+#{
 edit=nano
 Aliases=~/.bash_aliases
 
 Head="cl[ide]"
-Version="0.14"
+Version="0.18"
 
 ProgDir=~/Programs
 
@@ -26,6 +28,7 @@ CppBin=${CppHome}/bin
 JavaBin=${JavaHome}/bin
 
 Project=""
+#}
 
 #Clide menu help page
 MenuHelp()
@@ -45,6 +48,7 @@ MenuHelp()
 	echo "project {new|update|load|active}: \"handle projects\""
 	echo "compile|cpl: \"make code executable\""
 	#echo "execute|exe|run: \"run active program\""
+	echo "last|load: \"Load last session\""
 	echo "exit|close: \"close ide\""
 	echo "------------------------------------------------"
 	echo ""
@@ -58,6 +62,7 @@ CliHelp()
 	echo "-v|--version: \"Get Clide Version\""
 	echo "-p|--projects: \"List Clide Projects\""
 	echo "-h|--help: \"Get CLI Help Page (Cl[ide] Menu: \"help\") \""
+	echo "-l|--last|--load: \"Load last session\""
 	echo "-----------------------------------------------"
 	echo ""
 }
@@ -73,6 +78,7 @@ Banner()
 	echo "\"The command line IDE for the Linux/Unix user\""
 }
 
+#Error messages
 errorCode()
 {
 	ecd=$1
@@ -109,7 +115,7 @@ errorCode()
 			echo "code is not found in project"
 			;;
 		project)
-			if [[ "${sec}" == "~none~" ]]; then
+			if [[ "${sec}" == "none" ]]; then
 				echo "hint: must be a project"
 				echo "No project name given"
 			elif [[ "${sec}" == "exists" ]]; then
@@ -132,22 +138,57 @@ errorCode()
 				echo "[to set code]: set <name>"
 			fi
 			;;
+		loadSession)
+				echo "No Session to load"
+			;;
 		*)
 			;;
 	esac
 }
 
+#Search selected code for element
 lookFor()
 {
 	project=$1
 	search=$2
-	if [[ "${project}" == "~none~" ]]; then
-		errorCode "project" "~none~"
+	if [[ "${project}" == "none" ]]; then
+		errorCode "project" "none"
 	else
 		grep -i ${search} *
 	fi
 }
 
+#Save Last Session
+SaveSession()
+{
+	Session="${ProgDir}/.clide/session"
+	#check for .clide dir
+	if [ ! -d "${ProgDir}/.clide" ]; then
+		mkdir ${ProgDir}/.clide
+	fi
+	Language=$1
+	Project=$2
+	SrcCode=$3
+	#Source Needs to be present
+	if [ ! -z ${SrcCode} ]; then
+		touch ${Session}
+		echo "${Project};${Language};${SrcCode}" > ${Session}
+	fi
+}
+
+#Load Last Session
+LoadSession()
+{
+	Session="${ProgDir}/.clide/session"
+	#check for clide session
+	if [ ! -f "${Session}" ]; then
+		errorCode "loadSession"
+	else
+		cat ${Session}
+	fi
+}
+
+#Create new project
 newProject()
 {
 	lang=$1
@@ -159,7 +200,7 @@ newProject()
 	fi
 	#No Project is found
 	if [ -z ${project} ]; then
-		errorCode "project" "~none~"
+		errorCode "project" "none"
 	else
 		#Locate Project Directory
 		if [ -f "${ProgDir}/.clide/${project}.clide" ]; then
@@ -197,6 +238,7 @@ newProject()
 	fi
 }
 
+#Update config of active Projects
 updateProject()
 {
 	project=$1
@@ -215,11 +257,14 @@ updateProject()
 	fi
 }
 
+#list active projects
 listProjects()
 {
+	#Get list of active prijects from .clide files
 	ls ${ProgDir}/.clide/ | sed "s/.clide//g"
 }
 
+#Load active projects
 loadProject()
 {
 	project=$1
@@ -256,9 +301,11 @@ loadProject()
 				elif [[ "${lang}" == "Java" ]]; then
 					path=${JavaSrc}/${name}
 				fi
+				#return valid
 				RtnVals="${lang};${src};${path}"
 				echo ${RtnVals}
 			else
+				#return false value
 				echo "no"
 			fi
 		fi
@@ -349,7 +396,7 @@ editCode()
 	fi
 }
 
-
+#Add code to active session
 addCode()
 {
 	src=$1
@@ -386,15 +433,22 @@ addCode()
 		fi
 	#C++
 	elif [[ "$src" == *".cpp" ]] || [[ "$src" == *".h" ]]; then
+		#Add cpp or header files with file extensions
 		if [[ "${new}" == *".cpp" ]] || [[ "${new}" == *".h" ]]; then
+			#Append file
 			if [ -f "${new}" ]; then
 				echo "${src},${new}"
 			else
 				echo "${src}"
 			fi
+		#Add cpp or header files without file extensions
 		else
+			#Append cpp files
 			if [ -f "${new}.cpp" ]; then
 				echo "${src},${new}.cpp"
+			#Append header files
+			elif [ -f "${new}.h" ]; then
+				echo "${src},${new}.h"
 			else
 				echo "${src}"
 			fi
@@ -612,8 +666,10 @@ selectCode()
 	#C++
 	elif [[ "${code}" == "C++" ]]; then
 		#Correct filename
-		if [[ ! "${name}" == *".cpp" ]]; then
+		if [[ ! "${name}" == *".cpp" ]] && [ -f "${name}.cpp" ]; then
 			name="${name}.cpp"
+		elif [[ ! "${name}" == *".h" ]] && [ -f "${name}.h" ]; then
+			name="${name}.h"
 		fi
 	#Java
 	elif [[ "${code}" == "Java" ]]; then
@@ -668,15 +724,15 @@ pgLang()
 		#Return Bash tag
 		echo "Bash"
 	#Python
-	elif [[ "$Lang" == "p" ]] || [[ "${Lang}" == "python" ]]; then
+	elif [[ "${Lang}" == "p" ]] || [[ "${Lang}" == "python" ]]; then
 		#Return Python tag
 		echo "Python"
 	#C++
-	elif [[ "$Lang" == "c" ]] || [[ "${Lang}" == "c++" ]]; then
+	elif [[ "${Lang}" == "c" ]] || [[ "${Lang}" == "c++" ]]; then
 		#Return C++ tag
 		echo "C++"
 	#Java
-	elif [[ "$Lang" == "j" ]] || [[ "${Lang}" == "java" ]]; then
+	elif [[ "${Lang}" == "j" ]] || [[ "${Lang}" == "java" ]]; then
 		#Return Java tag
 		echo "Java"
 	#No Languge found
@@ -713,6 +769,16 @@ color()
 	fi
 }
 
+ColorCodes()
+{
+	Bash=$(color "Bash")
+	Python=$(color "Python")
+	Cpp=$(color "C++")
+	Java=$(color "Java")
+	pg="${Bash}; ${Python}; ${Cpp}; ${Java}"
+	echo ${pg}
+}
+
 #Compile Python script
 py2bin()
 {
@@ -734,6 +800,7 @@ py2bin()
 	fi
 }
 
+#Handle Aliases
 AddAlias()
 {
 	AliasName=$1
@@ -749,6 +816,7 @@ AddAlias()
 		if grep -q "${CheckFor}" ${Aliases}; then
 			errorCode "alias" ${AliasName}
 		else
+			#Add Alias to .bash_aliases file
 			echo ${Insert} >> ${Aliases}
 			cat ${Aliases} | sort | uniq > ${Aliases}.new
 			mv ${Aliases}.new ${Aliases}
@@ -759,7 +827,6 @@ AddAlias()
 	fi
 }
 
-
 #Install into bash_aliases
 Install()
 {
@@ -767,25 +834,31 @@ Install()
 	bin=$2
 	#bash
 	if [[ "${bin}" == *".sh" ]]; then
+		#Get Finary file name without extension
 		BinFile="${bin%.*}"
-		#Make Bash Script
+		#Make sure Binary exists
 		if [[ -f "${BashBin}/${bin}" ]]; then
+			#Add command to Aliases
 			AddAlias "${BinFile}" "${BashBin}/${bin}"
 		else
 			errorCode "install" "${bin}"
 		fi
 	#Python
 	elif [[ "${bin}" == *".py" ]]; then
-		#Compile Python Script
+		#Get Finary file name without extension
 		BinFile="${bin%.*}"
+		#Make sure Binary exists
 		if [[ -f "${PythonBin}/${bin}" ]]; then
+			#Add command to Aliases
 			AddAlias "${BinFile}" "python ${PythonBin}/${bin}"
 		else
 			errorCode "install" "${bin}"
 		fi
 	#C++ Binary
 	elif [[ "${code}" == "C++" ]]; then
+		#Make sure Binary exists
 		if [[ -f "${CppBin}/${bin}" ]]; then
+			#Add command to Aliases
 			AddAlias "${bin}" "${CppBin}/${bin}"
 		else
 			errorCode "install" "${bin}"
@@ -795,7 +868,7 @@ Install()
 		errorCode "install" "${bin}"
 	#Java binary
 	elif [[ "${bin}" == *".class" ]]; then
-		#Compile Java prgram
+		#Get Finary file name without extension
 		BinFile="${bin%.*}"
 		if [[ -f "${JavaBin}/${bin}" ]]; then
 			AddAlias "${BinFile}" "${JavaBin}/${bin}"
@@ -818,7 +891,7 @@ compileCode()
 	project=$2
 	num=$3
 	#Handle Project Dir
-	if [[ "${project}" == "~none~" ]]; then
+	if [[ "${project}" == "none" ]]; then
 		project=""
 	else
 		project="${project}/"
@@ -1090,47 +1163,76 @@ SwapToBin()
 #IDE
 Actions()
 {
+	Dir=""
 	Lang=$1
-	pLangs=$2
 	CodeDir=$(pgDir ${Lang})
+	pg=$(ColorCodes)
 	#No Project Given
-	CodeProject="~none~"
+	if [ -z $2 ]; then
+		Code=""
+	else
+		Code=$2
+	fi
+	#No Project Given
+	if [ -z $3 ]; then
+		CodeProject="none"
+	else
+		CodeProject=$3
+		Dir="${CodeProject}"
+	fi
+
+	#Avoid getting incorrect directory name
+	if [[ "${Dir}" == "none" ]]; then
+		Dir=""
+	fi
+	#Language Chosen
 	if [[ ! "${CodeDir}" == "no" ]]; then
-		cd ${CodeDir}
-		Code=$(selectCode ${Lang} $3 "")
+		cd ${CodeDir}/${Dir}
 		Banner
 		while true
 		do
+			#Change Color for Language
 			cLang=$(color ${Lang})
+			#Change Color for Code
 			cCode=$(color ${Code})
 			if [[ "${Code}" == "" ]]; then
+				#Menu with no code
 				echo -n "${Head}(${cLang}):$ "
 			else
+				#Menu with code
 				echo -n "${Head}(${cLang}{${cCode}}):$ "
 			fi
 			read mode arg option
 			case ${mode} in
+				#List files
 				ls)
 					ls
 					;;
+				#Clear screen
 				clear)
 					clear
 					;;
+				#Set for session
 				set)
 					Code=$(selectCode ${Lang} ${arg} ${Code})
 					;;
+				#Unset code for session
 				unset)
 					Code=""
 					;;
+				#Handle Projects
 				project)
+					#Create new project
 					if [ "${arg}" == "new" ]; then
 						newProject ${Lang} ${option}
 						updateProject ${option} ${Code}
 						if [ ! -z ${option} ]; then
 							CodeProject=${option}
 						fi
+					#Update live project
 					elif [ "${arg}" == "update" ]; then
 						updateProject ${CodeProject} ${Code}
+					#Load an existing project
 					elif [ "${arg}" == "load" ]; then
 						project=$(loadProject ${option})
 						if [ "${project}" != "no" ]; then
@@ -1142,12 +1244,15 @@ Actions()
 						else
 							echo "\"${CodeProject}\" is not a valid project"
 						fi
+					#Display active project
 					elif [ "${arg}" == "active" ]; then
 						echo "Active Project [${CodeProject}]"
+					#List all known projects
 					elif [ "${arg}" == "list" ]; then
 						listProjects
 					fi
 					;;
+				#Swap Programming Languages
 				use)
 					Old=${Lang}
 					Lang=$(pgLang ${arg})
@@ -1156,24 +1261,29 @@ Actions()
 						CodeDir=$(pgDir ${Lang})
 						cd ${CodeDir}
 						Code=""
-						CodeProject="~none~"
+						CodeProject="none"
 					else
 						Lang=${Old}
 						echo "Possible: ${pLangs}"
 					fi
 					;;
+				#Create new source code
 				new)
 					Code=$(newCode ${Lang} ${arg} ${Code})
 					;;
+				#Edit new source code
 				edit|ed)
 					editCode ${Code} ${arg}
 					;;
+				#Add code to Source Code
 				add)
 					Code=$(addCode ${Code} ${arg})
 					;;
+				#Read code without editing
 				read)
 					readCode ${Code} ${arg}
 					;;
+				#Swap from Binary to Src and vise-versa
 				swap|swp)
 					if [[ "${arg}" == "bin" ]]; then
 						Code=$(SwapToBin ${Code})
@@ -1183,29 +1293,63 @@ Actions()
 						echo "$mode (src|bin)"
 					fi
 					;;
+				#search for element in project
 				search)
 					lookFor ${CodeProject} ${arg}
 					;;
+				#Compile code
 				compile|cpl)
 					compileCode ${Code} ${CodeProject} ${arg}
 					#compileCode ${Code} ${arg}
 					#Code=$(SwapToBin ${Code})
 					;;
+				#Install compiled code into aliases
 				install)
 					Install ${Lang} ${Code} ${arg}
 					;;
 #				execute|exe|run)
 #					RunCode ${Lang} ${Code} ${arg}
 #					;;
+				#Display cl[ide] version
 				version|v)
 					ClideVersion
 					;;
+				#Display help page
 				help)
 					MenuHelp
 					;;
+				#load last session
+				last|load)
+					Dir=""
+					session=$(LoadSession)
+					Lang=$(echo ${session} | cut -d ";" -f 1)
+					CodeProject=$(echo ${session} | cut -d ";" -f 2)
+					Code=$(echo ${session} | cut -d ";" -f 3)
+					if [[ "${CodeProject}" != "none" ]]; then
+						Dir="${CodeProject}"
+					fi
+					case ${Lang} in
+						Bash)
+							CodeDir=${BashSrc}/${Dir}
+							;;
+						Python)
+							CodeDir=${PythonSrc}/${Dir}
+							;;
+						C++)
+							CodeDir=${CppSrc}/${Dir}
+							;;
+						Java)
+							CodeDir=${JavaSrc}/${Dir}
+							;;
+					esac
+					cd ${CodeDir}
+					;;
+				#Close cl[ide]
 				exit|close)
+					SaveSession ${CodeProject} ${Lang} ${Code}
 					break
 					;;
+				#ignore all other commands
 				*)
 					;;
 			esac
@@ -1216,33 +1360,46 @@ Actions()
 #Main Function
 main()
 {
-	Bash=$(color "Bash")
-	Python=$(color "Python")
-	Cpp=$(color "C++")
-	Java=$(color "Java")
-	pg="${Bash}; ${Python}; ${Cpp}; ${Java}"
+	pg=$(ColorCodes)
+	#No argument given
 	if [ -z "$1" ]; then
 		clear
 		CliHelp
 		getLang=""
+		#Force user to select language
 		while [ "$getLang" == "" ] || [[ "$getLang" == "no" ]];
 		do
 			echo "~Choose a language~"
 			echo -n "${Head}(${pg}):$ "
 			read getLang
+			#Verify Language
 			Lang=$(pgLang ${getLang})
 			clear
 		done
-		Actions ${Lang} "$pg"
+		#Start IDE
+		Actions ${Lang}
+	#Get verseion from cli
 	elif [[ "$1" == "-v" ]] || [[ "$1" == "--version" ]]; then
 		ClideVersion
+	#List projects from cli
 	elif [[ "$1" == "-p" ]] || [[ "$1" == "--projects" ]]; then
 		listProjects
+	#Get cli help page
 	elif [[ "$1" == "-h" ]] || [[ "$1" == "--help" ]]; then
 		CliHelp
+	elif [[ "$1" == "-l" ]] || [[ "$1" == "--load" ]] || [[ "$1" == "--last" ]]; then
+		session=$(LoadSession)
+		Lang=$(echo ${session} | cut -d ";" -f 1)
+		Code=$(echo ${session} | cut -d ";" -f 3)
+		CodeProject=$(echo ${session} | cut -d ";" -f 2)
+		#Start IDE
+		Actions ${Lang} ${Code} ${CodeProject}
+	#Check for language given
 	else
+		#Verify Language
 		Lang=$(pgLang $1)
-		Actions ${Lang} "$pg" $2
+		#Start IDE
+		Actions ${Lang} $2
 	fi
 }
 
