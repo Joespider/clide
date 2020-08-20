@@ -32,7 +32,7 @@ JavaRun=java
 #1st # = Overflow
 #2nd # = Additional features
 #3rd # = Bug/code tweaks/fixes
-Version="0.51.01"
+Version="0.51.08"
 
 #root dir
 ProgDir=~/Programs
@@ -148,7 +148,7 @@ CliHelp()
 	echo "----------------[(${Head}) CLI]----------------"
 	echo "-v |--version: \"Get Clide Version\""
 	echo "-cv|--code-version: \"Get Compile/Interpreter Version\""
-	echo "-rv|--repo-version: \"Get Compile/Interpreter Version\""
+	echo "-rv|--repo-version: \"Get git/svn Version\""
 	echo "-c |--config: \"Get Clide Config\""
 	echo "-p |--projects: \"List Clide Projects\""
 	echo "-h |--help: \"Get CLI Help Page (Cl[ide] Menu: \"help\") \""
@@ -967,23 +967,19 @@ newCode()
 	#Bash
 	if [[ "${Lang}" == "Bash" ]]; then
 		if [[ "${name}" == *".sh" ]]; then
-			touch ${name}
-			echo "#!/bin/bash" > ${name}
-			echo "" >> ${name}
+			${BashBin}/newBash.sh ${name} > ${name}
 			echo "${name}"
 		else
-			touch "${name}.sh"
-			echo "#!/bin/bash" > "${name}.sh"
-			echo "" >> "${name}.sh"
+			${BashBin}/newBash.sh ${name}.sh > ${name}.sh
 			echo "${name}.sh"
 		fi
 	#Python
 	elif [[ "${Lang}" == "Python" ]]; then
 		if [[ "${name}" == *".py" ]]; then
-			touch "${name}"
+			${PythonRun} ${PythonBin}/newPython.py -n ${name} --cli --main -w -r -o
 			echo "${name}"
 		else
-			touch "${name}.py"
+			${PythonRun} ${PythonBin}/newPython.py -n ${name}.py --cli --main -w -r -o
 			echo "${name}.py"
 		fi
 	#C++
@@ -1003,7 +999,7 @@ newCode()
 						;;
 					#create main file
 					main)
-						${CppBin}/newC++ -w -r -cli --main -i -u -n "${name}"
+						${CppBin}/newC++ -w -r --cli --main -i -u -n "${name}"
 						echo "${name}.cpp"
 						;;
 					#create component file
@@ -1596,23 +1592,13 @@ compileCode()
 			else
 				#Separate list of selected code
 				prog=$(echo ${src} | sed "s/,/ /g")
-				#Compile and move C++ to Binary dir
-				if [[ "${project}" == *"/" ]]; then
-					${CppCpl} ${prog} -o ../../bin/${num}
-				else
-					${CppCpl} ${prog} -o ../bin/${num}
-				fi
+				${CppCpl} ${prog} -o ../bin/${num}
 				echo "[C++ Code Compiled]"
 			fi
 		#single code selected
 		else
 			#Compile and move C++ to Binary dir
-			if [[ "${project}" == *"/" ]]; then
-				${CppCpl} ${src} -o ../../bin/${src%.*}
-
-			else
-				${CppCpl} ${src} -o ../bin/${src%.*}
-			fi
+			${CppCpl} ${src} -o ../bin/${src%.*}
 			echo "[C++ Code Compiled]"
 		fi
 	#Java
@@ -2177,15 +2163,15 @@ Actions()
 					readCode ${Code} ${UserIn[1]}
 					;;
 				#Swap from Binary to Src and vise-versa
-#				swap|swp)
-#					if [[ "${UserIn[1]}" == "bin" ]]; then
-#						Code=$(SwapToBin ${Code})
-#					elif [[ "${UserIn[1]}" == "src" ]]; then
-#						Code=$(SwapToSrc ${Lang} ${Code})
-#					else
-#						echo "${mode} (src|bin)"
-#					fi
-#					;;
+				swap|swp)
+					if [[ "${UserIn[1]}" == "bin" ]]; then
+						Code=$(SwapToBin ${Code})
+					elif [[ "${UserIn[1]}" == "src" ]]; then
+						Code=$(SwapToSrc ${Lang} ${Code})
+					else
+						echo "${mode} (src|bin)"
+					fi
+					;;
 				#git/svn handler
 				${repoTool}|repo)
 					#Use ONLY for Projects
