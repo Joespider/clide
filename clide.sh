@@ -6,6 +6,13 @@ Shell=$(which bash)
 	#Allow User to input template args
 #}
 
+#Version tracking
+#Increment by 1 number per category
+#1st # = Overflow
+#2nd # = Additional features
+#3rd # = Bug/code tweaks/fixes
+Version="0.56.28"
+
 #cl[ide] config
 #{
 editor=nano
@@ -32,13 +39,6 @@ PythonRun=python
 CppCpl=g++
 JavaCpl=javac
 JavaRun=java
-
-#Version tracking
-#Increment by 1 number per category
-#1st # = Overflow
-#2nd # = Additional features
-#3rd # = Bug/code tweaks/fixes
-Version="0.56.27"
 
 #root dir
 ProgDir=~/Programs
@@ -1373,7 +1373,7 @@ RunCode()
 								CLIout="$USER@${Name}:~/${TheLang}\$ java ${JavaProp} ${TheName}"
 							#Its a Jar
 							elif [ -f ${JavaBin}/${TheJar} ]; then
-								CLIout="$USER@${Name}:~/${TheLang}\$ ./${TheNameJar}"
+								CLIout="$USER@${Name}:~/${TheLang}\$ java -jar ${TheNameJar}"
 							fi
 						else
 							#Its a Class
@@ -1381,7 +1381,7 @@ RunCode()
 								CLIout="$USER@${Name}:~/${TheLang}\$ java ${TheName}"
 							#Its a Jar
 							elif [ -f ${JavaBin}/${TheJar} ]; then
-								CLIout="$USER@${Name}:~/${TheLang}\$ ./${TheNameJar}"
+								CLIout="$USER@${Name}:~/${TheLang}\$ java -jar ${TheNameJar}"
 							fi
 						fi
 						;;
