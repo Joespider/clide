@@ -1,5 +1,11 @@
 Shell=$(which bash)
 #!${Shell}
+
+#cl[ide] future features
+#{
+	#Allow User to input template args
+#}
+
 #cl[ide] config
 #{
 editor=nano
@@ -32,7 +38,7 @@ JavaRun=java
 #1st # = Overflow
 #2nd # = Additional features
 #3rd # = Bug/code tweaks/fixes
-Version="0.51.08"
+Version="0.56.25"
 
 #root dir
 ProgDir=~/Programs
@@ -56,7 +62,14 @@ PythonBin=${PythonHome}/bin
 CppBin=${CppHome}/bin
 JavaBin=${JavaHome}/bin
 
+#Public Vars
+#{
 Project=""
+CodeProject="none"
+RunTimeArgs=""
+JavaRunProp=""
+#}
+
 #}
 
 Art()
@@ -76,14 +89,15 @@ Art()
 #Clide menu help page
 MenuHelp()
 {
-	Lang=$1
-	project=$2
+	local Lang=$1
+	local project=$2
 	echo ""
 	echo "----------------[(${Head}) Menu]----------------"
 	echo "ls: \"list progams\""
 	echo "unset: \"deselect source code\""
 	echo "use {Bash|Python|C++|Java}: \"choose language\""
-#	echo "swap|swp {src|bin}: \"swap between sorce code and executable\""
+	echo "swap|swp {src|bin}: \"swap between sorce code and executable\""
+	echo "create <arg> : \"create compile and runtime arguments"
 	case ${Lang} in
 		Bash|Python)
 			echo "new <file>: \"create new ${Lang} script\""
@@ -98,8 +112,11 @@ MenuHelp()
 			echo "new <file> <type>: \"create new ${Lang} source file\""
 			echo "             main: \"create the main ${Lang} file\""
 			echo "        component: \"create a standard ${Lang} file\""
+			echo "compile|cpl: \"make code (CLASS) executable\""
+			echo "compile jar|cpl jar: \"make code (JAR) executable\""
 			;;
 		*)
+			echo "compile|cpl: \"make code executable\""
 			;;
 	esac
 	echo "rm|remove|delete: \"delete src file\""
@@ -118,12 +135,36 @@ MenuHelp()
 			echo "${repoTool}|repo: \"handle repos\""
 			;;
 	esac
-	echo "compile|cpl: \"make code executable\""
 	echo "search: \"search project src files for line of code\""
 	echo "execute|exe|run: {-a|--args}: \"run active program\""
 	echo "last|load: \"Load last session\""
 	echo "exit|close: \"close ide\""
 	echo "------------------------------------------------"
+	echo ""
+}
+
+CreateHelp()
+{
+	local Lang=$1
+
+	echo ""
+	echo "----------------[(${Head}) \"Create\" Help]----------------"
+	echo "args : create custom args"
+	case ${Lang} in
+#		Bash|Python)
+#			echo "args : create custom args"
+#			;;
+		C++)
+			echo "make : create makefile"
+			;;
+		Java)
+			echo "prop|properties|-D : create custome Java properties"
+			;;
+		*)
+			;;
+	esac
+	echo "reset : clear all"
+	echo "---------------------------------------------------------"
 	echo ""
 }
 
@@ -171,13 +212,17 @@ ClideConfig()
 	Repo=$(which ${repoTool})
 	if [ ! -z "${Repo}" ]; then
 		echo "Repo By: \"${repoTool}\""
-		if [[ "${repoAssist}" == "True" ]]; then
-			echo "${Head} handles the repo commands"
-		elif [[ "${repoAssist}" == "False" ]]; then
-			echo "The User is responsible for repo commands"
-		else
-			echo "repo version control has been disabled"
-		fi
+		case ${repoAssist} in
+			True)
+				echo "${Head} handles the repo commands"
+				;;
+			False)
+				echo "The User is responsible for repo commands"
+				;;
+			*)
+				echo "repo version control has been disabled"
+				;;
+		esac
 	fi
 	echo ""
 	echo "---[${Head} Compilers/Interpreters]---"
@@ -405,7 +450,7 @@ RepoVersion()
 
 CodeVersion()
 {
-	Lang=$1
+	local Lang=$1
 	if [[ "${Lang}" == "Bash" ]] || [ -z "${Lang}" ]; then
 		if [ ! -z "${BashCpl}" ]; then
 			BashVersion=$(${BashCpl} --version | head -n 1)
@@ -463,26 +508,37 @@ Banner()
 #Error messages
 errorCode()
 {
-	ecd=$1
-	sec=$2
-	thr=$3
+	local ecd=$1
+	local sec=$2
+	local thr=$3
 	case $ecd in
 		alias)
 			echo "\"${sec}\" already installed"
 			;;
 		install)
-			if [[ "${sec}" == "choose" ]]; then
-				echo "hint: please choose script"
-			else
-				echo "\"${sec}\" needs to be an executable"
-				echo "[to compile]: cpl"
-				echo "OR"
-				echo "[swap to executable]: swp bin"
-			fi
+			case ${sec} in
+				choose)
+					echo "hint: please choose script"
+					;;
+				*.java|*.class)
+					echo "\"${sec}\" needs to be an java jar"
+					echo "[to compile]: cpl jar"
+					;;
+				*)
+					echo "\"${sec}\" needs to be an executable"
+					echo "[to compile]: cpl"
+					echo "OR"
+					echo "[swap to executable]: swp bin"
+					;;
+			esac
 			;;
 		noCode)
 			echo "No Code Found"
 			echo "[to set code]: set <name>"
+			;;
+		newCode)
+			echo "Please Provide The Name Of Your New Code"
+			echo "EX: new <name>"
 			;;
 		editNull)
 			echo "hint: ${editor}|edit|ed <file>"
@@ -497,30 +553,40 @@ errorCode()
 			echo "code is not found in project"
 			;;
 		project)
-			if [[ "${sec}" == "none" ]]; then
-				echo "Your session MUST be a ${Head} Project"
-				echo "hint: Please create or load a project"
-				echo "$ project new <project>"
-				echo "$ project load <project>"
-			elif [[ "${sec}" == "exists" ]]; then
-				echo "\"${thr}\" is already a project"
-			elif [[ "${sec}" == "NotAProject" ]]; then
-				echo "No \"${thr}\" project found"
-			else
-				echo "Project error"
-			fi
+			case ${sec} in
+				none)
+					echo "Your session MUST be a ${Head} Project"
+					echo "hint: Please create or load a project"
+					echo "$ project new <project>"
+					echo "$ project load <project>"
+					;;
+				exists)
+					echo "\"${thr}\" is already a project"
+					;;
+				NotAProject)
+					echo "No \"${thr}\" project found"
+					;;
+				*)
+					echo "Project error"
+					;;
+			esac
 			;;
 		cpl)
-			if [[ "${sec}" == "choose" ]]; then
-				echo "hint: please choose script"
-			elif [[ "${sec}" == "already" ]]; then
-				echo "\"${thr}\" already compiled"
-			elif [[ "${sec}" == "not" ]]; then
-				echo "code not found"
-			else
-				echo "Nothing to Compile"
-				echo "[to set code]: set <name>"
-			fi
+			case ${sec} in
+				choose)
+					echo "hint: please choose a program name"
+					;;
+				already)
+					echo "\"${thr}\" already compiled"
+					;;
+				not)
+					echo "code not found"
+					;;
+				*)
+					echo "Nothing to Compile"
+					echo "[to set code]: set <name>"
+					;;
+			esac
 			;;
 		loadSession)
 				echo "No Session to load"
@@ -533,27 +599,30 @@ errorCode()
 #Search selected code for element
 lookFor()
 {
-	project=$1
-	search=$2
-	if [[ "${project}" == "none" ]]; then
-		errorCode "project" "none"
-	else
-		if [ ! -z "${search}" ]; then
-			grep -iR ${search} * | less
-		else
-			echo "Nothing to search for"
-			echo "Please provide a value"
-		fi
-	fi
+	local project=$1
+	local search=$2
+	case ${project} in
+		none)
+			errorCode "project" "none"
+			;;
+		*)
+			if [ ! -z "${search}" ]; then
+				grep -iR ${search} * | less
+			else
+				echo "Nothing to search for"
+				echo "Please provide a value"
+			fi
+			;;
+	esac
 }
 
 #Save Last Session
 SaveSession()
 {
-	Session="${ClideDir}/session"
-	Language=$1
-	Project=$2
-	SrcCode=$3
+	local Session="${ClideDir}/session"
+	local Language=$1
+	local Project=$2
+	local SrcCode=$3
 	#Source Needs to be present
 	if [ ! -z ${SrcCode} ]; then
 		touch ${Session}
@@ -564,7 +633,7 @@ SaveSession()
 #Load Last Session
 LoadSession()
 {
-	Session="${ClideDir}/session"
+	local Session="${ClideDir}/session"
 	#check for clide session
 	if [ ! -f "${Session}" ]; then
 		errorCode "loadSession"
@@ -576,82 +645,90 @@ LoadSession()
 #Create new project
 newProject()
 {
-	lang=$1
-	project=$2
-	path=""
+	local lang=$1
+	local project=$2
+	local path=""
 	#No Project is found
 	if [ -z ${project} ]; then
 		errorCode "project" "none"
 	else
 		#Grab Project Data
 		#Name Value
-		echo "name=${project}" > "${ClideDir}/${project}.clide"
+		echo "name=${project}" > ${ClideDir}/${project}.clide
 		#Language Value
-		echo "lang=${lang}" >> "${ClideDir}/${project}.clide"
+		echo "lang=${lang}" >> ${ClideDir}/${project}.clide
 		#Source Value
-		echo "src=" >> "${ClideDir}/${project}.clide"
+		echo "src=" >> ${ClideDir}/${project}.clide
 		#Check if Project dir is made
-		if [[ "${lang}" == "Bash" ]]; then
-			path=${BashSrc}/${project}
-			if [ ! -d ${path} ]; then
-				mkdir ${path}
-				cd ${path}
-				mkdir src bin
-				cd ${path}/src
-			else
-				cd ${path}/src
-			fi
-		#Python
-		elif [[ "${lang}" == "Python" ]]; then
-			path=${PythonSrc}/${project}
-			if [ ! -d ${path} ]; then
-				mkdir ${path}
-				cd ${path}
-				mkdir src bin
-				cd ${path}/src
-			else
-				cd ${path}/src
-			fi
-		#C++
-		elif [[ "${lang}" == "C++" ]]; then
-			path=${CppSrc}/${project}
-			#create and cd to project dir
-			if [ ! -d ${path} ]; then
-				mkdir ${path}
-				cd ${path}
-				mkdir bin build doc include lib spike src test
-				cd src
-			else
-				cd ${path}/src
-			fi
-		#Java
-		elif [[ "${lang}" == "Java" ]]; then
-			path=${JavaSrc}/${project}
-			if [ ! -d ${path} ]; then
-				mkdir ${path}
-				cd ${path}
-			else
-				cd ${path}
-			fi
-		fi
+		case ${lang} in
+			#Bash
+			Bash)
+				path=${BashSrc}/${project}
+				if [ ! -d ${path} ]; then
+					mkdir ${path}
+					cd ${path}
+					mkdir src bin
+					cd ${path}/src
+				else
+					cd ${path}/src
+				fi
+				;;
+			#Python
+			Python)
+				path=${PythonSrc}/${project}
+				if [ ! -d ${path} ]; then
+					mkdir ${path}
+					cd ${path}
+					mkdir src bin
+					cd ${path}/src
+				else
+					cd ${path}/src
+				fi
+				;;
+			#C++
+			C++)
+				path=${CppSrc}/${project}
+				#create and cd to project dir
+				if [ ! -d ${path} ]; then
+					mkdir ${path}
+					cd ${path}
+					mkdir bin build doc include lib spike src test
+					cd src
+				else
+					cd ${path}/src
+				fi
+				;;
+			#Java
+			Java)
+				path=${JavaSrc}/${project}
+				if [ ! -d ${path} ]; then
+					mkdir ${path}
+					cd ${path}
+				else
+					cd ${path}
+				fi
+				;;
+			*)
+				;;
+		esac
 	fi
 }
 
 #Update config of active Projects
 updateProject()
 {
-	project=$1
-	src=$2
+	local project=$1
+	local src=$2
 	#No Project is found
 	if [ ! -z ${src} ]; then
 		#Locate Project Directory
-		if [ ! -f "${ClideDir}/${project}.clide" ]; then
+		if [ ! -f ${ClideDir}/${project}.clide ]; then
 			errorCode "project" "NotAProject" ${project}
 		else
 			grep -v "src=" ${ClideDir}/${project}.clide > new
 			mv new ${ClideDir}/${project}.clide
 			#Grab Project Data
-			echo "src=${src}" >> "${ClideDir}/${project}.clide"
+			echo "src=${src}" >> ${ClideDir}/${project}.clide
 		fi
 	fi
 }
@@ -666,9 +743,9 @@ listProjects()
 #Load active projects
 loadProject()
 {
-	project=$1
-	path=""
-	RtnVals=""
+	local project=$1
+	local path=""
+	local RtnVals=""
 	if [ ! -d "${ClideDir}" ]; then
 		errorCode "project"
 	else
@@ -676,30 +753,37 @@ loadProject()
 			echo "no"
 		else
 			#Locate Project Directory
-			if [ -f "${ClideDir}/${project}.clide" ]; then
+			if [ -f ${ClideDir}/${project}.clide ]; then
 				#Grab Project Data
 				#Name Value
 				tag="name"
-				name=$(grep ${tag} "${ClideDir}/${project}.clide" | sed "s/${tag}=//g")
+				name=$(grep ${tag} ${ClideDir}/${project}.clide | sed "s/${tag}=//g")
 				#Language Value
 				tag="lang"
-				lang=$(grep ${tag} "${ClideDir}/${project}.clide" | sed "s/${tag}=//g")
+				lang=$(grep ${tag} ${ClideDir}/${project}.clide | sed "s/${tag}=//g")
 				#Source Value
 				tag="src"
-				src=$(grep ${tag} "${ClideDir}/${project}.clide" | sed "s/${tag}=//g")
-				#Bash
-				if [[ "${lang}" == "Bash" ]]; then
-					path=${BashSrc}/${name}/src
-				#Python
-				elif [[ "${lang}" == "Python" ]]; then
-					path=${PythonSrc}/${name}/src
-				#C++
-				elif [[ "${lang}" == "C++" ]]; then
-					path=${CppSrc}/${name}/src
-				#Java
-				elif [[ "${lang}" == "Java" ]]; then
-					path=${JavaSrc}/${name}
-				fi
+				src=$(grep ${tag} ${ClideDir}/${project}.clide | sed "s/${tag}=//g")
+				case ${lang} in
+					#Bash
+					Bash)
+						path=${BashSrc}/${name}/src
+						;;
+					#Python
+					Python)
+						path=${PythonSrc}/${name}/src
+						;;
+					#C++
+					C++)
+						path=${CppSrc}/${name}/src
+						;;
+					#Java
+					Java)
+						path=${JavaSrc}/${name}
+						;;
+					*)
+						;;
+				esac
 				#return valid
 				RtnVals="${lang};${src};${path}"
 				echo ${RtnVals}
@@ -714,8 +798,8 @@ loadProject()
 #Edit Source code
 editCode()
 {
-	src=$1
-	num=$2
+	local src=$1
+	local num=$2
 	#Bash
 	if [[ "${src}" == *".sh" ]]; then
 		if [[ "${src}" == *","* ]]; then
@@ -798,8 +882,8 @@ editCode()
 #Add code to active session
 addCode()
 {
-	src=$1
-	new=$2
+	local src=$1
+	local new=$2
 	#Bash
 	if [[ "$src" == *".sh" ]]; then
 		if [[ "${new}" == *".sh" ]]; then
@@ -873,8 +957,8 @@ addCode()
 #Read source code without editing
 readCode()
 {
-	src=$1
-	num=$2
+	local src=$1
+	local num=$2
 	#Bash
 	if [[ "${src}" == *".sh" ]]; then
 		if [[ "${src}" == *","* ]]; then
@@ -958,58 +1042,120 @@ readCode()
 #Create new source code
 newCode()
 {
-	Lang=$1
-	name=$2
-	oldCode=$3
-	Project=$4
-	Type=$5
+	local Lang=$1
+	local name=$2
+	local Project=$3
+	local Type=$4
 	Type=$(echo ${Type} | tr A-Z a-z)
-	#Bash
-	if [[ "${Lang}" == "Bash" ]]; then
-		if [[ "${name}" == *".sh" ]]; then
-			${BashBin}/newBash.sh ${name} > ${name}
-			echo "${name}"
-		else
-			${BashBin}/newBash.sh ${name}.sh > ${name}.sh
-			echo "${name}.sh"
-		fi
-	#Python
-	elif [[ "${Lang}" == "Python" ]]; then
-		if [[ "${name}" == *".py" ]]; then
-			${PythonRun} ${PythonBin}/newPython.py -n ${name} --cli --main -w -r -o
-			echo "${name}"
-		else
-			${PythonRun} ${PythonBin}/newPython.py -n ${name}.py --cli --main -w -r -o
-			echo "${name}.py"
-		fi
-	#C++
-	elif [[ "${Lang}" == "C++" ]]; then
-		if [ ! -f "${name}.cpp" ]; then
-			if [ -f "${CppBin}/newC++" ]; then
+	case ${Lang} in
+		#Bash
+		Bash)
+			name=${name%.sh}
+			if [ ! -f ${name}.sh ]; then
+				#Check for Custom Code Template
+				if [ -f ${BashBin}/newBash.sh ]; then
+					#Program Name Given
+					if [ ! -z "${name}" ];then
+						${BashBin}/newBash.sh ${name} > ${name}.sh
+					#No Program Name Given
+					else
+						${BashBin}/newBash.sh --help
+					fi
+				else
+					#Program Name Given
+					if [ ! -z "${name}" ];then
+						touch ${name}.sh
+					else
+						errorCode "newCode"
+					fi
+				fi
+			fi
+			;;
+		#Python
+		Python)
+			name=${name%.py}
+			if [ ! -f ${name}.py ]; then
+				#Check for Custom Code Template
+				if [ -f ${PythonBin}/newPython.py ]; then
+					#Program Name Given
+					if [ ! -z "${name}" ];then
+						${PythonRun} ${PythonBin}/newPython.py -n ${name} --cli --main -w -r -o
+					#No Program Name Given
+					else
+						${PythonRun} ${PythonBin}/newPython.py --help
+					fi
+				else
+					#Program Name Given
+					if [ ! -z "${name}" ];then
+						touch ${name}.py
+					else
+						errorCode "newCode"
+					fi
+				fi
+			fi
+			;;
+		#C++
+		C++)
+			name=${name%.cpp}
+			name=${name%.h}
+			if [ ! -f ${name}.cpp ] || [ ! -f ${name}.h ]; then
 				case ${Type} in
 					#create header file
 					header)
-						if [[ "${name}" == *".h" ]];then
-							touch "${name}"
-							echo "${name}"
-						else
+						#Program Name Given
+						if [ ! -z "${name}" ];then
 							touch "${name}.h"
-							echo "${name}.h"
+						else
+							errorCode "newCode"
 						fi
 						;;
 					#create main file
 					main)
-						${CppBin}/newC++ -w -r --cli --main -i -u -n "${name}"
-						echo "${name}.cpp"
+						#Check for Custom Code Template
+						if [ -f ${CppBin}/newC++ ]; then
+							#Program Name Given
+							if [ ! -z "${name}" ];then
+								${CppBin}/newC++ -w -r --cli --main -i -u -n ${name}
+							#No Program Name Given
+							else
+								#Help Page
+								${CppBin}/newC++ --help
+							fi
+						else
+							#Program Name Given
+							if [ ! -z "${name}" ];then
+								touch ${name}.cpp
+							else
+								errorCode "newCode"
+							fi
+						fi
 						;;
 					#create component file
 					component)
-						${CppBin}/newC++ -n "${name}"
-						echo "${name}.cpp"
+						if [ -f ${CppBin}/newC++ ]; then
+							#Program Name Given
+							if [ ! -z "${name}" ];then
+								${CppBin}/newC++ -n "${name}"
+							#No Program Name Given
+							else
+								#Help Page
+								${CppBin}/newC++ --help
+							fi
+						else
+							#Program Name Given
+							if [ ! -z "${name}" ];then
+								touch ${name}.cpp
+							else
+								errorCode "newCode"
+							fi
+						fi
 						;;
+					#cl[ide] knows best
 					*)
+						#Is not a project
 						if [[ "${Project}" == "none" ]]; then
 							newCode ${Lang} ${name} ${oldCode} ${Project} "main"
+						#Is a project
 						else
 							if [[ "${oldCode}" == *".cpp" ]] || [[ "${oldCode}" == *".cpp" ]]; then
 								newCode ${Lang} ${name} ${oldCode} ${Project} "component"
@@ -1018,61 +1164,102 @@ newCode()
 							fi
 						fi
 						;;
-					esac
-			else
-				echo "${oldCode}"
-			fi
-		else
-			echo "${oldCode}"
-		fi
-	#Java
-	elif [[ "${Lang}" == "Java" ]]; then
-		if [ ! -f "${name}.java" ]; then
-			if [ -f "${JavaBin}/newJava.class" ]; then
-				case ${Type} in
-					#create main file
-					main)
-						cd ${JavaBin}
-						java newJava --user $USER --main -w -r -u -n "${name}"
-						cd - > /dev/null
-						mv "${JavaBin}/${name}.java" .
-						echo "${name}.java"
-						;;
-					#create component file
-					component)
-						cd ${JavaBin}
-						java newJava --user $USER -w -r -n "${name}"
-						cd - > /dev/null
-						mv "${JavaBin}/${name}.java" .
-						echo "${name}.java"
-						;;
-					*)
-						#main class already created
-						if [[ "${oldCode}" == *".java" ]]; then
-							#Create libary class
-							newCode ${Lang} ${name} ${oldCode} ${Project} "component"
-						else
-							newCode ${Lang} ${name} ${oldCode} ${Project} "main"
-						fi
-						;;
 				esac
-			else
-				echo "${oldCode}"
 			fi
-		else
-			echo "${oldCode}"
-		fi
-	else
-		echo "${oldCode}"
-	fi
+			;;
+		#Java
+		Java)
+			name=${name%.java}
+			if [ ! -f ${name}.java ]; then
+				#Check for Custom Code Template...is class
+				if [ -f ${JavaBin}/newJava.class ]; then
+					#Program Name Given
+					if [ ! -z "${name}" ];then
+						case ${Type} in
+							#create main file
+							main)
+								cd ${JavaBin}
+								java newJava --user $USER --main -w -r -u -n "${name}"
+								cd - > /dev/null
+								mv "${JavaBin}/${name}.java" .
+								;;
+							#create component file
+							component)
+								cd ${JavaBin}
+								java newJava --user $USER -w -r -n "${name}"
+								cd - > /dev/null
+								mv "${JavaBin}/${name}.java" .
+								;;
+							#cl[ide] knows best
+							*)
+								#main class already created
+								if [[ "${oldCode}" == *".java" ]]; then
+									#Create libary class
+									newCode ${Lang} ${name} ${oldCode} ${Project} "component"
+								else
+									#Create new main code
+									newCode ${Lang} ${name} ${oldCode} ${Project} "main"
+								fi
+								;;
+						esac
+					#No Program Name Given
+					else
+						cd ${JavaBin}
+						java newJava --help
+						cd - > /dev/null
+					fi
+				#Check for Custom Code Template...is jar
+				elif [ -f ${JavaBin}/newJava.jar ]; then
+					#Program Name Given
+					if [ ! -z "${name}" ];then
+						case ${Type} in
+							#create main file
+							main)
+								${JavaBin}/newJava.jar --user $USER --main -w -r -u -n "${name}"
+								;;
+							#create component file
+							component)
+								${JavaBin}/newJava.jar --user $USER -w -r -n "${name}"
+								;;
+							#cl[ide] knows best
+							*)
+								#main class already created
+								if [[ "${oldCode}" == *".java" ]]; then
+									#Create libary class
+									newCode ${Lang} ${name} ${oldCode} ${Project} "component"
+								else
+									#Create new main code
+									newCode ${Lang} ${name} ${oldCode} ${Project} "main"
+								fi
+								;;
+						esac
+					#No Program Name Given
+					else
+						${JavaBin}/newJava.jar --help
+					fi
+				#No Program Name Given
+				else
+					#Program Name Given
+					if [ ! -z "${name}" ];then
+						touch ${name}.java
+					else
+						errorCode "newCode"
+					fi
+				fi
+			fi
+			;;
+		#no langague given
+		*)
+			;;
+	esac
 }
 
 #remove source code
 Remove()
 {
-	active=$1
-	src=$2
-	option=$3
+	local active=$1
+	local src=$2
+	local option=$3
 	if [ ! -z "${src}" ]; then
 		if [ *"${src}"* == "${active}" ]; then
 			if [ -f ${src} ]; then
@@ -1112,115 +1299,210 @@ Remove()
 
 RunCode()
 {
-	Lang=$1
-	name=$2
-	option=$3
-	Args=""
+	local Lang=$1
+	local name=$2
+	local option=$3
+	local Args=""
+	local JavaProp=""
+	local TheBin=""
+	local TheJar=""
 	if [[ "${name}" == *","* ]]; then
 		echo "${Head} can only handle ONE file"
 	else
-		#Adjust for C++ code
-		if [[ "${Lang}" == "C++" ]]; then
-			TheBin="${name%.*}"
-		#Adjust for Java code
-		elif [[ "${Lang}" == "Java" ]]; then
-			TheBin="${name%.*}.class"
-		#Bash and Python
-		else
-			TheBin="${name}"
-		fi
+		case ${Lang} in
+			#Adjust for C++ code
+			C++)
+				TheBin="${name%.*}"
+				;;
+			#Adjust for Java code
+			Java)
+				TheBin="${name%.*}.class"
+				TheJar="${name%.*}.jar"
+				#Check for Java System.getProperty
+				getPropPresent=$(grep "System.getProperty" ${name} | grep \, | tr -d '\t')
+				if [ ! -z "${getPropPresent}" ] && [ -z "${JavaProp}" ]; then
+					if [ -z "${JavaRunProp}" ]; then
+						#User Provide Values
+						echo "Please Provide Java Property"
+						echo -n "-D"
+						read -e EnvArgs
+						EnvArgs=$(echo "-D${EnvArgs}")
+						#All Given in one line
+					fi
+					#Ensure correct flags
+					if [[ "${EnvArgs}" == "-D"*"=\""*"\"" ]]; then
+						JavaProp=${EnvArgs}
+					#Args pre-set
+					elif [[ "${JavaRunProp}" == "-D"*"=\""*"\"" ]]; then
+						JavaProp=${JavaRunProp}
+					else
+						JavaProp=""
+					fi
+				fi
+				;;
+			#Bash and Python
+			*)
+				TheBin="${name}"
+				;;
+		esac
 
 		#Come up with a way to know if arguments are needed
 		TheLang=$(color "${Lang}")
-		TheName=$(color "${TheBin}")
-		if [[ "${option}"  == "-a" ]] || [[ "${option}"  == "--args" ]]; then
-			echo "[Provide cli arguments]"
-			if [[ "${Lang}" == "Python" ]]; then
-			echo -n "$USER@${Name}:~/${TheLang}\$ ${PythonRun} ${TheName} "
-			elif [[ "${Lang}" == "Java" ]]; then
-				echo -n "$USER@${Name}:~/${TheLang}\$ java ${TheName} "
-			else
-				echo -n "$USER@${Name}:~/${TheLang}\$ ./${TheName} "
-			fi
-			read -a Args
+		#If Java Class, remove .class
+		if [[ "${TheBin}" == *".class" ]]; then
+			TheName=$(color "${TheBin%.*}")
+			TheNameJar=$(color "${TheBin%.*}.jar")
+		#Other Languages
+		else
+			TheName=$(color "${TheBin}")
 		fi
-		#Bash
-		if [[ "${Lang}" == "Bash" ]]; then
-			#Check if Bash Script exists
-			if [ -f "${BashBin}/${name}" ]; then
-				${BashBin}/${name} ${Args[@]}
-			else
-				echo "${name} is not compiled"
-				echo "[HINT] \$ cpl"
-			fi
-		#Python
-		elif [[ "${Lang}" == "Python" ]]; then
-			#Check if Pythin Bin exists
-			if [ -f "${PythonBin}/${TheBin}" ]; then
-				${PythonRun} ${PythonBin}/${TheBin} ${Args[@]}
-			else
-				echo "${name} is not compiled"
-				echo "[HINT] \$ cpl"
+		#User Wishes to provide arments for program
+		case ${option} in
+			-a|--args)
+				CLIout=""
+				case ${Lang} in
+					Python)
+						CLIout="$USER@${Name}:~/${TheLang}\$ ${PythonRun} ${TheName}"
+						;;
+					Java)
+						if [ ! -z "${JavaProp}" ]; then
+							#Its a Class
+							if [ -f ${JavaBin}/${TheBin} ]; then
+								CLIout="$USER@${Name}:~/${TheLang}\$ java ${JavaProp} ${TheName}"
+							#Its a Jar
+							elif [ -f ${JavaBin}/${TheJar} ]; then
+								CLIout="$USER@${Name}:~/${TheLang}\$ ./${TheNameJar}"
+							fi
+						else
+							#Its a Class
+							if [ -f ${JavaBin}/${TheBin} ]; then
+								CLIout="$USER@${Name}:~/${TheLang}\$ java ${TheName}"
+							#Its a Jar
+							elif [ -f ${JavaBin}/${TheJar} ]; then
+								CLIout="$USER@${Name}:~/${TheLang}\$ ./${TheNameJar}"
+							fi
+						fi
+						;;
+					*)
+						CLIout="$USER@${Name}:~/${TheLang}\$ ./${TheName}"
+						;;
+				esac
+				#User Args not Pre-done
+				if [ -z "${RunTimeArgs}" ]; then
+					#Get User Args
+					echo -n "${CLIout} "
+					read -a Args
+				#User Args Pre-done
+				else
+					#Show Args
+					echo -n ${CLIout} "${RunTimeArgs[@]}"
+					read
+					Args=${RunTimeArgs[@]}
+				fi
+				;;
+			*)
+				;;
+		esac
 
-			fi
-		#C++
-		elif [[ "${Lang}" == "C++" ]]; then
-			#Check if C++ Bin exists
-			if [ -f "${CppBin}/${TheBin}" ]; then
-				${CppBin}/${TheBin} ${Args[@]}
-			else
-				echo "${name} is not compiled"
-				echo "[HINT] \$ cpl"
-			fi
-		#Java
-		elif [[ "${Lang}" == "Java" ]]; then
-			#Check if Java Class exists
-			if [ -f "${JavaBin}/${TheBin}" ]; then
-				TheBin=${TheBin%.*}
-				cd ${JavaBin}
-				${JavaRun} ${TheBin} ${Args[@]}
-				cd ${JavaSrc}
-				#cd -
-			else
-				echo "${name} is not compiled"
-				echo "[HINT] \$ cpl"
-			fi
-		fi
+		case ${Lang} in
+			#Bash
+			Bash)
+				#Check if Bash Script exists
+				if [ -f ${BashBin}/${name} ]; then
+				${BashBin}/${name} ${Args[@]}
+				else
+					echo "${name} is not compiled"
+					echo "[HINT] \$ cpl"
+				fi
+				;;
+			#Python
+			Python)
+				#Check if Pythin Bin exists
+				if [ -f ${PythonBin}/${TheBin} ]; then
+					${PythonRun} ${PythonBin}/${TheBin} ${Args[@]}
+				else
+					echo "${name} is not compiled"
+					echo "[HINT] \$ cpl"
+
+				fi
+				;;
+			#C++
+			C++)
+				#Check if C++ Bin exists
+				if [ -f ${CppBin}/${TheBin} ]; then
+					${CppBin}/${TheBin} ${Args[@]}
+				else
+					echo "${name} is not compiled"
+					echo "[HINT] \$ cpl"
+				fi
+				;;
+			#Java
+			Java)
+				#Check if Java Class exists
+				if [ -f ${JavaBin}/${TheBin} ]; then
+					TheBin=${TheBin%.*}
+					cd ${JavaBin}
+					#If no JavaProp found
+					if [ -z "${JavaProp}" ]; then
+						#Execute without
+						${JavaRun} ${TheBin} ${Args[@]}
+					else
+						${JavaRun} "${JavaProp}" ${TheBin} ${Args[@]}
+					fi
+					cd - > /dev/null
+				#Check if Java Jar exists
+				elif [ -f ${JavaBin}/${TheJar} ]; then
+					${JavaBin}/${TheJar} ${Args[@]}
+				else
+					echo "${name} is not compiled"
+					echo "[HINT] \$ cpl"
+				fi
+				;;
+			*)
+				;;
+		esac
 	fi
 }
 
 selectCode()
 {
-	code=$1
-	name=$2
-	old=$3
-	#bash
-	if [[ "${code}" == "Bash" ]]; then
-		#Correct filename
-		if [[ ! "${name}" == *".sh" ]] && [[ ! "${name}" == "clide" ]]; then
-			name="${name}.sh"
-		fi
-	#Python
-	elif [[ "${code}" == "Python" ]]; then
-		#Correct filename
-		if [[ ! "${name}" == *".py" ]]; then
-			name="${name}.py"
-		fi
-	#C++
-	elif [[ "${code}" == "C++" ]]; then
-		#Correct filename
-		if [[ ! "${name}" == *".cpp" ]] && [ -f "${name}.cpp" ]; then
-			name="${name}.cpp"
-		elif [[ ! "${name}" == *".h" ]] && [ -f "${name}.h" ]; then
-			name="${name}.h"
-		fi
-	#Java
-	elif [[ "${code}" == "Java" ]]; then
-		#Correct filename
-		if [[ ! "${name}" == *".java" ]]; then
-			name="${name}.java"
-		fi
-	fi
+	local code=$1
+	local name=$2
+	local old=$3
+	case ${code} in
+		#Bash
+		Bash)
+			#Correct filename
+			if [[ ! "${name}" == *".sh" ]] && [[ ! "${name}" == "clide" ]]; then
+				name="${name}.sh"
+			fi
+			;;
+		#Python
+		Python)
+			#Correct filename
+			if [[ ! "${name}" == *".py" ]]; then
+				name="${name}.py"
+			fi
+			;;
+		#C++
+		C++)
+			#Correct filename
+			if [[ ! "${name}" == *".cpp" ]] && [ -f "${name}.cpp" ]; then
+				name="${name}.cpp"
+			elif [[ ! "${name}" == *".h" ]] && [ -f "${name}.h" ]; then
+				name="${name}.h"
+			fi
+			;;
+		#Java
+		Java)
+			#Correct filename
+			if [[ ! "${name}" == *".java" ]]; then
+				name="${name}.java"
+			fi
+			;;
+		*)
+			;;
+	esac
 
 	#Return source file if exists
 	if [ -f "${name}" ]; then
@@ -1234,107 +1516,124 @@ selectCode()
 #get Program Source Code Dir
 pgDir()
 {
-	code=$1
-	#Bash
-	if [[ "${code}" == "Bash" ]]; then
-		#Return Bash src Dir
-		echo ${BashSrc}
-	#Python
-	elif [[ "$code" == "Python" ]]; then
-		#Return Python src Dir
-		echo ${PythonSrc}
-	#C++
-	elif [[ "$code" == "C++" ]]; then
-		#Return C++ src Dir
-		echo ${CppSrc}
-	#Java
-	elif [[ "$code" == "Java" ]]; then
-		#Return Java src Dir
-		echo ${JavaSrc}
-	#No Languge found
-	else
-		#Return rejection
-		echo "no"
-	fi
+	local code=$1
+	case ${code} in
+		#Bash
+		Bash)
+			#Return Bash src Dir
+			echo ${BashSrc}
+			;;
+		#Python
+		Python)
+			#Return Python src Dir
+			echo ${PythonSrc}
+			;;
+		#C++
+		C++)
+			#Return C++ src Dir
+			echo ${CppSrc}
+			;;
+		#Java
+		Java)
+			#Return Java src Dir
+			echo ${JavaSrc}
+			;;
+		#No Languge found
+		*)
+			#Return rejection
+			echo "no"
+			;;
+	esac
 }
 
 #get Language Name
 pgLang()
 {
-	Lang=$(echo "$1" | tr A-Z a-z)
-	#bash
-	if [[ "${Lang}" == "b" ]] || [[ "${Lang}" == "bash" ]]; then
-		if [ ! -z "${BashCpl}" ]; then
-			#Return Bash tag
-			echo "Bash"
-		else
+	local Lang=$(echo "$1" | tr A-Z a-z)
+	case ${Lang} in
+		#Bash
+		b|bash)
+			if [ ! -z "${BashCpl}" ]; then
+				#Return Bash tag
+				echo "Bash"
+			else
+				#Return rejection
+				echo "no"
+			fi
+			;;
+		#Python
+		p|python)
+			if [ ! -z "${PythonRun}" ]; then
+				#Return Python tag
+				echo "Python"
+			else
+				#Return rejection
+				echo "no"
+			fi
+			;;
+		#C++
+		c|c++)
+			if [ ! -z "${CppCpl}" ]; then
+				#Return C++ tag
+				echo "C++"
+			else
+				#Return rejection
+				echo "no"
+			fi
+			;;
+		#Java
+		j|java)
+			if [ ! -z "${JavaCpl}" ] && [ ! -z "${JavaRun}" ]; then
+				#Return Java tag
+				echo "Java"
+			else
+				#Return rejection
+				echo "no"
+			fi
+			;;
+		#No Languge found
+		*)
 			#Return rejection
 			echo "no"
-		fi
-	#Python
-	elif [[ "${Lang}" == "p" ]] || [[ "${Lang}" == "python" ]]; then
-		if [ ! -z "${PythonRun}" ]; then
-			#Return Python tag
-			echo "Python"
-		else
-			#Return rejection
-			echo "no"
-		fi
-	#C++
-	elif [[ "${Lang}" == "c" ]] || [[ "${Lang}" == "c++" ]]; then
-		if [ ! -z "${CppCpl}" ]; then
-			#Return C++ tag
-			echo "C++"
-		else
-			#Return rejection
-			echo "no"
-		fi
-	#Java
-	elif [[ "${Lang}" == "j" ]] || [[ "${Lang}" == "java" ]]; then
-		if [ ! -z "${JavaCpl}" ] && [ ! -z "${JavaRun}" ]; then
-			#Return Java tag
-			echo "Java"
-		else
-			#Return rejection
-			echo "no"
-		fi
-	#No Languge found
-	else
-		#Return rejection
-		echo "no"
-	fi
+			;;
+	esac
 }
 
 #Color Text
 color()
 {
-	text=$1
-	#bash
-	if [[ "${text}" == "Bash" ]]; then
-		#Return Green
-		echo -e "\e[1;32m${text}\e[0m"
-	#Python
-	elif [[ "${text}" == "Python" ]]; then
-		#Return Yellow
-		echo -e "\e[33m${text}\e[0m"
-	#C++
-	elif [[ "${text}" == "C++" ]]; then
-		#Return Blue
-		echo -e "\e[1;34m${text}\e[0m"
-	#Java
-	elif [[ "${text}" == "Java" ]]; then
-		#Return Red
-		echo -e "\e[1;31m${text}\e[0m"
-	#Other
-	else
-		#Return Purple
-		echo -e "\e[1;35m${text}\e[0m"
-	fi
+	local text=$1
+	case ${text} in
+		#Bash
+		Bash)
+			#Return Green
+			echo -e "\e[1;32m${text}\e[0m"
+			;;
+		#Python
+		Python)
+			#Return Yellow
+			echo -e "\e[1;33m${text}\e[0m"
+			;;
+			#C++
+		C++)
+			#Return Blue
+			echo -e "\e[1;34m${text}\e[0m"
+			;;
+		#Java
+		Java)
+			#Return Red
+			echo -e "\e[1;31m${text}\e[0m"
+			;;
+		#Other
+		*)
+			#Return Purple
+			echo -e "\e[1;35m${text}\e[0m"
+			;;
+	esac
 }
 
 ColorCodes()
 {
-
 	if [ ! -z "${BashCpl}" ]; then
 		Bash=$(color "Bash")
 	fi
@@ -1354,7 +1653,7 @@ ColorCodes()
 #Compile Python script
 py2bin()
 {
-	TheFile=$1
+	local TheFile=$1
 	#Make sure its python
 	if [[ "$TheFile" == *".py" ]]; then
 		#Get program name
@@ -1375,16 +1674,16 @@ py2bin()
 #Handle Aliases
 AddAlias()
 {
-	AliasName=$1
-	Command="$2 $3"
-	Insert="alias ${AliasName}=\"${Command} \$@\""
+	local AliasName=$1
+	local Command="$2 $3"
+	local Insert="alias ${AliasName}=\"${Command} \$@\""
 	if [[ "$USER" == "root" ]]; then
 		Replace="\\$HOME\\/"
 	else
 		Replace="\\/home\\/$USER\\/"
 	fi
-	With="\~\\/"
-	CheckFor=$(echo ${Insert} | sed "s/${Replace}/${With}/g")
+	local With="\~\\/"
+	local CheckFor=$(echo ${Insert} | sed "s/${Replace}/${With}/g")
 	touch ${Aliases}
 	if grep -q "alias ${AliasName}=" ${Aliases}; then
 		errorCode "alias" ${AliasName}
@@ -1406,66 +1705,78 @@ AddAlias()
 #Install into bash_aliases
 Install()
 {
-	code=$1
-	bin=$2
-	#bash
-	if [[ "${bin}" == *".sh" ]]; then
-		#Get Finary file name without extension
-		BinFile="${bin%.*}"
-		#Make sure Binary exists
-		if [[ -f "${BashBin}/${bin}" ]]; then
-			#Add command to Aliases
-			AddAlias "${BinFile}" "${BashBin}/${bin}"
-		else
-			errorCode "install" "${bin}"
-		fi
-	#Python
-	elif [[ "${bin}" == *".py" ]]; then
-		#Get Finary file name without extension
-		BinFile="${bin%.*}"
-		#Make sure Binary exists
-		if [[ -f "${PythonBin}/${bin}" ]]; then
-			#Add command to Aliases
-			AddAlias "${BinFile}" "python ${PythonBin}/${bin}"
-		else
-			errorCode "install" "${bin}"
-		fi
-	#C++ Binary
-	elif [[ "${code}" == "C++" ]]; then
-		#Make sure Binary exists
-		if [[ -f "${CppBin}/${bin}" ]]; then
-			#Add command to Aliases
-			AddAlias "${bin}" "${CppBin}/${bin}"
-		else
-			errorCode "install" "${bin}"
-		fi
-	#C++ Source Code
-	elif [[ "${bin}" == *".cpp" ]]; then
-		errorCode "install" "${bin}"
-	#Java binary
-	elif [[ "${bin}" == *".class" ]]; then
-		#Get Finary file name without extension
-		BinFile="${bin%.*}"
-		if [[ -f "${JavaBin}/${bin}" ]]; then
-			AddAlias "${BinFile}" "${JavaBin}/${bin}"
-		else
-			errorCode "install" "${bin}"
-		fi
-	#Java Source Code
-	elif [[ "${bin}" == *".java" ]]; then
-		errorCode "install" "${bin}"
-	#Not found
-	else
-		errorCode "noCode"
-	fi
+	local code=$1
+	local bin=$2
+	local BinFile="${bin%.*}"
+	case ${code} in
+		#Bash
+		Bash)
+			#Make sure Binary exists
+			if [ -f "${BashBin}/${bin}" ]; then
+				#Add command to Aliases
+				AddAlias "${BinFile}" "${BashBin}/${bin}"
+			elif [ ! -f "${BashBin}/${bin}" ]; then
+				errorCode "install" "${bin}"
+			else
+				errorCode "noCode"
+			fi
+			;;
+		#Python
+		Python)
+			#Make sure Binary exists
+			if [ -f "${PythonBin}/${bin}" ]; then
+				#Add command to Aliases
+				AddAlias "${BinFile}" "python ${PythonBin}/${bin}"
+			elif [ ! -f "${PythonBin}/${bin}" ]; then
+				errorCode "install" "${bin}"
+			else
+				errorCode "noCode"
+			fi
+			;;
+		#C++
+		C++)
+			#Make sure Binary exists
+			if [ -f "${CppBin}/${bin}" ]; then
+				#Add command to Aliases
+				AddAlias "${bin}" "${CppBin}/${bin}"
+			elif [ ! -f "${CppBin}/${bin}" ]; then
+				#compule or swap to binary
+				errorCode "install" "${bin}"
+			else
+				errorCode "noCode"
+			fi
+			;;
+		#Java
+		Java)
+			#Java binary
+			if [[ "${bin}" == *".java" ]]; then
+				#Check for Jar file
+				if [ -f "${JavaBin}/${BinFile}.jar" ]; then
+					AddAlias "${BinFile}" "${JavaBin}/${BinFile}.jar"
+				elif [ -f "${JavaBin}/${bin}.class" ]; then
+					echo "Please compile as jar file"
+					echo "[hint] $ cpl jar"
+				else
+					errorCode "install" "${bin}"
+				fi
+			else
+				errorCode "noCode"
+			fi
+			;;
+		#Not found
+		*)
+			errorCode "noCode"
+			;;
+	esac
 }
 
 #Compile code
 compileCode()
 {
-	src=$1
-	project=$2
-	num=$3
+	local src=$1
+	local project=${CodeProject}
+	local name=$2
+	local cplArgs=""
 	#Handle Project Dir
 	if [[ "${project}" == "none" ]]; then
 		project=""
@@ -1477,29 +1788,29 @@ compileCode()
 		#Multiple code selected
 		if [[ "${src}" == *","* ]]; then
 			#varable is empty
-			if [ -z ${num} ]; then
+			if [ -z ${name} ]; then
 				errorCode "cpl" "choose"
 			else
 				#chosen file is in the list of files
-				if [[ "${src}" == *"${num}"* ]]; then
+				if [[ "${src}" == *"${name}"* ]]; then
 					#only name is given
-					if [[ "${num}" != *".sh" ]]; then
+					if [[ "${name}" != *".sh" ]]; then
 						#full filename given
-						num=${num}.sh
+						num=${name}.sh
 					fi
 					#Make Bash Script executable
-					chmod +x ${num}
+					chmod +x ${name}
 					#Check if Bash Script does NOT exist
-					if [[ ! -f "${BashBin}/${num}" ]]; then
+					if [[ ! -f "${BashBin}/${name}" ]]; then
 						#Change to Bash Binary dir
 						cd ${BashBin}
 						#Create Symbolic Link to Bash Script
-						ln -s ../src/${project}${num}
+						ln -s ../src/${project}${name}
 						#Change to Bash Source dir
 						cd "${BashSrc}/${project}"
-						echo "[Bash Code Compiled]"
+						echo -e "\e[1;42m[Bash Code Compiled]\e[0m"
 					else
-						errorCode "cpl" "already" ${num}
+						errorCode "cpl" "already" ${name}
 					fi
 				else
 					errorCode "cpl" "not"
@@ -1517,7 +1828,7 @@ compileCode()
 				ln -s ../src/${project}${src}
 				#Change to Bash Source dir
 				cd "${BashSrc}/${project}"
-				echo "[Bash Code Compiled]"
+				echo -e "\e[1;42m[Bash Code Compiled]\e[0m"
 			else
 				errorCode "cpl" "already" ${src}
 			fi
@@ -1535,30 +1846,30 @@ compileCode()
 		#Multiple code selected
 		if [[ "${src}" == *","* ]]; then
 			#variable is empty
-			if [ -z ${num} ]; then
+			if [ -z ${name} ]; then
 				errorCode "cpl" "choose"
 			#variable found
 			else
 				#chosen file is in the list of files
-				if [[ "${src}" == *"${num}"* ]]; then
+				if [[ "${src}" == *"${name}"* ]]; then
 					#only name is given
-					if [[ "${num}" != *".py" ]]; then
+					if [[ "${name}" != *".py" ]]; then
 						#full filename given
-						num=${num}.py
+						num=${name}.py
 					fi
 					#Make Python Script executable
-					chmod +x ${num}
+					chmod +x ${name}
 					#Check if Python Script does NOT exist
-					if [[ ! -f "${PythonBin}/${num}" ]]; then
+					if [[ ! -f "${PythonBin}/${name}" ]]; then
 						#Change to Python Binary dir
 						cd ${PythonBin}
 						#Create Symbolic Link to Python Script
-						ln -s ../src/${project}${num}
+						ln -s ../src/${project}${name}
 						#Change to Python Source dir
 						cd "${PythonSrc}/${project}"
-						echo "[Python Code Compiled]"
+						echo -e "\e[1;43m[Python Code Compiled]\e[0m"
 					else
-						errorCode "cpl" "already" ${num}
+						errorCode "cpl" "already" ${name}
 					fi
 				else
 					echo "code not found"
@@ -1576,30 +1887,47 @@ compileCode()
 				ln -s ../src/${project}${src}
 				#Change to Python Source dir
 				cd "${PythonSrc}/${project}"
-				echo "[Python Code Compiled]"
+				echo -e "\e[1;43m[Python Code Compiled]\e[0m"
 			#Code is already found
 			else
 				errorCode "cpl" "already" ${src}
 			fi
 		fi
 	#C++
-	elif [[ "$src" == *".cpp"* ]]; then
-		#Multiple code selected
-		if [[ "${src}" == *","* ]]; then
-			#num is empty
-			if [ -z ${num} ]; then
-				errorCode "cpl" "choose"
-			else
-				#Separate list of selected code
-				prog=$(echo ${src} | sed "s/,/ /g")
-				${CppCpl} ${prog} -o ../bin/${num}
-				echo "[C++ Code Compiled]"
-			fi
-		#single code selected
+	elif [[ "$src" == *".cpp"* ]] || [ -f ${CppSrc}/${project}makefile ]; then
+		if [ -f ${CppSrc}/${project}makefile ]; then
+			cd ${CppSrc}/${project}
+			echo "make"
+			cd - > /dev/null
+			echo -e "\e[1;44m[C++ Code Compiled]\e[0m"
 		else
-			#Compile and move C++ to Binary dir
-			${CppCpl} ${src} -o ../bin/${src%.*}
-			echo "[C++ Code Compiled]"
+			#Multiple code selected
+			if [[ "${src}" == *","* ]]; then
+				#num is empty
+				if [ -z ${name} ]; then
+					errorCode "cpl" "choose"
+				else
+					#Separate list of selected code
+					prog=$(echo ${src} | sed "s/,/ /g")
+					#Compile for Threads
+					NeedThreads=$(grep "#include <thread>" ${prog})
+					if [ ! -z "${NeedThreads}" ]; then
+						cplArgs="-lpthread"
+					fi
+					${CppCpl} ${prog} -o ../bin/${name} ${cplArgs}
+					echo -e "\e[1;44m[C++ Code Compiled]\e[0m"
+				fi
+			#single code selected
+			else
+				#Compile for threading
+				NeedThreads=$(grep "#include <thread>" ${src})
+				if [ ! -z "${NeedThreads}" ]; then
+					cplArgs="-lpthread"
+				fi
+				#Compile and move C++ to Binary dir
+				${CppCpl} ${src} -o ../bin/${src%.*} ${cplArgs}
+				echo -e "\e[1;44m[C++ Code Compiled]\e[0m"
+			fi
 		fi
 	#Java
 	elif [[ "$src" == *".java" ]]; then
@@ -1622,9 +1950,34 @@ compileCode()
 			#get Java Class/compiled file name
 			des=${src%.*}.class
 			if [ -f ${des} ]; then
-				#move Java Class to Binary dir
-				mv ${des} ../bin/
-				echo "[Java Code Compiled]"
+				#Compile as jar or class
+				case ${name} in
+					#Compile as Jar
+					jar)
+						if [ ! -f manifest.mf ]; then
+							echo "Main-Class: ${des%.class}" > manifest.mf
+						fi
+						jar -cmf manifest.mf ${des%.class}.jar ${des}
+						chmod +x ${des%.class}.jar
+						#remove class file
+						if [ -f ../bin/${des} ]; then
+							rm ../bin/${des}
+						fi
+						rm manifest.mf ${des}
+						#move Java Jar to Binary dir
+						mv ${des%.class}.jar ../bin/
+						;;
+					#Do nothing...keep class
+					*)
+						#move Java Class to Binary dir
+						mv ${des} ../bin/
+						#remove old jar
+						if [ -f ../bin/${des%.class}.jar ]; then
+							rm ../bin/${des%.class}.jar
+						fi
+						;;
+				esac
+				echo -e "\e[1;41m[Java Code Compiled]\e[0m"
 			fi
 		fi
 	#Not found
@@ -1633,9 +1986,10 @@ compileCode()
 	fi
 }
 
+#Handle Git commands
 gitHandler()
 {
-	repoAct=$1
+	local repoAct=$1
 	shift
 	#check if git is installed
 	GitTool=$(which git)
@@ -1698,6 +2052,7 @@ gitHandler()
 					fi
 				fi
 				;;
+			#Handles Git Branches
 			branch|branches)
 				branchAct=$1
 				shift
@@ -1810,7 +2165,7 @@ gitHandler()
 
 svnHandler()
 {
-	repoAct=$1
+	local repoAct=$1
 	shift
 	#check if git is installed
 	SvnTool=$(which svn)
@@ -1825,90 +2180,99 @@ svnHandler()
 
 repoHandler()
 {
-	if [[ "${repoTool}" == "git" ]]; then
-		#git execution is handled by user
-		if [[ "${repoAssist}" == "False" ]] && [[ "$1" == "${repoTool}" ]]; then
-
-			IsInstalled=$(which ${repoTool})
-			if [ ! -z "${IsInstalled}" ]; then
-				$@
+	case ${repoTool} in
+		git)
+			#git execution is handled by user
+			if [[ "${repoAssist}" == "False" ]] && [[ "$1" == "${repoTool}" ]]; then
+				IsInstalled=$(which ${repoTool})
+				if [ ! -z "${IsInstalled}" ]; then
+					$@
+				else
+					echo "\"${repoTool}\" is not installed"
+				fi
+			#git execution is handled by cl[ide]
+			elif [[ "${repoAssist}" == "True" ]]; then
+				shift
+				gitHandler $@
 			else
-				echo "\"${repoTool}\" is not installed"
+				echo "repo version control has been disabled"
 			fi
-		#git execution is handled by cl[ide]
-		elif [[ "${repoAssist}" == "True" ]]; then
-			shift
-			gitHandler $@
-		else
-			echo "repo version control has been disabled"
-		fi
-	elif [[ "${repoTool}" == "svn" ]]; then
-		#svn execution is handled by user
-		if [[ "${repoAssist}" == "False" ]] && [[ "$1" == "${repoTool}" ]]; then
-			IsInstalled=$(which ${repoTool})
-			if [ ! -z "${IsInstalled}" ]; then
-				$@
+			;;
+		svn)
+			#svn execution is handled by user
+			if [[ "${repoAssist}" == "False" ]] && [[ "$1" == "${repoTool}" ]]; then
+				IsInstalled=$(which ${repoTool})
+				if [ ! -z "${IsInstalled}" ]; then
+					$@
+				else
+					echo "\"${repoTool}\" is not installed"
+				fi
+			#svn execution is handled by cl[ide]
+			elif [[ "${repoAssist}" == "True" ]]; then
+				shift
+				svnHandler $@
 			else
-				echo "\"${repoTool}\" is not installed"
+				echo "repo version control has been disabled"
 			fi
-		#svn execution is handled by cl[ide]
-		elif [[ "${repoAssist}" == "True" ]]; then
-			shift
-			svnHandler $@
-		else
-			echo "repo version control has been disabled"
-		fi
-	else
-		echo "${Head} is unable to use \"${repoTool}\" at this time"
-	fi
+			;;
+		*)
+			echo "${Head} is unable to use \"${repoTool}\" at this time"
+			;;
+	esac
 }
 
 #Switch to Src file
 SwapToSrc()
 {
-	Lang=$1
-	src=$2
-	#bash
-	if [[ "${Lang}" == "Bash" ]]; then
-		echo "${src}"
-	#Python
-	elif [[ "${Lang}" == "Python" ]]; then
-		#Get Python Name
-	#	src="${src}.py"
-	#	#Check if Python source exists
-	#	if [[ -f "${PythonSrc}/${src}" ]]; then
-	#		#Return Python Source Name
+	local Lang=$1
+	local src=$2
+	case ${Lang} in
+		#Bash
+		Bash)
 			echo "${src}"
-	#	fi
-	#C++
-	elif [[ "${Lang}" == "C++" ]]; then
-		#cd "${CppSrc}"
-		#Get C++ Name
-		src="${src}.cpp"
-		#Check if C++ source exists
-		if [ -f "${CppSrc}/${src}" ]; then
-			#Return C++ Source Name
+			;;
+		#Python
+		Python)
+			#Get Python Name
+		#	src="${src}.py"
+		#	#Check if Python source exists
+		#	if [[ -f "${PythonSrc}/${src}" ]]; then
+		#		#Return Python Source Name
+				echo "${src}"
+		#	fi
+			;;
+		#C++
+		C++)
+			#cd "${CppSrc}"
+			#Get C++ Name
+			src="${src}.cpp"
+			#Check if C++ source exists
+			if [ -f "${CppSrc}/${src}" ]; then
+				#Return C++ Source Name
+				echo "${src}"
+			fi
+			;;
+		#Java
+		Java)
+			#cd "${JavaSrc}"
+			#Get Java Name
+			src="${src%.*}.java"
+			#Check if Java source exists
+			if [ -f "${JavaSrc}/${src}" ]; then
+				#Return Java Source Name
+				echo "${src}"
+			fi
+			;;
+		*)
 			echo "${src}"
-		fi
-	#Java
-	elif [[ "${Lang}" == "Java" ]]; then
-		#cd "${JavaSrc}"
-		#Get Java Name
-		src="${src%.*}.java"
-		#Check if Java source exists
-		if [ -f "${JavaSrc}/${src}" ]; then
-			#Return Java Source Name
-			echo "${src}"
-		fi
-	else
-		echo "${src}"
-	fi
+			;;
+	esac
 }
 
 #Switch to Bin file
 SwapToBin()
 {
-	bin=$1
+	local bin=$1
 	#bash
 	if [[ "${bin}" == *".sh" ]]; then
 		#Check if Bash Binary exists
@@ -1969,11 +2333,12 @@ SwapToBin()
 #IDE
 Actions()
 {
-	Dir=""
-	ProjectDir=""
-	Lang=$1
-	CodeDir=$(pgDir ${Lang})
-	pLangs=$(ColorCodes)
+	local Dir=""
+	local ProjectDir=""
+	local Lang=$1
+	local CodeDir=$(pgDir ${Lang})
+	local pLangs=$(ColorCodes)
+	local UserArg=""
 	#No Project Given
 	if [ -z $2 ]; then
 		Code=""
@@ -2023,8 +2388,10 @@ Actions()
 					echo -n "${Name}(${cLang}[${CodeProject}${ProjectDir}]{${cCode}}):$ "
 				fi
 			fi
+			#Handle CLI
 			read -a UserIn
-			case ${UserIn[0]} in
+			UserArg=$(echo ${UserIn[0]} | tr A-Z a-z)
+			case ${UserArg} in
 				#List files
 				ls)
 					ls ${UserIn[1]}
@@ -2050,6 +2417,7 @@ Actions()
 					Remove ${Code} ${UserIn[1]} ${UserIn[2]}
 					Code=""
 					;;
+				#change dir in project
 				cd)
 					#Use ONLY for Projects
 					if [[ ! "${CodeProject}" == "none" ]]; then
@@ -2064,6 +2432,7 @@ Actions()
 						echo "Must have an active project"
 					fi
 					;;
+				#get pwd of dir
 				pwd)
 					#Use ONLY for Projects
 					if [[ ! "${CodeProject}" == "none" ]]; then
@@ -2073,6 +2442,7 @@ Actions()
 						echo "Must have an active project"
 					fi
 					;;
+				#make dir in project
 				mkdir)
 					#Use ONLY for Projects
 					if [[ ! "${CodeProject}" == "none" ]]; then
@@ -2083,64 +2453,84 @@ Actions()
 					;;
 				#Handle Projects
 				project)
-					#Create new project
-					if [ "${UserIn[1]}" == "new" ]; then
-						if [[ "${Lang}" == "Java" ]]; then
-							echo "${Head} Cannot handle Java Projects"
-						else
-							#Locate Project Directory
-							if [ -f "${ClideDir}/${UserIn[2]}.clide" ]; then
-								errorCode "project" "exists" ${UserIn[2]}
+					#Project commands
+					case ${UserIn[1]} in
+						#Create new project
+						new)
+							if [[ "${Lang}" == "Java" ]]; then
+								echo "${Head} Cannot handle Java Projects"
 							else
-								newProject ${Lang} ${UserIn[2]}
-								updateProject ${UserIn[2]} ${Code}
-								if [ ! -z ${UserIn[2]} ]; then
-									CodeProject=${UserIn[2]}
-									echo "Created \"${CodeProject}\""
+								#Locate Project Directory
+								if [ -f "${ClideDir}/${UserIn[2]}.clide" ]; then
+									errorCode "project" "exists" ${UserIn[2]}
+								else
+									newProject ${Lang} ${UserIn[2]}
+									Code=""
+									updateProject ${UserIn[2]} ${Code}
+									if [ ! -z ${UserIn[2]} ]; then
+										CodeProject=${UserIn[2]}
+										echo "Created \"${CodeProject}\""
+									fi
 								fi
 							fi
-						fi
-					#Update live project
-					elif [ "${UserIn[1]}" == "update" ]; then
-						updateProject ${CodeProject} ${Code}
-						echo "\"${CodeProject}\" updated"
-					#Load an existing project
-					elif [ "${UserIn[1]}" == "load" ]; then
-						project=$(loadProject ${UserIn[2]})
-						if [ "${project}" != "no" ]; then
-							Lang=$(echo ${project} | cut -d ";" -f 1)
-							Code=$(echo ${project} | cut -d ";" -f 2)
-							CodeDir=$(echo ${project} | cut -d ";" -f 3)
-							CodeProject=${UserIn[2]}
-							cd ${CodeDir}
-							echo "Project \"${CodeProject}\" loaded"
-						else
-							echo "Not a valid project"
-						fi
-#					#Display active project
-#					elif [ "${UserIn[1]}" == "active" ]; then
-#						if [[ "${CodeProject}" == "none" ]]; then
-#							echo "There are no active projects"
-#						else
-#							echo "Active Project [\"${CodeProject}\"]"
-#						fi
-					#List all known projects
-					elif [ "${UserIn[1]}" == "list" ]; then
-						listProjects
-					else
-						ProjectHelp
-					fi
+							;;
+						#Update live project
+						update)
+							updateProject ${CodeProject} ${Code}
+							echo "\"${CodeProject}\" updated"
+							;;
+						#Load an existing project
+						load)
+							project=$(loadProject ${UserIn[2]})
+							if [ "${project}" != "no" ]; then
+								Lang=$(echo ${project} | cut -d ";" -f 1)
+								Code=$(echo ${project} | cut -d ";" -f 2)
+								CodeDir=$(echo ${project} | cut -d ";" -f 3)
+								CodeProject=${UserIn[2]}
+								cd ${CodeDir}
+								echo "Project \"${CodeProject}\" loaded"
+							else
+								echo "Not a valid project"
+							fi
+							;;
+						#Display active project
+						active)
+							#There is no project listed
+							if [[ "${CodeProject}" == "none" ]]; then
+								echo "There are no active projects"
+							#Project is found
+							else
+								echo "Active Project [\"${CodeProject}\"]"
+							fi
+							;;
+						#List all known projects
+						list)
+							listProjects
+							;;
+						#Show Project help page
+						*)
+							ProjectHelp
+							;;
+					esac
 					;;
 				#Swap Programming Languages
-				use)
+				use|c++|java|python|bash)
 					Old=${Lang}
-					Lang=$(pgLang ${UserIn[1]})
+					if [ -z "${UserIn[1]}" ]; then
+						Lang=$(pgLang ${UserIn[0]})
+					else
+						Lang=$(pgLang ${UserIn[1]})
+					fi
 					if [[ ! "${Lang}" == "no" ]]; then
 						cLang=$(color ${Lang})
 						CodeDir=$(pgDir ${Lang})
 						cd ${CodeDir}
+						#Rest
+						#{
 						Code=""
+						RunTimeArgs=""
 						CodeProject="none"
+						#}
 					else
 						Lang=${Old}
 						echo "Possible: ${pLangs}"
@@ -2148,7 +2538,50 @@ Actions()
 					;;
 				#Create new source code
 				new)
-					Code=$(newCode ${Lang} ${UserIn[1]} ${Code} ${CodeProject} ${UserIn[2]})
+					#Return the name of source code
+					newCode ${Lang} ${UserIn[1]} ${CodeProject} ${UserIn[2]}
+					case ${Lang} in
+						#Language is Bash
+						Bash)
+							#Get code
+							if [ -f ${BashSrc}/${UserIn[1]}.sh ]; then
+								Code=${UserIn[1]}.sh
+							elif [ -f ${BashSrc}/${UserIn[1]} ]; then
+								Code=${UserIn[1]}
+							fi
+							;;
+						#Language is Python
+						Python)
+							#Get code
+							if [ -f ${PythonSrc}/${UserIn[1]}.py ]; then
+								Code=${UserIn[1]}.py
+							elif [ -f ${PythonSrc}/${UserIn[1]} ]; then
+								Code=${UserIn[1]}
+							fi
+							;;
+						#Language is C++
+						C++)
+							#Get code
+							if [ -f ${CppSrc}/${UserIn[1]}.cpp ]; then
+								Code=${UserIn[1]}.cpp
+							elif [ -f ${CppSrc}/${UserIn[1]}.h ]; then
+								Code=${UserIn[1]}.h
+							elif [ -f ${CppSrc}/${UserIn[1]} ]; then
+								Code=${UserIn[1]}
+							fi
+							;;
+						#Language is Java
+						Java)
+							#Get code
+							if [ -f ${JavaSrc}/${UserIn[1]}.java ]; then
+								Code=${UserIn[1]}.java
+							elif [ -f ${JavaSrc}/${UserIn[1]} ]; then
+								Code=${UserIn[1]}
+							fi
+							;;
+						*)
+							;;
+					esac
 					;;
 				#Edit new source code
 				${editor}|edit|ed)
@@ -2185,15 +2618,103 @@ Actions()
 				search)
 					lookFor ${CodeProject} ${UserIn[1]}
 					;;
+				#create various files/vars for running/compiling code
+				create)
+					#what to create
+					case ${UserIn[1]} in
+						make)
+							#Manage languages
+							case ${Lang} in
+								#C++ Make file
+								C++)
+									case ${CodeProject} in
+										#No Project
+										none)
+											echo "Project C++ ONLY"
+											;;
+										#Is a project
+										*)
+											#makefile already exists
+											if [ -f ${CppSrc}/${CodeProject}/makefile ]; then
+												echo "makefile Already made for \"${CodeProject}\""
+											#makefile already made
+											else
+												touch ${CppSrc}/${CodeProject}/makefile
+												echo "makefile Created"
+											fi
+											;;
+									esac
+									;;
+								#Is not C++
+								*)
+									echo "make files C++ Only"
+									;;
+
+							esac
+							;;
+						jar|manifest)
+							#Manage languages
+							case ${Lang} in
+								#Java Properties
+								Java)
+									#Enter Java properties
+									echo "Java Jar manifest"
+									;;
+								*)
+									echo "Java only"
+									;;
+							esac
+							;;
+						#Args for run time
+						args)
+							echo -n "${cLang}\$ "
+							read -a RunTimeArgs
+							;;
+						#Java properties
+						prop|properties|-D)
+							#Manage languages
+							case ${Lang} in
+								#Java Properties
+								Java)
+									#Enter Java properties
+									echo -n "-D"
+									read -e EnvArgs
+									EnvArgs=$(echo "-D${EnvArgs}")
+									#Ensure correct flags
+									if [[ "${EnvArgs}" == "-D"*"=\""*"\"" ]]; then
+										JavaRunProp=${EnvArgs}
+									else
+										JavaRunProp=""
+									fi
+									;;
+								*)
+									echo "Java only"
+									;;
+							esac
+							;;
+						#Clear all
+						reset)
+							#Default values
+							RunTimeArgs=""
+							JavaRunProp=""
+							echo "All rest"
+							;;
+						#Show help page
+						*)
+							CreateHelp ${Lang}
+							;;
+					esac
+					;;
 				#Compile code
 				compile|cpl)
-					compileCode ${Code} ${CodeProject} ${UserIn[1]}
+					compileCode ${Code} ${UserIn[1]}
 					#Code=$(SwapToBin ${Code})
 					;;
 				#Install compiled code into aliases
 				install)
 					Install ${Lang} ${Code} ${UserIn[1]}
 					;;
+				#run compiled code
 				execute|exe|run)
 					RunCode ${Lang} ${Code} ${UserIn[1]}
 					;;
@@ -2217,20 +2738,30 @@ Actions()
 					if [[ "${CodeProject}" != "none" ]]; then
 						Dir="${CodeProject}"
 					fi
+					#Determine Language
 					case ${Lang} in
+						#Language is Bash
 						Bash)
+							#Get code dir
 							CodeDir=${BashSrc}/${Dir}
 							;;
+						#Language is Python
 						Python)
+							#Get code dir
 							CodeDir=${PythonSrc}/${Dir}
 							;;
+						#Language is C++
 						C++)
+							#Get code dir
 							CodeDir=${CppSrc}/${Dir}
 							;;
+						#Language is Java
 						Java)
+							#Get code dir
 							CodeDir=${JavaSrc}/${Dir}
 							;;
 					esac
+					#Go to dir
 					cd ${CodeDir}
 					;;
 				#Close cl[ide]
@@ -2249,14 +2780,16 @@ Actions()
 #Main Function
 main()
 {
+	#Make sure everything is working
 	EnsureLangs
 	EnsureDirs
-	pg=$(ColorCodes)
+	local pg=$(ColorCodes)
+	local UserArg=$1
 	#No argument given
-	if [ -z "$1" ]; then
+	if [ -z "${UserArg}" ]; then
 		clear
 		CliHelp
-		getLang=""
+		local getLang=""
 		#Force user to select language
 		while [ "$getLang" == "" ] || [[ "$getLang" == "no" ]];
 		do
@@ -2269,37 +2802,48 @@ main()
 		done
 		#Start IDE
 		Actions ${Lang}
-	#Get version from cli
-	elif [[ "$1" == "-v" ]] || [[ "$1" == "--version" ]]; then
-		ClideVersion
-	#Get compile/interpreter version from cli
-	elif [[ "$1" == "-cv" ]] || [[ "$1" == "--code-version" ]]; then
-		CodeVersion
-	#Get version control version from cli
-	elif [[ "$1" == "-rv" ]] || [[ "$1" == "--repo-version" ]]; then
-		RepoVersion
-	#Get verseion from cli
-	elif [[ "$1" == "-c" ]] || [[ "$1" == "--config" ]]; then
-		ClideConfig
-	#List projects from cli
-	elif [[ "$1" == "-p" ]] || [[ "$1" == "--projects" ]]; then
-		listProjects
-	#Get cli help page
-	elif [[ "$1" == "-h" ]] || [[ "$1" == "--help" ]]; then
-		CliHelp
-	elif [[ "$1" == "-l" ]] || [[ "$1" == "--load" ]] || [[ "$1" == "--last" ]]; then
-		session=$(LoadSession)
-		Lang=$(echo ${session} | cut -d ";" -f 1)
-		Code=$(echo ${session} | cut -d ";" -f 3)
-		CodeProject=$(echo ${session} | cut -d ";" -f 2)
-		#Start IDE
-		Actions ${Lang} ${Code} ${CodeProject}
-	#Check for language given
 	else
-		#Verify Language
-		Lang=$(pgLang $1)
-		#Start IDE
-		Actions ${Lang} $2
+		case ${UserArg} in
+			#Get version from cli
+			-v|--version)
+				ClideVersion
+				;;
+			#Get compile/interpreter version from cli
+			-cv|--code-version)
+				CodeVersion
+				;;
+			#Get version control version from cli
+			-rv|--repo-version)
+				RepoVersion
+				;;
+			#Get verseion from cli
+			-c|--config)
+				ClideConfig
+				;;
+			#List projects from cli
+			-p|--projects)
+				listProjects
+				;;
+			#Get cli help page
+			-h|--help)
+				CliHelp
+				;;
+			-l|--load|--last)
+				session=$(LoadSession)
+				Lang=$(echo ${session} | cut -d ";" -f 1)
+				Code=$(echo ${session} | cut -d ";" -f 3)
+				CodeProject=$(echo ${session} | cut -d ";" -f 2)
+				#Start IDE
+				Actions ${Lang} ${Code} ${CodeProject}
+				;;
+			#Check for language given
+			*)
+				#Verify Language
+				Lang=$(pgLang $1)
+				#Start IDE
+				Actions ${Lang} $2
+				;;
+		esac
 	fi
 }
 
