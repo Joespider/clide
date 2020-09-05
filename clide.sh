@@ -38,7 +38,7 @@ JavaRun=java
 #1st # = Overflow
 #2nd # = Additional features
 #3rd # = Bug/code tweaks/fixes
-Version="0.56.25"
+Version="0.56.27"
 
 #root dir
 ProgDir=~/Programs
@@ -101,12 +101,14 @@ MenuHelp()
 	case ${Lang} in
 		Bash|Python)
 			echo "new <file>: \"create new ${Lang} script\""
+			echo "compile|cpl: \"make code executable\""
 			;;
 		C++)
 			echo "new <file> <type>: \"create new ${Lang} source file\""
 			echo "             main: \"create the main ${Lang} file\""
 			echo "           header: \"create a ${Lang} header file\""
 			echo "        component: \"create a standard ${Lang} file\""
+			echo "compile|cpl: \"make code executable\""
 			;;
 		Java)
 			echo "new <file> <type>: \"create new ${Lang} source file\""
@@ -1452,7 +1454,7 @@ RunCode()
 					cd - > /dev/null
 				#Check if Java Jar exists
 				elif [ -f ${JavaBin}/${TheJar} ]; then
-					${JavaBin}/${TheJar} ${Args[@]}
+					${JavaRun} -jar ${JavaBin}/${TheJar} ${Args[@]}
 				else
 					echo "${name} is not compiled"
 					echo "[HINT] \$ cpl"
@@ -1752,7 +1754,7 @@ Install()
 			if [[ "${bin}" == *".java" ]]; then
 				#Check for Jar file
 				if [ -f "${JavaBin}/${BinFile}.jar" ]; then
-					AddAlias "${BinFile}" "${JavaBin}/${BinFile}.jar"
+					AddAlias "${BinFile}" "${JavaRun} -jar ${JavaBin}/${BinFile}.jar"
 				elif [ -f "${JavaBin}/${bin}.class" ]; then
 					echo "Please compile as jar file"
 					echo "[hint] $ cpl jar"
@@ -1958,7 +1960,6 @@ compileCode()
 							echo "Main-Class: ${des%.class}" > manifest.mf
 						fi
 						jar -cmf manifest.mf ${des%.class}.jar ${des}
-						chmod +x ${des%.class}.jar
 						#remove class file
 						if [ -f ../bin/${des} ]; then
 							rm ../bin/${des}
