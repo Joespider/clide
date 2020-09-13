@@ -11,7 +11,7 @@ Shell=$(which bash)
 #1st # = Overflow
 #2nd # = Additional features
 #3rd # = Bug/code tweaks/fixes
-Version="0.56.28"
+Version="0.59.35"
 
 #cl[ide] config
 #{
@@ -36,6 +36,8 @@ Name="cl${IDE}"
 #Compilers/Interpreters
 BashCpl=bash
 PythonRun=python
+PerlRun=perl
+RubyRun=ruby
 CppCpl=g++
 JavaCpl=javac
 JavaRun=java
@@ -47,22 +49,28 @@ ClideDir=${ProgDir}/.clide
 #Program Homes
 BashHome=${ProgDir}/Bash
 PythonHome=${ProgDir}/Python
+PerlHome=${ProgDir}/Perl
+RubyHome=${ProgDir}/Ruby
 CppHome=${ProgDir}/C++
 JavaHome=${ProgDir}/Java
 
 #Soruce Code
 BashSrc=${BashHome}/src
 PythonSrc=${PythonHome}/src
+PerlSrc=${PerlHome}/src
+RubySrc=${RubyHome}/src
 CppSrc=${CppHome}/src
 JavaSrc=${JavaHome}/src
 
 #Bin Code
 BashBin=${BashHome}/bin
 PythonBin=${PythonHome}/bin
+PerlBin=${PerlHome}/bin
+RubyBin=${RubyHome}/bin
 CppBin=${CppHome}/bin
 JavaBin=${JavaHome}/bin
 
-#Public Vars
+#Global Vars
 #{
 Project=""
 CodeProject="none"
@@ -99,9 +107,14 @@ MenuHelp()
 	echo "swap|swp {src|bin}: \"swap between sorce code and executable\""
 	echo "create <arg> : \"create compile and runtime arguments"
 	case ${Lang} in
-		Bash|Python)
+		Bash|Perl|Ruby)
 			echo "new <file>: \"create new ${Lang} script\""
 			echo "compile|cpl: \"make code executable\""
+			;;
+		Python)
+			echo "new <file>: \"create new ${Lang} script\""
+			echo "compile|cpl: \"make code executable\""
+			echo "shell : run shell for testing"
 			;;
 		C++)
 			echo "new <file> <type>: \"create new ${Lang} source file\""
@@ -115,7 +128,7 @@ MenuHelp()
 			echo "             main: \"create the main ${Lang} file\""
 			echo "        component: \"create a standard ${Lang} file\""
 			echo "compile|cpl: \"make code (CLASS) executable\""
-			echo "compile jar|cpl jar: \"make code (JAR) executable\""
+			echo "compile|cpl jar: \"make code (JAR) executable\""
 			;;
 		*)
 			echo "compile|cpl: \"make code executable\""
@@ -153,7 +166,7 @@ CreateHelp()
 	echo "----------------[(${Head}) \"Create\" Help]----------------"
 	echo "args : create custom args"
 	case ${Lang} in
-#		Bash|Python)
+#		Bash|Python|Perl|Ruby)
 #			echo "args : create custom args"
 #			;;
 		C++)
@@ -228,15 +241,27 @@ ClideConfig()
 	fi
 	echo ""
 	echo "---[${Head} Compilers/Interpreters]---"
+	#Bash
 	if [ ! -z "${BashCpl}" ]; then
 		echo "Bash: \"${BashCpl}\""
 	fi
+	#Python
 	if [ ! -z "${PythonRun}" ]; then
 		echo "Python: \"${PythonRun}\""
 	fi
+	#Perl
+	if [ ! -z "${PerlRun}" ]; then
+		echo "Perl: \"${PerlRun}\""
+	fi
+	#Ruby
+	if [ ! -z "${RubyRun}" ]; then
+		echo "Ruby: \"${RubyRun}\""
+	fi
+	#C++
 	if [ ! -z "${CppCpl}" ]; then
 		echo "C++: \"${CppCpl}\""
 	fi
+	#Java
 	if [ ! -z "${JavaCpl}" ] && [ ! -z "${JavaRun}" ]; then
 		echo "Java: \"${JavaRun}\"/\"${JavaCpl}\""
 	fi
@@ -249,54 +274,96 @@ ClideConfig()
 	echo "Config: \"${TheClideDir}\""
 	echo ""
 	echo "[Language Directory]"
+	#Bash
 	if [ ! -z "${BashCpl}" ]; then
 		TheBashHome=$(echo ${BashHome} | sed "s/${Replace}/${With}/g")
 		echo "Bash: \"${TheBashHome}\""
 	fi
+	#Python
 	if [ ! -z "${PythonRun}" ]; then
 		ThePythonHome=$(echo ${PythonHome} | sed "s/${Replace}/${With}/g")
 		echo "Python: \"${ThePythonHome}\""
 	fi
+	#Perl
+	if [ ! -z "${PerlRun}" ]; then
+		ThePerlHome=$(echo ${PerlHome} | sed "s/${Replace}/${With}/g")
+		echo "Perl: \"${ThePerlHome}\""
+	fi
+	#Ruby
+	if [ ! -z "${RubyRun}" ]; then
+		TheRubyHome=$(echo ${RubyHome} | sed "s/${Replace}/${With}/g")
+		echo "Ruby: \"${TheRubyHome}\""
+	fi
+	#C++
 	if [ ! -z "${CppCpl}" ]; then
 		TheCppHome=$(echo ${CppHome} | sed "s/${Replace}/${With}/g")
 		echo "C++: \"${TheCppHome}\""
 	fi
+	#Java
 	if [ ! -z "${JavaCpl}" ] && [ ! -z "${JavaRun}" ]; then
 		TheJavaHome=$(echo ${JavaHome} | sed "s/${Replace}/${With}/g")
 		echo "Java: \"${TheJavaHome}\""
 	fi
 	echo ""
 	echo "[Source Directory]"
+	#Bash
 	if [ ! -z "${BashCpl}" ]; then
 		TheBashSrc=$(echo ${BashSrc} | sed "s/${Replace}/${With}/g")
 		echo "Bash: \"${TheBashSrc}\""
 	fi
+	#Python
 	if [ ! -z "${PythonRun}" ]; then
 		ThePythonSrc=$(echo ${PythonSrc} | sed "s/${Replace}/${With}/g")
 		echo "Python: \"${ThePythonSrc}\""
 	fi
+	#Perl
+	if [ ! -z "${PerlRun}" ]; then
+		ThePerlSrc=$(echo ${PerlSrc} | sed "s/${Replace}/${With}/g")
+		echo "Perl: \"${ThePerlSrc}\""
+	fi
+	#Ruby
+	if [ ! -z "${RubyRun}" ]; then
+		TheRubySrc=$(echo ${RubySrc} | sed "s/${Replace}/${With}/g")
+		echo "Ruby: \"${TheRubySrc}\""
+	fi
+	#C++
 	if [ ! -z "${CppCpl}" ]; then
 		TheCppSrc=$(echo ${CppSrc} | sed "s/${Replace}/${With}/g")
 		echo "C++: \"${TheCppSrc}\""
 	fi
+	#Java
 	if [ ! -z "${JavaCpl}" ] && [ ! -z "${JavaRun}" ]; then
 		TheJavaSrc=$(echo ${JavaSrc} | sed "s/${Replace}/${With}/g")
 		echo "Java: \"${TheJavaSrc}\""
 	fi
 	echo ""
 	echo "[Binary Directory]"
+	#Bash
 	if [ ! -z "${BashCpl}" ]; then
 		TheBashBin=$(echo ${BashBin} | sed "s/${Replace}/${With}/g")
 		echo "Bash: \"${TheBashBin}\""
 	fi
+	#Python
 	if [ ! -z "${PythonRun}" ]; then
 		ThePythonBin=$(echo ${PythonBin} | sed "s/${Replace}/${With}/g")
 		echo "Python: \"${ThePythonBin}\""
 	fi
+	#Perl
+	if [ ! -z "${PerlRun}" ]; then
+		ThePerlBin=$(echo ${PerlBin} | sed "s/${Replace}/${With}/g")
+		echo "Perl: \"${ThePerlBin}\""
+	fi
+	#Ruby
+	if [ ! -z "${RubyRun}" ]; then
+		TheRubyBin=$(echo ${RubyBin} | sed "s/${Replace}/${With}/g")
+		echo "Ruby: \"${TheRubyBin}\""
+	fi
+	#C++
 	if [ ! -z "${CppCpl}" ]; then
 		TheCppBin=$(echo ${CppBin} | sed "s/${Replace}/${With}/g")
 		echo "C++: \"${TheCppBin}\""
 	fi
+	#Java
 	if [ ! -z "${JavaCpl}" ] && [ ! -z "${JavaRun}" ]; then
 		TheJavaBin=$(echo ${JavaBin} | sed "s/${Replace}/${With}/g")
 		echo "Java: \"${TheJavaBin}\""
@@ -339,6 +406,20 @@ EnsureLangs()
 		else
 			PythonRun=python
 		fi
+	fi
+#}
+#Check if Perl Interpreter present
+#{
+	CheckForPerl=$(which perl)
+	if [ -z "${CheckForPerl}" ]; then
+		PerlRun=""
+	fi
+#}
+#Check if Perl Interpreter present
+#{
+	CheckForRuby=$(which ruby)
+	if [ -z "${CheckForRuby}" ]; then
+		RubyRun=""
 	fi
 #}
 #Check if C++ Compiler present
@@ -387,15 +468,27 @@ EnsureDirs()
 
 #Program Homes
 #{
+	#Bash
 	if [ ! -d "${BashHome}" ] && [ ! -z "${BashCpl}" ]; then
 		mkdir "${BashHome}"
 	fi
+	#Python
 	if [ ! -d "${PythonHome}" ] && [ ! -z "${PythonRun}" ]; then
 		mkdir "${PythonHome}"
 	fi
+	#Perl
+	if [ ! -d "${PerlHome}" ] && [ ! -z "${PerlRun}" ]; then
+		mkdir "${PerlHome}"
+	fi
+	#Ruby
+	if [ ! -d "${RubyHome}" ] && [ ! -z "${RubyRun}" ]; then
+		mkdir "${RubyHome}"
+	fi
+	#C++
 	if [ ! -d "${CppHome}" ] && [ ! -z "${CppCpl}" ]; then
 		mkdir "${CppHome}"
 	fi
+	#Java
 	if [ ! -d "${JavaHome}" ] && [ ! -z "${JavaCpl}" ] && [ ! -z "${JavaRun}" ]; then
 		mkdir "${JavaHome}"
 	fi
@@ -403,15 +496,27 @@ EnsureDirs()
 
 #Soruce Code
 #{
+	#Bash
 	if [ ! -d "${BashSrc}" ] && [ ! -z "${BashCpl}" ]; then
 		mkdir "${BashSrc}"
 	fi
+	#Python
 	if [ ! -d "${PythonSrc}" ] && [ ! -z "${PythonRun}" ]; then
 		mkdir "${PythonSrc}"
 	fi
+	#Perl
+	if [ ! -d "${PerlSrc}" ] && [ ! -z "${PerlRun}" ]; then
+		mkdir "${PerlSrc}"
+	fi
+	#Ruby
+	if [ ! -d "${RubySrc}" ] && [ ! -z "${RubyRun}" ]; then
+		mkdir "${RubySrc}"
+	fi
+	#C++
 	if [ ! -d "${CppSrc}" ] && [ ! -z "${CppCpl}" ]; then
 		mkdir "${CppSrc}"
 	fi
+	#Java
 	if [ ! -d "${JavaSrc}" ] && [ ! -z "${JavaCpl}" ] && [ ! -z "${JavaRun}" ]; then
 		mkdir "${JavaSrc}"
 	fi
@@ -419,15 +524,27 @@ EnsureDirs()
 
 #Bin Code
 #{
+	#Bash
 	if [ ! -d "${BashBin}" ] && [ ! -z "${BashCpl}" ]; then
 		mkdir "${BashBin}"
 	fi
+	#Python
 	if [ ! -d "${PythonBin}" ] && [ ! -z "${PythonRun}" ]; then
 		mkdir "${PythonBin}"
 	fi
+	#Perl
+	if [ ! -d "${PerlBin}" ] && [ ! -z "${PerlRun}" ]; then
+		mkdir "${PerlBin}"
+	fi
+	#Ruby
+	if [ ! -d "${RubyBin}" ] && [ ! -z "${RubyRun}" ]; then
+		mkdir "${RubyBin}"
+	fi
+	#C++
 	if [ ! -d "${CppBin}" ] && [ ! -z "${CppCpl}" ]; then
 		mkdir "${CppBin}"
 	fi
+	#Java
 	if [ ! -d "${JavaBin}" ] && [ ! -z "${JavaCpl}" ] && [ ! -z "${JavaRun}" ]; then
 		mkdir "${JavaBin}"
 	fi
@@ -453,15 +570,17 @@ RepoVersion()
 CodeVersion()
 {
 	local Lang=$1
+	#Bash
 	if [[ "${Lang}" == "Bash" ]] || [ -z "${Lang}" ]; then
 		if [ ! -z "${BashCpl}" ]; then
 			BashVersion=$(${BashCpl} --version | head -n 1)
 			if [ -z "${Lang}" ]; then
 				echo "[Bash]"
 			fi
-			echo "${BashVersion}"
+			echo ${BashVersion}
 		fi
 	fi
+	#Python
 	if [[ "${Lang}" == "Python" ]] || [ -z "${Lang}" ]; then
 		if [ ! -z "${PythonRun}" ]; then
 			if [ -z "${Lang}" ]; then
@@ -470,15 +589,35 @@ CodeVersion()
 			${PythonRun} --version
 		fi
 	fi
+	#Perl
+	if [[ "${Lang}" == "Perl" ]] || [ -z "${Lang}" ]; then
+		if [ ! -z "${PerlRun}" ]; then
+			if [ -z "${Lang}" ]; then
+				echo "[Perl]"
+			fi
+			${PerlRun} --version
+		fi
+	fi
+	#Ruby
+	if [[ "${Lang}" == "Ruby" ]] || [ -z "${Lang}" ]; then
+		if [ ! -z "${RubylRun}" ]; then
+			if [ -z "${Lang}" ]; then
+				echo "[Ruby]"
+			fi
+			${RubyRun} --version
+		fi
+	fi
+	#C++
 	if [[ "${Lang}" == "C++" ]] || [ -z "${Lang}" ]; then
 		if [ ! -z "${CppCpl}" ]; then
 			CppVersion=$(${CppCpl} --version | head -n 1)
 			if [ -z "${Lang}" ]; then
 				echo "[C++]"
 			fi
-			echo "${CppVersion}"
+			echo ${CppVersion}
 		fi
 	fi
+	#Java
 	if [[ "${Lang}" == "Java" ]] || [ -z "${Lang}" ]; then
 		if [ ! -z "${JavaRun}" ]; then
 			if [ -z "${Lang}" ]; then
@@ -502,8 +641,9 @@ CodeVersion()
 Banner()
 {
 	Art
+	echo "(${Version})"
 	echo ""
-	echo "\"Welcome to ${Head} Version:(${Version})\""
+	echo "\"Welcome to ${Head}\""
 	echo "\"The command line IDE for the Linux/Unix user\""
 }
 
@@ -547,6 +687,9 @@ errorCode()
 			;;
 		editNot)
 			echo "code is not found in project"
+			;;
+		editMe)
+			echo "For your safety, I am not allowed to edit myself"
 			;;
 		readNull)
 			echo "hint: ${ReadBy}|read <file>"
@@ -687,6 +830,30 @@ newProject()
 					cd ${path}/src
 				fi
 				;;
+			#Perl
+			Perl)
+				path=${PerlSrc}/${project}
+				if [ ! -d ${path} ]; then
+					mkdir ${path}
+					cd ${path}
+					mkdir src bin
+					cd ${path}/src
+				else
+					cd ${path}/src
+				fi
+				;;
+			#Ruby
+			Ruby)
+				path=${RubySrc}/${project}
+				if [ ! -d ${path} ]; then
+					mkdir ${path}
+					cd ${path}
+					mkdir src bin
+					cd ${path}/src
+				else
+					cd ${path}/src
+				fi
+				;;
 			#C++
 			C++)
 				path=${CppSrc}/${project}
@@ -775,6 +942,14 @@ loadProject()
 					Python)
 						path=${PythonSrc}/${name}/src
 						;;
+					#Perl
+					Perl)
+						path=${PerlSrc}/${name}/src
+						;;
+					#Ruby
+					Ruby)
+						path=${RubySrc}/${name}/src
+						;;
 					#C++
 					C++)
 						path=${CppSrc}/${name}/src
@@ -819,7 +994,14 @@ editCode()
 				fi
 			fi
 		else
-			${editor} ${src}
+			case ${src} in
+				clide.sh)
+					errorCode "editMe"
+					;;
+				*)
+					${editor} ${src}
+					;;
+			esac
 		fi
 	#Python
 	elif [[ "${src}" == *".py" ]]; then
@@ -832,6 +1014,44 @@ editCode()
 						${editor} ${num}
 					else
 						${editor} "${num}.py"
+					fi
+				else
+					errorCode "editNot"
+				fi
+			fi
+		else
+			${editor} ${src}
+		fi
+	#Perl
+	elif [[ "${src}" == *".pl" ]]; then
+		if [[ "${src}" == *","* ]]; then
+			if [ -z $2 ]; then
+				errorCode "editNull"
+			else
+				if [[ "${src}" == *"${num}"* ]]; then
+					if [[ "${num}" == *".pl" ]]; then
+						${editor} ${num}
+					else
+						${editor} "${num}.pl"
+					fi
+				else
+					errorCode "editNot"
+				fi
+			fi
+		else
+			${editor} ${src}
+		fi
+	#Ruby
+	elif [[ "${src}" == *".rb" ]]; then
+		if [[ "${src}" == *","* ]]; then
+			if [ -z $2 ]; then
+				errorCode "editNull"
+			else
+				if [[ "${src}" == *"${num}"* ]]; then
+					if [[ "${num}" == *".rb" ]]; then
+						${editor} ${num}
+					else
+						${editor} "${num}.rb"
 					fi
 				else
 					errorCode "editNot"
@@ -916,6 +1136,36 @@ addCode()
 				echo "${src}"
 			fi
 		fi
+	#Perl
+	elif [[ "$src" == *".pl" ]]; then
+		if [[ "${new}" == *".pl" ]]; then
+			if [ -f "${new}" ]; then
+				echo "${src},${new}"
+			else
+				echo "${src}"
+			fi
+		else
+			if [ -f "${new}.pl" ]; then
+				echo "${src},${new}.pl"
+			else
+				echo "${src}"
+			fi
+		fi
+	#Ruby
+	elif [[ "$src" == *".rb" ]]; then
+		if [[ "${new}" == *".rb" ]]; then
+			if [ -f "${new}" ]; then
+				echo "${src},${new}"
+			else
+				echo "${src}"
+			fi
+		else
+			if [ -f "${new}.rb" ]; then
+				echo "${src},${new}.rb"
+			else
+				echo "${src}"
+			fi
+		fi
 	#C++
 	elif [[ "$src" == *".cpp" ]] || [[ "$src" == *".h" ]]; then
 		#Add cpp or header files with file extensions
@@ -991,6 +1241,44 @@ readCode()
 						${ReadBy} ${num}
 					else
 						${ReadBy} "${num}.py"
+					fi
+				else
+					errorCode "readNot"
+				fi
+			fi
+		else
+			${ReadBy} ${src}
+		fi
+	#Perl
+	elif [[ "${src}" == *".pl" ]]; then
+		if [[ "${src}" == *","* ]]; then
+			if [ -z $2 ]; then
+				errorCode "readNull"
+			else
+				if [[ "${src}" == *"${num}"* ]]; then
+					if [[ "${num}" == *".pl" ]]; then
+						${ReadBy} ${num}
+					else
+						${ReadBy} "${num}.pl"
+					fi
+				else
+					errorCode "readNot"
+				fi
+			fi
+		else
+			${ReadBy} ${src}
+		fi
+	#Ruby
+	elif [[ "${src}" == *".rb" ]]; then
+		if [[ "${src}" == *","* ]]; then
+			if [ -z $2 ]; then
+				errorCode "readNull"
+			else
+				if [[ "${src}" == *"${num}"* ]]; then
+					if [[ "${num}" == *".rb" ]]; then
+						${ReadBy} ${num}
+					else
+						${ReadBy} "${num}.rb"
 					fi
 				else
 					errorCode "readNot"
@@ -1081,7 +1369,7 @@ newCode()
 				if [ -f ${PythonBin}/newPython.py ]; then
 					#Program Name Given
 					if [ ! -z "${name}" ];then
-						${PythonRun} ${PythonBin}/newPython.py -n ${name} --cli --main -w -r -o
+						${PythonRun} ${PythonBin}/newPython.py -n ${name} --cli --main --shell -w -r -o
 					#No Program Name Given
 					else
 						${PythonRun} ${PythonBin}/newPython.py --help
@@ -1090,6 +1378,52 @@ newCode()
 					#Program Name Given
 					if [ ! -z "${name}" ];then
 						touch ${name}.py
+					else
+						errorCode "newCode"
+					fi
+				fi
+			fi
+			;;
+		#Perl
+		Perl)
+			name=${name%.pl}
+			if [ ! -f ${name}.pl ]; then
+				#Check for Custom Code Template
+				if [ -f ${PerlBin}/newPerl.pl ]; then
+					#Program Name Given
+					if [ ! -z "${name}" ];then
+						${PerlRun} ${PerlBin}/newPerl.pl -n ${name} --cli --main -w -r -o
+					#No Program Name Given
+					else
+						${PerlRun} ${PerlBin}/newPerl.pl --help
+					fi
+				else
+					#Program Name Given
+					if [ ! -z "${name}" ];then
+						touch ${name}.pl
+					else
+						errorCode "newCode"
+					fi
+				fi
+			fi
+			;;
+		#Ruby
+		Ruby)
+			name=${name%.rb}
+			if [ ! -f ${name}.rb ]; then
+				#Check for Custom Code Template
+				if [ -f ${RubyBin}/newRuby.rb ]; then
+					#Program Name Given
+					if [ ! -z "${name}" ];then
+						${RubyRun} ${RubyBin}/newRuby.rb -n ${name} --cli --main -w -r -o
+					#No Program Name Given
+					else
+						${RubyRun} ${RubyBin}/newRuby.rb --help
+					fi
+				else
+					#Program Name Given
+					if [ ! -z "${name}" ];then
+						touch ${name}.rb
 					else
 						errorCode "newCode"
 					fi
@@ -1181,7 +1515,7 @@ newCode()
 							#create main file
 							main)
 								cd ${JavaBin}
-								java newJava --user $USER --main -w -r -u -n "${name}"
+								java newJava --user $USER --main --shell -w -r -u -n "${name}"
 								cd - > /dev/null
 								mv "${JavaBin}/${name}.java" .
 								;;
@@ -1217,11 +1551,11 @@ newCode()
 						case ${Type} in
 							#create main file
 							main)
-								${JavaBin}/newJava.jar --user $USER --main -w -r -u -n "${name}"
+								java -jar ${JavaBin}/newJava.jar --user $USER --main --shell -w -r -u -n "${name}"
 								;;
 							#create component file
 							component)
-								${JavaBin}/newJava.jar --user $USER -w -r -n "${name}"
+								java -jar ${JavaBin}/newJava.jar --user $USER -w -r -n "${name}"
 								;;
 							#cl[ide] knows best
 							*)
@@ -1237,7 +1571,7 @@ newCode()
 						esac
 					#No Program Name Given
 					else
-						${JavaBin}/newJava.jar --help
+						java -jar ${JavaBin}/newJava.jar --help
 					fi
 				#No Program Name Given
 				else
@@ -1366,6 +1700,9 @@ RunCode()
 					Python)
 						CLIout="$USER@${Name}:~/${TheLang}\$ ${PythonRun} ${TheName}"
 						;;
+					Perl)
+						CLIout="$USER@${Name}:~/${TheLang}\$ ${PerlRun} ${TheName}"
+						;;
 					Java)
 						if [ ! -z "${JavaProp}" ]; then
 							#Its a Class
@@ -1428,6 +1765,28 @@ RunCode()
 
 				fi
 				;;
+			#Perl
+			Perl)
+				#Check if Perl Bin exists
+				if [ -f ${PerlBin}/${TheBin} ]; then
+					${PerlRun} ${PerlBin}/${TheBin} ${Args[@]}
+				else
+					echo "${name} is not compiled"
+					echo "[HINT] \$ cpl"
+
+				fi
+				;;
+			#Ruby
+			Ruby)
+				#Check if Ruby Bin exists
+				if [ -f ${RubyBin}/${TheBin} ]; then
+					${RubyRun} ${RubyBin}/${TheBin} ${Args[@]}
+				else
+					echo "${name} is not compiled"
+					echo "[HINT] \$ cpl"
+
+				fi
+				;;
 			#C++
 			C++)
 				#Check if C++ Bin exists
@@ -1475,7 +1834,7 @@ selectCode()
 		#Bash
 		Bash)
 			#Correct filename
-			if [[ ! "${name}" == *".sh" ]] && [[ ! "${name}" == "clide" ]]; then
+			if [[ ! "${name}" == *".sh" ]]; then
 				name="${name}.sh"
 			fi
 			;;
@@ -1484,6 +1843,20 @@ selectCode()
 			#Correct filename
 			if [[ ! "${name}" == *".py" ]]; then
 				name="${name}.py"
+			fi
+			;;
+		#Perl
+		Perl)
+			#Correct filename
+			if [[ ! "${name}" == *".pl" ]]; then
+				name="${name}.pl"
+			fi
+			;;
+		#Ruby
+		Ruby)
+			#Correct filename
+			if [[ ! "${name}" == *".rb" ]]; then
+				name="${name}.rb"
 			fi
 			;;
 		#C++
@@ -1530,6 +1903,16 @@ pgDir()
 			#Return Python src Dir
 			echo ${PythonSrc}
 			;;
+		#Perl
+		Perl)
+			#Return Perl src Dir
+			echo ${PerlSrc}
+			;;
+		#Ruby
+		Ruby)
+			#Return Ruby src Dir
+			echo ${RubySrc}
+			;;
 		#C++
 		C++)
 			#Return C++ src Dir
@@ -1554,7 +1937,7 @@ pgLang()
 	local Lang=$(echo "$1" | tr A-Z a-z)
 	case ${Lang} in
 		#Bash
-		b|bash)
+		bash)
 			if [ ! -z "${BashCpl}" ]; then
 				#Return Bash tag
 				echo "Bash"
@@ -1564,7 +1947,7 @@ pgLang()
 			fi
 			;;
 		#Python
-		p|python)
+		python)
 			if [ ! -z "${PythonRun}" ]; then
 				#Return Python tag
 				echo "Python"
@@ -1573,8 +1956,28 @@ pgLang()
 				echo "no"
 			fi
 			;;
+		#Perl
+		perl)
+			if [ ! -z "${PerlRun}" ]; then
+				#Return Perl tag
+				echo "Perl"
+			else
+				#Return rejection
+				echo "no"
+			fi
+			;;
+		#Ruby
+		ruby)
+			if [ ! -z "${RubyRun}" ]; then
+				#Return Ruby tag
+				echo "Ruby"
+			else
+				#Return rejection
+				echo "no"
+			fi
+			;;
 		#C++
-		c|c++)
+		c++)
 			if [ ! -z "${CppCpl}" ]; then
 				#Return C++ tag
 				echo "C++"
@@ -1584,7 +1987,7 @@ pgLang()
 			fi
 			;;
 		#Java
-		j|java)
+		java)
 			if [ ! -z "${JavaCpl}" ] && [ ! -z "${JavaRun}" ]; then
 				#Return Java tag
 				echo "Java"
@@ -1616,7 +2019,17 @@ color()
 			#Return Yellow
 			echo -e "\e[1;33m${text}\e[0m"
 			;;
-			#C++
+		#Perl
+		Perl)
+			#Return Purple
+			echo -e "\e[1;35m${text}\e[0m"
+			;;
+		#Ruby
+		Ruby)
+			#Return Red
+			echo -e "\e[1;31m${text}\e[0m"
+			;;
+		#C++
 		C++)
 			#Return Blue
 			echo -e "\e[1;34m${text}\e[0m"
@@ -1636,19 +2049,31 @@ color()
 
 ColorCodes()
 {
+	#Bash
 	if [ ! -z "${BashCpl}" ]; then
 		Bash=$(color "Bash")
 	fi
+	#Python
 	if [ ! -z "${PythonRun}" ]; then
 		Python=$(color "Python")
 	fi
+	#Perl
+	if [ ! -z "${PerlRun}" ]; then
+		Perl=$(color "Perl")
+	fi
+	#Ruby
+	if [ ! -z "${RubyRun}" ]; then
+		Ruby=$(color "Ruby")
+	fi
+	#C++
 	if [ ! -z "${CppCpl}" ]; then
 		Cpp=$(color "C++")
 	fi
+	#Java
 	if [ ! -z "${JavaCpl}" ] && [ ! -z "${JavaRun}" ]; then
 		Java=$(color "Java")
 	fi
-	pg="${Bash} ${Python} ${Cpp} ${Java}"
+	pg="${Bash} ${Python} ${Perl} ${Ruby} ${Cpp} ${Java}"
 	echo ${pg}
 }
 
@@ -1728,8 +2153,32 @@ Install()
 			#Make sure Binary exists
 			if [ -f "${PythonBin}/${bin}" ]; then
 				#Add command to Aliases
-				AddAlias "${BinFile}" "python ${PythonBin}/${bin}"
+				AddAlias "${BinFile}" "${PythonRun} ${PythonBin}/${bin}"
 			elif [ ! -f "${PythonBin}/${bin}" ]; then
+				errorCode "install" "${bin}"
+			else
+				errorCode "noCode"
+			fi
+			;;
+		#Perl
+		Perl)
+			#Make sure Binary exists
+			if [ -f "${PerlBin}/${bin}" ]; then
+				#Add command to Aliases
+				AddAlias "${BinFile}" "${PerlRun} ${PerlBin}/${bin}"
+			elif [ ! -f "${PerlBin}/${bin}" ]; then
+				errorCode "install" "${bin}"
+			else
+				errorCode "noCode"
+			fi
+			;;
+		#Ruby
+		Ruby)
+			#Make sure Binary exists
+			if [ -f "${RubyBin}/${bin}" ]; then
+				#Add command to Aliases
+				AddAlias "${BinFile}" "${RubyRun} ${RubyBin}/${bin}"
+			elif [ ! -f "${RubyBin}/${bin}" ]; then
 				errorCode "install" "${bin}"
 			else
 				errorCode "noCode"
@@ -1890,6 +2339,110 @@ compileCode()
 				#Change to Python Source dir
 				cd "${PythonSrc}/${project}"
 				echo -e "\e[1;43m[Python Code Compiled]\e[0m"
+			#Code is already found
+			else
+				errorCode "cpl" "already" ${src}
+			fi
+		fi
+	#Perl
+	elif [[ "$src" == *".pl" ]]; then
+		#Multiple code selected
+		if [[ "${src}" == *","* ]]; then
+			#variable is empty
+			if [ -z ${name} ]; then
+				errorCode "cpl" "choose"
+			#variable found
+			else
+				#chosen file is in the list of files
+				if [[ "${src}" == *"${name}"* ]]; then
+					#only name is given
+					if [[ "${name}" != *".pl" ]]; then
+						#full filename given
+						num=${name}.pl
+					fi
+					#Make Perl Script executable
+					chmod +x ${name}
+					#Check if Perl Script does NOT exist
+					if [[ ! -f "${PerlBin}/${name}" ]]; then
+						#Change to Perl Binary dir
+						cd ${PerlBin}
+						#Create Symbolic Link to Perl Script
+						ln -s ../src/${project}${name}
+						#Change to Perl Source dir
+						cd "${PerlSrc}/${project}"
+						echo -e "\e[1;45m[Perl Code Compiled]\e[0m"
+					else
+						errorCode "cpl" "already" ${name}
+					fi
+				else
+					echo "code not found"
+				fi
+			fi
+		#single code selected
+		else
+			#Make Perl Script executable
+			chmod +x ${src}
+			#Check if Perl Script does NOT exist
+			if [[ ! -f "${PerlBin}/${src}" ]]; then
+				#Change to Perl Binary dir
+				cd ${PerlBin}
+				#Create Symbolic Link to Perl Script
+				ln -s ../src/${project}${src}
+				#Change to Perl Source dir
+				cd "${PerlSrc}/${project}"
+				echo -e "\e[1;45m[Perl Code Compiled]\e[0m"
+			#Code is already found
+			else
+				errorCode "cpl" "already" ${src}
+			fi
+		fi
+	#Ruby
+	elif [[ "$src" == *".rb" ]]; then
+		#Multiple code selected
+		if [[ "${src}" == *","* ]]; then
+			#variable is empty
+			if [ -z ${name} ]; then
+				errorCode "cpl" "choose"
+			#variable found
+			else
+				#chosen file is in the list of files
+				if [[ "${src}" == *"${name}"* ]]; then
+					#only name is given
+					if [[ "${name}" != *".rb" ]]; then
+						#full filename given
+						num=${name}.rb
+					fi
+					#Make Ruby Script executable
+					chmod +x ${name}
+					#Check if Ruby Script does NOT exist
+					if [[ ! -f "${RubyBin}/${name}" ]]; then
+						#Change to Ruby Binary dir
+						cd ${RubyBin}
+						#Create Symbolic Link to Ruby Script
+						ln -s ../src/${project}${name}
+						#Change to Ruby Source dir
+						cd "${RubySrc}/${project}"
+						echo -e "\e[1;41m[Ruby Code Compiled]\e[0m"
+					else
+						errorCode "cpl" "already" ${name}
+					fi
+				else
+					echo "code not found"
+				fi
+			fi
+		#single code selected
+		else
+			#Make Ruby Script executable
+			chmod +x ${src}
+			#Check if Ruby Script does NOT exist
+			if [[ ! -f "${RubyBin}/${src}" ]]; then
+				#Change to Ruby Binary dir
+				cd ${RubyBin}
+				#Create Symbolic Link to Ruby Script
+				ln -s ../src/${project}${src}
+				#Change to Ruby Source dir
+				cd "${RubySrc}/${project}"
+				echo -e "\e[1;41m[Ruby Code Compiled]\e[0m"
 			#Code is already found
 			else
 				errorCode "cpl" "already" ${src}
@@ -2242,6 +2795,16 @@ SwapToSrc()
 				echo "${src}"
 		#	fi
 			;;
+		#Perl
+		Perl)
+			#Get Perl Name
+			echo "${src}"
+			;;
+		#Ruby
+		Ruby)
+			#Get Ruby Name
+			echo "${src}"
+			;;
 		#C++
 		C++)
 			#cd "${CppSrc}"
@@ -2292,6 +2855,30 @@ SwapToBin()
 		if [[ -f "${PythonBin}/${bin}" ]]; then
 			#cd "${PythonBin}"
 			#Return Python Binary Name
+			echo "${bin}"
+		else
+			echo "${bin}"
+		fi
+	#Perl
+	elif [[ "${bin}" == *".pl" ]]; then
+		#Get Perl Name
+	#	bin="${bin%.*}"
+		#Check if Perl Binary exists
+		if [[ -f "${PerlBin}/${bin}" ]]; then
+			#cd "${PerlBin}"
+			#Return Perl Binary Name
+			echo "${bin}"
+		else
+			echo "${bin}"
+		fi
+	#Ruby
+	elif [[ "${bin}" == *".rb" ]]; then
+		#Get Ruby Name
+	#	bin="${bin%.*}"
+		#Check if Perl Binary exists
+		if [[ -f "${RubyBin}/${bin}" ]]; then
+			#cd "${RubyBin}"
+			#Return Ruby Binary Name
 			echo "${bin}"
 		else
 			echo "${bin}"
@@ -2515,7 +3102,7 @@ Actions()
 					esac
 					;;
 				#Swap Programming Languages
-				use|c++|java|python|bash)
+				use|c++|java|python|perl|ruby|bash)
 					Old=${Lang}
 					if [ -z "${UserIn[1]}" ]; then
 						Lang=$(pgLang ${UserIn[0]})
@@ -2537,6 +3124,15 @@ Actions()
 						echo "Possible: ${pLangs}"
 					fi
 					;;
+				shell)
+					case ${Lang} in
+						Python)
+							${PythonRun}
+							;;
+						*)
+							;;
+					esac
+					;;
 				#Create new source code
 				new)
 					#Return the name of source code
@@ -2557,6 +3153,24 @@ Actions()
 							if [ -f ${PythonSrc}/${UserIn[1]}.py ]; then
 								Code=${UserIn[1]}.py
 							elif [ -f ${PythonSrc}/${UserIn[1]} ]; then
+								Code=${UserIn[1]}
+							fi
+							;;
+						#Language is Perl
+						Perl)
+							#Get code
+							if [ -f ${PerlSrc}/${UserIn[1]}.pl ]; then
+								Code=${UserIn[1]}.pl
+							elif [ -f ${PerlSrc}/${UserIn[1]} ]; then
+								Code=${UserIn[1]}
+							fi
+							;;
+						#Language is Ruby
+						Ruby)
+							#Get code
+							if [ -f ${RubySrc}/${UserIn[1]}.rb ]; then
+								Code=${UserIn[1]}.rb
+							elif [ -f ${RubySrc}/${UserIn[1]} ]; then
 								Code=${UserIn[1]}
 							fi
 							;;
@@ -2751,6 +3365,16 @@ Actions()
 							#Get code dir
 							CodeDir=${PythonSrc}/${Dir}
 							;;
+						#Language is Perl
+						Perl)
+							#Get code dir
+							CodeDir=${PerlSrc}/${Dir}
+							;;
+						#Language is Ruby
+						Ruby)
+							#Get code dir
+							CodeDir=${RubySrc}/${Dir}
+							;;
 						#Language is C++
 						C++)
 							#Get code dir
@@ -2790,16 +3414,22 @@ main()
 	if [ -z "${UserArg}" ]; then
 		clear
 		CliHelp
+		echo "~Choose a language~"
 		local getLang=""
 		#Force user to select language
-		while [ "$getLang" == "" ] || [[ "$getLang" == "no" ]];
+		while [[ "$getLang" == "" ]] || [[ "$Lang" == "no" ]];
 		do
-			echo "~Choose a language~"
 			echo -n "${Name}(${pg}):$ "
 			read getLang
-			#Verify Language
-			Lang=$(pgLang ${getLang})
-			clear
+			case ${getLang} in
+				exit)
+					break
+					;;
+				*)
+					#Verify Language
+					Lang=$(pgLang ${getLang})
+					;;
+			esac
 		done
 		#Start IDE
 		Actions ${Lang}
