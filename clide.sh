@@ -11,7 +11,7 @@ Shell=$(which bash)
 #1st # = Overflow
 #2nd # = Additional features
 #3rd # = Bug/code tweaks/fixes
-Version="0.59.35"
+Version="0.60.43"
 
 #cl[ide] config
 #{
@@ -127,8 +127,10 @@ MenuHelp()
 			echo "new <file> <type>: \"create new ${Lang} source file\""
 			echo "             main: \"create the main ${Lang} file\""
 			echo "        component: \"create a standard ${Lang} file\""
-			echo "compile|cpl: \"make code (CLASS) executable\""
-			echo "compile|cpl jar: \"make code (JAR) executable\""
+			echo "compile|cpl <type> <handle manifest> : \"make code executable\""
+			echo "            --class                  : \"make code (CLASS) executable\""
+			echo "            --jar                    : \"make code (CLASS|JAR) executable\""
+			echo "            --jar --keep-manifest    : \"keep manifest.mf\""
 			;;
 		*)
 			echo "compile|cpl: \"make code executable\""
@@ -174,6 +176,7 @@ CreateHelp()
 			;;
 		Java)
 			echo "prop|properties|-D : create custome Java properties"
+			echo "jar|manifest : create Java Manifest Jar builds"
 			;;
 		*)
 			;;
@@ -197,6 +200,77 @@ ProjectHelp()
 	echo ""
 }
 
+newCodeHelp()
+{
+	local Lang=$1
+	echo ""
+	echo "----------------[(${Head}) \"new\" Help]----------------"
+	echo "{--version|-v|--help|-h|<code>} : \"Option\""
+	echo "--version|-v : \"Get Version for each code template\""
+	echo "--help|-h    : \"This page\""
+	case ${Lang} in
+		#Language is Bash
+		Bash)
+			if [ -f ${BashBin}/newBash.sh ]; then
+				echo ""
+				echo "[${Lang} Template]"
+				${BashBin}/newBash.sh --help
+				echo ""
+			fi
+			;;
+		#Language is Python
+		Python)
+			if [ -f ${PythonBin}/newPython.py ]; then
+				echo ""
+				echo "[${Lang} Template]"
+				${PythonRun} ${PythonBin}/newPython.py --help
+				echo ""
+			fi
+			;;
+		#Language is Perl
+		Perl)
+			if [ -f ${PerlBin}/newPerl.pl ]; then
+				echo ""
+				echo "[${Lang} Template]"
+				${PerlRun} ${PerlBin}/newPerl.pl --help
+				echo ""
+			fi
+			;;
+		#Language is Ruby
+		Ruby)
+			if [ -f ${RubyBin}/newRuby.rb ]; then
+				echo ""
+				echo "[${Lang} Template]"
+				${RubyRun} ${RubyBin}/newRuby.rb --help
+				echo ""
+			fi
+			;;
+		#Language is C++
+		C++)
+			if [ -f ${CppBin}/newC++ ]; then
+				echo ""
+				echo "[${Lang} Template]"
+				${CppBin}/newC++ --help
+				echo ""
+			fi
+			;;
+		#Language is Java
+		Java)
+			if [ -f ${JavaBin}/newJava.jar ]; then
+				echo ""
+				echo "[${Lang} Template]"
+				java -jar ${JavaBin}/newJava.jar --help
+				echo ""
+			fi
+			;;
+		*)
+			echo "Options vary based on language"
+			;;
+	esac
+	echo "----------------------------------------------------------"
+	echo ""
+}
+
 #Clide cli help page
 CliHelp()
 {
@@ -204,6 +278,7 @@ CliHelp()
 	echo "----------------[(${Head}) CLI]----------------"
 	echo "-v |--version: \"Get Clide Version\""
 	echo "-cv|--code-version: \"Get Compile/Interpreter Version\""
+	echo "-tv|--temp-version: \"Get Code Template Version\""
 	echo "-rv|--repo-version: \"Get git/svn Version\""
 	echo "-c |--config: \"Get Clide Config\""
 	echo "-p |--projects: \"List Clide Projects\""
@@ -565,6 +640,65 @@ RepoVersion()
 	else
 		echo "\"${repoTool}\" is not installed"
 	fi
+}
+
+#This is specific to each template
+TemplateVersion()
+{
+	local Lang=$1
+	case ${Lang} in
+		#Language is Bash
+		Bash)
+			if [ -f ${BashBin}/newBash.sh ]; then
+				${BashBin}/newBash.sh | grep Version
+			else
+				echo "no newBash.sh found"
+			fi
+			;;
+		#Language is Python
+		Python)
+			if [ -f ${PythonBin}/newPython.py ]; then
+				${PythonRun} ${PythonBin}/newPython.py | grep Version
+			else
+				echo "no newPython found"
+			fi
+			;;
+		#Language is Perl
+		Perl)
+			if [ -f ${PerlBin}/newPerl.pl ]; then
+				${PerlRun} ${PerlBin}/newPerl.pl | grep Version
+			else
+				echo "no newPerl found"
+			fi
+			;;
+		#Language is Ruby
+		Ruby)
+			if [ -f ${RubyBin}/newRuby.rb ]; then
+				${RubyRun} ${RubyBin}/newRuby.rb | grep Version
+			else
+				echo "no newRuby found"
+			fi
+			;;
+		#Language is C++
+		C++)
+			if [ -f ${CppBin}/newC++ ]; then
+				${CppBin}/newC++ | grep Version
+			else
+				echo "no newC++ found"
+			fi
+			;;
+		#Language is Java
+		Java)
+			if [ -f ${JavaBin}/newJava.jar ]; then
+				java -jar ${JavaBin}/newJava.jar | grep Version
+			else
+				echo "no newJava.jar found"
+			fi
+			;;
+		*)
+			echo "Please Choose a Language"
+			;;
+	esac
 }
 
 CodeVersion()
@@ -1415,7 +1549,7 @@ newCode()
 				if [ -f ${RubyBin}/newRuby.rb ]; then
 					#Program Name Given
 					if [ ! -z "${name}" ];then
-						${RubyRun} ${RubyBin}/newRuby.rb -n ${name} --cli --main -w -r -o
+						${RubyRun} ${RubyBin}/newRuby.rb -n ${name} --cli --user $USER --main -w -r -u
 					#No Program Name Given
 					else
 						${RubyRun} ${RubyBin}/newRuby.rb --help
@@ -1702,6 +1836,9 @@ RunCode()
 						;;
 					Perl)
 						CLIout="$USER@${Name}:~/${TheLang}\$ ${PerlRun} ${TheName}"
+						;;
+					Ruby)
+						CLIout="$USER@${Name}:~/${TheLang}\$ ${RubyRun} ${TheName}"
 						;;
 					Java)
 						if [ ! -z "${JavaProp}" ]; then
@@ -2227,6 +2364,7 @@ compileCode()
 	local src=$1
 	local project=${CodeProject}
 	local name=$2
+	local keep=$3
 	local cplArgs=""
 	#Handle Project Dir
 	if [[ "${project}" == "none" ]]; then
@@ -2508,30 +2646,45 @@ compileCode()
 				#Compile as jar or class
 				case ${name} in
 					#Compile as Jar
-					jar)
+					--jar)
 						if [ ! -f manifest.mf ]; then
-							echo "Main-Class: ${des%.class}" > manifest.mf
+							echo "Manifest-Version: 1.1" > manifest.mf
+							echo "Created-By: $USER" >> manifest.mf
+							echo "Main-Class: ${des%.class}" >> manifest.mf
+							echo "Sealed: true" >> manifest.mf
 						fi
-						jar -cmf manifest.mf ${des%.class}.jar ${des}
+						#jar -cmf manifest.mf ${des%.class}.jar ${des}
+						jar -cmf manifest.mf ${des%.class}.jar *.class
 						#remove class file
 						if [ -f ../bin/${des} ]; then
 							rm ../bin/${des}
 						fi
-						rm manifest.mf ${des}
+						case ${keep} in
+							--keep-manifest)
+								#rm ${des}
+								rm *.class
+								;;
+							*)
+								#rm manifest.mf ${des}
+								rm manifest.mf *.class
+								;;
+						esac
 						#move Java Jar to Binary dir
 						mv ${des%.class}.jar ../bin/
+						echo -e "\e[1;41m[Java Code Compiled (JAR)]\e[0m"
 						;;
 					#Do nothing...keep class
-					*)
+					*|--class)
 						#move Java Class to Binary dir
-						mv ${des} ../bin/
+						#mv ${des} ../bin/
+						mv *.class ../bin/
 						#remove old jar
 						if [ -f ../bin/${des%.class}.jar ]; then
 							rm ../bin/${des%.class}.jar
 						fi
+						echo -e "\e[1;41m[Java Code Compiled (CLASS)]\e[0m"
 						;;
 				esac
-				echo -e "\e[1;41m[Java Code Compiled]\e[0m"
 			fi
 		fi
 	#Not found
@@ -3124,77 +3277,103 @@ Actions()
 						echo "Possible: ${pLangs}"
 					fi
 					;;
+				#use the shell of a given language
 				shell)
 					case ${Lang} in
+						#Python
 						Python)
+							#Enter shell
 							${PythonRun}
 							;;
+						#Language does not support a shell
 						*)
 							;;
 					esac
 					;;
 				#Create new source code
 				new)
-					#Return the name of source code
-					newCode ${Lang} ${UserIn[1]} ${CodeProject} ${UserIn[2]}
-					case ${Lang} in
-						#Language is Bash
-						Bash)
-							#Get code
-							if [ -f ${BashSrc}/${UserIn[1]}.sh ]; then
-								Code=${UserIn[1]}.sh
-							elif [ -f ${BashSrc}/${UserIn[1]} ]; then
-								Code=${UserIn[1]}
-							fi
+					case ${UserIn[1]} in
+						#Get Code Template Versions
+						--version|-v)
+							TemplateVersion ${Lang}
 							;;
-						#Language is Python
-						Python)
-							#Get code
-							if [ -f ${PythonSrc}/${UserIn[1]}.py ]; then
-								Code=${UserIn[1]}.py
-							elif [ -f ${PythonSrc}/${UserIn[1]} ]; then
-								Code=${UserIn[1]}
-							fi
+						#Get Help Page for new code
+						--help|-h)
+							newCodeHelp ${Lang}
 							;;
-						#Language is Perl
-						Perl)
-							#Get code
-							if [ -f ${PerlSrc}/${UserIn[1]}.pl ]; then
-								Code=${UserIn[1]}.pl
-							elif [ -f ${PerlSrc}/${UserIn[1]} ]; then
-								Code=${UserIn[1]}
-							fi
+						#Protect against incorrect file naming
+						-*)
+							echo "\"${UserIn[1]}\" is not a valid program name"
 							;;
-						#Language is Ruby
-						Ruby)
-							#Get code
-							if [ -f ${RubySrc}/${UserIn[1]}.rb ]; then
-								Code=${UserIn[1]}.rb
-							elif [ -f ${RubySrc}/${UserIn[1]} ]; then
-								Code=${UserIn[1]}
-							fi
-							;;
-						#Language is C++
-						C++)
-							#Get code
-							if [ -f ${CppSrc}/${UserIn[1]}.cpp ]; then
-								Code=${UserIn[1]}.cpp
-							elif [ -f ${CppSrc}/${UserIn[1]}.h ]; then
-								Code=${UserIn[1]}.h
-							elif [ -f ${CppSrc}/${UserIn[1]} ]; then
-								Code=${UserIn[1]}
-							fi
-							;;
-						#Language is Java
-						Java)
-							#Get code
-							if [ -f ${JavaSrc}/${UserIn[1]}.java ]; then
-								Code=${UserIn[1]}.java
-							elif [ -f ${JavaSrc}/${UserIn[1]} ]; then
-								Code=${UserIn[1]}
-							fi
-							;;
+						#Create new src file
 						*)
+							#Ensure filename is given
+							if [ ! -z "${UserIn[1]}" ]; then
+								#Return the name of source code
+								newCode ${Lang} ${UserIn[1]} ${CodeProject} ${UserIn[2]}
+								case ${Lang} in
+									#Language is Bash
+									Bash)
+										#Get code
+										if [ -f ${BashSrc}/${UserIn[1]}.sh ]; then
+											Code=${UserIn[1]}.sh
+										elif [ -f ${BashSrc}/${UserIn[1]} ]; then
+											Code=${UserIn[1]}
+										fi
+										;;
+									#Language is Python
+									Python)
+										#Get code
+										if [ -f ${PythonSrc}/${UserIn[1]}.py ]; then
+											Code=${UserIn[1]}.py
+										elif [ -f ${PythonSrc}/${UserIn[1]} ]; then
+											Code=${UserIn[1]}
+										fi
+										;;
+									#Language is Perl
+									Perl)
+										#Get code
+										if [ -f ${PerlSrc}/${UserIn[1]}.pl ]; then
+											Code=${UserIn[1]}.pl
+										elif [ -f ${PerlSrc}/${UserIn[1]} ]; then
+										Code=${UserIn[1]}
+										fi
+										;;
+									#Language is Ruby
+									Ruby)
+										#Get code
+										if [ -f ${RubySrc}/${UserIn[1]}.rb ]; then
+											Code=${UserIn[1]}.rb
+										elif [ -f ${RubySrc}/${UserIn[1]} ]; then
+											Code=${UserIn[1]}
+										fi
+										;;
+									#Language is C++
+									C++)
+										#Get code
+										if [ -f ${CppSrc}/${UserIn[1]}.cpp ]; then
+											Code=${UserIn[1]}.cpp
+										elif [ -f ${CppSrc}/${UserIn[1]}.h ]; then
+											Code=${UserIn[1]}.h
+										elif [ -f ${CppSrc}/${UserIn[1]} ]; then
+											Code=${UserIn[1]}
+										fi
+										;;
+									#Language is Java
+									Java)
+										#Get code
+										if [ -f ${JavaSrc}/${UserIn[1]}.java ]; then
+											Code=${UserIn[1]}.java
+										elif [ -f ${JavaSrc}/${UserIn[1]} ]; then
+											Code=${UserIn[1]}
+										fi
+										;;
+									*)
+										;;
+								esac
+							else
+								newCodeHelp ${Lang}
+							fi
 							;;
 					esac
 					;;
@@ -3272,8 +3451,15 @@ Actions()
 							case ${Lang} in
 								#Java Properties
 								Java)
-									#Enter Java properties
-									echo "Java Jar manifest"
+									#Creating new manifast.mf
+									if [ ! -f manifest.mf ]; then
+										echo "Manifest-Version: 1.1" > manifest.mf
+										echo "Created-By: $USER" >> manifest.mf
+										echo "Main-Class: " >> manifest.mf
+										echo "Sealed: true" >> manifest.mf
+									fi
+									#edit manifest.mf
+									${editor} manifest.mf
 									;;
 								*)
 									echo "Java only"
@@ -3322,7 +3508,7 @@ Actions()
 					;;
 				#Compile code
 				compile|cpl)
-					compileCode ${Code} ${UserIn[1]}
+					compileCode ${Code} ${UserIn[1]} ${UserIn[2]}
 					#Code=$(SwapToBin ${Code})
 					;;
 				#Install compiled code into aliases
@@ -3331,7 +3517,12 @@ Actions()
 					;;
 				#run compiled code
 				execute|exe|run)
-					RunCode ${Lang} ${Code} ${UserIn[1]}
+					if [ ! -z "${Code}" ]; then
+						RunCode ${Lang} ${Code} ${UserIn[1]}
+					else
+						echo "no code to run"
+						echo "[hint] set <code>"
+					fi
 					;;
 				#Display cl[ide] version
 				version|v)
@@ -3442,6 +3633,15 @@ main()
 			#Get compile/interpreter version from cli
 			-cv|--code-version)
 				CodeVersion
+				;;
+			#Get version of template
+			-tv|--temp-version)
+				TemplateVersion Bash | sed "s/Version/Bash/g" | grep -v found
+				TemplateVersion Python | sed "s/Version/Python/g" | grep -v found
+				TemplateVersion Perl | sed "s/Version/Perl/g" | grep -v found
+				TemplateVersion Ruby | sed "s/Version/Ruby/g" | grep -v found
+				TemplateVersion C++ | sed "s/Version/C++/g" | grep -v found
+				TemplateVersion Java | sed "s/Version/Java/g" | grep -v found
 				;;
 			#Get version control version from cli
 			-rv|--repo-version)
