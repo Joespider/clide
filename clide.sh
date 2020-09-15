@@ -11,7 +11,7 @@ Shell=$(which bash)
 #1st # = Overflow
 #2nd # = Additional features
 #3rd # = Bug/code tweaks/fixes
-Version="0.60.43"
+Version="0.60.45"
 
 #cl[ide] config
 #{
@@ -101,61 +101,56 @@ MenuHelp()
 	local project=$2
 	echo ""
 	echo "----------------[(${Head}) Menu]----------------"
-	echo "ls: \"list progams\""
-	echo "unset: \"deselect source code\""
-	echo "use {Bash|Python|C++|Java}: \"choose language\""
-	echo "swap|swp {src|bin}: \"swap between sorce code and executable\""
-	echo "create <arg> : \"create compile and runtime arguments"
+	echo -e "ls\t\t\t\t: \"list progams\""
+	echo -e "unset\t\t\t\t: \"deselect source code\""
+	echo -e "use {Bash|Python|C++|Java}\t: \"choose language\""
+	echo -e "swap|swp {src|bin}\t\t: \"swap between sorce code and executable\""
+	echo -e "create <arg>\t\t\t: \"create compile and runtime arguments"
 	case ${Lang} in
 		Bash|Perl|Ruby)
-			echo "new <file>: \"create new ${Lang} script\""
-			echo "compile|cpl: \"make code executable\""
+			echo -e "new <file>\t\t\t: \"create new ${Lang} script\""
+			echo -e "compile|cpl\t\t\t: \"make code executable\""
 			;;
 		Python)
-			echo "new <file>: \"create new ${Lang} script\""
-			echo "compile|cpl: \"make code executable\""
-			echo "shell : run shell for testing"
+			echo -e "new <file>\t\t\t: \"create new ${Lang} script\""
+			echo -e "compile|cpl\t\t\t: \"make code executable\""
+			echo -e "shell\t\t\t\t: run shell for testing"
 			;;
 		C++)
-			echo "new <file> <type>: \"create new ${Lang} source file\""
-			echo "             main: \"create the main ${Lang} file\""
-			echo "           header: \"create a ${Lang} header file\""
-			echo "        component: \"create a standard ${Lang} file\""
-			echo "compile|cpl: \"make code executable\""
+			echo -e "new <file> {main|header|component} : \"create new ${Lang} source file\""
+			echo -e "compile|cpl\t\t\t: \"make code executable\""
 			;;
 		Java)
-			echo "new <file> <type>: \"create new ${Lang} source file\""
-			echo "             main: \"create the main ${Lang} file\""
-			echo "        component: \"create a standard ${Lang} file\""
-			echo "compile|cpl <type> <handle manifest> : \"make code executable\""
-			echo "            --class                  : \"make code (CLASS) executable\""
-			echo "            --jar                    : \"make code (CLASS|JAR) executable\""
-			echo "            --jar --keep-manifest    : \"keep manifest.mf\""
+			echo -e "new <file> {main|component}\t: \"create new ${Lang} source file\""
+			echo -e "compile|cpl <type> <manifest>\t: \"make code executable\""
+			echo -e "\t--class\t\t\t: \"make code (CLASS) executable\""
+			echo -e "\t--jar\t\t\t: \"make code (CLASS|JAR) executable\""
+			echo -e "\t--jar --keep-manifest\t: \"keep manifest.mf\""
 			;;
 		*)
-			echo "compile|cpl: \"make code executable\""
+			echo -e "compile|cpl\t: \"make code executable\""
 			;;
 	esac
-	echo "rm|remove|delete: \"delete src file\""
-	echo "set <file>: \"select source code\""
-	echo "add <file>: \"add new file to project\""
-	echo "${editor}|edit|ed: \"edit source code\""
-	echo "${ReadBy}|read: \"Read source code\""
-	echo "search <find>: \"search for code in project\""
+	echo -e "rm|remove|delete\t\t: \"delete src file\""
+	echo -e "set <file>\t\t\t: \"select source code\""
+	echo -e "add <file>\t\t\t: \"add new file to project\""
+	echo -e "${editor}|edit|ed\t\t\t: \"edit source code\""
+	echo -e "${ReadBy}|read\t\t\t: \"Read source code\""
+	echo -e "search <find>\t\t\t: \"search for code in project\""
 	case ${project} in
 		none)
-			echo "project {new|list|load}: \"handle projects\""
+			echo -e "project {new|list|load}\t\t: \"handle projects\""
 			;;
 		*)
-#			echo "project {new|update|list|load|active}: \"handle projects\""
-			echo "project {new|update|list|load}: \"handle projects\""
-			echo "${repoTool}|repo: \"handle repos\""
+#			echo -e "project {new|update|list|load|active}\t: \"handle projects\""
+			echo -e "project {new|update|list|load}\t: \"handle projects\""
+			echo -e "${repoTool}|repo\t: \"handle repos\""
 			;;
 	esac
-	echo "search: \"search project src files for line of code\""
-	echo "execute|exe|run: {-a|--args}: \"run active program\""
-	echo "last|load: \"Load last session\""
-	echo "exit|close: \"close ide\""
+	echo -e "search\t\t\t\t: \"search project src files for line of code\""
+	echo -e "execute|exe|run\t\t\t: {-a|--args}: \"run active program\""
+	echo -e "last|load\t\t\t: \"Load last session\""
+	echo -e "exit|close\t\t\t: \"close ide\""
 	echo "------------------------------------------------"
 	echo ""
 }
@@ -166,22 +161,22 @@ CreateHelp()
 
 	echo ""
 	echo "----------------[(${Head}) \"Create\" Help]----------------"
-	echo "args : create custom args"
+	echo -e "args\t: create custom args"
 	case ${Lang} in
 #		Bash|Python|Perl|Ruby)
 #			echo "args : create custom args"
 #			;;
 		C++)
-			echo "make : create makefile"
+			echo -e "make\t: create makefile"
 			;;
 		Java)
-			echo "prop|properties|-D : create custome Java properties"
-			echo "jar|manifest : create Java Manifest Jar builds"
+			echo -e "prop|properties|-D\t: create custome Java properties"
+			echo -e "jar|manifest\t: create Java Manifest Jar builds"
 			;;
 		*)
 			;;
 	esac
-	echo "reset : clear all"
+	echo -e "reset\t: clear all"
 	echo "---------------------------------------------------------"
 	echo ""
 }
@@ -190,12 +185,12 @@ ProjectHelp()
 {
 	echo ""
 	echo "----------------[(${Head}) \"Project\" Help]----------------"
-	echo "{new|update|load|list|active}: \"handle projects\""
-	echo "new <project>: \"Create a new project\""
-	echo "update: \"Update the active project\""
-	echo "load <project>: \"Choose a project to make active\""
-	echo "list: \"List ALL projects\""
-	echo "active: \"Display the name of the current project\""
+	echo -e "{new|update|load|list|active}\t: \"handle projects\""
+	echo -e "new <project>\t\t\t: \"Create a new project\""
+	echo -e "update\t\t\t\t: \"Update the active project\""
+	echo -e "load <project>\t\t\t: \"Choose a project to make active\""
+	echo -e "list\t\t\t\t: \"List ALL projects\""
+	echo -e "active\t\t\t\t: \"Display the name of the current project\""
 	echo "----------------------------------------------------------"
 	echo ""
 }
@@ -205,9 +200,9 @@ newCodeHelp()
 	local Lang=$1
 	echo ""
 	echo "----------------[(${Head}) \"new\" Help]----------------"
-	echo "{--version|-v|--help|-h|<code>} : \"Option\""
-	echo "--version|-v : \"Get Version for each code template\""
-	echo "--help|-h    : \"This page\""
+	echo -e "{--version|-v|--help|-h|<code>}\t: \"Option\""
+	echo -e "--version|-v\t\t\t: \"Get Version for each code template\""
+	echo -e "--help|-h\t\t\t: \"This page\""
 	case ${Lang} in
 		#Language is Bash
 		Bash)
@@ -276,15 +271,18 @@ CliHelp()
 {
 	echo ""
 	echo "----------------[(${Head}) CLI]----------------"
-	echo "-v |--version: \"Get Clide Version\""
-	echo "-cv|--code-version: \"Get Compile/Interpreter Version\""
-	echo "-tv|--temp-version: \"Get Code Template Version\""
-	echo "-rv|--repo-version: \"Get git/svn Version\""
-	echo "-c |--config: \"Get Clide Config\""
-	echo "-p |--projects: \"List Clide Projects\""
-	echo "-h |--help: \"Get CLI Help Page (Cl[ide] Menu: \"help\") \""
-	echo "-l |--last|--load: \"Load last session\""
+	echo -e "-v |--version\t\t\t: \"Get Clide Version\""
+	echo -e "-cv|--code-version\t\t: \"Get Compile/Interpreter Version\""
+	echo -e "-tv|--temp-version\t\t: \"Get Code Template Version\""
+	echo -e "-rv|--repo-version\t\t: \"Get git/svn Version\""
+	echo -e "-c |--config\t\t\t: \"Get Clide Config\""
+	echo -e "-p |--projects\t\t\t: \"List Clide Projects\""
+	echo -e "-h |--help\t\t\t: \"Get CLI Help Page (Cl[ide] Menu: \"help\")\""
+	echo -e "-l |--last|--load\t\t: \"Load last session\""
 	echo "-----------------------------------------------"
+	echo -e "$ clide <language> <code>\t: start clide"
+	echo -e "$ clide java program.java\t: start clide using java and program.java"
+	echo -e "$ clide java\t\t\t: start clide using java"
 	echo ""
 }
 
@@ -729,7 +727,7 @@ CodeVersion()
 			if [ -z "${Lang}" ]; then
 				echo "[Perl]"
 			fi
-			${PerlRun} --version
+			${PerlRun} --version | grep version
 		fi
 	fi
 	#Ruby
@@ -808,6 +806,32 @@ errorCode()
 					;;
 			esac
 			;;
+		lookFor)
+			case ${sec} in
+				none)
+					echo "Nothing to search for"
+					echo "Please provide a value"
+					;;
+				*)
+					;;
+			esac
+			;;
+		remove)
+			case ${sec} in
+				sure)
+					echo "WARNING: YOU ARE TRYING TO DELETE A FILE"
+					echo "WARNING: You will NOT recover this file"
+					echo ""
+					echo "\"yes\" is NOT \"YES\""
+					;;
+				hint)
+					echo ""
+					echo "HINT: to force removal, provide a \"--force\""
+					;;
+				*)
+					;;
+			esac
+			;;
 		noCode)
 			echo "No Code Found"
 			echo "[to set code]: set <name>"
@@ -861,6 +885,10 @@ errorCode()
 				not)
 					echo "code not found"
 					;;
+				need)
+					echo "${thr} is not compiled"
+					echo "[HINT] \$ cpl"
+					;;
 				*)
 					echo "Nothing to Compile"
 					echo "[to set code]: set <name>"
@@ -888,8 +916,7 @@ lookFor()
 			if [ ! -z "${search}" ]; then
 				grep -iR ${search} * | less
 			else
-				echo "Nothing to search for"
-				echo "Please provide a value"
+				errorCode "lookFor" "none"
 			fi
 			;;
 	esac
@@ -1738,10 +1765,7 @@ Remove()
 					echo "\"${src}\" is REMOVED"
 				else
 					clear
-					echo "WARNING: YOU ARE TRYING TO DELETE A FILE"
-					echo "WARNING: You will NOT recover this file"
-					echo ""
-					echo "\"yes\" is NOT \"YES\""
+					errorCode "remove" "sure"
 					echo -n "Are you Sure you want to remove \"${src}\" (YES/NO)? "
 					read User
 					case ${User} in
@@ -1755,8 +1779,7 @@ Remove()
 							echo "\"${src}\" is NOT removed"
 							;;
 		 			esac
-					echo ""
-					echo "HINT: to force removal, provide a \"--force\""
+					errorCode "remove" "hint"
 				fi
 			else
 				echo "\"${src}\" not a file"
@@ -1887,8 +1910,7 @@ RunCode()
 				if [ -f ${BashBin}/${name} ]; then
 				${BashBin}/${name} ${Args[@]}
 				else
-					echo "${name} is not compiled"
-					echo "[HINT] \$ cpl"
+					errorCode "cpl" "need" "${name}"
 				fi
 				;;
 			#Python
@@ -1897,9 +1919,7 @@ RunCode()
 				if [ -f ${PythonBin}/${TheBin} ]; then
 					${PythonRun} ${PythonBin}/${TheBin} ${Args[@]}
 				else
-					echo "${name} is not compiled"
-					echo "[HINT] \$ cpl"
-
+					errorCode "cpl" "need" "${name}"
 				fi
 				;;
 			#Perl
@@ -1908,9 +1928,7 @@ RunCode()
 				if [ -f ${PerlBin}/${TheBin} ]; then
 					${PerlRun} ${PerlBin}/${TheBin} ${Args[@]}
 				else
-					echo "${name} is not compiled"
-					echo "[HINT] \$ cpl"
-
+					errorCode "cpl" "need" "${name}"
 				fi
 				;;
 			#Ruby
@@ -1919,9 +1937,7 @@ RunCode()
 				if [ -f ${RubyBin}/${TheBin} ]; then
 					${RubyRun} ${RubyBin}/${TheBin} ${Args[@]}
 				else
-					echo "${name} is not compiled"
-					echo "[HINT] \$ cpl"
-
+					errorCode "cpl" "need" "${name}"
 				fi
 				;;
 			#C++
@@ -1930,8 +1946,7 @@ RunCode()
 				if [ -f ${CppBin}/${TheBin} ]; then
 					${CppBin}/${TheBin} ${Args[@]}
 				else
-					echo "${name} is not compiled"
-					echo "[HINT] \$ cpl"
+					errorCode "cpl" "need" "${name}"
 				fi
 				;;
 			#Java
@@ -1952,8 +1967,7 @@ RunCode()
 				elif [ -f ${JavaBin}/${TheJar} ]; then
 					${JavaRun} -jar ${JavaBin}/${TheJar} ${Args[@]}
 				else
-					echo "${name} is not compiled"
-					echo "[HINT] \$ cpl"
+					errorCode "cpl" "need" "${name}"
 				fi
 				;;
 			*)
@@ -3101,6 +3115,7 @@ Actions()
 	#Language Chosen
 	if [[ ! "${CodeDir}" == "no" ]]; then
 		cd ${CodeDir}/${Dir}
+		Code=$(selectCode ${Lang} ${Code})
 		Banner
 		while true
 		do
