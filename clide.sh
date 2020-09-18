@@ -3,7 +3,7 @@ Shell=$(which bash)
 
 #cl[ide] future features
 #{
-	#Allow User to input template args
+	#provide X11 support via -lX11 g++ flag
 #}
 
 #Version tracking
@@ -11,7 +11,7 @@ Shell=$(which bash)
 #1st # = Overflow
 #2nd # = Additional features
 #3rd # = Bug/code tweaks/fixes
-Version="0.60.45"
+Version="0.61.47"
 
 #cl[ide] config
 #{
@@ -76,6 +76,7 @@ Project=""
 CodeProject="none"
 RunTimeArgs=""
 JavaRunProp=""
+CppCplVersion=""
 #}
 
 #}
@@ -161,22 +162,23 @@ CreateHelp()
 
 	echo ""
 	echo "----------------[(${Head}) \"Create\" Help]----------------"
-	echo -e "args\t: create custom args"
+	echo -e "args\t\t\t: create custom args"
 	case ${Lang} in
 #		Bash|Python|Perl|Ruby)
 #			echo "args : create custom args"
 #			;;
 		C++)
-			echo -e "make\t: create makefile"
+			echo -e "make\t\t\t: create makefile"
+			echo -e "version|-std=<c++#>\t: create makefile"
 			;;
 		Java)
 			echo -e "prop|properties|-D\t: create custome Java properties"
-			echo -e "jar|manifest\t: create Java Manifest Jar builds"
+			echo -e "jar|manifest\t\t: create Java Manifest Jar builds"
 			;;
 		*)
 			;;
 	esac
-	echo -e "reset\t: clear all"
+	echo -e "reset\t\t\t: clear all"
 	echo "---------------------------------------------------------"
 	echo ""
 }
@@ -1138,128 +1140,137 @@ editCode()
 {
 	local src=$1
 	local num=$2
-	#Bash
-	if [[ "${src}" == *".sh" ]]; then
-		if [[ "${src}" == *","* ]]; then
-			if [ -z $2 ]; then
-				errorCode "editNull"
-			else
-				if [[ "${src}" == *"${num}"* ]]; then
-					if [[ "${num}" == *".sh" ]]; then
-						${editor} ${num}
-					else
-						${editor} "${num}.sh"
-					fi
+	case ${src} in
+		#Bash
+		*.sh)
+			if [[ "${src}" == *","* ]]; then
+				if [ -z $2 ]; then
+					errorCode "editNull"
 				else
-					errorCode "editNot"
-				fi
-			fi
-		else
-			case ${src} in
-				clide.sh)
-					errorCode "editMe"
-					;;
-				*)
-					${editor} ${src}
-					;;
-			esac
-		fi
-	#Python
-	elif [[ "${src}" == *".py" ]]; then
-		if [[ "${src}" == *","* ]]; then
-			if [ -z $2 ]; then
-				errorCode "editNull"
-			else
-				if [[ "${src}" == *"${num}"* ]]; then
-					if [[ "${num}" == *".py" ]]; then
-						${editor} ${num}
+					if [[ "${src}" == *"${num}"* ]]; then
+						if [[ "${num}" == *".sh" ]]; then
+							${editor} ${num}
+						else
+							${editor} "${num}.sh"
+						fi
 					else
-						${editor} "${num}.py"
+						errorCode "editNot"
 					fi
-				else
-					errorCode "editNot"
 				fi
-			fi
-		else
-			${editor} ${src}
-		fi
-	#Perl
-	elif [[ "${src}" == *".pl" ]]; then
-		if [[ "${src}" == *","* ]]; then
-			if [ -z $2 ]; then
-				errorCode "editNull"
 			else
-				if [[ "${src}" == *"${num}"* ]]; then
-					if [[ "${num}" == *".pl" ]]; then
-						${editor} ${num}
-					else
-						${editor} "${num}.pl"
-					fi
-				else
-					errorCode "editNot"
-				fi
+				case ${src} in
+					clide.sh)
+						errorCode "editMe"
+						;;
+					*)
+						${editor} ${src}
+						;;
+				esac
 			fi
-		else
-			${editor} ${src}
-		fi
-	#Ruby
-	elif [[ "${src}" == *".rb" ]]; then
-		if [[ "${src}" == *","* ]]; then
-			if [ -z $2 ]; then
-				errorCode "editNull"
+			;;
+		#Python
+		*.py)
+			if [[ "${src}" == *","* ]]; then
+				if [ -z $2 ]; then
+					errorCode "editNull"
+				else
+					if [[ "${src}" == *"${num}"* ]]; then
+						if [[ "${num}" == *".py" ]]; then
+							${editor} ${num}
+						else
+							${editor} "${num}.py"
+						fi
+					else
+						errorCode "editNot"
+					fi
+				fi
 			else
-				if [[ "${src}" == *"${num}"* ]]; then
-					if [[ "${num}" == *".rb" ]]; then
-						${editor} ${num}
-					else
-						${editor} "${num}.rb"
-					fi
-				else
-					errorCode "editNot"
-				fi
+				${editor} ${src}
 			fi
-		else
-			${editor} ${src}
-		fi
-	#C++
-	elif [[ "${src}" == *".cpp" ]] || [[ "${src}" == *".h" ]]; then
-		if [[ "${src}" == *","* ]]; then
-			if [ -z $2 ]; then
-				errorCode "editNull"
+			;;
+		#Perl
+		*.pl)
+			if [[ "${src}" == *","* ]]; then
+				if [ -z $2 ]; then
+					errorCode "editNull"
+				else
+					if [[ "${src}" == *"${num}"* ]]; then
+						if [[ "${num}" == *".pl" ]]; then
+							${editor} ${num}
+						else
+							${editor} "${num}.pl"
+						fi
+					else
+						errorCode "editNot"
+					fi
+				fi
 			else
-				if [[ "${src}" == *"${num}"* ]]; then
-					if [[ "${num}" == *".cpp" ]] || [[ "${num}" == *".h" ]]; then
-						${editor} ${num}
-					else
-						${editor} "${num}.cpp"
-					fi
-				else
-					errorCode "editNot"
-				fi
+				${editor} ${src}
 			fi
-		else
-			 ${editor} ${src}
-		fi
-	#Java
-	elif [[ "${src}" == *".java" ]]; then
-		if [[ "${src}" == *","* ]]; then
-			if [ -z $2 ]; then
-				errorCode "editNull"
+			;;
+		#Ruby
+		*.rb)
+			if [[ "${src}" == *","* ]]; then
+				if [ -z $2 ]; then
+					errorCode "editNull"
+				else
+					if [[ "${src}" == *"${num}"* ]]; then
+						if [[ "${num}" == *".rb" ]]; then
+							${editor} ${num}
+						else
+							${editor} "${num}.rb"
+						fi
+					else
+						errorCode "editNot"
+					fi
+				fi
 			else
-				if [[ "${src}" == *"${num}"* ]]; then
-					if [[ "${num}" == *".java" ]]; then
-						${editor} ${num}
-					else
-						${editor} "${num}.java"
-					fi
-				else
-					errorCode "editNot"
-				fi
+				${editor} ${src}
 			fi
-		else
-			${editor} ${src}
-		fi
-	fi
+			;;
+		#C++
+		*.cpp|*.h)
+			if [[ "${src}" == *","* ]]; then
+				if [ -z $2 ]; then
+					errorCode "editNull"
+				else
+					if [[ "${src}" == *"${num}"* ]]; then
+						if [[ "${num}" == *".cpp" ]] || [[ "${num}" == *".h" ]]; then
+							${editor} ${num}
+						else
+							${editor} "${num}.cpp"
+						fi
+					else
+						errorCode "editNot"
+					fi
+				fi
+			else
+				 ${editor} ${src}
+			fi
+			;;
+		#Java
+		*.java)
+			if [[ "${src}" == *","* ]]; then
+				if [ -z $2 ]; then
+					errorCode "editNull"
+				else
+					if [[ "${src}" == *"${num}"* ]]; then
+						if [[ "${num}" == *".java" ]]; then
+							${editor} ${num}
+						else
+							${editor} "${num}.java"
+						fi
+					else
+						errorCode "editNot"
+					fi
+				fi
+			else
+				${editor} ${src}
+			fi
+			;;
+		*)
+			;;
+	esac
 }
 
 #Add code to active session
@@ -1267,104 +1278,113 @@ addCode()
 {
 	local src=$1
 	local new=$2
-	#Bash
-	if [[ "$src" == *".sh" ]]; then
-		if [[ "${new}" == *".sh" ]]; then
-			if [ -f "${new}" ]; then
-				echo "${src},${new}"
+	case ${src} in
+		#Bash
+		*.sh)
+			if [[ "${new}" == *".sh" ]]; then
+				if [ -f "${new}" ]; then
+					echo "${src},${new}"
+				else
+					echo "${src}"
+				fi
 			else
-				echo "${src}"
+				if [ -f "${new}.sh" ]; then
+					echo "${src},${new}.sh"
+				else
+					echo "${src}"
+				fi
 			fi
-		else
-			if [ -f "${new}.sh" ]; then
-				echo "${src},${new}.sh"
+			;;
+		#Python
+		*.py)
+			if [[ "${new}" == *".py" ]]; then
+				if [ -f "${new}" ]; then
+					echo "${src},${new}"
+				else
+					echo "${src}"
+				fi
 			else
-				echo "${src}"
+				if [ -f "${new}.py" ]; then
+					echo "${src},${new}.py"
+				else
+					echo "${src}"
+				fi
 			fi
-		fi
-	#Python
-	elif [[ "$src" == *".py" ]]; then
-		if [[ "${new}" == *".py" ]]; then
-			if [ -f "${new}" ]; then
-				echo "${src},${new}"
+			;;
+		#Perl
+		*.pl)
+			if [[ "${new}" == *".pl" ]]; then
+				if [ -f "${new}" ]; then
+					echo "${src},${new}"
+				else
+					echo "${src}"
+				fi
 			else
-				echo "${src}"
+				if [ -f "${new}.pl" ]; then
+					echo "${src},${new}.pl"
+				else
+					echo "${src}"
+				fi
 			fi
-		else
-			if [ -f "${new}.py" ]; then
-				echo "${src},${new}.py"
+			;;
+		#Ruby
+		*.rb)
+			if [[ "${new}" == *".rb" ]]; then
+				if [ -f "${new}" ]; then
+					echo "${src},${new}"
+				else
+					echo "${src}"
+				fi
 			else
-				echo "${src}"
+				if [ -f "${new}.rb" ]; then
+					echo "${src},${new}.rb"
+				else
+					echo "${src}"
+				fi
 			fi
-		fi
-	#Perl
-	elif [[ "$src" == *".pl" ]]; then
-		if [[ "${new}" == *".pl" ]]; then
-			if [ -f "${new}" ]; then
-				echo "${src},${new}"
+			;;
+		#C++
+		*.cpp|*.h)
+			#Add cpp or header files with file extensions
+			if [[ "${new}" == *".cpp" ]] || [[ "${new}" == *".h" ]]; then
+				#Append file
+				if [ -f "${new}" ]; then
+					echo "${src},${new}"
+				else
+					echo "${src}"
+				fi
+			#Add cpp or header files without file extensions
 			else
-				echo "${src}"
+				#Append cpp files
+				if [ -f "${new}.cpp" ]; then
+					echo "${src},${new}.cpp"
+				#Append header files
+				elif [ -f "${new}.h" ]; then
+					echo "${src},${new}.h"
+				else
+					echo "${src}"
+				fi
 			fi
-		else
-			if [ -f "${new}.pl" ]; then
-				echo "${src},${new}.pl"
+			;;
+		#Java
+		*.java)
+			if [[ "${new}" == *".java" ]]; then
+				if [ -f "${new}" ]; then
+					echo "${src},${new}"
+				else
+					echo "${src}"
+				fi
 			else
-				echo "${src}"
+				if [ -f "${new}.java" ]; then
+					echo "${src},${new}.java"
+				else
+					echo "${src}"
+				fi
 			fi
-		fi
-	#Ruby
-	elif [[ "$src" == *".rb" ]]; then
-		if [[ "${new}" == *".rb" ]]; then
-			if [ -f "${new}" ]; then
-				echo "${src},${new}"
-			else
-				echo "${src}"
-			fi
-		else
-			if [ -f "${new}.rb" ]; then
-				echo "${src},${new}.rb"
-			else
-				echo "${src}"
-			fi
-		fi
-	#C++
-	elif [[ "$src" == *".cpp" ]] || [[ "$src" == *".h" ]]; then
-		#Add cpp or header files with file extensions
-		if [[ "${new}" == *".cpp" ]] || [[ "${new}" == *".h" ]]; then
-			#Append file
-			if [ -f "${new}" ]; then
-				echo "${src},${new}"
-			else
-				echo "${src}"
-			fi
-		#Add cpp or header files without file extensions
-		else
-			#Append cpp files
-			if [ -f "${new}.cpp" ]; then
-				echo "${src},${new}.cpp"
-			#Append header files
-			elif [ -f "${new}.h" ]; then
-				echo "${src},${new}.h"
-			else
-				echo "${src}"
-			fi
-		fi
-	#Java
-	elif [[ "$src" == *".java" ]]; then
-		if [[ "${new}" == *".java" ]]; then
-			if [ -f "${new}" ]; then
-				echo "${src},${new}"
-			else
-				echo "${src}"
-			fi
-		else
-			if [ -f "${new}.java" ]; then
-				echo "${src},${new}.java"
-			else
-				echo "${src}"
-			fi
-		fi
-	fi
+			;;
+		*)
+			;;
+	esac
 }
 
 #Read source code without editing
@@ -1372,122 +1392,130 @@ readCode()
 {
 	local src=$1
 	local num=$2
-	#Bash
-	if [[ "${src}" == *".sh" ]]; then
-		if [[ "${src}" == *","* ]]; then
-			if [ -z $2 ]; then
-				errorCode "readNull"
-			else
-				if [[ "${src}" == *"${num}"* ]]; then
-					if [[ "${num}" == *".sh" ]]; then
-						${ReadBy} ${num}
-					else
-						${ReadBy} "${num}.sh"
-					fi
+	case ${src} in
+		#Bash
+		*.sh)
+			if [[ "${src}" == *","* ]]; then
+				if [ -z $2 ]; then
+					errorCode "readNull"
 				else
-					errorCode "readNot"
-				fi
-			fi
-		else
-			${ReadBy} ${src}
-		fi
-	#Python
-	elif [[ "${src}" == *".py" ]]; then
-		if [[ "${src}" == *","* ]]; then
-			if [ -z $2 ]; then
-				errorCode "readNull"
-			else
-				if [[ "${src}" == *"${num}"* ]]; then
-					if [[ "${num}" == *".py" ]]; then
-						${ReadBy} ${num}
+					if [[ "${src}" == *"${num}"* ]]; then
+						if [[ "${num}" == *".sh" ]]; then
+							${ReadBy} ${num}
+						else
+							${ReadBy} "${num}.sh"
+						fi
 					else
-						${ReadBy} "${num}.py"
+						errorCode "readNot"
 					fi
-				else
-					errorCode "readNot"
 				fi
-			fi
-		else
-			${ReadBy} ${src}
-		fi
-	#Perl
-	elif [[ "${src}" == *".pl" ]]; then
-		if [[ "${src}" == *","* ]]; then
-			if [ -z $2 ]; then
-				errorCode "readNull"
 			else
-				if [[ "${src}" == *"${num}"* ]]; then
-					if [[ "${num}" == *".pl" ]]; then
-						${ReadBy} ${num}
-					else
-						${ReadBy} "${num}.pl"
-					fi
-				else
-					errorCode "readNot"
-				fi
+				${ReadBy} ${src}
 			fi
-		else
-			${ReadBy} ${src}
-		fi
-	#Ruby
-	elif [[ "${src}" == *".rb" ]]; then
-		if [[ "${src}" == *","* ]]; then
-			if [ -z $2 ]; then
-				errorCode "readNull"
+			;;
+		#Python
+		*.py)
+			if [[ "${src}" == *","* ]]; then
+				if [ -z $2 ]; then
+					errorCode "readNull"
+				else
+					if [[ "${src}" == *"${num}"* ]]; then
+						if [[ "${num}" == *".py" ]]; then
+							${ReadBy} ${num}
+						else
+							${ReadBy} "${num}.py"
+						fi
+					else
+						errorCode "readNot"
+					fi
+				fi
 			else
-				if [[ "${src}" == *"${num}"* ]]; then
-					if [[ "${num}" == *".rb" ]]; then
-						${ReadBy} ${num}
-					else
-						${ReadBy} "${num}.rb"
-					fi
-				else
-					errorCode "readNot"
-				fi
+				${ReadBy} ${src}
 			fi
-		else
-			${ReadBy} ${src}
-		fi
-	#C++
-	elif [[ "${src}" == *".cpp" ]] || [[ "${src}" == *".h" ]]; then
-		if [[ "${src}" == *","* ]]; then
-			if [ -z $2 ]; then
-				errorCode "readNull"
+			;;
+		#Perl
+		*.pl)
+			if [[ "${src}" == *","* ]]; then
+				if [ -z $2 ]; then
+					errorCode "readNull"
+				else
+					if [[ "${src}" == *"${num}"* ]]; then
+						if [[ "${num}" == *".pl" ]]; then
+							${ReadBy} ${num}
+						else
+							${ReadBy} "${num}.pl"
+						fi
+					else
+						errorCode "readNot"
+					fi
+				fi
 			else
-				if [[ "${src}" == *"${num}"* ]]; then
-					if [[ "${num}" == *".cpp" ]] || [[ "${num}" == *".h" ]]; then
-						${ReadBy} ${num}
-					else
-						${ReadBy} "${num}.cpp"
-					fi
-				else
-					errorCode "readNot"
-				fi
+				${ReadBy} ${src}
 			fi
-		else
-			${ReadBy} ${src}
-		fi
-	#Java
-	elif [[ "${src}" == *".java" ]]; then
-		if [[ "${src}" == *","* ]]; then
-			if [ -z $2 ]; then
-				errorCode "readNull"
+			;;
+		#Ruby
+		*.rb)
+			if [[ "${src}" == *","* ]]; then
+				if [ -z $2 ]; then
+					errorCode "readNull"
+				else
+					if [[ "${src}" == *"${num}"* ]]; then
+						if [[ "${num}" == *".rb" ]]; then
+							${ReadBy} ${num}
+						else
+							${ReadBy} "${num}.rb"
+						fi
+					else
+						errorCode "readNot"
+					fi
+				fi
 			else
-				if [[ "${src}" == *"${num}"* ]]; then
-					if [[ "${num}" == *".java" ]]; then
-
-						${ReadBy} ${num}
-					else
-						${ReadBy} "${num}.java"
-					fi
-				else
-					errorCode "readNot"
-				fi
+				${ReadBy} ${src}
 			fi
-		else
-			${ReadBy} ${src}
-		fi
-	fi
+			;;
+		#C++
+		*.cpp|*.h)
+			if [[ "${src}" == *","* ]]; then
+				if [ -z $2 ]; then
+					errorCode "readNull"
+				else
+					if [[ "${src}" == *"${num}"* ]]; then
+						if [[ "${num}" == *".cpp" ]] || [[ "${num}" == *".h" ]]; then
+							${ReadBy} ${num}
+						else
+							${ReadBy} "${num}.cpp"
+						fi
+					else
+						errorCode "readNot"
+					fi
+				fi
+			else
+				${ReadBy} ${src}
+			fi
+			;;
+		#Java
+		*.java)
+			if [[ "${src}" == *","* ]]; then
+				if [ -z $2 ]; then
+					errorCode "readNull"
+				else
+					if [[ "${src}" == *"${num}"* ]]; then
+						if [[ "${num}" == *".java" ]]; then
+							${ReadBy} ${num}
+						else
+							${ReadBy} "${num}.java"
+						fi
+					else
+						errorCode "readNot"
+					fi
+				fi
+			else
+				${ReadBy} ${src}
+			fi
+			;;
+		*)
+			;;
+	esac
 }
 
 #Create new source code
@@ -2602,6 +2630,7 @@ compileCode()
 		fi
 	#C++
 	elif [[ "$src" == *".cpp"* ]] || [ -f ${CppSrc}/${project}makefile ]; then
+		cplArgs=${CppCplVersion}
 		if [ -f ${CppSrc}/${project}makefile ]; then
 			cd ${CppSrc}/${project}
 			echo "make"
@@ -2619,7 +2648,7 @@ compileCode()
 					#Compile for Threads
 					NeedThreads=$(grep "#include <thread>" ${prog})
 					if [ ! -z "${NeedThreads}" ]; then
-						cplArgs="-lpthread"
+						cplArgs="${cplArgs} -lpthread"
 					fi
 					${CppCpl} ${prog} -o ../bin/${name} ${cplArgs}
 					echo -e "\e[1;44m[C++ Code Compiled]\e[0m"
@@ -2629,7 +2658,7 @@ compileCode()
 				#Compile for threading
 				NeedThreads=$(grep "#include <thread>" ${src})
 				if [ ! -z "${NeedThreads}" ]; then
-					cplArgs="-lpthread"
+					cplArgs="${cplArgs} -lpthread"
 				fi
 				#Compile and move C++ to Binary dir
 				${CppCpl} ${src} -o ../bin/${src%.*} ${cplArgs}
@@ -3459,6 +3488,42 @@ Actions()
 									echo "make files C++ Only"
 									;;
 
+							esac
+							;;
+						version|-std=*)
+							case ${Lang} in
+								C++)
+									case ${UserIn[1]} in
+										-std=*)
+											CppCplVersion="${UserIn[1]}"
+											;;
+										*)
+											CppCplVersion="${UserIn[2]}"
+											;;
+									esac
+
+									if [ -z "${CppCplVersion}" ]; then
+										echo -n "${cLang}\$ -std="
+										read -a CppCplVersion
+									fi
+									if [ ! -z "${CppCplVersion}" ]; then
+										case ${CppCplVersion} in
+											-std=*)
+												CppCplVersion=${CppCplVersion#-std=}
+												;;
+											*)
+												;;
+										esac
+										if [ ! -z "${CppCplVersion}" ] && [[ "${CppCplVersion}" == *"c++"* ]]; then
+											CppCplVersion="-std=${CppCplVersion}"
+										else
+											CppCplVersion=""
+										fi
+									fi
+									;;
+								*)
+									echo "At this time, only for C++"
+									;;
 							esac
 							;;
 						jar|manifest)
