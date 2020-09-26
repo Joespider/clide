@@ -11,7 +11,7 @@ Shell=$(which bash)
 #1st # = Overflow
 #2nd # = Additional features
 #3rd # = Bug/code tweaks/fixes
-Version="0.61.47"
+Version="0.62.55"
 
 #cl[ide] config
 #{
@@ -104,7 +104,7 @@ MenuHelp()
 	echo "----------------[(${Head}) Menu]----------------"
 	echo -e "ls\t\t\t\t: \"list progams\""
 	echo -e "unset\t\t\t\t: \"deselect source code\""
-	echo -e "use {Bash|Python|C++|Java}\t: \"choose language\""
+	echo -e "use <language> <code>\t\t: \"choose language\""
 	echo -e "swap|swp {src|bin}\t\t: \"swap between sorce code and executable\""
 	echo -e "create <arg>\t\t\t: \"create compile and runtime arguments"
 	case ${Lang} in
@@ -125,7 +125,7 @@ MenuHelp()
 			echo -e "new <file> {main|component}\t: \"create new ${Lang} source file\""
 			echo -e "compile|cpl <type> <manifest>\t: \"make code executable\""
 			echo -e "\t--class\t\t\t: \"make code (CLASS) executable\""
-			echo -e "\t--jar\t\t\t: \"make code (CLASS|JAR) executable\""
+			echo -e "\t--jar\t\t\t: \"make code (JAR) executable\""
 			echo -e "\t--jar --keep-manifest\t: \"keep manifest.mf\""
 			;;
 		*)
@@ -149,7 +149,7 @@ MenuHelp()
 			;;
 	esac
 	echo -e "search\t\t\t\t: \"search project src files for line of code\""
-	echo -e "execute|exe|run\t\t\t: {-a|--args}: \"run active program\""
+	echo -e "execute|exe|run {-a|--args}\t: \"run active program\""
 	echo -e "last|load\t\t\t: \"Load last session\""
 	echo -e "exit|close\t\t\t: \"close ide\""
 	echo "------------------------------------------------"
@@ -202,68 +202,49 @@ newCodeHelp()
 	local Lang=$1
 	echo ""
 	echo "----------------[(${Head}) \"new\" Help]----------------"
-	echo -e "{--version|-v|--help|-h|<code>}\t: \"Option\""
 	echo -e "--version|-v\t\t\t: \"Get Version for each code template\""
 	echo -e "--help|-h\t\t\t: \"This page\""
 	case ${Lang} in
 		#Language is Bash
 		Bash)
 			if [ -f ${BashBin}/newBash.sh ]; then
-				echo ""
-				echo "[${Lang} Template]"
-				${BashBin}/newBash.sh --help
-				echo ""
+				echo -e "--custom|-c\t\t\t: \"Custom src file using ${Lang} template\""
 			fi
 			;;
 		#Language is Python
 		Python)
 			if [ -f ${PythonBin}/newPython.py ]; then
-				echo ""
-				echo "[${Lang} Template]"
-				${PythonRun} ${PythonBin}/newPython.py --help
-				echo ""
+				echo -e "--custom|-c\t\t\t: \"Custom src file using ${Lang} template\""
 			fi
 			;;
 		#Language is Perl
 		Perl)
 			if [ -f ${PerlBin}/newPerl.pl ]; then
-				echo ""
-				echo "[${Lang} Template]"
-				${PerlRun} ${PerlBin}/newPerl.pl --help
-				echo ""
+				echo -e "--custom|-c\t\t\t: \"Custom src file using ${Lang} template\""
 			fi
 			;;
 		#Language is Ruby
 		Ruby)
 			if [ -f ${RubyBin}/newRuby.rb ]; then
-				echo ""
-				echo "[${Lang} Template]"
-				${RubyRun} ${RubyBin}/newRuby.rb --help
-				echo ""
+				echo -e "--custom|-c\t\t\t: \"Custom src file using ${Lang} template\""
 			fi
 			;;
 		#Language is C++
 		C++)
 			if [ -f ${CppBin}/newC++ ]; then
-				echo ""
-				echo "[${Lang} Template]"
-				${CppBin}/newC++ --help
-				echo ""
+				echo -e "--custom|-c\t\t\t: \"Custom src file using ${Lang} template\""
 			fi
 			;;
 		#Language is Java
 		Java)
-			if [ -f ${JavaBin}/newJava.jar ]; then
-				echo ""
-				echo "[${Lang} Template]"
-				java -jar ${JavaBin}/newJava.jar --help
-				echo ""
+			if [ -f ${JavaBin}/newJava.jar ] || [ -f ${JavaBin}/newJava.class ]; then
+				echo -e "--custom|-c\t\t\t: \"Custom src file using ${Lang} template\""
 			fi
 			;;
 		*)
-			echo "Options vary based on language"
 			;;
 	esac
+	echo -e "<code>\t\t\t\t: \"provide code name; will assume default settings\""
 	echo "----------------------------------------------------------"
 	echo ""
 }
@@ -841,6 +822,20 @@ errorCode()
 		newCode)
 			echo "Please Provide The Name Of Your New Code"
 			echo "EX: new <name>"
+			;;
+		customCode)
+			case ${sec} in
+				completeNotFound)
+					echo "${Head} did not find, or is not configured to find, your program"
+					echo "Please select your code"
+					echo "[to select code]: set <name>"
+					;;
+				notemp)
+					echo "No ${thr} Template Found"
+					;;
+				*)
+					;;
+			esac
 			;;
 		editNull)
 			echo "hint: ${editor}|edit|ed <file>"
@@ -1518,6 +1513,142 @@ readCode()
 	esac
 }
 
+customCode()
+{
+	local Lang=$1
+	local cLang=$2
+	Type=$(echo ${Type} | tr A-Z a-z)
+	case ${Lang} in
+		#Bash
+		Bash)
+			#Check for Custom Code Template
+			if [ -f ${BashBin}/newBash.sh ]; then
+				echo -n "${cLang}\$ ./newBash.sh "
+				read -a Args
+				#Template Args Given
+				if [ ! -z "${Args}" ];then
+					${BashBin}/newBash.sh ${Args[@]}
+				#No Template Args Given
+				else
+					${BashBin}/newBash.sh --help
+				fi
+			else
+				#Program Name Given
+				errorCode "customCode" "notemp" "${Lang}"
+			fi
+			;;
+		#Python
+		Python)
+			#Check for Custom Code Template
+			if [ -f ${PythonBin}/newPython.py ]; then
+				echo -n "${cLang}\$ ${PythonRun} newPython.py "
+				read -a Args
+				#Program Args Given
+				if [ ! -z "${Args}" ];then
+					${PythonRun} ${PythonBin}/newPython.py ${Args[@]}
+				#No Program Name Given
+				else
+					${PythonRun} ${PythonBin}/newPython.py --help
+				fi
+			else
+				#Program Name Given
+				errorCode "customCode" "notemp" "${Lang}"
+			fi
+			;;
+		#Perl
+		Perl)
+			if [ -f ${PerlBin}/newPerl.pl ]; then
+				echo -n "${cLang}\$ ${PerlRun} newPerl.pl "
+				read -a Args
+				#Program Args Given
+				if [ ! -z "${Args}" ];then
+					${PerlRun} ${PerlBin}/newPerl.pl ${Args[@]}
+				#No Program Name Given
+				else
+					${PerlRun} ${PerlBin}/newPerl.pl --help
+				fi
+			else
+				#Program Name Given
+				errorCode "customCode" "notemp" "${Lang}"
+			fi
+			;;
+		#Ruby
+		Ruby)
+			#Check for Custom Code Template
+			if [ -f ${RubyBin}/newRuby.rb ]; then
+				echo -n "${cLang}\$ ${RubyRun} newRuby.rb "
+				read -a Args
+				#Program Args Given
+				if [ ! -z "${Args}" ];then
+					${RubyRun} ${RubyBin}/newRuby.rb ${Args[@]}
+				#No Program Name Given
+				else
+					${RubyRun} ${RubyBin}/newRuby.rb --help
+				fi
+			else
+				#Program Name Given
+				errorCode "customCode" "notemp" "${Lang}"
+			fi
+			;;
+		#C++
+		C++)
+			#Check for Custom Code Template
+			if [ -f ${CppBin}/newC++ ]; then
+				echo -n "${cLang}\$ ./newC++ "
+				read -a Args
+				#Program Args Given
+				if [ ! -z "${Args}" ];then
+					${CppBin}/newC++ ${Args[@]}
+				#No Program Name Given
+				else
+					#Help Page
+					${CppBin}/newC++ --help
+				fi
+			else
+				#Program Name Given
+				errorCode "customCode" "notemp" "${Lang}"
+			fi
+			;;
+		#Java
+		Java)
+			#Check for Custom Code Template...is class
+			if [ -f ${JavaBin}/newJava.class ]; then
+				echo -n "${cLang}\$ java newJava "
+				read -a Args
+				#Program Args Given
+				if [ ! -z "${Args}" ];then
+					cd ${JavaBin}
+					java newJava ${Args[@]}
+					cd - > /dev/null
+					mv "${JavaBin}/*.java" . 2> /dev/null
+				else
+					cd ${JavaBin}
+					java newJava --help
+					cd - > /dev/null
+				fi
+			#Check for Custom Code Template...is jar
+			elif [ -f ${JavaBin}/newJava.jar ]; then
+				echo -n "${cLang}\$ java -jar newJava.jar "
+				read -a Args
+				#Program Args Given
+				if [ ! -z "${Args}" ];then
+					java -jar ${JavaBin}/newJava.jar ${Args[@]}
+				#No Program Name Given
+				else
+					java -jar ${JavaBin}/newJava.jar --help
+				fi
+			else
+				#Program Name Given
+				errorCode "customCode" "notemp" "${Lang}"
+			fi
+			;;
+		#no langague given
+		*)
+			;;
+	esac
+}
+
+
 #Create new source code
 newCode()
 {
@@ -1818,7 +1949,7 @@ Remove()
 	fi
 }
 
-RunCode()
+runCode()
 {
 	local Lang=$1
 	local name=$2
@@ -3301,18 +3432,24 @@ Actions()
 				#Swap Programming Languages
 				use|c++|java|python|perl|ruby|bash)
 					Old=${Lang}
-					if [ -z "${UserIn[1]}" ]; then
-						Lang=$(pgLang ${UserIn[0]})
-					else
-						Lang=$(pgLang ${UserIn[1]})
-					fi
+					OldCode=${Code}
+					case ${UserIn[0]} in
+						use)
+							Lang=$(pgLang ${UserIn[1]})
+							Code=${UserIn[2]}
+							;;
+						*)
+							Lang=$(pgLang ${UserIn[0]})
+							Code=${UserIn[1]}
+							;;
+					esac
 					if [[ ! "${Lang}" == "no" ]]; then
 						cLang=$(color ${Lang})
 						CodeDir=$(pgDir ${Lang})
 						cd ${CodeDir}
 						#Rest
 						#{
-						Code=""
+						Code=$(selectCode ${Lang} ${Code} "")
 						RunTimeArgs=""
 						CodeProject="none"
 						#}
@@ -3344,6 +3481,62 @@ Actions()
 						#Get Help Page for new code
 						--help|-h)
 							newCodeHelp ${Lang}
+							;;
+						--custom|-c)
+							local BeforeFiles=""
+							local AfterFiles=""
+							local Type=""
+							case ${Lang} in
+								#Language is Bash
+								Bash)
+									#Type="sh"
+									#BeforeFiles=$(ls *.${Type})
+									BeforeFiles=$(ls *.*)
+									;;
+								#Language is Python
+								Python)
+									#Type="py"
+									#BeforeFiles=$(ls *.${Type})
+									BeforeFiles=$(ls *.*)
+									;;
+								#Language is Perl
+								Perl)
+									#Type="pl"
+									#BeforeFiles=$(ls *.${Type})
+									BeforeFiles=$(ls *.*)
+									;;
+								#Language is Ruby
+								Ruby)
+									#Type="rb"
+									#BeforeFiles=$(ls *.${Type})
+									BeforeFiles=$(ls *.*)
+									;;
+								#Language is C++
+								C++)
+									#Type="cpp"
+									#BeforeFiles=$(ls *.${Type})
+									BeforeFiles=$(ls *.*)
+									;;
+								#Language is Java
+								Java)
+									#Type="java"
+									#BeforeFiles=$(ls *.${Type})
+									BeforeFiles=$(ls *.*)
+									;;
+								*)
+									;;
+							esac
+							#Create new code
+							customCode ${Lang} ${cLang}
+							#AfterFiles=$(ls *.${Type})
+							AfterFiles=$(ls *.*)
+							#look for created files
+							NewCode=$(echo ${BeforeFiles} ${AfterFiles} | tr ' ' '\n' | sort | uniq -u | tr -d '\n')
+							#Check if new code is found
+							if [ ! -z "${NewCode}" ]; then
+								#Select new Code
+								Code=$(selectCode ${Lang} ${NewCode} ${Code})
+							fi
 							;;
 						#Protect against incorrect file naming
 						-*)
@@ -3598,7 +3791,7 @@ Actions()
 				#run compiled code
 				execute|exe|run)
 					if [ ! -z "${Code}" ]; then
-						RunCode ${Lang} ${Code} ${UserIn[1]}
+						runCode ${Lang} ${Code} ${UserIn[1]}
 					else
 						echo "no code to run"
 						echo "[hint] set <code>"
@@ -3659,6 +3852,11 @@ Actions()
 					esac
 					#Go to dir
 					cd ${CodeDir}
+					;;
+				#List supported languages
+				langs|languages)
+					echo -n "${UserArg}: "
+					ColorCodes
 					;;
 				#Close cl[ide]
 				exit|close)
