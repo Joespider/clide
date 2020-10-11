@@ -11,7 +11,7 @@ Shell=$(which bash)
 #1st # = Overflow
 #2nd # = Additional features
 #3rd # = Bug/code tweaks/fixes
-Version="0.62.55"
+Version="0.62.59"
 
 #cl[ide] config
 #{
@@ -244,7 +244,7 @@ newCodeHelp()
 		*)
 			;;
 	esac
-	echo -e "<code>\t\t\t\t: \"provide code name; will assume default settings\""
+	echo -e "<code>\t\t\t\t: \"provide code name; default settings\""
 	echo "----------------------------------------------------------"
 	echo ""
 }
@@ -631,7 +631,7 @@ TemplateVersion()
 		#Language is Bash
 		Bash)
 			if [ -f ${BashBin}/newBash.sh ]; then
-				${BashBin}/newBash.sh | grep Version
+				${BashBin}/newBash.sh 2> /dev/null | grep Version
 			else
 				echo "no newBash.sh found"
 			fi
@@ -639,7 +639,7 @@ TemplateVersion()
 		#Language is Python
 		Python)
 			if [ -f ${PythonBin}/newPython.py ]; then
-				${PythonRun} ${PythonBin}/newPython.py | grep Version
+				${PythonRun} ${PythonBin}/newPython.py 2> /dev/null | grep Version
 			else
 				echo "no newPython found"
 			fi
@@ -647,7 +647,7 @@ TemplateVersion()
 		#Language is Perl
 		Perl)
 			if [ -f ${PerlBin}/newPerl.pl ]; then
-				${PerlRun} ${PerlBin}/newPerl.pl | grep Version
+				${PerlRun} ${PerlBin}/newPerl.pl 2> /dev/null | grep Version
 			else
 				echo "no newPerl found"
 			fi
@@ -655,7 +655,7 @@ TemplateVersion()
 		#Language is Ruby
 		Ruby)
 			if [ -f ${RubyBin}/newRuby.rb ]; then
-				${RubyRun} ${RubyBin}/newRuby.rb | grep Version
+				${RubyRun} ${RubyBin}/newRuby.rb 2> /dev/null | grep Version
 			else
 				echo "no newRuby found"
 			fi
@@ -663,7 +663,7 @@ TemplateVersion()
 		#Language is C++
 		C++)
 			if [ -f ${CppBin}/newC++ ]; then
-				${CppBin}/newC++ | grep Version
+				${CppBin}/newC++ 2> /dev/null | grep Version
 			else
 				echo "no newC++ found"
 			fi
@@ -671,7 +671,7 @@ TemplateVersion()
 		#Language is Java
 		Java)
 			if [ -f ${JavaBin}/newJava.jar ]; then
-				java -jar ${JavaBin}/newJava.jar | grep Version
+				java -jar ${JavaBin}/newJava.jar 2> /dev/null | grep Version
 			else
 				echo "no newJava.jar found"
 			fi
@@ -710,7 +710,7 @@ CodeVersion()
 			if [ -z "${Lang}" ]; then
 				echo "[Perl]"
 			fi
-			${PerlRun} --version | grep version
+			${PerlRun} --version 2> /dev/null | grep Version
 		fi
 	fi
 	#Ruby
@@ -1689,7 +1689,7 @@ newCode()
 				if [ -f ${PythonBin}/newPython.py ]; then
 					#Program Name Given
 					if [ ! -z "${name}" ];then
-						${PythonRun} ${PythonBin}/newPython.py -n ${name} --cli --main --shell -w -r -o
+						${PythonRun} ${PythonBin}/newPython.py -n ${name} --cli --main --shell --write-file --read-file --os --random
 					#No Program Name Given
 					else
 						${PythonRun} ${PythonBin}/newPython.py --help
@@ -1712,7 +1712,7 @@ newCode()
 				if [ -f ${PerlBin}/newPerl.pl ]; then
 					#Program Name Given
 					if [ ! -z "${name}" ];then
-						${PerlRun} ${PerlBin}/newPerl.pl -n ${name} --cli --main -w -r -o
+						${PerlRun} ${PerlBin}/newPerl.pl --name ${name} --cli --main --write-file --read-file --os
 					#No Program Name Given
 					else
 						${PerlRun} ${PerlBin}/newPerl.pl --help
@@ -1735,7 +1735,7 @@ newCode()
 				if [ -f ${RubyBin}/newRuby.rb ]; then
 					#Program Name Given
 					if [ ! -z "${name}" ];then
-						${RubyRun} ${RubyBin}/newRuby.rb -n ${name} --cli --user $USER --main -w -r -u
+						${RubyRun} ${RubyBin}/newRuby.rb -n ${name} --cli --user $USER --main --write-file --read-file --user-input
 					#No Program Name Given
 					else
 						${RubyRun} ${RubyBin}/newRuby.rb --help
@@ -1771,7 +1771,7 @@ newCode()
 						if [ -f ${CppBin}/newC++ ]; then
 							#Program Name Given
 							if [ ! -z "${name}" ];then
-								${CppBin}/newC++ -w -r --cli --main -i -u -n ${name}
+								${CppBin}/newC++ --write-file --read-file --cli --main --is-in --user-input --name ${name}
 							#No Program Name Given
 							else
 								#Help Page
@@ -1835,14 +1835,14 @@ newCode()
 							#create main file
 							main)
 								cd ${JavaBin}
-								java newJava --user $USER --main --shell -w -r -u -n "${name}"
+								java newJava --user $USER --main --shell --write-file --read-file --user-input --name ${name}
 								cd - > /dev/null
 								mv "${JavaBin}/${name}.java" .
 								;;
 							#create component file
 							component)
 								cd ${JavaBin}
-								java newJava --user $USER -w -r -n "${name}"
+								java newJava --user $USER --write-file --read-file --name "${name}"
 								cd - > /dev/null
 								mv "${JavaBin}/${name}.java" .
 								;;
@@ -1871,11 +1871,11 @@ newCode()
 						case ${Type} in
 							#create main file
 							main)
-								java -jar ${JavaBin}/newJava.jar --user $USER --main --shell -w -r -u -n "${name}"
+								java -jar ${JavaBin}/newJava.jar --user $USER --main --shell --write-file --read-file --user-input --name "${name}"
 								;;
 							#create component file
 							component)
-								java -jar ${JavaBin}/newJava.jar --user $USER -w -r -n "${name}"
+								java -jar ${JavaBin}/newJava.jar --user $USER --write-file --read-file --name "${name}"
 								;;
 							#cl[ide] knows best
 							*)
