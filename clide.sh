@@ -11,7 +11,7 @@ Shell=$(which bash)
 #1st # = Overflow
 #2nd # = Additional features
 #3rd # = Bug/code tweaks/fixes
-Version="0.62.61"
+Version="0.62.62"
 
 #cl[ide] config
 #{
@@ -189,7 +189,7 @@ ProjectHelp()
 	echo "----------------[(${Head}) \"Project\" Help]----------------"
 	echo -e "Purpose: \"handle projects\""
 	echo -e "new <project>\t\t\t: \"Create a new project\""
-	echo -e "import <project>\t\t: \"Import projects\""
+	echo -e "import <project> <path>\t\t: \"Import projects\""
 	echo -e "update\t\t\t\t: \"Update the active project\""
 	echo -e "load <project>\t\t\t: \"Choose a project to make active\""
 	echo -e "list\t\t\t\t: \"List ALL projects\""
