@@ -11,7 +11,7 @@ Shell=$(which bash)
 #1st # = Overflow
 #2nd # = Additional features
 #3rd # = Bug/code tweaks/fixes
-Version="0.62.59"
+Version="0.62.61"
 
 #cl[ide] config
 #{
@@ -187,8 +187,9 @@ ProjectHelp()
 {
 	echo ""
 	echo "----------------[(${Head}) \"Project\" Help]----------------"
-	echo -e "{new|update|load|list|active}\t: \"handle projects\""
+	echo -e "Purpose: \"handle projects\""
 	echo -e "new <project>\t\t\t: \"Create a new project\""
+	echo -e "import <project>\t\t: \"Import projects\""
 	echo -e "update\t\t\t\t: \"Update the active project\""
 	echo -e "load <project>\t\t\t: \"Choose a project to make active\""
 	echo -e "list\t\t\t\t: \"List ALL projects\""
@@ -768,6 +769,7 @@ errorCode()
 	local ecd=$1
 	local sec=$2
 	local thr=$3
+	local four=$4
 	case $ecd in
 		alias)
 			echo "\"${sec}\" already installed"
@@ -860,6 +862,16 @@ errorCode()
 					echo "$ project new <project>"
 					echo "$ project load <project>"
 					;;
+				import)
+					case ${thr} in
+						link-nothing)
+							echo "\"${four}\" is not a working directory"
+							;;
+						*)
+							echo "import Methods"
+							;;
+					esac
+					;;
 				exists)
 					echo "\"${thr}\" is already a project"
 					;;
@@ -945,6 +957,42 @@ LoadSession()
 	fi
 }
 
+importProject()
+{
+	local Lang=$1
+	local Name=$2
+	local Path=$3
+	if [ ! -z "${Name}" ]; then
+		if [ ! -f ${ClideDir}/${Name}.clide ]; then
+			if [ -z "${Path}" ]; then
+				echo -n "Import Project \"${Name}\" from : "
+				read Path
+			fi
+
+			if [ -z "${Path}" ]; then
+				echo "no path Given"
+			else
+				case ${Path} in
+					*${Name}|*${Name}/)
+						echo "name=${Name}" > ${ClideDir}/${Name}.clide
+						echo "lang=${Lang}" >> ${ClideDir}/${Name}.clide
+						echo "path=${Path}" >> ${ClideDir}/${Name}.clide
+						echo "src=" >> ${ClideDir}/${Name}.clide
+						echo "Project \"${Name}\" Imported"
+						;;
+					*)
+						echo "${Name} must be in the directory of \"${Path}\""
+						;;
+				esac
+			fi
+		else
+			echo "You Already have a project named \"${Name}\""
+		fi
+	else
+		echo "import help"
+	fi
+}
+
 #Create new project
 newProject()
 {
@@ -960,10 +1008,8 @@ newProject()
 		echo "name=${project}" > ${ClideDir}/${project}.clide
 		#Language Value
 		echo "lang=${lang}" >> ${ClideDir}/${project}.clide
-		#Source Value
-		echo "src=" >> ${ClideDir}/${project}.clide
-		#Check if Project dir is made
 		case ${lang} in
+		#Check if Project dir is made
 			#Bash
 			Bash)
 				path=${BashSrc}/${project}
@@ -973,7 +1019,7 @@ newProject()
 					mkdir src bin
 					cd ${path}/src
 				else
-					cd ${path}/src
+					cd ${path}/srs
 				fi
 				;;
 			#Python
@@ -1038,6 +1084,11 @@ newProject()
 			*)
 				;;
 		esac
+		#Path Value
+		echo "path=${path}" >> ${ClideDir}/${project}.clide
+		#Source Value
+		echo "src=" >> ${ClideDir}/${project}.clide
+		cat ${ClideDir}/${project}.clide
 	fi
 }
 
@@ -1052,6 +1103,7 @@ updateProject()
 		if [ ! -f ${ClideDir}/${project}.clide ]; then
 			errorCode "project" "NotAProject" ${project}
 		else
+			#Incorperate sed instead of what you're doing
 			grep -v "src=" ${ClideDir}/${project}.clide > new
 			mv new ${ClideDir}/${project}.clide
 			#Grab Project Data
@@ -1073,6 +1125,7 @@ loadProject()
 	local project=$1
 	local path=""
 	local RtnVals=""
+	local tag=""
 	if [ ! -d "${ClideDir}" ]; then
 		errorCode "project"
 	else
@@ -1083,42 +1136,17 @@ loadProject()
 			if [ -f ${ClideDir}/${project}.clide ]; then
 				#Grab Project Data
 				#Name Value
-				tag="name"
-				name=$(grep ${tag} ${ClideDir}/${project}.clide | sed "s/${tag}=//g")
+				tag="name="
+				name=$(grep ${tag} ${ClideDir}/${project}.clide | sed "s/${tag}//g")
 				#Language Value
-				tag="lang"
-				lang=$(grep ${tag} ${ClideDir}/${project}.clide | sed "s/${tag}=//g")
+				tag="lang="
+				lang=$(grep ${tag} ${ClideDir}/${project}.clide | sed "s/${tag}//g")
 				#Source Value
-				tag="src"
-				src=$(grep ${tag} ${ClideDir}/${project}.clide | sed "s/${tag}=//g")
-				case ${lang} in
-					#Bash
-					Bash)
-						path=${BashSrc}/${name}/src
-						;;
-					#Python
-					Python)
-						path=${PythonSrc}/${name}/src
-						;;
-					#Perl
-					Perl)
-						path=${PerlSrc}/${name}/src
-						;;
-					#Ruby
-					Ruby)
-						path=${RubySrc}/${name}/src
-						;;
-					#C++
-					C++)
-						path=${CppSrc}/${name}/src
-						;;
-					#Java
-					Java)
-						path=${JavaSrc}/${name}
-						;;
-					*)
-						;;
-				esac
+				tag="path="
+				path=$(grep ${tag} ${ClideDir}/${project}.clide | sed "s/${tag}//g")
+				#Source Value
+				tag="src="
+				src=$(grep ${tag} ${ClideDir}/${project}.clide | sed "s/${tag}//g")
 				#return valid
 				RtnVals="${lang};${src};${path}"
 				echo ${RtnVals}
@@ -3336,17 +3364,19 @@ Actions()
 				#change dir in project
 				cd)
 					#Use ONLY for Projects
-					if [[ ! "${CodeProject}" == "none" ]]; then
-						cd ${UserIn[1]}
-						here=$(pwd)
-						if [[ ! "${here}" == *"${CodeProject}"* ]]; then
-							echo "Leaving your project is not allowed"
-							cd - > /dev/null
-						fi
-						#Dir="${CodeProject}"
-					else
-						echo "Must have an active project"
-					fi
+					case ${CodeProject} in
+						none)
+							echo "Must have an active project"
+							;;
+						*)
+							cd ${UserIn[1]}
+							here=$(pwd)
+							if [[ ! "${here}" == *"${CodeProject}"* ]]; then
+								echo "Leaving your project is not allowed"
+								cd - > /dev/null
+							fi
+							;;
+					esac
 					;;
 				#get pwd of dir
 				pwd)
@@ -3386,6 +3416,8 @@ Actions()
 									if [ ! -z ${UserIn[2]} ]; then
 										CodeProject=${UserIn[2]}
 										echo "Created \"${CodeProject}\""
+										ThePWD=$(pwd)
+										ProjectDir=$(echo ${ThePWD#*${CodeProject}} | sed "s/\//:/1")
 									fi
 								fi
 							fi
@@ -3399,15 +3431,23 @@ Actions()
 						load)
 							project=$(loadProject ${UserIn[2]})
 							if [ "${project}" != "no" ]; then
-								Lang=$(echo ${project} | cut -d ";" -f 1)
-								Code=$(echo ${project} | cut -d ";" -f 2)
 								CodeDir=$(echo ${project} | cut -d ";" -f 3)
-								CodeProject=${UserIn[2]}
-								cd ${CodeDir}
-								echo "Project \"${CodeProject}\" loaded"
+								if [ -d ${CodeDir} ]; then
+									Lang=$(echo ${project} | cut -d ";" -f 1)
+									Code=$(echo ${project} | cut -d ";" -f 2)
+									CodeProject=${UserIn[2]}
+									cd ${CodeDir}
+									echo "Project \"${CodeProject}\" loaded"
+								else
+									echo "Project \"${UserIn[2]}\" Directory not Found"
+								fi
 							else
 								echo "Not a valid project"
 							fi
+							;;
+						#Import project not created by cl[ide]
+						import)
+							importProject ${Lang} ${UserIn[2]} ${UserIn[3]}
 							;;
 						#Display active project
 						active)
