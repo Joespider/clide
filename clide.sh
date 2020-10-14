@@ -11,7 +11,7 @@ Shell=$(which bash)
 #1st # = Overflow
 #2nd # = Additional features
 #3rd # = Bug/code tweaks/fixes
-Version="0.62.62"
+Version="0.63.62"
 
 #cl[ide] config
 #{
@@ -3281,6 +3281,7 @@ Actions()
 	local Lang=$1
 	local CodeDir=$(pgDir ${Lang})
 	local pLangs=$(ColorCodes)
+	local prompt=""
 	local UserArg=""
 	#No Project Given
 	if [ -z $2 ]; then
@@ -3314,27 +3315,35 @@ Actions()
 			if [[ "${Code}" == "" ]]; then
 				if [[ "${CodeProject}" == "none" ]]; then
 					#Menu with no code
-					echo -n "${Name}(${cLang}):$ "
+					#echo -n "${Name}(${cLang}):$ "
+					prompt="${Name}(${cLang}):$ "
 				else
 					ThePWD=$(pwd)
 					ProjectDir=$(echo ${ThePWD#*${CodeProject}} | sed "s/\//:/1")
 					#Menu with no code
-					echo -n "${Name}(${cLang}[${CodeProject}${ProjectDir}]):$ "
+					#echo -n "${Name}(${cLang}[${CodeProject}${ProjectDir}]):$ "
+					prompt="${Name}(${cLang}[${CodeProject}${ProjectDir}]):$ "
 				fi
 			else
 				if [[ "${CodeProject}" == "none" ]]; then
 					#Menu with code
-					echo -n "${Name}(${cLang}{${cCode}}):$ "
+					#echo -n "${Name}(${cLang}{${cCode}}):$ "
+					prompt="${Name}(${cLang}{${cCode}}):$ "
 				else
 					ThePWD=$(pwd)
 					ProjectDir=$(echo ${ThePWD#*${CodeProject}} | sed "s/\//:/1")
 					#Menu with no code
-					echo -n "${Name}(${cLang}[${CodeProject}${ProjectDir}]{${cCode}}):$ "
+					#echo -n "${Name}(${cLang}[${CodeProject}${ProjectDir}]{${cCode}}):$ "
+					prompt="${Name}(${cLang}[${CodeProject}${ProjectDir}]{${cCode}}):$ "
 				fi
 			fi
 			#Handle CLI
-			read -a UserIn
+			#read -a UserIn
+			read -e -p "${prompt}" -a UserIn
 			UserArg=$(echo ${UserIn[0]} | tr A-Z a-z)
+			if [ ! -z "${UserIn[0]}" ]; then
+				history -s "${UserIn[@]}"
+			fi
 			case ${UserArg} in
 				#List files
 				ls)
@@ -3996,5 +4005,6 @@ main()
 	fi
 }
 
+history -c
 #Run clide
 main $@
