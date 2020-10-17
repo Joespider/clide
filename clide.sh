@@ -11,7 +11,7 @@ Shell=$(which bash)
 #1st # = Overflow
 #2nd # = Additional features
 #3rd # = Bug/code tweaks/fixes
-Version="0.64.64"
+Version="0.64.65"
 
 #cl[ide] config
 #{
@@ -898,6 +898,10 @@ errorCode()
 				need)
 					echo "${thr} is not compiled"
 					echo "[HINT] \$ cpl"
+					;;
+				none)
+					echo "no code to run"
+					echo "[hint] set <code>"
 					;;
 				*)
 					echo "Nothing to Compile"
@@ -3276,6 +3280,7 @@ SwapToBin()
 #IDE
 Actions()
 {
+	loadAuto
 	local Dir=""
 	local ProjectDir=""
 	local Lang=$1
@@ -3842,8 +3847,7 @@ Actions()
 					if [ ! -z "${Code}" ]; then
 						runCode ${Lang} ${Code} ${UserIn[1]}
 					else
-						echo "no code to run"
-						echo "[hint] set <code>"
+						errorCode "cpl" "none"
 					fi
 					;;
 				#Display cl[ide] version
@@ -3933,14 +3937,12 @@ autocomp()
 	local last_addr
 	local last_addr_len
 	local READLINE_ARRAY
-#	local READLINE_LINE
 	if [[ "${READLINE_LINE}" == "" ]]; then
 		opt=()
 		x=0
 		while [ ${x} -le ${len} ];
 		do
-			#opt[${#opt[@]}]=$(echo ${Commands[${x},0]} | sed "s/ /|/g")
-			opt[${#opt[@]}]=${Commands[${x},0]//[\ \|]}
+			opt[${#opt[@]}]=${Commands[${x},0]}
 			x=$((${x}+1))
 		done
 		echo "${prompt}${READLINE_LINE}"
@@ -4061,6 +4063,44 @@ comp_list()
 	Commands[${len},3]=$4
 }
 
+#Load AutoComplete
+loadAuto()
+{
+	#init autocomplete
+	set -o vi
+	bind -x '"\t":autocomp'
+	bind -x '"\C-l":clear'
+	comp_list "ls"
+	comp_list "ll"
+	comp_list "clear"
+	comp_list "set"
+	comp_list "unset"
+	comp_list "rm remove delete" "--force"
+	comp_list "cd"
+	comp_list "pwd"
+	comp_list "mkdir"
+	comp_list "use" "${pg}"
+	comp_list "swap swp" "src bin"
+	comp_list "project" "load import new list"
+	comp_list "shell"
+	comp_list "new" "--version -v --help -h --custom -c"
+	comp_list "${editor} ed edit"
+	comp_list "add"
+	comp_list "${ReadBy} read"
+	comp_list "${repoTool} repo"
+	comp_list "search"
+	comp_list "create" "make version -std= jar manifest args prop properties -D reset"
+	comp_list "compile cpl"
+	comp_list "execute exe run" "-a --args"
+	comp_list "version"
+	comp_list "help"
+	comp_list "last load"
+	comp_list "install"
+	comp_list "langs languages"
+	comp_list "exit close"
+}
+
+
 #Main Function
 main()
 {
@@ -4069,41 +4109,7 @@ main()
 	EnsureDirs
 	local pg=$(ColorCodes)
 	local UserArg=$1
-	#init autocomplete
-	set -o vi
-	bind -x '"\t":autocomp'
-	comp_list "ls"
-	comp_list "ll"
-	comp_list "clear"
-	comp_list "new"
-	comp_list "set"
-	comp_list "unset"
-	comp_list "rm remove delete"
-	comp_list "cd"
-	comp_list "pwd"
-	comp_list "mkdir"
-	comp_list "use" "${pg}"
-	comp_list "swap swp" "src bin"
-	comp_list "project" "load import new list"
-	comp_list "shell"
-	comp_list "new"
-	comp_list "${editor} ed edit"
-	comp_list "add"
-	comp_list "${ReadBy} read"
-	comp_list "${repoTool} repo"
-	comp_list "search"
-	comp_list "create"
-	comp_list "compile cpl"
-	comp_list "execute exe run"
-	comp_list "version"
-	comp_list "help"
-	comp_list "last load"
-	comp_list "install"
-	comp_list "langs languages"
-	comp_list "exit close"
-	comp_list "Bash"
-	comp_list "Perl"
-	comp_list "Ruby"
+	local prompt
 	#No argument given
 	if [ -z "${UserArg}" ]; then
 		clear
@@ -4113,8 +4119,8 @@ main()
 		#Force user to select language
 		while [[ "$getLang" == "" ]] || [[ "$Lang" == "no" ]];
 		do
-			echo -n "${Name}(${pg}):$ "
-			read getLang
+			prompt="${Name}(${pg}):$ "
+			read -e -p "${prompt}" getLang
 			case ${getLang} in
 				exit)
 					break
@@ -4125,6 +4131,7 @@ main()
 					;;
 			esac
 		done
+
 		#Start IDE
 		Actions ${Lang}
 	else
