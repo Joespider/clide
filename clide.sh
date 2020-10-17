@@ -11,7 +11,7 @@ Shell=$(which bash)
 #1st # = Overflow
 #2nd # = Additional features
 #3rd # = Bug/code tweaks/fixes
-Version="0.64.63"
+Version="0.64.64"
 
 #cl[ide] config
 #{
@@ -3939,7 +3939,8 @@ autocomp()
 		x=0
 		while [ ${x} -le ${len} ];
 		do
-			opt[${#opt[@]}]=$(echo ${Commands[${x},0]} | sed "s/ /|/g")
+			#opt[${#opt[@]}]=$(echo ${Commands[${x},0]} | sed "s/ /|/g")
+			opt[${#opt[@]}]=${Commands[${x},0]//[\ \|]}
 			x=$((${x}+1))
 		done
 		echo "${prompt}${READLINE_LINE}"
