@@ -11,7 +11,7 @@ Shell=$(which bash)
 #1st # = Overflow
 #2nd # = Additional features
 #3rd # = Bug/code tweaks/fixes
-Version="0.64.65"
+Version="0.64.66"
 
 #cl[ide] config
 #{
@@ -1949,6 +1949,14 @@ Remove()
 	local src=$2
 	local option=$3
 	if [ ! -z "${src}" ]; then
+		case  ${src} in
+			--force)
+				src=${option}
+				option="--force"
+				;;
+			*)
+				;;
+		esac
 		if [ *"${src}"* == "${active}" ]; then
 			if [ -f ${src} ]; then
 				if [ "${option}" == "--force" ]; then
