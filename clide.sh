@@ -11,7 +11,7 @@ Shell=$(which bash)
 #1st # = Overflow
 #2nd # = Additional features
 #3rd # = Bug/code tweaks/fixes
-Version="0.63.62"
+Version="0.64.63"
 
 #cl[ide] config
 #{
@@ -77,6 +77,7 @@ CodeProject="none"
 RunTimeArgs=""
 JavaRunProp=""
 CppCplVersion=""
+declare -A Commands
 #}
 
 #}
@@ -1088,7 +1089,6 @@ newProject()
 		echo "path=${path}" >> ${ClideDir}/${project}.clide
 		#Source Value
 		echo "src=" >> ${ClideDir}/${project}.clide
-		cat ${ClideDir}/${project}.clide
 	fi
 }
 
@@ -3312,29 +3312,29 @@ Actions()
 			cLang=$(color ${Lang})
 			#Change Color for Code
 			cCode=$(color ${Code})
+
 			if [[ "${Code}" == "" ]]; then
 				if [[ "${CodeProject}" == "none" ]]; then
 					#Menu with no code
-					#echo -n "${Name}(${cLang}):$ "
 					prompt="${Name}(${cLang}):$ "
 				else
 					ThePWD=$(pwd)
 					ProjectDir=$(echo ${ThePWD#*${CodeProject}} | sed "s/\//:/1")
+					cCodeProject=$(echo -e "\e[1;40m${CodeProject}\e[0m")
 					#Menu with no code
-					#echo -n "${Name}(${cLang}[${CodeProject}${ProjectDir}]):$ "
-					prompt="${Name}(${cLang}[${CodeProject}${ProjectDir}]):$ "
+					prompt="${Name}(${cLang}[${cCodeProject}${ProjectDir}]):$ "
 				fi
 			else
 				if [[ "${CodeProject}" == "none" ]]; then
 					#Menu with code
-					#echo -n "${Name}(${cLang}{${cCode}}):$ "
+					cCodeProject=$(echo -e "\e[1;40m${CodeProject}\e[0m")
 					prompt="${Name}(${cLang}{${cCode}}):$ "
 				else
 					ThePWD=$(pwd)
 					ProjectDir=$(echo ${ThePWD#*${CodeProject}} | sed "s/\//:/1")
 					#Menu with no code
-					#echo -n "${Name}(${cLang}[${CodeProject}${ProjectDir}]{${cCode}}):$ "
-					prompt="${Name}(${cLang}[${CodeProject}${ProjectDir}]{${cCode}}):$ "
+					cCodeProject=$(echo -e "\e[1;40m${CodeProject}\e[0m")
+					prompt="${Name}(${cLang}[${cCodeProject}${ProjectDir}]{${cCode}}):$ "
 				fi
 			fi
 			#Handle CLI
@@ -3920,6 +3920,146 @@ Actions()
 	fi
 }
 
+#Autocomplete Function
+autocomp()
+{
+	local i
+	local x
+	local y
+	local z
+	local opt
+	local addr
+	local types
+	local last_addr
+	local last_addr_len
+	local READLINE_ARRAY
+#	local READLINE_LINE
+	if [[ "${READLINE_LINE}" == "" ]]; then
+		opt=()
+		x=0
+		while [ ${x} -le ${len} ];
+		do
+			opt[${#opt[@]}]=$(echo ${Commands[${x},0]} | sed "s/ /|/g")
+			x=$((${x}+1))
+		done
+		echo "${prompt}${READLINE_LINE}"
+		echo "${opt[@]}"
+	else
+		READLINE_ARRAY=()
+		for i in ${READLINE_LINE};
+		do
+			READLINE_ARRAY[${#READLINE_ARRAY[@]}]=${i}
+		done
+		opt=()
+		x=0
+		while [ ${x} -le ${len} ];
+		do
+			for i in ${Commands[${x},0]};
+			do
+				if [[ "${i}" == "${READLINE_ARRAY[0]}"* ]]; then
+					opt[${#opt[@]}]=${i}
+				fi
+			done
+			x=$((${x}+1))
+		done
+		if [ ${#opt[@]} == 1 ]; then
+			READLINE_LINE="${opt[0]} "
+			x=0
+			while [[ "${Commands[${x},0]}" != *"${opt[0]}"* ]];
+			do
+				x=$((x+1))
+			done
+			if [ ${#READLINE_ARRAY[@]} -gt 1 ]; then
+				opt=()
+				for i in ${Commands[$x,1]};
+				do
+					if [[ "${i}" == "" ]]; then
+						break
+					elif [[ "${i}" == "${READLINE_ARRAY[1]}"* ]]; then
+						opt[${#opt[@]}]=${i}
+					fi
+				done
+				if [ ${#opt[@]} == 1 ]; then
+					READLINE_LINE="${READLINE_LINE}${opt[0]} "
+					z=0
+					for i in ${Commands[${x},1]};
+					do
+						if [[ "${i}" == "${opt[0]}" ]]; then
+							break
+						fi
+						z=$((${z}+1))
+					done
+					y=2
+					while [ ${y} -le 3 ];
+					do
+						types=()
+						for i in ${Commands[${x},${y}]}
+						do
+							types[${#types[@]}]=${i}
+						done
+						if [[ "${types[$z]}" == "file" ]]; then
+							last_addr=""
+							last_addr_len=-${#READLINE_ARRAY[${y}]}
+							opt=()
+							if [[ "${READLINE_ARRAY[${y}]:$((${#READLINE_ARRAY[${y}]}-1))}" != '/' ]]; then
+								addr=${READLINE_ARRAY[${y}]//'/'/' '}
+								for i in ${addr}
+								do
+									last_addr=${i}
+								done
+								last_addr_len=${#last_addr}
+							fi
+							for i in $(ls -F ${READLINE_ARRAY[${y}]::-${last_addr_len}})
+							do
+								if [[ "${i}" == "${last_addr}"* ]]; then
+									opt[${#opt[@]}]=${i}
+								fi
+							done
+							if [ ${#opt[@]} == 1 ]; then
+								READLINE_LINE="${READLINE_LINE}${READLINE_ARRAY[${y}]::-${last_addr_len}}${opt[0]}"
+							else
+								if [ ${#opt[@]} -gt 1 ]; then
+									echo "${prompt}${READLINE_ARRAY[@]}"
+									echo "${opt[@]}"
+								fi
+								READLINE_LINE="${READLINE_LINE}${READLINE_ARRAY[${y}]}"
+							fi
+						else
+							READLINE_LINE="${READLINE_LINE}${READLINE_ARRAY[${y}]}"
+						fi
+						y=$((${y}+1))
+					done
+				else
+					if [ ${#opt[@]} -gt 1 ]; then
+						echo "${prompt}${READLINE_ARRAY[@]}"
+						echo "${opt[@]}"
+					fi
+					READLINE_LINE="${READLINE_LINE}${READLINE_ARRAY[1]}"
+				fi
+			else
+				if [[ "${Commands[${x},1]}" != "" ]]; then
+					echo "${prompt}${READLINE_ARRAY[@]}"
+					echo "${Commands[${x},1]}"
+				fi
+			fi
+		elif [ ${#opt[@]} -gt 1 ]; then
+			echo "${prompt}${READLINE_ARRAY[@]}"
+			echo "${opt[@]}"
+		fi
+	fi
+	READLINE_POINT=${#READLINE_LINE}
+}
+
+#Add To Autocomplete Function
+comp_list()
+{
+	len=$(((${#Commands[@]}+2)/3))
+	Commands[${len},0]=$1
+	Commands[${len},1]=$2
+	Commands[${len},2]=$3
+	Commands[${len},3]=$4
+}
+
 #Main Function
 main()
 {
@@ -3928,6 +4068,41 @@ main()
 	EnsureDirs
 	local pg=$(ColorCodes)
 	local UserArg=$1
+	#init autocomplete
+	set -o vi
+	bind -x '"\t":autocomp'
+	comp_list "ls"
+	comp_list "ll"
+	comp_list "clear"
+	comp_list "new"
+	comp_list "set"
+	comp_list "unset"
+	comp_list "rm remove delete"
+	comp_list "cd"
+	comp_list "pwd"
+	comp_list "mkdir"
+	comp_list "use" "${pg}"
+	comp_list "swap swp" "src bin"
+	comp_list "project" "load import new list"
+	comp_list "shell"
+	comp_list "new"
+	comp_list "${editor} ed edit"
+	comp_list "add"
+	comp_list "${ReadBy} read"
+	comp_list "${repoTool} repo"
+	comp_list "search"
+	comp_list "create"
+	comp_list "compile cpl"
+	comp_list "execute exe run"
+	comp_list "version"
+	comp_list "help"
+	comp_list "last load"
+	comp_list "install"
+	comp_list "langs languages"
+	comp_list "exit close"
+	comp_list "Bash"
+	comp_list "Perl"
+	comp_list "Ruby"
 	#No argument given
 	if [ -z "${UserArg}" ]; then
 		clear
