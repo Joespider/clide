@@ -11,7 +11,7 @@ Shell=$(which bash)
 #1st # = Overflow
 #2nd # = Additional features
 #3rd # = Bug/code tweaks/fixes
-Version="0.64.66"
+Version="0.65.66"
 
 #cl[ide] config
 #{
@@ -136,6 +136,7 @@ MenuHelp()
 	echo -e "rm|remove|delete\t\t: \"delete src file\""
 	echo -e "set <file>\t\t\t: \"select source code\""
 	echo -e "add <file>\t\t\t: \"add new file to project\""
+	echo -e "notes <action>\t\t: \"make notes for the ${Lang} language\""
 	echo -e "${editor}|edit|ed\t\t\t: \"edit source code\""
 	echo -e "${ReadBy}|read\t\t\t: \"Read source code\""
 	echo -e "search <find>\t\t\t: \"search for code in project\""
@@ -199,6 +200,17 @@ ProjectHelp()
 	echo ""
 }
 
+NotesHelp()
+{
+	local Lang=$1
+	echo ""
+	echo "----------------[(${Head}) \"Notes\" Help]----------------"
+	echo -e "edit|add\t\t: \"edit notes\""
+	echo -e "read\t\t: \"read notes\""
+	echo "----------------------------------------------------------"
+	echo ""
+
+}
 newCodeHelp()
 {
 	local Lang=$1
@@ -3711,6 +3723,20 @@ Actions()
 				search)
 					lookFor ${CodeProject} ${UserIn[1]}
 					;;
+				#Write notes for code
+				notes)
+					case ${UserIn[1]} in
+						edit|add)
+							${editor} ${ClideDir}/${Lang}.notes
+							;;
+						read)
+							${ReadBy} ${ClideDir}/${Lang}.notes
+							;;
+						*)
+							NotesHelp ${Lang}
+							;;
+					esac
+					;;
 				#create various files/vars for running/compiling code
 				create)
 					#what to create
@@ -4102,12 +4128,12 @@ loadAuto()
 	comp_list "execute exe run" "-a --args"
 	comp_list "version"
 	comp_list "help"
+	comp_list "notes" "edit add read"
 	comp_list "last load"
 	comp_list "install"
 	comp_list "langs languages"
 	comp_list "exit close"
 }
-
 
 #Main Function
 main()
