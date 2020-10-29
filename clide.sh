@@ -11,7 +11,7 @@ Shell=$(which bash)
 #1st # = Overflow
 #2nd # = Additional features
 #3rd # = Bug/code tweaks/fixes
-Version="0.65.66"
+Version="0.65.72"
 
 #cl[ide] config
 #{
@@ -82,6 +82,1790 @@ declare -A Commands
 
 #}
 
+
+#Language Support
+#{
+
+UseBash()
+{
+	local BashCpl=bash
+	local BashHome=${ProgDir}/Bash
+	local BashSrc=${BashHome}/src
+	local BashBin=${BashHome}/bin
+	local Type=$1
+	shift
+	case ${Type} in
+		color)
+			#Return Green
+			echo -e "\e[1;32mBash\e[0m"
+			;;
+		MenuHelp)
+			echo -e "new <file>\t\t\t: \"create new ${Lang} script\""
+			echo -e "compile|cpl\t\t\t: \"make code executable\""
+			;;
+		pgLang)
+			if [ ! -z "${BashCpl}" ]; then
+				#Return Bash tag
+				echo "Bash"
+			else
+				#Return rejection
+				echo "no"
+			fi
+			;;
+		pgDir)
+			#Return Bash src Dir
+			echo ${BashSrc}
+			;;
+		CreateHelp)
+			;;
+		newCodeHelp)
+			if [ -f ${BashBin}/newBash.sh ]; then
+				echo -e "--custom|-c\t\t\t: \"Custom src file using ${Lang} template\""
+			fi
+			;;
+		EnsureDirs)
+			#Home
+			if [ ! -d "${BashHome}" ] && [ ! -z "${BashCpl}" ]; then
+				mkdir "${BashHome}"
+			fi
+			#Src
+			if [ ! -d "${BashSrc}" ] && [ ! -z "${BashCpl}" ]; then
+				mkdir "${BashSrc}"
+			fi
+			#Bin
+			if [ ! -d "${BashBin}" ] && [ ! -z "${BashCpl}" ]; then
+				mkdir "${BashBin}"
+			fi
+			;;
+		TemplateVersion)
+			if [ -f ${BashBin}/newBash.sh ]; then
+				${BashBin}/newBash.sh 2> /dev/null | grep Version
+			else
+				echo "no newBash.sh found"
+			fi
+			;;
+		CodeVersion)
+		echo "[Bash]"
+			${BashCpl} --version | head -n 1
+			;;
+		selectCode)
+			local name=$1
+			#Correct filename
+			if [[ ! "${name}" == *".sh" ]]; then
+				name="${name}.sh"
+			fi
+			echo ${name}
+			;;
+			#Add code to active session
+		addCode)
+			local src=$1
+			local new=$2
+			case ${src} in
+				*.sh)
+					case ${new} in
+						*.sh)
+							if [ -f "${new}" ]; then
+							echo "${src},${new}"
+							else
+								echo "${src}"
+							fi
+							;;
+						*)
+							if [ -f "${new}.sh" ]; then
+								echo "${src},${new}.sh"
+							else
+								echo "${src}"
+							fi
+							;;
+					esac
+					;;
+				*)
+					;;
+			esac
+			;;
+		editCode)
+			local src=$1
+			local num=$2
+			case ${src} in
+				*.sh)
+					if [[ "${src}" == *","* ]]; then
+						if [ -z ${num} ]; then
+							errorCode "editNull"
+						else
+							if [[ "${src}" == *"${num}"* ]]; then
+								if [[ "${num}" == *".sh" ]]; then
+									${editor} ${num}
+								else
+									${editor} "${num}.sh"
+								fi
+							else
+								errorCode "editNot"
+							fi
+						fi
+					else
+						case ${src} in
+							clide.sh)
+								errorCode "editMe"
+								;;
+							*)
+								${editor} ${src}
+								;;
+						esac
+					fi
+					;;
+				*)
+					;;
+			esac
+			;;
+		readCode)
+			local src=$1
+			local num=$2
+			case ${src} in
+				*.sh)
+					if [[ "${src}" == *","* ]]; then
+						if [ -z ${num} ]; then
+							errorCode "readNull"
+						else
+							if [[ "${src}" == *"${num}"* ]]; then
+								if [[ "${num}" == *".sh" ]]; then
+									${ReadBy} ${num}
+								else
+									${ReadBy} "${num}.sh"
+								fi
+							else
+								errorCode "readNot"
+							fi
+						fi
+					else
+						${ReadBy} ${src}
+					fi
+					;;
+				*)
+					;;
+			esac
+			;;
+		compileCode)
+			local src=$1
+			local project=${CodeProject}
+			local name=$2
+			local keep=$3
+			local cplArgs=""
+			#Handle Project Dir
+			if [[ "${project}" == "none" ]]; then
+				project=""
+			else
+				project="${project}/"
+			fi
+			case ${src} in
+				*.sh)
+					#Multiple code selected
+					if [[ "${src}" == *","* ]]; then
+						#varable is empty
+						if [ -z ${name} ]; then
+							errorCode "cpl" "choose"
+						else
+							#chosen file is in the list of files
+							if [[ "${src}" == *"${name}"* ]]; then
+								#only name is given
+								if [[ "${name}" != *".sh" ]]; then
+									#full filename given
+									num=${name}.sh
+								fi
+								#Make Bash Script executable
+								chmod +x ${name}
+								#Check if Bash Script does NOT exist
+								if [[ ! -f "${BashBin}/${name}" ]]; then
+									#Change to Bash Binary dir
+									cd ${BashBin}
+									#Create Symbolic Link to Bash Script
+									ln -s ../src/${project}${name}
+									#Change to Bash Source dir
+									cd "${BashSrc}/${project}"
+									echo -e "\e[1;42m[Bash Code Compiled]\e[0m"
+								else
+									errorCode "cpl" "already" ${name}
+								fi
+							else
+								errorCode "cpl" "not"
+							fi
+						fi
+					#single code selected
+					else
+						#Make Bash Script executable
+						chmod +x ${src}
+						#Check if Bash Script does NOT exist
+						if [[ ! -f "${BashBin}/${src}" ]]; then
+							#Change to Bash Binary dir
+							cd ${BashBin}
+							#Create Symbolic Link to Bash Script
+							ln -s ../src/${project}${src}
+							#Change to Bash Source dir
+							cd "${BashSrc}/${project}"
+							echo -e "\e[1;42m[Bash Code Compiled]\e[0m"
+						else
+							errorCode "cpl" "already" ${src}
+						fi
+					fi
+					;;
+				*)
+					;;
+			esac
+			;;
+		newProject)
+			path=${BashSrc}/${project}
+			if [ ! -d ${path} ]; then
+				mkdir ${path}
+				cd ${path}
+				mkdir src bin
+				cd ${path}/src
+			else
+				cd ${path}/srs
+			fi
+			echo ${path}
+			;;
+		SwapToSrc)
+			local src=$1
+			echo "${src}"
+			;;
+		SwapToBin)
+			local bin=$1
+			case ${bin} in
+				*.sh)
+					#Check if Bash Binary exists
+					if [ -f "${BashBin}/${bin}" ]; then
+						#Return Bash Binary Name
+						#cd "${BashBin}"
+						echo "${bin}"
+					else
+						echo "${bin}"
+					fi
+					;;
+				*)
+					echo ${bin}
+					;;
+			esac
+			;;
+		Install)
+			local bin=$1
+			local BinFile="${bin%.*}"
+			#Make sure Binary exists
+			if [ -f "${BashBin}/${bin}" ]; then
+				#Add command to Aliases
+				AddAlias "${BinFile}" "${BashBin}/${bin}"
+			elif [ ! -f "${BashBin}/${bin}" ]; then
+				errorCode "install" "${bin}"
+			else
+				errorCode "noCode"
+			fi
+			;;
+		*)
+			;;
+	esac
+}
+
+UsePython()
+{
+	local PythonRun=python
+	local PythonHome=${ProgDir}/Python
+	local PythonSrc=${PythonHome}/src
+	local PythonBin=${PythonHome}/bin
+	local Type=$1
+	shift
+	case ${Type} in
+		color)
+			#Return Yellow
+			echo -e "\e[1;33mPython\e[0m"
+			;;
+		MenuHelp)
+			echo -e "new <file>\t\t\t: \"create new ${Lang} script\""
+			echo -e "compile|cpl\t\t\t: \"make code executable\""
+			echo -e "shell\t\t\t\t: run shell for testing"
+			;;
+		pgLang)
+			if [ ! -z "${PythonRun}" ]; then
+				#Return Python tag
+				echo "Python"
+			else
+				#Return rejection
+				echo "no"
+			fi
+			;;
+		pgDir)
+			#Return Python src Dir
+			echo ${PythonSrc}
+			;;
+		CreateHelp)
+			;;
+		newCodeHelp)
+			if [ -f ${PythonBin}/newPython.py ]; then
+				echo -e "--custom|-c\t\t\t: \"Custom src file using ${Lang} template\""
+			fi
+			;;
+		EnsureDirs)
+			#Home
+			if [ ! -d "${PythonHome}" ] && [ ! -z "${PythonRun}" ]; then
+				mkdir "${PythonHome}"
+			fi
+			#Src
+			if [ ! -d "${PythonSrc}" ] && [ ! -z "${PythonRun}" ]; then
+				mkdir "${PythonSrc}"
+			fi
+			#Bin
+			if [ ! -d "${PythonBin}" ] && [ ! -z "${PythonRun}" ]; then
+				mkdir "${PythonBin}"
+			fi
+			;;
+		TemplateVersion)
+			if [ -f ${PythonBin}/newPython.py ]; then
+				${PythonRun} ${PythonBin}/newPython.py 2> /dev/null | grep Version
+			else
+				echo "no newPython found"
+			fi
+			;;
+		CodeVersion)
+			echo "[Python]"
+			${PythonRun} --version
+			;;
+		selectCode)
+			local name=$1
+			#Correct filename
+			if [[ ! "${name}" == *".py" ]]; then
+				name="${name}.py"
+			fi
+			echo ${name}
+			;;
+		addCode)
+			local src=$1
+			local new=$2
+			case ${src} in
+				*.py)
+					case ${new} in
+						*.py)
+							if [ -f "${new}" ]; then
+								echo "${src},${new}"
+							else
+								echo "${src}"
+							fi
+							;;
+						*)
+							if [ -f "${new}.py" ]; then
+								echo "${src},${new}.py"
+							else
+								echo "${src}"
+							fi
+							;;
+					esac
+						;;
+				*)
+					;;
+			esac
+			;;
+		editCode)
+			local src=$1
+			local num=$2
+			case ${src} in
+				*.py)
+					if [[ "${src}" == *","* ]]; then
+						if [ -z ${num} ]; then
+							errorCode "editNull"
+						else
+							if [[ "${src}" == *"${num}"* ]]; then
+								if [[ "${num}" == *".py" ]]; then
+									${editor} ${num}
+								else
+									${editor} "${num}.py"
+								fi
+							else
+								errorCode "editNot"
+							fi
+						fi
+					else
+						${editor} ${src}
+					fi
+					;;
+				*)
+					;;
+			esac
+			;;
+		readCode)
+			local src=$1
+			local num=$2
+			case ${src} in
+				*.py)
+					if [[ "${src}" == *","* ]]; then
+						if [ -z ${num} ]; then
+							errorCode "readNull"
+						else
+							if [[ "${src}" == *"${num}"* ]]; then
+								if [[ "${num}" == *".py" ]]; then
+									${ReadBy} ${num}
+								else
+									${ReadBy} "${num}.py"
+								fi
+							else
+								errorCode "readNot"
+							fi
+						fi
+					else
+						${ReadBy} ${src}
+					fi
+					;;
+				*)
+					;;
+			esac
+			;;
+		compileCode)
+			local src=$1
+			local project=${CodeProject}
+			local name=$2
+			local keep=$3
+			local cplArgs=""
+			#Handle Project Dir
+			if [[ "${project}" == "none" ]]; then
+				project=""
+			else
+				project="${project}/"
+			fi
+			case ${src} in
+				*.py)
+					#Compile Python Script
+					#py2bin "${src}"
+					#Get Python Name
+			                #pyBin="${src%.*}"
+					#Move Python Program to Binary dir
+					#mv ${pyBin} ../bin/
+					#Check if Python Script does NOT exist
+					#Multiple code selected
+					if [[ "${src}" == *","* ]]; then
+						#variable is empty
+						if [ -z ${name} ]; then
+							errorCode "cpl" "choose"
+						#variable found
+						else
+							#chosen file is in the list of files
+							if [[ "${src}" == *"${name}"* ]]; then
+								#only name is given
+								if [[ "${name}" != *".py" ]]; then
+									#full filename given
+									num=${name}.py
+								fi
+								#Make Python Script executable
+								chmod +x ${name}
+								#Check if Python Script does NOT exist
+								if [[ ! -f "${PythonBin}/${name}" ]]; then
+									#Change to Python Binary dir
+									cd ${PythonBin}
+									#Create Symbolic Link to Python Script
+									ln -s ../src/${project}${name}
+									#Change to Python Source dir
+									cd "${PythonSrc}/${project}"
+									echo -e "\e[1;43m[Python Code Compiled]\e[0m"
+								else
+									errorCode "cpl" "already" ${name}
+								fi
+							else
+								echo "code not found"
+							fi
+						fi
+					#single code selected
+					else
+						#Make Python Script executable
+						chmod +x ${src}
+						#Check if Python Script does NOT exist
+						if [[ ! -f "${PythonBin}/${src}" ]]; then
+							#Change to Python Binary dir
+							cd ${PythonBin}
+							#Create Symbolic Link to Python Script
+							ln -s ../src/${project}${src}
+							#Change to Python Source dir
+							cd "${PythonSrc}/${project}"
+							echo -e "\e[1;43m[Python Code Compiled]\e[0m"
+						#Code is already found
+						else
+							errorCode "cpl" "already" ${src}
+						fi
+					fi
+					;;
+				*)
+					;;
+			esac
+			;;
+		newProject)
+			path=${PythonSrc}/${project}
+			if [ ! -d ${path} ]; then
+				mkdir ${path}
+				cd ${path}
+				mkdir src bin
+				cd ${path}/src
+			else
+				cd ${path}/src
+			fi
+			echo ${path}
+			;;
+		SwapToSrc)
+			local src=$1
+			#Get Python Name
+		#	src="${src}.py"
+		#	#Check if Python source exists
+		#	if [[ -f "${PythonSrc}/${src}" ]]; then
+		#		#Return Python Source Name
+				echo "${src}"
+		#	fi
+			;;
+		SwapToBin)
+			local bin=$1
+			case ${bin} in
+				*.py)
+					#Get Python Name
+				#	bin="${bin%.*}"
+					#Check if Python Binary exists
+					if [[ -f "${PythonBin}/${bin}" ]]; then
+						#cd "${PythonBin}"
+						#Return Python Binary Name
+						echo "${bin}"
+					else
+						echo "${bin}"
+					fi
+					;;
+				*)
+					echo ${bin}
+					;;
+			esac
+			;;
+		Install)
+			local bin=$1
+			local BinFile="${bin%.*}"
+			#Make sure Binary exists
+			if [ -f "${PythonBin}/${bin}" ]; then
+				#Add command to Aliases
+				AddAlias "${BinFile}" "${PythonRun} ${PythonBin}/${bin}"
+			elif [ ! -f "${PythonBin}/${bin}" ]; then
+				errorCode "install" "${bin}"
+			else
+				errorCode "noCode"
+			fi
+			;;
+		*)
+			;;
+	esac
+}
+
+UsePerl()
+{
+	local PerlRun=perl
+	local PerlHome=${ProgDir}/Perl
+	local PerlSrc=${PerlHome}/src
+	local PerlBin=${PerlHome}/bin
+	local Type=$1
+	shift
+	case ${Type} in
+		color)
+			#Return Purple
+			echo -e "\e[1;35mPerl\e[0m"
+			;;
+		MenuHelp)
+			echo -e "new <file>\t\t\t: \"create new ${Lang} script\""
+			echo -e "compile|cpl\t\t\t: \"make code executable\""
+			;;
+		pgLang)
+			if [ ! -z "${PerlRun}" ]; then
+				#Return Perl tag
+				echo "Perl"
+			else
+				#Return rejection
+				echo "no"
+			fi
+			;;
+		pgDir)
+			#Return Perl src Dir
+			echo ${PerlSrc}
+			;;
+		CreateHelp)
+			;;
+		newCodeHelp)
+			if [ -f ${PerlBin}/newPerl.pl ]; then
+				echo -e "--custom|-c\t\t\t: \"Custom src file using ${Lang} template\""
+			fi
+			;;
+		EnsureDirs)
+			#Home
+			if [ ! -d "${PerlHome}" ] && [ ! -z "${PerlRun}" ]; then
+				mkdir "${PerlHome}"
+			fi
+			#Src
+			if [ ! -d "${PerlSrc}" ] && [ ! -z "${PerlRun}" ]; then
+				mkdir "${PerlSrc}"
+			fi
+			#Bin
+			if [ ! -d "${PerlBin}" ] && [ ! -z "${PerlRun}" ]; then
+				mkdir "${PerlBin}"
+			fi
+			;;
+		TemplateVersion)
+			if [ -f ${PerlBin}/newPerl.pl ]; then
+				${PerlRun} ${PerlBin}/newPerl.pl 2> /dev/null | grep Version
+			else
+				echo "no newPerl found"
+			fi
+			;;
+		CodeVersion)
+			echo "[Perl]"
+			${PerlRun} --version 2> /dev/null | grep Version
+			;;
+		selectCode)
+			local name=$1
+			#Correct filename
+			if [[ ! "${name}" == *".pl" ]]; then
+				name="${name}.pl"
+			fi
+			echo ${name}
+			;;
+		addCode)
+			local src=$1
+			local new=$2
+			case ${src} in
+				*.pl)
+					case ${new} in
+						*.pl)
+							if [ -f "${new}" ]; then
+								echo "${src},${new}"
+							else
+								echo "${src}"
+							fi
+							;;
+						*)
+							if [ -f "${new}.pl" ]; then
+								echo "${src},${new}.pl"
+							else
+								echo "${src}"
+							fi
+							;;
+					esac
+					;;
+				*)
+					;;
+			esac
+			;;
+		editCode)
+			local src=$1
+			local num=$2
+			case ${src} in
+				*.pl)
+					if [[ "${src}" == *","* ]]; then
+						if [ -z ${num} ]; then
+							errorCode "editNull"
+						else
+							if [[ "${src}" == *"${num}"* ]]; then
+								if [[ "${num}" == *".pl" ]]; then
+									${editor} ${num}
+								else
+									${editor} "${num}.pl"
+								fi
+							else
+								errorCode "editNot"
+							fi
+						fi
+					else
+						${editor} ${src}
+					fi
+					;;
+				*)
+					;;
+			esac
+			;;
+		readCode)
+			local src=$1
+			local num=$2
+			case ${src} in
+				*.pl)
+					if [[ "${src}" == *","* ]]; then
+						if [ -z ${num} ]; then
+							errorCode "readNull"
+						else
+							if [[ "${src}" == *"${num}"* ]]; then
+								if [[ "${num}" == *".pl" ]]; then
+									${ReadBy} ${num}
+								else
+									${ReadBy} "${num}.pl"
+								fi
+							else
+								errorCode "readNot"
+							fi
+						fi
+					else
+						${ReadBy} ${src}
+					fi
+					;;
+				*)
+					;;
+			esac
+			;;
+		compileCode)
+			local src=$1
+			local project=${CodeProject}
+			local name=$2
+			local keep=$3
+			local cplArgs=""
+			#Handle Project Dir
+			if [[ "${project}" == "none" ]]; then
+				project=""
+			else
+				project="${project}/"
+			fi
+			case ${src} in
+				*.pl)
+					#Multiple code selected
+					if [[ "${src}" == *","* ]]; then
+						#variable is empty
+						if [ -z ${name} ]; then
+							errorCode "cpl" "choose"
+						#variable found
+						else
+							#chosen file is in the list of files
+							if [[ "${src}" == *"${name}"* ]]; then
+								#only name is given
+								if [[ "${name}" != *".pl" ]]; then
+									#full filename given
+									num=${name}.pl
+								fi
+								#Make Perl Script executable
+								chmod +x ${name}
+								#Check if Perl Script does NOT exist
+								if [[ ! -f "${PerlBin}/${name}" ]]; then
+									#Change to Perl Binary dir
+									cd ${PerlBin}
+									#Create Symbolic Link to Perl Script
+									ln -s ../src/${project}${name}
+									#Change to Perl Source dir
+									cd "${PerlSrc}/${project}"
+									echo -e "\e[1;45m[Perl Code Compiled]\e[0m"
+								else
+									errorCode "cpl" "already" ${name}
+								fi
+							else
+								echo "code not found"
+							fi
+						fi
+					#single code selected
+					else
+						#Make Perl Script executable
+						chmod +x ${src}
+						#Check if Perl Script does NOT exist
+						if [[ ! -f "${PerlBin}/${src}" ]]; then
+							#Change to Perl Binary dir
+							cd ${PerlBin}
+							#Create Symbolic Link to Perl Script
+							ln -s ../src/${project}${src}
+							#Change to Perl Source dir
+							cd "${PerlSrc}/${project}"
+							echo -e "\e[1;45m[Perl Code Compiled]\e[0m"
+							#Code is already found
+						else
+							errorCode "cpl" "already" ${src}
+						fi
+					fi
+					;;
+				*)
+					;;
+			esac
+			;;
+		newProject)
+			path=${PerlSrc}/${project}
+			if [ ! -d ${path} ]; then
+				mkdir ${path}
+				cd ${path}
+				mkdir src bin
+				cd ${path}/src
+			else
+				cd ${path}/src
+			fi
+			echo ${path}
+			;;
+		SwapToSrc)
+			local src=$1
+			#Get Perl Name
+			echo "${src}"
+			;;
+		SwapToBin)
+			local bin=$1
+			case ${bin} in
+				*.pl)
+					#Get Perl Name
+				#	bin="${bin%.*}"
+					#Check if Perl Binary exists
+					if [[ -f "${PerlBin}/${bin}" ]]; then
+						#cd "${PerlBin}"
+						#Return Perl Binary Name
+						echo "${bin}"
+					else
+						echo "${bin}"
+					fi
+					;;
+				*)
+					echo ${bin}
+					;;
+			esac
+			;;
+		Install)
+			local bin=$1
+			local BinFile="${bin%.*}"
+			#Make sure Binary exists
+			if [ -f "${PerlBin}/${bin}" ]; then
+				#Add command to Aliases
+				AddAlias "${BinFile}" "${PerlRun} ${PerlBin}/${bin}"
+			elif [ ! -f "${PerlBin}/${bin}" ]; then
+				errorCode "install" "${bin}"
+			else
+				errorCode "noCode"
+			fi
+			;;
+		*)
+			;;
+	esac
+}
+
+UseRuby()
+{
+	local RubyRun=ruby
+	local RubyHome=${ProgDir}/Ruby
+	local RubySrc=${RubyHome}/src
+	local RubyBin=${RubyHome}/bin
+	local Type=$1
+	shift
+	case ${Type} in
+		color)
+			#Return Red
+			echo -e "\e[1;31mRuby\e[0m"
+			;;
+		MenuHelp)
+			echo -e "new <file>\t\t\t: \"create new ${Lang} script\""
+			echo -e "compile|cpl\t\t\t: \"make code executable\""
+			;;
+		pgLang)
+			if [ ! -z "${RubyRun}" ]; then
+				#Return Ruby tag
+				echo "Ruby"
+			else
+				#Return rejection
+				echo "no"
+			fi
+			;;
+		pgDir)
+			#Return Ruby src Dir
+			echo ${RubySrc}
+			;;
+		CreateHelp)
+			;;
+		newCodeHelp)
+			if [ -f ${RubyBin}/newRuby.rb ]; then
+				echo -e "--custom|-c\t\t\t: \"Custom src file using ${Lang} template\""
+			fi
+			;;
+		EnsureDirs)
+			#Home
+			if [ ! -d "${RubyHome}" ] && [ ! -z "${RubyRun}" ]; then
+				mkdir "${RubyHome}"
+			fi
+			#Src
+			if [ ! -d "${RubySrc}" ] && [ ! -z "${RubyRun}" ]; then
+				mkdir "${RubySrc}"
+			fi
+			#Bin
+			if [ ! -d "${RubyBin}" ] && [ ! -z "${RubyRun}" ]; then
+				mkdir "${RubyBin}"
+			fi
+			;;
+		TemplateVersion)
+			if [ -f ${RubyBin}/newRuby.rb ]; then
+				${RubyRun} ${RubyBin}/newRuby.rb 2> /dev/null | grep Version
+			else
+				echo "no newRuby found"
+			fi
+			;;
+		CodeVersion)
+			echo "[Ruby]"
+			${RubyRun} --version
+			;;
+		selectCode)
+			local name=$1
+			#Correct filename
+			if [[ ! "${name}" == *".rb" ]]; then
+				name="${name}.rb"
+			fi
+			echo ${name}
+			;;
+		addCode)
+			local src=$1
+			local new=$2
+			case ${src} in
+				*.rb)
+					case ${new} in
+						*.rb)
+							if [ -f "${new}" ]; then
+								echo "${src},${new}"
+							else
+								echo "${src}"
+							fi
+							;;
+						*)
+							if [ -f "${new}.rb" ]; then
+								echo "${src},${new}.rb"
+							else
+								echo "${src}"
+							fi
+							;;
+					esac
+					;;
+				*)
+					;;
+			esac
+			;;
+		editCode)
+			local src=$1
+			local num=$2
+			case ${src} in
+				*.rb)
+					if [[ "${src}" == *","* ]]; then
+						if [ -z ${num} ]; then
+							errorCode "editNull"
+						else
+							if [[ "${src}" == *"${num}"* ]]; then
+								if [[ "${num}" == *".rb" ]]; then
+									${editor} ${num}
+								else
+									${editor} "${num}.rb"
+								fi
+							else
+								errorCode "editNot"
+							fi
+						fi
+					else
+						${editor} ${src}
+					fi
+					;;
+				*)
+					;;
+			esac
+			;;
+		readCode)
+			local src=$1
+			local num=$2
+			case ${src} in
+				*.rb)
+					if [[ "${src}" == *","* ]]; then
+						if [ -z ${num} ]; then
+							errorCode "readNull"
+						else
+							if [[ "${src}" == *"${num}"* ]]; then
+								if [[ "${num}" == *".rb" ]]; then
+									${ReadBy} ${num}
+								else
+									${ReadBy} "${num}.rb"
+								fi
+							else
+								errorCode "readNot"
+							fi
+						fi
+					else
+						${ReadBy} ${src}
+					fi
+					;;
+				*)
+					;;
+			esac
+			;;
+		compileCode)
+			local src=$1
+			local project=${CodeProject}
+			local name=$2
+			local keep=$3
+			local cplArgs=""
+			#Handle Project Dir
+			if [[ "${project}" == "none" ]]; then
+				project=""
+			else
+				project="${project}/"
+			fi
+			case ${src} in
+				*.rb)
+					#Multiple code selected
+					if [[ "${src}" == *","* ]]; then
+						#variable is empty
+						if [ -z ${name} ]; then
+							errorCode "cpl" "choose"
+						#variable found
+						else
+							#chosen file is in the list of files
+							if [[ "${src}" == *"${name}"* ]]; then
+								#only name is given
+								if [[ "${name}" != *".rb" ]]; then
+									#full filename given
+									num=${name}.rb
+								fi
+								#Make Ruby Script executable
+								chmod +x ${name}
+								#Check if Ruby Script does NOT exist
+								if [[ ! -f "${RubyBin}/${name}" ]]; then
+									#Change to Ruby Binary dir
+									cd ${RubyBin}
+									#Create Symbolic Link to Ruby Script
+									ln -s ../src/${project}${name}
+									#Change to Ruby Source dir
+									cd "${RubySrc}/${project}"
+									echo -e "\e[1;41m[Ruby Code Compiled]\e[0m"
+								else
+									errorCode "cpl" "already" ${name}
+								fi
+							else
+								echo "code not found"
+							fi
+						fi
+					#single code selected
+					else
+						#Make Ruby Script executable
+						chmod +x ${src}
+						#Check if Ruby Script does NOT exist
+						if [[ ! -f "${RubyBin}/${src}" ]]; then
+							#Change to Ruby Binary dir
+							cd ${RubyBin}
+							#Create Symbolic Link to Ruby Script
+							ln -s ../src/${project}${src}
+							#Change to Ruby Source dir
+							cd "${RubySrc}/${project}"
+							echo -e "\e[1;41m[Ruby Code Compiled]\e[0m"
+						#Code is already found
+						else
+							errorCode "cpl" "already" ${src}
+						fi
+					fi
+					;;
+				*)
+					;;
+			esac
+			;;
+		newProject)
+			path=${RubySrc}/${project}
+			if [ ! -d ${path} ]; then
+				mkdir ${path}
+				cd ${path}
+				mkdir src bin
+				cd ${path}/src
+			else
+				cd ${path}/src
+			fi
+			echo ${path}
+			;;
+		SwapToSrc)
+			local src=$1
+			#Get Ruby Name
+			echo "${src}"
+			;;
+		SwapToBin)
+			local bin=$1
+			case ${bin} in
+				*.rb)
+					#Get Ruby Name
+				#	bin="${bin%.*}"
+				#Check if Perl Binary exists
+					if [[ -f "${RubyBin}/${bin}" ]]; then
+					#cd "${RubyBin}"
+					#Return Ruby Binary Name
+						echo "${bin}"
+					else
+						echo "${bin}"
+					fi
+					;;
+				*)
+					echo ${bin}
+					;;
+			esac
+			;;
+		Install)
+			local bin=$1
+			local BinFile="${bin%.*}"
+			#Make sure Binary exists
+			if [ -f "${RubyBin}/${bin}" ]; then
+				#Add command to Aliases
+				AddAlias "${BinFile}" "${RubyRun} ${RubyBin}/${bin}"
+			elif [ ! -f "${RubyBin}/${bin}" ]; then
+				errorCode "install" "${bin}"
+			else
+				errorCode "noCode"
+			fi
+			;;
+		*)
+			;;
+	esac
+}
+
+UseCpp()
+{
+	local CppCpl=g++
+	local CppHome=${ProgDir}/C++
+	local CppSrc=${CppHome}/src
+	local CppBin=${CppHome}/bin
+	local Type=$1
+	shift
+	case ${Type} in
+		color)
+			#Return Blue
+			echo -e "\e[1;34mC++\e[0m"
+			;;
+		MenuHelp)
+			echo -e "new <file> {main|header|component} : \"create new ${Lang} source file\""
+			echo -e "compile|cpl\t\t\t: \"make code executable\""
+			;;
+		pgLang)
+			if [ ! -z "${CppCpl}" ]; then
+				#Return C++ tag
+				echo "C++"
+			else
+				#Return rejection
+				echo "no"
+			fi
+			;;
+		pgDir)
+			#Return C++ src Dir
+			echo ${CppSrc}
+			;;
+		CreateHelp)
+			echo -e "make\t\t\t: create makefile"
+			echo -e "version|-std=<c++#>\t: create makefile"
+			;;
+		newCodeHelp)
+			if [ -f ${CppBin}/newC++ ]; then
+				echo -e "--custom|-c\t\t\t: \"Custom src file using ${Lang} template\""
+			fi
+			;;
+		EnsureDirs)
+			#Home
+			if [ ! -d "${CppHome}" ] && [ ! -z "${CppCpl}" ]; then
+				mkdir "${CppHome}"
+			fi
+			#Src
+			if [ ! -d "${CppSrc}" ] && [ ! -z "${CppCpl}" ]; then
+				mkdir "${CppSrc}"
+			fi
+			#Bin
+			if [ ! -d "${CppBin}" ] && [ ! -z "${CppCpl}" ]; then
+				mkdir "${CppBin}"
+			fi
+			;;
+		TemplateVersion)
+			if [ -f ${CppBin}/newC++ ]; then
+				${CppBin}/newC++ 2> /dev/null | grep Version
+			else
+				echo "no newC++ found"
+			fi
+			;;
+		CodeVersion)
+			echo "[C++]"
+			${CppCpl} --version | head -n 1
+			;;
+		selectCode)
+			local name=$1
+			#Correct filename
+			if [[ ! "${name}" == *".cpp" ]] && [ -f "${name}.cpp" ]; then
+				name="${name}.cpp"
+			elif [[ ! "${name}" == *".h" ]] && [ -f "${name}.h" ]; then
+				name="${name}.h"
+			fi
+			echo ${name}
+			;;
+		addCode)
+			local src=$1
+			local new=$2
+			case ${src} in
+				*.cpp|*.h)
+					#Add cpp or header files with file extensions
+					case ${new} in
+						*.cpp|*.h)
+							#Append file
+							if [ -f "${new}" ]; then
+								echo "${src},${new}"
+							else
+								echo "${src}"
+							fi
+							;;
+						#Add cpp or header files without file extensions
+						*)
+							#Append cpp files
+							if [ -f "${new}.cpp" ]; then
+								echo "${src},${new}.cpp"
+							#Append header files
+							elif [ -f "${new}.h" ]; then
+								echo "${src},${new}.h"
+							else
+								echo "${src}"
+							fi
+							;;
+					esac
+					;;
+				*)
+					;;
+			esac
+			;;
+		editCode)
+			local src=$1
+			local num=$2
+			case ${src} in
+				*.cpp|*.h)
+					if [[ "${src}" == *","* ]]; then
+						if [ -z ${num} ]; then
+							errorCode "editNull"
+						else
+							if [[ "${src}" == *"${num}"* ]]; then
+								if [[ "${num}" == *".cpp" ]] || [[ "${num}" == *".h" ]]; then
+									${editor} ${num}
+								else
+									${editor} "${num}.cpp"
+								fi
+							else
+								errorCode "editNot"
+							fi
+						fi
+					else
+						 ${editor} ${src}
+					fi
+					;;
+				*)
+					;;
+			esac
+			;;
+		readCode)
+			local src=$1
+			local num=$2
+			case ${src} in
+				*.cpp|*.h)
+					if [[ "${src}" == *","* ]]; then
+						if [ -z ${num} ]; then
+							errorCode "readNull"
+						else
+							if [[ "${src}" == *"${num}"* ]]; then
+								if [[ "${num}" == *".cpp" ]] || [[ "${num}" == *".h" ]]; then
+									${ReadBy} ${num}
+								else
+									${ReadBy} "${num}.cpp"
+								fi
+							else
+								errorCode "readNot"
+							fi
+						fi
+					else
+						${ReadBy} ${src}
+					fi
+					;;
+				*)
+					;;
+			esac
+			;;
+
+		compileCode)
+			local src=$1
+			local project=${CodeProject}
+			local name=$2
+			local keep=$3
+			local cplArgs=""
+			#Handle Project Dir
+			if [[ "${project}" == "none" ]]; then
+				project=""
+			else
+				project="${project}/"
+			fi
+			if [[ "$src" == *".cpp"* ]] || [ -f ${CppSrc}/${project}makefile ]; then
+				cplArgs=${CppCplVersion}
+				if [ -f ${CppSrc}/${project}makefile ]; then
+					cd ${CppSrc}/${project}
+					echo "make"
+					cd - > /dev/null
+					echo -e "\e[1;44m[C++ Code Compiled]\e[0m"
+				else
+					#Multiple code selected
+					if [[ "${src}" == *","* ]]; then
+						#num is empty
+						if [ -z ${name} ]; then
+							errorCode "cpl" "choose"
+						else
+							#Separate list of selected code
+							prog=$(echo ${src} | sed "s/,/ /g")
+							#Compile for Threads
+							NeedThreads=$(grep "#include <thread>" ${prog})
+							if [ ! -z "${NeedThreads}" ]; then
+							cplArgs="${cplArgs} -lpthread"
+							fi
+							${CppCpl} ${prog} -o ../bin/${name} ${cplArgs}
+							echo -e "\e[1;44m[C++ Code Compiled]\e[0m"
+						fi
+					#single code selected
+					else
+						#Compile for threading
+						NeedThreads=$(grep "#include <thread>" ${src})
+						if [ ! -z "${NeedThreads}" ]; then
+							cplArgs="${cplArgs} -lpthread"
+						fi
+						#Compile and move C++ to Binary dir
+						${CppCpl} ${src} -o ../bin/${src%.*} ${cplArgs}
+						echo -e "\e[1;44m[C++ Code Compiled]\e[0m"
+					fi
+				fi
+			fi
+			;;
+		newProject)
+			path=${CppSrc}/${project}
+			#create and cd to project dir
+			if [ ! -d ${path} ]; then
+				mkdir ${path}
+				cd ${path}
+				mkdir bin build doc include lib spike src test
+				cd src
+			else
+				cd ${path}/src
+			fi
+			echo ${path}
+			;;
+		SwapToSrc)
+			local src=$1
+			#cd "${CppSrc}"
+			#Get C++ Name
+			src="${src}.cpp"
+			#Check if C++ source exists
+			if [ -f "${CppSrc}/${src}" ]; then
+				#Return C++ Source Name
+				echo "${src}"
+			fi
+			;;
+		SwapToBin)
+			local bin=$1
+			case ${bin} in
+				*.cpp)
+					#cd "${CppBin}"
+					#Keep Src Name
+					OldBin="${bin}"
+					#Get C++ Name
+					bin="${bin%.*}"
+					#Check if C++ Binary exists
+					if [ -f "${CppBin}/${bin}" ]; then
+						#Return C++ Binary Name
+						echo "${bin}"
+					else
+						echo "${OldBin}"
+					fi
+					;;
+				*)
+					echo ${bin}
+					;;
+			esac
+			;;
+		Install)
+			local bin=$1
+			local BinFile="${bin%.*}"
+			#Make sure Binary exists
+			if [ -f "${CppBin}/${bin}" ]; then
+				#Add command to Aliases
+				AddAlias "${bin}" "${CppBin}/${bin}"
+			elif [ ! -f "${CppBin}/${bin}" ]; then
+				#compule or swap to binary
+				errorCode "install" "${bin}"
+			else
+				errorCode "noCode"
+			fi
+			;;
+		*)
+			;;
+	esac
+}
+
+UseJava()
+{
+	local JavaCpl=javac
+	local JavaRun=java
+	local JavaHome=${ProgDir}/Java
+	local JavaSrc=${JavaHome}/src
+	local JavaBin=${JavaHome}/bin
+	local Type=$1
+	shift
+	case ${Type} in
+		color)
+			#Return Red
+			echo -e "\e[1;31mJava\e[0m"
+			;;
+		MenuHelp)
+			echo -e "new <file> {main|component}\t: \"create new ${Lang} source file\""
+			echo -e "compile|cpl <type> <manifest>\t: \"make code executable\""
+			echo -e "\t--class\t\t\t: \"make code (CLASS) executable\""
+			echo -e "\t--jar\t\t\t: \"make code (JAR) executable\""
+			echo -e "\t--jar --keep-manifest\t: \"keep manifest.mf\""
+			;;
+		pgLang)
+			if [ ! -z "${JavaCpl}" ] && [ ! -z "${JavaRun}" ]; then
+				#Return Java tag
+				echo "Java"
+			else
+				#Return rejection
+				echo "no"
+			fi
+			;;
+		pgDir)
+			#Return Java src Dir
+			echo ${JavaSrc}
+			;;
+		CreateHelp)
+			echo -e "prop|properties|-D\t: create custome Java properties"
+			echo -e "jar|manifest\t\t: create Java Manifest Jar builds"
+			;;
+		newCodeHelp)
+			if [ -f ${JavaBin}/newJava.jar ] || [ -f ${JavaBin}/newJava.class ]; then
+				echo -e "--custom|-c\t\t\t: \"Custom src file using ${Lang} template\""
+			fi
+			;;
+		EnsureDirs)
+			#Home
+			if [ ! -d "${JavaHome}" ] && [ ! -z "${JavaCpl}" ] && [ ! -z "${JavaRun}" ]; then
+				mkdir "${JavaHome}"
+			fi
+			#Src
+			if [ ! -d "${JavaSrc}" ] && [ ! -z "${JavaCpl}" ] && [ ! -z "${JavaRun}" ]; then
+				mkdir "${JavaSrc}"
+			fi
+			#Bin
+			if [ ! -d "${JavaBin}" ] && [ ! -z "${JavaCpl}" ] && [ ! -z "${JavaRun}" ]; then
+				mkdir "${JavaBin}"
+			fi
+			;;
+		TemplateVersion)
+			if [ -f ${JavaBin}/newJava.jar ]; then
+				java -jar ${JavaBin}/newJava.jar 2> /dev/null | grep Version
+			else
+				echo "no newJava.jar found"
+			fi
+			;;
+
+		CodeVersion)
+			echo "[Java]"
+			JavaRunVersion=$(${JavaRun} --version 2> /dev/null)
+			JavaCplVersion=$(${JavaCpl} --version 2> /dev/null)
+			if [ ! -z "${JavaRunVersion}" ]; then
+				JavaRunVersion=$(${JavaRun} --version | head -n 1)
+				JavaCplVersion=$(${JavaCpl} --version | head -n 1)
+				echo "${JavaRunVersion}"
+				echo "${JavaCplVersion}"
+			else
+				${JavaRun} -version
+				${JavaCpl} -version
+			fi
+			;;
+		selectCode)
+			local name=$1
+			#Correct filename
+			if [[ ! "${name}" == *".java" ]]; then
+				name="${name}.java"
+			fi
+			echo ${name}
+			;;
+		addCode)
+			local src=$1
+			local new=$2
+			case ${src} in
+				*.java)
+					case ${new} in
+						*.java)
+							if [ -f "${new}" ]; then
+								echo "${src},${new}"
+							else
+								echo "${src}"
+							fi
+							;;
+						*)
+							if [ -f "${new}.java" ]; then
+								echo "${src},${new}.java"
+							else
+								echo "${src}"
+							fi
+							;;
+					esac
+					;;
+				*)
+					;;
+			esac
+			;;
+		editCode)
+			local src=$1
+			local num=$2
+			case ${src} in
+				*.java)
+					if [[ "${src}" == *","* ]]; then
+						if [ -z ${num} ]; then
+							errorCode "editNull"
+						else
+							if [[ "${src}" == *"${num}"* ]]; then
+								if [[ "${num}" == *".java" ]]; then
+									${editor} ${num}
+								else
+									${editor} "${num}.java"
+								fi
+							else
+								errorCode "editNot"
+							fi
+						fi
+					else
+						${editor} ${src}
+					fi
+					;;
+				*)
+					;;
+			esac
+			;;
+		readCode)
+			local src=$1
+			local num=$2
+			case ${src} in
+				*.java)
+					if [[ "${src}" == *","* ]]; then
+						if [ -z ${num} ]; then
+							errorCode "readNull"
+						else
+							if [[ "${src}" == *"${num}"* ]]; then
+								if [[ "${num}" == *".java" ]]; then
+									${ReadBy} ${num}
+								else
+									${ReadBy} "${num}.java"
+								fi
+							else
+								errorCode "readNot"
+							fi
+						fi
+					else
+						${ReadBy} ${src}
+					fi
+					;;
+				*)
+					;;
+			esac
+			;;
+		compileCode)
+			local src=$1
+			local project=${CodeProject}
+			local name=$2
+			local keep=$3
+			local cplArgs=""
+			#Handle Project Dir
+			if [[ "${project}" == "none" ]]; then
+				project=""
+			else
+				project="${project}/"
+			fi
+			case ${src} in
+				*.java)
+					#Multiple code selected
+					if [[ "${src}" == *","* ]]; then
+						if [[ "${project}" == *"/" ]]; then
+							#Compile Java prgram
+							${JavaCpl} *.java
+							#move Java Class to Binary dir
+							if [ -f *.class ]; then
+								mv *.class ../bin/
+							fi
+						else
+							echo "Is not a project"
+						fi
+					#single code selected
+					else
+						#Compile Java prgram
+						${JavaCpl} ${src}
+						#get Java Class/compiled file name
+						des=${src%.*}.class
+						if [ -f ${des} ]; then
+							#Compile as jar or class
+							case ${name} in
+								#Compile as Jar
+								--jar)
+									if [ ! -f manifest.mf ]; then
+										echo "Manifest-Version: 1.1" > manifest.mf
+										echo "Created-By: $USER" >> manifest.mf
+										echo "Main-Class: ${des%.class}" >> manifest.mf
+										echo "Sealed: true" >> manifest.mf
+									fi
+									#jar -cmf manifest.mf ${des%.class}.jar ${des}
+									jar -cmf manifest.mf ${des%.class}.jar *.class
+									#remove class file
+									if [ -f ../bin/${des} ]; then
+										rm ../bin/${des}
+									fi
+									case ${keep} in
+										--keep-manifest)
+											#rm ${des}
+											rm *.class
+											;;
+										*)
+											#rm manifest.mf ${des}
+											rm manifest.mf *.class
+										;;
+									esac
+									#move Java Jar to Binary dir
+									mv ${des%.class}.jar ../bin/
+									echo -e "\e[1;41m[Java Code Compiled (JAR)]\e[0m"
+									;;
+								#Do nothing...keep class
+								*|--class)
+									#move Java Class to Binary dir
+									#mv ${des} ../bin/
+									mv *.class ../bin/
+									#remove old jar
+									if [ -f ../bin/${des%.class}.jar ]; then
+										rm ../bin/${des%.class}.jar
+									fi
+									echo -e "\e[1;41m[Java Code Compiled (CLASS)]\e[0m"
+								;;
+							esac
+						fi
+					fi
+					;;
+				*)
+					;;
+			esac
+			;;
+		newProject)
+			path=${JavaSrc}/${project}
+			if [ ! -d ${path} ]; then
+				mkdir ${path}
+				cd ${path}
+			else
+				cd ${path}
+			fi
+			echo ${path}
+			;;
+		SwapToSrc)
+			local src=$1
+			#cd "${JavaSrc}"
+			#Get Java Name
+			src="${src%.*}.java"
+			#Check if Java source exists
+			if [ -f "${JavaSrc}/${src}" ]; then
+				#Return Java Source Name
+				echo "${src}"
+			fi
+			;;
+		SwapToBin)
+			local bin=$1
+			case ${bin} in
+				*.java)
+					#cd "${JavaBin}"
+					#Keep SrcName
+					OldBin="${bin}"
+					#Get Java Name
+					bin="${bin%.*}.class"
+					#Check Java Binary exists
+					if [ -f "${JavaBin}/${bin}" ]; then
+						#Return Java Binary Name
+						echo "${bin}"
+					else
+						echo "${OldBin}"
+					fi
+					;;
+				*)
+					echo ${bin}
+					;;
+			esac
+			;;
+		Install)
+			local bin=$1
+			local BinFile="${bin%.*}"
+			#Java binary
+			if [[ "${bin}" == *".java" ]]; then
+				#Check for Jar file
+				if [ -f "${JavaBin}/${BinFile}.jar" ]; then
+					AddAlias "${BinFile}" "${JavaRun} -jar ${JavaBin}/${BinFile}.jar"
+				elif [ -f "${JavaBin}/${bin}.class" ]; then
+					echo "Please compile as jar file"
+					echo "[hint] $ cpl jar"
+				else
+					errorCode "install" "${bin}"
+				fi
+			else
+				errorCode "noCode"
+			fi
+			;;
+		*)
+			;;
+	esac
+}
+
+#Language not yet supported
+UseOther()
+{
+	local Lang=$1
+	shift
+	local Type=$1
+	shift
+	local Args=$@
+	case ${Type} in
+		color)
+			local text=${Lang}
+			#Return Purple
+			echo -e "\e[1;35m${text}\e[0m"
+			;;
+		MenuHelp)
+			echo -e "compile|cpl\t: \"make code executable\""
+			;;
+		#No Languge found
+		pgLang|pgDir)
+			#Return rejection
+			echo "no"
+			;;
+		CreateHelp)
+			;;
+		newCodeHelp)
+			;;
+		compileCode)
+			errorCode "cpl"
+			;;
+		TemplateVersion)
+			echo "Please Choose a Language"
+			;;
+		SwapToSrc|SwapToBin)
+			echo "${Args[0]}"
+			;;
+		Install)
+			errorCode "noCode"
+			;;
+		*)
+			;;
+	esac
+}
+
+#Select Languge
+ManageLangs()
+{
+	local Langs=$1
+	shift
+	local Manage=$@
+	case ${Langs} in
+		Bash|bash)
+			UseBash ${Manage[@]}
+			;;
+		Python|python)
+			UsePython ${Manage[@]}
+			;;
+		Perl|perl)
+			UsePerl ${Manage[@]}
+			;;
+		Ruby|ruby)
+			UseRuby ${Manage[@]}
+			;;
+		C++|c++)
+			UseCpp ${Manage[@]}
+			;;
+		Java|java)
+			UseJava ${Manage[@]}
+			;;
+		*)
+			UseOther ${Langs} ${Manage[@]}
+			;;
+	esac
+}
+
+#}
+
 Art()
 {
 	echo "                ____                       ____ "
@@ -108,31 +1892,7 @@ MenuHelp()
 	echo -e "use <language> <code>\t\t: \"choose language\""
 	echo -e "swap|swp {src|bin}\t\t: \"swap between sorce code and executable\""
 	echo -e "create <arg>\t\t\t: \"create compile and runtime arguments"
-	case ${Lang} in
-		Bash|Perl|Ruby)
-			echo -e "new <file>\t\t\t: \"create new ${Lang} script\""
-			echo -e "compile|cpl\t\t\t: \"make code executable\""
-			;;
-		Python)
-			echo -e "new <file>\t\t\t: \"create new ${Lang} script\""
-			echo -e "compile|cpl\t\t\t: \"make code executable\""
-			echo -e "shell\t\t\t\t: run shell for testing"
-			;;
-		C++)
-			echo -e "new <file> {main|header|component} : \"create new ${Lang} source file\""
-			echo -e "compile|cpl\t\t\t: \"make code executable\""
-			;;
-		Java)
-			echo -e "new <file> {main|component}\t: \"create new ${Lang} source file\""
-			echo -e "compile|cpl <type> <manifest>\t: \"make code executable\""
-			echo -e "\t--class\t\t\t: \"make code (CLASS) executable\""
-			echo -e "\t--jar\t\t\t: \"make code (JAR) executable\""
-			echo -e "\t--jar --keep-manifest\t: \"keep manifest.mf\""
-			;;
-		*)
-			echo -e "compile|cpl\t: \"make code executable\""
-			;;
-	esac
+	ManageLangs ${Lang} "MenuHelp"
 	echo -e "rm|remove|delete\t\t: \"delete src file\""
 	echo -e "set <file>\t\t\t: \"select source code\""
 	echo -e "add <file>\t\t\t: \"add new file to project\""
@@ -161,25 +1921,10 @@ MenuHelp()
 CreateHelp()
 {
 	local Lang=$1
-
 	echo ""
 	echo "----------------[(${Head}) \"Create\" Help]----------------"
 	echo -e "args\t\t\t: create custom args"
-	case ${Lang} in
-#		Bash|Python|Perl|Ruby)
-#			echo "args : create custom args"
-#			;;
-		C++)
-			echo -e "make\t\t\t: create makefile"
-			echo -e "version|-std=<c++#>\t: create makefile"
-			;;
-		Java)
-			echo -e "prop|properties|-D\t: create custome Java properties"
-			echo -e "jar|manifest\t\t: create Java Manifest Jar builds"
-			;;
-		*)
-			;;
-	esac
+	ManageLangs ${Lang} "CreateHelp"
 	echo -e "reset\t\t\t: clear all"
 	echo "---------------------------------------------------------"
 	echo ""
@@ -218,46 +1963,7 @@ newCodeHelp()
 	echo "----------------[(${Head}) \"new\" Help]----------------"
 	echo -e "--version|-v\t\t\t: \"Get Version for each code template\""
 	echo -e "--help|-h\t\t\t: \"This page\""
-	case ${Lang} in
-		#Language is Bash
-		Bash)
-			if [ -f ${BashBin}/newBash.sh ]; then
-				echo -e "--custom|-c\t\t\t: \"Custom src file using ${Lang} template\""
-			fi
-			;;
-		#Language is Python
-		Python)
-			if [ -f ${PythonBin}/newPython.py ]; then
-				echo -e "--custom|-c\t\t\t: \"Custom src file using ${Lang} template\""
-			fi
-			;;
-		#Language is Perl
-		Perl)
-			if [ -f ${PerlBin}/newPerl.pl ]; then
-				echo -e "--custom|-c\t\t\t: \"Custom src file using ${Lang} template\""
-			fi
-			;;
-		#Language is Ruby
-		Ruby)
-			if [ -f ${RubyBin}/newRuby.rb ]; then
-				echo -e "--custom|-c\t\t\t: \"Custom src file using ${Lang} template\""
-			fi
-			;;
-		#Language is C++
-		C++)
-			if [ -f ${CppBin}/newC++ ]; then
-				echo -e "--custom|-c\t\t\t: \"Custom src file using ${Lang} template\""
-			fi
-			;;
-		#Language is Java
-		Java)
-			if [ -f ${JavaBin}/newJava.jar ] || [ -f ${JavaBin}/newJava.class ]; then
-				echo -e "--custom|-c\t\t\t: \"Custom src file using ${Lang} template\""
-			fi
-			;;
-		*)
-			;;
-	esac
+	ManageLangs ${Lang} "newCodeHelp"
 	echo -e "<code>\t\t\t\t: \"provide code name; default settings\""
 	echo "----------------------------------------------------------"
 	echo ""
@@ -535,91 +2241,12 @@ EnsureDirs()
 		mkdir "${ClideDir}"
 	fi
 #}
-
-#Program Homes
-#{
-	#Bash
-	if [ ! -d "${BashHome}" ] && [ ! -z "${BashCpl}" ]; then
-		mkdir "${BashHome}"
-	fi
-	#Python
-	if [ ! -d "${PythonHome}" ] && [ ! -z "${PythonRun}" ]; then
-		mkdir "${PythonHome}"
-	fi
-	#Perl
-	if [ ! -d "${PerlHome}" ] && [ ! -z "${PerlRun}" ]; then
-		mkdir "${PerlHome}"
-	fi
-	#Ruby
-	if [ ! -d "${RubyHome}" ] && [ ! -z "${RubyRun}" ]; then
-		mkdir "${RubyHome}"
-	fi
-	#C++
-	if [ ! -d "${CppHome}" ] && [ ! -z "${CppCpl}" ]; then
-		mkdir "${CppHome}"
-	fi
-	#Java
-	if [ ! -d "${JavaHome}" ] && [ ! -z "${JavaCpl}" ] && [ ! -z "${JavaRun}" ]; then
-		mkdir "${JavaHome}"
-	fi
-#}
-
-#Soruce Code
-#{
-	#Bash
-	if [ ! -d "${BashSrc}" ] && [ ! -z "${BashCpl}" ]; then
-		mkdir "${BashSrc}"
-	fi
-	#Python
-	if [ ! -d "${PythonSrc}" ] && [ ! -z "${PythonRun}" ]; then
-		mkdir "${PythonSrc}"
-	fi
-	#Perl
-	if [ ! -d "${PerlSrc}" ] && [ ! -z "${PerlRun}" ]; then
-		mkdir "${PerlSrc}"
-	fi
-	#Ruby
-	if [ ! -d "${RubySrc}" ] && [ ! -z "${RubyRun}" ]; then
-		mkdir "${RubySrc}"
-	fi
-	#C++
-	if [ ! -d "${CppSrc}" ] && [ ! -z "${CppCpl}" ]; then
-		mkdir "${CppSrc}"
-	fi
-	#Java
-	if [ ! -d "${JavaSrc}" ] && [ ! -z "${JavaCpl}" ] && [ ! -z "${JavaRun}" ]; then
-		mkdir "${JavaSrc}"
-	fi
-#}
-
-#Bin Code
-#{
-	#Bash
-	if [ ! -d "${BashBin}" ] && [ ! -z "${BashCpl}" ]; then
-		mkdir "${BashBin}"
-	fi
-	#Python
-	if [ ! -d "${PythonBin}" ] && [ ! -z "${PythonRun}" ]; then
-		mkdir "${PythonBin}"
-	fi
-	#Perl
-	if [ ! -d "${PerlBin}" ] && [ ! -z "${PerlRun}" ]; then
-		mkdir "${PerlBin}"
-	fi
-	#Ruby
-	if [ ! -d "${RubyBin}" ] && [ ! -z "${RubyRun}" ]; then
-		mkdir "${RubyBin}"
-	fi
-	#C++
-	if [ ! -d "${CppBin}" ] && [ ! -z "${CppCpl}" ]; then
-		mkdir "${CppBin}"
-	fi
-	#Java
-	if [ ! -d "${JavaBin}" ] && [ ! -z "${JavaCpl}" ] && [ ! -z "${JavaRun}" ]; then
-		mkdir "${JavaBin}"
-	fi
-#}
-
+	ManageLangs "Bash" "EnsureDirs"
+	ManageLangs "Python" "EnsureDirs"
+	ManageLangs "Perl" "EnsureDirs"
+	ManageLangs "Ruby" "EnsureDirs"
+	ManageLangs "C++" "EnsureDirs"
+	ManageLangs "Java" "EnsureDirs"
 }
 
 ClideVersion()
@@ -641,129 +2268,21 @@ RepoVersion()
 TemplateVersion()
 {
 	local Lang=$1
-	case ${Lang} in
-		#Language is Bash
-		Bash)
-			if [ -f ${BashBin}/newBash.sh ]; then
-				${BashBin}/newBash.sh 2> /dev/null | grep Version
-			else
-				echo "no newBash.sh found"
-			fi
-			;;
-		#Language is Python
-		Python)
-			if [ -f ${PythonBin}/newPython.py ]; then
-				${PythonRun} ${PythonBin}/newPython.py 2> /dev/null | grep Version
-			else
-				echo "no newPython found"
-			fi
-			;;
-		#Language is Perl
-		Perl)
-			if [ -f ${PerlBin}/newPerl.pl ]; then
-				${PerlRun} ${PerlBin}/newPerl.pl 2> /dev/null | grep Version
-			else
-				echo "no newPerl found"
-			fi
-			;;
-		#Language is Ruby
-		Ruby)
-			if [ -f ${RubyBin}/newRuby.rb ]; then
-				${RubyRun} ${RubyBin}/newRuby.rb 2> /dev/null | grep Version
-			else
-				echo "no newRuby found"
-			fi
-			;;
-		#Language is C++
-		C++)
-			if [ -f ${CppBin}/newC++ ]; then
-				${CppBin}/newC++ 2> /dev/null | grep Version
-			else
-				echo "no newC++ found"
-			fi
-			;;
-		#Language is Java
-		Java)
-			if [ -f ${JavaBin}/newJava.jar ]; then
-				java -jar ${JavaBin}/newJava.jar 2> /dev/null | grep Version
-			else
-				echo "no newJava.jar found"
-			fi
-			;;
-		*)
-			echo "Please Choose a Language"
-			;;
-	esac
+	ManageLangs ${Lang} "TemplateVersion"
 }
 
 CodeVersion()
 {
 	local Lang=$1
-	#Bash
-	if [[ "${Lang}" == "Bash" ]] || [ -z "${Lang}" ]; then
-		if [ ! -z "${BashCpl}" ]; then
-			BashVersion=$(${BashCpl} --version | head -n 1)
-			if [ -z "${Lang}" ]; then
-				echo "[Bash]"
-			fi
-			echo ${BashVersion}
-		fi
-	fi
-	#Python
-	if [[ "${Lang}" == "Python" ]] || [ -z "${Lang}" ]; then
-		if [ ! -z "${PythonRun}" ]; then
-			if [ -z "${Lang}" ]; then
-				echo "[Python]"
-			fi
-			${PythonRun} --version
-		fi
-	fi
-	#Perl
-	if [[ "${Lang}" == "Perl" ]] || [ -z "${Lang}" ]; then
-		if [ ! -z "${PerlRun}" ]; then
-			if [ -z "${Lang}" ]; then
-				echo "[Perl]"
-			fi
-			${PerlRun} --version 2> /dev/null | grep Version
-		fi
-	fi
-	#Ruby
-	if [[ "${Lang}" == "Ruby" ]] || [ -z "${Lang}" ]; then
-		if [ ! -z "${RubylRun}" ]; then
-			if [ -z "${Lang}" ]; then
-				echo "[Ruby]"
-			fi
-			${RubyRun} --version
-		fi
-	fi
-	#C++
-	if [[ "${Lang}" == "C++" ]] || [ -z "${Lang}" ]; then
-		if [ ! -z "${CppCpl}" ]; then
-			CppVersion=$(${CppCpl} --version | head -n 1)
-			if [ -z "${Lang}" ]; then
-				echo "[C++]"
-			fi
-			echo ${CppVersion}
-		fi
-	fi
-	#Java
-	if [[ "${Lang}" == "Java" ]] || [ -z "${Lang}" ]; then
-		if [ ! -z "${JavaRun}" ]; then
-			if [ -z "${Lang}" ]; then
-				echo "[Java]"
-			fi
-			JavaRunVersion=$(${JavaRun} --version 2> /dev/null)
-			JavaCplVersion=$(${JavaCpl} --version 2> /dev/null)
-			if [ ! -z "${JavaRunVersion}" ]; then
-				JavaRunVersion=$(${JavaRun} --version | head -n 1)
-				JavaCplVersion=$(${JavaCpl} --version | head -n 1)
-				echo "${JavaRunVersion}"
-				echo "${JavaCplVersion}"
-			else
-				${JavaRun} -version
-				${JavaCpl} -version
-			fi
-		fi
+	if [ ! -z "${Lang}" ]; then
+		ManageLangs ${Lang} "TemplateVersion"
+	else
+		ManageLangs "Bash" "TemplateVersion" | sed "s/Version:/Bash:/g"
+		ManageLangs "Python" "TemplateVersion" | sed "s/Version:/Python:/g"
+		ManageLangs "Perl" "TemplateVersion" | sed "s/Version:/Perl:/g"
+		ManageLangs "Ruby" "TemplateVersion" | sed "s/Version:/Ruby:/g"
+		ManageLangs "C++" "TemplateVersion" | sed "s/Version:/C++:/g"
+		ManageLangs "Java" "TemplateVersion" | sed "s/Version:/Java:/g"
 	fi
 }
 
@@ -1025,82 +2544,8 @@ newProject()
 		echo "name=${project}" > ${ClideDir}/${project}.clide
 		#Language Value
 		echo "lang=${lang}" >> ${ClideDir}/${project}.clide
-		case ${lang} in
-		#Check if Project dir is made
-			#Bash
-			Bash)
-				path=${BashSrc}/${project}
-				if [ ! -d ${path} ]; then
-					mkdir ${path}
-					cd ${path}
-					mkdir src bin
-					cd ${path}/src
-				else
-					cd ${path}/srs
-				fi
-				;;
-			#Python
-			Python)
-				path=${PythonSrc}/${project}
-				if [ ! -d ${path} ]; then
-					mkdir ${path}
-					cd ${path}
-					mkdir src bin
-					cd ${path}/src
-				else
-					cd ${path}/src
-				fi
-				;;
-			#Perl
-			Perl)
-				path=${PerlSrc}/${project}
-				if [ ! -d ${path} ]; then
-					mkdir ${path}
-					cd ${path}
-					mkdir src bin
-					cd ${path}/src
-				else
-					cd ${path}/src
-				fi
-				;;
-			#Ruby
-			Ruby)
-				path=${RubySrc}/${project}
-				if [ ! -d ${path} ]; then
-					mkdir ${path}
-					cd ${path}
-					mkdir src bin
-					cd ${path}/src
-				else
-					cd ${path}/src
-				fi
-				;;
-			#C++
-			C++)
-				path=${CppSrc}/${project}
-				#create and cd to project dir
-				if [ ! -d ${path} ]; then
-					mkdir ${path}
-					cd ${path}
-					mkdir bin build doc include lib spike src test
-					cd src
-				else
-					cd ${path}/src
-				fi
-				;;
-			#Java
-			Java)
-				path=${JavaSrc}/${project}
-				if [ ! -d ${path} ]; then
-					mkdir ${path}
-					cd ${path}
-				else
-					cd ${path}
-				fi
-				;;
-			*)
-				;;
-		esac
+		#Create Project and get path
+		path=$(ManageLangs ${Lang} "newProject")
 		#Path Value
 		echo "path=${path}" >> ${ClideDir}/${project}.clide
 		#Source Value
@@ -1177,384 +2622,29 @@ loadProject()
 #Edit Source code
 editCode()
 {
-	local src=$1
-	local num=$2
-	case ${src} in
-		#Bash
-		*.sh)
-			if [[ "${src}" == *","* ]]; then
-				if [ -z $2 ]; then
-					errorCode "editNull"
-				else
-					if [[ "${src}" == *"${num}"* ]]; then
-						if [[ "${num}" == *".sh" ]]; then
-							${editor} ${num}
-						else
-							${editor} "${num}.sh"
-						fi
-					else
-						errorCode "editNot"
-					fi
-				fi
-			else
-				case ${src} in
-					clide.sh)
-						errorCode "editMe"
-						;;
-					*)
-						${editor} ${src}
-						;;
-				esac
-			fi
-			;;
-		#Python
-		*.py)
-			if [[ "${src}" == *","* ]]; then
-				if [ -z $2 ]; then
-					errorCode "editNull"
-				else
-					if [[ "${src}" == *"${num}"* ]]; then
-						if [[ "${num}" == *".py" ]]; then
-							${editor} ${num}
-						else
-							${editor} "${num}.py"
-						fi
-					else
-						errorCode "editNot"
-					fi
-				fi
-			else
-				${editor} ${src}
-			fi
-			;;
-		#Perl
-		*.pl)
-			if [[ "${src}" == *","* ]]; then
-				if [ -z $2 ]; then
-					errorCode "editNull"
-				else
-					if [[ "${src}" == *"${num}"* ]]; then
-						if [[ "${num}" == *".pl" ]]; then
-							${editor} ${num}
-						else
-							${editor} "${num}.pl"
-						fi
-					else
-						errorCode "editNot"
-					fi
-				fi
-			else
-				${editor} ${src}
-			fi
-			;;
-		#Ruby
-		*.rb)
-			if [[ "${src}" == *","* ]]; then
-				if [ -z $2 ]; then
-					errorCode "editNull"
-				else
-					if [[ "${src}" == *"${num}"* ]]; then
-						if [[ "${num}" == *".rb" ]]; then
-							${editor} ${num}
-						else
-							${editor} "${num}.rb"
-						fi
-					else
-						errorCode "editNot"
-					fi
-				fi
-			else
-				${editor} ${src}
-			fi
-			;;
-		#C++
-		*.cpp|*.h)
-			if [[ "${src}" == *","* ]]; then
-				if [ -z $2 ]; then
-					errorCode "editNull"
-				else
-					if [[ "${src}" == *"${num}"* ]]; then
-						if [[ "${num}" == *".cpp" ]] || [[ "${num}" == *".h" ]]; then
-							${editor} ${num}
-						else
-							${editor} "${num}.cpp"
-						fi
-					else
-						errorCode "editNot"
-					fi
-				fi
-			else
-				 ${editor} ${src}
-			fi
-			;;
-		#Java
-		*.java)
-			if [[ "${src}" == *","* ]]; then
-				if [ -z $2 ]; then
-					errorCode "editNull"
-				else
-					if [[ "${src}" == *"${num}"* ]]; then
-						if [[ "${num}" == *".java" ]]; then
-							${editor} ${num}
-						else
-							${editor} "${num}.java"
-						fi
-					else
-						errorCode "editNot"
-					fi
-				fi
-			else
-				${editor} ${src}
-			fi
-			;;
-		*)
-			;;
-	esac
+	local Lang=$1
+	local src=$2
+	local num=$3
+	ManageLangs ${Lang} "editCode" ${src} ${num}
+
 }
 
 #Add code to active session
 addCode()
 {
-	local src=$1
-	local new=$2
-	case ${src} in
-		#Bash
-		*.sh)
-			if [[ "${new}" == *".sh" ]]; then
-				if [ -f "${new}" ]; then
-					echo "${src},${new}"
-				else
-					echo "${src}"
-				fi
-			else
-				if [ -f "${new}.sh" ]; then
-					echo "${src},${new}.sh"
-				else
-					echo "${src}"
-				fi
-			fi
-			;;
-		#Python
-		*.py)
-			if [[ "${new}" == *".py" ]]; then
-				if [ -f "${new}" ]; then
-					echo "${src},${new}"
-				else
-					echo "${src}"
-				fi
-			else
-				if [ -f "${new}.py" ]; then
-					echo "${src},${new}.py"
-				else
-					echo "${src}"
-				fi
-			fi
-			;;
-		#Perl
-		*.pl)
-			if [[ "${new}" == *".pl" ]]; then
-				if [ -f "${new}" ]; then
-					echo "${src},${new}"
-				else
-					echo "${src}"
-				fi
-			else
-				if [ -f "${new}.pl" ]; then
-					echo "${src},${new}.pl"
-				else
-					echo "${src}"
-				fi
-			fi
-			;;
-		#Ruby
-		*.rb)
-			if [[ "${new}" == *".rb" ]]; then
-				if [ -f "${new}" ]; then
-					echo "${src},${new}"
-				else
-					echo "${src}"
-				fi
-			else
-				if [ -f "${new}.rb" ]; then
-					echo "${src},${new}.rb"
-				else
-					echo "${src}"
-				fi
-			fi
-			;;
-		#C++
-		*.cpp|*.h)
-			#Add cpp or header files with file extensions
-			if [[ "${new}" == *".cpp" ]] || [[ "${new}" == *".h" ]]; then
-				#Append file
-				if [ -f "${new}" ]; then
-					echo "${src},${new}"
-				else
-					echo "${src}"
-				fi
-			#Add cpp or header files without file extensions
-			else
-				#Append cpp files
-				if [ -f "${new}.cpp" ]; then
-					echo "${src},${new}.cpp"
-				#Append header files
-				elif [ -f "${new}.h" ]; then
-					echo "${src},${new}.h"
-				else
-					echo "${src}"
-				fi
-			fi
-			;;
-		#Java
-		*.java)
-			if [[ "${new}" == *".java" ]]; then
-				if [ -f "${new}" ]; then
-					echo "${src},${new}"
-				else
-					echo "${src}"
-				fi
-			else
-				if [ -f "${new}.java" ]; then
-					echo "${src},${new}.java"
-				else
-					echo "${src}"
-				fi
-			fi
-			;;
-		*)
-			;;
-	esac
+	local Lang=$1
+	local src=$2
+	local new=$3
+	ManageLangs ${Lang} "addCode" ${src} ${new}
 }
 
 #Read source code without editing
 readCode()
 {
-	local src=$1
-	local num=$2
-	case ${src} in
-		#Bash
-		*.sh)
-			if [[ "${src}" == *","* ]]; then
-				if [ -z $2 ]; then
-					errorCode "readNull"
-				else
-					if [[ "${src}" == *"${num}"* ]]; then
-						if [[ "${num}" == *".sh" ]]; then
-							${ReadBy} ${num}
-						else
-							${ReadBy} "${num}.sh"
-						fi
-					else
-						errorCode "readNot"
-					fi
-				fi
-			else
-				${ReadBy} ${src}
-			fi
-			;;
-		#Python
-		*.py)
-			if [[ "${src}" == *","* ]]; then
-				if [ -z $2 ]; then
-					errorCode "readNull"
-				else
-					if [[ "${src}" == *"${num}"* ]]; then
-						if [[ "${num}" == *".py" ]]; then
-							${ReadBy} ${num}
-						else
-							${ReadBy} "${num}.py"
-						fi
-					else
-						errorCode "readNot"
-					fi
-				fi
-			else
-				${ReadBy} ${src}
-			fi
-			;;
-		#Perl
-		*.pl)
-			if [[ "${src}" == *","* ]]; then
-				if [ -z $2 ]; then
-					errorCode "readNull"
-				else
-					if [[ "${src}" == *"${num}"* ]]; then
-						if [[ "${num}" == *".pl" ]]; then
-							${ReadBy} ${num}
-						else
-							${ReadBy} "${num}.pl"
-						fi
-					else
-						errorCode "readNot"
-					fi
-				fi
-			else
-				${ReadBy} ${src}
-			fi
-			;;
-		#Ruby
-		*.rb)
-			if [[ "${src}" == *","* ]]; then
-				if [ -z $2 ]; then
-					errorCode "readNull"
-				else
-					if [[ "${src}" == *"${num}"* ]]; then
-						if [[ "${num}" == *".rb" ]]; then
-							${ReadBy} ${num}
-						else
-							${ReadBy} "${num}.rb"
-						fi
-					else
-						errorCode "readNot"
-					fi
-				fi
-			else
-				${ReadBy} ${src}
-			fi
-			;;
-		#C++
-		*.cpp|*.h)
-			if [[ "${src}" == *","* ]]; then
-				if [ -z $2 ]; then
-					errorCode "readNull"
-				else
-					if [[ "${src}" == *"${num}"* ]]; then
-						if [[ "${num}" == *".cpp" ]] || [[ "${num}" == *".h" ]]; then
-							${ReadBy} ${num}
-						else
-							${ReadBy} "${num}.cpp"
-						fi
-					else
-						errorCode "readNot"
-					fi
-				fi
-			else
-				${ReadBy} ${src}
-			fi
-			;;
-		#Java
-		*.java)
-			if [[ "${src}" == *","* ]]; then
-				if [ -z $2 ]; then
-					errorCode "readNull"
-				else
-					if [[ "${src}" == *"${num}"* ]]; then
-						if [[ "${num}" == *".java" ]]; then
-							${ReadBy} ${num}
-						else
-							${ReadBy} "${num}.java"
-						fi
-					else
-						errorCode "readNot"
-					fi
-				fi
-			else
-				${ReadBy} ${src}
-			fi
-			;;
-		*)
-			;;
-	esac
+	local Lang=$1
+	local src=$2
+	local num=$3
+	ManageLangs ${Lang} "readCode" ${src} ${num}
 }
 
 customCode()
@@ -2192,55 +3282,7 @@ selectCode()
 	local code=$1
 	local name=$2
 	local old=$3
-	case ${code} in
-		#Bash
-		Bash)
-			#Correct filename
-			if [[ ! "${name}" == *".sh" ]]; then
-				name="${name}.sh"
-			fi
-			;;
-		#Python
-		Python)
-			#Correct filename
-			if [[ ! "${name}" == *".py" ]]; then
-				name="${name}.py"
-			fi
-			;;
-		#Perl
-		Perl)
-			#Correct filename
-			if [[ ! "${name}" == *".pl" ]]; then
-				name="${name}.pl"
-			fi
-			;;
-		#Ruby
-		Ruby)
-			#Correct filename
-			if [[ ! "${name}" == *".rb" ]]; then
-				name="${name}.rb"
-			fi
-			;;
-		#C++
-		C++)
-			#Correct filename
-			if [[ ! "${name}" == *".cpp" ]] && [ -f "${name}.cpp" ]; then
-				name="${name}.cpp"
-			elif [[ ! "${name}" == *".h" ]] && [ -f "${name}.h" ]; then
-				name="${name}.h"
-			fi
-			;;
-		#Java
-		Java)
-			#Correct filename
-			if [[ ! "${name}" == *".java" ]]; then
-				name="${name}.java"
-			fi
-			;;
-		*)
-			;;
-	esac
-
+	name=$(ManageLangs ${code} "selectCode" ${name})
 	#Return source file if exists
 	if [ -f "${name}" ]; then
 		echo "${name}"
@@ -2254,159 +3296,21 @@ selectCode()
 pgDir()
 {
 	local code=$1
-	case ${code} in
-		#Bash
-		Bash)
-			#Return Bash src Dir
-			echo ${BashSrc}
-			;;
-		#Python
-		Python)
-			#Return Python src Dir
-			echo ${PythonSrc}
-			;;
-		#Perl
-		Perl)
-			#Return Perl src Dir
-			echo ${PerlSrc}
-			;;
-		#Ruby
-		Ruby)
-			#Return Ruby src Dir
-			echo ${RubySrc}
-			;;
-		#C++
-		C++)
-			#Return C++ src Dir
-			echo ${CppSrc}
-			;;
-		#Java
-		Java)
-			#Return Java src Dir
-			echo ${JavaSrc}
-			;;
-		#No Languge found
-		*)
-			#Return rejection
-			echo "no"
-			;;
-	esac
+	ManageLangs ${code} "pgDir" ${name}
 }
 
 #get Language Name
 pgLang()
 {
 	local Lang=$(echo "$1" | tr A-Z a-z)
-	case ${Lang} in
-		#Bash
-		bash)
-			if [ ! -z "${BashCpl}" ]; then
-				#Return Bash tag
-				echo "Bash"
-			else
-				#Return rejection
-				echo "no"
-			fi
-			;;
-		#Python
-		python)
-			if [ ! -z "${PythonRun}" ]; then
-				#Return Python tag
-				echo "Python"
-			else
-				#Return rejection
-				echo "no"
-			fi
-			;;
-		#Perl
-		perl)
-			if [ ! -z "${PerlRun}" ]; then
-				#Return Perl tag
-				echo "Perl"
-			else
-				#Return rejection
-				echo "no"
-			fi
-			;;
-		#Ruby
-		ruby)
-			if [ ! -z "${RubyRun}" ]; then
-				#Return Ruby tag
-				echo "Ruby"
-			else
-				#Return rejection
-				echo "no"
-			fi
-			;;
-		#C++
-		c++)
-			if [ ! -z "${CppCpl}" ]; then
-				#Return C++ tag
-				echo "C++"
-			else
-				#Return rejection
-				echo "no"
-			fi
-			;;
-		#Java
-		java)
-			if [ ! -z "${JavaCpl}" ] && [ ! -z "${JavaRun}" ]; then
-				#Return Java tag
-				echo "Java"
-			else
-				#Return rejection
-				echo "no"
-			fi
-			;;
-		#No Languge found
-		*)
-			#Return rejection
-			echo "no"
-			;;
-	esac
+	ManageLangs ${Lang} "pgLang"
 }
 
 #Color Text
 color()
 {
 	local text=$1
-	case ${text} in
-		#Bash
-		Bash)
-			#Return Green
-			echo -e "\e[1;32m${text}\e[0m"
-			;;
-		#Python
-		Python)
-			#Return Yellow
-			echo -e "\e[1;33m${text}\e[0m"
-			;;
-		#Perl
-		Perl)
-			#Return Purple
-			echo -e "\e[1;35m${text}\e[0m"
-			;;
-		#Ruby
-		Ruby)
-			#Return Red
-			echo -e "\e[1;31m${text}\e[0m"
-			;;
-		#C++
-		C++)
-			#Return Blue
-			echo -e "\e[1;34m${text}\e[0m"
-			;;
-		#Java
-		Java)
-			#Return Red
-			echo -e "\e[1;31m${text}\e[0m"
-			;;
-		#Other
-		*)
-			#Return Purple
-			echo -e "\e[1;35m${text}\e[0m"
-			;;
-	esac
+	ManageLangs ${text} "color"
 }
 
 ColorCodes()
@@ -2496,427 +3400,18 @@ Install()
 {
 	local code=$1
 	local bin=$2
-	local BinFile="${bin%.*}"
-	case ${code} in
-		#Bash
-		Bash)
-			#Make sure Binary exists
-			if [ -f "${BashBin}/${bin}" ]; then
-				#Add command to Aliases
-				AddAlias "${BinFile}" "${BashBin}/${bin}"
-			elif [ ! -f "${BashBin}/${bin}" ]; then
-				errorCode "install" "${bin}"
-			else
-				errorCode "noCode"
-			fi
-			;;
-		#Python
-		Python)
-			#Make sure Binary exists
-			if [ -f "${PythonBin}/${bin}" ]; then
-				#Add command to Aliases
-				AddAlias "${BinFile}" "${PythonRun} ${PythonBin}/${bin}"
-			elif [ ! -f "${PythonBin}/${bin}" ]; then
-				errorCode "install" "${bin}"
-			else
-				errorCode "noCode"
-			fi
-			;;
-		#Perl
-		Perl)
-			#Make sure Binary exists
-			if [ -f "${PerlBin}/${bin}" ]; then
-				#Add command to Aliases
-				AddAlias "${BinFile}" "${PerlRun} ${PerlBin}/${bin}"
-			elif [ ! -f "${PerlBin}/${bin}" ]; then
-				errorCode "install" "${bin}"
-			else
-				errorCode "noCode"
-			fi
-			;;
-		#Ruby
-		Ruby)
-			#Make sure Binary exists
-			if [ -f "${RubyBin}/${bin}" ]; then
-				#Add command to Aliases
-				AddAlias "${BinFile}" "${RubyRun} ${RubyBin}/${bin}"
-			elif [ ! -f "${RubyBin}/${bin}" ]; then
-				errorCode "install" "${bin}"
-			else
-				errorCode "noCode"
-			fi
-			;;
-		#C++
-		C++)
-			#Make sure Binary exists
-			if [ -f "${CppBin}/${bin}" ]; then
-				#Add command to Aliases
-				AddAlias "${bin}" "${CppBin}/${bin}"
-			elif [ ! -f "${CppBin}/${bin}" ]; then
-				#compule or swap to binary
-				errorCode "install" "${bin}"
-			else
-				errorCode "noCode"
-			fi
-			;;
-		#Java
-		Java)
-			#Java binary
-			if [[ "${bin}" == *".java" ]]; then
-				#Check for Jar file
-				if [ -f "${JavaBin}/${BinFile}.jar" ]; then
-					AddAlias "${BinFile}" "${JavaRun} -jar ${JavaBin}/${BinFile}.jar"
-				elif [ -f "${JavaBin}/${bin}.class" ]; then
-					echo "Please compile as jar file"
-					echo "[hint] $ cpl jar"
-				else
-					errorCode "install" "${bin}"
-				fi
-			else
-				errorCode "noCode"
-			fi
-			;;
-		#Not found
-		*)
-			errorCode "noCode"
-			;;
-	esac
+	ManageLangs ${code} "Install" ${bin}
 }
 
 #Compile code
 compileCode()
 {
-	local src=$1
-	local project=${CodeProject}
-	local name=$2
-	local keep=$3
+	local Lang=$1
+	local src=$2
+	local name=$3
+	local keep=$4
 	local cplArgs=""
-	#Handle Project Dir
-	if [[ "${project}" == "none" ]]; then
-		project=""
-	else
-		project="${project}/"
-	fi
-	#bash
-	if [[ "${src}" == *".sh" ]]; then
-		#Multiple code selected
-		if [[ "${src}" == *","* ]]; then
-			#varable is empty
-			if [ -z ${name} ]; then
-				errorCode "cpl" "choose"
-			else
-				#chosen file is in the list of files
-				if [[ "${src}" == *"${name}"* ]]; then
-					#only name is given
-					if [[ "${name}" != *".sh" ]]; then
-						#full filename given
-						num=${name}.sh
-					fi
-					#Make Bash Script executable
-					chmod +x ${name}
-					#Check if Bash Script does NOT exist
-					if [[ ! -f "${BashBin}/${name}" ]]; then
-						#Change to Bash Binary dir
-						cd ${BashBin}
-						#Create Symbolic Link to Bash Script
-						ln -s ../src/${project}${name}
-						#Change to Bash Source dir
-						cd "${BashSrc}/${project}"
-						echo -e "\e[1;42m[Bash Code Compiled]\e[0m"
-					else
-						errorCode "cpl" "already" ${name}
-					fi
-				else
-					errorCode "cpl" "not"
-				fi
-			fi
-		#single code selected
-		else
-			#Make Bash Script executable
-			chmod +x ${src}
-			#Check if Bash Script does NOT exist
-			if [[ ! -f "${BashBin}/${src}" ]]; then
-				#Change to Bash Binary dir
-				cd ${BashBin}
-				#Create Symbolic Link to Bash Script
-				ln -s ../src/${project}${src}
-				#Change to Bash Source dir
-				cd "${BashSrc}/${project}"
-				echo -e "\e[1;42m[Bash Code Compiled]\e[0m"
-			else
-				errorCode "cpl" "already" ${src}
-			fi
-		fi
-	#Python
-	elif [[ "$src" == *".py" ]]; then
-		#Compile Python Script
-		#py2bin "${src}"
-		#Get Python Name
-                #pyBin="${src%.*}"
-		#Move Python Program to Binary dir
-		#mv ${pyBin} ../bin/
-		#Check if Python Script does NOT exist
-		#
-		#Multiple code selected
-		if [[ "${src}" == *","* ]]; then
-			#variable is empty
-			if [ -z ${name} ]; then
-				errorCode "cpl" "choose"
-			#variable found
-			else
-				#chosen file is in the list of files
-				if [[ "${src}" == *"${name}"* ]]; then
-					#only name is given
-					if [[ "${name}" != *".py" ]]; then
-						#full filename given
-						num=${name}.py
-					fi
-					#Make Python Script executable
-					chmod +x ${name}
-					#Check if Python Script does NOT exist
-					if [[ ! -f "${PythonBin}/${name}" ]]; then
-						#Change to Python Binary dir
-						cd ${PythonBin}
-						#Create Symbolic Link to Python Script
-						ln -s ../src/${project}${name}
-						#Change to Python Source dir
-						cd "${PythonSrc}/${project}"
-						echo -e "\e[1;43m[Python Code Compiled]\e[0m"
-					else
-						errorCode "cpl" "already" ${name}
-					fi
-				else
-					echo "code not found"
-				fi
-			fi
-		#single code selected
-		else
-			#Make Python Script executable
-			chmod +x ${src}
-			#Check if Python Script does NOT exist
-			if [[ ! -f "${PythonBin}/${src}" ]]; then
-				#Change to Python Binary dir
-				cd ${PythonBin}
-				#Create Symbolic Link to Python Script
-				ln -s ../src/${project}${src}
-				#Change to Python Source dir
-				cd "${PythonSrc}/${project}"
-				echo -e "\e[1;43m[Python Code Compiled]\e[0m"
-			#Code is already found
-			else
-				errorCode "cpl" "already" ${src}
-			fi
-		fi
-	#Perl
-	elif [[ "$src" == *".pl" ]]; then
-		#Multiple code selected
-		if [[ "${src}" == *","* ]]; then
-			#variable is empty
-			if [ -z ${name} ]; then
-				errorCode "cpl" "choose"
-			#variable found
-			else
-				#chosen file is in the list of files
-				if [[ "${src}" == *"${name}"* ]]; then
-					#only name is given
-					if [[ "${name}" != *".pl" ]]; then
-						#full filename given
-						num=${name}.pl
-					fi
-					#Make Perl Script executable
-					chmod +x ${name}
-					#Check if Perl Script does NOT exist
-					if [[ ! -f "${PerlBin}/${name}" ]]; then
-						#Change to Perl Binary dir
-						cd ${PerlBin}
-						#Create Symbolic Link to Perl Script
-						ln -s ../src/${project}${name}
-						#Change to Perl Source dir
-						cd "${PerlSrc}/${project}"
-						echo -e "\e[1;45m[Perl Code Compiled]\e[0m"
-					else
-						errorCode "cpl" "already" ${name}
-					fi
-				else
-					echo "code not found"
-				fi
-			fi
-		#single code selected
-		else
-			#Make Perl Script executable
-			chmod +x ${src}
-			#Check if Perl Script does NOT exist
-			if [[ ! -f "${PerlBin}/${src}" ]]; then
-				#Change to Perl Binary dir
-				cd ${PerlBin}
-				#Create Symbolic Link to Perl Script
-				ln -s ../src/${project}${src}
-				#Change to Perl Source dir
-				cd "${PerlSrc}/${project}"
-				echo -e "\e[1;45m[Perl Code Compiled]\e[0m"
-			#Code is already found
-			else
-				errorCode "cpl" "already" ${src}
-			fi
-		fi
-	#Ruby
-	elif [[ "$src" == *".rb" ]]; then
-		#Multiple code selected
-		if [[ "${src}" == *","* ]]; then
-			#variable is empty
-			if [ -z ${name} ]; then
-				errorCode "cpl" "choose"
-			#variable found
-			else
-				#chosen file is in the list of files
-				if [[ "${src}" == *"${name}"* ]]; then
-					#only name is given
-					if [[ "${name}" != *".rb" ]]; then
-						#full filename given
-						num=${name}.rb
-					fi
-					#Make Ruby Script executable
-					chmod +x ${name}
-					#Check if Ruby Script does NOT exist
-					if [[ ! -f "${RubyBin}/${name}" ]]; then
-						#Change to Ruby Binary dir
-						cd ${RubyBin}
-						#Create Symbolic Link to Ruby Script
-						ln -s ../src/${project}${name}
-						#Change to Ruby Source dir
-						cd "${RubySrc}/${project}"
-						echo -e "\e[1;41m[Ruby Code Compiled]\e[0m"
-					else
-						errorCode "cpl" "already" ${name}
-					fi
-				else
-					echo "code not found"
-				fi
-			fi
-		#single code selected
-		else
-			#Make Ruby Script executable
-			chmod +x ${src}
-			#Check if Ruby Script does NOT exist
-			if [[ ! -f "${RubyBin}/${src}" ]]; then
-				#Change to Ruby Binary dir
-				cd ${RubyBin}
-				#Create Symbolic Link to Ruby Script
-				ln -s ../src/${project}${src}
-				#Change to Ruby Source dir
-				cd "${RubySrc}/${project}"
-				echo -e "\e[1;41m[Ruby Code Compiled]\e[0m"
-			#Code is already found
-			else
-				errorCode "cpl" "already" ${src}
-			fi
-		fi
-	#C++
-	elif [[ "$src" == *".cpp"* ]] || [ -f ${CppSrc}/${project}makefile ]; then
-		cplArgs=${CppCplVersion}
-		if [ -f ${CppSrc}/${project}makefile ]; then
-			cd ${CppSrc}/${project}
-			echo "make"
-			cd - > /dev/null
-			echo -e "\e[1;44m[C++ Code Compiled]\e[0m"
-		else
-			#Multiple code selected
-			if [[ "${src}" == *","* ]]; then
-				#num is empty
-				if [ -z ${name} ]; then
-					errorCode "cpl" "choose"
-				else
-					#Separate list of selected code
-					prog=$(echo ${src} | sed "s/,/ /g")
-					#Compile for Threads
-					NeedThreads=$(grep "#include <thread>" ${prog})
-					if [ ! -z "${NeedThreads}" ]; then
-						cplArgs="${cplArgs} -lpthread"
-					fi
-					${CppCpl} ${prog} -o ../bin/${name} ${cplArgs}
-					echo -e "\e[1;44m[C++ Code Compiled]\e[0m"
-				fi
-			#single code selected
-			else
-				#Compile for threading
-				NeedThreads=$(grep "#include <thread>" ${src})
-				if [ ! -z "${NeedThreads}" ]; then
-					cplArgs="${cplArgs} -lpthread"
-				fi
-				#Compile and move C++ to Binary dir
-				${CppCpl} ${src} -o ../bin/${src%.*} ${cplArgs}
-				echo -e "\e[1;44m[C++ Code Compiled]\e[0m"
-			fi
-		fi
-	#Java
-	elif [[ "$src" == *".java" ]]; then
-		#Multiple code selected
-		if [[ "${src}" == *","* ]]; then
-			if [[ "${project}" == *"/" ]]; then
-				#Compile Java prgram
-				${JavaCpl} *.java
-				#move Java Class to Binary dir
-				if [ -f *.class ]; then
-					mv *.class ../bin/
-				fi
-			else
-				echo "Is not a project"
-			fi
-		#single code selected
-		else
-			#Compile Java prgram
-			${JavaCpl} ${src}
-			#get Java Class/compiled file name
-			des=${src%.*}.class
-			if [ -f ${des} ]; then
-				#Compile as jar or class
-				case ${name} in
-					#Compile as Jar
-					--jar)
-						if [ ! -f manifest.mf ]; then
-							echo "Manifest-Version: 1.1" > manifest.mf
-							echo "Created-By: $USER" >> manifest.mf
-							echo "Main-Class: ${des%.class}" >> manifest.mf
-							echo "Sealed: true" >> manifest.mf
-						fi
-						#jar -cmf manifest.mf ${des%.class}.jar ${des}
-						jar -cmf manifest.mf ${des%.class}.jar *.class
-						#remove class file
-						if [ -f ../bin/${des} ]; then
-							rm ../bin/${des}
-						fi
-						case ${keep} in
-							--keep-manifest)
-								#rm ${des}
-								rm *.class
-								;;
-							*)
-								#rm manifest.mf ${des}
-								rm manifest.mf *.class
-								;;
-						esac
-						#move Java Jar to Binary dir
-						mv ${des%.class}.jar ../bin/
-						echo -e "\e[1;41m[Java Code Compiled (JAR)]\e[0m"
-						;;
-					#Do nothing...keep class
-					*|--class)
-						#move Java Class to Binary dir
-						#mv ${des} ../bin/
-						mv *.class ../bin/
-						#remove old jar
-						if [ -f ../bin/${des%.class}.jar ]; then
-							rm ../bin/${des%.class}.jar
-						fi
-						echo -e "\e[1;41m[Java Code Compiled (CLASS)]\e[0m"
-						;;
-				esac
-			fi
-		fi
-	#Not found
-	else
-		errorCode "cpl"
-	fi
+	ManageLangs ${Lang} "compileCode" ${src} ${name} ${keep} ${cplArgs}
 }
 
 #Handle Git commands
@@ -3159,142 +3654,15 @@ SwapToSrc()
 {
 	local Lang=$1
 	local src=$2
-	case ${Lang} in
-		#Bash
-		Bash)
-			echo "${src}"
-			;;
-		#Python
-		Python)
-			#Get Python Name
-		#	src="${src}.py"
-		#	#Check if Python source exists
-		#	if [[ -f "${PythonSrc}/${src}" ]]; then
-		#		#Return Python Source Name
-				echo "${src}"
-		#	fi
-			;;
-		#Perl
-		Perl)
-			#Get Perl Name
-			echo "${src}"
-			;;
-		#Ruby
-		Ruby)
-			#Get Ruby Name
-			echo "${src}"
-			;;
-		#C++
-		C++)
-			#cd "${CppSrc}"
-			#Get C++ Name
-			src="${src}.cpp"
-			#Check if C++ source exists
-			if [ -f "${CppSrc}/${src}" ]; then
-				#Return C++ Source Name
-				echo "${src}"
-			fi
-			;;
-		#Java
-		Java)
-			#cd "${JavaSrc}"
-			#Get Java Name
-			src="${src%.*}.java"
-			#Check if Java source exists
-			if [ -f "${JavaSrc}/${src}" ]; then
-				#Return Java Source Name
-				echo "${src}"
-			fi
-			;;
-		*)
-			echo "${src}"
-			;;
-	esac
+	ManageLangs ${Lang} "SwapToSrc" ${src}
 }
 
 #Switch to Bin file
 SwapToBin()
 {
-	local bin=$1
-	#bash
-	if [[ "${bin}" == *".sh" ]]; then
-		#Check if Bash Binary exists
-		if [[ -f "${BashBin}/${bin}" ]]; then
-			#Return Bash Binary Name
-			#cd "${BashBin}"
-			echo "${bin}"
-		else
-			echo "${bin}"
-		fi
-	#Python
-	elif [[ "${bin}" == *".py" ]]; then
-		#Get Python Name
-	#	bin="${bin%.*}"
-		#Check if Python Binary exists
-		if [[ -f "${PythonBin}/${bin}" ]]; then
-			#cd "${PythonBin}"
-			#Return Python Binary Name
-			echo "${bin}"
-		else
-			echo "${bin}"
-		fi
-	#Perl
-	elif [[ "${bin}" == *".pl" ]]; then
-		#Get Perl Name
-	#	bin="${bin%.*}"
-		#Check if Perl Binary exists
-		if [[ -f "${PerlBin}/${bin}" ]]; then
-			#cd "${PerlBin}"
-			#Return Perl Binary Name
-			echo "${bin}"
-		else
-			echo "${bin}"
-		fi
-	#Ruby
-	elif [[ "${bin}" == *".rb" ]]; then
-		#Get Ruby Name
-	#	bin="${bin%.*}"
-		#Check if Perl Binary exists
-		if [[ -f "${RubyBin}/${bin}" ]]; then
-			#cd "${RubyBin}"
-			#Return Ruby Binary Name
-			echo "${bin}"
-		else
-			echo "${bin}"
-		fi
-	#C++
-	elif [[ "${bin}" == *".cpp" ]]; then
-		#cd "${CppBin}"
-		#Keep Src Name
-		OldBin="${bin}"
-		#Get C++ Name
-		bin="${bin%.*}"
-		#Check if C++ Binary exists
-		if [ -f "${CppBin}/${bin}" ]; then
-			#Return C++ Binary Name
-			echo "${bin}"
-		else
-			echo "${OldBin}"
-		fi
-	#Java
-	elif [[ "${bin}" == *".java" ]]; then
-		#cd "${JavaBin}"
-		#Keep SrcName
-		OldBin="${bin}"
-		#Get Java Name
-		bin="${bin%.*}.class"
-		#Check Java Binary exists
-		if [ -f "${JavaBin}/${bin}" ]; then
-			#Return Java Binary Name
-			echo "${bin}"
-		else
-			echo "${OldBin}"
-		fi
-	#Nothing found
-	else
-		#Return the Source File
-		echo ${bin}
-	fi
+	local Lang=$1
+	local bin=$2
+	ManageLangs ${Lang} "SwapToBin" ${bin}
 }
 
 #IDE
@@ -3690,20 +4058,20 @@ Actions()
 					;;
 				#Edit new source code
 				${editor}|edit|ed)
-					editCode ${Code} ${UserIn[1]}
+					editCode ${Lang} ${Code} ${UserIn[1]}
 					;;
 				#Add code to Source Code
 				add)
-					Code=$(addCode ${Code} ${UserIn[1]})
+					Code=$(addCode ${Lang} ${Code} ${UserIn[1]})
 					;;
 				#Read code without editing
 				${ReadBy}|read)
-					readCode ${Code} ${UserIn[1]}
+					readCode ${Lang} ${Code} ${UserIn[1]}
 					;;
 				#Swap from Binary to Src and vise-versa
 				swap|swp)
 					if [[ "${UserIn[1]}" == "bin" ]]; then
-						Code=$(SwapToBin ${Code})
+						Code=$(SwapToBin ${Lang} ${Code})
 					elif [[ "${UserIn[1]}" == "src" ]]; then
 						Code=$(SwapToSrc ${Lang} ${Code})
 					else
@@ -3727,10 +4095,17 @@ Actions()
 				notes)
 					case ${UserIn[1]} in
 						edit|add)
-							${editor} ${ClideDir}/${Lang}.notes
+							if [ ! -f "${ClideDir}/${Lang}.notes" ]; then
+								echo "[${Lang} Notes]" > ${ClideDir}/${Lang}.notes
+							fi
+								${editor} ${ClideDir}/${Lang}.notes
 							;;
 						read)
-							${ReadBy} ${ClideDir}/${Lang}.notes
+							if [ -f "${ClideDir}/${Lang}.notes" ]; then
+								${ReadBy} ${ClideDir}/${Lang}.notes
+							else
+								echo "No notes for ${Lang} found"
+							fi
 							;;
 						*)
 							NotesHelp ${Lang}
@@ -3869,7 +4244,7 @@ Actions()
 					;;
 				#Compile code
 				compile|cpl)
-					compileCode ${Code} ${UserIn[1]} ${UserIn[2]}
+					compileCode ${Lang} ${Code} ${UserIn[1]} ${UserIn[2]}
 					#Code=$(SwapToBin ${Code})
 					;;
 				#Install compiled code into aliases
