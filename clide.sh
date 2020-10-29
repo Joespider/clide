@@ -11,7 +11,7 @@ Shell=$(which bash)
 #1st # = Overflow
 #2nd # = Additional features
 #3rd # = Bug/code tweaks/fixes
-Version="0.65.72"
+Version="0.65.74"
 
 #cl[ide] config
 #{
@@ -89,9 +89,10 @@ declare -A Commands
 UseBash()
 {
 	local BashCpl=bash
-	local BashHome=${ProgDir}/Bash
-	local BashSrc=${BashHome}/src
-	local BashBin=${BashHome}/bin
+	local LangHome=${ProgDir}/Bash
+	local LangSrc=${LangHome}/src
+	local LangBin=${LangHome}/bin
+	local TemplateCode=${LangBin}/newBash.sh
 	local Type=$1
 	shift
 	case ${Type} in
@@ -114,32 +115,32 @@ UseBash()
 			;;
 		pgDir)
 			#Return Bash src Dir
-			echo ${BashSrc}
+			echo ${LangSrc}
 			;;
 		CreateHelp)
 			;;
 		newCodeHelp)
-			if [ -f ${BashBin}/newBash.sh ]; then
+			if [ -f ${TemplateCode} ]; then
 				echo -e "--custom|-c\t\t\t: \"Custom src file using ${Lang} template\""
 			fi
 			;;
 		EnsureDirs)
 			#Home
-			if [ ! -d "${BashHome}" ] && [ ! -z "${BashCpl}" ]; then
-				mkdir "${BashHome}"
+			if [ ! -d "${LangHome}" ] && [ ! -z "${BashCpl}" ]; then
+				mkdir "${LangHome}"
 			fi
 			#Src
-			if [ ! -d "${BashSrc}" ] && [ ! -z "${BashCpl}" ]; then
-				mkdir "${BashSrc}"
+			if [ ! -d "${LangSrc}" ] && [ ! -z "${BashCpl}" ]; then
+				mkdir "${LangSrc}"
 			fi
 			#Bin
-			if [ ! -d "${BashBin}" ] && [ ! -z "${BashCpl}" ]; then
-				mkdir "${BashBin}"
+			if [ ! -d "${LangBin}" ] && [ ! -z "${BashCpl}" ]; then
+				mkdir "${LangBin}"
 			fi
 			;;
 		TemplateVersion)
-			if [ -f ${BashBin}/newBash.sh ]; then
-				${BashBin}/newBash.sh 2> /dev/null | grep Version
+			if [ -f ${TemplateCode} ]; then
+				${TemplateCode} 2> /dev/null | grep Version
 			else
 				echo "no newBash.sh found"
 			fi
@@ -274,13 +275,13 @@ UseBash()
 								#Make Bash Script executable
 								chmod +x ${name}
 								#Check if Bash Script does NOT exist
-								if [[ ! -f "${BashBin}/${name}" ]]; then
+								if [[ ! -f "${LangBin}/${name}" ]]; then
 									#Change to Bash Binary dir
-									cd ${BashBin}
+									cd ${LangBin}
 									#Create Symbolic Link to Bash Script
 									ln -s ../src/${project}${name}
 									#Change to Bash Source dir
-									cd "${BashSrc}/${project}"
+									cd "${LangSrc}/${project}"
 									echo -e "\e[1;42m[Bash Code Compiled]\e[0m"
 								else
 									errorCode "cpl" "already" ${name}
@@ -294,13 +295,13 @@ UseBash()
 						#Make Bash Script executable
 						chmod +x ${src}
 						#Check if Bash Script does NOT exist
-						if [[ ! -f "${BashBin}/${src}" ]]; then
+						if [[ ! -f "${LangBin}/${src}" ]]; then
 							#Change to Bash Binary dir
-							cd ${BashBin}
+							cd ${LangBin}
 							#Create Symbolic Link to Bash Script
 							ln -s ../src/${project}${src}
 							#Change to Bash Source dir
-							cd "${BashSrc}/${project}"
+							cd "${LangSrc}/${project}"
 							echo -e "\e[1;42m[Bash Code Compiled]\e[0m"
 						else
 							errorCode "cpl" "already" ${src}
@@ -312,7 +313,7 @@ UseBash()
 			esac
 			;;
 		newProject)
-			path=${BashSrc}/${project}
+			path=${LangSrc}/${project}
 			if [ ! -d ${path} ]; then
 				mkdir ${path}
 				cd ${path}
@@ -332,9 +333,9 @@ UseBash()
 			case ${bin} in
 				*.sh)
 					#Check if Bash Binary exists
-					if [ -f "${BashBin}/${bin}" ]; then
+					if [ -f "${LangBin}/${bin}" ]; then
 						#Return Bash Binary Name
-						#cd "${BashBin}"
+						#cd "${LangBin}"
 						echo "${bin}"
 					else
 						echo "${bin}"
@@ -349,13 +350,58 @@ UseBash()
 			local bin=$1
 			local BinFile="${bin%.*}"
 			#Make sure Binary exists
-			if [ -f "${BashBin}/${bin}" ]; then
+			if [ -f "${LangBin}/${bin}" ]; then
 				#Add command to Aliases
-				AddAlias "${BinFile}" "${BashBin}/${bin}"
-			elif [ ! -f "${BashBin}/${bin}" ]; then
+				AddAlias "${BinFile}" "${LangBin}/${bin}"
+			elif [ ! -f "${LangBin}/${bin}" ]; then
 				errorCode "install" "${bin}"
 			else
 				errorCode "noCode"
+			fi
+			;;
+		customCode)
+			local cLang=$1
+			Type=$(echo ${Type} | tr A-Z a-z)
+			#Check for Custom Code Template
+			if [ -f ${TemplateCode} ]; then
+				echo -n "${cLang}\$ ./newBash.sh "
+				read -a Args
+				#Template Args Given
+				if [ ! -z "${Args}" ];then
+					${TemplateCode} ${Args[@]}
+				#No Template Args Given
+				else
+					${TemplateCode} --help
+				fi
+			else
+				#Program Name Given
+				errorCode "customCode" "notemp" "${Lang}"
+			fi
+			;;
+		newCode)
+			local name=$1
+			local Project=$2
+			local Type=$3
+			Type=$(echo ${Type} | tr A-Z a-z)
+			name=${name%.sh}
+			if [ ! -f ${name}.sh ]; then
+				#Check for Custom Code Template
+				if [ -f ${TemplateCode} ]; then
+					#Program Name Given
+					if [ ! -z "${name}" ];then
+						${TemplateCode} ${name} > ${name}.sh
+					#No Program Name Given
+					else
+						${TemplateCode} --help
+					fi
+				else
+					#Program Name Given
+					if [ ! -z "${name}" ];then
+						touch ${name}.sh
+					else
+						errorCode "newCode"
+					fi
+				fi
 			fi
 			;;
 		*)
@@ -366,9 +412,10 @@ UseBash()
 UsePython()
 {
 	local PythonRun=python
-	local PythonHome=${ProgDir}/Python
-	local PythonSrc=${PythonHome}/src
-	local PythonBin=${PythonHome}/bin
+	local LangHome=${ProgDir}/Python
+	local LangSrc=${LangHome}/src
+	local LangBin=${LangHome}/bin
+	local TemplateCode=${LangBin}/newPython.py
 	local Type=$1
 	shift
 	case ${Type} in
@@ -392,32 +439,32 @@ UsePython()
 			;;
 		pgDir)
 			#Return Python src Dir
-			echo ${PythonSrc}
+			echo ${LangSrc}
 			;;
 		CreateHelp)
 			;;
 		newCodeHelp)
-			if [ -f ${PythonBin}/newPython.py ]; then
+			if [ -f ${TemplateCode} ]; then
 				echo -e "--custom|-c\t\t\t: \"Custom src file using ${Lang} template\""
 			fi
 			;;
 		EnsureDirs)
 			#Home
-			if [ ! -d "${PythonHome}" ] && [ ! -z "${PythonRun}" ]; then
-				mkdir "${PythonHome}"
+			if [ ! -d "${LangHome}" ] && [ ! -z "${PythonRun}" ]; then
+				mkdir "${LangHome}"
 			fi
 			#Src
-			if [ ! -d "${PythonSrc}" ] && [ ! -z "${PythonRun}" ]; then
-				mkdir "${PythonSrc}"
+			if [ ! -d "${LangSrc}" ] && [ ! -z "${PythonRun}" ]; then
+				mkdir "${LangSrc}"
 			fi
 			#Bin
-			if [ ! -d "${PythonBin}" ] && [ ! -z "${PythonRun}" ]; then
-				mkdir "${PythonBin}"
+			if [ ! -d "${LangBin}" ] && [ ! -z "${PythonRun}" ]; then
+				mkdir "${LangBin}"
 			fi
 			;;
 		TemplateVersion)
-			if [ -f ${PythonBin}/newPython.py ]; then
-				${PythonRun} ${PythonBin}/newPython.py 2> /dev/null | grep Version
+			if [ -f ${TemplateCode} ]; then
+				${PythonRun} ${TemplateCode} 2> /dev/null | grep Version
 			else
 				echo "no newPython found"
 			fi
@@ -552,13 +599,13 @@ UsePython()
 								#Make Python Script executable
 								chmod +x ${name}
 								#Check if Python Script does NOT exist
-								if [[ ! -f "${PythonBin}/${name}" ]]; then
+								if [[ ! -f "${LangBin}/${name}" ]]; then
 									#Change to Python Binary dir
-									cd ${PythonBin}
+									cd ${LangBin}
 									#Create Symbolic Link to Python Script
 									ln -s ../src/${project}${name}
 									#Change to Python Source dir
-									cd "${PythonSrc}/${project}"
+									cd "${LangSrc}/${project}"
 									echo -e "\e[1;43m[Python Code Compiled]\e[0m"
 								else
 									errorCode "cpl" "already" ${name}
@@ -572,13 +619,13 @@ UsePython()
 						#Make Python Script executable
 						chmod +x ${src}
 						#Check if Python Script does NOT exist
-						if [[ ! -f "${PythonBin}/${src}" ]]; then
+						if [[ ! -f "${LangBin}/${src}" ]]; then
 							#Change to Python Binary dir
-							cd ${PythonBin}
+							cd ${LangBin}
 							#Create Symbolic Link to Python Script
 							ln -s ../src/${project}${src}
 							#Change to Python Source dir
-							cd "${PythonSrc}/${project}"
+							cd "${LangSrc}/${project}"
 							echo -e "\e[1;43m[Python Code Compiled]\e[0m"
 						#Code is already found
 						else
@@ -591,7 +638,7 @@ UsePython()
 			esac
 			;;
 		newProject)
-			path=${PythonSrc}/${project}
+			path=${LangSrc}/${project}
 			if [ ! -d ${path} ]; then
 				mkdir ${path}
 				cd ${path}
@@ -607,7 +654,7 @@ UsePython()
 			#Get Python Name
 		#	src="${src}.py"
 		#	#Check if Python source exists
-		#	if [[ -f "${PythonSrc}/${src}" ]]; then
+		#	if [[ -f "${LangSrc}/${src}" ]]; then
 		#		#Return Python Source Name
 				echo "${src}"
 		#	fi
@@ -619,8 +666,8 @@ UsePython()
 					#Get Python Name
 				#	bin="${bin%.*}"
 					#Check if Python Binary exists
-					if [[ -f "${PythonBin}/${bin}" ]]; then
-						#cd "${PythonBin}"
+					if [[ -f "${LangBin}/${bin}" ]]; then
+						#cd "${LangBin}"
 						#Return Python Binary Name
 						echo "${bin}"
 					else
@@ -636,13 +683,57 @@ UsePython()
 			local bin=$1
 			local BinFile="${bin%.*}"
 			#Make sure Binary exists
-			if [ -f "${PythonBin}/${bin}" ]; then
+			if [ -f "${LangBin}/${bin}" ]; then
 				#Add command to Aliases
-				AddAlias "${BinFile}" "${PythonRun} ${PythonBin}/${bin}"
-			elif [ ! -f "${PythonBin}/${bin}" ]; then
+				AddAlias "${BinFile}" "${PythonRun} ${LangBin}/${bin}"
+			elif [ ! -f "${LangBin}/${bin}" ]; then
 				errorCode "install" "${bin}"
 			else
 				errorCode "noCode"
+			fi
+			;;
+		customCode)
+			local cLang=$1
+			#Check for Custom Code Template
+			if [ -f ${TemplateCode} ]; then
+				echo -n "${cLang}\$ ${PythonRun} newPython.py "
+				read -a Args
+				#Program Args Given
+				if [ ! -z "${Args}" ];then
+					${PythonRun} ${TemplateCode} ${Args[@]}
+				#No Program Name Given
+				else
+					${PythonRun} ${TemplateCode} --help
+				fi
+			else
+				#Program Name Given
+				errorCode "customCode" "notemp" "${Lang}"
+			fi
+			;;
+		newCode)
+			local name=$1
+			local Project=$2
+			local Type=$3
+			Type=$(echo ${Type} | tr A-Z a-z)
+			name=${name%.py}
+			if [ ! -f ${name}.py ]; then
+				#Check for Custom Code Template
+				if [ -f ${TemplateCode} ]; then
+					#Program Name Given
+					if [ ! -z "${name}" ];then
+						${PythonRun} ${TemplateCode} -n ${name} --cli --main --shell --write-file --read-file --os --random
+					#No Program Name Given
+					else
+						${PythonRun} ${TemplateCode} --help
+					fi
+				else
+					#Program Name Given
+					if [ ! -z "${name}" ];then
+						touch ${name}.py
+					else
+						errorCode "newCode"
+					fi
+				fi
 			fi
 			;;
 		*)
@@ -653,9 +744,10 @@ UsePython()
 UsePerl()
 {
 	local PerlRun=perl
-	local PerlHome=${ProgDir}/Perl
-	local PerlSrc=${PerlHome}/src
-	local PerlBin=${PerlHome}/bin
+	local LangHome=${ProgDir}/Perl
+	local LangSrc=${LangHome}/src
+	local LangBin=${LangHome}/bin
+	local TemplateCode=${LangBin}/newPerl.pl
 	local Type=$1
 	shift
 	case ${Type} in
@@ -678,32 +770,32 @@ UsePerl()
 			;;
 		pgDir)
 			#Return Perl src Dir
-			echo ${PerlSrc}
+			echo ${LangSrc}
 			;;
 		CreateHelp)
 			;;
 		newCodeHelp)
-			if [ -f ${PerlBin}/newPerl.pl ]; then
+			if [ -f ${TemplateCode} ]; then
 				echo -e "--custom|-c\t\t\t: \"Custom src file using ${Lang} template\""
 			fi
 			;;
 		EnsureDirs)
 			#Home
-			if [ ! -d "${PerlHome}" ] && [ ! -z "${PerlRun}" ]; then
-				mkdir "${PerlHome}"
+			if [ ! -d "${LangHome}" ] && [ ! -z "${PerlRun}" ]; then
+				mkdir "${LangHome}"
 			fi
 			#Src
-			if [ ! -d "${PerlSrc}" ] && [ ! -z "${PerlRun}" ]; then
-				mkdir "${PerlSrc}"
+			if [ ! -d "${LangSrc}" ] && [ ! -z "${PerlRun}" ]; then
+				mkdir "${LangSrc}"
 			fi
 			#Bin
-			if [ ! -d "${PerlBin}" ] && [ ! -z "${PerlRun}" ]; then
-				mkdir "${PerlBin}"
+			if [ ! -d "${LangBin}" ] && [ ! -z "${PerlRun}" ]; then
+				mkdir "${LangBin}"
 			fi
 			;;
 		TemplateVersion)
-			if [ -f ${PerlBin}/newPerl.pl ]; then
-				${PerlRun} ${PerlBin}/newPerl.pl 2> /dev/null | grep Version
+			if [ -f ${TemplateCode} ]; then
+				${PerlRun} ${TemplateCode} 2> /dev/null | grep Version
 			else
 				echo "no newPerl found"
 			fi
@@ -831,13 +923,13 @@ UsePerl()
 								#Make Perl Script executable
 								chmod +x ${name}
 								#Check if Perl Script does NOT exist
-								if [[ ! -f "${PerlBin}/${name}" ]]; then
+								if [[ ! -f "${LangBin}/${name}" ]]; then
 									#Change to Perl Binary dir
-									cd ${PerlBin}
+									cd ${LangBin}
 									#Create Symbolic Link to Perl Script
 									ln -s ../src/${project}${name}
 									#Change to Perl Source dir
-									cd "${PerlSrc}/${project}"
+									cd "${LangSrc}/${project}"
 									echo -e "\e[1;45m[Perl Code Compiled]\e[0m"
 								else
 									errorCode "cpl" "already" ${name}
@@ -851,13 +943,13 @@ UsePerl()
 						#Make Perl Script executable
 						chmod +x ${src}
 						#Check if Perl Script does NOT exist
-						if [[ ! -f "${PerlBin}/${src}" ]]; then
+						if [[ ! -f "${LangBin}/${src}" ]]; then
 							#Change to Perl Binary dir
-							cd ${PerlBin}
+							cd ${LangBin}
 							#Create Symbolic Link to Perl Script
 							ln -s ../src/${project}${src}
 							#Change to Perl Source dir
-							cd "${PerlSrc}/${project}"
+							cd "${LangSrc}/${project}"
 							echo -e "\e[1;45m[Perl Code Compiled]\e[0m"
 							#Code is already found
 						else
@@ -870,7 +962,7 @@ UsePerl()
 			esac
 			;;
 		newProject)
-			path=${PerlSrc}/${project}
+			path=${LangSrc}/${project}
 			if [ ! -d ${path} ]; then
 				mkdir ${path}
 				cd ${path}
@@ -893,8 +985,8 @@ UsePerl()
 					#Get Perl Name
 				#	bin="${bin%.*}"
 					#Check if Perl Binary exists
-					if [[ -f "${PerlBin}/${bin}" ]]; then
-						#cd "${PerlBin}"
+					if [[ -f "${LangBin}/${bin}" ]]; then
+						#cd "${LangBin}"
 						#Return Perl Binary Name
 						echo "${bin}"
 					else
@@ -910,13 +1002,56 @@ UsePerl()
 			local bin=$1
 			local BinFile="${bin%.*}"
 			#Make sure Binary exists
-			if [ -f "${PerlBin}/${bin}" ]; then
+			if [ -f "${LangBin}/${bin}" ]; then
 				#Add command to Aliases
-				AddAlias "${BinFile}" "${PerlRun} ${PerlBin}/${bin}"
-			elif [ ! -f "${PerlBin}/${bin}" ]; then
+				AddAlias "${BinFile}" "${PerlRun} ${LangBin}/${bin}"
+			elif [ ! -f "${LangBin}/${bin}" ]; then
 				errorCode "install" "${bin}"
 			else
 				errorCode "noCode"
+			fi
+			;;
+		customCode)
+			local cLang=$1
+			if [ -f ${TemplateCode} ]; then
+				echo -n "${cLang}\$ ${PerlRun} newPerl.pl "
+				read -a Args
+				#Program Args Given
+				if [ ! -z "${Args}" ];then
+					${PerlRun} ${TemplateCode} ${Args[@]}
+				#No Program Name Given
+				else
+					${PerlRun} ${TemplateCode} --help
+				fi
+			else
+				#Program Name Given
+				errorCode "customCode" "notemp" "${Lang}"
+			fi
+			;;
+		newCode)
+			local name=$1
+			local Project=$2
+			local Type=$3
+			Type=$(echo ${Type} | tr A-Z a-z)
+			name=${name%.pl}
+			if [ ! -f ${name}.pl ]; then
+				#Check for Custom Code Template
+				if [ -f ${TemplateCode} ]; then
+					#Program Name Given
+					if [ ! -z "${name}" ];then
+						${PerlRun} ${TemplateCode} --name ${name} --cli --main --write-file --read-file --os
+					#No Program Name Given
+					else
+						${PerlRun} ${TemplateCode} --help
+					fi
+				else
+					#Program Name Given
+					if [ ! -z "${name}" ];then
+						touch ${name}.pl
+					else
+						errorCode "newCode"
+					fi
+				fi
 			fi
 			;;
 		*)
@@ -927,9 +1062,10 @@ UsePerl()
 UseRuby()
 {
 	local RubyRun=ruby
-	local RubyHome=${ProgDir}/Ruby
-	local RubySrc=${RubyHome}/src
-	local RubyBin=${RubyHome}/bin
+	local LangHome=${ProgDir}/Ruby
+	local LangSrc=${LangHome}/src
+	local LangBin=${LangHome}/bin
+	local TemplateCode=${LangBin}/newRuby.rb
 	local Type=$1
 	shift
 	case ${Type} in
@@ -952,32 +1088,32 @@ UseRuby()
 			;;
 		pgDir)
 			#Return Ruby src Dir
-			echo ${RubySrc}
+			echo ${LangSrc}
 			;;
 		CreateHelp)
 			;;
 		newCodeHelp)
-			if [ -f ${RubyBin}/newRuby.rb ]; then
+			if [ -f ${TemplateCode} ]; then
 				echo -e "--custom|-c\t\t\t: \"Custom src file using ${Lang} template\""
 			fi
 			;;
 		EnsureDirs)
 			#Home
-			if [ ! -d "${RubyHome}" ] && [ ! -z "${RubyRun}" ]; then
-				mkdir "${RubyHome}"
+			if [ ! -d "${LangHome}" ] && [ ! -z "${RubyRun}" ]; then
+				mkdir "${LangHome}"
 			fi
 			#Src
-			if [ ! -d "${RubySrc}" ] && [ ! -z "${RubyRun}" ]; then
-				mkdir "${RubySrc}"
+			if [ ! -d "${LangSrc}" ] && [ ! -z "${RubyRun}" ]; then
+				mkdir "${LangSrc}"
 			fi
 			#Bin
-			if [ ! -d "${RubyBin}" ] && [ ! -z "${RubyRun}" ]; then
-				mkdir "${RubyBin}"
+			if [ ! -d "${LangBin}" ] && [ ! -z "${RubyRun}" ]; then
+				mkdir "${LangBin}"
 			fi
 			;;
 		TemplateVersion)
-			if [ -f ${RubyBin}/newRuby.rb ]; then
-				${RubyRun} ${RubyBin}/newRuby.rb 2> /dev/null | grep Version
+			if [ -f ${TemplateCode} ]; then
+				${RubyRun} ${TemplateCode} 2> /dev/null | grep Version
 			else
 				echo "no newRuby found"
 			fi
@@ -1105,13 +1241,13 @@ UseRuby()
 								#Make Ruby Script executable
 								chmod +x ${name}
 								#Check if Ruby Script does NOT exist
-								if [[ ! -f "${RubyBin}/${name}" ]]; then
+								if [[ ! -f "${LangBin}/${name}" ]]; then
 									#Change to Ruby Binary dir
-									cd ${RubyBin}
+									cd ${LangBin}
 									#Create Symbolic Link to Ruby Script
 									ln -s ../src/${project}${name}
 									#Change to Ruby Source dir
-									cd "${RubySrc}/${project}"
+									cd "${LangSrc}/${project}"
 									echo -e "\e[1;41m[Ruby Code Compiled]\e[0m"
 								else
 									errorCode "cpl" "already" ${name}
@@ -1125,13 +1261,13 @@ UseRuby()
 						#Make Ruby Script executable
 						chmod +x ${src}
 						#Check if Ruby Script does NOT exist
-						if [[ ! -f "${RubyBin}/${src}" ]]; then
+						if [[ ! -f "${LangBin}/${src}" ]]; then
 							#Change to Ruby Binary dir
-							cd ${RubyBin}
+							cd ${LangBin}
 							#Create Symbolic Link to Ruby Script
 							ln -s ../src/${project}${src}
 							#Change to Ruby Source dir
-							cd "${RubySrc}/${project}"
+							cd "${LangSrc}/${project}"
 							echo -e "\e[1;41m[Ruby Code Compiled]\e[0m"
 						#Code is already found
 						else
@@ -1144,7 +1280,7 @@ UseRuby()
 			esac
 			;;
 		newProject)
-			path=${RubySrc}/${project}
+			path=${LangSrc}/${project}
 			if [ ! -d ${path} ]; then
 				mkdir ${path}
 				cd ${path}
@@ -1167,8 +1303,8 @@ UseRuby()
 					#Get Ruby Name
 				#	bin="${bin%.*}"
 				#Check if Perl Binary exists
-					if [[ -f "${RubyBin}/${bin}" ]]; then
-					#cd "${RubyBin}"
+					if [[ -f "${LangBin}/${bin}" ]]; then
+					#cd "${LangBin}"
 					#Return Ruby Binary Name
 						echo "${bin}"
 					else
@@ -1184,13 +1320,57 @@ UseRuby()
 			local bin=$1
 			local BinFile="${bin%.*}"
 			#Make sure Binary exists
-			if [ -f "${RubyBin}/${bin}" ]; then
+			if [ -f "${LangBin}/${bin}" ]; then
 				#Add command to Aliases
-				AddAlias "${BinFile}" "${RubyRun} ${RubyBin}/${bin}"
-			elif [ ! -f "${RubyBin}/${bin}" ]; then
+				AddAlias "${BinFile}" "${RubyRun} ${LangBin}/${bin}"
+			elif [ ! -f "${LangBin}/${bin}" ]; then
 				errorCode "install" "${bin}"
 			else
 				errorCode "noCode"
+			fi
+			;;
+		customCode)
+			local cLang=$1
+			#Check for Custom Code Template
+			if [ -f ${TemplateCode} ]; then
+				echo -n "${cLang}\$ ${RubyRun} newRuby.rb "
+				read -a Args
+				#Program Args Given
+				if [ ! -z "${Args}" ];then
+					${RubyRun} ${TemplateCode} ${Args[@]}
+				#No Program Name Given
+				else
+					${RubyRun} ${TemplateCode} --help
+				fi
+			else
+				#Program Name Given
+				errorCode "customCode" "notemp" "${Lang}"
+			fi
+			;;
+		newCode)
+			local name=$1
+			local Project=$2
+			local Type=$3
+			Type=$(echo ${Type} | tr A-Z a-z)
+			name=${name%.rb}
+			if [ ! -f ${name}.rb ]; then
+				#Check for Custom Code Template
+				if [ -f ${TemplateCode} ]; then
+					#Program Name Given
+					if [ ! -z "${name}" ];then
+						${RubyRun} ${TemplateCode} -n ${name} --cli --user $USER --main --write-file --read-file --user-input
+					#No Program Name Given
+					else
+						${RubyRun} ${TemplateCode} --help
+					fi
+				else
+					#Program Name Given
+					if [ ! -z "${name}" ];then
+						touch ${name}.rb
+					else
+						errorCode "newCode"
+					fi
+				fi
 			fi
 			;;
 		*)
@@ -1201,9 +1381,10 @@ UseRuby()
 UseCpp()
 {
 	local CppCpl=g++
-	local CppHome=${ProgDir}/C++
-	local CppSrc=${CppHome}/src
-	local CppBin=${CppHome}/bin
+	local LangHome=${ProgDir}/C++
+	local LangSrc=${LangHome}/src
+	local LangBin=${LangHome}/bin
+	local TemplateCode=${LangBin}/newC++
 	local Type=$1
 	shift
 	case ${Type} in
@@ -1226,34 +1407,34 @@ UseCpp()
 			;;
 		pgDir)
 			#Return C++ src Dir
-			echo ${CppSrc}
+			echo ${LangSrc}
 			;;
 		CreateHelp)
 			echo -e "make\t\t\t: create makefile"
 			echo -e "version|-std=<c++#>\t: create makefile"
 			;;
 		newCodeHelp)
-			if [ -f ${CppBin}/newC++ ]; then
+			if [ -f ${TemplateCode} ]; then
 				echo -e "--custom|-c\t\t\t: \"Custom src file using ${Lang} template\""
 			fi
 			;;
 		EnsureDirs)
 			#Home
-			if [ ! -d "${CppHome}" ] && [ ! -z "${CppCpl}" ]; then
-				mkdir "${CppHome}"
+			if [ ! -d "${LangHome}" ] && [ ! -z "${CppCpl}" ]; then
+				mkdir "${LangHome}"
 			fi
 			#Src
-			if [ ! -d "${CppSrc}" ] && [ ! -z "${CppCpl}" ]; then
-				mkdir "${CppSrc}"
+			if [ ! -d "${LangSrc}" ] && [ ! -z "${CppCpl}" ]; then
+				mkdir "${LangSrc}"
 			fi
 			#Bin
-			if [ ! -d "${CppBin}" ] && [ ! -z "${CppCpl}" ]; then
-				mkdir "${CppBin}"
+			if [ ! -d "${LangBin}" ] && [ ! -z "${CppCpl}" ]; then
+				mkdir "${LangBin}"
 			fi
 			;;
 		TemplateVersion)
-			if [ -f ${CppBin}/newC++ ]; then
-				${CppBin}/newC++ 2> /dev/null | grep Version
+			if [ -f ${TemplateCode} ]; then
+				${TemplateCode} 2> /dev/null | grep Version
 			else
 				echo "no newC++ found"
 			fi
@@ -1372,10 +1553,10 @@ UseCpp()
 			else
 				project="${project}/"
 			fi
-			if [[ "$src" == *".cpp"* ]] || [ -f ${CppSrc}/${project}makefile ]; then
+			if [[ "$src" == *".cpp"* ]] || [ -f ${LangSrc}/${project}makefile ]; then
 				cplArgs=${CppCplVersion}
-				if [ -f ${CppSrc}/${project}makefile ]; then
-					cd ${CppSrc}/${project}
+				if [ -f ${LangSrc}/${project}makefile ]; then
+					cd ${LangSrc}/${project}
 					echo "make"
 					cd - > /dev/null
 					echo -e "\e[1;44m[C++ Code Compiled]\e[0m"
@@ -1411,7 +1592,7 @@ UseCpp()
 			fi
 			;;
 		newProject)
-			path=${CppSrc}/${project}
+			path=${LangSrc}/${project}
 			#create and cd to project dir
 			if [ ! -d ${path} ]; then
 				mkdir ${path}
@@ -1425,11 +1606,11 @@ UseCpp()
 			;;
 		SwapToSrc)
 			local src=$1
-			#cd "${CppSrc}"
+			#cd "${LangSrc}"
 			#Get C++ Name
 			src="${src}.cpp"
 			#Check if C++ source exists
-			if [ -f "${CppSrc}/${src}" ]; then
+			if [ -f "${LangSrc}/${src}" ]; then
 				#Return C++ Source Name
 				echo "${src}"
 			fi
@@ -1438,13 +1619,13 @@ UseCpp()
 			local bin=$1
 			case ${bin} in
 				*.cpp)
-					#cd "${CppBin}"
+					#cd "${LangBin}"
 					#Keep Src Name
 					OldBin="${bin}"
 					#Get C++ Name
 					bin="${bin%.*}"
 					#Check if C++ Binary exists
-					if [ -f "${CppBin}/${bin}" ]; then
+					if [ -f "${LangBin}/${bin}" ]; then
 						#Return C++ Binary Name
 						echo "${bin}"
 					else
@@ -1460,14 +1641,109 @@ UseCpp()
 			local bin=$1
 			local BinFile="${bin%.*}"
 			#Make sure Binary exists
-			if [ -f "${CppBin}/${bin}" ]; then
+			if [ -f "${LangBin}/${bin}" ]; then
 				#Add command to Aliases
-				AddAlias "${bin}" "${CppBin}/${bin}"
-			elif [ ! -f "${CppBin}/${bin}" ]; then
+				AddAlias "${bin}" "${LangBin}/${bin}"
+			elif [ ! -f "${LangBin}/${bin}" ]; then
 				#compule or swap to binary
 				errorCode "install" "${bin}"
 			else
 				errorCode "noCode"
+			fi
+			;;
+		customCode)
+			local cLang=$1
+			#Check for Custom Code Template
+			if [ -f ${TemplateCode} ]; then
+				echo -n "${cLang}\$ ./newC++ "
+				read -a Args
+				#Program Args Given
+				if [ ! -z "${Args}" ];then
+					${TemplateCode} ${Args[@]}
+				#No Program Name Given
+				else
+					#Help Page
+					${TemplateCode} --help
+				fi
+			else
+				#Program Name Given
+				errorCode "customCode" "notemp" "${Lang}"
+			fi
+			;;
+		newCode)
+			local name=$1
+			local Project=$2
+			local Type=$3
+			Type=$(echo ${Type} | tr A-Z a-z)
+			name=${name%.cpp}
+			name=${name%.h}
+			if [ ! -f ${name}.cpp ] || [ ! -f ${name}.h ]; then
+				case ${Type} in
+					#create header file
+					header)
+						#Program Name Given
+						if [ ! -z "${name}" ];then
+							touch "${name}.h"
+						else
+							errorCode "newCode"
+						fi
+						;;
+					#create main file
+					main)
+						#Check for Custom Code Template
+						if [ -f ${TemplateCode} ]; then
+							#Program Name Given
+							if [ ! -z "${name}" ];then
+								${TemplateCode} --write-file --read-file --cli --main --is-in --user-input --name ${name}
+							#No Program Name Given
+							else
+								#Help Page
+								${TemplateCode} --help
+							fi
+						else
+							#Program Name Given
+							if [ ! -z "${name}" ];then
+								touch ${name}.cpp
+							else
+								errorCode "newCode"
+							fi
+						fi
+						;;
+					#create component file
+					component)
+						if [ -f ${TemplateCode} ]; then
+							#Program Name Given
+							if [ ! -z "${name}" ];then
+								${TemplateCode} -n "${name}"
+							#No Program Name Given
+							else
+								#Help Page
+								${TemplateCode} --help
+							fi
+						else
+							#Program Name Given
+							if [ ! -z "${name}" ];then
+								touch ${name}.cpp
+							else
+								errorCode "newCode"
+							fi
+						fi
+						;;
+					#cl[ide] knows best
+					*)
+						#Is not a project
+						if [[ "${Project}" == "none" ]]; then
+							UseCpp "newCode" ${name} ${oldCode} ${Project} "main"
+						#Is a project
+						else
+							if [[ "${oldCode}" == *".cpp" ]] || [[ "${oldCode}" == *".cpp" ]]; then
+								UseCpp "newCode" ${name} ${oldCode} ${Project} "component"
+							else
+								UseCpp "newCode" ${oldCode} ${Project} "main"
+							fi
+						fi
+						;;
+				esac
 			fi
 			;;
 		*)
@@ -1479,9 +1755,11 @@ UseJava()
 {
 	local JavaCpl=javac
 	local JavaRun=java
-	local JavaHome=${ProgDir}/Java
-	local JavaSrc=${JavaHome}/src
-	local JavaBin=${JavaHome}/bin
+	local LangHome=${ProgDir}/Java
+	local LangSrc=${LangHome}/src
+	local LangBin=${LangHome}/bin
+	local TemplateCodeClass=${LangBin}/newJava.class
+	local TemplateCodeJar=${LangBin}/newJava.jar
 	local Type=$1
 	shift
 	case ${Type} in
@@ -1507,39 +1785,38 @@ UseJava()
 			;;
 		pgDir)
 			#Return Java src Dir
-			echo ${JavaSrc}
+			echo ${LangSrc}
 			;;
 		CreateHelp)
 			echo -e "prop|properties|-D\t: create custome Java properties"
 			echo -e "jar|manifest\t\t: create Java Manifest Jar builds"
 			;;
 		newCodeHelp)
-			if [ -f ${JavaBin}/newJava.jar ] || [ -f ${JavaBin}/newJava.class ]; then
+			if [ -f ${TemplateCodeJar} ] || [ -f ${TemplateCodeClass} ]; then
 				echo -e "--custom|-c\t\t\t: \"Custom src file using ${Lang} template\""
 			fi
 			;;
 		EnsureDirs)
 			#Home
-			if [ ! -d "${JavaHome}" ] && [ ! -z "${JavaCpl}" ] && [ ! -z "${JavaRun}" ]; then
-				mkdir "${JavaHome}"
+			if [ ! -d "${LangHome}" ] && [ ! -z "${JavaCpl}" ] && [ ! -z "${JavaRun}" ]; then
+				mkdir "${LangHome}"
 			fi
 			#Src
-			if [ ! -d "${JavaSrc}" ] && [ ! -z "${JavaCpl}" ] && [ ! -z "${JavaRun}" ]; then
-				mkdir "${JavaSrc}"
+			if [ ! -d "${LangSrc}" ] && [ ! -z "${JavaCpl}" ] && [ ! -z "${JavaRun}" ]; then
+				mkdir "${LangSrc}"
 			fi
 			#Bin
-			if [ ! -d "${JavaBin}" ] && [ ! -z "${JavaCpl}" ] && [ ! -z "${JavaRun}" ]; then
-				mkdir "${JavaBin}"
+			if [ ! -d "${LangBin}" ] && [ ! -z "${JavaCpl}" ] && [ ! -z "${JavaRun}" ]; then
+				mkdir "${LangBin}"
 			fi
 			;;
 		TemplateVersion)
-			if [ -f ${JavaBin}/newJava.jar ]; then
-				java -jar ${JavaBin}/newJava.jar 2> /dev/null | grep Version
+			if [ -f ${TemplateCodeJar} ]; then
+				java -jar ${TemplateCodeJar} 2> /dev/null | grep Version
 			else
 				echo "no newJava.jar found"
 			fi
 			;;
-
 		CodeVersion)
 			echo "[Java]"
 			JavaRunVersion=$(${JavaRun} --version 2> /dev/null)
@@ -1725,7 +2002,7 @@ UseJava()
 			esac
 			;;
 		newProject)
-			path=${JavaSrc}/${project}
+			path=${LangSrc}/${project}
 			if [ ! -d ${path} ]; then
 				mkdir ${path}
 				cd ${path}
@@ -1736,11 +2013,11 @@ UseJava()
 			;;
 		SwapToSrc)
 			local src=$1
-			#cd "${JavaSrc}"
+			#cd "${LangSrc}"
 			#Get Java Name
 			src="${src%.*}.java"
 			#Check if Java source exists
-			if [ -f "${JavaSrc}/${src}" ]; then
+			if [ -f "${LangSrc}/${src}" ]; then
 				#Return Java Source Name
 				echo "${src}"
 			fi
@@ -1749,13 +2026,13 @@ UseJava()
 			local bin=$1
 			case ${bin} in
 				*.java)
-					#cd "${JavaBin}"
+					#cd "${LangBin}"
 					#Keep SrcName
 					OldBin="${bin}"
 					#Get Java Name
 					bin="${bin%.*}.class"
 					#Check Java Binary exists
-					if [ -f "${JavaBin}/${bin}" ]; then
+					if [ -f "${LangBin}/${bin}" ]; then
 						#Return Java Binary Name
 						echo "${bin}"
 					else
@@ -1773,9 +2050,9 @@ UseJava()
 			#Java binary
 			if [[ "${bin}" == *".java" ]]; then
 				#Check for Jar file
-				if [ -f "${JavaBin}/${BinFile}.jar" ]; then
-					AddAlias "${BinFile}" "${JavaRun} -jar ${JavaBin}/${BinFile}.jar"
-				elif [ -f "${JavaBin}/${bin}.class" ]; then
+				if [ -f "${LangBin}/${BinFile}.jar" ]; then
+					AddAlias "${BinFile}" "${JavaRun} -jar ${LangBin}/${BinFile}.jar"
+				elif [ -f "${LangBin}/${bin}.class" ]; then
 					echo "Please compile as jar file"
 					echo "[hint] $ cpl jar"
 				else
@@ -1783,6 +2060,124 @@ UseJava()
 				fi
 			else
 				errorCode "noCode"
+			fi
+			;;
+		customCode)
+			local cLang=$1
+			Type=$(echo ${Type} | tr A-Z a-z)
+			#Check for Custom Code Template...is class
+			if [ -f ${TemplateCodeClass} ]; then
+				echo -n "${cLang}\$ java newJava "
+				read -a Args
+				#Program Args Given
+				if [ ! -z "${Args}" ];then
+					cd ${LangBin}
+					java newJava ${Args[@]}
+					cd - > /dev/null
+					mv "${LangBin}/*.java" . 2> /dev/null
+				else
+					cd ${LangBin}
+					java newJava --help
+					cd - > /dev/null
+				fi
+			#Check for Custom Code Template...is jar
+			elif [ -f ${TemplateCodeJar} ]; then
+				echo -n "${cLang}\$ java -jar newJava.jar "
+				read -a Args
+				#Program Args Given
+				if [ ! -z "${Args}" ];then
+					java -jar ${TemplateCodeJar} ${Args[@]}
+				#No Program Name Given
+				else
+					java -jar ${TemplateCodeJar} --help
+				fi
+			else
+				#Program Name Given
+				errorCode "customCode" "notemp" "${Lang}"
+			fi
+			;;
+		newCode)
+			local name=$1
+			local Project=$2
+			local Type=$3
+			Type=$(echo ${Type} | tr A-Z a-z)
+			name=${name%.java}
+			if [ ! -f ${name}.java ]; then
+				#Check for Custom Code Template...is class
+				if [ -f ${TemplateCodeClass} ]; then
+					#Program Name Given
+					if [ ! -z "${name}" ];then
+						case ${Type} in
+							#create main file
+							main)
+								cd ${LangBin}
+								java newJava --user $USER --main --shell --write-file --read-file --user-input --name ${name}
+								cd - > /dev/null
+								mv "${LangBin}/${name}.java" .
+								;;
+							#create component file
+							component)
+								cd ${LangBin}
+								java newJava --user $USER --write-file --read-file --name "${name}"
+								cd - > /dev/null
+								mv "${LangBin}/${name}.java" .
+								;;
+							#cl[ide] knows best
+							*)
+								#main class already created
+								if [[ "${oldCode}" == *".java" ]]; then
+									#Create libary class
+									UseJava "newCode" ${name} ${oldCode} ${Project} "component"
+								else
+									#Create new main code
+									UseJava "newCode" ${name} ${oldCode} ${Project} "main"
+								fi
+								;;
+						esac
+					#No Program Name Given
+					else
+						cd ${LangBin}
+						java newJava --help
+						cd - > /dev/null
+					fi
+				#Check for Custom Code Template...is jar
+				elif [ -f ${TemplateCodeJar} ]; then
+					#Program Name Given
+					if [ ! -z "${name}" ];then
+						case ${Type} in
+							#create main file
+							main)
+								java -jar ${TemplateCodeJar} --user $USER --main --shell --write-file --read-file --user-input --name "${name}"
+								;;
+							#create component file
+							component)
+								java -jar ${TemplateCodeJar} --user $USER --write-file --read-file --name "${name}"
+								;;
+							#cl[ide] knows best
+							*)
+								#main class already created
+								if [[ "${oldCode}" == *".java" ]]; then
+									#Create libary class
+									UseJava "newCode" ${name} ${oldCode} ${Project} "component"
+								else
+									#Create new main code
+									UseJava "newCode" ${name} ${oldCode} ${Project} "main"
+								fi
+								;;
+						esac
+					#No Program Name Given
+					else
+						java -jar ${TemplateCodeJar} --help
+					fi
+				#No Program Name Given
+				else
+					#Program Name Given
+					if [ ! -z "${name}" ];then
+						touch ${name}.java
+					else
+						errorCode "newCode"
+					fi
+				fi
 			fi
 			;;
 		*)
@@ -1956,6 +2351,7 @@ NotesHelp()
 	echo ""
 
 }
+
 newCodeHelp()
 {
 	local Lang=$1
@@ -2264,13 +2660,6 @@ RepoVersion()
 	fi
 }
 
-#This is specific to each template
-TemplateVersion()
-{
-	local Lang=$1
-	ManageLangs ${Lang} "TemplateVersion"
-}
-
 CodeVersion()
 {
 	local Lang=$1
@@ -2313,7 +2702,7 @@ errorCode()
 					;;
 				*.java|*.class)
 					echo "\"${sec}\" needs to be an java jar"
-					echo "[to compile]: cpl jar"
+					echo "[to compile]: cpl --jar"
 					;;
 				*)
 					echo "\"${sec}\" needs to be an executable"
@@ -2617,431 +3006,6 @@ loadProject()
 			fi
 		fi
 	fi
-}
-
-#Edit Source code
-editCode()
-{
-	local Lang=$1
-	local src=$2
-	local num=$3
-	ManageLangs ${Lang} "editCode" ${src} ${num}
-
-}
-
-#Add code to active session
-addCode()
-{
-	local Lang=$1
-	local src=$2
-	local new=$3
-	ManageLangs ${Lang} "addCode" ${src} ${new}
-}
-
-#Read source code without editing
-readCode()
-{
-	local Lang=$1
-	local src=$2
-	local num=$3
-	ManageLangs ${Lang} "readCode" ${src} ${num}
-}
-
-customCode()
-{
-	local Lang=$1
-	local cLang=$2
-	Type=$(echo ${Type} | tr A-Z a-z)
-	case ${Lang} in
-		#Bash
-		Bash)
-			#Check for Custom Code Template
-			if [ -f ${BashBin}/newBash.sh ]; then
-				echo -n "${cLang}\$ ./newBash.sh "
-				read -a Args
-				#Template Args Given
-				if [ ! -z "${Args}" ];then
-					${BashBin}/newBash.sh ${Args[@]}
-				#No Template Args Given
-				else
-					${BashBin}/newBash.sh --help
-				fi
-			else
-				#Program Name Given
-				errorCode "customCode" "notemp" "${Lang}"
-			fi
-			;;
-		#Python
-		Python)
-			#Check for Custom Code Template
-			if [ -f ${PythonBin}/newPython.py ]; then
-				echo -n "${cLang}\$ ${PythonRun} newPython.py "
-				read -a Args
-				#Program Args Given
-				if [ ! -z "${Args}" ];then
-					${PythonRun} ${PythonBin}/newPython.py ${Args[@]}
-				#No Program Name Given
-				else
-					${PythonRun} ${PythonBin}/newPython.py --help
-				fi
-			else
-				#Program Name Given
-				errorCode "customCode" "notemp" "${Lang}"
-			fi
-			;;
-		#Perl
-		Perl)
-			if [ -f ${PerlBin}/newPerl.pl ]; then
-				echo -n "${cLang}\$ ${PerlRun} newPerl.pl "
-				read -a Args
-				#Program Args Given
-				if [ ! -z "${Args}" ];then
-					${PerlRun} ${PerlBin}/newPerl.pl ${Args[@]}
-				#No Program Name Given
-				else
-					${PerlRun} ${PerlBin}/newPerl.pl --help
-				fi
-			else
-				#Program Name Given
-				errorCode "customCode" "notemp" "${Lang}"
-			fi
-			;;
-		#Ruby
-		Ruby)
-			#Check for Custom Code Template
-			if [ -f ${RubyBin}/newRuby.rb ]; then
-				echo -n "${cLang}\$ ${RubyRun} newRuby.rb "
-				read -a Args
-				#Program Args Given
-				if [ ! -z "${Args}" ];then
-					${RubyRun} ${RubyBin}/newRuby.rb ${Args[@]}
-				#No Program Name Given
-				else
-					${RubyRun} ${RubyBin}/newRuby.rb --help
-				fi
-			else
-				#Program Name Given
-				errorCode "customCode" "notemp" "${Lang}"
-			fi
-			;;
-		#C++
-		C++)
-			#Check for Custom Code Template
-			if [ -f ${CppBin}/newC++ ]; then
-				echo -n "${cLang}\$ ./newC++ "
-				read -a Args
-				#Program Args Given
-				if [ ! -z "${Args}" ];then
-					${CppBin}/newC++ ${Args[@]}
-				#No Program Name Given
-				else
-					#Help Page
-					${CppBin}/newC++ --help
-				fi
-			else
-				#Program Name Given
-				errorCode "customCode" "notemp" "${Lang}"
-			fi
-			;;
-		#Java
-		Java)
-			#Check for Custom Code Template...is class
-			if [ -f ${JavaBin}/newJava.class ]; then
-				echo -n "${cLang}\$ java newJava "
-				read -a Args
-				#Program Args Given
-				if [ ! -z "${Args}" ];then
-					cd ${JavaBin}
-					java newJava ${Args[@]}
-					cd - > /dev/null
-					mv "${JavaBin}/*.java" . 2> /dev/null
-				else
-					cd ${JavaBin}
-					java newJava --help
-					cd - > /dev/null
-				fi
-			#Check for Custom Code Template...is jar
-			elif [ -f ${JavaBin}/newJava.jar ]; then
-				echo -n "${cLang}\$ java -jar newJava.jar "
-				read -a Args
-				#Program Args Given
-				if [ ! -z "${Args}" ];then
-					java -jar ${JavaBin}/newJava.jar ${Args[@]}
-				#No Program Name Given
-				else
-					java -jar ${JavaBin}/newJava.jar --help
-				fi
-			else
-				#Program Name Given
-				errorCode "customCode" "notemp" "${Lang}"
-			fi
-			;;
-		#no langague given
-		*)
-			;;
-	esac
-}
-
-
-#Create new source code
-newCode()
-{
-	local Lang=$1
-	local name=$2
-	local Project=$3
-	local Type=$4
-	Type=$(echo ${Type} | tr A-Z a-z)
-	case ${Lang} in
-		#Bash
-		Bash)
-			name=${name%.sh}
-			if [ ! -f ${name}.sh ]; then
-				#Check for Custom Code Template
-				if [ -f ${BashBin}/newBash.sh ]; then
-					#Program Name Given
-					if [ ! -z "${name}" ];then
-						${BashBin}/newBash.sh ${name} > ${name}.sh
-					#No Program Name Given
-					else
-						${BashBin}/newBash.sh --help
-					fi
-				else
-					#Program Name Given
-					if [ ! -z "${name}" ];then
-						touch ${name}.sh
-					else
-						errorCode "newCode"
-					fi
-				fi
-			fi
-			;;
-		#Python
-		Python)
-			name=${name%.py}
-			if [ ! -f ${name}.py ]; then
-				#Check for Custom Code Template
-				if [ -f ${PythonBin}/newPython.py ]; then
-					#Program Name Given
-					if [ ! -z "${name}" ];then
-						${PythonRun} ${PythonBin}/newPython.py -n ${name} --cli --main --shell --write-file --read-file --os --random
-					#No Program Name Given
-					else
-						${PythonRun} ${PythonBin}/newPython.py --help
-					fi
-				else
-					#Program Name Given
-					if [ ! -z "${name}" ];then
-						touch ${name}.py
-					else
-						errorCode "newCode"
-					fi
-				fi
-			fi
-			;;
-		#Perl
-		Perl)
-			name=${name%.pl}
-			if [ ! -f ${name}.pl ]; then
-				#Check for Custom Code Template
-				if [ -f ${PerlBin}/newPerl.pl ]; then
-					#Program Name Given
-					if [ ! -z "${name}" ];then
-						${PerlRun} ${PerlBin}/newPerl.pl --name ${name} --cli --main --write-file --read-file --os
-					#No Program Name Given
-					else
-						${PerlRun} ${PerlBin}/newPerl.pl --help
-					fi
-				else
-					#Program Name Given
-					if [ ! -z "${name}" ];then
-						touch ${name}.pl
-					else
-						errorCode "newCode"
-					fi
-				fi
-			fi
-			;;
-		#Ruby
-		Ruby)
-			name=${name%.rb}
-			if [ ! -f ${name}.rb ]; then
-				#Check for Custom Code Template
-				if [ -f ${RubyBin}/newRuby.rb ]; then
-					#Program Name Given
-					if [ ! -z "${name}" ];then
-						${RubyRun} ${RubyBin}/newRuby.rb -n ${name} --cli --user $USER --main --write-file --read-file --user-input
-					#No Program Name Given
-					else
-						${RubyRun} ${RubyBin}/newRuby.rb --help
-					fi
-				else
-					#Program Name Given
-					if [ ! -z "${name}" ];then
-						touch ${name}.rb
-					else
-						errorCode "newCode"
-					fi
-				fi
-			fi
-			;;
-		#C++
-		C++)
-			name=${name%.cpp}
-			name=${name%.h}
-			if [ ! -f ${name}.cpp ] || [ ! -f ${name}.h ]; then
-				case ${Type} in
-					#create header file
-					header)
-						#Program Name Given
-						if [ ! -z "${name}" ];then
-							touch "${name}.h"
-						else
-							errorCode "newCode"
-						fi
-						;;
-					#create main file
-					main)
-						#Check for Custom Code Template
-						if [ -f ${CppBin}/newC++ ]; then
-							#Program Name Given
-							if [ ! -z "${name}" ];then
-								${CppBin}/newC++ --write-file --read-file --cli --main --is-in --user-input --name ${name}
-							#No Program Name Given
-							else
-								#Help Page
-								${CppBin}/newC++ --help
-							fi
-						else
-							#Program Name Given
-							if [ ! -z "${name}" ];then
-								touch ${name}.cpp
-							else
-								errorCode "newCode"
-							fi
-						fi
-						;;
-					#create component file
-					component)
-						if [ -f ${CppBin}/newC++ ]; then
-							#Program Name Given
-							if [ ! -z "${name}" ];then
-								${CppBin}/newC++ -n "${name}"
-							#No Program Name Given
-							else
-								#Help Page
-								${CppBin}/newC++ --help
-							fi
-						else
-							#Program Name Given
-							if [ ! -z "${name}" ];then
-								touch ${name}.cpp
-							else
-								errorCode "newCode"
-							fi
-						fi
-						;;
-					#cl[ide] knows best
-					*)
-						#Is not a project
-						if [[ "${Project}" == "none" ]]; then
-							newCode ${Lang} ${name} ${oldCode} ${Project} "main"
-						#Is a project
-						else
-							if [[ "${oldCode}" == *".cpp" ]] || [[ "${oldCode}" == *".cpp" ]]; then
-								newCode ${Lang} ${name} ${oldCode} ${Project} "component"
-							else
-								newCode ${Lang} ${name} ${oldCode} ${Project} "main"
-							fi
-						fi
-						;;
-				esac
-			fi
-			;;
-		#Java
-		Java)
-			name=${name%.java}
-			if [ ! -f ${name}.java ]; then
-				#Check for Custom Code Template...is class
-				if [ -f ${JavaBin}/newJava.class ]; then
-					#Program Name Given
-					if [ ! -z "${name}" ];then
-						case ${Type} in
-							#create main file
-							main)
-								cd ${JavaBin}
-								java newJava --user $USER --main --shell --write-file --read-file --user-input --name ${name}
-								cd - > /dev/null
-								mv "${JavaBin}/${name}.java" .
-								;;
-							#create component file
-							component)
-								cd ${JavaBin}
-								java newJava --user $USER --write-file --read-file --name "${name}"
-								cd - > /dev/null
-								mv "${JavaBin}/${name}.java" .
-								;;
-							#cl[ide] knows best
-							*)
-								#main class already created
-								if [[ "${oldCode}" == *".java" ]]; then
-									#Create libary class
-									newCode ${Lang} ${name} ${oldCode} ${Project} "component"
-								else
-									#Create new main code
-									newCode ${Lang} ${name} ${oldCode} ${Project} "main"
-								fi
-								;;
-						esac
-					#No Program Name Given
-					else
-						cd ${JavaBin}
-						java newJava --help
-						cd - > /dev/null
-					fi
-				#Check for Custom Code Template...is jar
-				elif [ -f ${JavaBin}/newJava.jar ]; then
-					#Program Name Given
-					if [ ! -z "${name}" ];then
-						case ${Type} in
-							#create main file
-							main)
-								java -jar ${JavaBin}/newJava.jar --user $USER --main --shell --write-file --read-file --user-input --name "${name}"
-								;;
-							#create component file
-							component)
-								java -jar ${JavaBin}/newJava.jar --user $USER --write-file --read-file --name "${name}"
-								;;
-							#cl[ide] knows best
-							*)
-								#main class already created
-								if [[ "${oldCode}" == *".java" ]]; then
-									#Create libary class
-									newCode ${Lang} ${name} ${oldCode} ${Project} "component"
-								else
-									#Create new main code
-									newCode ${Lang} ${name} ${oldCode} ${Project} "main"
-								fi
-								;;
-						esac
-					#No Program Name Given
-					else
-						java -jar ${JavaBin}/newJava.jar --help
-					fi
-				#No Program Name Given
-				else
-					#Program Name Given
-					if [ ! -z "${name}" ];then
-						touch ${name}.java
-					else
-						errorCode "newCode"
-					fi
-				fi
-			fi
-			;;
-		#no langague given
-		*)
-			;;
-	esac
 }
 
 #remove source code
@@ -3395,25 +3359,6 @@ AddAlias()
 	fi
 }
 
-#Install into bash_aliases
-Install()
-{
-	local code=$1
-	local bin=$2
-	ManageLangs ${code} "Install" ${bin}
-}
-
-#Compile code
-compileCode()
-{
-	local Lang=$1
-	local src=$2
-	local name=$3
-	local keep=$4
-	local cplArgs=""
-	ManageLangs ${Lang} "compileCode" ${src} ${name} ${keep} ${cplArgs}
-}
-
 #Handle Git commands
 gitHandler()
 {
@@ -3647,22 +3592,6 @@ repoHandler()
 			echo "${Head} is unable to use \"${repoTool}\" at this time"
 			;;
 	esac
-}
-
-#Switch to Src file
-SwapToSrc()
-{
-	local Lang=$1
-	local src=$2
-	ManageLangs ${Lang} "SwapToSrc" ${src}
-}
-
-#Switch to Bin file
-SwapToBin()
-{
-	local Lang=$1
-	local bin=$2
-	ManageLangs ${Lang} "SwapToBin" ${bin}
 }
 
 #IDE
@@ -3918,7 +3847,7 @@ Actions()
 					case ${UserIn[1]} in
 						#Get Code Template Versions
 						--version|-v)
-							TemplateVersion ${Lang}
+							ManageLangs ${Lang} "TemplateVersion"
 							;;
 						#Get Help Page for new code
 						--help|-h)
@@ -3969,7 +3898,7 @@ Actions()
 									;;
 							esac
 							#Create new code
-							customCode ${Lang} ${cLang}
+							ManageLangs ${Lang} "customCode" ${Lang} ${cLang}
 							#AfterFiles=$(ls *.${Type})
 							AfterFiles=$(ls *.*)
 							#look for created files
@@ -3989,7 +3918,7 @@ Actions()
 							#Ensure filename is given
 							if [ ! -z "${UserIn[1]}" ]; then
 								#Return the name of source code
-								newCode ${Lang} ${UserIn[1]} ${CodeProject} ${UserIn[2]}
+								ManageLangs ${Lang} "newCode" ${UserIn[1]} ${CodeProject} ${UserIn[2]}
 								case ${Lang} in
 									#Language is Bash
 									Bash)
@@ -4058,22 +3987,22 @@ Actions()
 					;;
 				#Edit new source code
 				${editor}|edit|ed)
-					editCode ${Lang} ${Code} ${UserIn[1]}
+					ManageLangs ${Lang} "editCode" ${Code} ${UserIn[1]}
 					;;
 				#Add code to Source Code
 				add)
-					Code=$(addCode ${Lang} ${Code} ${UserIn[1]})
+					Code=$(ManageLangs ${Lang} "addCode" ${Code} ${UserIn[1]})
 					;;
 				#Read code without editing
 				${ReadBy}|read)
-					readCode ${Lang} ${Code} ${UserIn[1]}
+					ManageLangs ${Lang} "readCode" ${Code} ${UserIn[1]}
 					;;
 				#Swap from Binary to Src and vise-versa
 				swap|swp)
 					if [[ "${UserIn[1]}" == "bin" ]]; then
-						Code=$(SwapToBin ${Lang} ${Code})
+						Code=$(ManageLangs ${Lang} "SwapToBin" ${Code})
 					elif [[ "${UserIn[1]}" == "src" ]]; then
-						Code=$(SwapToSrc ${Lang} ${Code})
+						Code=$(ManageLangs ${Lang} "SwapToSrc" ${Code})
 					else
 						echo "${mode} (src|bin)"
 					fi
@@ -4244,12 +4173,12 @@ Actions()
 					;;
 				#Compile code
 				compile|cpl)
-					compileCode ${Lang} ${Code} ${UserIn[1]} ${UserIn[2]}
-					#Code=$(SwapToBin ${Code})
+					ManageLangs ${Lang} "compileCode" ${Code} ${UserIn[1]} ${UserIn[2]}
+					#Code=$(ManageLangs ${Lang} "SwapToBin" ${Code})
 					;;
 				#Install compiled code into aliases
 				install)
-					Install ${Lang} ${Code} ${UserIn[1]}
+					ManageLangs ${Lang} "Install" ${Code} ${UserIn[1]}
 					;;
 				#run compiled code
 				execute|exe|run)
@@ -4555,12 +4484,12 @@ main()
 				;;
 			#Get version of template
 			-tv|--temp-version)
-				TemplateVersion Bash | sed "s/Version/Bash/g" | grep -v found
-				TemplateVersion Python | sed "s/Version/Python/g" | grep -v found
-				TemplateVersion Perl | sed "s/Version/Perl/g" | grep -v found
-				TemplateVersion Ruby | sed "s/Version/Ruby/g" | grep -v found
-				TemplateVersion C++ | sed "s/Version/C++/g" | grep -v found
-				TemplateVersion Java | sed "s/Version/Java/g" | grep -v found
+				ManageLangs Bash "TemplateVersion" | sed "s/Version/Bash/g" | grep -v found
+				ManageLangs Python "TemplateVersion" | sed "s/Version/Python/g" | grep -v found
+				ManageLangs Perl "TemplateVersion" | sed "s/Version/Perl/g" | grep -v found
+				ManageLangs Ruby "TemplateVersion" | sed "s/Version/Ruby/g" | grep -v found
+				ManageLangs C++ "TemplateVersion" | sed "s/Version/C++/g" | grep -v found
+				ManageLangs Java "TemplateVersion" | sed "s/Version/Java/g" | grep -v found
 				;;
 			#Get version control version from cli
 			-rv|--repo-version)
