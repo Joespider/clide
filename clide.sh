@@ -11,7 +11,7 @@ Shell=$(which bash)
 #1st # = Overflow
 #2nd # = Additional features
 #3rd # = Bug/code tweaks/fixes
-Version="0.65.74"
+Version="0.65.76"
 
 #cl[ide] config
 #{
@@ -3987,7 +3987,19 @@ Actions()
 					;;
 				#Edit new source code
 				${editor}|edit|ed)
-					ManageLangs ${Lang} "editCode" ${Code} ${UserIn[1]}
+					case ${UserIn[1]} in
+						#edit non-langugage source files
+						non-lang)
+							if [ ! -z "${UserIn[2]}" ]; then
+								${editor} ${UserIn[2]}
+							else
+								echo "Please select a file to edit"
+							fi
+							;;
+						*)
+							ManageLangs ${Lang} "editCode" ${Code} ${UserIn[1]}
+							;;
+					esac
 					;;
 				#Add code to Source Code
 				add)
@@ -4422,7 +4434,7 @@ loadAuto()
 	comp_list "project" "load import new list"
 	comp_list "shell"
 	comp_list "new" "--version -v --help -h --custom -c"
-	comp_list "${editor} ed edit"
+	comp_list "${editor} ed edit" "non-lang"
 	comp_list "add"
 	comp_list "${ReadBy} read"
 	comp_list "${repoTool} repo"
@@ -4470,8 +4482,10 @@ main()
 			esac
 		done
 
-		#Start IDE
-		Actions ${Lang}
+		if [ ! -z "${Lang}" ]; then
+			#Start IDE
+			Actions ${Lang}
+		fi
 	else
 		case ${UserArg} in
 			#Get version from cli
