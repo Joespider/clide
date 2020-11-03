@@ -1,0 +1,345 @@
+Shell=$(which bash)
+#!${Shell}
+
+ProgDir=$1
+shift
+editor=$1
+shift
+ReadBy=$1
+shift
+
+UsePython()
+{
+	local PythonRun=python
+	local LangHome=${ProgDir}/Python
+	local LangSrc=${LangHome}/src
+	local LangBin=${LangHome}/bin
+	local TemplateCode=${LangBin}/newPython.py
+	local Type=$1
+	shift
+	case ${Type} in
+		color)
+			#Return Yellow
+			echo -e "\e[1;33mPython\e[0m"
+			;;
+		MenuHelp)
+			echo -e "new <file>\t\t\t: \"create new ${Lang} script\""
+			echo -e "compile|cpl\t\t\t: \"make code executable\""
+			echo -e "shell\t\t\t\t: run shell for testing"
+			;;
+		pgLang)
+			local HasLang=$(which ${PythonRun} 2> /dev/null)
+			if [ ! -z "${HasLang}" ]; then
+				#Return Python tag
+				echo "Python"
+			else
+				#Return rejection
+				echo "no"
+			fi
+			;;
+		pgDir)
+			#Return Python src Dir
+			echo ${LangSrc}
+			;;
+		CreateHelp)
+			;;
+		newCodeHelp)
+			if [ -f ${TemplateCode} ]; then
+				echo -e "--custom|-c\t\t\t: \"Custom src file using ${Lang} template\""
+			fi
+			;;
+		EnsureDirs)
+			#Home
+			if [ ! -d "${LangHome}" ] && [ ! -z "${PythonRun}" ]; then
+				mkdir "${LangHome}"
+			fi
+			#Src
+			if [ ! -d "${LangSrc}" ] && [ ! -z "${PythonRun}" ]; then
+				mkdir "${LangSrc}"
+			fi
+			#Bin
+			if [ ! -d "${LangBin}" ] && [ ! -z "${PythonRun}" ]; then
+				mkdir "${LangBin}"
+			fi
+			;;
+		TemplateVersion)
+			if [ -f ${TemplateCode} ]; then
+				${PythonRun} ${TemplateCode} 2> /dev/null | grep Version
+			else
+				echo "no newPython found"
+			fi
+			;;
+		CodeVersion)
+			echo "[Python]"
+				${PythonRun} --version
+			;;
+		selectCode)
+			name=$1
+			#Correct filename
+			if [[ ! "${name}" == *".py" ]]; then
+				name="${name}.py"
+			fi
+			echo ${name}
+			;;
+		addCode)
+			src=$1
+			new=$2
+			case ${src} in
+				*.py)
+					case ${new} in
+						*.py)
+							if [ -f "${new}" ]; then
+								echo "${src},${new}"
+							else
+								echo "${src}"
+							fi
+							;;
+						*)
+							if [ -f "${new}.py" ]; then
+								echo "${src},${new}.py"
+							else
+								echo "${src}"
+							fi
+							;;
+					esac
+					;;
+				*)
+					;;
+			esac
+			;;
+		editCode)
+			src=$1
+			num=$2
+			case ${src} in
+				*.py)
+					if [[ "${src}" == *","* ]]; then
+						if [ -z ${num} ]; then
+							errorCode "editNull"
+						else
+							if [[ "${src}" == *"${num}"* ]]; then
+								if [[ "${num}" == *".py" ]]; then
+									${editor} ${num}
+								else
+									${editor} "${num}.py"
+								fi
+							else
+								errorCode "editNot"
+							fi
+						fi
+					else
+						${editor} ${src}
+					fi
+					;;
+				*)
+					;;
+			esac
+			;;
+		readCode)
+			src=$1
+			num=$2
+			case ${src} in
+				*.py)
+					if [[ "${src}" == *","* ]]; then
+						if [ -z ${num} ]; then
+							errorCode "readNull"
+						else
+							if [[ "${src}" == *"${num}"* ]]; then
+								if [[ "${num}" == *".py" ]]; then
+									${ReadBy} ${num}
+								else
+									${ReadBy} "${num}.py"
+								fi
+							else
+								errorCode "readNot"
+							fi
+						fi
+					else
+						${ReadBy} ${src}
+					fi
+					;;
+				*)
+					;;
+			esac
+			;;
+		compileCode)
+			src=$1
+			project=${CodeProject}
+			name=$2
+			keep=$3
+			cplArgs=""
+			#Handle Project Dir
+			if [[ "${project}" == "none" ]]; then
+				project=""
+			else
+				project="${project}/"
+			fi
+			case ${src} in
+				*.py)
+					#Compile Python Script
+					#py2bin "${src}"
+					#Get Python Name
+			                #pyBin="${src%.*}"
+					#Move Python Program to Binary dir
+					#mv ${pyBin} ../bin/
+					#Check if Python Script does NOT exist
+					#Multiple code selected
+					if [[ "${src}" == *","* ]]; then
+						#variable is empty
+						if [ -z ${name} ]; then
+							errorCode "cpl" "choose"
+						#variable found
+						else
+							#chosen file is in the list of files
+							if [[ "${src}" == *"${name}"* ]]; then
+								#only name is given
+								if [[ "${name}" != *".py" ]]; then
+									#full filename given
+									num=${name}.py
+								fi
+								#Make Python Script executable
+								chmod +x ${name}
+								#Check if Python Script does NOT exist
+								if [[ ! -f "${LangBin}/${name}" ]]; then
+									#Change to Python Binary dir
+									cd ${LangBin}
+									#Create Symbolic Link to Python Script
+									ln -s ../src/${project}${name}
+									#Change to Python Source dir
+									cd "${LangSrc}/${project}"
+									echo -e "\e[1;43m[Python Code Compiled]\e[0m"
+								else
+									errorCode "cpl" "already" ${name}
+								fi
+							else
+								echo "code not found"
+							fi
+						fi
+					#single code selected
+					else
+						#Make Python Script executable
+						chmod +x ${src}
+						#Check if Python Script does NOT exist
+						if [[ ! -f "${LangBin}/${src}" ]]; then
+							#Change to Python Binary dir
+							cd ${LangBin}
+							#Create Symbolic Link to Python Script
+							ln -s ../src/${project}${src}
+							#Change to Python Source dir
+							cd "${LangSrc}/${project}"
+							echo -e "\e[1;43m[Python Code Compiled]\e[0m"
+						#Code is already found
+						else
+							errorCode "cpl" "already" ${src}
+						fi
+					fi
+					;;
+				*)
+					;;
+			esac
+			;;
+		newProject)
+			path=${LangSrc}/${project}
+			if [ ! -d ${path} ]; then
+				mkdir ${path}
+				cd ${path}
+				mkdir src bin
+				cd ${path}/src
+			else
+				cd ${path}/src
+			fi
+			echo ${path}
+			;;
+		SwapToSrc)
+			src=$1
+			#Get Python Name
+		#	src="${src}.py"
+		#	#Check if Python source exists
+		#	if [[ -f "${LangSrc}/${src}" ]]; then
+		#		#Return Python Source Name
+				echo "${src}"
+		#	fi
+			;;
+		SwapToBin)
+			bin=$1
+			case ${bin} in
+				*.py)
+					#Get Python Name
+				#	bin="${bin%.*}"
+					#Check if Python Binary exists
+					if [[ -f "${LangBin}/${bin}" ]]; then
+						#cd "${LangBin}"
+						#Return Python Binary Name
+						echo "${bin}"
+					else
+					echo "${bin}"
+					fi
+					;;
+				*)
+					echo ${bin}
+					;;
+			esac
+			;;
+		Install)
+			bin=$1
+			BinFile="${bin%.*}"
+			#Make sure Binary exists
+			if [ -f "${LangBin}/${bin}" ]; then
+				#Add command to Aliases
+				AddAlias "${BinFile}" "${PythonRun} ${LangBin}/${bin}"
+			elif [ ! -f "${LangBin}/${bin}" ]; then
+				errorCode "install" "${bin}"
+			else
+				errorCode "noCode"
+			fi
+			;;
+		customCode)
+			cLang=$1
+			#Check for Custom Code Template
+			if [ -f ${TemplateCode} ]; then
+				echo -n "${cLang}\$ ${PythonRun} newPython.py "
+				read -a Args
+				#Program Args Given
+				if [ ! -z "${Args}" ];then
+					${PythonRun} ${TemplateCode} ${Args[@]}
+				#No Program Name Given
+				else
+					${PythonRun} ${TemplateCode} --help
+				fi
+			else
+				#Program Name Given
+				errorCode "customCode" "notemp" "${Lang}"
+			fi
+			;;
+		newCode)
+			name=$1
+			Project=$2
+			Type=$3
+			Type=$(echo ${Type} | tr A-Z a-z)
+			name=${name%.py}
+			if [ ! -f ${name}.py ]; then
+				#Check for Custom Code Template
+				if [ -f ${TemplateCode} ]; then
+					#Program Name Given
+					if [ ! -z "${name}" ];then
+						${PythonRun} ${TemplateCode} -n ${name} --cli --main --shell --write-file --read-file --os --random
+					#No Program Name Given
+					else
+						${PythonRun} ${TemplateCode} --help
+					fi
+				else
+					#Program Name Given
+					if [ ! -z "${name}" ];then
+						touch ${name}.py
+					else
+						errorCode "newCode"
+					fi
+				fi
+			fi
+			;;
+		*)
+			;;
+	esac
+}
+
+
+UsePython $@
