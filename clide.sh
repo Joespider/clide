@@ -11,7 +11,7 @@ Shell=$(which bash)
 #1st # = Overflow
 #2nd # = Additional features
 #3rd # = Bug/code tweaks/fixes
-Version="0.65.83"
+Version="0.65.84"
 
 #cl[ide] config
 #{
@@ -256,11 +256,10 @@ ManageLangs()
 {
 	local Langs=$(echo $1 | tr A-Z a-z)
 	#Make first letter uppercase
-	Langs=${Langs^}
 	shift
 	local Manage=$@
-	if [ -f ${LangsDir}/Lang.${Langs} ]; then
-		${LangsDir}/Lang.${Langs} ${ProgDir} ${ClideDir} ${editor} ${ReadBy} ${Manage[@]}
+	if [ -f ${LangsDir}/Lang.${Langs^} ]; then
+		${LangsDir}/Lang.${Langs^} ${ProgDir} ${ClideDir} ${editor} ${ReadBy} ${Manage[@]}
 	else
 		UseOther ${Langs} ${Manage[@]}
 	fi
@@ -767,10 +766,10 @@ runCode()
 
 selectCode()
 {
-	local code=$1
+	local Lang=$1
 	local name=$2
 	local old=$3
-	name=$(ManageLangs ${code} "selectCode" ${name})
+	name=$(ManageLangs ${Lang} "selectCode" ${name})
 	#Return source file if exists
 	if [ -f "${name}" ]; then
 		echo "${name}"
