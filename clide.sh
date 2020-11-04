@@ -11,7 +11,7 @@ Shell=$(which bash)
 #1st # = Overflow
 #2nd # = Additional features
 #3rd # = Bug/code tweaks/fixes
-Version="0.65.81"
+Version="0.65.82"
 
 #cl[ide] config
 #{
@@ -282,7 +282,7 @@ EnsureDirs()
 		mkdir "${NotesDir}"
 	fi
 
-	if [ ! -d "${LangsDir}"; then
+	if [ ! -d "${LangsDir}" ]; then
 		mkdir "${LangDir}"
 	fi
 
