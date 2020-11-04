@@ -3,10 +3,17 @@ Shell=$(which bash)
 
 ProgDir=$1
 shift
+ClideDir=$1
+shift
 editor=$1
 shift
 ReadBy=$1
 shift
+
+errorCode()
+{
+        ${ClideDir}/errorCode.sh $@
+}
 
 UserRuby()
 {

@@ -84,65 +84,6 @@ declare -A Commands
 
 #}
 
-
-#Language not yet supported
-UseOther()
-{
-	local Lang=$1
-	shift
-	local Type=$1
-	shift
-	local Args=$@
-	case ${Type} in
-		color)
-			local text=${Lang}
-			#Return Purple
-			echo -e "\e[1;35m${text}\e[0m"
-			;;
-		MenuHelp)
-			echo -e "compile|cpl\t: \"make code executable\""
-			;;
-		#No Languge found
-		pgLang|pgDir)
-			#Return rejection
-			echo "no"
-			;;
-		CreateHelp)
-			;;
-		newCodeHelp)
-			;;
-		compileCode)
-			errorCode "cpl"
-			;;
-		TemplateVersion)
-			echo "Please Choose a Language"
-			;;
-		SwapToSrc|SwapToBin)
-			echo "${Args[0]}"
-			;;
-		Install)
-			errorCode "noCode"
-			;;
-		*)
-			;;
-	esac
-}
-
-#Select Languge
-ManageLangs()
-{
-	local Langs=$(echo $1 | tr A-Z a-z)
-	#Make first letter uppercase
-	Langs=${Langs^}
-	shift
-	local Manage=$@
-	if [ -f ${LangsDir}/Lang.${Langs} ]; then
-		${LangsDir}/Lang.${Langs} ${ProgDir} ${editor} ${ReadBy} ${Manage[@]}
-	else
-		UseOther ${Langs} ${Manage[@]}
-	fi
-}
-
 Art()
 {
 	echo "                ____                       ____ "
@@ -267,6 +208,64 @@ CliHelp()
 	echo ""
 }
 
+#Language not yet supported
+UseOther()
+{
+	local Lang=$1
+	shift
+	local Type=$1
+	shift
+	local Args=$@
+	case ${Type} in
+		color)
+			local text=${Lang}
+			#Return Purple
+			echo -e "\e[1;35m${text}\e[0m"
+			;;
+		MenuHelp)
+			echo -e "compile|cpl\t: \"make code executable\""
+			;;
+		#No Languge found
+		pgLang|pgDir)
+			#Return rejection
+			echo "no"
+			;;
+		CreateHelp)
+			;;
+		newCodeHelp)
+			;;
+		compileCode)
+			errorCode "cpl"
+			;;
+		TemplateVersion)
+			echo "Please Choose a Language"
+			;;
+		SwapToSrc|SwapToBin)
+			echo "${Args[0]}"
+			;;
+		Install)
+			errorCode "noCode"
+			;;
+		*)
+			;;
+	esac
+}
+
+#Select Languge
+ManageLangs()
+{
+	local Langs=$(echo $1 | tr A-Z a-z)
+	#Make first letter uppercase
+	Langs=${Langs^}
+	shift
+	local Manage=$@
+	if [ -f ${LangsDir}/Lang.${Langs} ]; then
+		${LangsDir}/Lang.${Langs} ${ProgDir} ${ClideDir} ${editor} ${ReadBy} ${Manage[@]}
+	else
+		UseOther ${Langs} ${Manage[@]}
+	fi
+}
+
 EnsureDirs()
 {
 	#If missing...create "Programs" dir
@@ -359,154 +358,7 @@ Banner()
 #Error messages
 errorCode()
 {
-	local ecd=$1
-	local sec=$2
-	local thr=$3
-	local four=$4
-	case $ecd in
-		alias)
-			echo "\"${sec}\" already installed"
-			;;
-		install)
-			case ${sec} in
-				choose)
-					echo "hint: please choose script"
-					;;
-				*.java|*.class)
-					echo "\"${sec}\" needs to be an java jar"
-					echo "[to compile]: cpl --jar"
-					;;
-				*)
-					echo "\"${sec}\" needs to be an executable"
-					echo "[to compile]: cpl"
-					echo "OR"
-					echo "[swap to executable]: swp bin"
-					;;
-			esac
-			;;
-		lookFor)
-			case ${sec} in
-				none)
-					echo "Nothing to search for"
-					echo "Please provide a value"
-					;;
-				*)
-					;;
-			esac
-			;;
-		remove)
-			case ${sec} in
-				sure)
-					echo "WARNING: YOU ARE TRYING TO DELETE A FILE"
-					echo "WARNING: You will NOT recover this file"
-					echo ""
-					echo "\"yes\" is NOT \"YES\""
-					;;
-				hint)
-					echo ""
-					echo "HINT: to force removal, provide a \"--force\""
-					;;
-				*)
-					;;
-			esac
-			;;
-		noCode)
-			echo "No Code Found"
-			echo "[to set code]: set <name>"
-			;;
-		newCode)
-			echo "Please Provide The Name Of Your New Code"
-			echo "EX: new <name>"
-			;;
-		customCode)
-			case ${sec} in
-				completeNotFound)
-					echo "${Head} did not find, or is not configured to find, your program"
-					echo "Please select your code"
-					echo "[to select code]: set <name>"
-					;;
-				notemp)
-					echo "No ${thr} Template Found"
-					;;
-				*)
-					;;
-			esac
-			;;
-		editNull)
-			echo "hint: ${editor}|edit|ed <file>"
-			;;
-		editNot)
-			echo "code is not found in project"
-			;;
-		editMe)
-			echo "For your safety, I am not allowed to edit myself"
-			;;
-		readNull)
-			echo "hint: ${ReadBy}|read <file>"
-			;;
-		readNot)
-			echo "code is not found in project"
-			;;
-		project)
-			case ${sec} in
-				none)
-					echo "Your session MUST be a ${Head} Project"
-					echo "hint: Please create or load a project"
-					echo "$ project new <project>"
-					echo "$ project load <project>"
-					;;
-				import)
-					case ${thr} in
-						link-nothing)
-							echo "\"${four}\" is not a working directory"
-							;;
-						*)
-							echo "import Methods"
-							;;
-					esac
-					;;
-				exists)
-					echo "\"${thr}\" is already a project"
-					;;
-				NotAProject)
-					echo "No \"${thr}\" project found"
-					;;
-				*)
-					echo "Project error"
-					;;
-			esac
-			;;
-		cpl)
-			case ${sec} in
-				choose)
-					echo "hint: please choose a program name"
-					;;
-				already)
-					echo "\"${thr}\" already compiled"
-					;;
-				not)
-					echo "code not found"
-					;;
-				need)
-					echo "${thr} is not compiled"
-					echo "[HINT] \$ cpl"
-					;;
-				none)
-					echo "no code to run"
-					echo "[hint] set <code>"
-					;;
-				*)
-					echo "Nothing to Compile"
-					echo "[to set code]: set <name>"
-					;;
-			esac
-			;;
-		loadSession)
-				echo "No Session to load"
-			;;
-		*)
-			;;
-	esac
+	${ClideDir}/errorCode.sh $@
 }
 
 #Search selected code for element
@@ -2111,28 +1963,33 @@ main()
 	#No argument given
 	if [ -z "${UserArg}" ]; then
 		clear
-		CliHelp
-		echo "~Choose a language~"
 		local getLang=""
-		#Force user to select language
-		while [[ "$getLang" == "" ]] || [[ "$Lang" == "no" ]];
-		do
-			prompt="${Name}(${pg}):$ "
-			read -e -p "${prompt}" getLang
-			case ${getLang} in
-				exit)
-					break
-					;;
-				*)
-					#Verify Language
-					Lang=$(pgLang ${getLang})
-					;;
-			esac
-		done
+		if [ ! -z "${pg}" ]; then
+			CliHelp
+			echo "~Choose a language~"
+			#Force user to select language
+			while [[ "$getLang" == "" ]] || [[ "$Lang" == "no" ]];
+			do
+				prompt="${Name}(${pg}):$ "
+				read -e -p "${prompt}" getLang
+				case ${getLang} in
+					exit)
+						break
+						;;
+					*)
+						#Verify Language
+						Lang=$(pgLang ${getLang})
+						;;
+				esac
+			done
 
-		if [ ! -z "${Lang}" ]; then
-			#Start IDE
-			Actions ${Lang}
+			if [ ! -z "${Lang}" ]; then
+				#Start IDE
+				Actions ${Lang}
+			fi
+		else
+			echo "No Languages installed"
+			echo "Please Lang.<language> in \"${LangsDir}/\""
 		fi
 	else
 		case ${UserArg} in
