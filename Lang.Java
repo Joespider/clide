@@ -9,10 +9,26 @@ editor=$1
 shift
 ReadBy=$1
 shift
+project=$1
+shift
+CplArgs=$1
+shift
+
+SupportVersion()
+{
+        echo "0.1.0"
+}
 
 errorCode()
 {
         ${ClideDir}/errorCode.sh $@
+}
+
+OtherColor()
+{
+	local text=$1
+	#Return Purple
+	echo -e "\e[1;35m${text}\e[0m"
 }
 
 UseJava()
@@ -38,6 +54,14 @@ UseJava()
 			echo -e "\t--jar\t\t\t: \"make code (JAR) executable\""
 			echo -e "\t--jar --keep-manifest\t: \"keep manifest.mf\""
 			;;
+		getCode)
+			local name=$1
+			if [ -f ${LangSrc}/${name}.java ]; then
+				echo ${name}.java
+			elif [ -f ${LangSrc}/${name} ]; then
+				echo ${name}
+			fi
+			;;
 		pgLang)
 			local HasLangCpl=$(which ${JavaCpl} 2> /dev/null)
 			local HasLangRun=$(which ${JavaRun} 2> /dev/null)
@@ -49,6 +73,9 @@ UseJava()
 				echo "no"
 			fi
 			;;
+		BeforeFiles|AfterFiles)
+			ls *.java
+			;;
 		pgDir)
 			#Return Java src Dir
 			echo ${LangSrc}
@@ -56,6 +83,8 @@ UseJava()
 		CreateHelp)
 			echo -e "prop|properties|-D\t: create custome Java properties"
 			echo -e "jar|manifest\t\t: create Java Manifest Jar builds"
+			;;
+		shell)
 			;;
 		newCodeHelp)
 			if [ -f ${TemplateCodeJar} ] || [ -f ${TemplateCodeClass} ]; then
@@ -446,9 +475,135 @@ UseJava()
 				fi
 			fi
 			;;
+		create-jar|create-manifest)
+			#Creating new manifast.mf
+			if [ ! -f manifest.mf ]; then
+				echo "Manifest-Version: 1.1" > manifest.mf
+				echo "Created-By: $USER" >> manifest.mf
+				echo "Main-Class: " >> manifest.mf
+				echo "Sealed: true" >> manifest.mf
+			fi
+			#edit manifest.mf
+			${editor} manifest.mf
+			;;
+		#Java properties
+		create-prop|create-properties|create--D)
+			#Enter Java properties
+			echo -n "-D"
+			read -e EnvArgs
+			EnvArgs=$(echo "-D${EnvArgs}")
+			#Ensure correct flags
+			if [[ "${EnvArgs}" == "-D"*"=\""*"\"" ]]; then
+				RunCplArgs=${EnvArgs}
+			else
+				RunCplArgs=""
+			fi
+			;;
+		cli)
+			local TheName=$1
+			local TheBin="${TheName%.*}.class"
+			local TheJar="${TheName%.*}.jar"
+			local JavaProp=$2
+			if [ ! -z "${JavaProp}" ]; then
+				#Its a Class
+				if [ -f ${LangBin}/${TheBin} ]; then
+					TheName=$(OtherColor ${TheBin})
+					echo "java ${JavaProp} ${TheName}"
+				#Its a Jar
+				elif [ -f ${LangBin}/${TheJar} ]; then
+					TheName=$(OtherColor ${TheJar})
+					echo "java -jar ${TheName}"
+				fi
+			else
+				#Its a Class
+				if [ -f ${LangBin}/${TheBin} ]; then
+					TheName=$(OtherColor ${TheBin})
+					echo "java ${TheName}"
+				#Its a Jar
+				elif [ -f ${LangBin}/${TheJar} ]; then
+					TheName=$(OtherColor ${TheJar})
+					echo "java -jar ${TheName}"
+				fi
+			fi
+			;;
+		runProp)
+			local name=$1
+			local JavaProp=$2
+			#Check for Java System.getProperty
+			local getPropPresent=$(grep "System.getProperty" ${name} | grep \, | tr -d '\t')
+			if [ ! -z "${getPropPresent}" ] && [ -z "${JavaProp}" ]; then
+				if [ -z "${JavaRunProp}" ]; then
+					#User Provide Values
+					echo "Please Provide Java Property"
+					echo -n "-D"
+					read -e EnvArgs
+					EnvArgs=$(echo "-D${EnvArgs}")
+					#All Given in one line
+				fi
+				#Ensure correct flags
+				if [[ "${EnvArgs}" == "-D"*"=\""*"\"" ]]; then
+					JavaProp=${EnvArgs}
+				#Args pre-set
+				elif [[ "${JavaRunProp}" == "-D"*"=\""*"\"" ]]; then
+					JavaProp=${JavaRunProp}
+				else
+					JavaProp=""
+				fi
+			fi
+			;;
+		runCode)
+			local name=$1
+			local TheBin="${name%.*}.class"
+			local TheJar="${name%.*}.jar"
+			local JavaProp=$2
+
+			#Check if Java Class exists
+			if [ -f ${LangBin}/${TheBin} ]; then
+				TheBin=${TheBin%.*}
+				cd ${LangBin}
+				#If no JavaProp found
+				if [ -z "${JavaProp}" ]; then
+					#Execute without
+					${JavaRun} ${TheBin} ${Args[@]}
+				else
+					${JavaRun} "${JavaProp}" ${TheBin} ${Args[@]}
+				fi
+				cd - > /dev/null
+			#Check if Java Jar exists
+			elif [ -f ${LangBin}/${TheJar} ]; then
+				${JavaRun} -jar ${LangBin}/${TheJar} ${Args[@]}
+			else
+				errorCode "cpl" "need" "${name}"
+			fi
+			;;
 		*)
 			;;
 	esac
 }
 
 UseJava $@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

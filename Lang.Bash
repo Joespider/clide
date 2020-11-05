@@ -9,10 +9,26 @@ editor=$1
 shift
 ReadBy=$1
 shift
+project=$1
+shift
+CplArgs=$1
+shift
+
+SupportVersion()
+{
+        echo "0.1.0"
+}
 
 errorCode()
 {
 	${ClideDir}/errorCode.sh $@
+}
+
+OtherColor()
+{
+	local text=$1
+	#Return Purple
+	echo -e "\e[1;35m${text}\e[0m"
 }
 
 UseBash()
@@ -43,11 +59,25 @@ UseBash()
 				echo "no"
 			fi
 			;;
+		getCode)
+			local name=$1
+			#Get code
+			if [ -f ${LangSrc}/${name}.sh ]; then
+				echo ${name}.sh
+			elif [ -f ${LangSrc}/${name} ]; then
+				echo ${name}
+			fi
+			;;
+		BeforeFiles|AfterFiles)
+				ls *.sh
+			;;
 		pgDir)
 			#Return Bash src Dir
 			echo ${LangSrc}
 			;;
 		CreateHelp)
+			;;
+		shell)
 			;;
 		newCodeHelp)
 			if [ -f ${TemplateCode} ]; then
@@ -332,6 +362,21 @@ UseBash()
 						errorCode "newCode"
 					fi
 				fi
+			fi
+			;;
+		cli)
+			local TheName=$(OtherColor $1)
+			echo "./${TheName}"
+			;;
+		runCode)
+			local name=$1
+			shift
+			Args=$@
+			#Check if Bash Script exists
+			if [ -f ${LangBin}/${name} ]; then
+				${LangBin}/${name} ${Args[@]}
+			else
+				errorCode "cpl" "need" "${name}"
 			fi
 			;;
 		*)

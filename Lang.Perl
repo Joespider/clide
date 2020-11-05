@@ -9,10 +9,26 @@ editor=$1
 shift
 ReadBy=$1
 shift
+project=$1
+shift
+CplArgs=$1
+shift
+
+SupportVersion()
+{
+        echo "0.1.0"
+}
 
 errorCode()
 {
         ${ClideDir}/errorCode.sh $@
+}
+
+OtherColor()
+{
+	local text=$1
+	#Return Purple
+	echo -e "\e[1;35m${text}\e[0m"
 }
 
 UsePerl()
@@ -33,6 +49,17 @@ UsePerl()
 			echo -e "new <file>\t\t\t: \"create new ${Lang} script\""
 			echo -e "compile|cpl\t\t\t: \"make code executable\""
 			;;
+		getCode)
+			local name=$1
+			if [ -f ${LangSrc}/${name}.pl ]; then
+				echo ${name}.pl
+			elif [ -f ${LangSrc}/${name} ]; then
+				echo ${name}
+			fi
+			;;
+		BeforeFiles|AfterFiles)
+			ls *.pl
+			;;
 		pgLang)
 			local HasLang=$(which ${PerlRun} 2> /dev/null)
 			if [ ! -z "${HasLang}" ]; then
@@ -48,6 +75,8 @@ UsePerl()
 			echo ${LangSrc}
 			;;
 		CreateHelp)
+			;;
+		shell)
 			;;
 		newCodeHelp)
 			if [ -f ${TemplateCode} ]; then
@@ -327,6 +356,22 @@ UsePerl()
 						errorCode "newCode"
 					fi
 				fi
+			fi
+			;;
+		cli)
+			local TheName=$(OtherColor $2)
+			echo "${PerlRun} ${TheName}"
+			;;
+		runCode)
+			local name=$1
+			local TheBin="${name}"
+			shift
+			local Arg=$@
+			#Check if Perl Bin exists
+			if [ -f ${LangBin}/${TheBin} ]; then
+				${PerlRun} ${LangBin}/${TheBin} ${Args[@]}
+			else
+				errorCode "cpl" "need" "${name}"
 			fi
 			;;
 		*)

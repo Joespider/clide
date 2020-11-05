@@ -9,10 +9,26 @@ editor=$1
 shift
 ReadBy=$1
 shift
+CodeProject=$1
+shift
+CplArgs=$1
+shift
+
+SupportVersion()
+{
+	echo "0.1.0"
+}
 
 errorCode()
 {
         ${ClideDir}/errorCode.sh $@
+}
+
+OtherColor()
+{
+	local text=$1
+	#Return Purple
+	echo -e "\e[1;35m${text}\e[0m"
 }
 
 UseCpp()
@@ -33,6 +49,16 @@ UseCpp()
 			echo -e "new <file> {main|header|component} : \"create new ${Lang} source file\""
 			echo -e "compile|cpl\t\t\t: \"make code executable\""
 			;;
+		getCode)
+			local name=$1
+			if [ -f ${LangSrc}/${name}.cpp ]; then
+				echo ${name}.cpp
+			elif [ -f ${LangSrc}/${name}.h ]; then
+				echo ${name}.h
+			elif [ -f ${LangSrc}/${name} ]; then
+				echo ${name}
+			fi
+			;;
 		pgLang)
 			local HasLang=$(which ${CppCpl} 2> /dev/null)
 			if [ ! -z "${HasLang}" ]; then
@@ -43,13 +69,18 @@ UseCpp()
 				echo "no"
 			fi
 			;;
-			pgDir)
+		BeforeFiles|AfterFiles)
+			ls *.cpp *.h
+			;;
+		pgDir)
 			#Return C++ src Dir
 			echo ${LangSrc}
 			;;
 		CreateHelp)
 			echo -e "make\t\t\t: create makefile"
 			echo -e "version|-std=<c++#>\t: create makefile"
+			;;
+		shell)
 			;;
 		newCodeHelp)
 			if [ -f ${TemplateCode} ]; then
@@ -180,10 +211,8 @@ UseCpp()
 			;;
 		compileCode)
 			local src=$1
-			local project=${CodeProject}
 			local name=$2
-			local keep=$3
-			local cplArgs=""
+			local cplArgs=$3
 			#Handle Project Dir
 			if [[ "${project}" == "none" ]]; then
 				project=""
@@ -208,115 +237,165 @@ UseCpp()
 							prog=$(echo ${src} | sed "s/,/ /g")
 							#Compile for Threads
 							NeedThreads=$(grep "#include <thread>" ${prog})
+							if [ ! -z "${NeedThreads}" ]; then
+								cplArgs="${cplArgs} -lpthread"
+							fi
+							${CppCpl} ${prog} -o ../bin/${name} ${cplArgs}
+							echo -e "\e[1;44m[C++ Code Compiled]\e[0m"
+						fi
+					#single code selected
+					else
+						#Compile for threading
+						NeedThreads=$(grep "#include <thread>" ${src})
 						if [ ! -z "${NeedThreads}" ]; then
 							cplArgs="${cplArgs} -lpthread"
 						fi
-						${CppCpl} ${prog} -o ../bin/${name} ${cplArgs}
+						#Compile and move C++ to Binary dir
+						${CppCpl} ${src} -o ../bin/${src%.*} ${cplArgs}
 						echo -e "\e[1;44m[C++ Code Compiled]\e[0m"
 					fi
-				#single code selected
-				else
-					#Compile for threading
-					NeedThreads=$(grep "#include <thread>" ${src})
-					if [ ! -z "${NeedThreads}" ]; then
-						cplArgs="${cplArgs} -lpthread"
+				fi
+			fi
+			;;
+		create-make)
+			case ${CodeProject} in
+				#No Project
+				none)
+					echo "Project C++ ONLY"
+					;;
+				#Is a project
+				*)
+					#makefile already exists
+					if [ -f ${LangSrc}/${CodeProject}/makefile ]; then
+						echo "makefile Already made for \"${CodeProject}\""
+						#makefile already made
+					else
+						touch ${LangSrc}/${CodeProject}/makefile
+						echo "makefile Created"
 					fi
-					#Compile and move C++ to Binary dir
-					${CppCpl} ${src} -o ../bin/${src%.*} ${cplArgs}
-					echo -e "\e[1;44m[C++ Code Compiled]\e[0m"
-				fi
+					;;
+			esac
+			;;
+		create-version|create-std=*)
+			Type=${Type#create-}
+			local cLang=$(UseCpp color)
+			case ${UserIn[1]} in
+				-std=*)
+					CplArgs="${UserIn[1]}"
+					;;
+				*)
+					CplArgs="${UserIn[2]}"
+					;;
+			esac
+			if [ -z "${CplArgs}" ]; then
+				echo -n "${cLang}\$ -std="
+				read -a CplArgs
 			fi
-		fi
-		;;
-	newProject)
-		local path=${LangSrc}/${project}
-		#create and cd to project dir
-		if [ ! -d ${path} ]; then
-			mkdir ${path}
-			cd ${path}
-			mkdir bin build doc include lib spike src test
-			cd src
-		else
-			cd ${path}/src
-		fi
-		echo ${path}
-		;;
-	SwapToSrc)
-		local src=$1
-		#cd "${LangSrc}"
-		#Get C++ Name
-		src="${src}.cpp"
-		#Check if C++ source exists
-		if [ -f "${LangSrc}/${src}" ]; then
-			#Return C++ Source Name
-			echo "${src}"
-		fi
-		;;
-	SwapToBin)
-		local bin=$1
-		case ${bin} in
-			*.cpp)
-				#cd "${LangBin}"
-				#Keep Src Name
-				local OldBin="${bin}"
-				#Get C++ Name
-				bin="${bin%.*}"
-				#Check if C++ Binary exists
-				if [ -f "${LangBin}/${bin}" ]; then
-					#Return C++ Binary Name
-					echo "${bin}"
+			if [ ! -z "${CplArgs}" ]; then
+				case ${CplArgs} in
+					-std=*)
+						CplArgs=${CplArgs#-std=}
+						;;
+					*)
+						;;
+				esac
+				if [ ! -z "${CplArgs}" ] && [[ "${CplArgs}" == *"c++"* ]]; then
+					CplArgs="-std=${CplArgs}"
 				else
-					echo "${OldBin}"
+					CplArgs="none"
 				fi
-				;;
-			*)
-				echo ${bin}
-				;;
-		esac
-		;;
-	Install)
-		local bin=$1
-		local BinFile="${bin%.*}"
-		#Make sure Binary exists
-		if [ -f "${LangBin}/${bin}" ]; then
-			#Add command to Aliases
-			AddAlias "${bin}" "${LangBin}/${bin}"
-		elif [ ! -f "${LangBin}/${bin}" ]; then
-			#compule or swap to binary
-			errorCode "install" "${bin}"
-		else
-			errorCode "noCode"
-		fi
-		;;
-	customCode)
-		local cLang=$1
-		#Check for Custom Code Template
-		if [ -f ${TemplateCode} ]; then
-			echo -n "${cLang}\$ ./newC++ "
-			read -a Args
-			#Program Args Given
-			if [ ! -z "${Args}" ];then
-				${TemplateCode} ${Args[@]}
-			#No Program Name Given
-			else
-				#Help Page
-				${TemplateCode} --help
 			fi
-		else
-			#Program Name Given
-			errorCode "customCode" "notemp" "${Lang}"
-		fi
-		;;
-	newCode)
-		local name=$1
-		local Project=$2
-		local Type=$3
-		Type=$(echo ${Type} | tr A-Z a-z)
-		name=${name%.cpp}
-		name=${name%.h}
-		if [ ! -f ${name}.cpp ] || [ ! -f ${name}.h ]; then
-			case ${Type} in
-				#create header file
+			echo ${CplArgs}
+			;;
+		newProject)
+			local path=${LangSrc}/${CodeProject}
+			#create and cd to project dir
+			if [ ! -d ${path} ]; then
+				mkdir ${path}
+				cd ${path}
+				mkdir bin build doc include lib spike src test
+				cd src
+			else
+				cd ${path}/src
+			fi
+			echo ${path}
+			;;
+		SwapToSrc)
+			local src=$1
+			#cd "${LangSrc}"
+			#Get C++ Name
+			src="${src}.cpp"
+			#Check if C++ source exists
+			if [ -f "${LangSrc}/${src}" ]; then
+				#Return C++ Source Name
+				echo "${src}"
+			fi
+			;;
+		SwapToBin)
+			local bin=$1
+			case ${bin} in
+				*.cpp)
+					#cd "${LangBin}"
+					#Keep Src Name
+					local OldBin="${bin}"
+					#Get C++ Name
+					bin="${bin%.*}"
+					#Check if C++ Binary exists
+					if [ -f "${LangBin}/${bin}" ]; then
+						#Return C++ Binary Name
+						echo "${bin}"
+					else
+						echo "${OldBin}"
+					fi
+					;;
+				*)
+					echo ${bin}
+					;;
+			esac
+			;;
+		Install)
+			local bin=$1
+			local BinFile="${bin%.*}"
+			#Make sure Binary exists
+			if [ -f "${LangBin}/${bin}" ]; then
+				#Add command to Aliases
+				AddAlias "${bin}" "${LangBin}/${bin}"
+			elif [ ! -f "${LangBin}/${bin}" ]; then
+				#compule or swap to binary
+				errorCode "install" "${bin}"
+			else
+				errorCode "noCode"
+			fi
+			;;
+		customCode)
+			local cLang=$1
+			#Check for Custom Code Template
+			if [ -f ${TemplateCode} ]; then
+				echo -n "${cLang}\$ ./newC++ "
+				read -a Args
+				#Program Args Given
+				if [ ! -z "${Args}" ];then
+					${TemplateCode} ${Args[@]}
+				#No Program Name Given
+				else
+					#Help Page
+					${TemplateCode} --help
+				fi
+			else
+				#Program Name Given
+				errorCode "customCode" "notemp" "${Lang}"
+			fi
+			;;
+		newCode)
+			local name=$1
+			local Project=$2
+			local Type=$3
+			Type=$(echo ${Type} | tr A-Z a-z)
+			name=${name%.cpp}
+			name=${name%.h}
+			if [ ! -f ${name}.cpp ] || [ ! -f ${name}.h ]; then
+				case ${Type} in
+					#create header file
 				header)
 					#Program Name Given
 					if [ ! -z "${name}" ];then
@@ -366,7 +445,7 @@ UseCpp()
 						fi
 					fi
 					;;
-					#cl[ide] knows best
+				#cl[ide] knows best
 				*)
 					#Is not a project
 					if [[ "${Project}" == "none" ]]; then
@@ -381,6 +460,22 @@ UseCpp()
 					fi
 					;;
 				esac
+			fi
+			;;
+		cli)
+			local TheName=$1
+			TheName=$(OtherColor "${TheName%.*}")
+			echo "./${TheName}"
+			;;
+		runCode)
+			local name=$1
+			shift
+			local Args=$@
+			local TheBin="${name%.*}"
+			if [ -f ${LangBin}/${TheBin} ]; then
+				${LangBin}/${TheBin} ${Args[@]}
+			else
+				errorCode "cpl" "need" "${name}"
 			fi
 			;;
 		*)

@@ -9,10 +9,26 @@ editor=$1
 shift
 ReadBy=$1
 shift
+project=$1
+shift
+CplArgs=$1
+shift
+
+SupportVersion()
+{
+        echo "0.1.0"
+}
 
 errorCode()
 {
         ${ClideDir}/errorCode.sh $@
+}
+
+OtherColor()
+{
+	local text=$1
+	#Return Purple
+	echo -e "\e[1;35m${text}\e[0m"
 }
 
 UsePython()
@@ -34,6 +50,18 @@ UsePython()
 			echo -e "compile|cpl\t\t\t: \"make code executable\""
 			echo -e "shell\t\t\t\t: run shell for testing"
 			;;
+		getCode)
+			local name=$1
+			#Get code 
+			if [ -f ${LangSrc}/${name}.py ]; then
+				echo ${name}.py
+			elif [ -f ${LangSrc}/${name} ]; then
+				echo ${name}
+			fi
+			;;
+		BeforeFiles|AfterFiles)
+			ls *.py
+			;;
 		pgLang)
 			local HasLang=$(which ${PythonRun} 2> /dev/null)
 			if [ ! -z "${HasLang}" ]; then
@@ -49,6 +77,9 @@ UsePython()
 			echo ${LangSrc}
 			;;
 		CreateHelp)
+			;;
+		shell)
+			${PythonRun}
 			;;
 		newCodeHelp)
 			if [ -f ${TemplateCode} ]; then
@@ -341,6 +372,22 @@ UsePython()
 						errorCode "newCode"
 					fi
 				fi
+			fi
+			;;
+		cli)
+			local TheName=$(OtherColor $1)
+			echo "${PythonRun} ${TheName}"
+			;;
+		runCode)
+			local name=$1
+			local TheBin="${name}"
+			shift
+			local Args=$@
+			#Check if Pythin Bin exists
+			if [ -f ${LangBin}/${TheBin} ]; then
+				${PythonRun} ${LangBin}/${TheBin} ${Args[@]}
+			else
+				errorCode "cpl" "need" "${name}"
 			fi
 			;;
 		*)

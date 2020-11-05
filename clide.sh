@@ -11,7 +11,7 @@ Shell=$(which bash)
 #1st # = Overflow
 #2nd # = Additional features
 #3rd # = Bug/code tweaks/fixes
-Version="0.65.84"
+Version="0.65.90"
 
 #cl[ide] config
 #{
@@ -33,52 +33,17 @@ Head="cl[ide]"
 IDE=$(echo -e "\e[1;40mide\e[0m")
 Name="cl${IDE}"
 
-#Compilers/Interpreters
-BashCpl=bash
-PythonRun=python
-PerlRun=perl
-RubyRun=ruby
-CppCpl=g++
-JavaCpl=javac
-JavaRun=java
-
 #root dir
 ProgDir=~/Programs
 ClideDir=${ProgDir}/.clide
 NotesDir=${ClideDir}/notes
 LangsDir=${ClideDir}/langs
 
-#Program Homes
-BashHome=${ProgDir}/Bash
-PythonHome=${ProgDir}/Python
-PerlHome=${ProgDir}/Perl
-RubyHome=${ProgDir}/Ruby
-CppHome=${ProgDir}/C++
-JavaHome=${ProgDir}/Java
-
-#Soruce Code
-BashSrc=${BashHome}/src
-PythonSrc=${PythonHome}/src
-PerlSrc=${PerlHome}/src
-RubySrc=${RubyHome}/src
-CppSrc=${CppHome}/src
-JavaSrc=${JavaHome}/src
-
-#Bin Code
-BashBin=${BashHome}/bin
-PythonBin=${PythonHome}/bin
-PerlBin=${PerlHome}/bin
-RubyBin=${RubyHome}/bin
-CppBin=${CppHome}/bin
-JavaBin=${JavaHome}/bin
-
 #Global Vars
 #{
-Project=""
 CodeProject="none"
 RunTimeArgs=""
-JavaRunProp=""
-CppCplVersion=""
+RunCplArgs="none"
 declare -A Commands
 #}
 
@@ -254,12 +219,12 @@ UseOther()
 #Select Languge
 ManageLangs()
 {
-	local Langs=$(echo $1 | tr A-Z a-z)
+	local Langs=$1
 	#Make first letter uppercase
 	shift
 	local Manage=$@
 	if [ -f ${LangsDir}/Lang.${Langs^} ]; then
-		${LangsDir}/Lang.${Langs^} ${ProgDir} ${ClideDir} ${editor} ${ReadBy} ${Manage[@]}
+		${LangsDir}/Lang.${Langs^} ${ProgDir} ${ClideDir} ${editor} ${ReadBy} ${CodeProject} ${RunCplArgs} ${Manage[@]}
 	else
 		UseOther ${Langs} ${Manage[@]}
 	fi
@@ -586,94 +551,17 @@ runCode()
 	local Args=""
 	local JavaProp=""
 	local TheBin=""
-	local TheJar=""
 	if [[ "${name}" == *","* ]]; then
 		echo "${Head} can only handle ONE file"
 	else
-		case ${Lang} in
-			#Adjust for C++ code
-			C++)
-				TheBin="${name%.*}"
-				;;
-			#Adjust for Java code
-			Java)
-				TheBin="${name%.*}.class"
-				TheJar="${name%.*}.jar"
-				#Check for Java System.getProperty
-				getPropPresent=$(grep "System.getProperty" ${name} | grep \, | tr -d '\t')
-				if [ ! -z "${getPropPresent}" ] && [ -z "${JavaProp}" ]; then
-					if [ -z "${JavaRunProp}" ]; then
-						#User Provide Values
-						echo "Please Provide Java Property"
-						echo -n "-D"
-						read -e EnvArgs
-						EnvArgs=$(echo "-D${EnvArgs}")
-						#All Given in one line
-					fi
-					#Ensure correct flags
-					if [[ "${EnvArgs}" == "-D"*"=\""*"\"" ]]; then
-						JavaProp=${EnvArgs}
-					#Args pre-set
-					elif [[ "${JavaRunProp}" == "-D"*"=\""*"\"" ]]; then
-						JavaProp=${JavaRunProp}
-					else
-						JavaProp=""
-					fi
-				fi
-				;;
-			#Bash and Python
-			*)
-				TheBin="${name}"
-				;;
-		esac
-
+		TheBin=${name}
 		#Come up with a way to know if arguments are needed
 		TheLang=$(color "${Lang}")
-		#If Java Class, remove .class
-		if [[ "${TheBin}" == *".class" ]]; then
-			TheName=$(color "${TheBin%.*}")
-			TheNameJar=$(color "${TheBin%.*}.jar")
-		#Other Languages
-		else
-			TheName=$(color "${TheBin}")
-		fi
 		#User Wishes to provide arments for program
 		case ${option} in
 			-a|--args)
-				CLIout=""
-				case ${Lang} in
-					Python)
-						CLIout="$USER@${Name}:~/${TheLang}\$ ${PythonRun} ${TheName}"
-						;;
-					Perl)
-						CLIout="$USER@${Name}:~/${TheLang}\$ ${PerlRun} ${TheName}"
-						;;
-					Ruby)
-						CLIout="$USER@${Name}:~/${TheLang}\$ ${RubyRun} ${TheName}"
-						;;
-					Java)
-						if [ ! -z "${JavaProp}" ]; then
-							#Its a Class
-							if [ -f ${JavaBin}/${TheBin} ]; then
-								CLIout="$USER@${Name}:~/${TheLang}\$ java ${JavaProp} ${TheName}"
-							#Its a Jar
-							elif [ -f ${JavaBin}/${TheJar} ]; then
-								CLIout="$USER@${Name}:~/${TheLang}\$ java -jar ${TheNameJar}"
-							fi
-						else
-							#Its a Class
-							if [ -f ${JavaBin}/${TheBin} ]; then
-								CLIout="$USER@${Name}:~/${TheLang}\$ java ${TheName}"
-							#Its a Jar
-							elif [ -f ${JavaBin}/${TheJar} ]; then
-								CLIout="$USER@${Name}:~/${TheLang}\$ java -jar ${TheNameJar}"
-							fi
-						fi
-						;;
-					*)
-						CLIout="$USER@${Name}:~/${TheLang}\$ ./${TheName}"
-						;;
-				esac
+				CLIout=$(ManageLangs ${Lang} "cli" "${TheBin}")
+				CLIout="$USER@${Name}:~/${TheLang}\$ ${CLIout}"
 				#User Args not Pre-done
 				if [ -z "${RunTimeArgs}" ]; then
 					#Get User Args
@@ -690,77 +578,7 @@ runCode()
 			*)
 				;;
 		esac
-
-		case ${Lang} in
-			#Bash
-			Bash)
-				#Check if Bash Script exists
-				if [ -f ${BashBin}/${name} ]; then
-				${BashBin}/${name} ${Args[@]}
-				else
-					errorCode "cpl" "need" "${name}"
-				fi
-				;;
-			#Python
-			Python)
-				#Check if Pythin Bin exists
-				if [ -f ${PythonBin}/${TheBin} ]; then
-					${PythonRun} ${PythonBin}/${TheBin} ${Args[@]}
-				else
-					errorCode "cpl" "need" "${name}"
-				fi
-				;;
-			#Perl
-			Perl)
-				#Check if Perl Bin exists
-				if [ -f ${PerlBin}/${TheBin} ]; then
-					${PerlRun} ${PerlBin}/${TheBin} ${Args[@]}
-				else
-					errorCode "cpl" "need" "${name}"
-				fi
-				;;
-			#Ruby
-			Ruby)
-				#Check if Ruby Bin exists
-				if [ -f ${RubyBin}/${TheBin} ]; then
-					${RubyRun} ${RubyBin}/${TheBin} ${Args[@]}
-				else
-					errorCode "cpl" "need" "${name}"
-				fi
-				;;
-			#C++
-			C++)
-				#Check if C++ Bin exists
-				if [ -f ${CppBin}/${TheBin} ]; then
-					${CppBin}/${TheBin} ${Args[@]}
-				else
-					errorCode "cpl" "need" "${name}"
-				fi
-				;;
-			#Java
-			Java)
-				#Check if Java Class exists
-				if [ -f ${JavaBin}/${TheBin} ]; then
-					TheBin=${TheBin%.*}
-					cd ${JavaBin}
-					#If no JavaProp found
-					if [ -z "${JavaProp}" ]; then
-						#Execute without
-						${JavaRun} ${TheBin} ${Args[@]}
-					else
-						${JavaRun} "${JavaProp}" ${TheBin} ${Args[@]}
-					fi
-					cd - > /dev/null
-				#Check if Java Jar exists
-				elif [ -f ${JavaBin}/${TheJar} ]; then
-					${JavaRun} -jar ${JavaBin}/${TheJar} ${Args[@]}
-				else
-					errorCode "cpl" "need" "${name}"
-				fi
-				;;
-			*)
-				;;
-		esac
+		ManageLangs ${Lang} "runCode" "${TheBin}" ${Args[@]}
 	fi
 }
 
@@ -1331,16 +1149,7 @@ Actions()
 					;;
 				#use the shell of a given language
 				shell)
-					case ${Lang} in
-						#Python
-						Python)
-							#Enter shell
-							${PythonRun}
-							;;
-						#Language does not support a shell
-						*)
-							;;
-					esac
+					ManageLangs ${Lang} "shell"
 					;;
 				#Create new source code
 				new)
@@ -1357,50 +1166,10 @@ Actions()
 							local BeforeFiles=""
 							local AfterFiles=""
 							local Type=""
-							case ${Lang} in
-								#Language is Bash
-								Bash)
-									#Type="sh"
-									#BeforeFiles=$(ls *.${Type})
-									BeforeFiles=$(ls *.*)
-									;;
-								#Language is Python
-								Python)
-									#Type="py"
-									#BeforeFiles=$(ls *.${Type})
-									BeforeFiles=$(ls *.*)
-									;;
-								#Language is Perl
-								Perl)
-									#Type="pl"
-									#BeforeFiles=$(ls *.${Type})
-									BeforeFiles=$(ls *.*)
-									;;
-								#Language is Ruby
-								Ruby)
-									#Type="rb"
-									#BeforeFiles=$(ls *.${Type})
-									BeforeFiles=$(ls *.*)
-									;;
-								#Language is C++
-								C++)
-									#Type="cpp"
-									#BeforeFiles=$(ls *.${Type})
-									BeforeFiles=$(ls *.*)
-									;;
-								#Language is Java
-								Java)
-									#Type="java"
-									#BeforeFiles=$(ls *.${Type})
-									BeforeFiles=$(ls *.*)
-									;;
-								*)
-									;;
-							esac
+							BeforeFiles=$(ManageLangs ${Lang} "BeforeFiles")
 							#Create new code
 							ManageLangs ${Lang} "customCode" ${Lang} ${cLang}
-							#AfterFiles=$(ls *.${Type})
-							AfterFiles=$(ls *.*)
+							AfterFiles=$(ManageLangs ${Lang} "AfterFiles")
 							#look for created files
 							NewCode=$(echo ${BeforeFiles} ${AfterFiles} | tr ' ' '\n' | sort | uniq -u | tr -d '\n')
 							#Check if new code is found
@@ -1419,66 +1188,7 @@ Actions()
 							if [ ! -z "${UserIn[1]}" ]; then
 								#Return the name of source code
 								ManageLangs ${Lang} "newCode" ${UserIn[1]} ${CodeProject} ${UserIn[2]}
-								case ${Lang} in
-									#Language is Bash
-									Bash)
-										#Get code
-										if [ -f ${BashSrc}/${UserIn[1]}.sh ]; then
-											Code=${UserIn[1]}.sh
-										elif [ -f ${BashSrc}/${UserIn[1]} ]; then
-											Code=${UserIn[1]}
-										fi
-										;;
-									#Language is Python
-									Python)
-										#Get code
-										if [ -f ${PythonSrc}/${UserIn[1]}.py ]; then
-											Code=${UserIn[1]}.py
-										elif [ -f ${PythonSrc}/${UserIn[1]} ]; then
-											Code=${UserIn[1]}
-										fi
-										;;
-									#Language is Perl
-									Perl)
-										#Get code
-										if [ -f ${PerlSrc}/${UserIn[1]}.pl ]; then
-											Code=${UserIn[1]}.pl
-										elif [ -f ${PerlSrc}/${UserIn[1]} ]; then
-										Code=${UserIn[1]}
-										fi
-										;;
-									#Language is Ruby
-									Ruby)
-										#Get code
-										if [ -f ${RubySrc}/${UserIn[1]}.rb ]; then
-											Code=${UserIn[1]}.rb
-										elif [ -f ${RubySrc}/${UserIn[1]} ]; then
-											Code=${UserIn[1]}
-										fi
-										;;
-									#Language is C++
-									C++)
-										#Get code
-										if [ -f ${CppSrc}/${UserIn[1]}.cpp ]; then
-											Code=${UserIn[1]}.cpp
-										elif [ -f ${CppSrc}/${UserIn[1]}.h ]; then
-											Code=${UserIn[1]}.h
-										elif [ -f ${CppSrc}/${UserIn[1]} ]; then
-											Code=${UserIn[1]}
-										fi
-										;;
-									#Language is Java
-									Java)
-										#Get code
-										if [ -f ${JavaSrc}/${UserIn[1]}.java ]; then
-											Code=${UserIn[1]}.java
-										elif [ -f ${JavaSrc}/${UserIn[1]} ]; then
-											Code=${UserIn[1]}
-										fi
-										;;
-									*)
-										;;
-								esac
+								Code=$(ManageLangs ${Lang} "getCode" ${UserIn[1]})
 							else
 								newCodeHelp ${Lang}
 							fi
@@ -1557,125 +1267,20 @@ Actions()
 				create)
 					#what to create
 					case ${UserIn[1]} in
-						make)
-							#Manage languages
-							case ${Lang} in
-								#C++ Make file
-								C++)
-									case ${CodeProject} in
-										#No Project
-										none)
-											echo "Project C++ ONLY"
-											;;
-										#Is a project
-										*)
-											#makefile already exists
-											if [ -f ${CppSrc}/${CodeProject}/makefile ]; then
-												echo "makefile Already made for \"${CodeProject}\""
-											#makefile already made
-											else
-												touch ${CppSrc}/${CodeProject}/makefile
-												echo "makefile Created"
-											fi
-											;;
-									esac
-									;;
-								#Is not C++
-								*)
-									echo "make files C++ Only"
-									;;
-
-							esac
-							;;
-						version|-std=*)
-							case ${Lang} in
-								C++)
-									case ${UserIn[1]} in
-										-std=*)
-											CppCplVersion="${UserIn[1]}"
-											;;
-										*)
-											CppCplVersion="${UserIn[2]}"
-											;;
-									esac
-
-									if [ -z "${CppCplVersion}" ]; then
-										echo -n "${cLang}\$ -std="
-										read -a CppCplVersion
-									fi
-									if [ ! -z "${CppCplVersion}" ]; then
-										case ${CppCplVersion} in
-											-std=*)
-												CppCplVersion=${CppCplVersion#-std=}
-												;;
-											*)
-												;;
-										esac
-										if [ ! -z "${CppCplVersion}" ] && [[ "${CppCplVersion}" == *"c++"* ]]; then
-											CppCplVersion="-std=${CppCplVersion}"
-										else
-											CppCplVersion=""
-										fi
-									fi
-									;;
-								*)
-									echo "At this time, only for C++"
-									;;
-							esac
-							;;
-						jar|manifest)
-							#Manage languages
-							case ${Lang} in
-								#Java Properties
-								Java)
-									#Creating new manifast.mf
-									if [ ! -f manifest.mf ]; then
-										echo "Manifest-Version: 1.1" > manifest.mf
-										echo "Created-By: $USER" >> manifest.mf
-										echo "Main-Class: " >> manifest.mf
-										echo "Sealed: true" >> manifest.mf
-									fi
-									#edit manifest.mf
-									${editor} manifest.mf
-									;;
-								*)
-									echo "Java only"
-									;;
-							esac
-							;;
 						#Args for run time
 						args)
 							echo -n "${cLang}\$ "
 							read -a RunTimeArgs
 							;;
-						#Java properties
-						prop|properties|-D)
-							#Manage languages
-							case ${Lang} in
-								#Java Properties
-								Java)
-									#Enter Java properties
-									echo -n "-D"
-									read -e EnvArgs
-									EnvArgs=$(echo "-D${EnvArgs}")
-									#Ensure correct flags
-									if [[ "${EnvArgs}" == "-D"*"=\""*"\"" ]]; then
-										JavaRunProp=${EnvArgs}
-									else
-										JavaRunProp=""
-									fi
-									;;
-								*)
-									echo "Java only"
-									;;
-							esac
-							;;
 						#Clear all
 						reset)
 							#Default values
 							RunTimeArgs=""
-							JavaRunProp=""
+							RunCplArgs="none"
 							echo "All rest"
+							;;
+						${UserIn[1]}-${UserIn[2]})
+							RunCplArgs=$(ManageLangs ${Lang} "${UserIn[1]}-${UserIn[2]}" ${Code} ${UserIn[@]})
 							;;
 						#Show help page
 						*)
@@ -1721,40 +1326,12 @@ Actions()
 						Dir="${CodeProject}"
 					fi
 					#Determine Language
-					case ${Lang} in
-						#Language is Bash
-						Bash)
-							#Get code dir
-							CodeDir=${BashSrc}/${Dir}
-							;;
-						#Language is Python
-						Python)
-							#Get code dir
-							CodeDir=${PythonSrc}/${Dir}
-							;;
-						#Language is Perl
-						Perl)
-							#Get code dir
-							CodeDir=${PerlSrc}/${Dir}
-							;;
-						#Language is Ruby
-						Ruby)
-							#Get code dir
-							CodeDir=${RubySrc}/${Dir}
-							;;
-						#Language is C++
-						C++)
-							#Get code dir
-							CodeDir=${CppSrc}/${Dir}
-							;;
-						#Language is Java
-						Java)
-							#Get code dir
-							CodeDir=${JavaSrc}/${Dir}
-							;;
-					esac
-					#Go to dir
-					cd ${CodeDir}
+					CodeDir=$(ManageLangs "${Lang}" "pgDir")
+					if [ ! -z "${CodeDir}" ]; then
+						CodeDir=${CodeDir}/${Dir}
+						#Go to dir
+						cd ${CodeDir}
+					fi
 					;;
 				#List supported languages
 				langs|languages)
@@ -1956,12 +1533,13 @@ main()
 {
 	#Make sure everything is working
 	EnsureDirs
-	local pg=$(ColorCodes)
 	local UserArg=$1
+	local pg
 	local prompt
 	#No argument given
 	if [ -z "${UserArg}" ]; then
 		clear
+		pg=$(ColorCodes)
 		local getLang=""
 		if [ ! -z "${pg}" ]; then
 			CliHelp
@@ -2002,12 +1580,23 @@ main()
 				;;
 			#Get version of template
 			-tv|--temp-version)
-				ManageLangs Bash "TemplateVersion" | sed "s/Version/Bash/g" | grep -v found
-				ManageLangs Python "TemplateVersion" | sed "s/Version/Python/g" | grep -v found
-				ManageLangs Perl "TemplateVersion" | sed "s/Version/Perl/g" | grep -v found
-				ManageLangs Ruby "TemplateVersion" | sed "s/Version/Ruby/g" | grep -v found
-				ManageLangs C++ "TemplateVersion" | sed "s/Version/C++/g" | grep -v found
-				ManageLangs Java "TemplateVersion" | sed "s/Version/Java/g" | grep -v found
+				local GetLangs=$(ls ${LangsDir}/ | sed "s/Lang.//g" | tr '\n' '|' | rev | sed "s/|//1" | rev)
+				local NumOfLangs=$(ls | wc -l)
+				local look=1
+				local text
+				while [ ${look} -le ${NumOfLangs} ];
+				do
+					text=$(echo ${GetLangs} | cut -d '|' -f ${look})
+					text=$(ManageLangs ${text} "pgLang")
+					case ${text} in
+						no)
+							;;
+						*)
+							ManageLangs "${text}" "TemplateVersion" | sed "s/Version/${text}/g" | grep -v found
+							;;
+					esac
+					look=$((${look}+1))
+				done
 				;;
 			#Get version control version from cli
 			-rv|--repo-version)

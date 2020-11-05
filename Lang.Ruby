@@ -9,10 +9,26 @@ editor=$1
 shift
 ReadBy=$1
 shift
+project=$1
+shift
+CplArgs=$1
+shift
+
+SupportVersion()
+{
+        echo "0.1.0"
+}
 
 errorCode()
 {
         ${ClideDir}/errorCode.sh $@
+}
+
+OtherColor()
+{
+	local text=$1
+	#Return Purple
+	echo -e "\e[1;35m${text}\e[0m"
 }
 
 UserRuby()
@@ -43,11 +59,24 @@ UserRuby()
 				echo "no"
 			fi
 			;;
+		getCode)
+			local name=$1
+			if [ -f ${LangSrc}/${name}.rb ]; then
+				echo ${name}.rb
+			elif [ -f ${LangSrc}/${name} ]; then
+				echo ${name}
+			fi
+			;;
+		BeforeFiles|AfterFiles)
+			ls *.rb
+			;;
 		pgDir)
 			#Return Ruby src Dir
 			echo ${LangSrc}
 			;;
 		CreateHelp)
+			;;
+		shell)
 			;;
 		newCodeHelp)
 			if [ -f ${TemplateCode} ]; then
@@ -328,6 +357,22 @@ UserRuby()
 						errorCode "newCode"
 					fi
 				fi
+			fi
+			;;
+		cli)
+			local TheName=$(OtherColor $1)
+			echo "${RubyRun} ${TheName}"
+			;;
+		runCode)
+			local name=$1
+			local TheBin=${name}
+			shift
+			local Args=$@
+			#Check if Ruby Bin exists
+			if [ -f ${LangBin}/${TheBin} ]; then
+				${RubyRun} ${LangBin}/${TheBin} ${Args[@]}
+			else
+				errorCode "cpl" "need" "${name}"
 			fi
 			;;
 		*)
