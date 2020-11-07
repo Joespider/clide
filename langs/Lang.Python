@@ -4,6 +4,7 @@ Shell=$(which bash)
 ProgDir=$1
 shift
 ClideDir=$1
+LibDir=${ClideDir}/lib
 shift
 editor=$1
 shift
@@ -16,12 +17,18 @@ shift
 
 SupportVersion()
 {
-        echo "0.1.0"
+        echo "0.1.01"
 }
 
 errorCode()
 {
-        ${ClideDir}/errorCode.sh $@
+        ${LibDir}/errorCode.sh $@
+}
+
+#Handle Aliases
+AddAlias()
+{
+	${LibDir}/AddAlias.sh $@
 }
 
 OtherColor()
@@ -31,52 +38,55 @@ OtherColor()
 	echo -e "\e[1;35m${text}\e[0m"
 }
 
-UsePerl()
+UsePython()
 {
-	local PerlRun=perl
-	local LangHome=${ProgDir}/Perl
+	local PythonRun=python
+	local LangHome=${ProgDir}/Python
 	local LangSrc=${LangHome}/src
 	local LangBin=${LangHome}/bin
-	local TemplateCode=${LangBin}/newPerl.pl
+	local TemplateCode=${LangBin}/newPython.py
 	local Type=$1
 	shift
 	case ${Type} in
 		color)
-			#Return Purple
-			echo -e "\e[1;35mPerl\e[0m"
+			#Return Yellow
+			echo -e "\e[1;33mPython\e[0m"
 			;;
 		MenuHelp)
 			echo -e "new <file>\t\t\t: \"create new ${Lang} script\""
 			echo -e "compile|cpl\t\t\t: \"make code executable\""
+			echo -e "shell\t\t\t\t: run shell for testing"
 			;;
 		getCode)
 			local name=$1
-			if [ -f ${LangSrc}/${name}.pl ]; then
-				echo ${name}.pl
+			#Get code 
+			if [ -f ${LangSrc}/${name}.py ]; then
+				echo ${name}.py
 			elif [ -f ${LangSrc}/${name} ]; then
 				echo ${name}
 			fi
 			;;
 		BeforeFiles|AfterFiles)
-			ls *.pl
+			ls *.py
 			;;
 		pgLang)
-			local HasLang=$(which ${PerlRun} 2> /dev/null)
+			local HasLang=$(which ${PythonRun} 2> /dev/null)
 			if [ ! -z "${HasLang}" ]; then
-				#Return Perl tag
-				echo "Perl"
+				#Return Python tag
+				echo "Python"
 			else
 				#Return rejection
 				echo "no"
 			fi
 			;;
 		pgDir)
-			#Return Perl src Dir
+			#Return Python src Dir
 			echo ${LangSrc}
 			;;
 		CreateHelp)
 			;;
 		shell)
+			${PythonRun}
 			;;
 		newCodeHelp)
 			if [ -f ${TemplateCode} ]; then
@@ -85,34 +95,34 @@ UsePerl()
 			;;
 		EnsureDirs)
 			#Home
-			if [ ! -d "${LangHome}" ] && [ ! -z "${PerlRun}" ]; then
+			if [ ! -d "${LangHome}" ] && [ ! -z "${PythonRun}" ]; then
 				mkdir "${LangHome}"
 			fi
 			#Src
-			if [ ! -d "${LangSrc}" ] && [ ! -z "${PerlRun}" ]; then
+			if [ ! -d "${LangSrc}" ] && [ ! -z "${PythonRun}" ]; then
 				mkdir "${LangSrc}"
 			fi
 			#Bin
-			if [ ! -d "${LangBin}" ] && [ ! -z "${PerlRun}" ]; then
+			if [ ! -d "${LangBin}" ] && [ ! -z "${PythonRun}" ]; then
 				mkdir "${LangBin}"
 			fi
 			;;
 		TemplateVersion)
 			if [ -f ${TemplateCode} ]; then
-				${PerlRun} ${TemplateCode} 2> /dev/null | grep Version
+				${PythonRun} ${TemplateCode} 2> /dev/null | grep Version
 			else
-				echo "no newPerl found"
+				echo "no newPython found"
 			fi
 			;;
 		CodeVersion)
-			echo "[Perl]"
-			${PerlRun} --version 2> /dev/null | grep Version
+			echo "[Python]"
+				${PythonRun} --version
 			;;
 		selectCode)
 			name=$1
 			#Correct filename
-			if [[ ! "${name}" == *".pl" ]]; then
-				name="${name}.pl"
+			if [[ ! "${name}" == *".py" ]]; then
+				name="${name}.py"
 			fi
 			echo ${name}
 			;;
@@ -120,9 +130,9 @@ UsePerl()
 			src=$1
 			new=$2
 			case ${src} in
-				*.pl)
+				*.py)
 					case ${new} in
-						*.pl)
+						*.py)
 							if [ -f "${new}" ]; then
 								echo "${src},${new}"
 							else
@@ -130,8 +140,8 @@ UsePerl()
 							fi
 							;;
 						*)
-							if [ -f "${new}.pl" ]; then
-								echo "${src},${new}.pl"
+							if [ -f "${new}.py" ]; then
+								echo "${src},${new}.py"
 							else
 								echo "${src}"
 							fi
@@ -146,16 +156,16 @@ UsePerl()
 			src=$1
 			num=$2
 			case ${src} in
-				*.pl)
+				*.py)
 					if [[ "${src}" == *","* ]]; then
 						if [ -z ${num} ]; then
 							errorCode "editNull"
 						else
 							if [[ "${src}" == *"${num}"* ]]; then
-								if [[ "${num}" == *".pl" ]]; then
+								if [[ "${num}" == *".py" ]]; then
 									${editor} ${num}
 								else
-									${editor} "${num}.pl"
+									${editor} "${num}.py"
 								fi
 							else
 								errorCode "editNot"
@@ -173,16 +183,16 @@ UsePerl()
 			src=$1
 			num=$2
 			case ${src} in
-				*.pl)
+				*.py)
 					if [[ "${src}" == *","* ]]; then
 						if [ -z ${num} ]; then
 							errorCode "readNull"
 						else
 							if [[ "${src}" == *"${num}"* ]]; then
-								if [[ "${num}" == *".pl" ]]; then
+								if [[ "${num}" == *".py" ]]; then
 									${ReadBy} ${num}
 								else
-									${ReadBy} "${num}.pl"
+									${ReadBy} "${num}.py"
 								fi
 							else
 								errorCode "readNot"
@@ -209,7 +219,14 @@ UsePerl()
 				project="${project}/"
 			fi
 			case ${src} in
-				*.pl)
+				*.py)
+					#Compile Python Script
+					#py2bin "${src}"
+					#Get Python Name
+			                #pyBin="${src%.*}"
+					#Move Python Program to Binary dir
+					#mv ${pyBin} ../bin/
+					#Check if Python Script does NOT exist
 					#Multiple code selected
 					if [[ "${src}" == *","* ]]; then
 						#variable is empty
@@ -220,21 +237,21 @@ UsePerl()
 							#chosen file is in the list of files
 							if [[ "${src}" == *"${name}"* ]]; then
 								#only name is given
-								if [[ "${name}" != *".pl" ]]; then
+								if [[ "${name}" != *".py" ]]; then
 									#full filename given
-									num=${name}.pl
+									num=${name}.py
 								fi
-								#Make Perl Script executable
+								#Make Python Script executable
 								chmod +x ${name}
-								#Check if Perl Script does NOT exist
+								#Check if Python Script does NOT exist
 								if [[ ! -f "${LangBin}/${name}" ]]; then
-									#Change to Perl Binary dir
+									#Change to Python Binary dir
 									cd ${LangBin}
-									#Create Symbolic Link to Perl Script
+									#Create Symbolic Link to Python Script
 									ln -s ../src/${project}${name}
-									#Change to Perl Source dir
+									#Change to Python Source dir
 									cd "${LangSrc}/${project}"
-									echo -e "\e[1;45m[Perl Code Compiled]\e[0m"
+									echo -e "\e[1;43m[Python Code Compiled]\e[0m"
 								else
 									errorCode "cpl" "already" ${name}
 								fi
@@ -244,18 +261,18 @@ UsePerl()
 						fi
 					#single code selected
 					else
-						#Make Perl Script executable
+						#Make Python Script executable
 						chmod +x ${src}
-						#Check if Perl Script does NOT exist
+						#Check if Python Script does NOT exist
 						if [[ ! -f "${LangBin}/${src}" ]]; then
-							#Change to Perl Binary dir
+							#Change to Python Binary dir
 							cd ${LangBin}
-							#Create Symbolic Link to Perl Script
+							#Create Symbolic Link to Python Script
 							ln -s ../src/${project}${src}
-							#Change to Perl Source dir
+							#Change to Python Source dir
 							cd "${LangSrc}/${project}"
-							echo -e "\e[1;45m[Perl Code Compiled]\e[0m"
-							#Code is already found
+							echo -e "\e[1;43m[Python Code Compiled]\e[0m"
+						#Code is already found
 						else
 							errorCode "cpl" "already" ${src}
 						fi
@@ -279,22 +296,27 @@ UsePerl()
 			;;
 		SwapToSrc)
 			src=$1
-			#Get Perl Name
-			echo "${src}"
+			#Get Python Name
+		#	src="${src}.py"
+		#	#Check if Python source exists
+		#	if [[ -f "${LangSrc}/${src}" ]]; then
+		#		#Return Python Source Name
+				echo "${src}"
+		#	fi
 			;;
 		SwapToBin)
 			bin=$1
 			case ${bin} in
-				*.pl)
-					#Get Perl Name
-					#	bin="${bin%.*}"
-					#Check if Perl Binary exists
+				*.py)
+					#Get Python Name
+				#	bin="${bin%.*}"
+					#Check if Python Binary exists
 					if [[ -f "${LangBin}/${bin}" ]]; then
 						#cd "${LangBin}"
-						#Return Perl Binary Name
+						#Return Python Binary Name
 						echo "${bin}"
 					else
-						echo "${bin}"
+					echo "${bin}"
 					fi
 					;;
 				*)
@@ -308,7 +330,7 @@ UsePerl()
 			#Make sure Binary exists
 			if [ -f "${LangBin}/${bin}" ]; then
 				#Add command to Aliases
-				AddAlias "${BinFile}" "${PerlRun} ${LangBin}/${bin}"
+				AddAlias "${BinFile}" "${PythonRun} ${LangBin}/${bin}"
 			elif [ ! -f "${LangBin}/${bin}" ]; then
 				errorCode "install" "${bin}"
 			else
@@ -317,15 +339,16 @@ UsePerl()
 			;;
 		customCode)
 			cLang=$1
+			#Check for Custom Code Template
 			if [ -f ${TemplateCode} ]; then
-				echo -n "${cLang}\$ ${PerlRun} newPerl.pl "
+				echo -n "${cLang}\$ ${PythonRun} newPython.py "
 				read -a Args
 				#Program Args Given
 				if [ ! -z "${Args}" ];then
-					${PerlRun} ${TemplateCode} ${Args[@]}
+					${PythonRun} ${TemplateCode} ${Args[@]}
 				#No Program Name Given
 				else
-					${PerlRun} ${TemplateCode} --help
+					${PythonRun} ${TemplateCode} --help
 				fi
 			else
 				#Program Name Given
@@ -337,21 +360,21 @@ UsePerl()
 			Project=$2
 			Type=$3
 			Type=$(echo ${Type} | tr A-Z a-z)
-			name=${name%.pl}
-			if [ ! -f ${name}.pl ]; then
+			name=${name%.py}
+			if [ ! -f ${name}.py ]; then
 				#Check for Custom Code Template
 				if [ -f ${TemplateCode} ]; then
 					#Program Name Given
 					if [ ! -z "${name}" ];then
-						${PerlRun} ${TemplateCode} --name ${name} --cli --main --write-file --read-file --os
+						${PythonRun} ${TemplateCode} -n ${name} --cli --main --shell --write-file --read-file --os --random
 					#No Program Name Given
 					else
-						${PerlRun} ${TemplateCode} --help
+						${PythonRun} ${TemplateCode} --help
 					fi
 				else
 					#Program Name Given
 					if [ ! -z "${name}" ];then
-						touch ${name}.pl
+						touch ${name}.py
 					else
 						errorCode "newCode"
 					fi
@@ -359,17 +382,17 @@ UsePerl()
 			fi
 			;;
 		cli)
-			local TheName=$(OtherColor $2)
-			echo "${PerlRun} ${TheName}"
+			local TheName=$(OtherColor $1)
+			echo "${PythonRun} ${TheName}"
 			;;
 		runCode)
 			local name=$1
 			local TheBin="${name}"
 			shift
-			local Arg=$@
-			#Check if Perl Bin exists
+			local Args=$@
+			#Check if Pythin Bin exists
 			if [ -f ${LangBin}/${TheBin} ]; then
-				${PerlRun} ${LangBin}/${TheBin} ${Args[@]}
+				${PythonRun} ${LangBin}/${TheBin} ${Args[@]}
 			else
 				errorCode "cpl" "need" "${name}"
 			fi
@@ -379,4 +402,5 @@ UsePerl()
 	esac
 }
 
-UsePerl $@
+
+UsePython $@

@@ -11,13 +11,12 @@ Shell=$(which bash)
 #1st # = Overflow
 #2nd # = Additional features
 #3rd # = Bug/code tweaks/fixes
-Version="0.65.90"
+Version="0.65.93"
 
 #cl[ide] config
 #{
 editor=nano
 ReadBy=less
-Aliases=~/.bash_aliases
 repoTool=git
 #repoTool=svn
 
@@ -37,7 +36,9 @@ Name="cl${IDE}"
 ProgDir=~/Programs
 ClideDir=${ProgDir}/.clide
 NotesDir=${ClideDir}/notes
+LibDir=${ClideDir}/lib
 LangsDir=${ClideDir}/langs
+ProjectDir=${ClideDir}/projects
 
 #Global Vars
 #{
@@ -249,6 +250,14 @@ EnsureDirs()
 		mkdir "${LangDir}"
 	fi
 
+	if [ ! -d "${LibDir}" ]; then
+		mkdir "${LibDir}"
+	fi
+
+	if [ ! -d "${ProjectDir}" ]; then
+		mkdir "${ProjectDir}"
+	fi
+
 	local Langs=$(ls ${LangsDir}/ | sed "s/Lang.//g" | tr '\n' '|' | rev | sed "s/|//1" | rev)
 	local NumOfLangs=$(ls | wc -l)
 	local look=1
@@ -322,7 +331,7 @@ Banner()
 #Error messages
 errorCode()
 {
-	${ClideDir}/errorCode.sh $@
+	${LibDir}/errorCode.sh $@
 }
 
 #Search selected code for element
@@ -375,8 +384,9 @@ importProject()
 	local Lang=$1
 	local Name=$2
 	local Path=$3
+	local ProjectFile=${ProjectDir}/${Name}.clide
 	if [ ! -z "${Name}" ]; then
-		if [ ! -f ${ClideDir}/${Name}.clide ]; then
+		if [ ! -f ${ProjectFile} ]; then
 			if [ -z "${Path}" ]; then
 				echo -n "Import Project \"${Name}\" from : "
 				read Path
@@ -387,10 +397,11 @@ importProject()
 			else
 				case ${Path} in
 					*${Name}|*${Name}/)
-						echo "name=${Name}" > ${ClideDir}/${Name}.clide
-						echo "lang=${Lang}" >> ${ClideDir}/${Name}.clide
-						echo "path=${Path}" >> ${ClideDir}/${Name}.clide
-						echo "src=" >> ${ClideDir}/${Name}.clide
+
+						echo "name=${Name}" > ${ProjectFile}
+						echo "lang=${Lang}" >> ${ProjectFile}
+						echo "path=${Path}" >> ${ProjectFile}
+						echo "src=" >> ${ProjectFile}
 						echo "Project \"${Name}\" Imported"
 						;;
 					*)
@@ -411,6 +422,7 @@ newProject()
 {
 	local lang=$1
 	local project=$2
+	local ProjectFile=${ProjectDir}/${project}.clide
 	local path=""
 	#No Project is found
 	if [ -z ${project} ]; then
@@ -418,15 +430,15 @@ newProject()
 	else
 		#Grab Project Data
 		#Name Value
-		echo "name=${project}" > ${ClideDir}/${project}.clide
+		echo "name=${project}" > ${ProjectFile}
 		#Language Value
-		echo "lang=${lang}" >> ${ClideDir}/${project}.clide
+		echo "lang=${lang}" >> ${ProjectFile}
 		#Create Project and get path
 		path=$(ManageLangs ${Lang} "newProject")
 		#Path Value
-		echo "path=${path}" >> ${ClideDir}/${project}.clide
+		echo "path=${path}" >> ${ProjectFile}
 		#Source Value
-		echo "src=" >> ${ClideDir}/${project}.clide
+		echo "src=" >> ${ProjectFile}
 	fi
 }
 
@@ -435,17 +447,16 @@ updateProject()
 {
 	local project=$1
 	local src=$2
+	local ProjectFile=${ProjectDir}/${project}.clide
 	#No Project is found
 	if [ ! -z ${src} ]; then
 		#Locate Project Directory
-		if [ ! -f ${ClideDir}/${project}.clide ]; then
+		if [ ! -f ${ProjectFile} ]; then
 			errorCode "project" "NotAProject" ${project}
 		else
 			#Incorperate sed instead of what you're doing
-			grep -v "src=" ${ClideDir}/${project}.clide > new
-			mv new ${ClideDir}/${project}.clide
-			#Grab Project Data
-			echo "src=${src}" >> ${ClideDir}/${project}.clide
+			SrcLine=$(grep "src=" ${ProjectFile})
+			sed -i "s/${SrcLine}/src=${src}/g" ${ProjectFile}
 		fi
 	fi
 }
@@ -461,6 +472,7 @@ listProjects()
 loadProject()
 {
 	local project=$1
+	local ProjectFile=${ProjectDir}/${project}.clide
 	local path=""
 	local RtnVals=""
 	local tag=""
@@ -471,20 +483,20 @@ loadProject()
 			echo "no"
 		else
 			#Locate Project Directory
-			if [ -f ${ClideDir}/${project}.clide ]; then
+			if [ -f ${ProjectFile} ]; then
 				#Grab Project Data
 				#Name Value
 				tag="name="
-				name=$(grep ${tag} ${ClideDir}/${project}.clide | sed "s/${tag}//g")
+				name=$(grep ${tag} ${ProjectFile} | sed "s/${tag}//g")
 				#Language Value
 				tag="lang="
-				lang=$(grep ${tag} ${ClideDir}/${project}.clide | sed "s/${tag}//g")
+				lang=$(grep ${tag} ${ProjectFile} | sed "s/${tag}//g")
 				#Source Value
 				tag="path="
-				path=$(grep ${tag} ${ClideDir}/${project}.clide | sed "s/${tag}//g")
+				path=$(grep ${tag} ${ProjectFile} | sed "s/${tag}//g")
 				#Source Value
 				tag="src="
-				src=$(grep ${tag} ${ClideDir}/${project}.clide | sed "s/${tag}//g")
+				src=$(grep ${tag} ${ProjectFile} | sed "s/${tag}//g")
 				#return valid
 				RtnVals="${lang};${src};${path}"
 				echo ${RtnVals}
@@ -645,36 +657,6 @@ ColorCodes()
 		look=$((${look}+1))
 	done
 	echo ${ChosenLangs}
-}
-
-#Handle Aliases
-AddAlias()
-{
-	local AliasName=$1
-	local Command="$2 $3"
-	local Insert="alias ${AliasName}=\"${Command} \$@\""
-	if [[ "$USER" == "root" ]]; then
-		Replace="\\$HOME\\/"
-	else
-		Replace="\\/home\\/$USER\\/"
-	fi
-	local With="\~\\/"
-	local CheckFor=$(echo ${Insert} | sed "s/${Replace}/${With}/g")
-	touch ${Aliases}
-	if grep -q "alias ${AliasName}=" ${Aliases}; then
-		errorCode "alias" ${AliasName}
-	else
-		if grep -q "${CheckFor}" ${Aliases}; then
-			errorCode "alias" ${AliasName}
-		else
-			#Add Alias to .bash_aliases file
-			echo ${Insert} >> ${Aliases}
-			cat ${Aliases} | sort | uniq > ${Aliases}.new
-			mv ${Aliases}.new ${Aliases}
-			sed  -i "s/${Replace}/${With}/g" ${Aliases}
-			echo "\"${AliasName}\" installed"
-		fi
-	fi
 }
 
 #Handle Git commands

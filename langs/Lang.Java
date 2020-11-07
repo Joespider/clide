@@ -4,6 +4,7 @@ Shell=$(which bash)
 ProgDir=$1
 shift
 ClideDir=$1
+LibDir=${ClideDir}/lib
 shift
 editor=$1
 shift
@@ -16,12 +17,18 @@ shift
 
 SupportVersion()
 {
-        echo "0.1.0"
+        echo "0.1.01"
 }
 
 errorCode()
 {
-        ${ClideDir}/errorCode.sh $@
+        ${LibDir}/errorCode.sh $@
+}
+
+#Handle Aliases
+AddAlias()
+{
+	${LibDir}/AddAlias.sh $@
 }
 
 OtherColor()

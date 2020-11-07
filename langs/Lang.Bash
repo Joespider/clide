@@ -4,6 +4,7 @@ Shell=$(which bash)
 ProgDir=$1
 shift
 ClideDir=$1
+LibDir=${ClideDir}/lib
 shift
 editor=$1
 shift
@@ -16,12 +17,18 @@ shift
 
 SupportVersion()
 {
-        echo "0.1.0"
+        echo "0.1.01"
 }
 
 errorCode()
 {
-        ${ClideDir}/errorCode.sh $@
+	${LibDir}/errorCode.sh $@
+}
+
+#Handle Aliases
+AddAlias()
+{
+	${LibDir}/AddAlias.sh $@
 }
 
 OtherColor()
@@ -31,55 +38,53 @@ OtherColor()
 	echo -e "\e[1;35m${text}\e[0m"
 }
 
-UsePython()
+UseBash()
 {
-	local PythonRun=python
-	local LangHome=${ProgDir}/Python
+	local BashCpl=bash
+	local LangHome=${ProgDir}/Bash
 	local LangSrc=${LangHome}/src
 	local LangBin=${LangHome}/bin
-	local TemplateCode=${LangBin}/newPython.py
+	local TemplateCode=${LangBin}/newBash.sh
 	local Type=$1
 	shift
 	case ${Type} in
 		color)
-			#Return Yellow
-			echo -e "\e[1;33mPython\e[0m"
+			#Return Green
+			echo -e "\e[1;32mBash\e[0m"
 			;;
 		MenuHelp)
 			echo -e "new <file>\t\t\t: \"create new ${Lang} script\""
 			echo -e "compile|cpl\t\t\t: \"make code executable\""
-			echo -e "shell\t\t\t\t: run shell for testing"
-			;;
-		getCode)
-			local name=$1
-			#Get code 
-			if [ -f ${LangSrc}/${name}.py ]; then
-				echo ${name}.py
-			elif [ -f ${LangSrc}/${name} ]; then
-				echo ${name}
-			fi
-			;;
-		BeforeFiles|AfterFiles)
-			ls *.py
 			;;
 		pgLang)
-			local HasLang=$(which ${PythonRun} 2> /dev/null)
+			HasLang=$(which ${BashCpl} 2> /dev/null)
 			if [ ! -z "${HasLang}" ]; then
-				#Return Python tag
-				echo "Python"
+				#Return Bash tag
+				echo "Bash"
 			else
 				#Return rejection
 				echo "no"
 			fi
 			;;
+		getCode)
+			local name=$1
+			#Get code
+			if [ -f ${LangSrc}/${name}.sh ]; then
+				echo ${name}.sh
+			elif [ -f ${LangSrc}/${name} ]; then
+				echo ${name}
+			fi
+			;;
+		BeforeFiles|AfterFiles)
+				ls *.sh
+			;;
 		pgDir)
-			#Return Python src Dir
+			#Return Bash src Dir
 			echo ${LangSrc}
 			;;
 		CreateHelp)
 			;;
 		shell)
-			${PythonRun}
 			;;
 		newCodeHelp)
 			if [ -f ${TemplateCode} ]; then
@@ -88,57 +93,58 @@ UsePython()
 			;;
 		EnsureDirs)
 			#Home
-			if [ ! -d "${LangHome}" ] && [ ! -z "${PythonRun}" ]; then
+			if [ ! -d "${LangHome}" ] && [ ! -z "${BashCpl}" ]; then
 				mkdir "${LangHome}"
 			fi
 			#Src
-			if [ ! -d "${LangSrc}" ] && [ ! -z "${PythonRun}" ]; then
+			if [ ! -d "${LangSrc}" ] && [ ! -z "${BashCpl}" ]; then
 				mkdir "${LangSrc}"
 			fi
 			#Bin
-			if [ ! -d "${LangBin}" ] && [ ! -z "${PythonRun}" ]; then
+			if [ ! -d "${LangBin}" ] && [ ! -z "${BashCpl}" ]; then
 				mkdir "${LangBin}"
 			fi
 			;;
 		TemplateVersion)
 			if [ -f ${TemplateCode} ]; then
-				${PythonRun} ${TemplateCode} 2> /dev/null | grep Version
+				${TemplateCode} 2> /dev/null | grep Version
 			else
-				echo "no newPython found"
+				echo "no newBash.sh found"
 			fi
 			;;
 		CodeVersion)
-			echo "[Python]"
-				${PythonRun} --version
+			echo "[Bash]"
+			${BashCpl} --version | head -n 1
 			;;
 		selectCode)
-			name=$1
+			local name=$1
 			#Correct filename
-			if [[ ! "${name}" == *".py" ]]; then
-				name="${name}.py"
+			if [[ ! "${name}" == *".sh" ]]; then
+				name="${name}.sh"
 			fi
 			echo ${name}
 			;;
+			#Add code to active session
 		addCode)
-			src=$1
-			new=$2
+			local src=$1
+			local new=$2
 			case ${src} in
-				*.py)
+				*.sh)
 					case ${new} in
-						*.py)
+						*.sh)
 							if [ -f "${new}" ]; then
-								echo "${src},${new}"
-							else
-								echo "${src}"
-							fi
-							;;
-						*)
-							if [ -f "${new}.py" ]; then
-								echo "${src},${new}.py"
-							else
-								echo "${src}"
-							fi
-							;;
+							echo "${src},${new}"
+						else
+							echo "${src}"
+						fi
+						;;
+					*)
+						if [ -f "${new}.sh" ]; then
+							echo "${src},${new}.sh"
+						else
+							echo "${src}"
+						fi
+						;;
 					esac
 					;;
 				*)
@@ -146,26 +152,33 @@ UsePython()
 			esac
 			;;
 		editCode)
-			src=$1
-			num=$2
+			local src=$1
+			local num=$2
 			case ${src} in
-				*.py)
+				*.sh)
 					if [[ "${src}" == *","* ]]; then
 						if [ -z ${num} ]; then
 							errorCode "editNull"
 						else
 							if [[ "${src}" == *"${num}"* ]]; then
-								if [[ "${num}" == *".py" ]]; then
+								if [[ "${num}" == *".sh" ]]; then
 									${editor} ${num}
 								else
-									${editor} "${num}.py"
+									${editor} "${num}.sh"
 								fi
 							else
 								errorCode "editNot"
 							fi
 						fi
 					else
-						${editor} ${src}
+						case ${src} in
+							clide.sh)
+								errorCode "editMe"
+							;;
+						*)
+								${editor} ${src}
+								;;
+						esac
 					fi
 					;;
 				*)
@@ -173,19 +186,19 @@ UsePython()
 			esac
 			;;
 		readCode)
-			src=$1
-			num=$2
+			local src=$1
+			local num=$2
 			case ${src} in
-				*.py)
+				*.sh)
 					if [[ "${src}" == *","* ]]; then
 						if [ -z ${num} ]; then
 							errorCode "readNull"
 						else
 							if [[ "${src}" == *"${num}"* ]]; then
-								if [[ "${num}" == *".py" ]]; then
+								if [[ "${num}" == *".sh" ]]; then
 									${ReadBy} ${num}
 								else
-									${ReadBy} "${num}.py"
+									${ReadBy} "${num}.sh"
 								fi
 							else
 								errorCode "readNot"
@@ -200,11 +213,11 @@ UsePython()
 			esac
 			;;
 		compileCode)
-			src=$1
-			project=${CodeProject}
-			name=$2
-			keep=$3
-			cplArgs=""
+			local src=$1
+			local project=${CodeProject}
+			local name=$2
+			local keep=$3
+			local cplArgs=""
 			#Handle Project Dir
 			if [[ "${project}" == "none" ]]; then
 				project=""
@@ -212,60 +225,51 @@ UsePython()
 				project="${project}/"
 			fi
 			case ${src} in
-				*.py)
-					#Compile Python Script
-					#py2bin "${src}"
-					#Get Python Name
-			                #pyBin="${src%.*}"
-					#Move Python Program to Binary dir
-					#mv ${pyBin} ../bin/
-					#Check if Python Script does NOT exist
+				*.sh)
 					#Multiple code selected
 					if [[ "${src}" == *","* ]]; then
-						#variable is empty
+						#varable is empty
 						if [ -z ${name} ]; then
 							errorCode "cpl" "choose"
-						#variable found
 						else
 							#chosen file is in the list of files
 							if [[ "${src}" == *"${name}"* ]]; then
 								#only name is given
-								if [[ "${name}" != *".py" ]]; then
+								if [[ "${name}" != *".sh" ]]; then
 									#full filename given
-									num=${name}.py
+									num=${name}.sh
 								fi
-								#Make Python Script executable
+								#Make Bash Script executable
 								chmod +x ${name}
-								#Check if Python Script does NOT exist
+								#Check if Bash Script does NOT exist
 								if [[ ! -f "${LangBin}/${name}" ]]; then
-									#Change to Python Binary dir
+									#Change to Bash Binary dir
 									cd ${LangBin}
-									#Create Symbolic Link to Python Script
+									#Create Symbolic Link to Bash Script
 									ln -s ../src/${project}${name}
-									#Change to Python Source dir
+									#Change to Bash Source dir
 									cd "${LangSrc}/${project}"
-									echo -e "\e[1;43m[Python Code Compiled]\e[0m"
+									echo -e "\e[1;42m[Bash Code Compiled]\e[0m"
 								else
 									errorCode "cpl" "already" ${name}
 								fi
 							else
-								echo "code not found"
+								errorCode "cpl" "not"
 							fi
 						fi
 					#single code selected
 					else
-						#Make Python Script executable
+						#Make Bash Script executable
 						chmod +x ${src}
-						#Check if Python Script does NOT exist
+						#Check if Bash Script does NOT exist
 						if [[ ! -f "${LangBin}/${src}" ]]; then
-							#Change to Python Binary dir
+							#Change to Bash Binary dir
 							cd ${LangBin}
-							#Create Symbolic Link to Python Script
+							#Create Symbolic Link to Bash Script
 							ln -s ../src/${project}${src}
-							#Change to Python Source dir
+							#Change to Bash Source dir
 							cd "${LangSrc}/${project}"
-							echo -e "\e[1;43m[Python Code Compiled]\e[0m"
-						#Code is already found
+							echo -e "\e[1;42m[Bash Code Compiled]\e[0m"
 						else
 							errorCode "cpl" "already" ${src}
 						fi
@@ -276,40 +280,32 @@ UsePython()
 			esac
 			;;
 		newProject)
-			path=${LangSrc}/${project}
+			local path=${LangSrc}/${project}
 			if [ ! -d ${path} ]; then
 				mkdir ${path}
 				cd ${path}
 				mkdir src bin
 				cd ${path}/src
 			else
-				cd ${path}/src
+				cd ${path}/srs
 			fi
 			echo ${path}
 			;;
 		SwapToSrc)
-			src=$1
-			#Get Python Name
-		#	src="${src}.py"
-		#	#Check if Python source exists
-		#	if [[ -f "${LangSrc}/${src}" ]]; then
-		#		#Return Python Source Name
-				echo "${src}"
-		#	fi
+			local src=$1
+			echo "${src}"
 			;;
 		SwapToBin)
-			bin=$1
+			local bin=$1
 			case ${bin} in
-				*.py)
-					#Get Python Name
-				#	bin="${bin%.*}"
-					#Check if Python Binary exists
-					if [[ -f "${LangBin}/${bin}" ]]; then
+				*.sh)
+					#Check if Bash Binary exists
+					if [ -f "${LangBin}/${bin}" ]; then
+						#Return Bash Binary Name
 						#cd "${LangBin}"
-						#Return Python Binary Name
 						echo "${bin}"
 					else
-					echo "${bin}"
+						echo "${bin}"
 					fi
 					;;
 				*)
@@ -318,12 +314,12 @@ UsePython()
 			esac
 			;;
 		Install)
-			bin=$1
-			BinFile="${bin%.*}"
+			local bin=$1
+			local BinFile="${bin%.*}"
 			#Make sure Binary exists
 			if [ -f "${LangBin}/${bin}" ]; then
 				#Add command to Aliases
-				AddAlias "${BinFile}" "${PythonRun} ${LangBin}/${bin}"
+				AddAlias "${BinFile}" "${LangBin}/${bin}"
 			elif [ ! -f "${LangBin}/${bin}" ]; then
 				errorCode "install" "${bin}"
 			else
@@ -331,17 +327,18 @@ UsePython()
 			fi
 			;;
 		customCode)
-			cLang=$1
+			local cLang=$1
+			local Type=$(echo ${Type} | tr A-Z a-z)
 			#Check for Custom Code Template
 			if [ -f ${TemplateCode} ]; then
-				echo -n "${cLang}\$ ${PythonRun} newPython.py "
+				echo -n "${cLang}\$ ./newBash.sh "
 				read -a Args
-				#Program Args Given
+				#Template Args Given
 				if [ ! -z "${Args}" ];then
-					${PythonRun} ${TemplateCode} ${Args[@]}
-				#No Program Name Given
+					${TemplateCode} ${Args[@]}
+				#No Template Args Given
 				else
-					${PythonRun} ${TemplateCode} --help
+					${TemplateCode} --help
 				fi
 			else
 				#Program Name Given
@@ -349,25 +346,25 @@ UsePython()
 			fi
 			;;
 		newCode)
-			name=$1
-			Project=$2
-			Type=$3
+			local name=$1
+			local Project=$2
+			local Type=$3
 			Type=$(echo ${Type} | tr A-Z a-z)
-			name=${name%.py}
-			if [ ! -f ${name}.py ]; then
+			name=${name%.sh}
+			if [ ! -f ${name}.sh ]; then
 				#Check for Custom Code Template
 				if [ -f ${TemplateCode} ]; then
 					#Program Name Given
 					if [ ! -z "${name}" ];then
-						${PythonRun} ${TemplateCode} -n ${name} --cli --main --shell --write-file --read-file --os --random
+						${TemplateCode} ${name} > ${name}.sh
 					#No Program Name Given
 					else
-						${PythonRun} ${TemplateCode} --help
+						${TemplateCode} --help
 					fi
 				else
 					#Program Name Given
 					if [ ! -z "${name}" ];then
-						touch ${name}.py
+						touch ${name}.sh
 					else
 						errorCode "newCode"
 					fi
@@ -376,16 +373,15 @@ UsePython()
 			;;
 		cli)
 			local TheName=$(OtherColor $1)
-			echo "${PythonRun} ${TheName}"
+			echo "./${TheName}"
 			;;
 		runCode)
 			local name=$1
-			local TheBin="${name}"
 			shift
-			local Args=$@
-			#Check if Pythin Bin exists
-			if [ -f ${LangBin}/${TheBin} ]; then
-				${PythonRun} ${LangBin}/${TheBin} ${Args[@]}
+			Args=$@
+			#Check if Bash Script exists
+			if [ -f ${LangBin}/${name} ]; then
+				${LangBin}/${name} ${Args[@]}
 			else
 				errorCode "cpl" "need" "${name}"
 			fi
@@ -395,5 +391,4 @@ UsePython()
 	esac
 }
 
-
-UsePython $@
+UseBash $@
