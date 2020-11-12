@@ -1,0 +1,145 @@
+[Java Notes]
+	"Data Types"
+byte				[8-bit]
+short				[16-bit]
+int				[32-bit]
+long				[64-bit]
+float				[32-bit IEEE 754]
+double				[32-bit IEEE 754]
+String				[Object]
+
+
+	"Data Type: String"
+String				[Object: String]
+str1.matches(str2)		[boolean]	check for substring; regex
+str1.equals(str2)		[boolean]	case senstive
+str1.equalsIgnoreCase(str2)	[boolean]	NOT case senstive
+str1.compareTo(str2)		[int]		*TBD*
+str1.compareToIgnoreCase(str2)	[int]		*TBD*
+str1.reagonMatches()
+str1.startsWith(str2)		[boolean]	*TBD*
+str1.endsWith(str2)		[boolean]	*TBD*
+str.length()			[int]		length of string
+str.charAt(int)			[int]		pos of char
+str1.indexOf*str2)		[int]		get substring number via substring
+str1.lastIndexOf*str2)		[int]		get substring number via substring
+str1.concat(str1,str2)		[String]	concatinates two string into one
+str.substring(int)		[String]	get substring
+str.substring(int,int)		[String]	get substring
+str.toLowerCase()		[String]	convert string to lowercase
+str.toUpperCase()		[String]	convert string to uppercase
+str.trim()			[String]	remove blank and line breaks
+str.replace(str1,str2)		[String]	remove and replace ALL
+str.replaceFirst(str1,str2)	[String]	remove and replace FIRST
+str.replaceAll(str1,str2)	[String]	remove and replace ALL
+str1.split(str2)		[String[]]	split string into array via sub-string
+str.toCharArray()		[char[]]	convert string to char array
+Integer.parseInt(str)		[int]		convert string into an int
+Double.parseDouble(str)		[double]	convert string into a double
+str.valueOf(char)		[String]	get string value of char
+str.valueOf(char[])		[String]	get string value of char array
+str.valueOf(int)		[String]	get string value of int
+str.valueOf(double)		[String]	get string value of double
+str.valueOf(float)		[String]	get string value of float
+str.valueOf(long)		[String]	get string value of long
+str.valueOf(boolean)		[String]	get string value of boolean
+str.format(code,str)		[String]	format string
+
+	"Structure: Array"
+arr.length			[int]		get length of array
+
+	"Class: File"
+File(Str: path)			[Object: File]	load file by path
+file.exhists()			[boolean]	check if file exists
+file.canRead()			[boolean]	checks if allowed to read
+file.canWrite()			[boolean]	check if can write file
+file.isDirectory()		[boolean]	check if file is a directory
+file.isFile()			[boolean]	check if fils is a file
+file.isAbsolute()		[boolean]	check if file address is absolute
+file.isHidden()			[boolean]	check if file is hidden
+file.getAbsolutePath()		[String]	return file's absolute path
+file.getCononicalPath()		[String]	resolves links
+file.getName()			[String]	return filename, no dir shown
+file.getPath()			[String]	return dir of file
+file.lastModified()		[long]		returns the time of last edit
+file.length()			[long]		returns size of file
+file.delete()			[boolean]	delete file (true = pass)
+file.renameTo()			[boolean]	rename file (true = pass)
+
+	"Class: PrintWriter"
+PrintWriter(<file>)	[Object: PrintWriter]	Write file
+pw.print(<data>)		[void]		Write to file
+
+	"Class: Scanner"
+Scanner(System.in)	[Object: Scanner]	Read data from system
+Scanner(new File(file))		[Scanner]	Read data from file
+sc.close()			[void]		Closes data stream
+sc.hasNext()			[boolean]	check if more data
+sc.next()			[String]	read in next token as string
+sc.nextLine()			[String]	read in next line as string
+sc.nextByte()			[byte]		read in next token as byte
+sc.nextShort()			[short]		read in next token as short
+sc.nextInt()			[int]		read in next token as int
+sc.nextLong()			[long]		read in next token as long
+sc.nextFloat()			[float]		read in next token as float
+sc.nextDouble()			[double]	read in next token as double
+sc.useDelimiter(str)		[Scanner]	set scanner's delimiter
+
+//convert char array into string
+String str = new String(new char[] {'j','a','v','a'});
+//or
+String str = new String.valueOf(new char[] {'j','a','v','a'});
+
+	"Type: Logic Handling"
+// and = &&
+// or = ||
+
+// if/else
+if (<if condition>)
+{
+
+}
+else
+{
+
+}
+
+// if/if else/else
+if (<if condition>)
+{
+
+}
+else if (<else if condition>)
+{
+
+}
+
+// switch/case
+switch (<eval>)
+{
+	case <state>: <action>;
+		break;
+	case <state>: <action>;
+		break;
+	case <state>: <action>;
+		break;
+	default:
+}
+
+
+	"Type: Loops"
+//A 'while' loop
+while (<loop condition>)
+{
+
+}
+
+//A 'for' loop
+for (<init action>; <loop coditions>; <action after each iteration>)
+{
+
+}
+
+//'break' vs 'continue'
+break; //stop loop where called
+continue; //finish to end of loop, then stop loop

@@ -17,7 +17,7 @@ shift
 
 SupportVersion()
 {
-        echo "0.1.01"
+        echo "0.1.02"
 }
 
 errorCode()
@@ -81,7 +81,7 @@ UseJava()
 			fi
 			;;
 		BeforeFiles|AfterFiles)
-			ls *.java
+			ls *.java 2> /dev/null
 			;;
 		pgDir)
 			#Return Java src Dir
@@ -365,11 +365,16 @@ UseJava()
 			fi
 			;;
 		customCode)
-			local cLang=$1
+			local cLang=$(UseJava "color")
+			local TemplateC=${TemplateCodeClass##*/}
+			TemplateC=${TemplateC%.*}
+			local TemplateJ=${TemplateCodeJar##*/}
+			local cTemplateC=$(OtherColor ${TemplateC})
+			local cTemplateJ=$(OtherColor ${TemplateJ})
 			Type=$(echo ${Type} | tr A-Z a-z)
 			#Check for Custom Code Template...is class
 			if [ -f ${TemplateCodeClass} ]; then
-				echo -n "${cLang}\$ java newJava "
+				echo -n "${cLang}\$ java ${cTemplateC} "
 				read -a Args
 				#Program Args Given
 				if [ ! -z "${Args}" ];then
@@ -384,7 +389,7 @@ UseJava()
 				fi
 			#Check for Custom Code Template...is jar
 			elif [ -f ${TemplateCodeJar} ]; then
-				echo -n "${cLang}\$ java -jar newJava.jar "
+				echo -n "${cLang}\$ java -jar ${cTemplateJ} "
 				read -a Args
 				#Program Args Given
 				if [ ! -z "${Args}" ];then
