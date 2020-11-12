@@ -17,7 +17,7 @@ shift
 
 SupportVersion()
 {
-        echo "0.1.01"
+        echo "0.1.02"
 }
 
 errorCode()
@@ -76,7 +76,7 @@ UseBash()
 			fi
 			;;
 		BeforeFiles|AfterFiles)
-				ls *.sh
+				ls *.sh 2> /dev/null
 			;;
 		pgDir)
 			#Return Bash src Dir
@@ -327,11 +327,12 @@ UseBash()
 			fi
 			;;
 		customCode)
-			local cLang=$1
+			local cLang=$(UseBash "color")
+			local cTemplate=$(OtherColor ${TemplateCode##*/})
 			local Type=$(echo ${Type} | tr A-Z a-z)
 			#Check for Custom Code Template
 			if [ -f ${TemplateCode} ]; then
-				echo -n "${cLang}\$ ./newBash.sh "
+				echo -n "${cLang}\$ ./${cTemplate} "
 				read -a Args
 				#Template Args Given
 				if [ ! -z "${Args}" ];then

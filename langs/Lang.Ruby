@@ -17,7 +17,7 @@ shift
 
 SupportVersion()
 {
-        echo "0.1.01"
+        echo "0.1.02"
 }
 
 errorCode()
@@ -38,7 +38,7 @@ OtherColor()
 	echo -e "\e[1;35m${text}\e[0m"
 }
 
-UserRuby()
+UseRuby()
 {
 	local RubyRun=ruby
 	local LangHome=${ProgDir}/Ruby
@@ -323,10 +323,11 @@ UserRuby()
 			fi
 			;;
 		customCode)
-			local cLang=$1
+			local cLang=$(UseRuby "color")
+			local cTemplate=$(OtherColor ${TemplateCode##*/})
 			#Check for Custom Code Template
 			if [ -f ${TemplateCode} ]; then
-				echo -n "${cLang}\$ ${RubyRun} newRuby.rb "
+				echo -n "${cLang}\$ ${RubyRun} ${cTemplate} "
 				read -a Args
 				#Program Args Given
 				if [ ! -z "${Args}" ];then
@@ -387,4 +388,4 @@ UserRuby()
 	esac
 }
 
-UserRuby $@
+UseRuby $@

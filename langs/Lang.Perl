@@ -17,7 +17,7 @@ shift
 
 SupportVersion()
 {
-        echo "0.1.01"
+        echo "0.1.02"
 }
 
 errorCode()
@@ -65,7 +65,7 @@ UsePerl()
 			fi
 			;;
 		BeforeFiles|AfterFiles)
-			ls *.pl
+			ls *.pl 2> /dev/null
 			;;
 		pgLang)
 			local HasLang=$(which ${PerlRun} 2> /dev/null)
@@ -323,9 +323,10 @@ UsePerl()
 			fi
 			;;
 		customCode)
-			cLang=$1
+			local cLang=$(UsePerl "color")
+			local cTemplate=$(OtherColor ${TemplateCode##*/})
 			if [ -f ${TemplateCode} ]; then
-				echo -n "${cLang}\$ ${PerlRun} newPerl.pl "
+				echo -n "${cLang}\$ ${PerlRun} ${cTemplate} "
 				read -a Args
 				#Program Args Given
 				if [ ! -z "${Args}" ];then

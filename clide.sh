@@ -134,7 +134,7 @@ NotesHelp()
 	local Lang=$1
 	echo ""
 	echo "----------------[(${Head}) \"Notes\" Help]----------------"
-	echo -e "edit|add\t\t: \"edit notes\""
+	echo -e "edit|add\t: \"edit notes\""
 	echo -e "read\t\t: \"read notes\""
 	echo "----------------------------------------------------------"
 	echo ""
