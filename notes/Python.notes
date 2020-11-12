@@ -1,0 +1,19 @@
+[Python Notes]
+
+#Get CLI Args
+import sys
+Args = sys.argv		[array]
+
+#String Starts with and Ends with
+str.startswith(sub)	[bool]
+str.endswith(sub)	[bool]
+
+#Split String
+str.split(sub)		[array]		"Split ALL where 'sub' found"
+str.split(sub,num)	[array]		"Split where 'num' 'sub' found"
+str.rsplit(sub,num)	[array]		"Split string in reverse"
+
+#Upper and Lower case
+str.lower()		[string]
+str.upper()		[string]
+

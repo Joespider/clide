@@ -1,0 +1,90 @@
+[C++ Notes]
+
+	[Data Types]
+bool (true/false)
+int (0)
+float (0.0)
+double (0.0)
+std::string ("")
+
+	[Examples]
+
+//Call System commands
+	system("ls");
+
+[handle terminal args]
+	//argc = count of args given
+	//argv = values of args given
+	int main(int argc, char** argv)
+		//Save output to UserIn
+		std::string UserIn = std::string(argv[0]);
+[Array]
+	string Names[4] = {"Peter","Sam","Danny","John"};
+	//Rename Value in Array
+	Names[3] = "Daniel";
+
+[Split String]
+	#include <iostream>
+	#include <sstream>
+	#include <string>
+
+	int main()
+	{
+		std::string This = "This is a test";
+		std::stringstream ss(This);
+		std::string item;
+		while (std::getline(ss,item,' '))
+		{
+			std::cout << item << std::endl;
+		}
+		return 0;
+	}
+
+[Read/Write File]
+	#include <fstream>
+	std::string filename = "file.txt";
+	std::ofstream myfile;
+	myfile.open(filename.c_str());
+	myfile << content;
+	myfile.close();
+
+//Class Example
+	#include <iostream>
+	using namespace std;
+
+	class Math {
+
+	private:
+		int x, y;
+
+	public:
+		//class constructor
+		Math(int x, int y)
+		{
+			// this-> points to the class's x, y; not param x, y vars
+			this->x = x;
+			this->y = y;
+		}
+		//class desctructor
+		~Math()
+		{
+
+		}
+
+		int add()
+		{
+			int Total;
+			Total = x + y;
+			return Total;
+		}
+	};
+
+	int main()
+	{
+		Math m(5,6);
+		int Answer;
+		Answer = m.add();
+		cout << "Answer = " << m.add() << endl;
+
+		return 0;
+	}

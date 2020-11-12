@@ -17,7 +17,7 @@ shift
 
 SupportVersion()
 {
-	echo "0.1.01"
+	echo "0.1.02"
 }
 
 errorCode()
@@ -77,7 +77,7 @@ UseCpp()
 			fi
 			;;
 		BeforeFiles|AfterFiles)
-			ls *.cpp *.h
+			ls *.cpp *.h 2> /dev/null
 			;;
 		pgDir)
 			#Return C++ src Dir
@@ -375,10 +375,11 @@ UseCpp()
 			fi
 			;;
 		customCode)
-			local cLang=$1
+			local cLang=$(UseCpp "color")
+			local cTemplate=$(OtherColor ${TemplateCode##*/})
 			#Check for Custom Code Template
 			if [ -f ${TemplateCode} ]; then
-				echo -n "${cLang}\$ ./newC++ "
+				echo -n "${cLang}\$ ./${cTemplate} "
 				read -a Args
 				#Program Args Given
 				if [ ! -z "${Args}" ];then

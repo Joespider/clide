@@ -17,7 +17,7 @@ shift
 
 SupportVersion()
 {
-        echo "0.1.01"
+        echo "0.1.02"
 }
 
 errorCode()
@@ -67,7 +67,7 @@ UsePython()
 			fi
 			;;
 		BeforeFiles|AfterFiles)
-			ls *.py
+			ls *.py 2> /dev/null
 			;;
 		pgLang)
 			local HasLang=$(which ${PythonRun} 2> /dev/null)
@@ -119,7 +119,7 @@ UsePython()
 				${PythonRun} --version
 			;;
 		selectCode)
-			name=$1
+			local name=$1
 			#Correct filename
 			if [[ ! "${name}" == *".py" ]]; then
 				name="${name}.py"
@@ -127,8 +127,8 @@ UsePython()
 			echo ${name}
 			;;
 		addCode)
-			src=$1
-			new=$2
+			local src=$1
+			local new=$2
 			case ${src} in
 				*.py)
 					case ${new} in
@@ -153,8 +153,8 @@ UsePython()
 			esac
 			;;
 		editCode)
-			src=$1
-			num=$2
+			local src=$1
+			local num=$2
 			case ${src} in
 				*.py)
 					if [[ "${src}" == *","* ]]; then
@@ -180,8 +180,8 @@ UsePython()
 			esac
 			;;
 		readCode)
-			src=$1
-			num=$2
+			local src=$1
+			local num=$2
 			case ${src} in
 				*.py)
 					if [[ "${src}" == *","* ]]; then
@@ -207,11 +207,11 @@ UsePython()
 			esac
 			;;
 		compileCode)
-			src=$1
-			project=${CodeProject}
-			name=$2
-			keep=$3
-			cplArgs=""
+			local src=$1
+			local project=${CodeProject}
+			local name=$2
+			local keep=$3
+			local cplArgs=""
 			#Handle Project Dir
 			if [[ "${project}" == "none" ]]; then
 				project=""
@@ -283,7 +283,7 @@ UsePython()
 			esac
 			;;
 		newProject)
-			path=${LangSrc}/${project}
+			local path=${LangSrc}/${project}
 			if [ ! -d ${path} ]; then
 				mkdir ${path}
 				cd ${path}
@@ -295,7 +295,7 @@ UsePython()
 			echo ${path}
 			;;
 		SwapToSrc)
-			src=$1
+			local src=$1
 			#Get Python Name
 		#	src="${src}.py"
 		#	#Check if Python source exists
@@ -305,7 +305,7 @@ UsePython()
 		#	fi
 			;;
 		SwapToBin)
-			bin=$1
+			local bin=$1
 			case ${bin} in
 				*.py)
 					#Get Python Name
@@ -325,8 +325,8 @@ UsePython()
 			esac
 			;;
 		Install)
-			bin=$1
-			BinFile="${bin%.*}"
+			local bin=$1
+			local BinFile="${bin%.*}"
 			#Make sure Binary exists
 			if [ -f "${LangBin}/${bin}" ]; then
 				#Add command to Aliases
@@ -338,10 +338,11 @@ UsePython()
 			fi
 			;;
 		customCode)
-			cLang=$1
+			local cLang=$(UsePython "color")
+			local cTemplate=$(OtherColor ${TemplateCode##*/})
 			#Check for Custom Code Template
 			if [ -f ${TemplateCode} ]; then
-				echo -n "${cLang}\$ ${PythonRun} newPython.py "
+				echo -n "${cLang}\$ ${PythonRun} ${cTemplate} "
 				read -a Args
 				#Program Args Given
 				if [ ! -z "${Args}" ];then
@@ -356,11 +357,11 @@ UsePython()
 			fi
 			;;
 		newCode)
-			name=$1
-			Project=$2
-			Type=$3
+			local name=$1
+			local Project=$2
+			local Type=$3
 			Type=$(echo ${Type} | tr A-Z a-z)
-			name=${name%.py}
+			local name=${name%.py}
 			if [ ! -f ${name}.py ]; then
 				#Check for Custom Code Template
 				if [ -f ${TemplateCode} ]; then
@@ -401,6 +402,5 @@ UsePython()
 			;;
 	esac
 }
-
 
 UsePython $@
