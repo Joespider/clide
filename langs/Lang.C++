@@ -15,11 +15,6 @@ shift
 CplArgs=$1
 shift
 
-SupportVersion()
-{
-	echo "0.1.02"
-}
-
 errorCode()
 {
         ${LibDir}/errorCode.sh $@
@@ -51,6 +46,9 @@ UseCpp()
 		color)
 			#Return Blue
 			echo -e "\e[1;34mC++\e[0m"
+			;;
+		SupportVersion)
+			echo "0.1.05"
 			;;
 		MenuHelp)
 			echo -e "new <file> {main|header|component} : \"create new ${Lang} source file\""
@@ -110,14 +108,16 @@ UseCpp()
 			;;
 		TemplateVersion)
 			if [ -f ${TemplateCode} ]; then
-				${TemplateCode} 2> /dev/null | grep Version
+				echo -n "${TemplateCode##*/} "
+				${TemplateCode} 2> /dev/null | grep Version | sed "s/Version//g"
 			else
-				echo "no newC++ found"
+				echo "no ${TemplateCode##*/} found"
 			fi
 			;;
-		CodeVersion)
-			echo "[C++]"
+		CplVersion)
+			echo "[C++ Compiler]"
 			${CppCpl} --version | head -n 1
+			echo ""
 			;;
 		selectCode)
 			local name=$1
@@ -418,7 +418,7 @@ UseCpp()
 					if [ -f ${TemplateCode} ]; then
 						#Program Name Given
 						if [ ! -z "${name}" ];then
-							${TemplateCode} --write-file --read-file --cli --main --is-in --user-input --name ${name}
+							${TemplateCode} --random --write-file --read-file --cli --main --is-in --user-input --name ${name}
 						#No Program Name Given
 						else
 							#Help Page

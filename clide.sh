@@ -11,7 +11,7 @@ Shell=$(which bash)
 #1st # = Overflow
 #2nd # = Additional features
 #3rd # = Bug/code tweaks/fixes
-Version="0.65.93"
+Version="0.65.97"
 
 #cl[ide] config
 #{
@@ -160,6 +160,7 @@ CliHelp()
 	echo ""
 	echo "----------------[(${Head}) CLI]----------------"
 	echo -e "-v |--version\t\t\t: \"Get Clide Version\""
+	echo -e "-sv|--support-version\t\t: \"Get Code Support Version\""
 	echo -e "-cv|--code-version\t\t: \"Get Compile/Interpreter Version\""
 	echo -e "-tv|--temp-version\t\t: \"Get Code Template Version\""
 	echo -e "-rv|--repo-version\t\t: \"Get git/svn Version\""
@@ -292,12 +293,78 @@ RepoVersion()
 	fi
 }
 
+CodeSupportVersion()
+{
+	local TheLang=$1
+	local Langs=""
+	if [ ! -z "${TheLang}" ]; then
+		SupportNum=$(ManageLangs ${TheLang} "SupportVersion")
+		if [ ! -z "${SupportNum}" ]; then
+			echo "[Clide ${TheLang} Support]"
+			echo "Version: ${SupportNum}"
+		fi
+	else
+		Langs=$(ls ${LangsDir}/ | sed "s/Lang.//g" | tr '\n' '|' | rev | sed "s/|//1" | rev)
+		local NumOfLangs=$(ls | wc -l)
+		local look=1
+		local text
+		local SupportNum
+		while [ ${look} -le ${NumOfLangs} ];
+		do
+			text=$(echo ${Langs} | cut -d '|' -f ${look})
+			text=$(ManageLangs ${text} "pgLang")
+			case ${text} in
+				no)
+					;;
+				*)
+					SupportNum=$(ManageLangs "${text}" "SupportVersion")
+					if [ ! -z "${SupportNum}" ]; then
+						echo "${text}: ${SupportNum}"
+					fi
+					;;
+			esac
+			look=$((${look}+1))
+		done
+	fi
+}
+
+CodeTemplateVersion()
+{
+	local TheLang=$1
+	local Langs=""
+	if [ ! -z "${TheLang}" ]; then
+		TempNum=$(ManageLangs ${TheLang} "TemplateVersion" | sed "s/Version/${text}/g" | grep -v found)
+		if [ ! -z "${TempNum}" ]; then
+			echo "[\"New Code\" Teplate]"
+			echo "${TempNum}"
+		fi
+	else
+		local GetLangs=$(ls ${LangsDir}/ | sed "s/Lang.//g" | tr '\n' '|' | rev | sed "s/|//1" | rev)
+		local NumOfLangs=$(ls | wc -l)
+		local look=1
+		local text
+		while [ ${look} -le ${NumOfLangs} ];
+		do
+			text=$(echo ${GetLangs} | cut -d '|' -f ${look})
+			text=$(ManageLangs ${text} "pgLang")
+			case ${text} in
+				no)
+					;;
+				*)
+					ManageLangs "${text}" "TemplateVersion" | sed "s/Version/${text}/g" | grep -v found
+					;;
+				esac
+			look=$((${look}+1))
+		done
+	fi
+}
+
 CodeVersion()
 {
 	local TheLang=$1
 	local Langs=""
 	if [ ! -z "${TheLang}" ]; then
-		ManageLangs ${TheLang} "TemplateVersion"
+		ManageLangs ${TheLang} "CplVersion"
 	else
 		Langs=$(ls ${LangsDir}/ | sed "s/Lang.//g" | tr '\n' '|' | rev | sed "s/|//1" | rev)
 		local NumOfLangs=$(ls | wc -l)
@@ -311,7 +378,7 @@ CodeVersion()
 				no)
 					;;
 				*)
-					ManageLangs "${text}" "TemplateVersion" | sed "s/Version:/${text}:/g"
+					ManageLangs "${text}" "CplVersion" | sed "s/Version:/${text}:/g"
 					;;
 			esac
 			look=$((${look}+1))
@@ -1289,8 +1356,11 @@ Actions()
 					;;
 				#Display cl[ide] version
 				version|v)
-					#echo "${Head}"
-					#ClideVersion
+					echo ""
+					CodeSupportVersion ${Lang}
+					echo ""
+					CodeTemplateVersion ${Lang}
+					echo ""
 					CodeVersion ${Lang}
 					;;
 				#Display help page
@@ -1560,25 +1630,13 @@ main()
 			-cv|--code-version)
 				CodeVersion
 				;;
+			#Get compile/interpreter version from cli
+			-sv|--support-version)
+				CodeSupportVersion
+				;;
 			#Get version of template
 			-tv|--temp-version)
-				local GetLangs=$(ls ${LangsDir}/ | sed "s/Lang.//g" | tr '\n' '|' | rev | sed "s/|//1" | rev)
-				local NumOfLangs=$(ls | wc -l)
-				local look=1
-				local text
-				while [ ${look} -le ${NumOfLangs} ];
-				do
-					text=$(echo ${GetLangs} | cut -d '|' -f ${look})
-					text=$(ManageLangs ${text} "pgLang")
-					case ${text} in
-						no)
-							;;
-						*)
-							ManageLangs "${text}" "TemplateVersion" | sed "s/Version/${text}/g" | grep -v found
-							;;
-					esac
-					look=$((${look}+1))
-				done
+				CodeTemplateVersion
 				;;
 			#Get version control version from cli
 			-rv|--repo-version)

@@ -15,11 +15,6 @@ shift
 CplArgs=$1
 shift
 
-SupportVersion()
-{
-        echo "0.1.02"
-}
-
 errorCode()
 {
 	${LibDir}/errorCode.sh $@
@@ -51,6 +46,9 @@ UseBash()
 		color)
 			#Return Green
 			echo -e "\e[1;32mBash\e[0m"
+			;;
+		SupportVersion)
+			echo "0.1.04"
 			;;
 		MenuHelp)
 			echo -e "new <file>\t\t\t: \"create new ${Lang} script\""
@@ -107,14 +105,16 @@ UseBash()
 			;;
 		TemplateVersion)
 			if [ -f ${TemplateCode} ]; then
-				${TemplateCode} 2> /dev/null | grep Version
+				echo "${TemplateCode##*/} "
+				${TemplateCode} 2> /dev/null | grep Version | sed "s/Version//g"
 			else
-				echo "no newBash.sh found"
+				echo "no ${TemplateCode##*/} found"
 			fi
 			;;
-		CodeVersion)
-			echo "[Bash]"
+		CplVersion)
+			echo "[Shell]"
 			${BashCpl} --version | head -n 1
+			echo ""
 			;;
 		selectCode)
 			local name=$1

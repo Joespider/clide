@@ -15,11 +15,6 @@ shift
 CplArgs=$1
 shift
 
-SupportVersion()
-{
-        echo "0.1.02"
-}
-
 errorCode()
 {
         ${LibDir}/errorCode.sh $@
@@ -51,6 +46,9 @@ UseRuby()
 		color)
 		#Return Red
 			echo -e "\e[1;31mRuby\e[0m"
+			;;
+		SupportVersion)
+			echo "0.1.04"
 			;;
 		MenuHelp)
 			echo -e "new <file>\t\t\t: \"create new ${Lang} script\""
@@ -106,14 +104,16 @@ UseRuby()
 			;;
 		TemplateVersion)
 			if [ -f ${TemplateCode} ]; then
-				${RubyRun} ${TemplateCode} 2> /dev/null | grep Version
+				echo -n "${TemplateCode##*/} "
+				${RubyRun} ${TemplateCode} 2> /dev/null | grep Version | sed "s/Version//g"
 			else
-				echo "no newRuby found"
+				echo "no ${TemplateCode##*/} found"
 			fi
 			;;
-		CodeVersion)
-			echo "[Ruby]"
+		CplVersion)
+			echo "[Ruby Shell]"
 			${RubyRun} --version
+			echo ""
 			;;
 		selectCode)
 			local name=$1

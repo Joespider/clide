@@ -15,11 +15,6 @@ shift
 CplArgs=$1
 shift
 
-SupportVersion()
-{
-        echo "0.1.02"
-}
-
 errorCode()
 {
         ${LibDir}/errorCode.sh $@
@@ -53,6 +48,9 @@ UseJava()
 		color)
 			#Return Red
 			echo -e "\e[1;31mJava\e[0m"
+			;;
+		SupportVersion)
+			echo "0.1.04"
 			;;
 		MenuHelp)
 			echo -e "new <file> {main|component}\t: \"create new ${Lang} source file\""
@@ -114,13 +112,14 @@ UseJava()
 			;;
 		TemplateVersion)
 			if [ -f ${TemplateCodeJar} ]; then
-				java -jar ${TemplateCodeJar} 2> /dev/null | grep Version
+                                echo -n "${TemplateCodeJar##*/} : "
+				java -jar ${TemplateCodeJar} 2> /dev/null | grep Version | sed "s/Version: //g"
 			else
-				echo "no newJava.jar found"
+				echo "no ${TemplateCodeJar##*/} found"
 			fi
-			;;
-		CodeVersion)
-			echo "[Java]"
+                        ;;
+		CplVersion)
+			echo "[Java JDK/JRE]"
 			JavaRunVersion=$(${JavaRun} --version 2> /dev/null)
 			JavaCplVersion=$(${JavaCpl} --version 2> /dev/null)
 			if [ ! -z "${JavaRunVersion}" ]; then
@@ -132,6 +131,7 @@ UseJava()
 				${JavaRun} -version
 				${JavaCpl} -version
 			fi
+			echo ""
 			;;
 		selectCode)
 			local name=$1
