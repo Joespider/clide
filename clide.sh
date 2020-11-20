@@ -11,7 +11,7 @@ Shell=$(which bash)
 #1st # = Overflow
 #2nd # = Additional features
 #3rd # = Bug/code tweaks/fixes
-Version="0.65.97"
+Version="0.65.98"
 
 #cl[ide] config
 #{
@@ -700,7 +700,7 @@ color()
 ColorCodes()
 {
 	local Langs=$(ls ${LangsDir}/ | sed "s/Lang.//g" | tr '\n' '|' | rev | sed "s/|//1" | rev)
-	local NumOfLangs=$(ls | wc -l)
+	local NumOfLangs=$(ls ${LangsDir}/ | wc -l)
 	local look=1
 	local text
 	local TheColor
