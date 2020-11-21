@@ -1,39 +1,41 @@
 Shell=$(which bash)
 #!${Shell}
-
+ShellPath=$(realpath $0)
+root=$(dirname ${ShellPath})
 #cl[ide] future features
 #{
 	#provide X11 support via -lX11 g++ flag
 #}
+
+GetConfig()
+{
+	ConfigFile=${root}/config.txt
+	Item=$1
+	if [ ! -z "${Item}" ]; then
+		grep "${Item}" ${ConfigFile} | grep -v "#" | cut -d "=" -f 2
+	fi
+}
+
+Head="cl[ide]"
+IDE=$(echo -e "\e[1;40mide\e[0m")
+Name="cl[${IDE}]"
 
 #Version tracking
 #Increment by 1 number per category
 #1st # = Overflow
 #2nd # = Additional features
 #3rd # = Bug/code tweaks/fixes
-Version="0.65.99"
+Version=$(GetConfig Version)
 
 #cl[ide] config
 #{
-editor=nano
-ReadBy=less
-repoTool=git
-#repoTool=svn
-
-#Repo assist is for simplistic commands
-#True = cl[ide] takes care of repo commands
-repoAssist="True"
-#False = User handles repo commands
-#repoAssist="False"
-#Repo mangement is neither run by user nor cl[ide]
-#repoAssist=
-
-Head="cl[ide]"
-IDE=$(echo -e "\e[1;40mide\e[0m")
-Name="cl${IDE}"
+editor=$(GetConfig editor)
+ReadBy=$(GetConfig ReadBy)
+repoTool=$(GetConfig repoTool)
+repoAssist=$(GetConfig repoAssist)
 
 #root dir
-ProgDir=~/Programs
+ProgDir=$(eval echo $(GetConfig ProgDir))
 ClideDir=${ProgDir}/.clide
 NotesDir=${ClideDir}/notes
 LibDir=${ClideDir}/lib
