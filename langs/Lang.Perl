@@ -15,11 +15,6 @@ shift
 CplArgs=$1
 shift
 
-SupportVersion()
-{
-        echo "0.1.02"
-}
-
 errorCode()
 {
         ${LibDir}/errorCode.sh $@
@@ -51,6 +46,9 @@ UsePerl()
 		color)
 			#Return Purple
 			echo -e "\e[1;35mPerl\e[0m"
+			;;
+		SupportVersion)
+			echo "0.1.04"
 			;;
 		MenuHelp)
 			echo -e "new <file>\t\t\t: \"create new ${Lang} script\""
@@ -106,14 +104,16 @@ UsePerl()
 			;;
 		TemplateVersion)
 			if [ -f ${TemplateCode} ]; then
-				${PerlRun} ${TemplateCode} 2> /dev/null | grep Version
+				echo -n "${TemplateCode##*/} "
+				${PerlRun} ${TemplateCode} 2> /dev/null | grep Version | sed "s/Version//g"
 			else
-				echo "no newPerl found"
+				echo "no ${TemplateCode##*/} found"
 			fi
 			;;
-		CodeVersion)
-			echo "[Perl]"
+		CplVersion)
+			echo "[Perl Shell]"
 			${PerlRun} --version 2> /dev/null | grep Version
+			echo ""
 			;;
 		selectCode)
 			name=$1

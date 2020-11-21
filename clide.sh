@@ -1,44 +1,46 @@
 Shell=$(which bash)
 #!${Shell}
-
+ShellPath=$(realpath $0)
+root=$(dirname ${ShellPath})
 #cl[ide] future features
 #{
 	#provide X11 support via -lX11 g++ flag
 #}
+
+GetConfig()
+{
+	ConfigFile=${root}/config.txt
+	Item=$1
+	if [ ! -z "${Item}" ]; then
+		grep "${Item}" ${ConfigFile} | grep -v "#" | cut -d "=" -f 2
+	fi
+}
+
+Head="cl[ide]"
+IDE=$(echo -e "\e[1;40mide\e[0m")
+Name="cl[${IDE}]"
 
 #Version tracking
 #Increment by 1 number per category
 #1st # = Overflow
 #2nd # = Additional features
 #3rd # = Bug/code tweaks/fixes
-Version="0.65.93"
+Version=$(GetConfig Version)
 
 #cl[ide] config
 #{
-editor=nano
-ReadBy=less
-repoTool=git
-#repoTool=svn
-
-#Repo assist is for simplistic commands
-#True = cl[ide] takes care of repo commands
-repoAssist="True"
-#False = User handles repo commands
-#repoAssist="False"
-#Repo mangement is neither run by user nor cl[ide]
-#repoAssist=
-
-Head="cl[ide]"
-IDE=$(echo -e "\e[1;40mide\e[0m")
-Name="cl${IDE}"
+editor=$(GetConfig editor)
+ReadBy=$(GetConfig ReadBy)
+repoTool=$(GetConfig repoTool)
+repoAssist=$(GetConfig repoAssist)
 
 #root dir
-ProgDir=~/Programs
+ProgDir=$(eval echo $(GetConfig ProgDir))
 ClideDir=${ProgDir}/.clide
 NotesDir=${ClideDir}/notes
 LibDir=${ClideDir}/lib
 LangsDir=${ClideDir}/langs
-ProjectDir=${ClideDir}/projects
+ClideProjectDir=${ClideDir}/projects
 
 #Global Vars
 #{
@@ -160,6 +162,7 @@ CliHelp()
 	echo ""
 	echo "----------------[(${Head}) CLI]----------------"
 	echo -e "-v |--version\t\t\t: \"Get Clide Version\""
+	echo -e "-sv|--support-version\t\t: \"Get Code Support Version\""
 	echo -e "-cv|--code-version\t\t: \"Get Compile/Interpreter Version\""
 	echo -e "-tv|--temp-version\t\t: \"Get Code Template Version\""
 	echo -e "-rv|--repo-version\t\t: \"Get git/svn Version\""
@@ -254,8 +257,8 @@ EnsureDirs()
 		mkdir "${LibDir}"
 	fi
 
-	if [ ! -d "${ProjectDir}" ]; then
-		mkdir "${ProjectDir}"
+	if [ ! -d "${ClideProjectDir}" ]; then
+		mkdir "${ClideProjectDir}"
 	fi
 
 	local Langs=$(ls ${LangsDir}/ | sed "s/Lang.//g" | tr '\n' '|' | rev | sed "s/|//1" | rev)
@@ -292,12 +295,78 @@ RepoVersion()
 	fi
 }
 
+CodeSupportVersion()
+{
+	local TheLang=$1
+	local Langs=""
+	if [ ! -z "${TheLang}" ]; then
+		SupportNum=$(ManageLangs ${TheLang} "SupportVersion")
+		if [ ! -z "${SupportNum}" ]; then
+			echo "[Clide ${TheLang} Support]"
+			echo "Version: ${SupportNum}"
+		fi
+	else
+		Langs=$(ls ${LangsDir}/ | sed "s/Lang.//g" | tr '\n' '|' | rev | sed "s/|//1" | rev)
+		local NumOfLangs=$(ls | wc -l)
+		local look=1
+		local text
+		local SupportNum
+		while [ ${look} -le ${NumOfLangs} ];
+		do
+			text=$(echo ${Langs} | cut -d '|' -f ${look})
+			text=$(ManageLangs ${text} "pgLang")
+			case ${text} in
+				no)
+					;;
+				*)
+					SupportNum=$(ManageLangs "${text}" "SupportVersion")
+					if [ ! -z "${SupportNum}" ]; then
+						echo "${text}: ${SupportNum}"
+					fi
+					;;
+			esac
+			look=$((${look}+1))
+		done
+	fi
+}
+
+CodeTemplateVersion()
+{
+	local TheLang=$1
+	local Langs=""
+	if [ ! -z "${TheLang}" ]; then
+		TempNum=$(ManageLangs ${TheLang} "TemplateVersion" | sed "s/Version/${text}/g" | grep -v found)
+		if [ ! -z "${TempNum}" ]; then
+			echo "[\"New Code\" Teplate]"
+			echo "${TempNum}"
+		fi
+	else
+		local GetLangs=$(ls ${LangsDir}/ | sed "s/Lang.//g" | tr '\n' '|' | rev | sed "s/|//1" | rev)
+		local NumOfLangs=$(ls | wc -l)
+		local look=1
+		local text
+		while [ ${look} -le ${NumOfLangs} ];
+		do
+			text=$(echo ${GetLangs} | cut -d '|' -f ${look})
+			text=$(ManageLangs ${text} "pgLang")
+			case ${text} in
+				no)
+					;;
+				*)
+					ManageLangs "${text}" "TemplateVersion" | sed "s/Version/${text}/g" | grep -v found
+					;;
+				esac
+			look=$((${look}+1))
+		done
+	fi
+}
+
 CodeVersion()
 {
 	local TheLang=$1
 	local Langs=""
 	if [ ! -z "${TheLang}" ]; then
-		ManageLangs ${TheLang} "TemplateVersion"
+		ManageLangs ${TheLang} "CplVersion"
 	else
 		Langs=$(ls ${LangsDir}/ | sed "s/Lang.//g" | tr '\n' '|' | rev | sed "s/|//1" | rev)
 		local NumOfLangs=$(ls | wc -l)
@@ -311,7 +380,7 @@ CodeVersion()
 				no)
 					;;
 				*)
-					ManageLangs "${text}" "TemplateVersion" | sed "s/Version:/${text}:/g"
+					ManageLangs "${text}" "CplVersion" | sed "s/Version:/${text}:/g"
 					;;
 			esac
 			look=$((${look}+1))
@@ -384,7 +453,7 @@ importProject()
 	local Lang=$1
 	local Name=$2
 	local Path=$3
-	local ProjectFile=${ProjectDir}/${Name}.clide
+	local ProjectFile=${ClideProjectDir}/${Name}.clide
 	if [ ! -z "${Name}" ]; then
 		if [ ! -f ${ProjectFile} ]; then
 			if [ -z "${Path}" ]; then
@@ -422,7 +491,7 @@ newProject()
 {
 	local lang=$1
 	local project=$2
-	local ProjectFile=${ProjectDir}/${project}.clide
+	local ProjectFile=${ClideProjectDir}/${project}.clide
 	local path=""
 	#No Project is found
 	if [ -z ${project} ]; then
@@ -447,7 +516,7 @@ updateProject()
 {
 	local project=$1
 	local src=$2
-	local ProjectFile=${ProjectDir}/${project}.clide
+	local ProjectFile=${ClideProjectDir}/${project}.clide
 	#No Project is found
 	if [ ! -z ${src} ]; then
 		#Locate Project Directory
@@ -465,14 +534,14 @@ updateProject()
 listProjects()
 {
 	#Get list of active prijects from .clide files
-	ls ${ClideDir}/ | grep -v "session" | sed "s/.clide//g"
+	ls ${ClideProjectDir}/ | sed "s/.clide//g"
 }
 
 #Load active projects
 loadProject()
 {
 	local project=$1
-	local ProjectFile=${ProjectDir}/${project}.clide
+	local ProjectFile=${ClideProjectDir}/${project}.clide
 	local path=""
 	local RtnVals=""
 	local tag=""
@@ -633,7 +702,7 @@ color()
 ColorCodes()
 {
 	local Langs=$(ls ${LangsDir}/ | sed "s/Lang.//g" | tr '\n' '|' | rev | sed "s/|//1" | rev)
-	local NumOfLangs=$(ls | wc -l)
+	local NumOfLangs=$(ls ${LangsDir}/ | wc -l)
 	local look=1
 	local text
 	local TheColor
@@ -944,7 +1013,7 @@ Actions()
 					ProjectDir=$(echo ${ThePWD#*${CodeProject}} | sed "s/\//:/1")
 					cCodeProject=$(echo -e "\e[1;40m${CodeProject}\e[0m")
 					#Menu with no code
-					prompt="${Name}(${cLang}[${cCodeProject}${ProjectDir}]):$ "
+					prompt="${Name}(${cLang}[${cCodeProject}${ClideProjectDir}]):$ "
 				fi
 			else
 				if [[ "${CodeProject}" == "none" ]]; then
@@ -956,7 +1025,7 @@ Actions()
 					ProjectDir=$(echo ${ThePWD#*${CodeProject}} | sed "s/\//:/1")
 					#Menu with no code
 					cCodeProject=$(echo -e "\e[1;40m${CodeProject}\e[0m")
-					prompt="${Name}(${cLang}[${cCodeProject}${ProjectDir}]{${cCode}}):$ "
+					prompt="${Name}(${cLang}[${cCodeProject}${ClideProjectDir}]{${cCode}}):$ "
 				fi
 			fi
 			#Handle CLI
@@ -1289,8 +1358,11 @@ Actions()
 					;;
 				#Display cl[ide] version
 				version|v)
-					#echo "${Head}"
-					#ClideVersion
+					echo ""
+					CodeSupportVersion ${Lang}
+					echo ""
+					CodeTemplateVersion ${Lang}
+					echo ""
 					CodeVersion ${Lang}
 					;;
 				#Display help page
@@ -1560,25 +1632,13 @@ main()
 			-cv|--code-version)
 				CodeVersion
 				;;
+			#Get compile/interpreter version from cli
+			-sv|--support-version)
+				CodeSupportVersion
+				;;
 			#Get version of template
 			-tv|--temp-version)
-				local GetLangs=$(ls ${LangsDir}/ | sed "s/Lang.//g" | tr '\n' '|' | rev | sed "s/|//1" | rev)
-				local NumOfLangs=$(ls | wc -l)
-				local look=1
-				local text
-				while [ ${look} -le ${NumOfLangs} ];
-				do
-					text=$(echo ${GetLangs} | cut -d '|' -f ${look})
-					text=$(ManageLangs ${text} "pgLang")
-					case ${text} in
-						no)
-							;;
-						*)
-							ManageLangs "${text}" "TemplateVersion" | sed "s/Version/${text}/g" | grep -v found
-							;;
-					esac
-					look=$((${look}+1))
-				done
+				CodeTemplateVersion
 				;;
 			#Get version control version from cli
 			-rv|--repo-version)

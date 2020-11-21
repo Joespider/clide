@@ -1,0 +1,24 @@
+#Version tracking
+#Increment by 1 number per category
+#1st # = Overflow
+#2nd # = Additional features
+#3rd # = Bug/code tweaks/fixes
+Version=0.66.00
+
+#cl[ide] config
+#{
+editor=nano
+ReadBy=less
+repoTool=git
+#repoTool=svn
+
+#Repo assist is for simplistic commands
+#True = cl[ide] takes care of repo commands
+repoAssist=True
+#False = User handles repo commands
+#repoAssist="False"
+#Repo mangement is neither run by user nor cl[ide]
+#repoAssist=
+
+#root dir
+ProgDir=~/Programs
