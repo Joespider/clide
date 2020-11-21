@@ -11,7 +11,7 @@ Shell=$(which bash)
 #1st # = Overflow
 #2nd # = Additional features
 #3rd # = Bug/code tweaks/fixes
-Version="0.65.98"
+Version="0.65.99"
 
 #cl[ide] config
 #{
@@ -38,7 +38,7 @@ ClideDir=${ProgDir}/.clide
 NotesDir=${ClideDir}/notes
 LibDir=${ClideDir}/lib
 LangsDir=${ClideDir}/langs
-ProjectDir=${ClideDir}/projects
+ClideProjectDir=${ClideDir}/projects
 
 #Global Vars
 #{
@@ -255,8 +255,8 @@ EnsureDirs()
 		mkdir "${LibDir}"
 	fi
 
-	if [ ! -d "${ProjectDir}" ]; then
-		mkdir "${ProjectDir}"
+	if [ ! -d "${ClideProjectDir}" ]; then
+		mkdir "${ClideProjectDir}"
 	fi
 
 	local Langs=$(ls ${LangsDir}/ | sed "s/Lang.//g" | tr '\n' '|' | rev | sed "s/|//1" | rev)
@@ -451,7 +451,7 @@ importProject()
 	local Lang=$1
 	local Name=$2
 	local Path=$3
-	local ProjectFile=${ProjectDir}/${Name}.clide
+	local ProjectFile=${ClideProjectDir}/${Name}.clide
 	if [ ! -z "${Name}" ]; then
 		if [ ! -f ${ProjectFile} ]; then
 			if [ -z "${Path}" ]; then
@@ -489,7 +489,7 @@ newProject()
 {
 	local lang=$1
 	local project=$2
-	local ProjectFile=${ProjectDir}/${project}.clide
+	local ProjectFile=${ClideProjectDir}/${project}.clide
 	local path=""
 	#No Project is found
 	if [ -z ${project} ]; then
@@ -514,7 +514,7 @@ updateProject()
 {
 	local project=$1
 	local src=$2
-	local ProjectFile=${ProjectDir}/${project}.clide
+	local ProjectFile=${ClideProjectDir}/${project}.clide
 	#No Project is found
 	if [ ! -z ${src} ]; then
 		#Locate Project Directory
@@ -532,14 +532,14 @@ updateProject()
 listProjects()
 {
 	#Get list of active prijects from .clide files
-	ls ${ClideDir}/ | grep -v "session" | sed "s/.clide//g"
+	ls ${ClideProjectDir}/ | sed "s/.clide//g"
 }
 
 #Load active projects
 loadProject()
 {
 	local project=$1
-	local ProjectFile=${ProjectDir}/${project}.clide
+	local ProjectFile=${ClideProjectDir}/${project}.clide
 	local path=""
 	local RtnVals=""
 	local tag=""
@@ -1011,7 +1011,7 @@ Actions()
 					ProjectDir=$(echo ${ThePWD#*${CodeProject}} | sed "s/\//:/1")
 					cCodeProject=$(echo -e "\e[1;40m${CodeProject}\e[0m")
 					#Menu with no code
-					prompt="${Name}(${cLang}[${cCodeProject}${ProjectDir}]):$ "
+					prompt="${Name}(${cLang}[${cCodeProject}${ClideProjectDir}]):$ "
 				fi
 			else
 				if [[ "${CodeProject}" == "none" ]]; then
@@ -1023,7 +1023,7 @@ Actions()
 					ProjectDir=$(echo ${ThePWD#*${CodeProject}} | sed "s/\//:/1")
 					#Menu with no code
 					cCodeProject=$(echo -e "\e[1;40m${CodeProject}\e[0m")
-					prompt="${Name}(${cLang}[${cCodeProject}${ProjectDir}]{${cCode}}):$ "
+					prompt="${Name}(${cLang}[${cCodeProject}${ClideProjectDir}]{${cCode}}):$ "
 				fi
 			fi
 			#Handle CLI
