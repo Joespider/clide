@@ -49,8 +49,14 @@ UseJava()
 			#Return Red
 			echo -e "\e[1;31mJava\e[0m"
 			;;
+		ProjectColor)
+			local text=$1
+			if [ ! -z "${text}" ]; then
+				echo -e "\e[1;41m${text}\e[0m"
+			fi 
+			;;
 		SupportVersion)
-			echo "0.1.04"
+			echo "0.1.06"
 			;;
 		MenuHelp)
 			echo -e "new <file> {main|component}\t: \"create new ${Lang} source file\""
@@ -120,8 +126,8 @@ UseJava()
                         ;;
 		CplVersion)
 			echo "[Java JDK/JRE]"
-			JavaRunVersion=$(${JavaRun} --version 2> /dev/null)
-			JavaCplVersion=$(${JavaCpl} --version 2> /dev/null)
+			local JavaRunVersion=$(${JavaRun} --version 2> /dev/null)
+			local JavaCplVersion=$(${JavaCpl} --version 2> /dev/null)
 			if [ ! -z "${JavaRunVersion}" ]; then
 				JavaRunVersion=$(${JavaRun} --version | head -n 1)
 				JavaCplVersion=$(${JavaCpl} --version | head -n 1)
@@ -304,7 +310,8 @@ UseJava()
 			esac
 			;;
 		newProject)
-			path=${LangSrc}/${project}
+			local project=$1
+			local path=${LangSrc}/${project}
 			if [ ! -d ${path} ]; then
 				mkdir ${path}
 				cd ${path}
@@ -500,6 +507,7 @@ UseJava()
 			;;
 		#Java properties
 		create-prop|create-properties|create--D)
+			local EnvArgs
 			#Enter Java properties
 			echo -n "-D"
 			read -e EnvArgs

@@ -47,8 +47,14 @@ UseCpp()
 			#Return Blue
 			echo -e "\e[1;34mC++\e[0m"
 			;;
+		ProjectColor)
+			local text=$1
+			if [ ! -z "${text}" ]; then
+				echo -e "\e[1;44m${text}\e[0m"
+			fi 
+			;;
 		SupportVersion)
-			echo "0.1.05"
+			echo "0.1.07"
 			;;
 		MenuHelp)
 			echo -e "new <file> {main|header|component} : \"create new ${Lang} source file\""
@@ -315,7 +321,8 @@ UseCpp()
 			echo ${CplArgs}
 			;;
 		newProject)
-			local path=${LangSrc}/${CodeProject}
+			local project=$1
+			local path=${LangSrc}/${project}
 			#create and cd to project dir
 			if [ ! -d ${path} ]; then
 				mkdir ${path}

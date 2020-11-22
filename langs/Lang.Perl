@@ -47,8 +47,14 @@ UsePerl()
 			#Return Purple
 			echo -e "\e[1;35mPerl\e[0m"
 			;;
+		ProjectColor)
+			local text=$1
+			if [ ! -z "${text}" ]; then
+				echo -e "\e[1;45m${text}\e[0m"
+			fi
+			;;
 		SupportVersion)
-			echo "0.1.04"
+			echo "0.1.06"
 			;;
 		MenuHelp)
 			echo -e "new <file>\t\t\t: \"create new ${Lang} script\""
@@ -273,6 +279,7 @@ UsePerl()
 			esac
 			;;
 		newProject)
+			local project=$1
 			path=${LangSrc}/${project}
 			if [ ! -d ${path} ]; then
 				mkdir ${path}

@@ -47,8 +47,14 @@ UseBash()
 			#Return Green
 			echo -e "\e[1;32mBash\e[0m"
 			;;
+		ProjectColor)
+			local text=$1
+			if [ ! -z "${text}" ]; then
+				echo -e "\e[1;42m${text}\e[0m"
+			fi
+			;;
 		SupportVersion)
-			echo "0.1.04"
+			echo "0.1.06"
 			;;
 		MenuHelp)
 			echo -e "new <file>\t\t\t: \"create new ${Lang} script\""
@@ -280,6 +286,7 @@ UseBash()
 			esac
 			;;
 		newProject)
+			local project=$1
 			local path=${LangSrc}/${project}
 			if [ ! -d ${path} ]; then
 				mkdir ${path}
