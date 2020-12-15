@@ -1,19 +1,97 @@
 [Python Notes]
+Date: (12/14/2020)
 
-#Get CLI Args
-import sys
-Args = sys.argv		[array]
+>>>		---[Data Types]---
+	#Python does not have an offical data type for each variable
+	0			[int]
+	0.0			[double]
+	0.0			[float]
+	'w'			[char]			#'w' is a char
+	"word"			[string]		#"word" is a string
+	()			[tuple]			#list of items; READ ONLY ("one", 2, 3.0)
+	[]			[array]			#list of items; can append ["one","two","three"]
+	{}			[dictionary]		#array of <key>:<value> {1:"One", 2:"Two, 3:"Three"}
 
-#String Starts with and Ends with
-str.startswith(sub)	[bool]
-str.endswith(sub)	[bool]
+>>>		---[String Manipulation]---
+	str = "Hello World"
+	print str		[string]		#"Hello World"
+	print str[0]		[string]		#"H"
+	print str[2:5]		[string]		#"llo"
+	print str[2:]		[string]		#"llo World"
+	print str * 2		[string]		#"Hello WorldHello World"
+	print str + "Today"	[string]		#"Hello WorldToday"
 
-#Split String
-str.split(sub)		[array]		"Split ALL where 'sub' found"
-str.split(sub,num)	[array]		"Split where 'num' 'sub' found"
-str.rsplit(sub,num)	[array]		"Split string in reverse"
+>>>		---[tuple Manipulation]---
+	tuple = ("one",2,5,"Four")
+	print tuple		[tuple]			#("one",2,5,"Four")
+	print tuple[0]		[tuple]			#one
+	print tuple[1:3]	[tuple]			#(2,5)
+	print tuple[2:]		[tuple]			#(5,"Four")
+	print tuple * 2		[tuple]			#('one', 2, 5, 'Four', 'one', 2, 5, 'Four')
 
-#Upper and Lower case
-str.lower()		[string]
-str.upper()		[string]
+>>>		---[Dictionary Manipulation]---
+	dict = {"one":1,"two":2,"three":3,"four":4}
+	print dict		[dictionary]		#{"one":1,"two":2,"three":3,"four":4}
+	print dict["one"]	[item]			#1
+	print dict.keys()	[array]			#['four', 'three', 'two', 'one']
+	print dict.values()	[array]			#[4, 3, 2, 1]
+	dict["Five"] = 5	[array]			#{"one":1,"two":2,"three":3,"four":4,"Five":5}
 
+>>>		---[Data Type Conversion]---
+	int(<item> [,base])	[int]			#Converts <item> to an integer. base specifies the base if x is a string.
+	long(<item> [,base] )	[long]			#Converts <item> to a long integer. base specifies the base if x is a string.
+	float(<item>)		[float]			#Converts <item> to a floating-point number.
+	complex(real [,imag])	[complex int]		#Creates a complex number.
+	str(<item>)		[string]		#Converts object <item> to a string representation.
+	repr(<item>)		[string]		#Converts object <item> to an expression string.
+	eval(str)		[object]		#Evaluates a string and returns an object.
+	tuple(s)		[tuple]			#Converts s to a tuple.
+	list(s)			[array]			#Converts s to a list.
+	set(s)			[set]			#Converts s to a set.
+	dict(d)			[dictonary]		#Creates a dictionary. d must be a sequence of (key,value) tuples.
+	frozenset(s)		[frozen set]		#Converts s to a frozen set.
+	chr(<item>)		[char]			#Converts an integer to a character.
+	unichr(<item>)		[Unicode char]		#Converts an integer to a Unicode character.
+	ord(<item>)		[int]			#Converts a single character to its integer value.
+	hex(<item>)		[hex string]		#Converts an integer to a hexadecimal string.
+	oct(<item>)		[oct string]		#Converts an integer to an octal string
+
+>>>		---[Get CLI Args]---
+	import sys
+	Args = sys.argv		[array]
+
+>>>		---[String: operations]---
+
+	#String Starts with and Ends with
+	str.startswith(sub)	[bool]
+	str.endswith(sub)	[bool]
+
+	#Split String
+	str.split(sub)		[array]			#Split ALL where 'sub' found
+	str.split(sub,num)	[array]			#Split where 'num' 'sub' found
+	str.rsplit(sub,num)	[array]			#Split string in reverse
+
+	#Upper and Lower case
+	str.lower()		[string]
+	str.upper()		[string]
+
+
+>>>		---[Logic: if/else]---
+	if <condition>:
+		print "One"
+	else:
+		print "Two"
+
+>>>		---[Logic: if/elif/else]---
+	if <condition>:
+		print "One"
+	elif <condition>:
+		print "Two"
+	else:
+		print "Three"
+
+
+>>>		---[Threading]---
+	import threading
+	TheThread = threading.Thread(target=<method>, args=(<arg>,<arg>,))
+	TheThread.start()

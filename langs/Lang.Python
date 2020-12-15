@@ -1,6 +1,8 @@
 Shell=$(which bash)
 #!${Shell}
 
+SupportV="0.1.08"
+
 ProgDir=$1
 shift
 ClideDir=$1
@@ -54,11 +56,11 @@ UsePython()
 			fi 
 			;;
 		SupportVersion)
-			echo "0.1.06"
+			echo ${SupportV}
 			;;
 		MenuHelp)
 			echo -e "new <file>\t\t\t: \"create new ${Lang} script\""
-			echo -e "compile|cpl\t\t\t: \"make code executable\""
+			echo -e "cpl, compile\t\t\t: \"make code executable\""
 			echo -e "shell\t\t\t\t: run shell for testing"
 			;;
 		getCode)
@@ -94,7 +96,7 @@ UsePython()
 			;;
 		newCodeHelp)
 			if [ -f ${TemplateCode} ]; then
-				echo -e "--custom|-c\t\t\t: \"Custom src file using ${Lang} template\""
+				echo -e "-c, --custom\t\t\t: \"Custom src file using ${Lang} template\""
 			fi
 			;;
 		EnsureDirs)
@@ -382,7 +384,9 @@ UsePython()
 				else
 					#Program Name Given
 					if [ ! -z "${name}" ];then
+						local Content="import sys\n\n#python main\ndef main():\n\tArgs = sys.argv\n\nmain()"
 						touch ${name}.py
+						echo -e "${Content}" > ${name}.py
 					else
 						errorCode "newCode"
 					fi

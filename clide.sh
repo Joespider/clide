@@ -9,7 +9,7 @@ root=$(dirname ${ShellPath})
 
 GetConfig()
 {
-	ConfigFile=${root}/config.txt
+	ConfigFile=${root}/clide.conf
 	Item=$1
 	if [ ! -z "${Item}" ]; then
 		grep "${Item}" ${ConfigFile} | grep -v "#" | cut -d "=" -f 2
@@ -77,15 +77,15 @@ MenuHelp()
 	echo -e "ls\t\t\t\t: \"list progams\""
 	echo -e "unset\t\t\t\t: \"deselect source code\""
 	echo -e "use <language> <code>\t\t: \"choose language\""
-	echo -e "swap|swp {src|bin}\t\t: \"swap between sorce code and executable\""
+	echo -e "swap, swp {src|bin}\t\t: \"swap between sorce code and executable\""
 	echo -e "create <arg>\t\t\t: \"create compile and runtime arguments"
 	ManageLangs ${Lang} "MenuHelp"
-	echo -e "rm|remove|delete\t\t: \"delete src file\""
+	echo -e "rm, remove, delete\t\t: \"delete src file\""
 	echo -e "set <file>\t\t\t: \"select source code\""
 	echo -e "add <file>\t\t\t: \"add new file to project\""
 	echo -e "notes <action>\t\t\t: \"make notes for the ${Lang} language\""
-	echo -e "${editor}|edit|ed\t\t\t: \"edit source code\""
-	echo -e "${ReadBy}|read\t\t\t: \"Read source code\""
+	echo -e "${editor}, edit|ed\t\t\t: \"edit source code\""
+	echo -e "${ReadBy}, read\t\t\t: \"Read source code\""
 	echo -e "search <find>\t\t\t: \"search for code in project\""
 	case ${project} in
 		none)
@@ -94,13 +94,13 @@ MenuHelp()
 		*)
 #			echo -e "project {new|update|list|load|active}\t: \"handle projects\""
 			echo -e "project {new|update|list|load}\t: \"handle projects\""
-			echo -e "${repoTool}|repo\t: \"handle repos\""
+			echo -e "${repoTool}, repo\t: \"handle repos\""
 			;;
 	esac
 	echo -e "search\t\t\t\t: \"search project src files for line of code\""
-	echo -e "execute|exe|run {-a|--args}\t: \"run active program\""
-	echo -e "last|load\t\t\t: \"Load last session\""
-	echo -e "exit|close\t\t\t: \"close ide\""
+	echo -e "execute, exe, run {-a|--args}\t: \"run active program\""
+	echo -e "last, load\t\t\t: \"Load last session\""
+	echo -e "exit, close\t\t\t: \"close ide\""
 	echo "------------------------------------------------"
 	echo ""
 }
@@ -137,7 +137,7 @@ NotesHelp()
 	local Lang=$1
 	echo ""
 	echo "----------------[(${Head}) \"Notes\" Help]----------------"
-	echo -e "edit|add\t: \"edit notes\""
+	echo -e "edit, add\t: \"edit notes\""
 	echo -e "read\t\t: \"read notes\""
 	echo "----------------------------------------------------------"
 	echo ""
@@ -149,8 +149,8 @@ newCodeHelp()
 	local Lang=$1
 	echo ""
 	echo "----------------[(${Head}) \"new\" Help]----------------"
-	echo -e "--version|-v\t\t\t: \"Get Version for each code template\""
-	echo -e "--help|-h\t\t\t: \"This page\""
+	echo -e "-v, --version\t\t\t: \"Get Version for each code template\""
+	echo -e "-h, --help\t\t\t: \"This page\""
 	ManageLangs ${Lang} "newCodeHelp"
 	echo -e "<code>\t\t\t\t: \"provide code name; default settings\""
 	echo "----------------------------------------------------------"
@@ -162,19 +162,29 @@ CliHelp()
 {
 	echo ""
 	echo "----------------[(${Head}) CLI]----------------"
-	echo -e "-v |--version\t\t\t: \"Get Clide Version\""
-	echo -e "-sv|--support-version\t\t: \"Get Code Support Version\""
-	echo -e "-cv|--code-version\t\t: \"Get Compile/Interpreter Version\""
-	echo -e "-tv|--temp-version\t\t: \"Get Code Template Version\""
-	echo -e "-rv|--repo-version\t\t: \"Get git/svn Version\""
-	echo -e "-c |--config\t\t\t: \"Get Clide Config\""
-	echo -e "-p |--projects\t\t\t: \"List Clide Projects\""
-	echo -e "-h |--help\t\t\t: \"Get CLI Help Page (Cl[ide] Menu: \"help\")\""
-	echo -e "-l |--last|--load\t\t: \"Load last session\""
+	echo -e "-v, --version\t\t\t: \"Get Clide Version\""
+	echo -e "-sv, --support-version\t\t: \"Get Code Support Version\""
+	echo -e "-cv, --code-version\t\t: \"Get Compile/Interpreter Version\""
+	echo -e "-tv, --temp-version\t\t: \"Get Code Template Version\""
+	echo -e "-rv, --repo-version\t\t: \"Get git/svn Version\""
+	echo -e "-c, --config\t\t\t: \"Get Clide Config\""
+	echo -e "-p, --projects\t\t\t: \"List Clide Projects\""
+	echo -e "-h, --help\t\t\t: \"Get CLI Help Page (Cl[ide] Menu: \"help\")\""
+	echo -e "-l, --last|--load\t\t: \"Load last session\""
 	echo "-----------------------------------------------"
 	echo -e "$ clide <language> <code>\t: start clide"
 	echo -e "$ clide java program.java\t: start clide using java and program.java"
 	echo -e "$ clide java\t\t\t: start clide using java"
+	echo ""
+}
+
+ModesHelp()
+{
+	echo ""
+	echo "----------------[(${Head}) Modes]----------------"
+	echo -e "${repoTool}, repo\t\t: repo management"
+	echo -e "-h, --help\t\t: \"Modes help page\""
+	echo "-----------------------------------------------"
 	echo ""
 }
 
@@ -193,7 +203,7 @@ UseOther()
 			echo -e "\e[1;35m${text}\e[0m"
 			;;
 		MenuHelp)
-			echo -e "compile|cpl\t: \"make code executable\""
+			echo -e "cpl, compile\t: \"make code executable\""
 			;;
 		#No Languge found
 		pgLang|pgDir)
@@ -247,8 +257,11 @@ ModeHanlder()
 				echo "Must have an active project"
 			fi
 			;;
+		-h|--help)
+			ModesHelp
+			;;
 		*)
-			echo "Modes"
+			ModesHelp
 			;;
 	esac
 }
@@ -817,7 +830,14 @@ Actions()
 			read -e -p "${prompt}" -a UserIn
 			UserArg=$(echo ${UserIn[0]} | tr A-Z a-z)
 			if [ ! -z "${UserIn[0]}" ]; then
-				history -s "${UserIn[@]}"
+				case ${UserIn[0]} in
+					#ignore anything beginning with '-'
+					-*)
+						;;
+					*)
+						history -s "${UserIn[@]}"
+						;;
+				esac
 			fi
 			case ${UserArg} in
 				#List files
@@ -1172,7 +1192,7 @@ Actions()
 					;;
 				#Close cl[ide]
 				exit|close)
-					SaveSession ${CodeProject} ${Lang} ${Code}
+					#SaveSession ${CodeProject} ${Lang} ${Code}
 					break
 					;;
 				#ignore all other commands
@@ -1374,7 +1394,7 @@ main()
 		pg=$(ColorCodes)
 		local getLang=""
 		if [ ! -z "${pg}" ]; then
-			CliHelp
+			#CliHelp
 			echo "~Choose a language~"
 			#Force user to select language
 			while [[ "$getLang" == "" ]] || [[ "$Lang" == "no" ]];

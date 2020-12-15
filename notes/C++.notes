@@ -1,29 +1,727 @@
 [C++ Notes]
+Date: (12/14/2020)
 
-	[Data Types]
-bool (true/false)
-int (0)
-float (0.0)
-double (0.0)
-std::string ("")
+>>>		---[Data Types]---
+	bool				(true/false)
+	int				(0)
+	float				(0.0)			//Can only have 6 or 7 digits afte the (.)
+	double				(0.0)			//Can only have 15 digits afte the (.)
+	char				(' ')			//Typically on character
+	wchar_t				(' ')
+	std::string			("")
+	void				(null)			//Nothing to return...no value
 
-	[Examples]
+>>>		---[Data Type: Management]---
+	sizeof(<type>)			[int]			//return the size of the data type
+	typedef <type> <new name>				//Can create alias for exiting data types..."typedef int feet" means "feet" reffers to "int"
+	enum <name> { <item>, <item>, <item> } <var-list>;	//create an enum data type
+	
 
-//Call System commands
-	system("ls");
+>>>		---[Math: Operations]---
+	+							//addition
+	-							//subtraction
+	*							//multiplication
+	/							//division
+	%							//modulus
+	++							//increment
+	--							//decrement
 
-[handle terminal args]
-	//argc = count of args given
-	//argv = values of args given
-	int main(int argc, char** argv)
-		//Save output to UserIn
-		std::string UserIn = std::string(argv[0]);
-[Array]
-	string Names[4] = {"Peter","Sam","Danny","John"};
-	//Rename Value in Array
-	Names[3] = "Daniel";
+>>>		---[Math: Short Operations]---
+	X = 5							//X = 5
+	X += 5							//X = X + 5
+	X -= 5							//X = X - 5
+	X /= 5							//X = X / 5
+	X %= 5							//X = X % 5
+	X &= 5							//X = X & 5
+	X |= 5							//X = X | 3
+	X ^= 5							//X = X ^ 5
+	X >>= 5							//X = X >> 5
+	X <<= 5							//X = X << 5
 
-[Split String]
+>>>		---[Logic: Comparision]---
+	X == Y							//equal
+	X != Y							//not equal
+	X > Y							//greater than
+	X < Y							//less than
+	X >= Y							//greater/equal
+	X <= Y							//less/equal
+
+>>>		---[Logic: Operators]---
+	() && ()						//AND
+	() || ()						//OR
+	! ()							//NOT
+
+>>>		---[Concept: Concat Strings]---
+	std::string firstName = "I'm";
+	std::string secondName = "Person";
+	std::string FullName = firstName+secondName;
+	//OR
+	std::string firstName = "I'm";
+	std::string secondName = "Person";
+	std::string FullName = firstName.append(secondName);	//append is much faster than +
+
+>>>		---[Length of string]---
+	std::string word = "I am a word";
+	// <string>.size() is an alias for <string>.length()
+	int WordLength = word.length();
+	int WordLength = word.size();
+
+>>>	---[Sub-string]---
+	std::string word = "Pizza";
+	char letter = word[0];					//P
+	word[0] = W;						//'Pizza' becomes 'Wizza'
+
+>>>		---[Math]---
+	#include <cmath>					//NEED for math
+	max(num1,num2);			[int]			//largest int
+	min(num1,num2);			[int]			//smallest int
+	sqrt(num);			[double]		//square root of number
+	round(num);			[int]			//nearest int
+	long(num);						//
+	abs(num);			[int]			//absolute value (-5 becomes 5)
+	acos(num);			[double]		//arc-cosine, in radians
+	acin(num);			[double]		//arc-soine, in radians
+	atan(num);			[double]		//arc-tangent, in radians
+	cbrt(num);						//cube-root
+	ceil(num);						//round up to int
+	cos(num);						//cosine, in radians
+	cosh(num);						//hyperbolic cosine, in radians
+	exp(num);						//exponent
+	expm1(num);						//exponent minus 1
+	fabs(num);			[double]		//absolute value, in float
+	fdim(num1,num2);					//positive difference between num1 and num2
+	floor(num);			[double]		//round down int
+	hypot(num1,num2);					//sqr(x^2 + y^2) without over/under flow
+	fma(num1,num2,num3);					//x*y+z
+	fmax(num1,num2);					//largest float
+	fmix(num1,num2);					//smallest float
+	fmod(num1,num2);					//floating point. float
+	pow(num1,num2);						//num1 to the power of num2; num1^num2
+	sin(num);						//sine of num, radians
+	sinh(num);						//sine of num, double
+	tan(num);						//tangent of angle
+	tanh(num);						//tangent of num, double
+
+
+>>>		---[Logic: if/else/switch]---
+	//if / else
+		if (condition)
+		{
+			//some code
+		}
+		else
+		{
+			//some code
+		}
+
+	//if / else if /else
+		if (condition)
+		{
+			//some code
+		}
+		else if (condition)
+		{
+			//some code
+		}
+		else
+		{
+			//some code
+		}
+
+	//switch
+		switch (condition)
+		{
+			case x:
+				//code here
+				break;
+			case y:
+				//code here
+				break;
+			default:
+				//code here
+		}
+
+>>>		---[Logic: Loops]---
+	//while ... will only execute if condtion is true
+		while (condition)
+		{
+			//some code
+		}
+	// do / while ... will execute once, but will again if condition true
+		do
+		{
+			//some code
+		}
+		while (condition)
+
+	//for
+		for (var declare; condtion, increment)
+		{
+			//some code
+		}
+
+>>>		---[Data Structure: Arrays]---
+	int ages[3];						//Empty int array
+	int ages[3] = {12,4,15};				//int array
+	std::string cars[3];					//Empty string array
+	std::string cars[3] = {"chevy","ford","jeep"};		//string array
+	std::string cars[] = {"chevy","ford","jeep"};		//string array...has only 3 elements
+	std::string cars[5] = {"chevy","ford","jeep"};		//string array...has only 5 elements, but only 3 are assigned
+	cars[0] = "ford";					//assign array value
+	cars[0];						//return "ford"
+
+
+>>>		---[Type: References]---
+	//(&)references point the VALUE...ONLY ONE refference per ONE item...can NOT be reassigned
+	std::string food = "pizza";				//normal string
+	std::string &meal = food;				//meal now points to "pizza"
+	meal;							//"pizza"
+	&food;							//references the address (0x6dfed4) of the variable
+	food = "pancakes";					//"pizza" becomes "pancakes"
+	meal;							//"pancakes"
+	&meal;							//a refference of a refference is the address (0x6dfed4)
+
+
+>>>		---[Type: Pointers]---
+	//(*)pointers point to the ADDRESS
+	int* p;							//pointer to an integer
+	double* dp;						//pointer to a double
+	float* fp;						//pointer to a float
+	char* ch;						//pointer to character
+	std::string food = "pizza";				//normal string
+	std::string* place = &food;				//'place' points to the address (0x6dfed4) of 'food'
+	place							//'place' points to the address (0x6dfed4) of 'food'
+	*place							//'place' dereferenced to value ("Pizza") of 'food'
+	//The following can change the value of a variable with pointers
+	*place = "chicken";					//Assigning the value ("chicken") to in the address of 'food'
+	food;							//chicken
+
+>>>		---[Type: Unique Pointer]---
+	//(std::unique_ptr<type>) is a pointer that owns an object it points to...pointer cannnot be copied...it deletes/deallocates memory for it
+	//example 1
+	//{
+		#include <iostream>
+		#include <memory>
+
+		int main()
+		{
+			std::unique_ptr<int> p(new int { 123 });
+			std::cout << *p << std::endl;
+			return 0;
+		}
+	//}
+
+	//(std=c++14) ... std::make_unique<type>
+	//example 2
+	//{
+		#include <iostream>
+		#include <memory>
+
+		int main()
+		{
+			std::unique_ptr<int> p = std::make_unique<int>(123);
+			std::cout << *p << std::endl;
+		}
+	//}
+>>>		---[Type: Shared Pointer]---
+	//(std::shared_ptr<type>) is a pointer that shares ownership of a given object...ONLY AFTER the LAST pointer expires, does the object expire
+	//example 1
+	//{
+		#include <iostream>
+		#include <memory>
+
+		int main()
+		{
+			std::shared_ptr<int> p1 = std::make_shared<int>(123);
+			std::shared_ptr<int> p2 = p1;
+			std::shared_ptr<int> p3 = p1;
+		}
+	//}
+
+>>>		---[Concept: The Stack/The Heap]---
+	//The Stack
+	All variables declared inside a function
+
+	//The Heap
+	Unused memory of a program and can be used to allocate the memory dynamically when program run
+	(new) allocates memory on the heap
+	(delete) removes allocated memory; deallocates memory 
+
+	//example 1
+	//{
+		#include <iostream>
+		using namespace std;
+
+		int main ()
+		{
+			double* pvalue  = NULL;				//Pointer initialized with null
+			pvalue  = new double;				//Request memory for the variable
+			*pvalue = 29494.99;				// Store value at allocated address
+			cout << "Value of pvalue : " << *pvalue << endl;
+			delete pvalue;					//free up the memory.
+			return 0;
+		}
+	//}
+
+	//example 2
+	//{
+		#include <iostream>
+		using namespace std;
+
+		int main ()
+		{
+			char* pvalue  = NULL;				// Pointer initialized with null
+			pvalue  = new char[20];				// Request memory for the variable
+			delete [] pvalue;				// Delete array pointed to by pvalue
+		}
+	//}
+
+	//example 3
+	//{
+		#include <iostream>
+		using namespace std;
+
+		class Box
+		{
+			public:
+				Box()
+				{
+					cout << "Constructor called!" <<endl; 
+				}
+				~Box()
+				{
+					cout << "Destructor called!" <<endl; 
+				}
+		};
+
+		int main()
+		{
+			Box* myBoxArray = new Box[4];
+			delete [] myBoxArray; // Delete array
+			return 0;
+		}
+	//}
+
+>>>		---[Type: Namespace]---
+	//Namespace is designed to overcome this difficulty and is used as additional information to differentiate similar functions, classes, variables etc. with the same name available in different libraries. Using namespace, you can define the context in which names are defined. In essence, a namespace defines a scope.
+	//ie xyz() is found in two different libraries; using a Namespace helps ensure the correct function is used.
+
+	//Creating a namespace
+	namespace <namespace>
+	{
+	   //code declarations
+	}
+
+	//Calling namespace
+	<namespace>::code; 
+
+	//Example 1
+	//{
+		#include <iostream>
+		using namespace std;
+
+		//first name space
+		namespace first_space
+		{
+			void func()
+			{
+				cout << "Inside first_space" << endl;
+			}
+		}
+
+		//second name space
+		namespace second_space
+		{
+			void func()
+			{
+				cout << "Inside second_space" << endl;
+			}
+		}
+
+		int main()
+		{
+			//Calls function from first name space.
+			first_space::func();
+
+			//Calls function from second name space.
+			second_space::func(); 
+
+			return 0;
+		}
+	//}
+
+	//Namespaces can be nested
+
+	//example 2
+	//{
+		#include <iostream>
+		using namespace std;
+
+		//first name space
+		namespace first_space
+		{
+			void func()
+			{
+				cout << "Inside first_space" << endl;
+			}
+
+			//second name space
+			namespace second_space
+			{
+				void func()
+				{
+					cout << "Inside second_space" << endl;
+				}
+			}
+		}
+
+		using namespace first_space::second_space;
+		int main()
+		{
+			//This calls function from second name space.
+			func();
+
+			return 0;
+		}	
+	//}
+
+>>>		---[Structure: Functions]---
+	//<type> <Function>(<parameter>,<parameter,...)
+
+	//integer method; MUST return int
+	int add(int num1, int num2)
+	{
+		return num1+num2;
+	}
+
+	//void method; MUST NOT return ANYTHING
+	void name()
+	{
+		//some code
+	}
+
+	//Default value for empty parameters; values given over-write value
+	int age(int years = 1)
+	{
+		return years;
+	}
+
+	age();								//1
+	age(17);							//17
+
+	//Pass via refference
+	int age(int &x)
+	{
+		int TheAge = x;
+		return TheAge;
+	}
+
+
+>>>		---[Function: return by refference]---
+	//Pass by refference...return multible values
+	//example
+	//{
+		void swapNums(int &x, int &y)
+		{
+			int z = x;
+			x = y;
+			y = z;
+		}
+	//}
+
+
+>>>		---[Function: Overloading]---
+	//Overloading functions...same name, different values
+	int age(int years)
+	float age(float seconds)
+	double age(double seconds)
+
+>>>		---[Structure: Template]---
+	//Tempalte allow programmers the ability to program generic functions without specificing required data types/returns
+	//Example 1
+	//{
+		#include <iostream>
+
+		template <typename T>
+		void MyFunction(T param)
+		{
+			std::cout << "The value given is \"" << param << "\"" << std::endl;
+		}
+
+		int main()
+		{
+			MyFunction<int>(12);
+			MyFunction<double>(0.2);
+			MyFunction<char>('A');
+			return 0;
+		}
+	//}
+
+	//Example 2
+	//{
+		#include <iostream>
+
+		template <typename T, typename U>
+		void MyFunction(T first, U second)
+		{
+			std::cout << "This is first \"" << first << "\"" << std::endl;
+			std::cout << "This is second \"" << second << "\"" << std::endl;
+		}
+
+		int main()
+		{
+			MyFunction<int, double>(12,0.2);
+			return 0;
+		}
+	//}
+
+>>>		---[Class: Accessability]---
+	public								//members accessable OUTSIDE class
+	private								//members NOT accessable outside class
+	protected							//members NOT accessable outside class; except IS in inherited classes
+
+>>>		---[Type: Class]---
+	#include <iostream>
+	using namespace std;
+
+	class Math {
+
+	private:
+		int x, y;
+	public:
+		//class constructor
+		Math(int x, int y)
+		{
+			// this-> points to the class's x, y; not param x, y vars
+			this->x = x;
+			this->y = y;
+		}
+		//class desctructor
+		~Math()
+		{
+			//NO code
+		}
+		int add()
+		{
+			int Total;
+			Total = x + y;
+			return Total;
+		}
+	};
+
+	int main()
+	{
+		Math m(5,6);
+		int Answer;
+		Answer = m.add();
+		cout << "Answer = " << m.add() << endl;
+		return 0;
+	}
+
+>>>	---[Class: Inheritance]---
+	//example 1
+	//{
+		// Base class
+		class Vehicle
+		{
+		public:
+			string brand = "Ford";
+			void honk()
+			{
+				std::cout << "Tuut, tuut! " << std::endl;
+			}
+		};
+
+		// Derived class
+		class Car: public Vehicle
+		{
+		public:
+			string model = "Mustang";
+		};
+
+		int main()
+		{
+			Car myCar;
+			myCar.honk();
+			std::cout << myCar.brand + " " + myCar.model;
+			return 0;
+		}
+	//}
+
+>>>		---[Class: Polymorphism]---
+	//Polymorphism, or "many forms", is when methods are overloaded within inheritance
+	//example 1
+	//{
+			// Base class
+			class Animal
+			{
+			public:
+				void animalSound()
+				{
+					std::cout << "The animal makes a sound " << std::endl;
+				}
+			};
+
+			// Derived class
+			class Pig : public Animal
+			{
+			public:
+				void animalSound()
+				{
+					std::cout << "The pig says: wee wee " << std::endl;
+				}
+			};
+
+			// Derived class
+			class Dog : public Animal
+			{
+				public:
+				void animalSound()
+				{
+					std::cout << "The dog says: bow wow " << std::endl;
+				}
+			};
+	//}
+
+
+>>>		---[Structure: Enumeration (enum)]---
+	//Values are user defined...scoped and unscoped...look for examples
+
+		enum MyEnum
+		{
+			firstVal,
+			secondVal,
+			thirdVal
+		};
+
+		int main()
+		{
+			MyEnum theEnum = firstVal;
+			theEnum = secondVal;
+			return 0;
+		}
+
+>>>		---[String Streams]---
+	std::stringstream						//the stream to read from a string
+	std::otringstream						//the stream to write a string
+	std::stringstream						//the stream to both read from and write to a string
+
+	//example 1
+	//{
+		#include <iostream>
+		#include <sstream>
+		#include <string>
+
+		int main()
+		{
+			char c = 'A';
+			int x = 123;
+			double d = 456.78;
+			std::string Output;
+			std::stringstream ss;
+			ss << c << x << d;
+			Output = ss.str();
+			std::cout << Output << std::endl;
+		}
+	//}
+
+>>>		---[Type: Vectors]---
+	//(std::vector<type>) much like python's .append() in arrays, this is the C++ equivlant...much slower...is very inefficient
+	//example 1
+	//{
+		#include <vector>
+		int main()
+		{
+			std::vector<int> v = { 1, 2, 3, 4, 5 };	//int array
+			v.push_back(10);			//append value int array
+			std::cout << v.at(3) << std::endl;	//get 4
+			std::cout << v[2] << std::endl;		//get 3
+			std::cout << v.size() << std::endl;	//get size of array
+		}
+	//}
+
+	//(std::map<type>) much like python's dictionary, this is a key/value array type
+	.first							//get first element
+	.second							//get second element
+	.find(key)						//locate value using key
+	.insert({ key, value})					//insert new entry
+	.end()							//get the length of data
+
+	//example 1
+	//{
+		#include <iostream>
+		#include <map>
+		int main()
+		{
+			std::map<int, char> mymap = { {1, 'a'}, {2, 'b'}, {3,'z'} };
+			mymap.insert({ 20, 'c' });
+			for (auto el : mymap)
+			{
+				std::cout << el.first << ' ' << el.second << std::endl;
+			}
+		}
+	//}
+
+	//example 2
+	//{
+		#include <iostream>
+		#include <map>
+		int main()
+		{
+			std::map<int, char> mymap = { {1, 'a'}, {2, 'b'}, {3,'z'} };
+			auto it = mymap.find(2);
+			if (it != mymap.end())
+			{
+				std::cout << "Found: " << it->first << " " << it->second << std::endl;
+			}
+			else
+			{
+				std::cout << "Not found." << std::endl;
+			}
+		}
+	//}
+
+	//(std::pair<type, type>) much like map, works on a key/value system
+	.first							//get first element
+	.second							//get second element
+
+	//example 1
+	//{
+		#include <iostream>
+		#include <utility>
+		int main()
+		{
+			std::pair<int, double> mypair = { 123, 3.14 };
+			std::cout << "The first element is: " << mypair.first << std::endl;
+			std::cout << "The second element is: " << mypair.second << std::endl;
+		}
+	//}
+
+	//Another way to create a pair is through a std::make_pair function:
+	//example 2
+	//{
+		#include <iostream>
+		#include <utility>
+		int main()
+		{
+			int x = 123;
+			double d = 3.14;
+			std::pair<int, double> mypair = std::make_pair(x, d);
+			std::cout << "The first element is: " << mypair.first << std::endl;
+			std::cout << "The second element is: " << mypair.second << std::endl;
+		}
+
+>>>		---[handle terminal args]---
+		//argc = count of args given
+		//argv = values of args given
+		int main(int argc, char** argv)
+		{
+			//Save output to UserIn
+			std::string UserIn = std::string(argv[0]);
+			return 0;
+		}
+
+>>>		---[Split String]---
 	#include <iostream>
 	#include <sstream>
 	#include <string>
@@ -40,51 +738,131 @@ std::string ("")
 		return 0;
 	}
 
-[Read/Write File]
-	#include <fstream>
-	std::string filename = "file.txt";
-	std::ofstream myfile;
-	myfile.open(filename.c_str());
-	myfile << content;
-	myfile.close();
+>>>		---[File Management]---
 
-//Class Example
-	#include <iostream>
-	using namespace std;
+	#include <fstream>						//required for file management
+	std::ofstream							//creates and writes to file
+	std::ifstream							//reads file
+	std::fstream							//combination of read/write file
 
-	class Math {
+	//example 1 (Read)
+	//{
+		// Create a text string, which is used to output the text file
+		string myText;
 
-	private:
-		int x, y;
+		// Read from the text file
+		ifstream MyReadFile("filename.txt");
 
-	public:
-		//class constructor
-		Math(int x, int y)
+		// Use a while loop together with the getline() function to read the file line by line
+		while (getline (MyReadFile, myText))
 		{
-			// this-> points to the class's x, y; not param x, y vars
-			this->x = x;
-			this->y = y;
-		}
-		//class desctructor
-		~Math()
-		{
-
+			// Output the text from the file
+			cout << myText;
 		}
 
-		int add()
+		// Close the file
+		MyReadFile.close();
+	//}
+
+	//example 2 (Write)
+	//{
+		#include <fstream>					//reqired for file managmament
+		std::string filename = "file.txt";			//File name
+		std::ofstream myfile;					//Write file
+		myfile.open(filename.c_str());				//Open file
+		myfile << content;					//Write content to file
+		myfile.close();						//close file
+	//}
+
+>>>		---[Type: try/throw/catch]---
+	try								//allows code to run in test mode...can fail and won't crash program
+	throw								//throws the keyword exception when a problem occurs; allows for custom errors
+	catch (type_of_exception e)					//block of code to execute upon error
+
+	//example 1
+	//{
+		try
 		{
-			int Total;
-			Total = x + y;
-			return Total;
+			//some code
+			thorw 123;					//throw the error type
 		}
-	};
+		catch (int e)
+		{
+			//some code
+		}
+	//}
 
-	int main()
-	{
-		Math m(5,6);
-		int Answer;
-		Answer = m.add();
-		cout << "Answer = " << m.add() << endl;
+	//example 2
+	//{
+		try
+		{
+			//some code
+			thorw std::string { "Some error" };		//throw the error type
+		}
+		catch (const std::string& e)
+		{
+			//some code
+		}
+	//}
 
-		return 0;
-	}
+	//example 3
+	//{
+		#include <iostream>
+		#include <exception>
+		using namespace std;
+		struct MyException : public exception
+		{
+			const char * what () const throw ()
+			{
+				return "C++ Exception";
+			}
+		};
+		int main()
+		{
+			try
+			{
+				throw MyException();
+			}
+			catch(MyException& e)
+			{
+				std::cout << "MyException caught" << std::endl;
+				std::cout << e.what() << std::endl;
+			}
+			catch(std::exception& e)
+			{
+				//Other errors
+			}
+		}
+	//}
+
+	//Standard Errors
+	std::exception							//An exception and parent class of all the standard C++ exceptions.
+	std::bad_alloc							//This can be thrown by new.
+	std::bad_cast							//This can be thrown by dynamic_cast.
+	std::bad_exception						//This is useful device to handle unexpected exceptions in a C++ program.
+	std::bad_typeid							//This can be thrown by typeid.
+	std::logic_error						//An exception that theoretically can be detected by reading the code.
+	std::domain_error						//This is an exception thrown when a mathematically invalid domain is used.
+	std::invalid_argument						//This is thrown due to invalid arguments.
+	std::length_error						//This is thrown when a too big std::string is created.
+	std::out_of_range						//This can be thrown by the 'at' method, for example a std::vector and std::bitset<>::operator[]().
+	std::runtime_error						//An exception that theoretically cannot be detected by reading the code.
+	std::overflow_error						//This is thrown if a mathematical overflow occurs.
+	std::range_error						//This is occurred when you try to store a value which is out of range.
+	std::underflow_error						//This is thrown if a mathematical underflow occurs.
+
+>>>		---[Marcos]---
+	//Marcos are preproccesed segements of code
+	//All code declorations MUST be on one line
+	#define <marco-name> <code/output>
+
+	//Pi reresents 3.14
+	#define Pi 3.14
+
+	//Marcos can also be used to create functions
+	#define Min(a,b) ((a)<(b)) ? a : b)
+
+
+>>>		---[Examples]---
+
+	system("ls");							//Shell Commands

@@ -1,6 +1,8 @@
 Shell=$(which bash)
 #!${Shell}
 
+SupportV="0.1.07"
+
 ProgDir=$1
 shift
 ClideDir=$1
@@ -54,11 +56,11 @@ UsePerl()
 			fi
 			;;
 		SupportVersion)
-			echo "0.1.06"
+			echo ${SupportV}
 			;;
 		MenuHelp)
 			echo -e "new <file>\t\t\t: \"create new ${Lang} script\""
-			echo -e "compile|cpl\t\t\t: \"make code executable\""
+			echo -e "cpl, compile\t\t\t: \"make code executable\""
 			;;
 		getCode)
 			local name=$1
@@ -91,7 +93,7 @@ UsePerl()
 			;;
 		newCodeHelp)
 			if [ -f ${TemplateCode} ]; then
-				echo -e "--custom|-c\t\t\t: \"Custom src file using ${Lang} template\""
+				echo -e "-c, --custom\t\t\t: \"Custom src file using ${Lang} template\""
 			fi
 			;;
 		EnsureDirs)
