@@ -1,6 +1,8 @@
 Shell=$(which bash)
 #!${Shell}
 
+SupportV="0.1.07"
+
 ProgDir=$1
 shift
 ClideDir=$1
@@ -47,12 +49,18 @@ UsePerl()
 			#Return Purple
 			echo -e "\e[1;35mPerl\e[0m"
 			;;
+		ProjectColor)
+			local text=$1
+			if [ ! -z "${text}" ]; then
+				echo -e "\e[1;45m${text}\e[0m"
+			fi
+			;;
 		SupportVersion)
-			echo "0.1.04"
+			echo ${SupportV}
 			;;
 		MenuHelp)
 			echo -e "new <file>\t\t\t: \"create new ${Lang} script\""
-			echo -e "compile|cpl\t\t\t: \"make code executable\""
+			echo -e "cpl, compile\t\t\t: \"make code executable\""
 			;;
 		getCode)
 			local name=$1
@@ -85,7 +93,7 @@ UsePerl()
 			;;
 		newCodeHelp)
 			if [ -f ${TemplateCode} ]; then
-				echo -e "--custom|-c\t\t\t: \"Custom src file using ${Lang} template\""
+				echo -e "-c, --custom\t\t\t: \"Custom src file using ${Lang} template\""
 			fi
 			;;
 		EnsureDirs)
@@ -273,6 +281,7 @@ UsePerl()
 			esac
 			;;
 		newProject)
+			local project=$1
 			path=${LangSrc}/${project}
 			if [ ! -d ${path} ]; then
 				mkdir ${path}

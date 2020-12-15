@@ -1,6 +1,8 @@
 Shell=$(which bash)
 #!${Shell}
 
+SupportV="0.1.08"
+
 ProgDir=$1
 shift
 ClideDir=$1
@@ -47,12 +49,18 @@ UseBash()
 			#Return Green
 			echo -e "\e[1;32mBash\e[0m"
 			;;
+		ProjectColor)
+			local text=$1
+			if [ ! -z "${text}" ]; then
+				echo -e "\e[1;42m${text}\e[0m"
+			fi
+			;;
 		SupportVersion)
-			echo "0.1.04"
+			echo ${SupportV}
 			;;
 		MenuHelp)
 			echo -e "new <file>\t\t\t: \"create new ${Lang} script\""
-			echo -e "compile|cpl\t\t\t: \"make code executable\""
+			echo -e "cpl, compile\t\t\t: \"make code executable\""
 			;;
 		pgLang)
 			HasLang=$(which ${BashCpl} 2> /dev/null)
@@ -86,7 +94,7 @@ UseBash()
 			;;
 		newCodeHelp)
 			if [ -f ${TemplateCode} ]; then
-				echo -e "--custom|-c\t\t\t: \"Custom src file using ${Lang} template\""
+				echo -e "-c, --custom\t\t\t: \"Custom src file using ${Lang} template\""
 			fi
 			;;
 		EnsureDirs)
@@ -280,6 +288,7 @@ UseBash()
 			esac
 			;;
 		newProject)
+			local project=$1
 			local path=${LangSrc}/${project}
 			if [ ! -d ${path} ]; then
 				mkdir ${path}
@@ -366,6 +375,7 @@ UseBash()
 					#Program Name Given
 					if [ ! -z "${name}" ];then
 						touch ${name}.sh
+						echo -e "#!/bin/bash\n" > ${name}.sh
 					else
 						errorCode "newCode"
 					fi

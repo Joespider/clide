@@ -9,7 +9,7 @@ root=$(dirname ${ShellPath})
 
 GetConfig()
 {
-	ConfigFile=${root}/config.txt
+	ConfigFile=${root}/clide.conf
 	Item=$1
 	if [ ! -z "${Item}" ]; then
 		grep "${Item}" ${ConfigFile} | grep -v "#" | cut -d "=" -f 2
@@ -37,6 +37,7 @@ repoAssist=$(GetConfig repoAssist)
 #root dir
 ProgDir=$(eval echo $(GetConfig ProgDir))
 ClideDir=${ProgDir}/.clide
+ModesDir=${ClideDir}/modes
 NotesDir=${ClideDir}/notes
 LibDir=${ClideDir}/lib
 LangsDir=${ClideDir}/langs
@@ -76,15 +77,15 @@ MenuHelp()
 	echo -e "ls\t\t\t\t: \"list progams\""
 	echo -e "unset\t\t\t\t: \"deselect source code\""
 	echo -e "use <language> <code>\t\t: \"choose language\""
-	echo -e "swap|swp {src|bin}\t\t: \"swap between sorce code and executable\""
+	echo -e "swap, swp {src|bin}\t\t: \"swap between sorce code and executable\""
 	echo -e "create <arg>\t\t\t: \"create compile and runtime arguments"
 	ManageLangs ${Lang} "MenuHelp"
-	echo -e "rm|remove|delete\t\t: \"delete src file\""
+	echo -e "rm, remove, delete\t\t: \"delete src file\""
 	echo -e "set <file>\t\t\t: \"select source code\""
 	echo -e "add <file>\t\t\t: \"add new file to project\""
 	echo -e "notes <action>\t\t\t: \"make notes for the ${Lang} language\""
-	echo -e "${editor}|edit|ed\t\t\t: \"edit source code\""
-	echo -e "${ReadBy}|read\t\t\t: \"Read source code\""
+	echo -e "${editor}, edit|ed\t\t\t: \"edit source code\""
+	echo -e "${ReadBy}, read\t\t\t: \"Read source code\""
 	echo -e "search <find>\t\t\t: \"search for code in project\""
 	case ${project} in
 		none)
@@ -93,13 +94,13 @@ MenuHelp()
 		*)
 #			echo -e "project {new|update|list|load|active}\t: \"handle projects\""
 			echo -e "project {new|update|list|load}\t: \"handle projects\""
-			echo -e "${repoTool}|repo\t: \"handle repos\""
+			echo -e "${repoTool}, repo\t: \"handle repos\""
 			;;
 	esac
 	echo -e "search\t\t\t\t: \"search project src files for line of code\""
-	echo -e "execute|exe|run {-a|--args}\t: \"run active program\""
-	echo -e "last|load\t\t\t: \"Load last session\""
-	echo -e "exit|close\t\t\t: \"close ide\""
+	echo -e "execute, exe, run {-a|--args}\t: \"run active program\""
+	echo -e "last, load\t\t\t: \"Load last session\""
+	echo -e "exit, close\t\t\t: \"close ide\""
 	echo "------------------------------------------------"
 	echo ""
 }
@@ -136,7 +137,7 @@ NotesHelp()
 	local Lang=$1
 	echo ""
 	echo "----------------[(${Head}) \"Notes\" Help]----------------"
-	echo -e "edit|add\t: \"edit notes\""
+	echo -e "edit, add\t: \"edit notes\""
 	echo -e "read\t\t: \"read notes\""
 	echo "----------------------------------------------------------"
 	echo ""
@@ -148,8 +149,8 @@ newCodeHelp()
 	local Lang=$1
 	echo ""
 	echo "----------------[(${Head}) \"new\" Help]----------------"
-	echo -e "--version|-v\t\t\t: \"Get Version for each code template\""
-	echo -e "--help|-h\t\t\t: \"This page\""
+	echo -e "-v, --version\t\t\t: \"Get Version for each code template\""
+	echo -e "-h, --help\t\t\t: \"This page\""
 	ManageLangs ${Lang} "newCodeHelp"
 	echo -e "<code>\t\t\t\t: \"provide code name; default settings\""
 	echo "----------------------------------------------------------"
@@ -161,19 +162,29 @@ CliHelp()
 {
 	echo ""
 	echo "----------------[(${Head}) CLI]----------------"
-	echo -e "-v |--version\t\t\t: \"Get Clide Version\""
-	echo -e "-sv|--support-version\t\t: \"Get Code Support Version\""
-	echo -e "-cv|--code-version\t\t: \"Get Compile/Interpreter Version\""
-	echo -e "-tv|--temp-version\t\t: \"Get Code Template Version\""
-	echo -e "-rv|--repo-version\t\t: \"Get git/svn Version\""
-	echo -e "-c |--config\t\t\t: \"Get Clide Config\""
-	echo -e "-p |--projects\t\t\t: \"List Clide Projects\""
-	echo -e "-h |--help\t\t\t: \"Get CLI Help Page (Cl[ide] Menu: \"help\")\""
-	echo -e "-l |--last|--load\t\t: \"Load last session\""
+	echo -e "-v, --version\t\t\t: \"Get Clide Version\""
+	echo -e "-sv, --support-version\t\t: \"Get Code Support Version\""
+	echo -e "-cv, --code-version\t\t: \"Get Compile/Interpreter Version\""
+	echo -e "-tv, --temp-version\t\t: \"Get Code Template Version\""
+	echo -e "-rv, --repo-version\t\t: \"Get git/svn Version\""
+	echo -e "-c, --config\t\t\t: \"Get Clide Config\""
+	echo -e "-p, --projects\t\t\t: \"List Clide Projects\""
+	echo -e "-h, --help\t\t\t: \"Get CLI Help Page (Cl[ide] Menu: \"help\")\""
+	echo -e "-l, --last|--load\t\t: \"Load last session\""
 	echo "-----------------------------------------------"
 	echo -e "$ clide <language> <code>\t: start clide"
 	echo -e "$ clide java program.java\t: start clide using java and program.java"
 	echo -e "$ clide java\t\t\t: start clide using java"
+	echo ""
+}
+
+ModesHelp()
+{
+	echo ""
+	echo "----------------[(${Head}) Modes]----------------"
+	echo -e "${repoTool}, repo\t\t: repo management"
+	echo -e "-h, --help\t\t: \"Modes help page\""
+	echo "-----------------------------------------------"
 	echo ""
 }
 
@@ -192,7 +203,7 @@ UseOther()
 			echo -e "\e[1;35m${text}\e[0m"
 			;;
 		MenuHelp)
-			echo -e "compile|cpl\t: \"make code executable\""
+			echo -e "cpl, compile\t: \"make code executable\""
 			;;
 		#No Languge found
 		pgLang|pgDir)
@@ -232,6 +243,27 @@ ManageLangs()
 	else
 		UseOther ${Langs} ${Manage[@]}
 	fi
+}
+
+ModeHanlder()
+{
+	local Mode=$1
+	case ${Mode} in
+		${repoTool}|repo)
+			#Use ONLY for Projects
+			if [[ ! "${CodeProject}" == "none" ]]; then
+				${ModesDir}/repo.sh ${repoTool} ${CodeProject}
+			else
+				echo "Must have an active project"
+			fi
+			;;
+		-h|--help)
+			ModesHelp
+			;;
+		*)
+			ModesHelp
+			;;
+	esac
 }
 
 EnsureDirs()
@@ -503,7 +535,8 @@ newProject()
 		#Language Value
 		echo "lang=${lang}" >> ${ProjectFile}
 		#Create Project and get path
-		path=$(ManageLangs ${Lang} "newProject")
+		path=$(ManageLangs ${Lang} "newProject" ${project})
+		cd ${path}
 		#Path Value
 		echo "path=${path}" >> ${ProjectFile}
 		#Source Value
@@ -728,241 +761,6 @@ ColorCodes()
 	echo ${ChosenLangs}
 }
 
-#Handle Git commands
-gitHandler()
-{
-	local repoAct=$1
-	shift
-	#check if git is installed
-	GitTool=$(which git)
-	#Git is installed
-	if [ ! -z "${GitTool}" ]; then
-		case ${repoAct} in
-			#Create a new repo
-			new|init)
-				echo git init
-				;;
-			#clone a new repo
-			setup|clone)
-				#Find repo name
-				repo=$@
-				if [ ! -z "${repo}" ]; then
-					echo git clone ${repo[@]}
-				#Repo not given
-				else
-					#Ask User for Repo
-					echo -n "repo: "
-					read -a repo
-					#Repo given
-					if [ ! -z "${repo}" ]; then
-						#Run through 2nd time
-						gitHandler "clone" "${repo[@]}"
-					#Again...nothing
-					else
-						#Nothing to do
-						echo "Nothing to clone"
-					fi
-				fi
-				;;
-			#Add files to changes
-			add)
-				files=$@
-				#Files given
-				if [ ! -z "${files}" ]; then
-					echo git add ${files}
-				else
-					#Get ALL files from user
-					echo git add .
-				fi
-				;;
-			#Provide message for repo
-			message|commit)
-				#Get message
-				msg=$@
-				if [ ! -z "${msg}" ]; then
-					echo git commit -m "\"${msg}\""
-				#No message found
-				else
-					#As for user...get EVERYTHING typed
-					echo -n "Message: "
-					read -a msg
-					#Message given
-					if [ ! -z "${msg}" ]; then
-						gitHandler "commit" "${msg[@]}"
-					else
-						echo "No message found"
-					fi
-				fi
-				;;
-			#Handles Git Branches
-			branch|branches)
-				branchAct=$1
-				shift
-				case ${branchAct} in
-					new)
-						name=$1
-						if [ ! -z "${name}" ]; then
-							echo git checkout -b "${name}"
-						else
-							echo -n "Provide a branch name"
-							read name
-							if [ ! -z "${name}" ]; then
-								gitHandler "branch" "new" "${name}"
-							else
-								echo "No branch has been created"
-							fi
-						fi
-						;;
-					#delete branches on local repo
-					remove|delete)
-						#Get branch name
-						name=$1
-						#branch name given
-						if [ ! -z "${name}" ]; then
-							#remove branch
-							echo git branch -d "${name}"
-						#no branch name given
-						else
-							#Get user to type branch name
-							echo -n "Provide a branch name"
-							read name
-							#branch name given
-							if [ ! -z "${name}" ]; then
-								#remove branch
-								gitHandler "branch" "delete" "${name}"
-							#no branch name given
-							else
-								echo "No Branch has been deleted"
-							fi
-						fi
-						;;
-					select|checkout)
-						#Get branch name
-						name=$1
-						#branch name given
-						if [ ! -z "${name}" ]; then
-							#Select branch
-							echo git checkout "${name}"
-						#no branch name given
-						else
-							#Get user to type branch name
-							echo -n "Provide a branch name"
-							read name
-							#branch name given
-							if [ ! -z "${name}" ]; then
-								#Select branch
-								gitHandler "branch" "checkout" "${name}"
-							#no branch name given
-							else
-								echo "No Branch has been selected"
-							fi
-						fi
-						;;
-					#list all branches
-					*)
-						echo git branch -a
-						;;
-				esac
-				;;
-			upload|push)
-				branch=$1
-				if [ ! -z "${branch}" ]; then
-					echo git push origin "\"${branch}\""
-				else
-					echo -n "Please choose a banch: "
-					read branch
-					if [ ! -z "${branch}" ]; then
-						gitHandler "push" "${branch}"
-					else
-						echo "Code not pushed"
-					fi
-				fi
-				;;
-			#Download from the repo
-			download|pull)
-				echo git pull
-				;;
-			#Display repo infortmation
-			state|status)
-				echo git status
-				;;
-			#Peform quick and dirty commit
-			slamdunk)
-				gitHandler "add"
-				gitHandler "commit"
-				gitHandler "push"
-				;;
-			help|options)
-				echo "git help page"
-				;;
-			*)
-				RepoVersion
-				;;
-		esac
-	#git is not installed
-	else
-		echo "Please Install git"
-	fi
-}
-
-svnHandler()
-{
-	local repoAct=$1
-	shift
-	#check if git is installed
-	SvnTool=$(which svn)
-	#Git is installed
-	if [ ! -z "${SvnTool}" ]; then
-		echo "svn is installed"
-	#svn is not installed
-	else
-		echo "Please Install svn"
-	fi
-}
-
-repoHandler()
-{
-	case ${repoTool} in
-		git)
-			#git execution is handled by user
-			if [[ "${repoAssist}" == "False" ]] && [[ "$1" == "${repoTool}" ]]; then
-				IsInstalled=$(which ${repoTool})
-				if [ ! -z "${IsInstalled}" ]; then
-					$@
-				else
-					echo "\"${repoTool}\" is not installed"
-				fi
-			#git execution is handled by cl[ide]
-			elif [[ "${repoAssist}" == "True" ]]; then
-				shift
-				gitHandler $@
-			else
-				echo "repo version control has been disabled"
-			fi
-			;;
-		svn)
-			#svn execution is handled by user
-			if [[ "${repoAssist}" == "False" ]] && [[ "$1" == "${repoTool}" ]]; then
-				IsInstalled=$(which ${repoTool})
-				if [ ! -z "${IsInstalled}" ]; then
-					$@
-				else
-					echo "\"${repoTool}\" is not installed"
-				fi
-			#svn execution is handled by cl[ide]
-			elif [[ "${repoAssist}" == "True" ]]; then
-				shift
-				svnHandler $@
-			else
-				echo "repo version control has been disabled"
-			fi
-			;;
-		*)
-			echo "${Head} is unable to use \"${repoTool}\" at this time"
-			;;
-	esac
-}
-
 #IDE
 Actions()
 {
@@ -1011,20 +809,19 @@ Actions()
 				else
 					ThePWD=$(pwd)
 					ProjectDir=$(echo ${ThePWD#*${CodeProject}} | sed "s/\//:/1")
-					cCodeProject=$(echo -e "\e[1;40m${CodeProject}\e[0m")
+					cCodeProject=$(ManageLangs ${Lang} "ProjectColor" "${CodeProject}")
 					#Menu with no code
-					prompt="${Name}(${cLang}[${cCodeProject}${ClideProjectDir}]):$ "
+					prompt="${Name}(${cLang}[${cCodeProject}${ProjectDir}]):$ "
 				fi
 			else
 				if [[ "${CodeProject}" == "none" ]]; then
 					#Menu with code
-					cCodeProject=$(echo -e "\e[1;40m${CodeProject}\e[0m")
 					prompt="${Name}(${cLang}{${cCode}}):$ "
 				else
 					ThePWD=$(pwd)
 					ProjectDir=$(echo ${ThePWD#*${CodeProject}} | sed "s/\//:/1")
 					#Menu with no code
-					cCodeProject=$(echo -e "\e[1;40m${CodeProject}\e[0m")
+					cCodeProject=$(ManageLangs ${Lang} "ProjectColor" "${CodeProject}")
 					prompt="${Name}(${cLang}[${cCodeProject}${ClideProjectDir}]{${cCode}}):$ "
 				fi
 			fi
@@ -1033,7 +830,14 @@ Actions()
 			read -e -p "${prompt}" -a UserIn
 			UserArg=$(echo ${UserIn[0]} | tr A-Z a-z)
 			if [ ! -z "${UserIn[0]}" ]; then
-				history -s "${UserIn[@]}"
+				case ${UserIn[0]} in
+					#ignore anything beginning with '-'
+					-*)
+						;;
+					*)
+						history -s "${UserIn[@]}"
+						;;
+				esac
 			fi
 			case ${UserArg} in
 				#List files
@@ -1113,10 +917,9 @@ Actions()
 									newProject ${Lang} ${UserIn[2]}
 									Code=""
 									updateProject ${UserIn[2]} ${Code}
-									if [ ! -z ${UserIn[2]} ]; then
+									if [ ! -z "${UserIn[2]}" ]; then
 										CodeProject=${UserIn[2]}
 										echo "Created \"${CodeProject}\""
-										ThePWD=$(pwd)
 										ProjectDir=$(echo ${ThePWD#*${CodeProject}} | sed "s/\//:/1")
 									fi
 								fi
@@ -1280,14 +1083,9 @@ Actions()
 						echo "${mode} (src|bin)"
 					fi
 					;;
-				#git/svn handler
-				${repoTool}|repo)
-					#Use ONLY for Projects
-					if [[ ! "${CodeProject}" == "none" ]]; then
-						repoHandler ${UserIn[@]}
-					else
-						echo "Must have an active project"
-					fi
+				#Modes
+				mode)
+					ModeHanlder ${UserIn[1]}
 					;;
 				#search for element in project
 				search)
@@ -1394,7 +1192,7 @@ Actions()
 					;;
 				#Close cl[ide]
 				exit|close)
-					SaveSession ${CodeProject} ${Lang} ${Code}
+					#SaveSession ${CodeProject} ${Lang} ${Code}
 					break
 					;;
 				#ignore all other commands
@@ -1596,7 +1394,7 @@ main()
 		pg=$(ColorCodes)
 		local getLang=""
 		if [ ! -z "${pg}" ]; then
-			CliHelp
+			#CliHelp
 			echo "~Choose a language~"
 			#Force user to select language
 			while [[ "$getLang" == "" ]] || [[ "$Lang" == "no" ]];

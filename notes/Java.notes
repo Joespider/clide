@@ -1,145 +1,449 @@
 [Java Notes]
-	"Data Types"
-byte				[8-bit]
-short				[16-bit]
-int				[32-bit]
-long				[64-bit]
-float				[32-bit IEEE 754]
-double				[32-bit IEEE 754]
-String				[Object]
+Date: (12/14/2020)
+
+>>>		---[Dos/Unix]---
+	//Line Separator
+		Windows(Dos): \r\n
+		Linux/Mac(Unix): \n
+	String lineSeparator = System.getProperty("line.separator");
+
+>>>		---[Data Types]---
+	byte					[8-bit]				//*TBD*
+	short					[16-bit]			//*TBD*
+	char					[16-bit]			//'A'
+	int					[32-bit]			//12
+	long					[64-bit]			//12
+	float					[32-bit IEEE 754]		//4.5
+	double					[32-bit IEEE 754]		//4.5
+	boolean					[64-bit]			//True/False
+	String					[Object]
+
+>>>		---[Method: Char]---
+	<char>.isLetter()			[boolean]			//Determines whether the specified char value is a letter.
+	<char>.isDigit()			[boolean]			//Determines whether the specified char value is a digit.
+	<char>.isWhitespace()			[boolean]			//Determines whether the specified char value is white space.
+	<char>.isUpperCase()			[boolean]			//Determines whether the specified char value is uppercase.
+	<char>.isLowerCase()			[boolean]			//Determines whether the specified char value is lowercase.
+	<char>.toUpperCase()			[char]				//Returns the uppercase form of the specified char value.
+	<char>.toLowerCase()			[char]				//Returns the lowercase form of the specified char value.
+	<char>.toString()			[String]			//Returns a String object representing the specified character value that is, a one-character string.
+
+>>>		---[Method: String]---
+	String					[Object: String]
+	<str>.matches(<str>)			[boolean]			//check for substring; regex
+	<str>.equals(<str>)			[boolean]			//case senstive
+	<str>.equalsIgnoreCase(<str>)		[boolean]			//NOT case senstive
+	<str>.compareTo(<str>)			[int]				//*TBD*
+	<str>.compareToIgnoreCase(<str>)	[int]				//*TBD*
+	<str>.reagonMatches(<str>)
+	<str>.startsWith(<str>)			[boolean]			//*TBD*
+	<str>.endsWith(<str>)			[boolean]			//*TBD*
+	<str>.length()				[int]				//length of string
+	<str>.charAt(<int>)			[int]				//pos of char
+	<str>.indexOf(<str>)			[int]				//get substring number via substring
+	<str>.lastIndexOf(<str>)		[int]				//get substring number via substring
+	<str>.concat(<str>,<str>)		[String]			//concatinates two string into one
+	<str>.substring(<int>)			[String]			//get substring
+	<str>.substring(<int>,<int>)		[String]			//get substring
+	<str>.toLowerCase()			[String]			//convert string to lowercase
+	<str>.toUpperCase()			[String]			//convert string to uppercase
+	<str>.trim()				[String]			//remove blank and line breaks
+	<str>.replace(<str>,<str>)		[String]			//remove and replace ALL
+	<str>.replaceFirst(<str>,<str>)		[String]			//remove and replace FIRST
+	<str>.replaceAll(<str>,<str>)		[String]			//remove and replace ALL
+	<str>.split(<str>)			[String[]]			//split string into array via sub-string
+	<str>.toCharArray()			[char[]]			//convert string to char array
+	Integer.parseInt(<str>)			[int]				//convert string into an int
+	Double.parseDouble(<str>)		[double]			//convert string into a double
+	<str>.valueOf(<char>)			[String]			//get string value of char
+	<str>.valueOf(<char[]>)			[String]			//get string value of char array
+	<str>.valueOf(<int>)			[String]			//get string value of int
+	<str>.valueOf(<double>)			[String]			//get string value of double
+	<str>.valueOf(<float>)			[String]			//get string value of float
+	<str>.valueOf(<long>)			[String]			//get string value of long
+	<str>.valueOf(<boolean>)		[String]			//get string value of boolean
+	<str>.format(<code>,<str>)		[String]			//format string
+
+>>>		---[Class StringBuilder]---
+	StringBuillder sb			[Class]				//String Builder class
+	<sb>.append(<char>)			[void]				//Append char to String Builder Object
+	<sb>.append(<str>)			[void]				//Append String to String Builder Object
+	<sb>.delete(<int>,<int>)		[void]				//Delete characters from <begin> to <end>
+	<sb>.deleteCharAt(<int>)		[void]				//Delete character at index
+	<sb>.insert(<int>,<str>,<int>,<int>)	[void]				//Inserts string at position offset
+	<sb>.insert(<int>,<str>)		[void]				//Inserts string at position offset
+	<sb>.reverse()				[void]				//Reverse characters in String Builder
+	<sb>.replace(<int>,<int>,<string>)	[void]				//Replace string from begin to end index
+	<sb>.setCharAt(<int>,char>)		[void]				//Set a new character in position
+	<sb>.toString()				[String]			//Convert String object to String
+	<sb>.capacity()				[int]				//Get Capasity of String Builder
+	<sb>.charAt(<int>)			[char]				//Get Character at position
+	<sb>.setLength(<int>)			[void]				//Set new Length to string builder
+	<sb>.length()				[int]				//Get length of the String in String Builder
+	<sb>.trimToSize()			[void]				//Trim String Builder to size of String
+
+>>>		---[String: format]---
+	\n					[String]			//Newline (0x0a)
+	\r					[String]			//Carriage return (0x0d)
+	\f					[String]			//Formfeed (0x0c)
+	\b					[String]			//Backspace (0x08)
+	\s					[String]			//Space (0x20)
+	\t					[String]			//tab
+	\"					[String]			//Double quote
+	\'					[String]			//Single quote
+	\\					[String]			//backslash
+	\ddd					[String]			//Octal character (ddd)
+	\uxxxx					[String]			//Hexadecimal UNICODE character (xxxx)
+
+>>>		---[Regex]---
+	import java.util.regex			[regex class]			//import for regex
+
+	(<pattern>)								[Matches]
+	^					[String]			//beginning of the line.
+	$					[String]			//end of the line.
+	.					[String]			//any single character except newline. Using m option allows it to match the newline as well.
+	[...]					[String]			//any single character in brackets.
+	[^...]					[String]			//any single character not in brackets.
+	\A					[String]			//Beginning of the entire string.
+	\z					[String]			//End of the entire string.
+	\Z					[String]			//End of the entire string except allowable final line terminator.
+	re*					[String]			//0 or more occurrences of the preceding expression.
+	re+					[String]			//1 or more of the previous thing.
+	re?					[String]			//0 or 1 occurrence of the preceding expression.
+	re{ n}					[String]			//exactly n number of occurrences of the preceding expression.
+	re{ n,}					[String]			//n or more occurrences of the preceding expression.
+	re{ n, m}				[String]			//at least n and at most m occurrences of the preceding expression.
+	a| b					[String]			//either a or b.
+	(re)					[String]			//Groups regular expressions and remembers the matched text.
+	(?: re)					[String]			//Groups regular expressions without remembering the matched text.
+	(?> re)					[String]			//the independent pattern without backtracking.
+	\w					[String]			//the word characters.
+	\W					[String]			//the nonword characters.
+	\s					[String]			//the whitespace. Equivalent to [\t\n\r\f].
+	\S					[String]			//the nonwhitespace.
+	\d					[String]			//the digits. Equivalent to [0-9].
+	\D					[String]			//the nondigits.
+	\A					[String]			//the beginning of the string.
+	\Z					[String]			//the end of the string. If a newline exists, it matches just before newline.
+	\z					[String]			//the end of the string.
+	\G					[String]			//the point where the last match finished.
+	\n					[String]			//Back-reference to capture group number "n".
+	\b					[String]			//the word boundaries when outside the brackets. the backspace (0x08) when inside the brackets.
+	\B					[String]			//the nonword boundaries.
+	\n, \t, etc.				[String]			//newlines, carriage returns, tabs, etc.
+	\Q					[String]			//Escape (quote) all characters up to \E.
+	\E					[String]			//Ends quoting begun with \Q.
+
+	//example
+		import java.util.regex.Matcher;
+		import java.util.regex.Pattern;
+
+		public class RegexMatches
+		{
+			public static void main( String args[] )
+			{
+				//String to be scanned to find the pattern.
+				String line = "This order was placed for QT3000! OK?";
+				String pattern = "(.*)(\\d+)(.*)";
+				//Create a Pattern object
+				Pattern r = Pattern.compile(pattern);
+
+				// Now create matcher object.
+				Matcher m = r.matcher(line);
+				if (m.find( ))
+				{
+					System.out.println("Found value: " + m.group(0) );
+					System.out.println("Found value: " + m.group(1) );
+					System.out.println("Found value: " + m.group(2) );
+				}
+				else
+				{
+					System.out.println("NO MATCH");
+				}
+			}
+		}
+
+>>>		---[Type: Math]---
+	+				[short, int, long, double, float]		//Addition
+	-				[short, int, long, double, float]		//Subtraction
+	*				[short, int, long, double, float]		//Multiplication
+	/				[short, int, long, double, float]		//Division
+	%				[short, int, long, double, float]		//Modulus
+	++				[short, int, long, double, float]		//Increment (+1)
+	--				[short, int, long, double, float]		//Decrement (-1)
+
+>>>		---[Type: Operator]---
+	==				[boolean]					//two numbers ARE equal
+	!=				[boolean]					//two numbers are NOT equal
+	>				[boolean]					//*left* number is greater than *right* number
+	<				[boolean]					//*left* number is less than *right* number
+	>=				[boolean]					//*left* number is greater than OR equal *right* number
+	<=				[boolean]					//*left* number is less than OR equal *right* number
+
+>>>		---[Type: Logical Operator]---
+	&&				[boolean]					//AND
+	||				[boolean]					//OR
+	!				[boolean]					//NOT
+
+>>>		---[Type: Math Assignment]---
+	=				[short, int, long, double, float]		//(C = A + B)
+	+=				[short, int, long, double, float]		//(A += B) Same as (A = A + B)
+	-=				[short, int, long, double, float]		//(A -= B) Same as (A = A - B)
+	*=				[short, int, long, double, float]		//(A *= B) Same as (A = A * B)
+	/=				[short, int, long, double, float]		//(A /= B) Same as (A = A / B)
+	%=				[short, int, long, double, float]		//(A %= B) Same as (A = A % B)
+	<<=				[short, int, long, double, float]		//(A <<= B) Same as (A = A << B)
+	>>=				[short, int, long, double, float]		//(A >>= B) Same as (A = A >> B)
+	&=				[short, int, long, double, float]		//(A &= B) Same as (A = A & B)
+	^=				[short, int, long, double, float]		//(A ^= B) Same as (A = A ^ B)
+	|=				[short, int, long, double, float]		//(A |= B) Same as (A = A | B)
+
+>>>		---[Type: Math Operation]---
+	.byteValue()			[byte]						//Converts the value of this Number object to the byte data type and returns it.
+	.shortValue()			[short]						//Converts the value of this Number object to the short data type and returns it.
+	.intValue()			[int]						//Converts the value of this Number object to the int data type and returns it.
+	.longValue()			[long]						//Converts the value of this Number object to the long data type and returns it.
+	.floatValue()			[float]						//Converts the value of this Number object to the float data type and returns it.
+	.doubleValue()			[double]					//Converts the value of this Number object to the double data type and returns it.
+	.compareTo()			[int]						//Compares this Number object to the argument.
+	.equals()			[boolean]					//Determines whether this number object is equal to the argument.
+	.valueOf()			[int]						//Returns an Integer object holding the value of the specified primitive.
+	.toString()			[String]					//Returns a String object representing the value of a specified int or Integer.
+	.parseInt()			[int]						//This method is used to get the primitive data type of a certain String.
+	.abs()				[double, float, int, long]			//Returns the absolute value of the argument.
+	.ceil()				[double]					//Returns the smallest integer that is greater than or equal to the argument. Returned as a double.
+	.floor()			[double]					//Returns the largest integer that is less than or equal to the argument. Returned as a double.
+	.rint()				[int]						//Returns the integer that is closest in value to the argument. Returned as a double.
+	.round()			[int, long]					//Returns the closest long or int, as indicated by the method's return type to the argument.
+	.min()				[double, float, int, long]			//Returns the smaller of the two arguments.
+	.max()				[double, float, int, long]			//Returns the larger of the two arguments.
+	.exp()				[double]					//Returns the base of the natural logarithms, e, to the power of the argument.
+	.log()				[double]					//Returns the natural logarithm of the argument.
+	.pow()				[double]					//Returns the value of the first argument raised to the power of the second argument.
+	.sqrt()				[double]					//Returns the square root of the argument.
+	.sin()				[double]					//Returns the sine of the specified double value.
+	.cos()				[double]					//Returns the cosine of the specified double value.
+	.tan()				[double]					//Returns the tangent of the specified double value.
+	.asin()				[double]					//Returns the arcsine of the specified double value.
+	.acos()				[double]					//Returns the arccosine of the specified double value.
+	.atan()				[double]					//Returns the arctangent of the specified double value.
+	.atan2()			[double]					//Converts rectangular coordinates (x, y) to polar coordinate (r, theta) and returns theta.
+	.toDegrees()			[double]					//Converts the argument to degrees.
+	.toRadians()			[double]					//Converts the argument to radians.
+	.random()			[double]					//Returns a random number.
+
+>>>		---[Structure: Array]---
+	arr.length			[int]						//Get length of array
+
+>>>		---[Class: File]---
+	File(Str: path)			[Object: File]					//load file by path
+	<file>.exhists()		[boolean]					//check if file exists
+	<file>.canRead()		[boolean]					//checks if allowed to read
+	<file>.canWrite()		[boolean]					//check if can write file
+	<file>.isDirectory()		[boolean]					//check if file is a directory
+	<file>.isFile()			[boolean]					//check if fils is a file
+	<file>.isAbsolute()		[boolean]					//check if file address is absolute
+	<file>.isHidden()		[boolean]					//check if file is hidden
+	<file>.getAbsolutePath()	[String]					//return file's absolute path
+	<file>.getCanonicalPath()	[String]					//resolves links
+	<file>.getName()		[String]					//return filename, no dir shown
+	<file>.getPath()		[String]					//return dir of file
+	<file>.lastModified()		[long]						//returns the time of last edit
+	<file>.length()			[long]						//returns size of file
+	<file>.delete()			[boolean]					//delete file (true = pass)
+	<file>.renameTo()		[boolean]					//rename file (true = pass)
+	<file>.mkdir()			[boolean]					//Makes directory (true = pass)
+	<file>.mkdirs()			[boolean]					//Makes dir, and parent, dirs (true = pass)
+
+>>>		---[Type: File Handling]---
+	FileReader(<path>)		[Classs: FileReader]				//Read file from path
+	FileWriter(<path>)		[Classs: FileWriter]				//Write file from path
+	<fr>.read()			[String]					//Spit out file
+	<fw>.write(<str>)		[Null]						//Write string to file
+	<fr>.close()			[Null]						//Close file
+	<fw>.close()			[Null]						//Close file
 
 
-	"Data Type: String"
-String				[Object: String]
-str1.matches(str2)		[boolean]	check for substring; regex
-str1.equals(str2)		[boolean]	case senstive
-str1.equalsIgnoreCase(str2)	[boolean]	NOT case senstive
-str1.compareTo(str2)		[int]		*TBD*
-str1.compareToIgnoreCase(str2)	[int]		*TBD*
-str1.reagonMatches()
-str1.startsWith(str2)		[boolean]	*TBD*
-str1.endsWith(str2)		[boolean]	*TBD*
-str.length()			[int]		length of string
-str.charAt(int)			[int]		pos of char
-str1.indexOf*str2)		[int]		get substring number via substring
-str1.lastIndexOf*str2)		[int]		get substring number via substring
-str1.concat(str1,str2)		[String]	concatinates two string into one
-str.substring(int)		[String]	get substring
-str.substring(int,int)		[String]	get substring
-str.toLowerCase()		[String]	convert string to lowercase
-str.toUpperCase()		[String]	convert string to uppercase
-str.trim()			[String]	remove blank and line breaks
-str.replace(str1,str2)		[String]	remove and replace ALL
-str.replaceFirst(str1,str2)	[String]	remove and replace FIRST
-str.replaceAll(str1,str2)	[String]	remove and replace ALL
-str1.split(str2)		[String[]]	split string into array via sub-string
-str.toCharArray()		[char[]]	convert string to char array
-Integer.parseInt(str)		[int]		convert string into an int
-Double.parseDouble(str)		[double]	convert string into a double
-str.valueOf(char)		[String]	get string value of char
-str.valueOf(char[])		[String]	get string value of char array
-str.valueOf(int)		[String]	get string value of int
-str.valueOf(double)		[String]	get string value of double
-str.valueOf(float)		[String]	get string value of float
-str.valueOf(long)		[String]	get string value of long
-str.valueOf(boolean)		[String]	get string value of boolean
-str.format(code,str)		[String]	format string
+>>>		---[Class: PrintWriter]---
+	PrintWriter(<file>)		[Object: PrintWriter]				//Write file
+	<pw>.print(<data>)		[void]						//Write to file
 
-	"Structure: Array"
-arr.length			[int]		get length of array
+>>>		---[Class: Scanner]---
+	//Scanner is used to read in string/data, separated by delimiters
+	Scanner(System.in)		[Object: Scanner]				//Read data from system (keyboard)
+	Scanner(new File(file))		[Object: Scanner]				//Read data from file (import java.io.File)
+	<sc>.close()			[void]						//Closes data stream
+	<sc>.hasNext()			[boolean]					//check if more data
+	<sc>.next()			[String]					//read in next token as string
+	<sc>.nextLine()			[String]					//read in next line as string
+	<sc>.nextByte()			[byte]						//read in next token as byte
+	<sc>.nextShort()		[short]						//read in next token as short
+	<sc>.nextInt()			[int]						//read in next token as int
+	<sc>.nextLong()			[long]						//read in next token as long
+	<sc>.nextFloat()		[float]						//read in next token as float
+	<sc>.nextDouble()		[double]					//read in next token as double
+	<sc>.useDelimiter(str)		[Scanner]					//set scanner's delimiter
 
-	"Class: File"
-File(Str: path)			[Object: File]	load file by path
-file.exhists()			[boolean]	check if file exists
-file.canRead()			[boolean]	checks if allowed to read
-file.canWrite()			[boolean]	check if can write file
-file.isDirectory()		[boolean]	check if file is a directory
-file.isFile()			[boolean]	check if fils is a file
-file.isAbsolute()		[boolean]	check if file address is absolute
-file.isHidden()			[boolean]	check if file is hidden
-file.getAbsolutePath()		[String]	return file's absolute path
-file.getCononicalPath()		[String]	resolves links
-file.getName()			[String]	return filename, no dir shown
-file.getPath()			[String]	return dir of file
-file.lastModified()		[long]		returns the time of last edit
-file.length()			[long]		returns size of file
-file.delete()			[boolean]	delete file (true = pass)
-file.renameTo()			[boolean]	rename file (true = pass)
+	//convert char array into string
+	String str = new String(new char[] {'j','a','v','a'});
+	//or
+	String str = new String.valueOf(new char[] {'j','a','v','a'});
 
-	"Class: PrintWriter"
-PrintWriter(<file>)	[Object: PrintWriter]	Write file
-pw.print(<data>)		[void]		Write to file
+>>>		---[Type: Logic Handling]---
+	//if/else
+		if (<if condition>)
+		{
+			//Some Code
+		}
+		else
+		{
+			//Some Code
+		}
 
-	"Class: Scanner"
-Scanner(System.in)	[Object: Scanner]	Read data from system
-Scanner(new File(file))		[Scanner]	Read data from file
-sc.close()			[void]		Closes data stream
-sc.hasNext()			[boolean]	check if more data
-sc.next()			[String]	read in next token as string
-sc.nextLine()			[String]	read in next line as string
-sc.nextByte()			[byte]		read in next token as byte
-sc.nextShort()			[short]		read in next token as short
-sc.nextInt()			[int]		read in next token as int
-sc.nextLong()			[long]		read in next token as long
-sc.nextFloat()			[float]		read in next token as float
-sc.nextDouble()			[double]	read in next token as double
-sc.useDelimiter(str)		[Scanner]	set scanner's delimiter
+	//if/if else/else
+		if (<if condition>)
+		{
+			//Some Code
+		}
+		else if (<else if condition>)
+		{
+			//Some Code
+		}
 
-//convert char array into string
-String str = new String(new char[] {'j','a','v','a'});
-//or
-String str = new String.valueOf(new char[] {'j','a','v','a'});
+	//switch/case
+		switch (<eval>)
+		{
+			case <state>: <action>;
+				break;
+			case <state>: <action>;
+				break;
+			case <state>: <action>;
+				break;
+			default:
+		}
 
-	"Type: Logic Handling"
-// and = &&
-// or = ||
+>>>		---[Type: Loops]---
+	//A 'while' loop
+		while (<loop condition>)
+		{
+			//Some Code
+		}
 
-// if/else
-if (<if condition>)
-{
+	//A 'for' loop
+		for (<init action>; <loop coditions>; <action after each iteration>)
+		{
+			//Some Code
+		}
 
-}
-else
-{
+	//'break' vs 'continue'
+		break; //stop loop where called
+		continue; //finish to end of loop, then stop loop
 
-}
+>>>		---[Type: Enum]---
+	//Values are user defined...scoped and unscoped...look for examples
 
-// if/if else/else
-if (<if condition>)
-{
+	//Example
+	//{
+		class FreshJuice
+		{
+		enum FreshJuiceSize{
+			SMALL,
+			MEDIUM,
+			LARGE
+			} FreshJuiceSize size;
+		}
 
-}
-else if (<else if condition>)
-{
+		public class FreshJuiceTest
+		{
+			public static void main(String args[])
+			{
+				FreshJuice juice = new FreshJuice();
+				juice.size = FreshJuice.FreshJuiceSize.MEDIUM ;
+				System.out.println("Size: " + juice.size);
+			}
+		}
+	//}
 
-}
+>>>		---[Type: Class]---
+	//Local variables − Variables defined inside methods, constructors or blocks are called local variables. The variable will be declared and initialized within the method and the variable will be destroyed when the method has completed.
+	//Instance variables − Instance variables are variables within a class but outside any method. These variables are initialized when the class is instantiated. Instance variables can be accessed from inside any method, constructor or blocks of that particular class.
+	//Class variables − Class variables are variables declared within a class, outside any method, with the static keyword
 
-// switch/case
-switch (<eval>)
-{
-	case <state>: <action>;
-		break;
-	case <state>: <action>;
-		break;
-	case <state>: <action>;
-		break;
-	default:
-}
+	//example
+		public class Dog
+		{
+			String breed;
+			int age;
+			String color;
+
+			public Dog()
+			{
+				//empty constructor
+			}
+
+			public Dog(String Breed, int Age, String Color)
+			{
+				//This constructor has parameters.
+				breed = Breed;
+				age = Age;
+				color = Color;
+			}
+
+			void barking()
+			{
+				boolean IsBarking;
+				//Some Code
+			}
+
+			void hungry()
+			{
+				//Some Code
+			}
+
+			void sleeping()
+			{
+				//Some Code
+			}
+
+			public static void main(String []args)
+			{
+				Dog myPuppy = new Dog("Golden Rt",3,"gold");
+				System.out.println("Variable Value :" + myPuppy.age );
+			}
+		}
 
 
-	"Type: Loops"
-//A 'while' loop
-while (<loop condition>)
-{
+	//The 'this' keyword is the name of the reference that refers to a calling object itself
+	//example
+	//{
+		public class Foo
+		{
+			int i = 5;
+			static double k = 0.0;
 
-}
+			void setI(int i)
+			{
+				//this.i refers to the class' "int i = 5"
+				this.i = i;
+			}
+			static void setK(double k)
+			{
+				Foo.k = k;
+			}
+		}
 
-//A 'for' loop
-for (<init action>; <loop coditions>; <action after each iteration>)
-{
+		Foo f1 = new Foo();
+		Foo f2 = new Foo();
+		f1.set(3);							//'i' in 'f1' = 3
+		f2.set(1);							//'i' in 'f2' = 1
+	//}
 
-}
+>>>		---[Class: Inheritance]---
 
-//'break' vs 'continue'
-break; //stop loop where called
-continue; //finish to end of loop, then stop loop
+	class <sub-class> extends <super-class>
+
+	//'super()' and 'super(<params>)' are used to call the parent's constructor
+	//'super' can also be used to call parent method direct
+	super.ParentMethod();
+
+	//Overriding Methods vs Overloading Methods

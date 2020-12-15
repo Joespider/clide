@@ -1,6 +1,8 @@
 Shell=$(which bash)
 #!${Shell}
 
+SupportV="0.1.10"
+
 ProgDir=$1
 shift
 ClideDir=$1
@@ -49,8 +51,14 @@ UseJava()
 			#Return Red
 			echo -e "\e[1;31mJava\e[0m"
 			;;
+		ProjectColor)
+			local text=$1
+			if [ ! -z "${text}" ]; then
+				echo -e "\e[1;41m${text}\e[0m"
+			fi 
+			;;
 		SupportVersion)
-			echo "0.1.04"
+			echo ${SupportV}
 			;;
 		MenuHelp)
 			echo -e "new <file> {main|component}\t: \"create new ${Lang} source file\""
@@ -86,8 +94,8 @@ UseJava()
 			echo ${LangSrc}
 			;;
 		CreateHelp)
-			echo -e "prop|properties|-D\t: create custome Java properties"
-			echo -e "jar|manifest\t\t: create Java Manifest Jar builds"
+			echo -e "prop, properties|-D\t: create custome Java properties"
+			echo -e "jar, manifest\t\t: create Java Manifest Jar builds"
 			;;
 		shell)
 			;;
@@ -120,8 +128,8 @@ UseJava()
                         ;;
 		CplVersion)
 			echo "[Java JDK/JRE]"
-			JavaRunVersion=$(${JavaRun} --version 2> /dev/null)
-			JavaCplVersion=$(${JavaCpl} --version 2> /dev/null)
+			local JavaRunVersion=$(${JavaRun} --version 2> /dev/null)
+			local JavaCplVersion=$(${JavaCpl} --version 2> /dev/null)
 			if [ ! -z "${JavaRunVersion}" ]; then
 				JavaRunVersion=$(${JavaRun} --version | head -n 1)
 				JavaCplVersion=$(${JavaCpl} --version | head -n 1)
@@ -227,6 +235,7 @@ UseJava()
 			local name=$2
 			local keep=$3
 			local cplArgs=""
+			local ERROR
 			#Handle Project Dir
 			if [[ "${project}" == "none" ]]; then
 				project=""
@@ -250,7 +259,7 @@ UseJava()
 					#single code selected
 					else
 						#Compile Java prgram
-						${JavaCpl} ${src}
+						ERROR=$(${JavaCpl} ${src} 2>&1 | tr '\n' '|')
 						#get Java Class/compiled file name
 						des=${src%.*}.class
 						if [ -f ${des} ]; then
@@ -296,6 +305,12 @@ UseJava()
 									echo -e "\e[1;41m[Java Code Compiled (CLASS)]\e[0m"
 								;;
 							esac
+						else
+							ERROR=$(echo ${ERROR} | tr '|' '\n')
+							echo -en "\e[1;31m[\e[0m"
+							echo -en "\e[1;41mERROR\e[0m"
+							echo -e "\e[1;31m]\e[0m"
+							echo -e "\e[1;31m${ERROR}\e[0m"
 						fi
 					fi
 					;;
@@ -304,7 +319,8 @@ UseJava()
 			esac
 			;;
 		newProject)
-			path=${LangSrc}/${project}
+			local project=$1
+			local path=${LangSrc}/${project}
 			if [ ! -d ${path} ]; then
 				mkdir ${path}
 				cd ${path}
@@ -480,7 +496,9 @@ UseJava()
 				else
 					#Program Name Given
 					if [ ! -z "${name}" ];then
+						local Content="//class path goes here\n\n/**\n *\n * @author $USER\n */\n\n//class name\npublic class ${name} {\n\n\t/**\n\t* @param args the command line arguments\n\t*/\n\tpublic static void main(String[] args) {\n\n\t}\n}"
 						touch ${name}.java
+						echo -e "${Content}" > ${name}.java
 					else
 						errorCode "newCode"
 					fi
@@ -500,6 +518,7 @@ UseJava()
 			;;
 		#Java properties
 		create-prop|create-properties|create--D)
+			local EnvArgs
 			#Enter Java properties
 			echo -n "-D"
 			read -e EnvArgs

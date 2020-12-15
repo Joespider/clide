@@ -1,6 +1,8 @@
 Shell=$(which bash)
 #!${Shell}
 
+SupportV="0.1.12"
+
 ProgDir=$1
 shift
 ClideDir=$1
@@ -47,12 +49,18 @@ UseCpp()
 			#Return Blue
 			echo -e "\e[1;34mC++\e[0m"
 			;;
+		ProjectColor)
+			local text=$1
+			if [ ! -z "${text}" ]; then
+				echo -e "\e[1;44m${text}\e[0m"
+			fi 
+			;;
 		SupportVersion)
-			echo "0.1.05"
+			echo ${SupportV}
 			;;
 		MenuHelp)
 			echo -e "new <file> {main|header|component} : \"create new ${Lang} source file\""
-			echo -e "compile|cpl\t\t\t: \"make code executable\""
+			echo -e "cpl, compile\t\t\t: \"make code executable\""
 			;;
 		getCode)
 			local name=$1
@@ -83,13 +91,13 @@ UseCpp()
 			;;
 		CreateHelp)
 			echo -e "make\t\t\t: create makefile"
-			echo -e "version|-std=<c++#>\t: create makefile"
+			echo -e "version, -std=<c++#>\t: create makefile"
 			;;
 		shell)
 			;;
 		newCodeHelp)
 			if [ -f ${TemplateCode} ]; then
-				echo -e "--custom|-c\t\t\t: \"Custom src file using ${Lang} template\""
+				echo -e "-c, --custom\t\t\t: \"Custom src file using ${Lang} template\""
 			fi
 			;;
 		EnsureDirs)
@@ -220,6 +228,7 @@ UseCpp()
 			local src=$1
 			local name=$2
 			local cplArgs=$3
+			local ERROR
 			#Handle Project Dir
 			if [[ "${project}" == "none" ]]; then
 				project=""
@@ -247,8 +256,16 @@ UseCpp()
 							if [ ! -z "${NeedThreads}" ]; then
 								cplArgs="${cplArgs} -lpthread"
 							fi
-							${CppCpl} ${prog} -o ../bin/${name} ${cplArgs}
-							echo -e "\e[1;44m[C++ Code Compiled]\e[0m"
+							ERROR=$(${CppCpl} ${prog} -o ../bin/${name} ${cplArgs} 2>&1 | tr '\n' '|')
+							if [ -z "${ERROR}" ]; then
+								echo -e "\e[1;44m[C++ Code Compiled]\e[0m"
+							else
+								echo -en "\e[1;34m[C++ \e[0m"
+								echo -en "\e[1;41mERROR\e[0m"
+								echo -e "\e[1;34m]\e[0m"
+								ERROR=$(echo ${ERROR} | tr '|' '\n')
+								echo -e "\e[1;31m${ERROR}\e[0m"
+							fi
 						fi
 					#single code selected
 					else
@@ -258,8 +275,16 @@ UseCpp()
 							cplArgs="${cplArgs} -lpthread"
 						fi
 						#Compile and move C++ to Binary dir
-						${CppCpl} ${src} -o ../bin/${src%.*} ${cplArgs}
-						echo -e "\e[1;44m[C++ Code Compiled]\e[0m"
+						ERROR=$(${CppCpl} ${src} -o ../bin/${src%.*} ${cplArgs} 2>&1 | tr '\n' '|')
+						if [ -z "${ERROR}" ]; then
+							echo -e "\e[1;44m[C++ Code Compiled]\e[0m"
+						else
+							echo -en "\e[1;31m[\e[0m"
+							echo -en "\e[1;41mERROR\e[0m"
+							echo -e "\e[1;31m]\e[0m"
+							ERROR=$(echo ${ERROR} | tr '|' '\n')
+							echo -e "\e[1;31m${ERROR}\e[0m"
+						fi
 					fi
 				fi
 			fi
@@ -315,7 +340,8 @@ UseCpp()
 			echo ${CplArgs}
 			;;
 		newProject)
-			local path=${LangSrc}/${CodeProject}
+			local project=$1
+			local path=${LangSrc}/${project}
 			#create and cd to project dir
 			if [ ! -d ${path} ]; then
 				mkdir ${path}
@@ -427,7 +453,9 @@ UseCpp()
 					else
 						#Program Name Given
 						if [ ! -z "${name}" ];then
+							local Content="#include <iostream>\n\n//C++ Main\nint main()\n{\n\n\treturn 0;\n}"
 							touch ${name}.cpp
+							echo -e "${Content}" > ${name}.cpp
 						else
 							errorCode "newCode"
 						fi
