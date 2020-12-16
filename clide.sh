@@ -9,7 +9,7 @@ root=$(dirname ${ShellPath})
 
 GetConfig()
 {
-	ConfigFile=${root}/clide.conf
+	local ConfigFile=${root}/clide.conf
 	Item=$1
 	if [ ! -z "${Item}" ]; then
 		grep "${Item}" ${ConfigFile} | grep -v "#" | cut -d "=" -f 2
@@ -99,6 +99,8 @@ MenuHelp()
 	esac
 	echo -e "search\t\t\t\t: \"search project src files for line of code\""
 	echo -e "execute, exe, run {-a|--args}\t: \"run active program\""
+	echo -e "bkup, backup\t\t\t: \"make backup of existing source code\""
+	echo -e "restore\t\t\t\t: \"make backup of existing source code\""
 	echo -e "last, load\t\t\t: \"Load last session\""
 	echo -e "exit, close\t\t\t: \"close ide\""
 	echo "------------------------------------------------"
@@ -1001,6 +1003,44 @@ Actions()
 						echo "Possible: ${pLangs}"
 					fi
 					;;
+				bkup|backup)
+					local chosen=${UserIn[1]}
+					case ${Code} in
+						*,*)
+							if [ ! -z "${chosen}" ]; then
+								if [[ "${Code}" == *"${chosen}"* ]]; then
+									ManageLangs ${Lang} "backup" ${chosen}
+								else
+									errorCode "backup" "wrong"
+								fi
+							else
+								errorCode "backup" "null"
+							fi
+							;;
+						*)
+							ManageLangs ${Lang} "backup" ${Code}
+							;;
+					esac
+					;;
+				restore)
+					local chosen=${UserIn[1]}
+					case ${Code} in
+						*,*)
+							if [ ! -z "${chosen}" ]; then
+								if [[ "${Code}" == *"${chosen}"* ]]; then
+									ManageLangs ${Lang} "restore" ${chosen}
+								else
+									errorCode "backup" "wrong"
+								fi
+							else
+								errorCode "backup" "null"
+							fi
+							;;
+						*)
+							ManageLangs ${Lang} "restore" ${Code}
+							;;
+					esac
+					;;
 				#use the shell of a given language
 				shell)
 					ManageLangs ${Lang} "shell"
@@ -1376,6 +1416,8 @@ loadAuto()
 	comp_list "notes" "edit add read"
 	comp_list "last load"
 	comp_list "install"
+	comp_list "bkup backup"
+	comp_list "restore"
 	comp_list "langs languages"
 	comp_list "exit close"
 }

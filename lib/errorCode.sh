@@ -146,7 +146,37 @@ errorCode()
 			esac
 			;;
 		loadSession)
-				echo "No Session to load"
+			echo "No Session to load"
+			;;
+		backup)
+			case ${sec} in
+				null)
+					echo "No source code given"
+					;;
+				exists)
+					echo "Back-up file already exists"
+					;;
+				wrong)
+					echo "Please choose the correct source file"
+					;;
+				*)
+					;;
+			esac
+			;;
+		restore)
+			case ${sec} in
+				null)
+					echo "No source code given"
+					;;
+				exists)
+					echo "No back-up file found"
+					;;
+				wrong)
+					echo "Please choose the correct source file"
+					;;
+				*)
+					;;
+			esac
 			;;
 		*)
 			;;
