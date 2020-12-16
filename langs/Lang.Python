@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.09"
+SupportV="0.1.11"
 
 ProgDir=$1
 shift
@@ -433,6 +433,26 @@ UsePython()
 				fi
 			else
 				errorCode "restore" "null"
+			fi
+			;;
+		rename)
+			local TheOld=$1
+			local TheNew=$2
+			if [ ! -z "${TheNew}" ]; then
+				TheOld="${TheOld%.py}" 
+				TheNew="${TheNew%.py}"
+				mv ${LangSrc}/${TheOld}.py ${LangSrc}/${TheNew}.py
+				echo ${TheNew}.py
+			fi
+			;;
+		copy)
+			local TheOld=$1
+			local TheNew=$2
+			if [ ! -z "${TheNew}" ]; then
+				TheOld="${TheOld%.py}" 
+				TheNew="${TheNew%.py}"
+				cp ${LangSrc}/${TheOld}.py ${LangSrc}/${TheNew}.py
+				echo ${TheNew}.py
 			fi
 			;;
 		*)

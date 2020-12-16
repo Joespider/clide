@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.08"
+SupportV="0.1.10"
 
 ProgDir=$1
 shift
@@ -415,6 +415,26 @@ UsePerl()
 				fi
 			else
 				errorCode "restore" "null"
+			fi
+			;;
+		rename)
+			local TheOld=$1
+			local TheNew=$2
+			if [ ! -z "${TheNew}" ]; then
+				TheOld="${TheOld%.pl}" 
+				TheNew="${TheNew%.pl}"
+				mv ${LangSrc}/${TheOld}.pl ${LangSrc}/${TheNew}.pl
+				echo ${TheNew}.pl
+			fi
+			;;
+		copy)
+			local TheOld=$1
+			local TheNew=$2
+			if [ ! -z "${TheNew}" ]; then
+				TheOld="${TheOld%.pl}" 
+				TheNew="${TheNew%.pl}"
+				cp ${LangSrc}/${TheOld}.pl ${LangSrc}/${TheNew}.pl
+				echo ${TheNew}.pl
 			fi
 			;;
 		*)

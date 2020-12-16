@@ -101,6 +101,8 @@ MenuHelp()
 	echo -e "execute, exe, run {-a|--args}\t: \"run active program\""
 	echo -e "bkup, backup\t\t\t: \"make backup of existing source code\""
 	echo -e "restore\t\t\t\t: \"make backup of existing source code\""
+	echo -e "rename <new>\t\t\t: \"rename the existing source code\""
+	echo -e "copy <new>\t\t\t: \"copy the existing source code\""
 	echo -e "last, load\t\t\t: \"Load last session\""
 	echo -e "exit, close\t\t\t: \"close ide\""
 	echo "------------------------------------------------"
@@ -1041,6 +1043,48 @@ Actions()
 							;;
 					esac
 					;;
+				rename)
+					local chosen=${UserIn[1]}
+					local TheNewChosen=${UserIn[2]}
+					case ${Code} in
+						*,*)
+							if [ ! -z "${TheNewChosen}" ]; then
+								if [[ "${Code}" == *"${chosen}"* ]]; then
+									ManageLangs ${Lang} "rename" ${chosen} ${TheNewChosen} > /dev/null
+									Code=$(echo ${Code} | sed "s/${chosen}/${TheNewChosen}/g")
+								else
+									echo errorCode "rename" "wrong"
+								fi
+							else
+								echo errorCode "rename" "null"
+							fi
+							;;
+						*)
+							Code=$(ManageLangs ${Lang} "rename" ${Code} ${chosen})
+							;;
+					esac
+					;;
+				copy)
+					local chosen=${UserIn[1]}
+					local TheNewChosen=${UserIn[2]}
+					case ${Code} in
+						*,*)
+							if [ ! -z "${TheNewChosen}" ]; then
+								if [[ "${Code}" == *"${chosen}"* ]]; then
+									ManageLangs ${Lang} "copy" ${chosen} ${TheNewChosen} > /dev/null
+									Code=$(echo ${Code} | sed "s/${chosen}/${TheNewChosen}/g")
+								else
+									echo errorCode "copy" "wrong"
+								fi
+							else
+								echo errorCode "backup" "null"
+							fi
+							;;
+						*)
+							Code=$(ManageLangs ${Lang} "copy" ${Code} ${chosen})
+							;;
+					esac
+					;;
 				#use the shell of a given language
 				shell)
 					ManageLangs ${Lang} "shell"
@@ -1418,6 +1462,8 @@ loadAuto()
 	comp_list "install"
 	comp_list "bkup backup"
 	comp_list "restore"
+	comp_list "rename"
+	comp_list "copy"
 	comp_list "langs languages"
 	comp_list "exit close"
 }

@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.09"
+SupportV="0.1.11"
 
 ProgDir=$1
 shift
@@ -421,6 +421,26 @@ UseBash()
 				fi
 			else
 				errorCode "restore" "null"
+			fi
+			;;
+		rename)
+			local TheOld=$1
+			local TheNew=$2
+			if [ ! -z "${TheNew}" ]; then
+				TheOld="${TheOld%.sh}"
+				TheNew="${TheNew%.sh}"
+				mv ${LangSrc}/${TheOld}.sh ${LangSrc}/${TheNew}.sh
+				echo ${TheNew}.sh
+			fi
+			;;
+		copy)
+			local TheOld=$1
+			local TheNew=$2
+			if [ ! -z "${TheNew}" ]; then
+				TheOld="${TheOld%.sh}"
+				TheNew="${TheNew%.sh}"
+				cp ${LangSrc}/${TheOld}.sh ${LangSrc}/${TheNew}.sh
+				echo ${TheNew}.sh
 			fi
 			;;
 		*)

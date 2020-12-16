@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.13"
+SupportV="0.1.15"
 
 ProgDir=$1
 shift
@@ -538,6 +538,26 @@ UseCpp()
 				fi
                         else
 				errorCode "restore" "null"
+			fi
+			;;
+		rename)
+			local TheOld=$1
+			local TheNew=$2
+			if [ ! -z "${TheNew}" ]; then
+				TheOld="${TheOld%.cpp}" 
+				TheNew="${TheNew%.cpp}"
+				mv ${LangSrc}/${TheOld}.cpp ${LangSrc}/${TheNew}.cpp
+				echo ${TheNew}.cpp
+			fi
+			;;
+		copy)
+			local TheOld=$1
+			local TheNew=$2
+			if [ ! -z "${TheNew}" ]; then
+				TheOld="${TheOld%.cpp}" 
+				TheNew="${TheNew%.cpp}"
+				cp ${LangSrc}/${TheOld}.cpp ${LangSrc}/${TheNew}.cpp
+				echo ${TheNew}.cpp
 			fi
 			;;
 		*)

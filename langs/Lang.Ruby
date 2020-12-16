@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.08"
+SupportV="0.1.10"
 
 ProgDir=$1
 shift
@@ -417,6 +417,26 @@ UseRuby()
 				fi
 			else
 				errorCode "restore" "null"
+			fi
+			;;
+		rename)
+			local TheOld=$1
+			local TheNew=$2
+			if [ ! -z "${TheNew}" ]; then
+				TheOld="${TheOld%.rb}" 
+				TheNew="${TheNew%.rb}"
+				mv ${LangSrc}/${TheOld}.rb ${LangSrc}/${TheNew}.rb
+				echo ${TheNew}.rb
+			fi
+			;;
+		copy)
+			local TheOld=$1
+			local TheNew=$2
+			if [ ! -z "${TheNew}" ]; then
+				TheOld="${TheOld%.rb}" 
+				TheNew="${TheNew%.rb}"
+				cp ${LangSrc}/${TheOld}.rb ${LangSrc}/${TheNew}.rb
+				echo ${TheNew}.rb
 			fi
 			;;
 		*)

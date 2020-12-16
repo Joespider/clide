@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.11"
+SupportV="0.1.14"
 
 ProgDir=$1
 shift
@@ -631,6 +631,27 @@ UseJava()
 				fi
 			else
 				errorCode "restore" "null"
+			fi
+			;;
+		rename)
+			local TheOld=$1
+			local TheNew=$2
+			if [ ! -z "${TheNew}" ]; then
+				TheOld="${TheOld%.java}"
+				TheNew="${TheNew%.java}"
+				sed "s/${TheOld}/${TheNew}/g" ${LangSrc}/${TheOld}.java > ${LangSrc}/${TheNew}.java
+				rm ${LangSrc}/${TheOld}.java
+				echo ${TheNew}.java
+			fi
+			;;
+		copy)
+			local TheOld=$1
+			local TheNew=$2
+			if [ ! -z "${TheNew}" ]; then
+				TheOld="${TheOld%.java}"
+				TheNew="${TheNew%.java}"
+				sed "s/${TheOld}/${TheNew}/g" ${LangSrc}/${TheOld}.java > ${LangSrc}/${TheNew}.java
+				echo ${TheNew}.java
 			fi
 			;;
 		*)
