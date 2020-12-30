@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.10"
+SupportV="0.1.14"
 
 ProgDir=$1
 shift
@@ -607,34 +607,56 @@ UseJava()
 				errorCode "cpl" "need" "${name}"
 			fi
 			;;
+		backup)
+			local name=$1
+			if [ ! -z "${name}" ]; then
+				if [ ! -f "${LangSrc}/${name}.bak" ]; then
+					cp ${LangSrc}/${name} ${LangSrc}/${name}.bak
+					echo "\"${name}\" backed-up"
+				else
+					errorCode "backup" "exists"
+				fi
+			else
+				errorCode "backup" "null"
+			fi
+			;;
+		restore)
+			local name=$1
+			if [ ! -z "${name}" ]; then
+				if [ -f "${LangSrc}/${name}.bak" ]; then
+					mv ${LangSrc}/${name}.bak ${LangSrc}/${name}
+					echo "\"${name}\" restored"
+				else
+					errorCode "restore" "exists"
+				fi
+			else
+				errorCode "restore" "null"
+			fi
+			;;
+		rename)
+			local TheOld=$1
+			local TheNew=$2
+			if [ ! -z "${TheNew}" ]; then
+				TheOld="${TheOld%.java}"
+				TheNew="${TheNew%.java}"
+				sed "s/${TheOld}/${TheNew}/g" ${LangSrc}/${TheOld}.java > ${LangSrc}/${TheNew}.java
+				rm ${LangSrc}/${TheOld}.java
+				echo ${TheNew}.java
+			fi
+			;;
+		copy)
+			local TheOld=$1
+			local TheNew=$2
+			if [ ! -z "${TheNew}" ]; then
+				TheOld="${TheOld%.java}"
+				TheNew="${TheNew%.java}"
+				sed "s/${TheOld}/${TheNew}/g" ${LangSrc}/${TheOld}.java > ${LangSrc}/${TheNew}.java
+				echo ${TheNew}.java
+			fi
+			;;
 		*)
 			;;
 	esac
 }
 
 UseJava $@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

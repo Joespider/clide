@@ -93,5 +93,6 @@ Date: (12/14/2020)
 
 >>>		---[Threading]---
 	import threading
-	TheThread = threading.Thread(target=<method>, args=(<arg>,<arg>,))
-	TheThread.start()
+	TheThread = threading.Thread(target=<method>, args=(<arg>,<arg>,))	#Form the thread
+	TheThread.start()							#Start thread
+	TheThread.join()							#have the program wait for the thread to finish

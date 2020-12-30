@@ -9,8 +9,8 @@ root=$(dirname ${ShellPath})
 
 GetConfig()
 {
-	ConfigFile=${root}/clide.conf
-	Item=$1
+	local ConfigFile=${root}/var/clide.conf
+	local Item=$1
 	if [ ! -z "${Item}" ]; then
 		grep "${Item}" ${ConfigFile} | grep -v "#" | cut -d "=" -f 2
 	fi
@@ -99,6 +99,10 @@ MenuHelp()
 	esac
 	echo -e "search\t\t\t\t: \"search project src files for line of code\""
 	echo -e "execute, exe, run {-a|--args}\t: \"run active program\""
+	echo -e "bkup, backup\t\t\t: \"make backup of existing source code\""
+	echo -e "restore\t\t\t\t: \"make backup of existing source code\""
+	echo -e "rename <new>\t\t\t: \"rename the existing source code\""
+	echo -e "copy <new>\t\t\t: \"copy the existing source code\""
 	echo -e "last, load\t\t\t: \"Load last session\""
 	echo -e "exit, close\t\t\t: \"close ide\""
 	echo "------------------------------------------------"
@@ -183,6 +187,7 @@ ModesHelp()
 	echo ""
 	echo "----------------[(${Head}) Modes]----------------"
 	echo -e "${repoTool}, repo\t\t: repo management"
+	echo -e "add\t\t\t: install/add component management"
 	echo -e "-h, --help\t\t: \"Modes help page\""
 	echo "-----------------------------------------------"
 	echo ""
@@ -256,6 +261,9 @@ ModeHanlder()
 			else
 				echo "Must have an active project"
 			fi
+			;;
+		add)
+				${ModesDir}/add.sh
 			;;
 		-h|--help)
 			ModesHelp
@@ -442,7 +450,7 @@ lookFor()
 	local search=$2
 	case ${project} in
 		none)
-			errorCode "project" "none"
+			errorCode "project" "none" "${Head}"
 			;;
 		*)
 			if [ ! -z "${search}" ]; then
@@ -487,14 +495,16 @@ importProject()
 	local Path=$3
 	local ProjectFile=${ClideProjectDir}/${Name}.clide
 	if [ ! -z "${Name}" ]; then
+		Path=$(eval $(echo ${Path}))
 		if [ ! -f ${ProjectFile} ]; then
 			if [ -z "${Path}" ]; then
-				echo -n "Import Project \"${Name}\" from : "
-				read Path
+				local prompt="Import Project \"${Name}\" from : "
+				read -e -p "${prompt}" Path
+				Path=$(eval $(echo ${Path}))
 			fi
 
 			if [ -z "${Path}" ]; then
-				echo "no path Given"
+				errorCode "project" "import" "no-path"
 			else
 				case ${Path} in
 					*${Name}|*${Name}/)
@@ -506,15 +516,16 @@ importProject()
 						echo "Project \"${Name}\" Imported"
 						;;
 					*)
-						echo "${Name} must be in the directory of \"${Path}\""
+						errorCode "project" "import" "name-in-path" "${Name}" "${Path}"
 						;;
 				esac
 			fi
 		else
-			echo "You Already have a project named \"${Name}\""
+			errorCode "project" "import" "exists" "${Name}"
 		fi
 	else
-		echo "import help"
+
+		errorCode "project" "import" "no-name"
 	fi
 }
 
@@ -527,7 +538,7 @@ newProject()
 	local path=""
 	#No Project is found
 	if [ -z ${project} ]; then
-		errorCode "project" "none"
+		errorCode "project" "none" "${Head}"
 	else
 		#Grab Project Data
 		#Name Value
@@ -649,10 +660,10 @@ Remove()
 					errorCode "remove" "hint"
 				fi
 			else
-				echo "\"${src}\" not a file"
+				errorCode "remove" "not-file" "${src}"
 			fi
 		else
-			echo "\"${src}\" not a file"
+			errorCode "remove" "not-file" "${src}"
 		fi
 	fi
 }
@@ -666,7 +677,7 @@ runCode()
 	local JavaProp=""
 	local TheBin=""
 	if [[ "${name}" == *","* ]]; then
-		echo "${Head} can only handle ONE file"
+		errorCode "runCode" "${Head}"
 	else
 		TheBin=${name}
 		#Come up with a way to know if arguments are needed
@@ -870,13 +881,13 @@ Actions()
 					#Use ONLY for Projects
 					case ${CodeProject} in
 						none)
-							echo "Must have an active project"
+							errorCode "project" "none"
 							;;
 						*)
 							cd ${UserIn[1]}
 							here=$(pwd)
 							if [[ ! "${here}" == *"${CodeProject}"* ]]; then
-								echo "Leaving your project is not allowed"
+								errorCode "project" "can-not-leave"
 								cd - > /dev/null
 							fi
 							;;
@@ -889,7 +900,7 @@ Actions()
 						here=$(pwd)/
 						echo ${here#*${CodeProject}}
 					else
-						echo "Must have an active project"
+						errorCode "project" "none" "${Head}"
 					fi
 					;;
 				#make dir in project
@@ -898,7 +909,7 @@ Actions()
 					if [[ ! "${CodeProject}" == "none" ]]; then
 						mkdir ${UserIn[1]}
 					else
-						echo "Must have an active project"
+						errorCode "project" "none" "${Head}"
 					fi
 					;;
 				#Handle Projects
@@ -908,7 +919,7 @@ Actions()
 						#Create new project
 						new)
 							if [[ "${Lang}" == "Java" ]]; then
-								echo "${Head} Cannot handle Java Projects"
+								errorCode "project" "Java" "${Head}"
 							else
 								#Locate Project Directory
 								if [ -f "${ClideDir}/${UserIn[2]}.clide" ]; then
@@ -935,6 +946,7 @@ Actions()
 							project=$(loadProject ${UserIn[2]})
 							if [ "${project}" != "no" ]; then
 								CodeDir=$(echo ${project} | cut -d ";" -f 3)
+								CodeDir=$(eval echo ${CodeDir})
 								if [ -d ${CodeDir} ]; then
 									Lang=$(echo ${project} | cut -d ";" -f 1)
 									Code=$(echo ${project} | cut -d ";" -f 2)
@@ -942,10 +954,10 @@ Actions()
 									cd ${CodeDir}
 									echo "Project \"${CodeProject}\" loaded"
 								else
-									echo "Project \"${UserIn[2]}\" Directory not Found"
+									errorCode "project" "load" "no-path" "${UserIn[2]}"
 								fi
 							else
-								echo "Not a valid project"
+								errorCode "project" "load" "no-project" "${UserIn[2]}"
 							fi
 							;;
 						#Import project not created by cl[ide]
@@ -954,13 +966,16 @@ Actions()
 							;;
 						#Display active project
 						active)
-							#There is no project listed
-							if [[ "${CodeProject}" == "none" ]]; then
-								echo "There are no active projects"
-							#Project is found
-							else
-								echo "Active Project [\"${CodeProject}\"]"
-							fi
+							case ${CodeProject} in
+								#There is no project listed
+								none)
+									errorCode "project" "active"
+									;;
+								#Project is found
+								*)
+									echo "Active Project [\"${CodeProject}\"]"
+									;;
+							esac
 							;;
 						#List all known projects
 						list)
@@ -1000,6 +1015,86 @@ Actions()
 						Lang=${Old}
 						echo "Possible: ${pLangs}"
 					fi
+					;;
+				bkup|backup)
+					local chosen=${UserIn[1]}
+					case ${Code} in
+						*,*)
+							if [ ! -z "${chosen}" ]; then
+								if [[ "${Code}" == *"${chosen}"* ]]; then
+									ManageLangs ${Lang} "backup" ${chosen}
+								else
+									errorCode "backup" "wrong"
+								fi
+							else
+								errorCode "backup" "null"
+							fi
+							;;
+						*)
+							ManageLangs ${Lang} "backup" ${Code}
+							;;
+					esac
+					;;
+				restore)
+					local chosen=${UserIn[1]}
+					case ${Code} in
+						*,*)
+							if [ ! -z "${chosen}" ]; then
+								if [[ "${Code}" == *"${chosen}"* ]]; then
+									ManageLangs ${Lang} "restore" ${chosen}
+								else
+									errorCode "backup" "wrong"
+								fi
+							else
+								errorCode "backup" "null"
+							fi
+							;;
+						*)
+							ManageLangs ${Lang} "restore" ${Code}
+							;;
+					esac
+					;;
+				rename)
+					local chosen=${UserIn[1]}
+					local TheNewChosen=${UserIn[2]}
+					case ${Code} in
+						*,*)
+							if [ ! -z "${TheNewChosen}" ]; then
+								if [[ "${Code}" == *"${chosen}"* ]]; then
+									ManageLangs ${Lang} "rename" ${chosen} ${TheNewChosen} > /dev/null
+									Code=$(echo ${Code} | sed "s/${chosen}/${TheNewChosen}/g")
+								else
+									errorCode "rename" "wrong"
+								fi
+							else
+								errorCode "rename" "null"
+							fi
+							;;
+						*)
+							Code=$(ManageLangs ${Lang} "rename" ${Code} ${chosen})
+							;;
+					esac
+					;;
+				copy)
+					local chosen=${UserIn[1]}
+					local TheNewChosen=${UserIn[2]}
+					case ${Code} in
+						*,*)
+							if [ ! -z "${TheNewChosen}" ]; then
+								if [[ "${Code}" == *"${chosen}"* ]]; then
+									ManageLangs ${Lang} "copy" ${chosen} ${TheNewChosen} > /dev/null
+									Code=$(echo ${Code} | sed "s/${chosen}/${TheNewChosen}/g")
+								else
+									errorCode "copy" "wrong"
+								fi
+							else
+								errorCode "backup" "null"
+							fi
+							;;
+						*)
+							Code=$(ManageLangs ${Lang} "copy" ${Code} ${chosen})
+							;;
+					esac
 					;;
 				#use the shell of a given language
 				shell)
@@ -1057,7 +1152,7 @@ Actions()
 							if [ ! -z "${UserIn[2]}" ]; then
 								${editor} ${UserIn[2]}
 							else
-								echo "Please select a file to edit"
+								errorCode "selectCode"
 							fi
 							;;
 						*)
@@ -1376,6 +1471,10 @@ loadAuto()
 	comp_list "notes" "edit add read"
 	comp_list "last load"
 	comp_list "install"
+	comp_list "bkup backup"
+	comp_list "restore"
+	comp_list "rename"
+	comp_list "copy"
 	comp_list "langs languages"
 	comp_list "exit close"
 }
@@ -1417,8 +1516,7 @@ main()
 				Actions ${Lang}
 			fi
 		else
-			echo "No Languages installed"
-			echo "Please Lang.<language> in \"${LangsDir}/\""
+			errorCode "no-langs"
 		fi
 	else
 		case ${UserArg} in

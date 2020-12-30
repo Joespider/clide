@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.07"
+SupportV="0.1.10"
 
 ProgDir=$1
 shift
@@ -391,6 +391,52 @@ UseRuby()
 				${RubyRun} ${LangBin}/${TheBin} ${Args[@]}
 			else
 				errorCode "cpl" "need" "${name}"
+			fi
+			;;
+		backup)
+			local name=$1
+			if [ ! -z "${name}" ]; then
+				if [ ! -f "${LangSrc}/${name}.bak" ]; then
+					cp ${LangSrc}/${name} ${LangSrc}/${name}.bak
+					echo "\"${name}\" backed-up"
+				else
+					errorCode "backup" "exists"
+				fi
+			else
+				errorCode "backup" "null"
+			fi
+			;;
+		restore)
+			local name=$1
+			if [ ! -z "${name}" ]; then
+				if [ -f "${LangSrc}/${name}.bak" ]; then
+					mv ${LangSrc}/${name}.bak ${LangSrc}/${name}
+					echo "\"${name}\" restored"
+				else
+					errorCode "restore" "exists"
+				fi
+			else
+				errorCode "restore" "null"
+			fi
+			;;
+		rename)
+			local TheOld=$1
+			local TheNew=$2
+			if [ ! -z "${TheNew}" ]; then
+				TheOld="${TheOld%.rb}" 
+				TheNew="${TheNew%.rb}"
+				mv ${LangSrc}/${TheOld}.rb ${LangSrc}/${TheNew}.rb
+				echo ${TheNew}.rb
+			fi
+			;;
+		copy)
+			local TheOld=$1
+			local TheNew=$2
+			if [ ! -z "${TheNew}" ]; then
+				TheOld="${TheOld%.rb}" 
+				TheNew="${TheNew%.rb}"
+				cp ${LangSrc}/${TheOld}.rb ${LangSrc}/${TheNew}.rb
+				echo ${TheNew}.rb
 			fi
 			;;
 		*)

@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.12"
+SupportV="0.1.15"
 
 ProgDir=$1
 shift
@@ -512,6 +512,52 @@ UseCpp()
 				${LangBin}/${TheBin} ${Args[@]}
 			else
 				errorCode "cpl" "need" "${name}"
+			fi
+			;;
+		backup)
+			local name=$1
+			if [ ! -z "${name}" ]; then
+				if [ ! -f "${LangSrc}/${name}.bak" ]; then
+					cp ${LangSrc}/${name} ${LangSrc}/${name}.bak
+					echo "\"${name}\" backed-up"
+				else
+					errorCode "backup" "exists"
+				fi
+			else
+				errorCode "backup" "null"
+			fi
+			;;
+		restore)
+			local name=$1
+			if [ ! -z "${name}" ]; then
+				if [ -f "${LangSrc}/${name}.bak" ]; then
+					mv ${LangSrc}/${name}.bak ${LangSrc}/${name}
+					echo "\"${name}\" restored"
+				else
+					errorCode "restore" "exists"
+				fi
+                        else
+				errorCode "restore" "null"
+			fi
+			;;
+		rename)
+			local TheOld=$1
+			local TheNew=$2
+			if [ ! -z "${TheNew}" ]; then
+				TheOld="${TheOld%.cpp}" 
+				TheNew="${TheNew%.cpp}"
+				mv ${LangSrc}/${TheOld}.cpp ${LangSrc}/${TheNew}.cpp
+				echo ${TheNew}.cpp
+			fi
+			;;
+		copy)
+			local TheOld=$1
+			local TheNew=$2
+			if [ ! -z "${TheNew}" ]; then
+				TheOld="${TheOld%.cpp}" 
+				TheNew="${TheNew%.cpp}"
+				cp ${LangSrc}/${TheOld}.cpp ${LangSrc}/${TheNew}.cpp
+				echo ${TheNew}.cpp
 			fi
 			;;
 		*)
