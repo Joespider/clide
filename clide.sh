@@ -783,24 +783,30 @@ Actions()
 	local pLangs=$(ColorCodes)
 	local prompt=""
 	local UserArg=""
-	#No Project Given
-	if [ -z $2 ]; then
-		Code=""
-	else
-		Code=$2
-	fi
-	#No Project Given
-	if [ -z $3 ]; then
-		CodeProject="none"
-	else
-		CodeProject=$3
-		Dir="${CodeProject}"
-	fi
+	local Code="$2"
+	local FirstAction="$3"
+	CodeProject="none"
 
-	#Avoid getting incorrect directory name
-	if [[ "${Dir}" == "none" ]]; then
-		Dir=""
-	fi
+#	#No Project Given
+#	if [ -z $2 ]; then
+#		Code=""
+#	else
+#		Code=$2
+#	fi
+#
+#	#No Project Given
+#	if [ -z $3 ]; then
+#		CodeProject="none"
+#	else
+#		CodeProject=$3
+#		Dir="${CodeProject}"
+#	fi
+#
+#	#Avoid getting incorrect directory name
+#	if [[ "${Dir}" == "none" ]]; then
+#		Dir=""
+#	fi
+
 	#Language Chosen
 	if [[ ! "${CodeDir}" == "no" ]]; then
 		cd ${CodeDir}/${Dir}
@@ -836,10 +842,17 @@ Actions()
 					prompt="${Name}(${cLang}[${cCodeProject}${ClideProjectDir}]{${cCode}}):$ "
 				fi
 			fi
-			#Handle CLI
-			#read -a UserIn
-			read -e -p "${prompt}" -a UserIn
-			UserArg=$(echo ${UserIn[0]} | tr A-Z a-z)
+			#User's first action
+			if [ ! -z "${FirstAction}" ]; then
+				UserArg=${FirstAction}
+				FirstAction=""
+			else
+				#Handle CLI
+				#read -a UserIn
+				read -e -p "${prompt}" -a UserIn
+				UserArg=$(echo ${UserIn[0]} | tr A-Z a-z)
+
+			fi
 			if [ ! -z "${UserIn[0]}" ]; then
 				case ${UserIn[0]} in
 					#ignore anything beginning with '-'
@@ -1561,7 +1574,7 @@ main()
 				#Verify Language
 				Lang=$(pgLang $1)
 				#Start IDE
-				Actions ${Lang} $2
+				Actions ${Lang} $2 $3
 				;;
 		esac
 	fi
