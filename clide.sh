@@ -177,7 +177,7 @@ CliHelp()
 	echo -e "-l, --last, --load\t\t: \"Load last session\""
 	echo ""
 	echo "-----------------------------------------------"
-	echo -e "\t\t\"Quick ${Head} Functions"
+	echo -e "\t\t\"Quick ${Head} Functions\""
 	echo -e "--edit\t\t\t:\"Edit source code\""
 	echo -e "--cpl, --compile\t\t\t:\"Compile source code\""
 	echo -e "--install\t\t\t:\"install program (.bash_aliases)\""
@@ -185,9 +185,10 @@ CliHelp()
 	echo -e "--read\t\t\t:\"Read out (cat) source code\""
 	echo -e "--list\t\t\t:\"List source code\""
 	echo ""
-	echo -e "$ clide <Action> <Language> <Code> <Args>\t: Edit Code"
+	echo -e "$ clide <Action> <Language> <Code> <Args>"
+	echo ""
 	echo "-----------------------------------------------"
-	echo -e "\t\t\"Run ${Head} IDE"
+	echo -e "\t\t\"Run ${Head} IDE\""
 	echo -e "$ clide <language> <code>\t: start clide"
 	echo -e "$ clide java program.java\t: start clide using java and program.java"
 	echo -e "$ clide java\t\t\t: start clide using java"
@@ -1018,8 +1019,12 @@ Actions()
 					OldCode=${Code}
 					case ${UserIn[0]} in
 						use)
-							Lang=$(pgLang ${UserIn[1]})
-							Code=${UserIn[2]}
+							if [ ! -z "${UserIn[1]}" ]; then
+								Lang=$(pgLang ${UserIn[1]})
+								Code=${UserIn[2]}
+							else
+								Lang="no"
+							fi
 							;;
 						*)
 							Lang=$(pgLang ${UserIn[0]})
