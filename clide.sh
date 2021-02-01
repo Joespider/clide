@@ -174,8 +174,20 @@ CliHelp()
 	echo -e "-c, --config\t\t\t: \"Get Clide Config\""
 	echo -e "-p, --projects\t\t\t: \"List Clide Projects\""
 	echo -e "-h, --help\t\t\t: \"Get CLI Help Page (Cl[ide] Menu: \"help\")\""
-	echo -e "-l, --last|--load\t\t: \"Load last session\""
+	echo -e "-l, --last, --load\t\t: \"Load last session\""
+	echo ""
 	echo "-----------------------------------------------"
+	echo -e "\t\t\"Quick ${Head} Functions"
+	echo -e "--edit\t\t\t:\"Edit source code\""
+	echo -e "--cpl, --compile\t\t\t:\"Compile source code\""
+	echo -e "--install\t\t\t:\"install program (.bash_aliases)\""
+	echo -e "--run\t\t\t:\"Run compiled code\""
+	echo -e "--read\t\t\t:\"Read out (cat) source code\""
+	echo -e "--list\t\t\t:\"List source code\""
+	echo ""
+	echo -e "$ clide <Action> <Language> <Code> <Args>\t: Edit Code"
+	echo "-----------------------------------------------"
+	echo -e "\t\t\"Run ${Head} IDE"
 	echo -e "$ clide <language> <code>\t: start clide"
 	echo -e "$ clide java program.java\t: start clide using java and program.java"
 	echo -e "$ clide java\t\t\t: start clide using java"
@@ -1561,6 +1573,7 @@ main()
 			-h|--help)
 				CliHelp
 				;;
+			#Load last saved session
 			-l|--load|--last)
 				session=$(LoadSession)
 				Lang=$(echo ${session} | cut -d ";" -f 1)
@@ -1569,10 +1582,130 @@ main()
 				#Start IDE
 				Actions ${Lang} ${Code} ${CodeProject}
 				;;
+			--edit)
+				shift
+				local Lang=$(pgLang $1)
+				local Code=$2
+				case ${Lang} in
+					no)
+						echo "\"$1\" is not a supported language"
+						;;
+					*)
+						local CodeDir=$(pgDir ${Lang})
+						if [ ! -z "${CodeDir}" ]; then
+							cd ${CodeDir}
+							Code=$(selectCode ${Lang} ${Code})
+							ManageLangs ${Lang} "editCode" ${Code}
+						else
+							echo "Source code not found"
+						fi
+				esac
+				;;
+			#compile code without entering cl[ide]
+			--cpl|--compile)
+				shift
+				local Lang=$(pgLang $1)
+				local Code=$2
+				case ${Lang} in
+					no)
+						echo "\"$1\" is not a supported language"
+						;;
+					*)
+						local CodeDir=$(pgDir ${Lang})
+						if [ ! -z "${CodeDir}" ]; then
+							cd ${CodeDir}
+							Code=$(selectCode ${Lang} ${Code})
+							ManageLangs ${Lang} "compileCode" ${Code} $3 $4
+						else
+							echo "Source code not found"
+						fi
+				esac
+				;;
+			#Install compiled code into aliases
+			--install)
+				shift
+				local Lang=$(pgLang $1)
+				local Code=$2
+				case ${Lang} in
+					no)
+						echo "\"$1\" is not a supported language"
+						;;
+					*)
+						local CodeDir=$(pgDir ${Lang})
+						if [ ! -z "${CodeDir}" ]; then
+							cd ${CodeDir}
+							Code=$(selectCode ${Lang} ${Code})
+							ManageLangs ${Lang} "Install" ${Code} $3
+						else
+							echo "Source code not found"
+						fi
+				esac
+				;;
+			#run compiled code
+			--run)
+				shift
+				local Lang=$(pgLang $1)
+				local Code=$2
+				shift
+				shift
+				local Args=$@
+				case ${Lang} in
+					no)
+						echo "\"$1\" is not a supported language"
+						;;
+					*)
+						local CodeDir=$(pgDir ${Lang})
+						if [ ! -z "${CodeDir}" ]; then
+							ManageLangs ${Lang} "runCode" "${Code}" ${Args[@]}
+						else
+							errorCode "cpl" "none"
+						fi
+				esac
+				;;
+			#cat out source code
+			--read)
+				shift
+				local Lang=$(pgLang $1)
+				local Code=$2
+				case ${Lang} in
+					no)
+						echo "\"$1\" is not a supported language"
+						;;
+					*)
+						local CodeDir=$(pgDir ${Lang})
+						if [ ! -z "${CodeDir}" ]; then
+							cd ${CodeDir}
+							Code=$(selectCode ${Lang} ${Code})
+							if [ ! -z "${Code}" ]; then
+								cat ${Code}
+							else
+								echo "No code to read"
+							fi
+						else
+							echo "No code to read"
+						fi
+				esac
+				;;
+			#List source code from given language
+			--list)
+				shift
+				local Lang=$(pgLang $1)
+				case ${Lang} in
+					no)
+						echo "\"$1\" is not a supported language"
+						;;
+					*)
+						local CodeDir=$(pgDir ${Lang})
+						if [ ! -z "${CodeDir}" ]; then
+							ls ${CodeDir}
+						fi
+						;;
+				esac
+				;;
 			#Check for language given
 			*)
 				#Verify Language
-				Lang=$(pgLang $1)
+				local Lang=$(pgLang $1)
 				#Start IDE
 				Actions ${Lang} $2 $3
 				;;
