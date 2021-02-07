@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.11"
+SupportV="0.1.15"
 
 ProgDir=$1
 shift
@@ -75,12 +75,23 @@ UseBash()
 		getCode)
 			local name=$1
 			#Get code
-			if [ -f ${LangSrc}/${name}.sh ]; then
-				echo ${name}.sh
-			elif [ -f ${LangSrc}/${name} ]; then
-				echo ${name}
-			fi
-			;;
+                        case ${project} in
+                                none)
+					if [ -f ${LangSrc}/${name}.sh ]; then
+						echo ${name}.sh
+					elif [ -f ${LangSrc}/${name} ]; then
+						echo ${name}
+					fi
+					;;
+				*)
+					if [ -f ${LangSrc}/${project}/src/${name}.sh ]; then
+						echo ${name}.sh
+					elif [ -f ${LangSrc}/${project}/src/${name} ]; then
+						echo ${name}
+					fi
+					;;
+			esac
+                        ;;
 		BeforeFiles|AfterFiles)
 				ls *.sh 2> /dev/null
 			;;

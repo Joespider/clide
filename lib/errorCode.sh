@@ -104,9 +104,6 @@ errorCode()
 			;;
 		project)
 			case ${sec} in
-				Java)
-					echo "${thr} Cannot handle Java Projects"
-					;;
 				none)
 					echo "Your session MUST be a ${thr} Project"
 					echo "hint: Please create or load a project"

@@ -75,6 +75,7 @@ MenuHelp()
 	echo ""
 	echo "----------------[(${Head}) Menu]----------------"
 	echo -e "ls\t\t\t\t: \"list progams\""
+	echo -e "using\t\t\t\t: \"get the language being used\""
 	echo -e "unset\t\t\t\t: \"deselect source code\""
 	echo -e "use <language> <code>\t\t: \"choose language\""
 	echo -e "swap, swp {src|bin}\t\t: \"swap between sorce code and executable\""
@@ -84,7 +85,7 @@ MenuHelp()
 	echo -e "set <file>\t\t\t: \"select source code\""
 	echo -e "add <file>\t\t\t: \"add new file to project\""
 	echo -e "notes <action>\t\t\t: \"make notes for the ${Lang} language\""
-	echo -e "${editor}, edit|ed\t\t\t: \"edit source code\""
+	echo -e "${editor}, edit, ed\t\t\t: \"edit source code\""
 	echo -e "${ReadBy}, read\t\t\t: \"Read source code\""
 	echo -e "search <find>\t\t\t: \"search for code in project\""
 	case ${project} in
@@ -178,12 +179,12 @@ CliHelp()
 	echo ""
 	echo "-----------------------------------------------"
 	echo -e "\t\t\"Quick ${Head} Functions\""
-	echo -e "--edit\t\t\t:\"Edit source code\""
-	echo -e "--cpl, --compile\t\t\t:\"Compile source code\""
+	echo -e "--edit\t\t\t\t:\"Edit source code\""
+	echo -e "--cpl, --compile\t\t:\"Compile source code\""
 	echo -e "--install\t\t\t:\"install program (.bash_aliases)\""
-	echo -e "--run\t\t\t:\"Run compiled code\""
-	echo -e "--read\t\t\t:\"Read out (cat) source code\""
-	echo -e "--list\t\t\t:\"List source code\""
+	echo -e "--run\t\t\t\t:\"Run compiled code\""
+	echo -e "--read\t\t\t\t:\"Read out (cat) source code\""
+	echo -e "--list\t\t\t\t:\"List source code\""
 	echo ""
 	echo -e "$ clide <Action> <Language> <Code> <Args>"
 	echo ""
@@ -560,7 +561,7 @@ newProject()
 		echo "lang=${lang}" >> ${ProjectFile}
 		#Create Project and get path
 		path=$(ManageLangs ${Lang} "newProject" ${project})
-		cd ${path}
+		cd ${path}/src
 		#Path Value
 		echo "path=${path}" >> ${ProjectFile}
 		#Source Value
@@ -833,27 +834,33 @@ Actions()
 			cCode=$(color ${Code})
 
 			if [[ "${Code}" == "" ]]; then
-				if [[ "${CodeProject}" == "none" ]]; then
-					#Menu with no code
-					prompt="${Name}(${cLang}):$ "
-				else
-					ThePWD=$(pwd)
-					ProjectDir=$(echo ${ThePWD#*${CodeProject}} | sed "s/\//:/1")
-					cCodeProject=$(ManageLangs ${Lang} "ProjectColor" "${CodeProject}")
-					#Menu with no code
-					prompt="${Name}(${cLang}[${cCodeProject}${ProjectDir}]):$ "
-				fi
+				case ${CodeProject} in
+					none)
+						#Menu with no code
+						prompt="${Name}(${cLang}):$ "
+						;;
+					*)
+						ThePWD=$(pwd)
+						ProjectDir=$(echo ${ThePWD#*${CodeProject}} | sed "s/\//:/1")
+						cCodeProject=$(ManageLangs ${Lang} "ProjectColor" "${CodeProject}")
+						#Menu with no code
+						prompt="${Name}([${cCodeProject}${ProjectDir}]):$ "
+						;;
+				esac
 			else
-				if [[ "${CodeProject}" == "none" ]]; then
-					#Menu with code
-					prompt="${Name}(${cLang}{${cCode}}):$ "
-				else
-					ThePWD=$(pwd)
-					ProjectDir=$(echo ${ThePWD#*${CodeProject}} | sed "s/\//:/1")
-					#Menu with no code
-					cCodeProject=$(ManageLangs ${Lang} "ProjectColor" "${CodeProject}")
-					prompt="${Name}(${cLang}[${cCodeProject}${ClideProjectDir}]{${cCode}}):$ "
-				fi
+				case ${CodeProject} in
+					none)
+						#Menu with code
+						prompt="${Name}(${cLang}{${cCode}}):$ "
+						;;
+					*)
+						ThePWD=$(pwd)
+						ProjectDir=$(echo ${ThePWD#*${CodeProject}} | sed "s/\//:/1")
+						#Menu with no code
+						cCodeProject=$(ManageLangs ${Lang} "ProjectColor" "${CodeProject}")
+						prompt="${Name}([${cCodeProject}${ProjectDir}]{${cCode}}):$ "
+						;;
+				esac
 			fi
 			#User's first action
 			if [ ! -z "${FirstAction}" ]; then
@@ -902,6 +909,9 @@ Actions()
 					Remove ${Code} ${UserIn[1]} ${UserIn[2]}
 					Code=""
 					;;
+				using)
+					echo "${cLang}"
+					;;
 				#change dir in project
 				cd)
 					#Use ONLY for Projects
@@ -910,7 +920,7 @@ Actions()
 							errorCode "project" "none"
 							;;
 						*)
-							cd ${UserIn[1]}
+							cd ${UserIn[1]} 2> /dev/null
 							here=$(pwd)
 							if [[ ! "${here}" == *"${CodeProject}"* ]]; then
 								errorCode "project" "can-not-leave"
@@ -944,21 +954,17 @@ Actions()
 					case ${UserIn[1]} in
 						#Create new project
 						new)
-							if [[ "${Lang}" == "Java" ]]; then
-								errorCode "project" "Java" "${Head}"
+							#Locate Project Directory
+							if [ -f "${ClideDir}/${UserIn[2]}.clide" ]; then
+								errorCode "project" "exists" ${UserIn[2]}
 							else
-								#Locate Project Directory
-								if [ -f "${ClideDir}/${UserIn[2]}.clide" ]; then
-									errorCode "project" "exists" ${UserIn[2]}
-								else
-									newProject ${Lang} ${UserIn[2]}
-									Code=""
-									updateProject ${UserIn[2]} ${Code}
-									if [ ! -z "${UserIn[2]}" ]; then
-										CodeProject=${UserIn[2]}
-										echo "Created \"${CodeProject}\""
-										ProjectDir=$(echo ${ThePWD#*${CodeProject}} | sed "s/\//:/1")
-									fi
+								newProject ${Lang} ${UserIn[2]}
+								Code=""
+								updateProject ${UserIn[2]} ${Code}
+								if [ ! -z "${UserIn[2]}" ]; then
+									CodeProject=${UserIn[2]}
+									echo "Created \"${CodeProject}\""
+									ProjectDir=$(echo ${ThePWD#*${CodeProject}} | sed "s/\//:/1")
 								fi
 							fi
 							;;
@@ -977,7 +983,7 @@ Actions()
 									Lang=$(echo ${project} | cut -d ";" -f 1)
 									Code=$(echo ${project} | cut -d ";" -f 2)
 									CodeProject=${UserIn[2]}
-									cd ${CodeDir}
+									cd ${CodeDir}/src
 									echo "Project \"${CodeProject}\" loaded"
 								else
 									errorCode "project" "load" "no-path" "${UserIn[2]}"
@@ -1043,7 +1049,7 @@ Actions()
 						#}
 					else
 						Lang=${Old}
-						echo "Possible: ${pLangs}"
+						echo "Supported Languages: ${pLangs}"
 					fi
 					;;
 				bkup|backup)
@@ -1312,8 +1318,8 @@ Actions()
 					;;
 				#List supported languages
 				langs|languages)
-					echo -n "${UserArg}: "
-					echo ${pg}
+					local pg=$(ColorCodes)
+					echo "Supported Languages: ${pg}"
 					;;
 				#Close cl[ide]
 				exit|close)
@@ -1475,6 +1481,7 @@ loadAuto()
 	bind -x '"\t":autocomp'
 	bind -x '"\C-l":clear'
 	comp_list "ls"
+	comp_list "using"
 	comp_list "ll"
 	comp_list "clear"
 	comp_list "set"

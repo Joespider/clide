@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.15"
+SupportV="0.1.20"
 
 ProgDir=$1
 shift
@@ -64,13 +64,26 @@ UseCpp()
 			;;
 		getCode)
 			local name=$1
-			if [ -f ${LangSrc}/${name}.cpp ]; then
-				echo ${name}.cpp
-			elif [ -f ${LangSrc}/${name}.h ]; then
-				echo ${name}.h
-			elif [ -f ${LangSrc}/${name} ]; then
-				echo ${name}
-			fi
+			case ${CodeProject} in
+				none)
+					if [ -f ${LangSrc}/${name}.cpp ]; then
+						echo ${name}.cpp
+					elif [ -f ${LangSrc}/${name}.h ]; then
+						echo ${name}.h
+					elif [ -f ${LangSrc}/${name} ]; then
+						echo ${name}
+					fi
+					;;
+				*)
+					if [ -f ${LangSrc}/${CodeProject}/src/${name}.cpp ]; then
+						echo ${name}.cpp
+					elif [ -f ${LangSrc}/${CodeProject}/src/${name}.h ]; then
+						echo ${name}.h
+					elif [ -f ${LangSrc}/${project}/src/${name} ]; then
+						echo ${name}
+					fi
+					;;
+			esac
 			;;
 		pgLang)
 			local HasLang=$(which ${CppCpl} 2> /dev/null)
@@ -345,9 +358,15 @@ UseCpp()
 			#create and cd to project dir
 			if [ ! -d ${path} ]; then
 				mkdir ${path}
-				cd ${path}
-				mkdir bin build doc include lib spike src test
-				cd src
+				mkdir ${path}/bin
+				mkdir ${path}/build
+				mkdir ${path}/doc
+				mkdir ${path}/include
+				mkdir ${path}/lib
+				mkdir ${path}/spike
+				mkdir ${path}/src
+				mkdir ${path}/test
+				cd ${path}/src
 			else
 				cd ${path}/src
 			fi
@@ -430,71 +449,75 @@ UseCpp()
 			if [ ! -f ${name}.cpp ] || [ ! -f ${name}.h ]; then
 				case ${Type} in
 					#create header file
-				header)
-					#Program Name Given
-					if [ ! -z "${name}" ];then
-						touch "${name}.h"
-					else
-						errorCode "newCode"
-					fi
-					;;
-				#create main file
-				main)
-					#Check for Custom Code Template
-					if [ -f ${TemplateCode} ]; then
+					header)
 						#Program Name Given
 						if [ ! -z "${name}" ];then
-							${TemplateCode} --random --write-file --read-file --cli --main --is-in --user-input --name ${name}
-						#No Program Name Given
-						else
-							#Help Page
-							${TemplateCode} --help
-						fi
-					else
-						#Program Name Given
-						if [ ! -z "${name}" ];then
-							local Content="#include <iostream>\n\n//C++ Main\nint main()\n{\n\n\treturn 0;\n}"
-							touch ${name}.cpp
-							echo -e "${Content}" > ${name}.cpp
+							touch "${name}.h"
 						else
 							errorCode "newCode"
 						fi
-					fi
-					;;
-				#create component file
-				component)
-					if [ -f ${TemplateCode} ]; then
-						#Program Name Given
-						if [ ! -z "${name}" ];then
-							${TemplateCode} -n "${name}"
-						#No Program Name Given
+						;;
+					#create main file
+					main)
+						#Check for Custom Code Template
+						if [ -f ${TemplateCode} ]; then
+							#Program Name Given
+							if [ ! -z "${name}" ];then
+								${TemplateCode} --random --write-file --read-file --cli --main --is-in --user-input --name ${name}
+							#No Program Name Given
+							else
+								#Help Page
+								${TemplateCode} --help
+							fi
 						else
-							#Help Page
-							${TemplateCode} --help
+							#Program Name Given
+							if [ ! -z "${name}" ];then
+								local Content="#include <iostream>\n\n//C++ Main\nint main()\n{\n\n\treturn 0;\n}"
+								touch ${name}.cpp
+								echo -e "${Content}" > ${name}.cpp
+							else
+								errorCode "newCode"
+							fi
 						fi
-					else
-						#Program Name Given
-						if [ ! -z "${name}" ];then
-							touch ${name}.cpp
+						;;
+					#create component file
+					component)
+						if [ -f ${TemplateCode} ]; then
+							#Program Name Given
+							if [ ! -z "${name}" ];then
+								${TemplateCode} -n "${name}"
+							#No Program Name Given
+							else
+								#Help Page
+								${TemplateCode} --help
+							fi
 						else
-							errorCode "newCode"
+							#Program Name Given
+							if [ ! -z "${name}" ];then
+								touch ${name}.cpp
+							else
+								errorCode "newCode"
+							fi
 						fi
-					fi
-					;;
-				#cl[ide] knows best
-				*)
-					#Is not a project
-					if [[ "${Project}" == "none" ]]; then
-						UseCpp "newCode" ${name} ${oldCode} ${Project} "main"
-					#Is a project
-					else
-						if [[ "${oldCode}" == *".cpp" ]] || [[ "${oldCode}" == *".cpp" ]]; then
-							UseCpp "newCode" ${name} ${oldCode} ${Project} "component"
-						else
-							UseCpp "newCode" ${oldCode} ${Project} "main"
-						fi
-					fi
-					;;
+						;;
+					#cl[ide] knows best
+					*)
+						#Is not a project
+						case ${Project} in
+							none)
+								UseCpp "newCode" ${name} ${oldCode} ${Project} "main"
+								;;
+							#Is a project
+							*)
+								#clide knows best
+								if [[ "${oldCode}" == *".cpp" ]] || [[ "${oldCode}" == *".cpp" ]]; then
+									UseCpp "newCode" ${name} ${oldCode} ${Project} "component"
+								else
+									UseCpp "newCode" ${name} ${oldCode} ${Project} "main"
+								fi
+								;;
+						esac
+						;;
 				esac
 			fi
 			;;

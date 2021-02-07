@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.14"
+SupportV="0.1.18"
 
 ProgDir=$1
 shift
@@ -12,7 +12,7 @@ editor=$1
 shift
 ReadBy=$1
 shift
-project=$1
+CodeProject=$1
 shift
 CplArgs=$1
 shift
@@ -62,18 +62,29 @@ UseJava()
 			;;
 		MenuHelp)
 			echo -e "new <file> {main|component}\t: \"create new ${Lang} source file\""
-			echo -e "compile|cpl <type> <manifest>\t: \"make code executable\""
+			echo -e "compile, cpl <type> <manifest>\t: \"make code executable\""
 			echo -e "\t--class\t\t\t: \"make code (CLASS) executable\""
 			echo -e "\t--jar\t\t\t: \"make code (JAR) executable\""
 			echo -e "\t--jar --keep-manifest\t: \"keep manifest.mf\""
 			;;
 		getCode)
 			local name=$1
-			if [ -f ${LangSrc}/${name}.java ]; then
-				echo ${name}.java
-			elif [ -f ${LangSrc}/${name} ]; then
-				echo ${name}
-			fi
+			case ${CodeProject} in
+				none)
+					if [ -f ${LangSrc}/${name}.java ]; then
+						echo ${name}.java
+					elif [ -f ${LangSrc}/${name} ]; then
+						echo ${name}
+					fi
+					;;
+				*)
+					if [ -f ${LangSrc}/${CodeProject}/src/${name}.java ]; then
+						echo ${name}.java
+					elif [ -f ${LangSrc}/${CodeProject}/src/${name} ]; then
+						echo ${name}
+					fi
+					;;
+			esac
 			;;
 		pgLang)
 			local HasLangCpl=$(which ${JavaCpl} 2> /dev/null)
@@ -94,7 +105,7 @@ UseJava()
 			echo ${LangSrc}
 			;;
 		CreateHelp)
-			echo -e "prop, properties|-D\t: create custome Java properties"
+			echo -e "prop, properties, -D\t: create custome Java properties"
 			echo -e "jar, manifest\t\t: create Java Manifest Jar builds"
 			;;
 		shell)
@@ -324,6 +335,7 @@ UseJava()
 			if [ ! -d ${path} ]; then
 				mkdir ${path}
 				cd ${path}
+				mkdir src bin
 			else
 				cd ${path}
 			fi
