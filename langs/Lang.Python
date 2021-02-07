@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.11"
+SupportV="0.1.14"
 
 ProgDir=$1
 shift
@@ -12,7 +12,7 @@ editor=$1
 shift
 ReadBy=$1
 shift
-project=$1
+CodeProject=$1
 shift
 CplArgs=$1
 shift
@@ -65,12 +65,24 @@ UsePython()
 			;;
 		getCode)
 			local name=$1
-			#Get code 
-			if [ -f ${LangSrc}/${name}.py ]; then
-				echo ${name}.py
-			elif [ -f ${LangSrc}/${name} ]; then
-				echo ${name}
-			fi
+			case ${CodeProject} in
+				none)
+					#Get code 
+					if [ -f ${LangSrc}/${name}.py ]; then
+						echo ${name}.py
+					elif [ -f ${LangSrc}/${name} ]; then
+						echo ${name}
+					fi
+					;;
+				*)
+					#Get code 
+					if [ -f ${LangSrc}/${CodeProject}/src/${name}.py ]; then
+						echo ${name}.py
+					elif [ -f ${LangSrc}/${CodeProject}/src/${name} ]; then
+						echo ${name}
+					fi
+					;;
+			esac
 			;;
 		BeforeFiles|AfterFiles)
 			ls *.py 2> /dev/null
@@ -295,8 +307,8 @@ UsePython()
 			local path=${LangSrc}/${project}
 			if [ ! -d ${path} ]; then
 				mkdir ${path}
-				cd ${path}
-				mkdir src bin
+				mkdir ${path}/src
+				mkdir ${path}/bin
 				cd ${path}/src
 			else
 				cd ${path}/src

@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.10"
+SupportV="0.1.12"
 
 ProgDir=$1
 shift
@@ -12,7 +12,7 @@ editor=$1
 shift
 ReadBy=$1
 shift
-project=$1
+CodeProject=$1
 shift
 CplArgs=$1
 shift
@@ -64,11 +64,22 @@ UsePerl()
 			;;
 		getCode)
 			local name=$1
-			if [ -f ${LangSrc}/${name}.pl ]; then
-				echo ${name}.pl
-			elif [ -f ${LangSrc}/${name} ]; then
-				echo ${name}
-			fi
+			case ${CodeProject} in
+				none)
+					if [ -f ${LangSrc}/${name}.pl ]; then
+						echo ${name}.pl
+					elif [ -f ${LangSrc}/${name} ]; then
+						echo ${name}
+					fi
+					;;
+				*)
+					if [ -f ${LangSrc}/${CodeProject}/src/${name}.pl ]; then
+						echo ${name}.pl
+					elif [ -f ${LangSrc}/${CodeProject}/src/${name} ]; then
+						echo ${name}
+					fi
+					;;
+			esac
 			;;
 		BeforeFiles|AfterFiles)
 			ls *.pl 2> /dev/null
@@ -285,8 +296,8 @@ UsePerl()
 			path=${LangSrc}/${project}
 			if [ ! -d ${path} ]; then
 				mkdir ${path}
-				cd ${path}
-				mkdir src bin
+				mkdir ${path}/src
+				mkdir ${path}/bin
 				cd ${path}/src
 			else
 				cd ${path}/src
