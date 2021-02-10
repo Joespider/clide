@@ -1791,6 +1791,7 @@ main()
 				esac
 				;;
 			*.sh|*.py|*.cpp|*.h|*.java|*.pl|*.rb)
+				local Code=$1
 				local Lang=$(SelectLangByCode $1)
 				local CodeDir=$(pgDir ${Lang})
 				if [ ! -z "${CodeDir}" ]; then
