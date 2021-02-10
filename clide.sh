@@ -1334,6 +1334,45 @@ Actions()
 	fi
 }
 
+#Choose Lang by code
+SelectLangByCode()
+{
+	local Code=$1
+	local Lang
+	#Select Language
+	case ${Code} in
+		*.sh)
+			Lang=$(pgLang Bash)
+			;;
+		*.py)
+			Lang=$(pgLang Python)
+			;;
+		*.cpp|*.h)
+			Lang=$(pgLang C++)
+			;;
+		*.java)
+			Lang=$(pgLang Java)
+			;;
+		*.pl)
+			Lang=$(pgLang Perl)
+			;;
+		*.rb)
+			Lang=$(pgLang Ruby)
+			;;
+		*)
+			;;
+	esac
+	local CodeDir=$(pgDir ${Lang})
+	if [ ! -z "${CodeDir}" ]; then
+		cd ${CodeDir}
+		Code=$(selectCode ${Lang} ${Code})
+		if [ ! -z "${Code}" ]; then
+			#Start IDE
+			Actions ${Lang} ${Code}
+		fi
+	fi
+}
+
 #Autocomplete Function
 autocomp()
 {
@@ -1713,6 +1752,9 @@ main()
 						fi
 						;;
 				esac
+				;;
+			*.sh|*.py|*.cpp|*.h|*.java|*.pl|*.rb)
+				SelectLangByCode $1
 				;;
 			#Check for language given
 			*)
