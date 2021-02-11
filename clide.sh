@@ -1334,6 +1334,36 @@ Actions()
 	fi
 }
 
+#Choose Lang by code
+SelectLangByCode()
+{
+	local Code=$1
+	#Select Language
+	case ${Code} in
+		*.sh)
+			pgLang Bash
+			;;
+		*.py)
+			pgLang Python
+			;;
+		*.cpp|*.h)
+			pgLang C++
+			;;
+		*.java)
+			pgLang Java
+			;;
+		*.pl)
+			pgLang Perl
+			;;
+		*.rb)
+			pgLang Ruby
+			;;
+		*)
+			echo "no"
+			;;
+	esac
+}
+
 #Autocomplete Function
 autocomp()
 {
@@ -1598,105 +1628,151 @@ main()
 				shift
 				local Lang=$(pgLang $1)
 				local Code=$2
-				case ${Lang} in
-					no)
-						echo "\"$1\" is not a supported language"
-						;;
-					*)
-						local CodeDir=$(pgDir ${Lang})
-						if [ ! -z "${CodeDir}" ]; then
-							cd ${CodeDir}
-							Code=$(selectCode ${Lang} ${Code})
-							ManageLangs ${Lang} "editCode" ${Code}
-						else
-							echo "Source code not found"
-						fi
-				esac
+				if [ -z "${Code}" ]; then
+					Lang=$(SelectLangByCode $1)
+					Code=$1
+					shift
+					main --edit "${Lang}" "${Code}"
+				else
+					case ${Lang} in
+						no)
+							echo "\"$1\" is not a supported language"
+							;;
+						*)
+							local CodeDir=$(pgDir ${Lang})
+							if [ ! -z "${CodeDir}" ]; then
+								cd ${CodeDir}
+								Code=$(selectCode ${Lang} ${Code})
+								ManageLangs ${Lang} "editCode" ${Code}
+							else
+								echo "Source code not found"
+							fi
+					esac
+				fi
 				;;
 			#compile code without entering cl[ide]
 			--cpl|--compile)
 				shift
 				local Lang=$(pgLang $1)
 				local Code=$2
-				case ${Lang} in
-					no)
-						echo "\"$1\" is not a supported language"
-						;;
-					*)
-						local CodeDir=$(pgDir ${Lang})
-						if [ ! -z "${CodeDir}" ]; then
-							cd ${CodeDir}
-							Code=$(selectCode ${Lang} ${Code})
-							ManageLangs ${Lang} "compileCode" ${Code} $3 $4
-						else
-							echo "Source code not found"
-						fi
-				esac
+				if [ -z "${Code}" ]; then
+					Lang=$(SelectLangByCode $1)
+					Code=$1
+					shift
+					local Args=$@
+					main --cpl "${Lang}" "${Code}" ${Args[@]}
+				else
+					shift
+					shift
+					local Args=$@
+					case ${Lang} in
+						no)
+							echo "\"$1\" is not a supported language"
+							;;
+						*)
+							local CodeDir=$(pgDir ${Lang})
+							if [ ! -z "${CodeDir}" ]; then
+								cd ${CodeDir}
+								Code=$(selectCode ${Lang} ${Code})
+								ManageLangs ${Lang} "compileCode" ${Code} ${Args[@]}
+							else
+								echo "Source code not found"
+							fi
+					esac
+				fi
 				;;
 			#Install compiled code into aliases
 			--install)
 				shift
 				local Lang=$(pgLang $1)
 				local Code=$2
-				case ${Lang} in
-					no)
-						echo "\"$1\" is not a supported language"
-						;;
-					*)
-						local CodeDir=$(pgDir ${Lang})
-						if [ ! -z "${CodeDir}" ]; then
-							cd ${CodeDir}
-							Code=$(selectCode ${Lang} ${Code})
-							ManageLangs ${Lang} "Install" ${Code} $3
-						else
-							echo "Source code not found"
-						fi
-				esac
+				if [ -z "${Code}" ]; then
+					Lang=$(SelectLangByCode $1)
+					Code=$1
+					shift
+					local Args=$@
+					main --install "${Lang}" "${Code}" ${Args[@]}
+
+				else
+					shift
+					shift
+					local Args=$@
+					case ${Lang} in
+						no)
+							echo "\"$1\" is not a supported language"
+							;;
+						*)
+							local CodeDir=$(pgDir ${Lang})
+							if [ ! -z "${CodeDir}" ]; then
+								cd ${CodeDir}
+								Code=$(selectCode ${Lang} ${Code})
+								ManageLangs ${Lang} "Install" ${Code} ${Args[@]}
+							else
+								echo "Source code not found"
+							fi
+					esac
+				fi
 				;;
 			#run compiled code
 			--run)
 				shift
 				local Lang=$(pgLang $1)
 				local Code=$2
-				shift
-				shift
-				local Args=$@
-				case ${Lang} in
-					no)
-						echo "\"$1\" is not a supported language"
-						;;
-					*)
-						local CodeDir=$(pgDir ${Lang})
-						if [ ! -z "${CodeDir}" ]; then
-							ManageLangs ${Lang} "runCode" "${Code}" ${Args[@]}
-						else
-							errorCode "cpl" "none"
-						fi
-				esac
+				if [ -z "${Code}" ]; then
+					Lang=$(SelectLangByCode $1)
+					Code=$1
+					shift
+					local Args=$@
+					main --run "${Lang}" "${Code}" ${Args[@]}
+				else
+					shift
+					shift
+					local Args=$@
+					case ${Lang} in
+						no)
+							echo "\"$1\" is not a supported language"
+							;;
+						*)
+							local CodeDir=$(pgDir ${Lang})
+							if [ ! -z "${CodeDir}" ]; then
+								ManageLangs ${Lang} "runCode" "${Code}" ${Args[@]}
+							else
+								errorCode "cpl" "none"
+							fi
+					esac
+				fi
 				;;
 			#cat out source code
 			--read)
 				shift
 				local Lang=$(pgLang $1)
 				local Code=$2
-				case ${Lang} in
-					no)
-						echo "\"$1\" is not a supported language"
-						;;
-					*)
-						local CodeDir=$(pgDir ${Lang})
-						if [ ! -z "${CodeDir}" ]; then
-							cd ${CodeDir}
-							Code=$(selectCode ${Lang} ${Code})
-							if [ ! -z "${Code}" ]; then
-								cat ${Code}
+				if [ -z "${Code}" ]; then
+					Lang=$(SelectLangByCode $1)
+					Code=$1
+					shift
+					local Args=$@
+					main --read "${Lang}" "${Code}" ${Args[@]}
+				else
+					case ${Lang} in
+						no)
+							echo "\"$1\" is not a supported language"
+							;;
+						*)
+							local CodeDir=$(pgDir ${Lang})
+							if [ ! -z "${CodeDir}" ]; then
+								cd ${CodeDir}
+								Code=$(selectCode ${Lang} ${Code})
+								if [ ! -z "${Code}" ]; then
+									cat ${Code}
+								else
+									echo "No code to read"
+								fi
 							else
 								echo "No code to read"
 							fi
-						else
-							echo "No code to read"
-						fi
-				esac
+					esac
+				fi
 				;;
 			#List source code from given language
 			--list)
@@ -1714,12 +1790,28 @@ main()
 						;;
 				esac
 				;;
+			*.sh|*.py|*.cpp|*.h|*.java|*.pl|*.rb)
+				local Code=$1
+				local Lang=$(SelectLangByCode $1)
+				local CodeDir=$(pgDir ${Lang})
+				if [ ! -z "${CodeDir}" ]; then
+					cd ${CodeDir}
+					Code=$(selectCode ${Lang} ${Code})
+					if [ ! -z "${Code}" ]; then
+						#Start IDE
+						Actions ${Lang} ${Code}
+					fi
+				fi
+				;;
 			#Check for language given
 			*)
 				#Verify Language
 				local Lang=$(pgLang $1)
+				shift
+				local Args=$@
 				#Start IDE
-				Actions ${Lang} $2 $3
+				Actions ${Lang} ${Args[@]}
+
 				;;
 		esac
 	fi
