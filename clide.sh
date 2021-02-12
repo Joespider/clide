@@ -36,7 +36,7 @@ repoAssist=$(GetConfig repoAssist)
 
 #root dir
 ProgDir=$(eval echo $(GetConfig ProgDir))
-ClideDir=${ProgDir}/.clide
+ClideDir=${root}
 ModesDir=${ClideDir}/modes
 NotesDir=${ClideDir}/notes
 LibDir=${ClideDir}/lib
@@ -888,6 +888,9 @@ Actions()
 				ls)
 					ls ${UserIn[1]}
 					;;
+				lscpl)
+					echo "new feature: list the binary in bin dir"
+					;;
 				ll)
 					shift
 					ls -lh ${UserIn[1]}
@@ -1511,6 +1514,7 @@ loadAuto()
 	bind -x '"\t":autocomp'
 	bind -x '"\C-l":clear'
 	comp_list "ls"
+	comp_list "lscpl"
 	comp_list "using"
 	comp_list "ll"
 	comp_list "clear"
