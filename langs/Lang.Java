@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.18"
+SupportV="0.1.21"
 
 ProgDir=$1
 shift
@@ -341,6 +341,22 @@ UseJava()
 			fi
 			echo ${path}
 			;;
+		lscpl)
+			local project
+			local path
+			case ${CodeProject} in
+				none)
+					path=${LangBin}/
+					;;
+				*)
+					project=${CodeProject}
+					path=${LangBin}/${project}
+					;;
+			esac
+			if [ -d ${path} ]; then
+				ls ${path}
+			fi
+			;;
 		SwapToSrc)
 			local src=$1
 			#cd "${LangSrc}"
@@ -598,7 +614,9 @@ UseJava()
 			local name=$1
 			local TheBin="${name%.*}.class"
 			local TheJar="${name%.*}.jar"
-			local JavaProp=$2
+			#local JavaProp=$2
+			shift
+			local Args=$@
 
 			#Check if Java Class exists
 			if [ -f ${LangBin}/${TheBin} ]; then
