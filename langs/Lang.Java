@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.18"
+SupportV="0.1.20"
 
 ProgDir=$1
 shift
@@ -340,6 +340,22 @@ UseJava()
 				cd ${path}
 			fi
 			echo ${path}
+			;;
+		lscpl)
+			local project
+			local path
+			case ${CodeProject} in
+				none)
+					path=${LangBin}/
+					;;
+				*)
+					project=${CodeProject}
+					path=${LangBin}/${project}
+					;;
+			esac
+			if [ -d ${path} ]; then
+				ls ${path}
+			fi
 			;;
 		SwapToSrc)
 			local src=$1

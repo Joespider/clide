@@ -78,7 +78,7 @@ MenuHelp()
 	echo -e "using\t\t\t\t: \"get the language being used\""
 	echo -e "unset\t\t\t\t: \"deselect source code\""
 	echo -e "use <language> <code>\t\t: \"choose language\""
-	echo -e "swap, swp {src|bin}\t\t: \"swap between sorce code and executable\""
+#	echo -e "swap, swp {src|bin}\t\t: \"swap between sorce code and executable\""
 	echo -e "create <arg>\t\t\t: \"create compile and runtime arguments"
 	ManageLangs ${Lang} "MenuHelp"
 	echo -e "rm, remove, delete\t\t: \"delete src file\""
@@ -239,9 +239,9 @@ UseOther()
 		TemplateVersion)
 			echo "Please Choose a Language"
 			;;
-		SwapToSrc|SwapToBin)
-			echo "${Args[0]}"
-			;;
+#		SwapToSrc|SwapToBin)
+#			echo "${Args[0]}"
+#			;;
 		Install)
 			errorCode "noCode"
 			;;
@@ -889,7 +889,7 @@ Actions()
 					ls ${UserIn[1]}
 					;;
 				lscpl)
-					echo "new feature: list the binary in bin dir"
+					ManageLangs ${Lang} "lscpl" ${UserIn[1]} ${CodeProject} ${UserIn[2]}
 					;;
 				ll)
 					shift
@@ -1207,16 +1207,16 @@ Actions()
 				${ReadBy}|read)
 					ManageLangs ${Lang} "readCode" ${Code} ${UserIn[1]}
 					;;
-				#Swap from Binary to Src and vise-versa
-				swap|swp)
-					if [[ "${UserIn[1]}" == "bin" ]]; then
-						Code=$(ManageLangs ${Lang} "SwapToBin" ${Code})
-					elif [[ "${UserIn[1]}" == "src" ]]; then
-						Code=$(ManageLangs ${Lang} "SwapToSrc" ${Code})
-					else
-						echo "${mode} (src|bin)"
-					fi
-					;;
+#				#Swap from Binary to Src and vise-versa
+#				swap|swp)
+#					if [[ "${UserIn[1]}" == "bin" ]]; then
+#						Code=$(ManageLangs ${Lang} "SwapToBin" ${Code})
+#					elif [[ "${UserIn[1]}" == "src" ]]; then
+#						Code=$(ManageLangs ${Lang} "SwapToSrc" ${Code})
+#					else
+#						echo "${mode} (src|bin)"
+#					fi
+#					;;
 				#Modes
 				mode)
 					ModeHanlder ${UserIn[1]}
@@ -1525,7 +1525,7 @@ loadAuto()
 	comp_list "pwd"
 	comp_list "mkdir"
 	comp_list "use" "${pg}"
-	comp_list "swap swp" "src bin"
+#	comp_list "swap swp" "src bin"
 	comp_list "project" "load import new list"
 	comp_list "shell"
 	comp_list "new" "--version -v --help -h --custom -c"

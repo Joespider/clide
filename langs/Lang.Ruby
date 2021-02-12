@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.13"
+SupportV="0.1.15"
 
 ProgDir=$1
 shift
@@ -304,6 +304,22 @@ UseRuby()
 				cd ${path}/src
 			fi
 			echo ${path}
+			;;
+		lscpl)
+			local project
+			local path
+			case ${CodeProject} in
+				none)
+					path=${LangBin}/
+					;;
+				*)
+					project=${CodeProject}
+					path=${LangBin}/${project}
+					;;
+			esac
+			if [ -d ${path} ]; then
+				ls ${path}
+			fi
 			;;
 		SwapToSrc)
 			local src=$1

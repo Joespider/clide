@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.15"
+SupportV="0.1.17"
 
 ProgDir=$1
 shift
@@ -310,6 +310,22 @@ UseBash()
 				cd ${path}/srs
 			fi
 			echo ${path}
+			;;
+		lscpl)
+			local project
+			local path
+			case ${CodeProject} in
+				none)
+					path=${LangBin}/
+					;;
+				*)
+					project=${CodeProject}
+					path=${LangBin}/${project}
+					;;
+			esac
+			if [ -d ${path} ]; then
+				ls ${path}
+			fi
 			;;
 		SwapToSrc)
 			local src=$1
