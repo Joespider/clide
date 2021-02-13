@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.21"
+SupportV="0.1.22"
 
 ProgDir=$1
 shift
@@ -246,23 +246,36 @@ UseJava()
 			local name=$2
 			local keep=$3
 			local cplArgs=""
+			local TheBinDir
 			local ERROR
 			#Handle Project Dir
-			if [[ "${project}" == "none" ]]; then
-				project=""
-			else
-				project="${project}/"
-			fi
+			case ${project} in
+				none)
+					project=""
+					TheBinDir=${LangBin}
+					;;
+				*)
+					project="${project}/"
+					TheBinDir="${LangSrc}/${project}bin"
+					;;
+			esac
+			#Compile source code
 			case ${src} in
 				*.java)
 					#Multiple code selected
 					if [[ "${src}" == *","* ]]; then
 						if [[ "${project}" == *"/" ]]; then
 							#Compile Java prgram
-							${JavaCpl} *.java
+							ERROR=$(${JavaCpl} *.java 2>&1 | tr '\n' '|')
 							#move Java Class to Binary dir
 							if [ -f *.class ]; then
-								mv *.class ../bin/
+								mv *.class ${TheBinDir}/
+							else
+								ERROR=$(echo ${ERROR} | tr '|' '\n')
+								echo -en "\e[1;31m[\e[0m"
+								echo -en "\e[1;41mERROR\e[0m"
+								echo -e "\e[1;31m]\e[0m"
+								echo -e "\e[1;31m${ERROR}\e[0m"
 							fi
 						else
 							echo "Is not a project"
@@ -284,12 +297,12 @@ UseJava()
 										echo "Main-Class: ${des%.class}" >> manifest.mf
 										echo "Sealed: true" >> manifest.mf
 									fi
-									#jar -cmf manifest.mf ${des%.class}.jar ${des}
 									jar -cmf manifest.mf ${des%.class}.jar *.class
 									#remove class file
-									if [ -f ../bin/${des} ]; then
-										rm ../bin/${des}
+									if [ -f  ${TheBinDir}/${des} ]; then
+										rm  ${TheBinDir}/${des}
 									fi
+									#Keep Generated Manafest file
 									case ${keep} in
 										--keep-manifest)
 											#rm ${des}
@@ -301,20 +314,19 @@ UseJava()
 										;;
 									esac
 									#move Java Jar to Binary dir
-									mv ${des%.class}.jar ../bin/
+									mv ${des%.class}.jar ${TheBinDir}/
 									echo -e "\e[1;41m[Java Code Compiled (JAR)]\e[0m"
 									;;
 								#Do nothing...keep class
 								*|--class)
 									#move Java Class to Binary dir
-									#mv ${des} ../bin/
-									mv *.class ../bin/
+									mv *.class ${TheBinDir}/
 									#remove old jar
-									if [ -f ../bin/${des%.class}.jar ]; then
-										rm ../bin/${des%.class}.jar
+									if [ -f ${TheBinDir}/${des%.class}.jar ]; then
+										rm ${TheBinDir}/${des%.class}.jar
 									fi
 									echo -e "\e[1;41m[Java Code Compiled (CLASS)]\e[0m"
-								;;
+									;;
 							esac
 						else
 							ERROR=$(echo ${ERROR} | tr '|' '\n')
@@ -614,14 +626,26 @@ UseJava()
 			local name=$1
 			local TheBin="${name%.*}.class"
 			local TheJar="${name%.*}.jar"
+			local project=${CodeProject}
+			local TheBinDir
 			#local JavaProp=$2
 			shift
 			local Args=$@
 
+			case ${project} in
+				none)
+					project=""
+					TheBinDir=${LangBin}
+					;;
+				*)
+					project="${project}/"
+					TheBinDir="${LangSrc}/${project}bin"
+					;;
+			esac
 			#Check if Java Class exists
-			if [ -f ${LangBin}/${TheBin} ]; then
+			if [ -f ${TheBinDir}/${TheBin} ]; then
 				TheBin=${TheBin%.*}
-				cd ${LangBin}
+				cd ${TheBinDir}
 				#If no JavaProp found
 				if [ -z "${JavaProp}" ]; then
 					#Execute without
@@ -631,8 +655,8 @@ UseJava()
 				fi
 				cd - > /dev/null
 			#Check if Java Jar exists
-			elif [ -f ${LangBin}/${TheJar} ]; then
-				${JavaRun} -jar ${LangBin}/${TheJar} ${Args[@]}
+			elif [ -f ${TheBinDir}/${TheJar} ]; then
+				${JavaRun} -jar ${TheBinDir}/${TheJar} ${Args[@]}
 			else
 				errorCode "cpl" "need" "${name}"
 			fi
