@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.15"
+SupportV="0.1.16"
 
 ProgDir=$1
 shift
@@ -225,16 +225,23 @@ UseRuby()
 			;;
 		compileCode)
 			local src=$1
-			local project=${CodeProject}
 			local name=$2
 			local keep=$3
+			local project=${CodeProject}
 			local cplArgs=""
+			local TheBinDir
+			local ERROR
 			#Handle Project Dir
-			if [[ "${project}" == "none" ]]; then
-				project=""
-			else
-				project="${project}/"
-			fi
+			case ${project} in
+				none)
+					project=""
+					TheBinDir=${LangBin}
+					;;
+				*)
+					project="${project}/"
+					TheBinDir="${LangSrc}/${project}bin"
+					;;
+			esac
 			case ${src} in
 				*.rb)
 					#Multiple code selected
@@ -253,15 +260,23 @@ UseRuby()
 								fi
 								#Make Ruby Script executable
 								chmod +x ${name}
-								#Check if Ruby Script does NOT exist
-								if [[ ! -f "${LangBin}/${name}" ]]; then
+								#Check if Ruby Script does NOT exists
+								if [ ! -f "${TheBinDir}/${name}" ]; then
 									#Change to Ruby Binary dir
-									cd ${LangBin}
+									cd ${TheBinDir}
 									#Create Symbolic Link to Ruby Script
-									ln -s ../src/${project}${name}
+									ERROR=$(ln -s ../src/${name} 2>&1 | tr '\n' '|')
 									#Change to Ruby Source dir
-									cd "${LangSrc}/${project}"
-									echo -e "\e[1;41m[Ruby Code Compiled]\e[0m"
+									cd - > /dev/null
+									if [ -f "${TheBinDir}/${name}" ]; then
+										echo -e "\e[1;41m[Ruby Code Compiled]\e[0m"
+									else
+										ERROR=$(echo ${ERROR} | tr '|' '\n')
+										echo -en "\e[1;31m[\e[0m"
+										echo -en "\e[1;41mERROR\e[0m"
+										echo -e "\e[1;31m]\e[0m"
+										echo -e "\e[1;31m${ERROR}\e[0m"
+									fi
 								else
 									errorCode "cpl" "already" ${name}
 								fi
@@ -274,14 +289,22 @@ UseRuby()
 						#Make Ruby Script executable
 						chmod +x ${src}
 						#Check if Ruby Script does NOT exist
-						if [[ ! -f "${LangBin}/${src}" ]]; then
+						if [ ! -f "${TheBinDir}/${src}" ]; then
 							#Change to Ruby Binary dir
-							cd ${LangBin}
+							cd ${TheBinDir}
 							#Create Symbolic Link to Ruby Script
-							ln -s ../src/${project}${src}
+							ERROR=$(ln -s ../src/${src} 2>&1 | tr '\n' '|')
 							#Change to Ruby Source dir
-							cd "${LangSrc}/${project}"
-							echo -e "\e[1;41m[Ruby Code Compiled]\e[0m"
+							cd - > /dev/null
+							if [ -f "${TheBinDir}/${src}" ]; then
+								echo -e "\e[1;41m[Ruby Code Compiled]\e[0m"
+							else
+								ERROR=$(echo ${ERROR} | tr '|' '\n')
+								echo -en "\e[1;31m[\e[0m"
+								echo -en "\e[1;41mERROR\e[0m"
+								echo -e "\e[1;31m]\e[0m"
+								echo -e "\e[1;31m${ERROR}\e[0m"
+							fi
 						#Code is already found
 						else
 							errorCode "cpl" "already" ${src}
@@ -306,21 +329,21 @@ UseRuby()
 			echo ${path}
 			;;
 		lscpl)
-			local project
-			local path
-			case ${CodeProject} in
-				none)
-					path=${LangBin}/
-					;;
-				*)
-					project=${CodeProject}
-					path=${LangBin}/${project}
-					;;
-			esac
-			if [ -d ${path} ]; then
-				ls ${path}
-			fi
-			;;
+                        local project
+                        local path
+                        case ${CodeProject} in
+                                none)
+                                        path=${LangBin}/
+                                        ;;
+                                *)
+                                        project=${CodeProject}
+                                        path=${LangSrc}/${project}/bin
+                                        ;;
+                        esac
+                        if [ -d ${path} ]; then
+                                ls ${path}
+                        fi
+                        ;;
 		SwapToSrc)
 			local src=$1
 			#Get Ruby Name
@@ -409,13 +432,26 @@ UseRuby()
 			echo "${RubyRun} ${TheName}"
 			;;
 		runCode)
-			local name=$1
-			local TheBin=${name}
-			shift
-			local Args=$@
+                        local name=$1
+                        local TheBin="${name}"
+                        local project=${CodeProject}
+                        local TheBinDir
+                        shift
+                        local Args=$@
+                        #Handle Project Dir
+                        case ${project} in
+                                none)
+                                        project=""
+                                        TheBinDir=${LangBin}
+                                        ;;
+                                *)
+                                        project="${project}/"
+					TheBinDir="${LangSrc}/${project}bin"
+				;;
+			esac
 			#Check if Ruby Bin exists
-			if [ -f ${LangBin}/${TheBin} ]; then
-				${RubyRun} ${LangBin}/${TheBin} ${Args[@]}
+			if [ -f ${TheBinDir}/${TheBin} ]; then
+				${RubyRun} ${TheBinDir}/${TheBin} ${Args[@]}
 			else
 				errorCode "cpl" "need" "${name}"
 			fi

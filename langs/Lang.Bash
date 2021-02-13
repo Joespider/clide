@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.17"
+SupportV="0.1.18"
 
 ProgDir=$1
 shift
@@ -12,7 +12,7 @@ editor=$1
 shift
 ReadBy=$1
 shift
-project=$1
+CodeProject=$1
 shift
 CplArgs=$1
 shift
@@ -74,6 +74,7 @@ UseBash()
 			;;
 		getCode)
 			local name=$1
+			local project=${CodeProject}
 			#Get code
                         case ${project} in
                                 none)
@@ -237,12 +238,20 @@ UseBash()
 			local name=$2
 			local keep=$3
 			local cplArgs=""
+			local TheBinDir
+			local ERROR
 			#Handle Project Dir
-			if [[ "${project}" == "none" ]]; then
-				project=""
-			else
-				project="${project}/"
-			fi
+			case ${project} in
+				none)
+					project=""
+					TheBinDir=${LangBin}
+					;;
+				*)
+					project="${project}/"
+					TheBinDir="${LangSrc}/${project}bin"
+					;;
+			esac
+
 			case ${src} in
 				*.sh)
 					#Multiple code selected
@@ -261,14 +270,22 @@ UseBash()
 								#Make Bash Script executable
 								chmod +x ${name}
 								#Check if Bash Script does NOT exist
-								if [[ ! -f "${LangBin}/${name}" ]]; then
+								if [ ! -f "${TheBinDir}/${name}" ]; then
 									#Change to Bash Binary dir
-									cd ${LangBin}
+									cd ${TheBinLan}
 									#Create Symbolic Link to Bash Script
-									ln -s ../src/${project}${name}
+									ERROR=$(ln -s ../src/${name} 2>&1 | tr '\n' '|')
 									#Change to Bash Source dir
-									cd "${LangSrc}/${project}"
-									echo -e "\e[1;42m[Bash Code Compiled]\e[0m"
+									cd - > /dev/null
+									if [ -f "${TheBinDir}/${name}" ]; then
+										echo -e "\e[1;42m[Bash Code Compiled]\e[0m"
+									else
+										ERROR=$(echo ${ERROR} | tr '|' '\n')
+										echo -en "\e[1;31m[\e[0m"
+										echo -en "\e[1;41mERROR\e[0m"
+										echo -e "\e[1;31m]\e[0m"
+										echo -e "\e[1;31m${ERROR}\e[0m"
+									fi
 								else
 									errorCode "cpl" "already" ${name}
 								fi
@@ -281,14 +298,22 @@ UseBash()
 						#Make Bash Script executable
 						chmod +x ${src}
 						#Check if Bash Script does NOT exist
-						if [[ ! -f "${LangBin}/${src}" ]]; then
+						if [ ! -f "${TheBinDir}/${src}" ]; then
 							#Change to Bash Binary dir
-							cd ${LangBin}
+							cd ${TheBinDir}
 							#Create Symbolic Link to Bash Script
-							ln -s ../src/${project}${src}
+							ERROR=$(ln -s ../src/${src} 2>&1 | tr '\n' '|')
 							#Change to Bash Source dir
-							cd "${LangSrc}/${project}"
-							echo -e "\e[1;42m[Bash Code Compiled]\e[0m"
+							cd - > /dev/null
+							if [ -f "${TheBinDir}/${src}" ]; then
+								echo -e "\e[1;42m[Bash Code Compiled]\e[0m"
+							else
+								ERROR=$(echo ${ERROR} | tr '|' '\n')
+								echo -en "\e[1;31m[\e[0m"
+								echo -en "\e[1;41mERROR\e[0m"
+								echo -e "\e[1;31m]\e[0m"
+								echo -e "\e[1;31m${ERROR}\e[0m"
+							fi
 						else
 							errorCode "cpl" "already" ${src}
 						fi
@@ -320,7 +345,7 @@ UseBash()
 					;;
 				*)
 					project=${CodeProject}
-					path=${LangBin}/${project}
+					path=${LangSrc}/${project}/bin/
 					;;
 			esac
 			if [ -d ${path} ]; then
@@ -415,11 +440,25 @@ UseBash()
 			;;
 		runCode)
 			local name=$1
-			shift
-			Args=$@
+			local project=${CodeProject}
+			local TheBinDir
+                        shift
+                        local Args=$@
+                        #Handle Project Dir
+                        case ${project} in
+                                none)
+                                        project=""
+                                        TheBinDir=${LangBin}
+                                        ;;
+                                *)
+                                        project="${project}/"
+                                        TheBinDir="${LangSrc}/${project}bin"
+				;;
+                        esac
+
 			#Check if Bash Script exists
-			if [ -f ${LangBin}/${name} ]; then
-				${LangBin}/${name} ${Args[@]}
+			if [ -f ${TheBinDir}/${name} ]; then
+				${TheBinDir}/${name} ${Args[@]}
 			else
 				errorCode "cpl" "need" "${name}"
 			fi

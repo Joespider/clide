@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.15"
+SupportV="0.1.16"
 
 ProgDir=$1
 shift
@@ -135,7 +135,7 @@ UsePerl()
 			echo ""
 			;;
 		selectCode)
-			name=$1
+			local name=$1
 			#Correct filename
 			if [[ ! "${name}" == *".pl" ]]; then
 				name="${name}.pl"
@@ -143,8 +143,8 @@ UsePerl()
 			echo ${name}
 			;;
 		addCode)
-			src=$1
-			new=$2
+			local src=$1
+			local new=$2
 			case ${src} in
 				*.pl)
 					case ${new} in
@@ -169,8 +169,8 @@ UsePerl()
 			esac
 			;;
 		editCode)
-			src=$1
-			num=$2
+			local src=$1
+			local num=$2
 			case ${src} in
 				*.pl)
 					if [[ "${src}" == *","* ]]; then
@@ -196,8 +196,8 @@ UsePerl()
 			esac
 			;;
 		readCode)
-			src=$1
-			num=$2
+			local src=$1
+			local num=$2
 			case ${src} in
 				*.pl)
 					if [[ "${src}" == *","* ]]; then
@@ -223,17 +223,24 @@ UsePerl()
 			esac
 			;;
 		compileCode)
-			src=$1
-			project=${CodeProject}
-			name=$2
-			keep=$3
-			cplArgs=""
-			#Handle Project Dir
-			if [[ "${project}" == "none" ]]; then
-				project=""
-			else
-				project="${project}/"
-			fi
+			local src=$1
+			local name=$2
+			local keep=$3
+			local project=${CodeProject}
+                        local cplArgs=""
+                        local TheBinDir
+                        local ERROR
+                        #Handle Project Dir
+                        case ${project} in
+                                none)
+                                        project=""
+                                        TheBinDir=${LangBin}
+                                        ;;
+                                *)
+                                        project="${project}/"
+                                        TheBinDir="${LangSrc}/${project}bin"
+					;;
+                        esac
 			case ${src} in
 				*.pl)
 					#Multiple code selected
@@ -253,14 +260,22 @@ UsePerl()
 								#Make Perl Script executable
 								chmod +x ${name}
 								#Check if Perl Script does NOT exist
-								if [[ ! -f "${LangBin}/${name}" ]]; then
+								if [ ! -f "${TheBinDir}/${name}" ]; then
 									#Change to Perl Binary dir
-									cd ${LangBin}
+									cd ${TheBinDir}
 									#Create Symbolic Link to Perl Script
-									ln -s ../src/${project}${name}
+									ERROR=$(ln -s ../src/${name} 2>&1 | tr '\n' '|')
 									#Change to Perl Source dir
-									cd "${LangSrc}/${project}"
-									echo -e "\e[1;45m[Perl Code Compiled]\e[0m"
+									cd - > /dev/null
+									if [ -f "${TheBinDir}/${name}" ]; then
+										echo -e "\e[1;45m[Perl Code Compiled]\e[0m"
+									else
+										ERROR=$(echo ${ERROR} | tr '|' '\n')
+										echo -en "\e[1;31m[\e[0m"
+										echo -en "\e[1;41mERROR\e[0m"
+										echo -e "\e[1;31m]\e[0m"
+										echo -e "\e[1;31m${ERROR}\e[0m"
+									fi
 								else
 									errorCode "cpl" "already" ${name}
 								fi
@@ -273,15 +288,22 @@ UsePerl()
 						#Make Perl Script executable
 						chmod +x ${src}
 						#Check if Perl Script does NOT exist
-						if [[ ! -f "${LangBin}/${src}" ]]; then
+						if [ ! -f "${TheBinDir}/${src}" ]; then
 							#Change to Perl Binary dir
-							cd ${LangBin}
+							cd ${TheBinDir}
 							#Create Symbolic Link to Perl Script
-							ln -s ../src/${project}${src}
+							ERROR=$(ln -s ../src/${src} 2>&1 | tr '\n' '|')
 							#Change to Perl Source dir
-							cd "${LangSrc}/${project}"
-							echo -e "\e[1;45m[Perl Code Compiled]\e[0m"
-							#Code is already found
+							cd - > /dev/null
+							if [ -f "${TheBinDir}/${src}" ]; then
+								echo -e "\e[1;45m[Perl Code Compiled]\e[0m"
+							else
+								ERROR=$(echo ${ERROR} | tr '|' '\n')
+								echo -en "\e[1;31m[\e[0m"
+								echo -en "\e[1;41mERROR\e[0m"
+								echo -e "\e[1;31m]\e[0m"
+								echo -e "\e[1;31m${ERROR}\e[0m"
+							fi
 						else
 							errorCode "cpl" "already" ${src}
 						fi
@@ -313,7 +335,7 @@ UsePerl()
 					;;
 				*)
 					project=${CodeProject}
-					path=${LangBin}/${project}
+					path=${LangSrc}/${project}/bin
 					;;
 			esac
 			if [ -d ${path} ]; then
@@ -409,11 +431,24 @@ UsePerl()
 		runCode)
 			local name=$1
 			local TheBin="${name}"
-			shift
-			local Arg=$@
+			local project=${CodeProject}
+                        local TheBinDir
+                        shift
+                        local Args=$@
+                        #Handle Project Dir
+                        case ${project} in
+                                none)
+                                        project=""
+                                        TheBinDir=${LangBin}
+                                        ;;
+                                *)
+                                        project="${project}/"
+                                        TheBinDir="${LangSrc}/${project}bin"
+					;;
+                        esac
 			#Check if Perl Bin exists
-			if [ -f ${LangBin}/${TheBin} ]; then
-				${PerlRun} ${LangBin}/${TheBin} ${Args[@]}
+			if [ -f ${TheBinDir}/${TheBin} ]; then
+				${PerlRun} ${TheBinDir}/${TheBin} ${Args[@]}
 			else
 				errorCode "cpl" "need" "${name}"
 			fi

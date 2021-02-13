@@ -957,17 +957,20 @@ Actions()
 					case ${UserIn[1]} in
 						#Create new project
 						new)
-							#Locate Project Directory
-							if [ -f "${ClideDir}/${UserIn[2]}.clide" ]; then
-								errorCode "project" "exists" ${UserIn[2]}
-							else
-								newProject ${Lang} ${UserIn[2]}
-								Code=""
-								updateProject ${UserIn[2]} ${Code}
-								if [ ! -z "${UserIn[2]}" ]; then
-									CodeProject=${UserIn[2]}
-									echo "Created \"${CodeProject}\""
-									ProjectDir=$(echo ${ThePWD#*${CodeProject}} | sed "s/\//:/1")
+							#Ensure project has a name
+							if [ ! -z "${UserIn[2]}" ]; then
+								#Locate Project Directory
+								if [ -f "${ClideDir}/projects/${UserIn[2]}.clide" ]; then
+									errorCode "project" "exists" ${UserIn[2]}
+								else
+									newProject ${Lang} ${UserIn[2]}
+									Code=""
+									updateProject ${UserIn[2]} ${Code}
+									if [ ! -z "${UserIn[2]}" ]; then
+										CodeProject=${UserIn[2]}
+										echo "Created \"${CodeProject}\""
+										ProjectDir=$(echo ${ThePWD#*${CodeProject}} | sed "s/\//:/1")
+									fi
 								fi
 							fi
 							;;

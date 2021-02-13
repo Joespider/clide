@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.22"
+SupportV="0.1.24"
 
 ProgDir=$1
 shift
@@ -241,13 +241,20 @@ UseCpp()
 			local src=$1
 			local name=$2
 			local cplArgs=$3
+			local project=${CodeProject}
+			local TheBinDir
 			local ERROR
 			#Handle Project Dir
-			if [[ "${project}" == "none" ]]; then
-				project=""
-			else
-				project="${project}/"
-			fi
+			case ${project} in
+				none)
+					project=""
+					TheBinDir=${LangBin}
+					;;
+				*)
+					project="${project}/"
+					TheBinDir="${LangSrc}/${project}bin"
+					;;
+			esac
 			if [[ "$src" == *".cpp"* ]] || [ -f ${LangSrc}/${project}makefile ]; then
 				cplArgs=${CppCplVersion}
 				if [ -f ${LangSrc}/${project}makefile ]; then
@@ -269,7 +276,7 @@ UseCpp()
 							if [ ! -z "${NeedThreads}" ]; then
 								cplArgs="${cplArgs} -lpthread"
 							fi
-							ERROR=$(${CppCpl} ${prog} -o ../bin/${name} ${cplArgs} 2>&1 | tr '\n' '|')
+							ERROR=$(${CppCpl} ${prog} -o ${TheBinDir}/${name} ${cplArgs} 2>&1 | tr '\n' '|')
 							if [ -z "${ERROR}" ]; then
 								echo -e "\e[1;44m[C++ Code Compiled]\e[0m"
 							else
@@ -288,7 +295,7 @@ UseCpp()
 							cplArgs="${cplArgs} -lpthread"
 						fi
 						#Compile and move C++ to Binary dir
-						ERROR=$(${CppCpl} ${src} -o ../bin/${src%.*} ${cplArgs} 2>&1 | tr '\n' '|')
+						ERROR=$(${CppCpl} ${src} -o ${TheBinDir}/${src%.*} ${cplArgs} 2>&1 | tr '\n' '|')
 						if [ -z "${ERROR}" ]; then
 							echo -e "\e[1;44m[C++ Code Compiled]\e[0m"
 						else
@@ -381,7 +388,7 @@ UseCpp()
 					;;
 				*)
 					project=${CodeProject}
-					path=${LangBin}/${project}
+					path=${LangSrc}/${project}/bin
 					;;
 			esac
 			if [ -d ${path} ]; then
@@ -547,8 +554,21 @@ UseCpp()
 			shift
 			local Args=$@
 			local TheBin="${name%.*}"
-			if [ -f ${LangBin}/${TheBin} ]; then
-				${LangBin}/${TheBin} ${Args[@]}
+			local project=${CodeProject}
+			local TheBinDir
+			#Handle Project Dir
+			case ${project} in
+				none)
+					project=""
+					TheBinDir=${LangBin}
+					;;
+				*)
+					project="${project}/"
+					TheBinDir="${LangSrc}/${project}bin"
+					;;
+			esac
+			if [ -f ${TheBinDir}/${TheBin} ]; then
+				${TheBinDir}/${TheBin} ${Args[@]}
 			else
 				errorCode "cpl" "need" "${name}"
 			fi

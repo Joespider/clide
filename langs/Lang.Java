@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.22"
+SupportV="0.1.23"
 
 ProgDir=$1
 shift
@@ -362,7 +362,7 @@ UseJava()
 					;;
 				*)
 					project=${CodeProject}
-					path=${LangBin}/${project}
+					path=${LangSrc}/${project}/bin/
 					;;
 			esac
 			if [ -d ${path} ]; then
