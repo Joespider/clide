@@ -75,9 +75,11 @@ MenuHelp()
 	echo ""
 	echo "----------------[(${Head}) Menu]----------------"
 	echo -e "ls\t\t\t\t: \"list progams\""
+	echo -e "lscpl\t\t\t\t: \"list compiled progams\""
 	echo -e "using\t\t\t\t: \"get the language being used\""
 	echo -e "unset\t\t\t\t: \"deselect source code\""
 	echo -e "use <language> <code>\t\t: \"choose language\""
+	echo -e "save\t\t\t\t: \"Save session\""
 #	echo -e "swap, swp {src|bin}\t\t: \"swap between sorce code and executable\""
 	echo -e "create <arg>\t\t\t: \"create compile and runtime arguments"
 	ManageLangs ${Lang} "MenuHelp"
@@ -548,24 +550,34 @@ newProject()
 {
 	local lang=$1
 	local project=$2
+	local projectType=$3
 	local ProjectFile=${ClideProjectDir}/${project}.clide
 	local path=""
 	#No Project is found
-	if [ -z ${project} ]; then
+	if [ -z "${project}" ]; then
 		errorCode "project" "none" "${Head}"
 	else
-		#Grab Project Data
-		#Name Value
-		echo "name=${project}" > ${ProjectFile}
-		#Language Value
-		echo "lang=${lang}" >> ${ProjectFile}
-		#Create Project and get path
-		path=$(ManageLangs ${Lang} "newProject" ${project})
-		cd ${path}/src
-		#Path Value
-		echo "path=${path}" >> ${ProjectFile}
-		#Source Value
-		echo "src=" >> ${ProjectFile}
+		if [ -z "${projectType}" ]; then
+			projectType="default"
+		fi
+		path=$(ManageLangs ${Lang} "newProject" "${projectType}" ${project})
+		if [ ! -z "${path}" ]; then
+			#Grab Project Data
+			#Name Value
+			echo "name=${project}" > ${ProjectFile}
+			#Language Value
+			echo "lang=${lang}" >> ${ProjectFile}
+			#Type Value
+			echo "type=${projectType}" >> ${ProjectFile}
+			#Create Project and get path
+			cd ${path}/src
+			#Path Value
+			echo "path=${path}" >> ${ProjectFile}
+			#Source Value
+			echo "src=" >> ${ProjectFile}
+		else
+			errorCode "project" "type" "${Head}"
+		fi
 	fi
 }
 
@@ -688,7 +700,7 @@ runCode()
 	local name=$2
 	local option=$3
 	local Args=""
-	local JavaProp=""
+	local JavaProp="none"
 	local TheBin=""
 	if [[ "${name}" == *","* ]]; then
 		errorCode "runCode" "${Head}"
@@ -717,7 +729,7 @@ runCode()
 			*)
 				;;
 		esac
-		ManageLangs ${Lang} "runCode" "${TheBin}" ${Args[@]}
+		ManageLangs ${Lang} "runCode" "${TheBin}" "${JavaProp}" ${Args[@]}
 	fi
 }
 
@@ -1327,9 +1339,13 @@ Actions()
 					local pg=$(ColorCodes)
 					echo "Supported Languages: ${pg}"
 					;;
+				#Save cl[ide] session
+				save)
+					SaveSession ${CodeProject} ${Lang} ${Code}
+					echo "session saved"
+					;;
 				#Close cl[ide]
 				exit|close)
-					#SaveSession ${CodeProject} ${Lang} ${Code}
 					break
 					;;
 				#ignore all other commands
@@ -1517,6 +1533,7 @@ loadAuto()
 	bind -x '"\t":autocomp'
 	bind -x '"\C-l":clear'
 	comp_list "ls"
+	comp_list "save"
 	comp_list "lscpl"
 	comp_list "using"
 	comp_list "ll"
@@ -1528,7 +1545,6 @@ loadAuto()
 	comp_list "pwd"
 	comp_list "mkdir"
 	comp_list "use" "${pg}"
-#	comp_list "swap swp" "src bin"
 	comp_list "project" "load import new list"
 	comp_list "shell"
 	comp_list "new" "--version -v --help -h --custom -c"

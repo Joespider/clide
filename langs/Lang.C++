@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.24"
+SupportV="0.1.26"
 
 ProgDir=$1
 shift
@@ -361,6 +361,7 @@ UseCpp()
 			;;
 		newProject)
 			local project=$1
+			local type=$1
 			local path=${LangSrc}/${project}
 			#create and cd to project dir
 			if [ ! -d ${path} ]; then
@@ -551,6 +552,7 @@ UseCpp()
 			;;
 		runCode)
 			local name=$1
+			shift
 			shift
 			local Args=$@
 			local TheBin="${name%.*}"

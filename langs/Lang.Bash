@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.18"
+SupportV="0.1.20"
 
 ProgDir=$1
 shift
@@ -325,6 +325,7 @@ UseBash()
 			;;
 		newProject)
 			local project=$1
+			local type=$2
 			local path=${LangSrc}/${project}
 			if [ ! -d ${path} ]; then
 				mkdir ${path}
@@ -442,17 +443,18 @@ UseBash()
 			local name=$1
 			local project=${CodeProject}
 			local TheBinDir
-                        shift
-                        local Args=$@
-                        #Handle Project Dir
-                        case ${project} in
-                                none)
-                                        project=""
-                                        TheBinDir=${LangBin}
-                                        ;;
-                                *)
-                                        project="${project}/"
-                                        TheBinDir="${LangSrc}/${project}bin"
+			shift
+			shift
+			local Args=$@
+			#Handle Project Dir
+			case ${project} in
+				none)
+					project=""
+					TheBinDir=${LangBin}
+					;;
+				*)
+					project="${project}/"
+					TheBinDir="${LangSrc}/${project}bin"
 				;;
                         esac
 

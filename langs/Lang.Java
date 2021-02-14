@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.23"
+SupportV="0.1.25"
 
 ProgDir=$1
 shift
@@ -343,6 +343,7 @@ UseJava()
 			;;
 		newProject)
 			local project=$1
+			local type=$2
 			local path=${LangSrc}/${project}
 			if [ ! -d ${path} ]; then
 				mkdir ${path}
@@ -628,7 +629,7 @@ UseJava()
 			local TheJar="${name%.*}.jar"
 			local project=${CodeProject}
 			local TheBinDir
-			#local JavaProp=$2
+			local JavaProp=$2
 			shift
 			local Args=$@
 
@@ -647,12 +648,15 @@ UseJava()
 				TheBin=${TheBin%.*}
 				cd ${TheBinDir}
 				#If no JavaProp found
-				if [ -z "${JavaProp}" ]; then
-					#Execute without
-					${JavaRun} ${TheBin} ${Args[@]}
-				else
-					${JavaRun} "${JavaProp}" ${TheBin} ${Args[@]}
-				fi
+				case ${JavaProp} in
+					none)
+						#Execute without
+						${JavaRun} ${TheBin} ${Args[@]}
+						;;
+					*)
+						${JavaRun} "${JavaProp}" ${TheBin} ${Args[@]}
+						;;
+				esac
 				cd - > /dev/null
 			#Check if Java Jar exists
 			elif [ -f ${TheBinDir}/${TheJar} ]; then

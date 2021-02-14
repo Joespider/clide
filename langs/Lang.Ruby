@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.16"
+SupportV="0.1.18"
 
 ProgDir=$1
 shift
@@ -317,6 +317,7 @@ UseRuby()
 			;;
 		newProject)
 			local project=$1
+			local type=$2
 			local path=${LangSrc}/${project}
 			if [ ! -d ${path} ]; then
 				mkdir ${path}
@@ -436,6 +437,7 @@ UseRuby()
                         local TheBin="${name}"
                         local project=${CodeProject}
                         local TheBinDir
+                        shift
                         shift
                         local Args=$@
                         #Handle Project Dir
