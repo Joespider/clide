@@ -110,6 +110,9 @@ errorCode()
 					echo "$ project new <project>"
 					echo "$ project load <project>"
 					;;
+				type)
+					echo "Could not create project type: \"${thr}\""
+					;;
 				active)
 					echo "There are no active projects"
 					;;

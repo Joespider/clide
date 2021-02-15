@@ -20,7 +20,7 @@ IDE for programmers and system admins.
 
 {Hierarchy}:
 clide.sh	[script]	:	main script
-clide.conf	[file]		:	config file
+var		[dir]		:	contains clide.conf
 langs		[dir]		:	language support (Lang.<langauge>)
 lib		[dir]		:	library files
 modes		[dir]		:	mode support (<mode>.sh)

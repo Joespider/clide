@@ -1,0 +1,70 @@
+1: Have cl[ide] figure out language via file extension
+Status: Implimented
+	bash: .sh
+	c++: .cpp, .h
+	python: .py
+	java: .java
+	ruby: .rb
+	perl: .pl
+
+	Example: $ clide MyProgram.java
+		cl[ide](Java{MyProgram.java}):$
+
+2: Project Templates
+Status: Proposed
+	Just like Language support, (ie lang/Langs.<language>) have project template scripts
+	Standard/Default Project Tempaltes are built into the Lang.<language>
+	Each project template would have to correspond to a langauge
+
+	Format: project.<lang>.<type>
+		{
+			#!/bin/bash
+			Create()
+			{
+				mkdir <dir> <dir>
+				touch <file> <file>
+			}
+
+			Actions()
+			{
+				local Do=$1
+				case ${Do} in
+					Create)
+						Create
+						;;
+					compileCode)
+						local compiler=$1
+						shift
+						local files=$@
+						#whatever is needed to compile code
+						...
+						;;
+					runCode)
+						#Interpreter
+						local ToRun=$1
+						#whatever is needed to compile code
+						...
+						;;
+					*)
+						;;
+				esac
+			}
+			Actions $@
+		}
+
+	Example: cl[ide](Java):$ project new MyWebSite Apache
+		Then "Lang.Java" uses "newProject" to calls script "project.Java.Apache"
+
+		newProject
+		{
+			...
+			...
+			project.${lang}.${type} "Create" ${name}
+			...
+			...
+		}
+
+		Lang.Java then calls project.Java.Apache for ALL project specific calls
+		...as of now, would only include compileCode(cpl) and runCode(run, run -a)
+
+		if default project is given, clide passed "default" to Lang.<language>
