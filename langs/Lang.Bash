@@ -1,6 +1,8 @@
 Shell=$(which bash)
 #!${Shell}
 
+SupportV="0.1.20"
+
 ProgDir=$1
 shift
 ClideDir=$1
@@ -10,15 +12,10 @@ editor=$1
 shift
 ReadBy=$1
 shift
-project=$1
+CodeProject=$1
 shift
 CplArgs=$1
 shift
-
-SupportVersion()
-{
-        echo "0.1.02"
-}
 
 errorCode()
 {
@@ -52,9 +49,18 @@ UseBash()
 			#Return Green
 			echo -e "\e[1;32mBash\e[0m"
 			;;
+		ProjectColor)
+			local text=$1
+			if [ ! -z "${text}" ]; then
+				echo -e "\e[1;42m${text}\e[0m"
+			fi
+			;;
+		SupportVersion)
+			echo ${SupportV}
+			;;
 		MenuHelp)
 			echo -e "new <file>\t\t\t: \"create new ${Lang} script\""
-			echo -e "compile|cpl\t\t\t: \"make code executable\""
+			echo -e "cpl, compile\t\t\t: \"make code executable\""
 			;;
 		pgLang)
 			HasLang=$(which ${BashCpl} 2> /dev/null)
@@ -68,13 +74,25 @@ UseBash()
 			;;
 		getCode)
 			local name=$1
+			local project=${CodeProject}
 			#Get code
-			if [ -f ${LangSrc}/${name}.sh ]; then
-				echo ${name}.sh
-			elif [ -f ${LangSrc}/${name} ]; then
-				echo ${name}
-			fi
-			;;
+                        case ${project} in
+                                none)
+					if [ -f ${LangSrc}/${name}.sh ]; then
+						echo ${name}.sh
+					elif [ -f ${LangSrc}/${name} ]; then
+						echo ${name}
+					fi
+					;;
+				*)
+					if [ -f ${LangSrc}/${project}/src/${name}.sh ]; then
+						echo ${name}.sh
+					elif [ -f ${LangSrc}/${project}/src/${name} ]; then
+						echo ${name}
+					fi
+					;;
+			esac
+                        ;;
 		BeforeFiles|AfterFiles)
 				ls *.sh 2> /dev/null
 			;;
@@ -88,7 +106,7 @@ UseBash()
 			;;
 		newCodeHelp)
 			if [ -f ${TemplateCode} ]; then
-				echo -e "--custom|-c\t\t\t: \"Custom src file using ${Lang} template\""
+				echo -e "-c, --custom\t\t\t: \"Custom src file using ${Lang} template\""
 			fi
 			;;
 		EnsureDirs)
@@ -107,14 +125,16 @@ UseBash()
 			;;
 		TemplateVersion)
 			if [ -f ${TemplateCode} ]; then
-				${TemplateCode} 2> /dev/null | grep Version
+				echo "${TemplateCode##*/} "
+				${TemplateCode} 2> /dev/null | grep Version | sed "s/Version//g"
 			else
-				echo "no newBash.sh found"
+				echo "no ${TemplateCode##*/} found"
 			fi
 			;;
-		CodeVersion)
-			echo "[Bash]"
+		CplVersion)
+			echo "[Shell]"
 			${BashCpl} --version | head -n 1
+			echo ""
 			;;
 		selectCode)
 			local name=$1
@@ -218,12 +238,20 @@ UseBash()
 			local name=$2
 			local keep=$3
 			local cplArgs=""
+			local TheBinDir
+			local ERROR
 			#Handle Project Dir
-			if [[ "${project}" == "none" ]]; then
-				project=""
-			else
-				project="${project}/"
-			fi
+			case ${project} in
+				none)
+					project=""
+					TheBinDir=${LangBin}
+					;;
+				*)
+					project="${project}/"
+					TheBinDir="${LangSrc}/${project}bin"
+					;;
+			esac
+
 			case ${src} in
 				*.sh)
 					#Multiple code selected
@@ -242,14 +270,22 @@ UseBash()
 								#Make Bash Script executable
 								chmod +x ${name}
 								#Check if Bash Script does NOT exist
-								if [[ ! -f "${LangBin}/${name}" ]]; then
+								if [ ! -f "${TheBinDir}/${name}" ]; then
 									#Change to Bash Binary dir
-									cd ${LangBin}
+									cd ${TheBinLan}
 									#Create Symbolic Link to Bash Script
-									ln -s ../src/${project}${name}
+									ERROR=$(ln -s ../src/${name} 2>&1 | tr '\n' '|')
 									#Change to Bash Source dir
-									cd "${LangSrc}/${project}"
-									echo -e "\e[1;42m[Bash Code Compiled]\e[0m"
+									cd - > /dev/null
+									if [ -f "${TheBinDir}/${name}" ]; then
+										echo -e "\e[1;42m[Bash Code Compiled]\e[0m"
+									else
+										ERROR=$(echo ${ERROR} | tr '|' '\n')
+										echo -en "\e[1;31m[\e[0m"
+										echo -en "\e[1;41mERROR\e[0m"
+										echo -e "\e[1;31m]\e[0m"
+										echo -e "\e[1;31m${ERROR}\e[0m"
+									fi
 								else
 									errorCode "cpl" "already" ${name}
 								fi
@@ -262,14 +298,22 @@ UseBash()
 						#Make Bash Script executable
 						chmod +x ${src}
 						#Check if Bash Script does NOT exist
-						if [[ ! -f "${LangBin}/${src}" ]]; then
+						if [ ! -f "${TheBinDir}/${src}" ]; then
 							#Change to Bash Binary dir
-							cd ${LangBin}
+							cd ${TheBinDir}
 							#Create Symbolic Link to Bash Script
-							ln -s ../src/${project}${src}
+							ERROR=$(ln -s ../src/${src} 2>&1 | tr '\n' '|')
 							#Change to Bash Source dir
-							cd "${LangSrc}/${project}"
-							echo -e "\e[1;42m[Bash Code Compiled]\e[0m"
+							cd - > /dev/null
+							if [ -f "${TheBinDir}/${src}" ]; then
+								echo -e "\e[1;42m[Bash Code Compiled]\e[0m"
+							else
+								ERROR=$(echo ${ERROR} | tr '|' '\n')
+								echo -en "\e[1;31m[\e[0m"
+								echo -en "\e[1;41mERROR\e[0m"
+								echo -e "\e[1;31m]\e[0m"
+								echo -e "\e[1;31m${ERROR}\e[0m"
+							fi
 						else
 							errorCode "cpl" "already" ${src}
 						fi
@@ -280,6 +324,8 @@ UseBash()
 			esac
 			;;
 		newProject)
+			local project=$1
+			local type=$2
 			local path=${LangSrc}/${project}
 			if [ ! -d ${path} ]; then
 				mkdir ${path}
@@ -290,6 +336,22 @@ UseBash()
 				cd ${path}/srs
 			fi
 			echo ${path}
+			;;
+		lscpl)
+			local project
+			local path
+			case ${CodeProject} in
+				none)
+					path=${LangBin}/
+					;;
+				*)
+					project=${CodeProject}
+					path=${LangSrc}/${project}/bin/
+					;;
+			esac
+			if [ -d ${path} ]; then
+				ls ${path}
+			fi
 			;;
 		SwapToSrc)
 			local src=$1
@@ -366,6 +428,7 @@ UseBash()
 					#Program Name Given
 					if [ ! -z "${name}" ];then
 						touch ${name}.sh
+						echo -e "#!/bin/bash\n" > ${name}.sh
 					else
 						errorCode "newCode"
 					fi
@@ -378,13 +441,74 @@ UseBash()
 			;;
 		runCode)
 			local name=$1
+			local project=${CodeProject}
+			local TheBinDir
 			shift
-			Args=$@
+			shift
+			local Args=$@
+			#Handle Project Dir
+			case ${project} in
+				none)
+					project=""
+					TheBinDir=${LangBin}
+					;;
+				*)
+					project="${project}/"
+					TheBinDir="${LangSrc}/${project}bin"
+				;;
+                        esac
+
 			#Check if Bash Script exists
-			if [ -f ${LangBin}/${name} ]; then
-				${LangBin}/${name} ${Args[@]}
+			if [ -f ${TheBinDir}/${name} ]; then
+				${TheBinDir}/${name} ${Args[@]}
 			else
 				errorCode "cpl" "need" "${name}"
+			fi
+			;;
+		backup)
+			local name=$1
+			if [ ! -z "${name}" ]; then
+				if [ ! -f "${LangSrc}/${name}.bak" ]; then
+					cp ${LangSrc}/${name} ${LangSrc}/${name}.bak
+					echo "\"${name}\" backed-up"
+				else
+					errorCode "backup" "exists"
+				fi
+			else
+				errorCode "backup" "null"
+			fi
+			;;
+		restore)
+			local name=$1
+			if [ ! -z "${name}" ]; then
+				if [ -f "${LangSrc}/${name}.bak" ]; then
+					mv ${LangSrc}/${name}.bak ${LangSrc}/${name}
+					echo "\"${name}\" restored"
+				else
+					errorCode "restore" "exists"
+				fi
+			else
+				errorCode "restore" "null"
+			fi
+			;;
+		rename)
+			local TheOld=$1
+			local TheNew=$2
+			if [ ! -z "${TheNew}" ]; then
+				TheOld="${TheOld%.sh}"
+				TheNew="${TheNew%.sh}"
+				mv ${LangSrc}/${TheOld}.sh ${LangSrc}/${TheNew}.sh
+				echo ${TheNew}.sh
+			fi
+			;;
+		copy)
+			local TheOld=$1
+			local TheNew=$2
+			if [ ! -z "${TheNew}" ]; then
+				TheOld="${TheOld%.sh}"
+				TheNew="${TheNew%.sh}"
+				cp ${LangSrc}/${TheOld}.sh ${LangSrc}/${TheNew}.sh
+				echo ${TheNew}.sh
 			fi
 			;;
 		*)

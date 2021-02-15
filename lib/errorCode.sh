@@ -7,6 +7,8 @@ errorCode()
 	local sec=$2
 	local thr=$3
 	local four=$4
+	local five=$5
+	local six=$6
 	case $ecd in
 		alias)
 			echo "\"${sec}\" already installed"
@@ -50,6 +52,9 @@ errorCode()
 					echo ""
 					echo "HINT: to force removal, provide a \"--force\""
 					;;
+				not-file)
+					echo "\"${thr}\" not a file"
+					;;
 				*)
 					;;
 			esac
@@ -61,6 +66,9 @@ errorCode()
 		newCode)
 			echo "Please Provide The Name Of Your New Code"
 			echo "EX: new <name>"
+			;;
+		runCode)
+			echo "${sec} can only handle ONE file"
 			;;
 		customCode)
 			case ${sec} in
@@ -82,6 +90,9 @@ errorCode()
 		editNot)
 			echo "code is not found in project"
 			;;
+		selectCode)
+			echo "Please select a file to edit"
+			;;
 		editMe)
 			echo "For your safety, I am not allowed to edit myself"
 			;;
@@ -94,18 +105,53 @@ errorCode()
 		project)
 			case ${sec} in
 				none)
-					echo "Your session MUST be a ${Head} Project"
+					echo "Your session MUST be a ${thr} Project"
 					echo "hint: Please create or load a project"
 					echo "$ project new <project>"
 					echo "$ project load <project>"
+					;;
+				type)
+					echo "Could not create project type: \"${thr}\""
+					;;
+				active)
+					echo "There are no active projects"
+					;;
+				can-not-leave)
+					echo "Leaving your project is not allowed"
 					;;
 				import)
 					case ${thr} in
 						link-nothing)
 							echo "\"${four}\" is not a working directory"
 							;;
+						no-path)
+							echo "no path Given"
+							;;
+						no-name)
+							echo "no project name given"
+							echo "[HINT]: project <name> <path>"
+							;;
+						name-in-path)
+							echo "\"${four}\" must be in the directory of \"${five}\""
+							echo "[HINT]: /path/to/${four}/src"
+							;;
+						exists)
+							echo "You Already have a project named \"${four}\""
+							;;
 						*)
 							echo "import Methods"
+							;;
+					esac
+					;;
+				load)
+					case ${thr} in
+						no-path)
+							echo "Project \"${four}\" Directory not Found"
+							;;
+						no-project)
+							echo "Not \"${four}\" a valid project"
+							;;
+						*)
 							;;
 					esac
 					;;
@@ -146,7 +192,41 @@ errorCode()
 			esac
 			;;
 		loadSession)
-				echo "No Session to load"
+			echo "No Session to load"
+			;;
+		backup)
+			case ${sec} in
+				null)
+					echo "No source code given"
+					;;
+				exists)
+					echo "Back-up file already exists"
+					;;
+				wrong)
+					echo "Please choose the correct source file"
+					;;
+				*)
+					;;
+			esac
+			;;
+		restore)
+			case ${sec} in
+				null)
+					echo "No source code given"
+					;;
+				exists)
+					echo "No back-up file found"
+					;;
+				wrong)
+					echo "Please choose the correct source file"
+					;;
+				*)
+					;;
+			esac
+			;;
+		no-langs)
+			echo "No Languages installed"
+			echo "Please Lang.<language> in \"${LangsDir}/\""
 			;;
 		*)
 			;;

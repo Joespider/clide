@@ -1,0 +1,59 @@
+{File Name}:
+README
+                ____                       ____
+               |  __|                     |__  |
+   ___   _     | |  _______   _____    ____  | |
+  / __| | |    | | |__   __| |  __ \  |  __| | |
+ / /    | |    | |    | |    | |  \ \ | |_   | |
+| |     | |    | |    | |    | |  | | |  _|  | |
+ \ \__  | |__  | |  __| |__  | |__/ / | |__  | |
+  \___| |____| | | |_______| |_____/  |____| | |
+               | |__                       __| |
+               |____|                     |____|
+
+{Introduction}:
+Welcome to cl[ide]!
+
+cl[ide] is a Command Line IDE for the Linux/Unix User.
+The purpose of cl[ide] is to provide a lightweight, feature rich,
+IDE for programmers and system admins.
+
+{Hierarchy}:
+clide.sh	[script]	:	main script
+var		[dir]		:	contains clide.conf
+langs		[dir]		:	language support (Lang.<langauge>)
+lib		[dir]		:	library files
+modes		[dir]		:	mode support (<mode>.sh)
+notes		[dir]		:	notes for each langauge (<language>.notes)
+projects	[dir]		:	project files (<project>.clide)
+session		[dir]		:	saved cl[ide] sessions ($clide -l)
+
+{Usage}:
+clide.sh <language>/<args> <src code>
+
+{Examples}:
+start cl[ide] and choose langauge
+$ ./clide.sh
+
+
+start cl[ide] and pre-select language
+[HINT]: C++ corresponds with langs/Lang.C++
+$ ./clide.sh C++
+cl[ide](C++):$
+
+
+start cl[ide], pre-select langauge, and choose existing source code
+$./clide.sh C++ test
+cl[ide](C++{test.cpp}):$
+
+swap language mid-session
+cl[ide](C++):$ use Java
+cl[ide](Java):$
+
+OR
+
+cl[ide](C++):$ Java
+cl[ide](Java):$
+
+{Other}:
+Always ask cl[ide] for "help"

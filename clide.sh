@@ -1,44 +1,47 @@
 Shell=$(which bash)
 #!${Shell}
-
+ShellPath=$(realpath $0)
+root=$(dirname ${ShellPath})
 #cl[ide] future features
 #{
 	#provide X11 support via -lX11 g++ flag
 #}
+
+GetConfig()
+{
+	local ConfigFile=${root}/var/clide.conf
+	local Item=$1
+	if [ ! -z "${Item}" ]; then
+		grep "${Item}" ${ConfigFile} | grep -v "#" | cut -d "=" -f 2
+	fi
+}
+
+Head="cl[ide]"
+IDE=$(echo -e "\e[1;40mide\e[0m")
+Name="cl[${IDE}]"
 
 #Version tracking
 #Increment by 1 number per category
 #1st # = Overflow
 #2nd # = Additional features
 #3rd # = Bug/code tweaks/fixes
-Version="0.65.93"
+Version=$(GetConfig Version)
 
 #cl[ide] config
 #{
-editor=nano
-ReadBy=less
-repoTool=git
-#repoTool=svn
-
-#Repo assist is for simplistic commands
-#True = cl[ide] takes care of repo commands
-repoAssist="True"
-#False = User handles repo commands
-#repoAssist="False"
-#Repo mangement is neither run by user nor cl[ide]
-#repoAssist=
-
-Head="cl[ide]"
-IDE=$(echo -e "\e[1;40mide\e[0m")
-Name="cl${IDE}"
+editor=$(GetConfig editor)
+ReadBy=$(GetConfig ReadBy)
+repoTool=$(GetConfig repoTool)
+repoAssist=$(GetConfig repoAssist)
 
 #root dir
-ProgDir=~/Programs
-ClideDir=${ProgDir}/.clide
+ProgDir=$(eval echo $(GetConfig ProgDir))
+ClideDir=${root}
+ModesDir=${ClideDir}/modes
 NotesDir=${ClideDir}/notes
 LibDir=${ClideDir}/lib
 LangsDir=${ClideDir}/langs
-ProjectDir=${ClideDir}/projects
+ClideProjectDir=${ClideDir}/projects
 
 #Global Vars
 #{
@@ -72,17 +75,20 @@ MenuHelp()
 	echo ""
 	echo "----------------[(${Head}) Menu]----------------"
 	echo -e "ls\t\t\t\t: \"list progams\""
+	echo -e "lscpl\t\t\t\t: \"list compiled progams\""
+	echo -e "using\t\t\t\t: \"get the language being used\""
 	echo -e "unset\t\t\t\t: \"deselect source code\""
 	echo -e "use <language> <code>\t\t: \"choose language\""
-	echo -e "swap|swp {src|bin}\t\t: \"swap between sorce code and executable\""
+	echo -e "save\t\t\t\t: \"Save session\""
+#	echo -e "swap, swp {src|bin}\t\t: \"swap between sorce code and executable\""
 	echo -e "create <arg>\t\t\t: \"create compile and runtime arguments"
 	ManageLangs ${Lang} "MenuHelp"
-	echo -e "rm|remove|delete\t\t: \"delete src file\""
+	echo -e "rm, remove, delete\t\t: \"delete src file\""
 	echo -e "set <file>\t\t\t: \"select source code\""
 	echo -e "add <file>\t\t\t: \"add new file to project\""
 	echo -e "notes <action>\t\t\t: \"make notes for the ${Lang} language\""
-	echo -e "${editor}|edit|ed\t\t\t: \"edit source code\""
-	echo -e "${ReadBy}|read\t\t\t: \"Read source code\""
+	echo -e "${editor}, edit, ed\t\t\t: \"edit source code\""
+	echo -e "${ReadBy}, read\t\t\t: \"Read source code\""
 	echo -e "search <find>\t\t\t: \"search for code in project\""
 	case ${project} in
 		none)
@@ -91,13 +97,17 @@ MenuHelp()
 		*)
 #			echo -e "project {new|update|list|load|active}\t: \"handle projects\""
 			echo -e "project {new|update|list|load}\t: \"handle projects\""
-			echo -e "${repoTool}|repo\t: \"handle repos\""
+			echo -e "${repoTool}, repo\t: \"handle repos\""
 			;;
 	esac
 	echo -e "search\t\t\t\t: \"search project src files for line of code\""
-	echo -e "execute|exe|run {-a|--args}\t: \"run active program\""
-	echo -e "last|load\t\t\t: \"Load last session\""
-	echo -e "exit|close\t\t\t: \"close ide\""
+	echo -e "execute, exe, run {-a|--args}\t: \"run active program\""
+	echo -e "bkup, backup\t\t\t: \"make backup of existing source code\""
+	echo -e "restore\t\t\t\t: \"make backup of existing source code\""
+	echo -e "rename <new>\t\t\t: \"rename the existing source code\""
+	echo -e "copy <new>\t\t\t: \"copy the existing source code\""
+	echo -e "last, load\t\t\t: \"Load last session\""
+	echo -e "exit, close\t\t\t: \"close ide\""
 	echo "------------------------------------------------"
 	echo ""
 }
@@ -134,7 +144,7 @@ NotesHelp()
 	local Lang=$1
 	echo ""
 	echo "----------------[(${Head}) \"Notes\" Help]----------------"
-	echo -e "edit|add\t: \"edit notes\""
+	echo -e "edit, add\t: \"edit notes\""
 	echo -e "read\t\t: \"read notes\""
 	echo "----------------------------------------------------------"
 	echo ""
@@ -146,8 +156,8 @@ newCodeHelp()
 	local Lang=$1
 	echo ""
 	echo "----------------[(${Head}) \"new\" Help]----------------"
-	echo -e "--version|-v\t\t\t: \"Get Version for each code template\""
-	echo -e "--help|-h\t\t\t: \"This page\""
+	echo -e "-v, --version\t\t\t: \"Get Version for each code template\""
+	echo -e "-h, --help\t\t\t: \"This page\""
 	ManageLangs ${Lang} "newCodeHelp"
 	echo -e "<code>\t\t\t\t: \"provide code name; default settings\""
 	echo "----------------------------------------------------------"
@@ -159,18 +169,43 @@ CliHelp()
 {
 	echo ""
 	echo "----------------[(${Head}) CLI]----------------"
-	echo -e "-v |--version\t\t\t: \"Get Clide Version\""
-	echo -e "-cv|--code-version\t\t: \"Get Compile/Interpreter Version\""
-	echo -e "-tv|--temp-version\t\t: \"Get Code Template Version\""
-	echo -e "-rv|--repo-version\t\t: \"Get git/svn Version\""
-	echo -e "-c |--config\t\t\t: \"Get Clide Config\""
-	echo -e "-p |--projects\t\t\t: \"List Clide Projects\""
-	echo -e "-h |--help\t\t\t: \"Get CLI Help Page (Cl[ide] Menu: \"help\")\""
-	echo -e "-l |--last|--load\t\t: \"Load last session\""
+	echo -e "-v, --version\t\t\t: \"Get Clide Version\""
+	echo -e "-sv, --support-version\t\t: \"Get Code Support Version\""
+	echo -e "-cv, --code-version\t\t: \"Get Compile/Interpreter Version\""
+	echo -e "-tv, --temp-version\t\t: \"Get Code Template Version\""
+	echo -e "-rv, --repo-version\t\t: \"Get git/svn Version\""
+	echo -e "-c, --config\t\t\t: \"Get Clide Config\""
+	echo -e "-p, --projects\t\t\t: \"List Clide Projects\""
+	echo -e "-h, --help\t\t\t: \"Get CLI Help Page (Cl[ide] Menu: \"help\")\""
+	echo -e "-l, --last, --load\t\t: \"Load last session\""
+	echo ""
 	echo "-----------------------------------------------"
+	echo -e "\t\t\"Quick ${Head} Functions\""
+	echo -e "--edit\t\t\t\t:\"Edit source code\""
+	echo -e "--cpl, --compile\t\t:\"Compile source code\""
+	echo -e "--install\t\t\t:\"install program (.bash_aliases)\""
+	echo -e "--run\t\t\t\t:\"Run compiled code\""
+	echo -e "--read\t\t\t\t:\"Read out (cat) source code\""
+	echo -e "--list\t\t\t\t:\"List source code\""
+	echo ""
+	echo -e "$ clide <Action> <Language> <Code> <Args>"
+	echo ""
+	echo "-----------------------------------------------"
+	echo -e "\t\t\"Run ${Head} IDE\""
 	echo -e "$ clide <language> <code>\t: start clide"
 	echo -e "$ clide java program.java\t: start clide using java and program.java"
 	echo -e "$ clide java\t\t\t: start clide using java"
+	echo ""
+}
+
+ModesHelp()
+{
+	echo ""
+	echo "----------------[(${Head}) Modes]----------------"
+	echo -e "${repoTool}, repo\t\t: repo management"
+	echo -e "add\t\t\t: install/add component management"
+	echo -e "-h, --help\t\t: \"Modes help page\""
+	echo "-----------------------------------------------"
 	echo ""
 }
 
@@ -189,7 +224,7 @@ UseOther()
 			echo -e "\e[1;35m${text}\e[0m"
 			;;
 		MenuHelp)
-			echo -e "compile|cpl\t: \"make code executable\""
+			echo -e "cpl, compile\t: \"make code executable\""
 			;;
 		#No Languge found
 		pgLang|pgDir)
@@ -206,9 +241,9 @@ UseOther()
 		TemplateVersion)
 			echo "Please Choose a Language"
 			;;
-		SwapToSrc|SwapToBin)
-			echo "${Args[0]}"
-			;;
+#		SwapToSrc|SwapToBin)
+#			echo "${Args[0]}"
+#			;;
 		Install)
 			errorCode "noCode"
 			;;
@@ -229,6 +264,30 @@ ManageLangs()
 	else
 		UseOther ${Langs} ${Manage[@]}
 	fi
+}
+
+ModeHanlder()
+{
+	local Mode=$1
+	case ${Mode} in
+		${repoTool}|repo)
+			#Use ONLY for Projects
+			if [[ ! "${CodeProject}" == "none" ]]; then
+				${ModesDir}/repo.sh ${repoTool} ${CodeProject}
+			else
+				echo "Must have an active project"
+			fi
+			;;
+		add)
+				${ModesDir}/add.sh
+			;;
+		-h|--help)
+			ModesHelp
+			;;
+		*)
+			ModesHelp
+			;;
+	esac
 }
 
 EnsureDirs()
@@ -254,8 +313,8 @@ EnsureDirs()
 		mkdir "${LibDir}"
 	fi
 
-	if [ ! -d "${ProjectDir}" ]; then
-		mkdir "${ProjectDir}"
+	if [ ! -d "${ClideProjectDir}" ]; then
+		mkdir "${ClideProjectDir}"
 	fi
 
 	local Langs=$(ls ${LangsDir}/ | sed "s/Lang.//g" | tr '\n' '|' | rev | sed "s/|//1" | rev)
@@ -292,12 +351,78 @@ RepoVersion()
 	fi
 }
 
+CodeSupportVersion()
+{
+	local TheLang=$1
+	local Langs=""
+	if [ ! -z "${TheLang}" ]; then
+		SupportNum=$(ManageLangs ${TheLang} "SupportVersion")
+		if [ ! -z "${SupportNum}" ]; then
+			echo "[Clide ${TheLang} Support]"
+			echo "Version: ${SupportNum}"
+		fi
+	else
+		Langs=$(ls ${LangsDir}/ | sed "s/Lang.//g" | tr '\n' '|' | rev | sed "s/|//1" | rev)
+		local NumOfLangs=$(ls | wc -l)
+		local look=1
+		local text
+		local SupportNum
+		while [ ${look} -le ${NumOfLangs} ];
+		do
+			text=$(echo ${Langs} | cut -d '|' -f ${look})
+			text=$(ManageLangs ${text} "pgLang")
+			case ${text} in
+				no)
+					;;
+				*)
+					SupportNum=$(ManageLangs "${text}" "SupportVersion")
+					if [ ! -z "${SupportNum}" ]; then
+						echo "${text}: ${SupportNum}"
+					fi
+					;;
+			esac
+			look=$((${look}+1))
+		done
+	fi
+}
+
+CodeTemplateVersion()
+{
+	local TheLang=$1
+	local Langs=""
+	if [ ! -z "${TheLang}" ]; then
+		TempNum=$(ManageLangs ${TheLang} "TemplateVersion" | sed "s/Version/${text}/g" | grep -v found)
+		if [ ! -z "${TempNum}" ]; then
+			echo "[\"New Code\" Teplate]"
+			echo "${TempNum}"
+		fi
+	else
+		local GetLangs=$(ls ${LangsDir}/ | sed "s/Lang.//g" | tr '\n' '|' | rev | sed "s/|//1" | rev)
+		local NumOfLangs=$(ls | wc -l)
+		local look=1
+		local text
+		while [ ${look} -le ${NumOfLangs} ];
+		do
+			text=$(echo ${GetLangs} | cut -d '|' -f ${look})
+			text=$(ManageLangs ${text} "pgLang")
+			case ${text} in
+				no)
+					;;
+				*)
+					ManageLangs "${text}" "TemplateVersion" | sed "s/Version/${text}/g" | grep -v found
+					;;
+				esac
+			look=$((${look}+1))
+		done
+	fi
+}
+
 CodeVersion()
 {
 	local TheLang=$1
 	local Langs=""
 	if [ ! -z "${TheLang}" ]; then
-		ManageLangs ${TheLang} "TemplateVersion"
+		ManageLangs ${TheLang} "CplVersion"
 	else
 		Langs=$(ls ${LangsDir}/ | sed "s/Lang.//g" | tr '\n' '|' | rev | sed "s/|//1" | rev)
 		local NumOfLangs=$(ls | wc -l)
@@ -311,7 +436,7 @@ CodeVersion()
 				no)
 					;;
 				*)
-					ManageLangs "${text}" "TemplateVersion" | sed "s/Version:/${text}:/g"
+					ManageLangs "${text}" "CplVersion" | sed "s/Version:/${text}:/g"
 					;;
 			esac
 			look=$((${look}+1))
@@ -341,7 +466,7 @@ lookFor()
 	local search=$2
 	case ${project} in
 		none)
-			errorCode "project" "none"
+			errorCode "project" "none" "${Head}"
 			;;
 		*)
 			if [ ! -z "${search}" ]; then
@@ -384,16 +509,18 @@ importProject()
 	local Lang=$1
 	local Name=$2
 	local Path=$3
-	local ProjectFile=${ProjectDir}/${Name}.clide
+	local ProjectFile=${ClideProjectDir}/${Name}.clide
 	if [ ! -z "${Name}" ]; then
+		Path=$(eval $(echo ${Path}))
 		if [ ! -f ${ProjectFile} ]; then
 			if [ -z "${Path}" ]; then
-				echo -n "Import Project \"${Name}\" from : "
-				read Path
+				local prompt="Import Project \"${Name}\" from : "
+				read -e -p "${prompt}" Path
+				Path=$(eval $(echo ${Path}))
 			fi
 
 			if [ -z "${Path}" ]; then
-				echo "no path Given"
+				errorCode "project" "import" "no-path"
 			else
 				case ${Path} in
 					*${Name}|*${Name}/)
@@ -405,15 +532,16 @@ importProject()
 						echo "Project \"${Name}\" Imported"
 						;;
 					*)
-						echo "${Name} must be in the directory of \"${Path}\""
+						errorCode "project" "import" "name-in-path" "${Name}" "${Path}"
 						;;
 				esac
 			fi
 		else
-			echo "You Already have a project named \"${Name}\""
+			errorCode "project" "import" "exists" "${Name}"
 		fi
 	else
-		echo "import help"
+
+		errorCode "project" "import" "no-name"
 	fi
 }
 
@@ -422,23 +550,34 @@ newProject()
 {
 	local lang=$1
 	local project=$2
-	local ProjectFile=${ProjectDir}/${project}.clide
+	local projectType=$3
+	local ProjectFile=${ClideProjectDir}/${project}.clide
 	local path=""
 	#No Project is found
-	if [ -z ${project} ]; then
-		errorCode "project" "none"
+	if [ -z "${project}" ]; then
+		errorCode "project" "none" "${Head}"
 	else
-		#Grab Project Data
-		#Name Value
-		echo "name=${project}" > ${ProjectFile}
-		#Language Value
-		echo "lang=${lang}" >> ${ProjectFile}
-		#Create Project and get path
-		path=$(ManageLangs ${Lang} "newProject")
-		#Path Value
-		echo "path=${path}" >> ${ProjectFile}
-		#Source Value
-		echo "src=" >> ${ProjectFile}
+		if [ -z "${projectType}" ]; then
+			projectType="default"
+		fi
+		path=$(ManageLangs ${Lang} "newProject" "${projectType}" ${project})
+		if [ ! -z "${path}" ]; then
+			#Grab Project Data
+			#Name Value
+			echo "name=${project}" > ${ProjectFile}
+			#Language Value
+			echo "lang=${lang}" >> ${ProjectFile}
+			#Type Value
+			echo "type=${projectType}" >> ${ProjectFile}
+			#Create Project and get path
+			cd ${path}/src
+			#Path Value
+			echo "path=${path}" >> ${ProjectFile}
+			#Source Value
+			echo "src=" >> ${ProjectFile}
+		else
+			errorCode "project" "type" "${Head}"
+		fi
 	fi
 }
 
@@ -447,7 +586,7 @@ updateProject()
 {
 	local project=$1
 	local src=$2
-	local ProjectFile=${ProjectDir}/${project}.clide
+	local ProjectFile=${ClideProjectDir}/${project}.clide
 	#No Project is found
 	if [ ! -z ${src} ]; then
 		#Locate Project Directory
@@ -465,14 +604,14 @@ updateProject()
 listProjects()
 {
 	#Get list of active prijects from .clide files
-	ls ${ClideDir}/ | grep -v "session" | sed "s/.clide//g"
+	ls ${ClideProjectDir}/ | sed "s/.clide//g"
 }
 
 #Load active projects
 loadProject()
 {
 	local project=$1
-	local ProjectFile=${ProjectDir}/${project}.clide
+	local ProjectFile=${ClideProjectDir}/${project}.clide
 	local path=""
 	local RtnVals=""
 	local tag=""
@@ -547,10 +686,10 @@ Remove()
 					errorCode "remove" "hint"
 				fi
 			else
-				echo "\"${src}\" not a file"
+				errorCode "remove" "not-file" "${src}"
 			fi
 		else
-			echo "\"${src}\" not a file"
+			errorCode "remove" "not-file" "${src}"
 		fi
 	fi
 }
@@ -561,10 +700,10 @@ runCode()
 	local name=$2
 	local option=$3
 	local Args=""
-	local JavaProp=""
+	local JavaProp="none"
 	local TheBin=""
 	if [[ "${name}" == *","* ]]; then
-		echo "${Head} can only handle ONE file"
+		errorCode "runCode" "${Head}"
 	else
 		TheBin=${name}
 		#Come up with a way to know if arguments are needed
@@ -590,7 +729,7 @@ runCode()
 			*)
 				;;
 		esac
-		ManageLangs ${Lang} "runCode" "${TheBin}" ${Args[@]}
+		ManageLangs ${Lang} "runCode" "${TheBin}" "${JavaProp}" ${Args[@]}
 	fi
 }
 
@@ -633,7 +772,7 @@ color()
 ColorCodes()
 {
 	local Langs=$(ls ${LangsDir}/ | sed "s/Lang.//g" | tr '\n' '|' | rev | sed "s/|//1" | rev)
-	local NumOfLangs=$(ls | wc -l)
+	local NumOfLangs=$(ls ${LangsDir}/ | wc -l)
 	local look=1
 	local text
 	local TheColor
@@ -659,241 +798,6 @@ ColorCodes()
 	echo ${ChosenLangs}
 }
 
-#Handle Git commands
-gitHandler()
-{
-	local repoAct=$1
-	shift
-	#check if git is installed
-	GitTool=$(which git)
-	#Git is installed
-	if [ ! -z "${GitTool}" ]; then
-		case ${repoAct} in
-			#Create a new repo
-			new|init)
-				echo git init
-				;;
-			#clone a new repo
-			setup|clone)
-				#Find repo name
-				repo=$@
-				if [ ! -z "${repo}" ]; then
-					echo git clone ${repo[@]}
-				#Repo not given
-				else
-					#Ask User for Repo
-					echo -n "repo: "
-					read -a repo
-					#Repo given
-					if [ ! -z "${repo}" ]; then
-						#Run through 2nd time
-						gitHandler "clone" "${repo[@]}"
-					#Again...nothing
-					else
-						#Nothing to do
-						echo "Nothing to clone"
-					fi
-				fi
-				;;
-			#Add files to changes
-			add)
-				files=$@
-				#Files given
-				if [ ! -z "${files}" ]; then
-					echo git add ${files}
-				else
-					#Get ALL files from user
-					echo git add .
-				fi
-				;;
-			#Provide message for repo
-			message|commit)
-				#Get message
-				msg=$@
-				if [ ! -z "${msg}" ]; then
-					echo git commit -m "\"${msg}\""
-				#No message found
-				else
-					#As for user...get EVERYTHING typed
-					echo -n "Message: "
-					read -a msg
-					#Message given
-					if [ ! -z "${msg}" ]; then
-						gitHandler "commit" "${msg[@]}"
-					else
-						echo "No message found"
-					fi
-				fi
-				;;
-			#Handles Git Branches
-			branch|branches)
-				branchAct=$1
-				shift
-				case ${branchAct} in
-					new)
-						name=$1
-						if [ ! -z "${name}" ]; then
-							echo git checkout -b "${name}"
-						else
-							echo -n "Provide a branch name"
-							read name
-							if [ ! -z "${name}" ]; then
-								gitHandler "branch" "new" "${name}"
-							else
-								echo "No branch has been created"
-							fi
-						fi
-						;;
-					#delete branches on local repo
-					remove|delete)
-						#Get branch name
-						name=$1
-						#branch name given
-						if [ ! -z "${name}" ]; then
-							#remove branch
-							echo git branch -d "${name}"
-						#no branch name given
-						else
-							#Get user to type branch name
-							echo -n "Provide a branch name"
-							read name
-							#branch name given
-							if [ ! -z "${name}" ]; then
-								#remove branch
-								gitHandler "branch" "delete" "${name}"
-							#no branch name given
-							else
-								echo "No Branch has been deleted"
-							fi
-						fi
-						;;
-					select|checkout)
-						#Get branch name
-						name=$1
-						#branch name given
-						if [ ! -z "${name}" ]; then
-							#Select branch
-							echo git checkout "${name}"
-						#no branch name given
-						else
-							#Get user to type branch name
-							echo -n "Provide a branch name"
-							read name
-							#branch name given
-							if [ ! -z "${name}" ]; then
-								#Select branch
-								gitHandler "branch" "checkout" "${name}"
-							#no branch name given
-							else
-								echo "No Branch has been selected"
-							fi
-						fi
-						;;
-					#list all branches
-					*)
-						echo git branch -a
-						;;
-				esac
-				;;
-			upload|push)
-				branch=$1
-				if [ ! -z "${branch}" ]; then
-					echo git push origin "\"${branch}\""
-				else
-					echo -n "Please choose a banch: "
-					read branch
-					if [ ! -z "${branch}" ]; then
-						gitHandler "push" "${branch}"
-					else
-						echo "Code not pushed"
-					fi
-				fi
-				;;
-			#Download from the repo
-			download|pull)
-				echo git pull
-				;;
-			#Display repo infortmation
-			state|status)
-				echo git status
-				;;
-			#Peform quick and dirty commit
-			slamdunk)
-				gitHandler "add"
-				gitHandler "commit"
-				gitHandler "push"
-				;;
-			help|options)
-				echo "git help page"
-				;;
-			*)
-				RepoVersion
-				;;
-		esac
-	#git is not installed
-	else
-		echo "Please Install git"
-	fi
-}
-
-svnHandler()
-{
-	local repoAct=$1
-	shift
-	#check if git is installed
-	SvnTool=$(which svn)
-	#Git is installed
-	if [ ! -z "${SvnTool}" ]; then
-		echo "svn is installed"
-	#svn is not installed
-	else
-		echo "Please Install svn"
-	fi
-}
-
-repoHandler()
-{
-	case ${repoTool} in
-		git)
-			#git execution is handled by user
-			if [[ "${repoAssist}" == "False" ]] && [[ "$1" == "${repoTool}" ]]; then
-				IsInstalled=$(which ${repoTool})
-				if [ ! -z "${IsInstalled}" ]; then
-					$@
-				else
-					echo "\"${repoTool}\" is not installed"
-				fi
-			#git execution is handled by cl[ide]
-			elif [[ "${repoAssist}" == "True" ]]; then
-				shift
-				gitHandler $@
-			else
-				echo "repo version control has been disabled"
-			fi
-			;;
-		svn)
-			#svn execution is handled by user
-			if [[ "${repoAssist}" == "False" ]] && [[ "$1" == "${repoTool}" ]]; then
-				IsInstalled=$(which ${repoTool})
-				if [ ! -z "${IsInstalled}" ]; then
-					$@
-				else
-					echo "\"${repoTool}\" is not installed"
-				fi
-			#svn execution is handled by cl[ide]
-			elif [[ "${repoAssist}" == "True" ]]; then
-				shift
-				svnHandler $@
-			else
-				echo "repo version control has been disabled"
-			fi
-			;;
-		*)
-			echo "${Head} is unable to use \"${repoTool}\" at this time"
-			;;
-	esac
-}
-
 #IDE
 Actions()
 {
@@ -905,24 +809,30 @@ Actions()
 	local pLangs=$(ColorCodes)
 	local prompt=""
 	local UserArg=""
-	#No Project Given
-	if [ -z $2 ]; then
-		Code=""
-	else
-		Code=$2
-	fi
-	#No Project Given
-	if [ -z $3 ]; then
-		CodeProject="none"
-	else
-		CodeProject=$3
-		Dir="${CodeProject}"
-	fi
+	local Code="$2"
+	local FirstAction="$3"
+	CodeProject="none"
 
-	#Avoid getting incorrect directory name
-	if [[ "${Dir}" == "none" ]]; then
-		Dir=""
-	fi
+#	#No Project Given
+#	if [ -z $2 ]; then
+#		Code=""
+#	else
+#		Code=$2
+#	fi
+#
+#	#No Project Given
+#	if [ -z $3 ]; then
+#		CodeProject="none"
+#	else
+#		CodeProject=$3
+#		Dir="${CodeProject}"
+#	fi
+#
+#	#Avoid getting incorrect directory name
+#	if [[ "${Dir}" == "none" ]]; then
+#		Dir=""
+#	fi
+
 	#Language Chosen
 	if [[ ! "${CodeDir}" == "no" ]]; then
 		cd ${CodeDir}/${Dir}
@@ -936,40 +846,62 @@ Actions()
 			cCode=$(color ${Code})
 
 			if [[ "${Code}" == "" ]]; then
-				if [[ "${CodeProject}" == "none" ]]; then
-					#Menu with no code
-					prompt="${Name}(${cLang}):$ "
-				else
-					ThePWD=$(pwd)
-					ProjectDir=$(echo ${ThePWD#*${CodeProject}} | sed "s/\//:/1")
-					cCodeProject=$(echo -e "\e[1;40m${CodeProject}\e[0m")
-					#Menu with no code
-					prompt="${Name}(${cLang}[${cCodeProject}${ProjectDir}]):$ "
-				fi
+				case ${CodeProject} in
+					none)
+						#Menu with no code
+						prompt="${Name}(${cLang}):$ "
+						;;
+					*)
+						ThePWD=$(pwd)
+						ProjectDir=$(echo ${ThePWD#*${CodeProject}} | sed "s/\//:/1")
+						cCodeProject=$(ManageLangs ${Lang} "ProjectColor" "${CodeProject}")
+						#Menu with no code
+						prompt="${Name}([${cCodeProject}${ProjectDir}]):$ "
+						;;
+				esac
 			else
-				if [[ "${CodeProject}" == "none" ]]; then
-					#Menu with code
-					cCodeProject=$(echo -e "\e[1;40m${CodeProject}\e[0m")
-					prompt="${Name}(${cLang}{${cCode}}):$ "
-				else
-					ThePWD=$(pwd)
-					ProjectDir=$(echo ${ThePWD#*${CodeProject}} | sed "s/\//:/1")
-					#Menu with no code
-					cCodeProject=$(echo -e "\e[1;40m${CodeProject}\e[0m")
-					prompt="${Name}(${cLang}[${cCodeProject}${ProjectDir}]{${cCode}}):$ "
-				fi
+				case ${CodeProject} in
+					none)
+						#Menu with code
+						prompt="${Name}(${cLang}{${cCode}}):$ "
+						;;
+					*)
+						ThePWD=$(pwd)
+						ProjectDir=$(echo ${ThePWD#*${CodeProject}} | sed "s/\//:/1")
+						#Menu with no code
+						cCodeProject=$(ManageLangs ${Lang} "ProjectColor" "${CodeProject}")
+						prompt="${Name}([${cCodeProject}${ProjectDir}]{${cCode}}):$ "
+						;;
+				esac
 			fi
-			#Handle CLI
-			#read -a UserIn
-			read -e -p "${prompt}" -a UserIn
-			UserArg=$(echo ${UserIn[0]} | tr A-Z a-z)
+			#User's first action
+			if [ ! -z "${FirstAction}" ]; then
+				UserArg=${FirstAction}
+				FirstAction=""
+			else
+				#Handle CLI
+				#read -a UserIn
+				read -e -p "${prompt}" -a UserIn
+				UserArg=$(echo ${UserIn[0]} | tr A-Z a-z)
+
+			fi
 			if [ ! -z "${UserIn[0]}" ]; then
-				history -s "${UserIn[@]}"
+				case ${UserIn[0]} in
+					#ignore anything beginning with '-'
+					-*)
+						;;
+					*)
+						history -s "${UserIn[@]}"
+						;;
+				esac
 			fi
 			case ${UserArg} in
 				#List files
 				ls)
 					ls ${UserIn[1]}
+					;;
+				lscpl)
+					ManageLangs ${Lang} "lscpl" ${UserIn[1]} ${CodeProject} ${UserIn[2]}
 					;;
 				ll)
 					shift
@@ -992,18 +924,21 @@ Actions()
 					Remove ${Code} ${UserIn[1]} ${UserIn[2]}
 					Code=""
 					;;
+				using)
+					echo "${cLang}"
+					;;
 				#change dir in project
 				cd)
 					#Use ONLY for Projects
 					case ${CodeProject} in
 						none)
-							echo "Must have an active project"
+							errorCode "project" "none"
 							;;
 						*)
-							cd ${UserIn[1]}
+							cd ${UserIn[1]} 2> /dev/null
 							here=$(pwd)
 							if [[ ! "${here}" == *"${CodeProject}"* ]]; then
-								echo "Leaving your project is not allowed"
+								errorCode "project" "can-not-leave"
 								cd - > /dev/null
 							fi
 							;;
@@ -1016,7 +951,7 @@ Actions()
 						here=$(pwd)/
 						echo ${here#*${CodeProject}}
 					else
-						echo "Must have an active project"
+						errorCode "project" "none" "${Head}"
 					fi
 					;;
 				#make dir in project
@@ -1025,7 +960,7 @@ Actions()
 					if [[ ! "${CodeProject}" == "none" ]]; then
 						mkdir ${UserIn[1]}
 					else
-						echo "Must have an active project"
+						errorCode "project" "none" "${Head}"
 					fi
 					;;
 				#Handle Projects
@@ -1034,20 +969,18 @@ Actions()
 					case ${UserIn[1]} in
 						#Create new project
 						new)
-							if [[ "${Lang}" == "Java" ]]; then
-								echo "${Head} Cannot handle Java Projects"
-							else
+							#Ensure project has a name
+							if [ ! -z "${UserIn[2]}" ]; then
 								#Locate Project Directory
-								if [ -f "${ClideDir}/${UserIn[2]}.clide" ]; then
+								if [ -f "${ClideDir}/projects/${UserIn[2]}.clide" ]; then
 									errorCode "project" "exists" ${UserIn[2]}
 								else
 									newProject ${Lang} ${UserIn[2]}
 									Code=""
 									updateProject ${UserIn[2]} ${Code}
-									if [ ! -z ${UserIn[2]} ]; then
+									if [ ! -z "${UserIn[2]}" ]; then
 										CodeProject=${UserIn[2]}
 										echo "Created \"${CodeProject}\""
-										ThePWD=$(pwd)
 										ProjectDir=$(echo ${ThePWD#*${CodeProject}} | sed "s/\//:/1")
 									fi
 								fi
@@ -1063,17 +996,18 @@ Actions()
 							project=$(loadProject ${UserIn[2]})
 							if [ "${project}" != "no" ]; then
 								CodeDir=$(echo ${project} | cut -d ";" -f 3)
+								CodeDir=$(eval echo ${CodeDir})
 								if [ -d ${CodeDir} ]; then
 									Lang=$(echo ${project} | cut -d ";" -f 1)
 									Code=$(echo ${project} | cut -d ";" -f 2)
 									CodeProject=${UserIn[2]}
-									cd ${CodeDir}
+									cd ${CodeDir}/src
 									echo "Project \"${CodeProject}\" loaded"
 								else
-									echo "Project \"${UserIn[2]}\" Directory not Found"
+									errorCode "project" "load" "no-path" "${UserIn[2]}"
 								fi
 							else
-								echo "Not a valid project"
+								errorCode "project" "load" "no-project" "${UserIn[2]}"
 							fi
 							;;
 						#Import project not created by cl[ide]
@@ -1082,13 +1016,16 @@ Actions()
 							;;
 						#Display active project
 						active)
-							#There is no project listed
-							if [[ "${CodeProject}" == "none" ]]; then
-								echo "There are no active projects"
-							#Project is found
-							else
-								echo "Active Project [\"${CodeProject}\"]"
-							fi
+							case ${CodeProject} in
+								#There is no project listed
+								none)
+									errorCode "project" "active"
+									;;
+								#Project is found
+								*)
+									echo "Active Project [\"${CodeProject}\"]"
+									;;
+							esac
 							;;
 						#List all known projects
 						list)
@@ -1106,8 +1043,12 @@ Actions()
 					OldCode=${Code}
 					case ${UserIn[0]} in
 						use)
-							Lang=$(pgLang ${UserIn[1]})
-							Code=${UserIn[2]}
+							if [ ! -z "${UserIn[1]}" ]; then
+								Lang=$(pgLang ${UserIn[1]})
+								Code=${UserIn[2]}
+							else
+								Lang="no"
+							fi
 							;;
 						*)
 							Lang=$(pgLang ${UserIn[0]})
@@ -1126,8 +1067,88 @@ Actions()
 						#}
 					else
 						Lang=${Old}
-						echo "Possible: ${pLangs}"
+						echo "Supported Languages: ${pLangs}"
 					fi
+					;;
+				bkup|backup)
+					local chosen=${UserIn[1]}
+					case ${Code} in
+						*,*)
+							if [ ! -z "${chosen}" ]; then
+								if [[ "${Code}" == *"${chosen}"* ]]; then
+									ManageLangs ${Lang} "backup" ${chosen}
+								else
+									errorCode "backup" "wrong"
+								fi
+							else
+								errorCode "backup" "null"
+							fi
+							;;
+						*)
+							ManageLangs ${Lang} "backup" ${Code}
+							;;
+					esac
+					;;
+				restore)
+					local chosen=${UserIn[1]}
+					case ${Code} in
+						*,*)
+							if [ ! -z "${chosen}" ]; then
+								if [[ "${Code}" == *"${chosen}"* ]]; then
+									ManageLangs ${Lang} "restore" ${chosen}
+								else
+									errorCode "backup" "wrong"
+								fi
+							else
+								errorCode "backup" "null"
+							fi
+							;;
+						*)
+							ManageLangs ${Lang} "restore" ${Code}
+							;;
+					esac
+					;;
+				rename)
+					local chosen=${UserIn[1]}
+					local TheNewChosen=${UserIn[2]}
+					case ${Code} in
+						*,*)
+							if [ ! -z "${TheNewChosen}" ]; then
+								if [[ "${Code}" == *"${chosen}"* ]]; then
+									ManageLangs ${Lang} "rename" ${chosen} ${TheNewChosen} > /dev/null
+									Code=$(echo ${Code} | sed "s/${chosen}/${TheNewChosen}/g")
+								else
+									errorCode "rename" "wrong"
+								fi
+							else
+								errorCode "rename" "null"
+							fi
+							;;
+						*)
+							Code=$(ManageLangs ${Lang} "rename" ${Code} ${chosen})
+							;;
+					esac
+					;;
+				copy)
+					local chosen=${UserIn[1]}
+					local TheNewChosen=${UserIn[2]}
+					case ${Code} in
+						*,*)
+							if [ ! -z "${TheNewChosen}" ]; then
+								if [[ "${Code}" == *"${chosen}"* ]]; then
+									ManageLangs ${Lang} "copy" ${chosen} ${TheNewChosen} > /dev/null
+									Code=$(echo ${Code} | sed "s/${chosen}/${TheNewChosen}/g")
+								else
+									errorCode "copy" "wrong"
+								fi
+							else
+								errorCode "backup" "null"
+							fi
+							;;
+						*)
+							Code=$(ManageLangs ${Lang} "copy" ${Code} ${chosen})
+							;;
+					esac
 					;;
 				#use the shell of a given language
 				shell)
@@ -1185,7 +1206,7 @@ Actions()
 							if [ ! -z "${UserIn[2]}" ]; then
 								${editor} ${UserIn[2]}
 							else
-								echo "Please select a file to edit"
+								errorCode "selectCode"
 							fi
 							;;
 						*)
@@ -1201,24 +1222,19 @@ Actions()
 				${ReadBy}|read)
 					ManageLangs ${Lang} "readCode" ${Code} ${UserIn[1]}
 					;;
-				#Swap from Binary to Src and vise-versa
-				swap|swp)
-					if [[ "${UserIn[1]}" == "bin" ]]; then
-						Code=$(ManageLangs ${Lang} "SwapToBin" ${Code})
-					elif [[ "${UserIn[1]}" == "src" ]]; then
-						Code=$(ManageLangs ${Lang} "SwapToSrc" ${Code})
-					else
-						echo "${mode} (src|bin)"
-					fi
-					;;
-				#git/svn handler
-				${repoTool}|repo)
-					#Use ONLY for Projects
-					if [[ ! "${CodeProject}" == "none" ]]; then
-						repoHandler ${UserIn[@]}
-					else
-						echo "Must have an active project"
-					fi
+#				#Swap from Binary to Src and vise-versa
+#				swap|swp)
+#					if [[ "${UserIn[1]}" == "bin" ]]; then
+#						Code=$(ManageLangs ${Lang} "SwapToBin" ${Code})
+#					elif [[ "${UserIn[1]}" == "src" ]]; then
+#						Code=$(ManageLangs ${Lang} "SwapToSrc" ${Code})
+#					else
+#						echo "${mode} (src|bin)"
+#					fi
+#					;;
+				#Modes
+				mode)
+					ModeHanlder ${UserIn[1]}
 					;;
 				#search for element in project
 				search)
@@ -1289,8 +1305,11 @@ Actions()
 					;;
 				#Display cl[ide] version
 				version|v)
-					#echo "${Head}"
-					#ClideVersion
+					echo ""
+					CodeSupportVersion ${Lang}
+					echo ""
+					CodeTemplateVersion ${Lang}
+					echo ""
 					CodeVersion ${Lang}
 					;;
 				#Display help page
@@ -1317,12 +1336,16 @@ Actions()
 					;;
 				#List supported languages
 				langs|languages)
-					echo -n "${UserArg}: "
-					echo ${pg}
+					local pg=$(ColorCodes)
+					echo "Supported Languages: ${pg}"
+					;;
+				#Save cl[ide] session
+				save)
+					SaveSession ${CodeProject} ${Lang} ${Code}
+					echo "session saved"
 					;;
 				#Close cl[ide]
 				exit|close)
-					SaveSession ${CodeProject} ${Lang} ${Code}
 					break
 					;;
 				#ignore all other commands
@@ -1331,6 +1354,36 @@ Actions()
 			esac
 		done
 	fi
+}
+
+#Choose Lang by code
+SelectLangByCode()
+{
+	local Code=$1
+	#Select Language
+	case ${Code} in
+		*.sh)
+			pgLang Bash
+			;;
+		*.py)
+			pgLang Python
+			;;
+		*.cpp|*.h)
+			pgLang C++
+			;;
+		*.java)
+			pgLang Java
+			;;
+		*.pl)
+			pgLang Perl
+			;;
+		*.rb)
+			pgLang Ruby
+			;;
+		*)
+			echo "no"
+			;;
+	esac
 }
 
 #Autocomplete Function
@@ -1480,6 +1533,9 @@ loadAuto()
 	bind -x '"\t":autocomp'
 	bind -x '"\C-l":clear'
 	comp_list "ls"
+	comp_list "save"
+	comp_list "lscpl"
+	comp_list "using"
 	comp_list "ll"
 	comp_list "clear"
 	comp_list "set"
@@ -1489,7 +1545,6 @@ loadAuto()
 	comp_list "pwd"
 	comp_list "mkdir"
 	comp_list "use" "${pg}"
-	comp_list "swap swp" "src bin"
 	comp_list "project" "load import new list"
 	comp_list "shell"
 	comp_list "new" "--version -v --help -h --custom -c"
@@ -1506,6 +1561,10 @@ loadAuto()
 	comp_list "notes" "edit add read"
 	comp_list "last load"
 	comp_list "install"
+	comp_list "bkup backup"
+	comp_list "restore"
+	comp_list "rename"
+	comp_list "copy"
 	comp_list "langs languages"
 	comp_list "exit close"
 }
@@ -1524,7 +1583,7 @@ main()
 		pg=$(ColorCodes)
 		local getLang=""
 		if [ ! -z "${pg}" ]; then
-			CliHelp
+			#CliHelp
 			echo "~Choose a language~"
 			#Force user to select language
 			while [[ "$getLang" == "" ]] || [[ "$Lang" == "no" ]];
@@ -1547,8 +1606,7 @@ main()
 				Actions ${Lang}
 			fi
 		else
-			echo "No Languages installed"
-			echo "Please Lang.<language> in \"${LangsDir}/\""
+			errorCode "no-langs"
 		fi
 	else
 		case ${UserArg} in
@@ -1560,25 +1618,13 @@ main()
 			-cv|--code-version)
 				CodeVersion
 				;;
+			#Get compile/interpreter version from cli
+			-sv|--support-version)
+				CodeSupportVersion
+				;;
 			#Get version of template
 			-tv|--temp-version)
-				local GetLangs=$(ls ${LangsDir}/ | sed "s/Lang.//g" | tr '\n' '|' | rev | sed "s/|//1" | rev)
-				local NumOfLangs=$(ls | wc -l)
-				local look=1
-				local text
-				while [ ${look} -le ${NumOfLangs} ];
-				do
-					text=$(echo ${GetLangs} | cut -d '|' -f ${look})
-					text=$(ManageLangs ${text} "pgLang")
-					case ${text} in
-						no)
-							;;
-						*)
-							ManageLangs "${text}" "TemplateVersion" | sed "s/Version/${text}/g" | grep -v found
-							;;
-					esac
-					look=$((${look}+1))
-				done
+				CodeTemplateVersion
 				;;
 			#Get version control version from cli
 			-rv|--repo-version)
@@ -1592,6 +1638,7 @@ main()
 			-h|--help)
 				CliHelp
 				;;
+			#Load last saved session
 			-l|--load|--last)
 				session=$(LoadSession)
 				Lang=$(echo ${session} | cut -d ";" -f 1)
@@ -1600,12 +1647,194 @@ main()
 				#Start IDE
 				Actions ${Lang} ${Code} ${CodeProject}
 				;;
+			--edit)
+				shift
+				local Lang=$(pgLang $1)
+				local Code=$2
+				if [ -z "${Code}" ]; then
+					Lang=$(SelectLangByCode $1)
+					Code=$1
+					shift
+					main --edit "${Lang}" "${Code}"
+				else
+					case ${Lang} in
+						no)
+							echo "\"$1\" is not a supported language"
+							;;
+						*)
+							local CodeDir=$(pgDir ${Lang})
+							if [ ! -z "${CodeDir}" ]; then
+								cd ${CodeDir}
+								Code=$(selectCode ${Lang} ${Code})
+								ManageLangs ${Lang} "editCode" ${Code}
+							else
+								echo "Source code not found"
+							fi
+					esac
+				fi
+				;;
+			#compile code without entering cl[ide]
+			--cpl|--compile)
+				shift
+				local Lang=$(pgLang $1)
+				local Code=$2
+				if [ -z "${Code}" ]; then
+					Lang=$(SelectLangByCode $1)
+					Code=$1
+					shift
+					local Args=$@
+					main --cpl "${Lang}" "${Code}" ${Args[@]}
+				else
+					shift
+					shift
+					local Args=$@
+					case ${Lang} in
+						no)
+							echo "\"$1\" is not a supported language"
+							;;
+						*)
+							local CodeDir=$(pgDir ${Lang})
+							if [ ! -z "${CodeDir}" ]; then
+								cd ${CodeDir}
+								Code=$(selectCode ${Lang} ${Code})
+								ManageLangs ${Lang} "compileCode" ${Code} ${Args[@]}
+							else
+								echo "Source code not found"
+							fi
+					esac
+				fi
+				;;
+			#Install compiled code into aliases
+			--install)
+				shift
+				local Lang=$(pgLang $1)
+				local Code=$2
+				if [ -z "${Code}" ]; then
+					Lang=$(SelectLangByCode $1)
+					Code=$1
+					shift
+					local Args=$@
+					main --install "${Lang}" "${Code}" ${Args[@]}
+
+				else
+					shift
+					shift
+					local Args=$@
+					case ${Lang} in
+						no)
+							echo "\"$1\" is not a supported language"
+							;;
+						*)
+							local CodeDir=$(pgDir ${Lang})
+							if [ ! -z "${CodeDir}" ]; then
+								cd ${CodeDir}
+								Code=$(selectCode ${Lang} ${Code})
+								ManageLangs ${Lang} "Install" ${Code} ${Args[@]}
+							else
+								echo "Source code not found"
+							fi
+					esac
+				fi
+				;;
+			#run compiled code
+			--run)
+				shift
+				local Lang=$(pgLang $1)
+				local Code=$2
+				if [ -z "${Code}" ]; then
+					Lang=$(SelectLangByCode $1)
+					Code=$1
+					shift
+					local Args=$@
+					main --run "${Lang}" "${Code}" ${Args[@]}
+				else
+					shift
+					shift
+					local Args=$@
+					case ${Lang} in
+						no)
+							echo "\"$1\" is not a supported language"
+							;;
+						*)
+							local CodeDir=$(pgDir ${Lang})
+							if [ ! -z "${CodeDir}" ]; then
+								ManageLangs ${Lang} "runCode" "${Code}" ${Args[@]}
+							else
+								errorCode "cpl" "none"
+							fi
+					esac
+				fi
+				;;
+			#cat out source code
+			--read)
+				shift
+				local Lang=$(pgLang $1)
+				local Code=$2
+				if [ -z "${Code}" ]; then
+					Lang=$(SelectLangByCode $1)
+					Code=$1
+					shift
+					local Args=$@
+					main --read "${Lang}" "${Code}" ${Args[@]}
+				else
+					case ${Lang} in
+						no)
+							echo "\"$1\" is not a supported language"
+							;;
+						*)
+							local CodeDir=$(pgDir ${Lang})
+							if [ ! -z "${CodeDir}" ]; then
+								cd ${CodeDir}
+								Code=$(selectCode ${Lang} ${Code})
+								if [ ! -z "${Code}" ]; then
+									cat ${Code}
+								else
+									echo "No code to read"
+								fi
+							else
+								echo "No code to read"
+							fi
+					esac
+				fi
+				;;
+			#List source code from given language
+			--list)
+				shift
+				local Lang=$(pgLang $1)
+				case ${Lang} in
+					no)
+						echo "\"$1\" is not a supported language"
+						;;
+					*)
+						local CodeDir=$(pgDir ${Lang})
+						if [ ! -z "${CodeDir}" ]; then
+							ls ${CodeDir}
+						fi
+						;;
+				esac
+				;;
+			*.sh|*.py|*.cpp|*.h|*.java|*.pl|*.rb)
+				local Code=$1
+				local Lang=$(SelectLangByCode $1)
+				local CodeDir=$(pgDir ${Lang})
+				if [ ! -z "${CodeDir}" ]; then
+					cd ${CodeDir}
+					Code=$(selectCode ${Lang} ${Code})
+					if [ ! -z "${Code}" ]; then
+						#Start IDE
+						Actions ${Lang} ${Code}
+					fi
+				fi
+				;;
 			#Check for language given
 			*)
 				#Verify Language
-				Lang=$(pgLang $1)
+				local Lang=$(pgLang $1)
+				shift
+				local Args=$@
 				#Start IDE
-				Actions ${Lang} $2
+				Actions ${Lang} ${Args[@]}
+
 				;;
 		esac
 	fi

@@ -1,6 +1,8 @@
 Shell=$(which bash)
 #!${Shell}
 
+SupportV="0.1.26"
+
 ProgDir=$1
 shift
 ClideDir=$1
@@ -14,11 +16,6 @@ CodeProject=$1
 shift
 CplArgs=$1
 shift
-
-SupportVersion()
-{
-	echo "0.1.02"
-}
 
 errorCode()
 {
@@ -52,19 +49,41 @@ UseCpp()
 			#Return Blue
 			echo -e "\e[1;34mC++\e[0m"
 			;;
+		ProjectColor)
+			local text=$1
+			if [ ! -z "${text}" ]; then
+				echo -e "\e[1;44m${text}\e[0m"
+			fi 
+			;;
+		SupportVersion)
+			echo ${SupportV}
+			;;
 		MenuHelp)
 			echo -e "new <file> {main|header|component} : \"create new ${Lang} source file\""
-			echo -e "compile|cpl\t\t\t: \"make code executable\""
+			echo -e "cpl, compile\t\t\t: \"make code executable\""
 			;;
 		getCode)
 			local name=$1
-			if [ -f ${LangSrc}/${name}.cpp ]; then
-				echo ${name}.cpp
-			elif [ -f ${LangSrc}/${name}.h ]; then
-				echo ${name}.h
-			elif [ -f ${LangSrc}/${name} ]; then
-				echo ${name}
-			fi
+			case ${CodeProject} in
+				none)
+					if [ -f ${LangSrc}/${name}.cpp ]; then
+						echo ${name}.cpp
+					elif [ -f ${LangSrc}/${name}.h ]; then
+						echo ${name}.h
+					elif [ -f ${LangSrc}/${name} ]; then
+						echo ${name}
+					fi
+					;;
+				*)
+					if [ -f ${LangSrc}/${CodeProject}/src/${name}.cpp ]; then
+						echo ${name}.cpp
+					elif [ -f ${LangSrc}/${CodeProject}/src/${name}.h ]; then
+						echo ${name}.h
+					elif [ -f ${LangSrc}/${project}/src/${name} ]; then
+						echo ${name}
+					fi
+					;;
+			esac
 			;;
 		pgLang)
 			local HasLang=$(which ${CppCpl} 2> /dev/null)
@@ -85,13 +104,13 @@ UseCpp()
 			;;
 		CreateHelp)
 			echo -e "make\t\t\t: create makefile"
-			echo -e "version|-std=<c++#>\t: create makefile"
+			echo -e "version, -std=<c++#>\t: create makefile"
 			;;
 		shell)
 			;;
 		newCodeHelp)
 			if [ -f ${TemplateCode} ]; then
-				echo -e "--custom|-c\t\t\t: \"Custom src file using ${Lang} template\""
+				echo -e "-c, --custom\t\t\t: \"Custom src file using ${Lang} template\""
 			fi
 			;;
 		EnsureDirs)
@@ -110,14 +129,16 @@ UseCpp()
 			;;
 		TemplateVersion)
 			if [ -f ${TemplateCode} ]; then
-				${TemplateCode} 2> /dev/null | grep Version
+				echo -n "${TemplateCode##*/} "
+				${TemplateCode} 2> /dev/null | grep Version | sed "s/Version//g"
 			else
-				echo "no newC++ found"
+				echo "no ${TemplateCode##*/} found"
 			fi
 			;;
-		CodeVersion)
-			echo "[C++]"
+		CplVersion)
+			echo "[C++ Compiler]"
 			${CppCpl} --version | head -n 1
+			echo ""
 			;;
 		selectCode)
 			local name=$1
@@ -220,12 +241,20 @@ UseCpp()
 			local src=$1
 			local name=$2
 			local cplArgs=$3
+			local project=${CodeProject}
+			local TheBinDir
+			local ERROR
 			#Handle Project Dir
-			if [[ "${project}" == "none" ]]; then
-				project=""
-			else
-				project="${project}/"
-			fi
+			case ${project} in
+				none)
+					project=""
+					TheBinDir=${LangBin}
+					;;
+				*)
+					project="${project}/"
+					TheBinDir="${LangSrc}/${project}bin"
+					;;
+			esac
 			if [[ "$src" == *".cpp"* ]] || [ -f ${LangSrc}/${project}makefile ]; then
 				cplArgs=${CppCplVersion}
 				if [ -f ${LangSrc}/${project}makefile ]; then
@@ -247,8 +276,16 @@ UseCpp()
 							if [ ! -z "${NeedThreads}" ]; then
 								cplArgs="${cplArgs} -lpthread"
 							fi
-							${CppCpl} ${prog} -o ../bin/${name} ${cplArgs}
-							echo -e "\e[1;44m[C++ Code Compiled]\e[0m"
+							ERROR=$(${CppCpl} ${prog} -o ${TheBinDir}/${name} ${cplArgs} 2>&1 | tr '\n' '|')
+							if [ -z "${ERROR}" ]; then
+								echo -e "\e[1;44m[C++ Code Compiled]\e[0m"
+							else
+								echo -en "\e[1;34m[C++ \e[0m"
+								echo -en "\e[1;41mERROR\e[0m"
+								echo -e "\e[1;34m]\e[0m"
+								ERROR=$(echo ${ERROR} | tr '|' '\n')
+								echo -e "\e[1;31m${ERROR}\e[0m"
+							fi
 						fi
 					#single code selected
 					else
@@ -258,8 +295,16 @@ UseCpp()
 							cplArgs="${cplArgs} -lpthread"
 						fi
 						#Compile and move C++ to Binary dir
-						${CppCpl} ${src} -o ../bin/${src%.*} ${cplArgs}
-						echo -e "\e[1;44m[C++ Code Compiled]\e[0m"
+						ERROR=$(${CppCpl} ${src} -o ${TheBinDir}/${src%.*} ${cplArgs} 2>&1 | tr '\n' '|')
+						if [ -z "${ERROR}" ]; then
+							echo -e "\e[1;44m[C++ Code Compiled]\e[0m"
+						else
+							echo -en "\e[1;31m[\e[0m"
+							echo -en "\e[1;41mERROR\e[0m"
+							echo -e "\e[1;31m]\e[0m"
+							ERROR=$(echo ${ERROR} | tr '|' '\n')
+							echo -e "\e[1;31m${ERROR}\e[0m"
+						fi
 					fi
 				fi
 			fi
@@ -315,17 +360,41 @@ UseCpp()
 			echo ${CplArgs}
 			;;
 		newProject)
-			local path=${LangSrc}/${CodeProject}
+			local project=$1
+			local type=$1
+			local path=${LangSrc}/${project}
 			#create and cd to project dir
 			if [ ! -d ${path} ]; then
 				mkdir ${path}
-				cd ${path}
-				mkdir bin build doc include lib spike src test
-				cd src
+				mkdir ${path}/bin
+				mkdir ${path}/build
+				mkdir ${path}/doc
+				mkdir ${path}/include
+				mkdir ${path}/lib
+				mkdir ${path}/spike
+				mkdir ${path}/src
+				mkdir ${path}/test
+				cd ${path}/src
 			else
 				cd ${path}/src
 			fi
 			echo ${path}
+			;;
+		lscpl)
+			local project
+			local path
+			case ${CodeProject} in
+				none)
+					path=${LangBin}/
+					;;
+				*)
+					project=${CodeProject}
+					path=${LangSrc}/${project}/bin
+					;;
+			esac
+			if [ -d ${path} ]; then
+				ls ${path}
+			fi
 			;;
 		SwapToSrc)
 			local src=$1
@@ -404,69 +473,75 @@ UseCpp()
 			if [ ! -f ${name}.cpp ] || [ ! -f ${name}.h ]; then
 				case ${Type} in
 					#create header file
-				header)
-					#Program Name Given
-					if [ ! -z "${name}" ];then
-						touch "${name}.h"
-					else
-						errorCode "newCode"
-					fi
-					;;
-				#create main file
-				main)
-					#Check for Custom Code Template
-					if [ -f ${TemplateCode} ]; then
+					header)
 						#Program Name Given
 						if [ ! -z "${name}" ];then
-							${TemplateCode} --write-file --read-file --cli --main --is-in --user-input --name ${name}
-						#No Program Name Given
-						else
-							#Help Page
-							${TemplateCode} --help
-						fi
-					else
-						#Program Name Given
-						if [ ! -z "${name}" ];then
-							touch ${name}.cpp
+							touch "${name}.h"
 						else
 							errorCode "newCode"
 						fi
-					fi
-					;;
-				#create component file
-				component)
-					if [ -f ${TemplateCode} ]; then
-						#Program Name Given
-						if [ ! -z "${name}" ];then
-							${TemplateCode} -n "${name}"
-						#No Program Name Given
+						;;
+					#create main file
+					main)
+						#Check for Custom Code Template
+						if [ -f ${TemplateCode} ]; then
+							#Program Name Given
+							if [ ! -z "${name}" ];then
+								${TemplateCode} --random --write-file --read-file --cli --main --is-in --user-input --name ${name}
+							#No Program Name Given
+							else
+								#Help Page
+								${TemplateCode} --help
+							fi
 						else
-							#Help Page
-							${TemplateCode} --help
+							#Program Name Given
+							if [ ! -z "${name}" ];then
+								local Content="#include <iostream>\n\n//C++ Main\nint main()\n{\n\n\treturn 0;\n}"
+								touch ${name}.cpp
+								echo -e "${Content}" > ${name}.cpp
+							else
+								errorCode "newCode"
+							fi
 						fi
-					else
-						#Program Name Given
-						if [ ! -z "${name}" ];then
-							touch ${name}.cpp
+						;;
+					#create component file
+					component)
+						if [ -f ${TemplateCode} ]; then
+							#Program Name Given
+							if [ ! -z "${name}" ];then
+								${TemplateCode} -n "${name}"
+							#No Program Name Given
+							else
+								#Help Page
+								${TemplateCode} --help
+							fi
 						else
-							errorCode "newCode"
+							#Program Name Given
+							if [ ! -z "${name}" ];then
+								touch ${name}.cpp
+							else
+								errorCode "newCode"
+							fi
 						fi
-					fi
-					;;
-				#cl[ide] knows best
-				*)
-					#Is not a project
-					if [[ "${Project}" == "none" ]]; then
-						UseCpp "newCode" ${name} ${oldCode} ${Project} "main"
-					#Is a project
-					else
-						if [[ "${oldCode}" == *".cpp" ]] || [[ "${oldCode}" == *".cpp" ]]; then
-							UseCpp "newCode" ${name} ${oldCode} ${Project} "component"
-						else
-							UseCpp "newCode" ${oldCode} ${Project} "main"
-						fi
-					fi
-					;;
+						;;
+					#cl[ide] knows best
+					*)
+						#Is not a project
+						case ${Project} in
+							none)
+								UseCpp "newCode" ${name} ${oldCode} ${Project} "main"
+								;;
+							#Is a project
+							*)
+								#clide knows best
+								if [[ "${oldCode}" == *".cpp" ]] || [[ "${oldCode}" == *".cpp" ]]; then
+									UseCpp "newCode" ${name} ${oldCode} ${Project} "component"
+								else
+									UseCpp "newCode" ${name} ${oldCode} ${Project} "main"
+								fi
+								;;
+						esac
+						;;
 				esac
 			fi
 			;;
@@ -478,12 +553,72 @@ UseCpp()
 		runCode)
 			local name=$1
 			shift
+			shift
 			local Args=$@
 			local TheBin="${name%.*}"
-			if [ -f ${LangBin}/${TheBin} ]; then
-				${LangBin}/${TheBin} ${Args[@]}
+			local project=${CodeProject}
+			local TheBinDir
+			#Handle Project Dir
+			case ${project} in
+				none)
+					project=""
+					TheBinDir=${LangBin}
+					;;
+				*)
+					project="${project}/"
+					TheBinDir="${LangSrc}/${project}bin"
+					;;
+			esac
+			if [ -f ${TheBinDir}/${TheBin} ]; then
+				${TheBinDir}/${TheBin} ${Args[@]}
 			else
 				errorCode "cpl" "need" "${name}"
+			fi
+			;;
+		backup)
+			local name=$1
+			if [ ! -z "${name}" ]; then
+				if [ ! -f "${LangSrc}/${name}.bak" ]; then
+					cp ${LangSrc}/${name} ${LangSrc}/${name}.bak
+					echo "\"${name}\" backed-up"
+				else
+					errorCode "backup" "exists"
+				fi
+			else
+				errorCode "backup" "null"
+			fi
+			;;
+		restore)
+			local name=$1
+			if [ ! -z "${name}" ]; then
+				if [ -f "${LangSrc}/${name}.bak" ]; then
+					mv ${LangSrc}/${name}.bak ${LangSrc}/${name}
+					echo "\"${name}\" restored"
+				else
+					errorCode "restore" "exists"
+				fi
+                        else
+				errorCode "restore" "null"
+			fi
+			;;
+		rename)
+			local TheOld=$1
+			local TheNew=$2
+			if [ ! -z "${TheNew}" ]; then
+				TheOld="${TheOld%.cpp}" 
+				TheNew="${TheNew%.cpp}"
+				mv ${LangSrc}/${TheOld}.cpp ${LangSrc}/${TheNew}.cpp
+				echo ${TheNew}.cpp
+			fi
+			;;
+		copy)
+			local TheOld=$1
+			local TheNew=$2
+			if [ ! -z "${TheNew}" ]; then
+				TheOld="${TheOld%.cpp}" 
+				TheNew="${TheNew%.cpp}"
+				cp ${LangSrc}/${TheOld}.cpp ${LangSrc}/${TheNew}.cpp
+				echo ${TheNew}.cpp
 			fi
 			;;
 		*)

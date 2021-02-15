@@ -1,6 +1,8 @@
 Shell=$(which bash)
 #!${Shell}
 
+SupportV="0.1.20"
+
 ProgDir=$1
 shift
 ClideDir=$1
@@ -10,15 +12,10 @@ editor=$1
 shift
 ReadBy=$1
 shift
-project=$1
+CodeProject=$1
 shift
 CplArgs=$1
 shift
-
-SupportVersion()
-{
-        echo "0.1.02"
-}
 
 errorCode()
 {
@@ -52,19 +49,40 @@ UsePython()
 			#Return Yellow
 			echo -e "\e[1;33mPython\e[0m"
 			;;
+		ProjectColor)
+			local text=$1
+			if [ ! -z "${text}" ]; then
+				echo -e "\e[1;43m${text}\e[0m"
+			fi 
+			;;
+		SupportVersion)
+			echo ${SupportV}
+			;;
 		MenuHelp)
 			echo -e "new <file>\t\t\t: \"create new ${Lang} script\""
-			echo -e "compile|cpl\t\t\t: \"make code executable\""
+			echo -e "cpl, compile\t\t\t: \"make code executable\""
 			echo -e "shell\t\t\t\t: run shell for testing"
 			;;
 		getCode)
 			local name=$1
-			#Get code 
-			if [ -f ${LangSrc}/${name}.py ]; then
-				echo ${name}.py
-			elif [ -f ${LangSrc}/${name} ]; then
-				echo ${name}
-			fi
+			case ${CodeProject} in
+				none)
+					#Get code 
+					if [ -f ${LangSrc}/${name}.py ]; then
+						echo ${name}.py
+					elif [ -f ${LangSrc}/${name} ]; then
+						echo ${name}
+					fi
+					;;
+				*)
+					#Get code 
+					if [ -f ${LangSrc}/${CodeProject}/src/${name}.py ]; then
+						echo ${name}.py
+					elif [ -f ${LangSrc}/${CodeProject}/src/${name} ]; then
+						echo ${name}
+					fi
+					;;
+			esac
 			;;
 		BeforeFiles|AfterFiles)
 			ls *.py 2> /dev/null
@@ -90,7 +108,7 @@ UsePython()
 			;;
 		newCodeHelp)
 			if [ -f ${TemplateCode} ]; then
-				echo -e "--custom|-c\t\t\t: \"Custom src file using ${Lang} template\""
+				echo -e "-c, --custom\t\t\t: \"Custom src file using ${Lang} template\""
 			fi
 			;;
 		EnsureDirs)
@@ -109,14 +127,16 @@ UsePython()
 			;;
 		TemplateVersion)
 			if [ -f ${TemplateCode} ]; then
-				${PythonRun} ${TemplateCode} 2> /dev/null | grep Version
+				echo -n "${TemplateCode##*/} "
+				${PythonRun} ${TemplateCode} 2> /dev/null | grep Version | sed "s/Version//g"
 			else
-				echo "no newPython found"
+				echo "no ${TemplateCode##*/} found"
 			fi
 			;;
-		CodeVersion)
-			echo "[Python]"
-				${PythonRun} --version
+		CplVersion)
+			echo "[Python Shell]"
+			${PythonRun} --version
+			echo ""
 			;;
 		selectCode)
 			local name=$1
@@ -208,16 +228,23 @@ UsePython()
 			;;
 		compileCode)
 			local src=$1
-			local project=${CodeProject}
 			local name=$2
 			local keep=$3
+			local project=${CodeProject}
 			local cplArgs=""
+			local TheBinDir
+			local ERROR
 			#Handle Project Dir
-			if [[ "${project}" == "none" ]]; then
-				project=""
-			else
-				project="${project}/"
-			fi
+			case ${project} in
+				none)
+					project=""
+					TheBinDir=${LangBin}
+					;;
+				*)
+					project="${project}/"
+					TheBinDir="${LangSrc}/${project}bin"
+					;;
+			esac
 			case ${src} in
 				*.py)
 					#Compile Python Script
@@ -244,14 +271,22 @@ UsePython()
 								#Make Python Script executable
 								chmod +x ${name}
 								#Check if Python Script does NOT exist
-								if [[ ! -f "${LangBin}/${name}" ]]; then
+								if [ ! -f "${TheBinDir}/${name}" ]; then
 									#Change to Python Binary dir
-									cd ${LangBin}
+									cd ${TheBinDir}
 									#Create Symbolic Link to Python Script
-									ln -s ../src/${project}${name}
+									ERROR=$(ln -s ../src/${name} 2>&1 | tr '\n' '|')
 									#Change to Python Source dir
-									cd "${LangSrc}/${project}"
-									echo -e "\e[1;43m[Python Code Compiled]\e[0m"
+									cd - > /dev/null
+									if [ -f "${TheBinDir}/${name}" ]; then
+										echo -e "\e[1;43m[Python Code Compiled]\e[0m"
+		                                                        else
+										ERROR=$(echo ${ERROR} | tr '|' '\n')
+										echo -en "\e[1;31m[\e[0m"
+										echo -en "\e[1;41mERROR\e[0m"
+										echo -e "\e[1;31m]\e[0m"
+										echo -e "\e[1;31m${ERROR}\e[0m"
+									fi
 								else
 									errorCode "cpl" "already" ${name}
 								fi
@@ -264,14 +299,22 @@ UsePython()
 						#Make Python Script executable
 						chmod +x ${src}
 						#Check if Python Script does NOT exist
-						if [[ ! -f "${LangBin}/${src}" ]]; then
+						if [ ! -f "${TheBinDir}/${src}" ]; then
 							#Change to Python Binary dir
-							cd ${LangBin}
+							cd ${TheBinDir}
 							#Create Symbolic Link to Python Script
-							ln -s ../src/${project}${src}
+							ERROR=$(ln -s ../src/${src} 2>&1 | tr '\n' '|')
 							#Change to Python Source dir
-							cd "${LangSrc}/${project}"
-							echo -e "\e[1;43m[Python Code Compiled]\e[0m"
+							cd - > /dev/null
+							if [ -f "${TheBinDir}/${src}" ]; then
+								echo -e "\e[1;43m[Python Code Compiled]\e[0m"
+                                                        else
+								ERROR=$(echo ${ERROR} | tr '|' '\n')
+								echo -en "\e[1;31m[\e[0m"
+								echo -en "\e[1;41mERROR\e[0m"
+								echo -e "\e[1;31m]\e[0m"
+								echo -e "\e[1;31m${ERROR}\e[0m"
+							fi
 						#Code is already found
 						else
 							errorCode "cpl" "already" ${src}
@@ -283,16 +326,34 @@ UsePython()
 			esac
 			;;
 		newProject)
+			local project=$1
+			local type=$2
 			local path=${LangSrc}/${project}
 			if [ ! -d ${path} ]; then
 				mkdir ${path}
-				cd ${path}
-				mkdir src bin
+				mkdir ${path}/src
+				mkdir ${path}/bin
 				cd ${path}/src
 			else
 				cd ${path}/src
 			fi
 			echo ${path}
+			;;
+		lscpl)
+			local project
+			local path
+			case ${CodeProject} in
+				none)
+					path=${LangBin}/
+					;;
+				*)
+					project=${CodeProject}
+					path=${LangSrc}/${project}/bin
+					;;
+			esac
+			if [ -d ${path} ]; then
+				ls ${path}
+			fi
 			;;
 		SwapToSrc)
 			local src=$1
@@ -375,7 +436,9 @@ UsePython()
 				else
 					#Program Name Given
 					if [ ! -z "${name}" ];then
+						local Content="import sys\n\n#python main\ndef main():\n\tArgs = sys.argv\n\nmain()"
 						touch ${name}.py
+						echo -e "${Content}" > ${name}.py
 					else
 						errorCode "newCode"
 					fi
@@ -389,13 +452,73 @@ UsePython()
 		runCode)
 			local name=$1
 			local TheBin="${name}"
+			local project=${CodeProject}
+			local TheBinDir
+			shift
 			shift
 			local Args=$@
-			#Check if Pythin Bin exists
-			if [ -f ${LangBin}/${TheBin} ]; then
-				${PythonRun} ${LangBin}/${TheBin} ${Args[@]}
+			#Handle Project Dir
+			case ${project} in
+				none)
+					project=""
+					TheBinDir=${LangBin}
+					;;
+				*)
+					project="${project}/"
+					TheBinDir="${LangSrc}/${project}bin"
+					;;
+			esac
+			#Check if Python Bin exists
+			if [ -f ${TheBinDir}/${TheBin} ]; then
+				${PythonRun} ${TheBinDir}/${TheBin} ${Args[@]}
 			else
 				errorCode "cpl" "need" "${name}"
+			fi
+			;;
+		backup)
+			local name=$1
+			if [ ! -z "${name}" ]; then
+				if [ ! -f "${LangSrc}/${name}.bak" ]; then
+					cp ${LangSrc}/${name} ${LangSrc}/${name}.bak
+					echo "\"${name}\" backed-up"
+				else
+					errorCode "backup" "exists"
+				fi
+			else
+				errorCode "backup" "null"
+			fi
+			;;
+		restore)
+			local name=$1
+			if [ ! -z "${name}" ]; then
+				if [ -f "${LangSrc}/${name}.bak" ]; then
+					mv ${LangSrc}/${name}.bak ${LangSrc}/${name}
+					echo "\"${name}\" restored"
+				else
+					errorCode "restore" "exists"
+				fi
+			else
+				errorCode "restore" "null"
+			fi
+			;;
+		rename)
+			local TheOld=$1
+			local TheNew=$2
+			if [ ! -z "${TheNew}" ]; then
+				TheOld="${TheOld%.py}" 
+				TheNew="${TheNew%.py}"
+				mv ${LangSrc}/${TheOld}.py ${LangSrc}/${TheNew}.py
+				echo ${TheNew}.py
+			fi
+			;;
+		copy)
+			local TheOld=$1
+			local TheNew=$2
+			if [ ! -z "${TheNew}" ]; then
+				TheOld="${TheOld%.py}" 
+				TheNew="${TheNew%.py}"
+				cp ${LangSrc}/${TheOld}.py ${LangSrc}/${TheNew}.py
+				echo ${TheNew}.py
 			fi
 			;;
 		*)

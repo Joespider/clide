@@ -1,6 +1,8 @@
 Shell=$(which bash)
 #!${Shell}
 
+SupportV="0.1.18"
+
 ProgDir=$1
 shift
 ClideDir=$1
@@ -10,15 +12,10 @@ editor=$1
 shift
 ReadBy=$1
 shift
-project=$1
+CodeProject=$1
 shift
 CplArgs=$1
 shift
-
-SupportVersion()
-{
-        echo "0.1.02"
-}
 
 errorCode()
 {
@@ -52,17 +49,37 @@ UsePerl()
 			#Return Purple
 			echo -e "\e[1;35mPerl\e[0m"
 			;;
+		ProjectColor)
+			local text=$1
+			if [ ! -z "${text}" ]; then
+				echo -e "\e[1;45m${text}\e[0m"
+			fi
+			;;
+		SupportVersion)
+			echo ${SupportV}
+			;;
 		MenuHelp)
 			echo -e "new <file>\t\t\t: \"create new ${Lang} script\""
-			echo -e "compile|cpl\t\t\t: \"make code executable\""
+			echo -e "cpl, compile\t\t\t: \"make code executable\""
 			;;
 		getCode)
 			local name=$1
-			if [ -f ${LangSrc}/${name}.pl ]; then
-				echo ${name}.pl
-			elif [ -f ${LangSrc}/${name} ]; then
-				echo ${name}
-			fi
+			case ${CodeProject} in
+				none)
+					if [ -f ${LangSrc}/${name}.pl ]; then
+						echo ${name}.pl
+					elif [ -f ${LangSrc}/${name} ]; then
+						echo ${name}
+					fi
+					;;
+				*)
+					if [ -f ${LangSrc}/${CodeProject}/src/${name}.pl ]; then
+						echo ${name}.pl
+					elif [ -f ${LangSrc}/${CodeProject}/src/${name} ]; then
+						echo ${name}
+					fi
+					;;
+			esac
 			;;
 		BeforeFiles|AfterFiles)
 			ls *.pl 2> /dev/null
@@ -87,7 +104,7 @@ UsePerl()
 			;;
 		newCodeHelp)
 			if [ -f ${TemplateCode} ]; then
-				echo -e "--custom|-c\t\t\t: \"Custom src file using ${Lang} template\""
+				echo -e "-c, --custom\t\t\t: \"Custom src file using ${Lang} template\""
 			fi
 			;;
 		EnsureDirs)
@@ -106,17 +123,19 @@ UsePerl()
 			;;
 		TemplateVersion)
 			if [ -f ${TemplateCode} ]; then
-				${PerlRun} ${TemplateCode} 2> /dev/null | grep Version
+				echo -n "${TemplateCode##*/} "
+				${PerlRun} ${TemplateCode} 2> /dev/null | grep Version | sed "s/Version//g"
 			else
-				echo "no newPerl found"
+				echo "no ${TemplateCode##*/} found"
 			fi
 			;;
-		CodeVersion)
-			echo "[Perl]"
+		CplVersion)
+			echo "[Perl Shell]"
 			${PerlRun} --version 2> /dev/null | grep Version
+			echo ""
 			;;
 		selectCode)
-			name=$1
+			local name=$1
 			#Correct filename
 			if [[ ! "${name}" == *".pl" ]]; then
 				name="${name}.pl"
@@ -124,8 +143,8 @@ UsePerl()
 			echo ${name}
 			;;
 		addCode)
-			src=$1
-			new=$2
+			local src=$1
+			local new=$2
 			case ${src} in
 				*.pl)
 					case ${new} in
@@ -150,8 +169,8 @@ UsePerl()
 			esac
 			;;
 		editCode)
-			src=$1
-			num=$2
+			local src=$1
+			local num=$2
 			case ${src} in
 				*.pl)
 					if [[ "${src}" == *","* ]]; then
@@ -177,8 +196,8 @@ UsePerl()
 			esac
 			;;
 		readCode)
-			src=$1
-			num=$2
+			local src=$1
+			local num=$2
 			case ${src} in
 				*.pl)
 					if [[ "${src}" == *","* ]]; then
@@ -204,17 +223,24 @@ UsePerl()
 			esac
 			;;
 		compileCode)
-			src=$1
-			project=${CodeProject}
-			name=$2
-			keep=$3
-			cplArgs=""
-			#Handle Project Dir
-			if [[ "${project}" == "none" ]]; then
-				project=""
-			else
-				project="${project}/"
-			fi
+			local src=$1
+			local name=$2
+			local keep=$3
+			local project=${CodeProject}
+                        local cplArgs=""
+                        local TheBinDir
+                        local ERROR
+                        #Handle Project Dir
+                        case ${project} in
+                                none)
+                                        project=""
+                                        TheBinDir=${LangBin}
+                                        ;;
+                                *)
+                                        project="${project}/"
+                                        TheBinDir="${LangSrc}/${project}bin"
+					;;
+                        esac
 			case ${src} in
 				*.pl)
 					#Multiple code selected
@@ -234,14 +260,22 @@ UsePerl()
 								#Make Perl Script executable
 								chmod +x ${name}
 								#Check if Perl Script does NOT exist
-								if [[ ! -f "${LangBin}/${name}" ]]; then
+								if [ ! -f "${TheBinDir}/${name}" ]; then
 									#Change to Perl Binary dir
-									cd ${LangBin}
+									cd ${TheBinDir}
 									#Create Symbolic Link to Perl Script
-									ln -s ../src/${project}${name}
+									ERROR=$(ln -s ../src/${name} 2>&1 | tr '\n' '|')
 									#Change to Perl Source dir
-									cd "${LangSrc}/${project}"
-									echo -e "\e[1;45m[Perl Code Compiled]\e[0m"
+									cd - > /dev/null
+									if [ -f "${TheBinDir}/${name}" ]; then
+										echo -e "\e[1;45m[Perl Code Compiled]\e[0m"
+									else
+										ERROR=$(echo ${ERROR} | tr '|' '\n')
+										echo -en "\e[1;31m[\e[0m"
+										echo -en "\e[1;41mERROR\e[0m"
+										echo -e "\e[1;31m]\e[0m"
+										echo -e "\e[1;31m${ERROR}\e[0m"
+									fi
 								else
 									errorCode "cpl" "already" ${name}
 								fi
@@ -254,15 +288,22 @@ UsePerl()
 						#Make Perl Script executable
 						chmod +x ${src}
 						#Check if Perl Script does NOT exist
-						if [[ ! -f "${LangBin}/${src}" ]]; then
+						if [ ! -f "${TheBinDir}/${src}" ]; then
 							#Change to Perl Binary dir
-							cd ${LangBin}
+							cd ${TheBinDir}
 							#Create Symbolic Link to Perl Script
-							ln -s ../src/${project}${src}
+							ERROR=$(ln -s ../src/${src} 2>&1 | tr '\n' '|')
 							#Change to Perl Source dir
-							cd "${LangSrc}/${project}"
-							echo -e "\e[1;45m[Perl Code Compiled]\e[0m"
-							#Code is already found
+							cd - > /dev/null
+							if [ -f "${TheBinDir}/${src}" ]; then
+								echo -e "\e[1;45m[Perl Code Compiled]\e[0m"
+							else
+								ERROR=$(echo ${ERROR} | tr '|' '\n')
+								echo -en "\e[1;31m[\e[0m"
+								echo -en "\e[1;41mERROR\e[0m"
+								echo -e "\e[1;31m]\e[0m"
+								echo -e "\e[1;31m${ERROR}\e[0m"
+							fi
 						else
 							errorCode "cpl" "already" ${src}
 						fi
@@ -273,16 +314,34 @@ UsePerl()
 			esac
 			;;
 		newProject)
-			path=${LangSrc}/${project}
+			local project=$1
+			local type=$2
+			local path=${LangSrc}/${project}
 			if [ ! -d ${path} ]; then
 				mkdir ${path}
-				cd ${path}
-				mkdir src bin
+				mkdir ${path}/src
+				mkdir ${path}/bin
 				cd ${path}/src
 			else
 				cd ${path}/src
 			fi
 			echo ${path}
+			;;
+		lscpl)
+			local project
+			local path
+			case ${CodeProject} in
+				none)
+					path=${LangBin}/
+					;;
+				*)
+					project=${CodeProject}
+					path=${LangSrc}/${project}/bin
+					;;
+			esac
+			if [ -d ${path} ]; then
+				ls ${path}
+			fi
 			;;
 		SwapToSrc)
 			src=$1
@@ -373,13 +432,73 @@ UsePerl()
 		runCode)
 			local name=$1
 			local TheBin="${name}"
-			shift
-			local Arg=$@
+			local project=${CodeProject}
+                        local TheBinDir
+                        shift
+                        shift
+                        local Args=$@
+                        #Handle Project Dir
+                        case ${project} in
+                                none)
+                                        project=""
+                                        TheBinDir=${LangBin}
+                                        ;;
+                                *)
+                                        project="${project}/"
+                                        TheBinDir="${LangSrc}/${project}bin"
+					;;
+                        esac
 			#Check if Perl Bin exists
-			if [ -f ${LangBin}/${TheBin} ]; then
-				${PerlRun} ${LangBin}/${TheBin} ${Args[@]}
+			if [ -f ${TheBinDir}/${TheBin} ]; then
+				${PerlRun} ${TheBinDir}/${TheBin} ${Args[@]}
 			else
 				errorCode "cpl" "need" "${name}"
+			fi
+			;;
+		backup)
+			local name=$1
+			if [ ! -z "${name}" ]; then
+				if [ ! -f "${LangSrc}/${name}.bak" ]; then
+					cp ${LangSrc}/${name} ${LangSrc}/${name}.bak
+					echo "\"${name}\" backed-up"
+				else
+					errorCode "backup" "exists"
+				fi
+			else
+				errorCode "backup" "null"
+			fi
+			;;
+		restore)
+			local name=$1
+			if [ ! -z "${name}" ]; then
+				if [ -f "${LangSrc}/${name}.bak" ]; then
+					mv ${LangSrc}/${name}.bak ${LangSrc}/${name}
+					echo "\"${name}\" restored"
+				else
+					errorCode "restore" "exists"
+				fi
+			else
+				errorCode "restore" "null"
+			fi
+			;;
+		rename)
+			local TheOld=$1
+			local TheNew=$2
+			if [ ! -z "${TheNew}" ]; then
+				TheOld="${TheOld%.pl}" 
+				TheNew="${TheNew%.pl}"
+				mv ${LangSrc}/${TheOld}.pl ${LangSrc}/${TheNew}.pl
+				echo ${TheNew}.pl
+			fi
+			;;
+		copy)
+			local TheOld=$1
+			local TheNew=$2
+			if [ ! -z "${TheNew}" ]; then
+				TheOld="${TheOld%.pl}" 
+				TheNew="${TheNew%.pl}"
+				cp ${LangSrc}/${TheOld}.pl ${LangSrc}/${TheNew}.pl
+				echo ${TheNew}.pl
 			fi
 			;;
 		*)
