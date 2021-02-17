@@ -45,6 +45,10 @@ Status: Proposed
 						#whatever is needed to compile code
 						...
 						;;
+					lscpl)
+						local TheBinDir=$1
+						ls ${TheBinDir}
+						;;
 					*)
 						;;
 				esac

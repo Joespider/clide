@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.25"
+SupportV="0.1.28"
 
 ProgDir=$1
 shift
@@ -37,11 +37,12 @@ OtherColor()
 
 UseJava()
 {
-	local JavaCpl=javac
-	local JavaRun=java
+	local LangCpl=javac
+	local LangRun=java
 	local LangHome=${ProgDir}/Java
 	local LangSrc=${LangHome}/src
 	local LangBin=${LangHome}/bin
+	local LangExt=".java"
 	local TemplateCodeClass=${LangBin}/newJava.class
 	local TemplateCodeJar=${LangBin}/newJava.jar
 	local Type=$1
@@ -71,15 +72,15 @@ UseJava()
 			local name=$1
 			case ${CodeProject} in
 				none)
-					if [ -f ${LangSrc}/${name}.java ]; then
-						echo ${name}.java
+					if [ -f ${LangSrc}/${name}${LangExt} ]; then
+						echo ${name}${LangExt}
 					elif [ -f ${LangSrc}/${name} ]; then
 						echo ${name}
 					fi
 					;;
 				*)
-					if [ -f ${LangSrc}/${CodeProject}/src/${name}.java ]; then
-						echo ${name}.java
+					if [ -f ${LangSrc}/${CodeProject}/src/${name}${LangExt} ]; then
+						echo ${name}${LangExt}
 					elif [ -f ${LangSrc}/${CodeProject}/src/${name} ]; then
 						echo ${name}
 					fi
@@ -87,8 +88,8 @@ UseJava()
 			esac
 			;;
 		pgLang)
-			local HasLangCpl=$(which ${JavaCpl} 2> /dev/null)
-			local HasLangRun=$(which ${JavaRun} 2> /dev/null)
+			local HasLangCpl=$(which ${LangCpl} 2> /dev/null)
+			local HasLangRun=$(which ${LangRun} 2> /dev/null)
 			if [ ! -z "${HasLangCpl}" ] && [ ! -z "${HasLangRun}" ]; then
 				#Return Java tag
 				echo "Java"
@@ -98,7 +99,7 @@ UseJava()
 			fi
 			;;
 		BeforeFiles|AfterFiles)
-			ls *.java 2> /dev/null
+			ls *${LangExt} 2> /dev/null
 			;;
 		pgDir)
 			#Return Java src Dir
@@ -117,15 +118,15 @@ UseJava()
 			;;
 		EnsureDirs)
 			#Home
-			if [ ! -d "${LangHome}" ] && [ ! -z "${JavaCpl}" ] && [ ! -z "${JavaRun}" ]; then
+			if [ ! -d "${LangHome}" ] && [ ! -z "${LangCpl}" ] && [ ! -z "${LangRun}" ]; then
 				mkdir "${LangHome}"
 			fi
 			#Src
-			if [ ! -d "${LangSrc}" ] && [ ! -z "${JavaCpl}" ] && [ ! -z "${JavaRun}" ]; then
+			if [ ! -d "${LangSrc}" ] && [ ! -z "${LangCpl}" ] && [ ! -z "${LangRun}" ]; then
 				mkdir "${LangSrc}"
 			fi
 			#Bin
-			if [ ! -d "${LangBin}" ] && [ ! -z "${JavaCpl}" ] && [ ! -z "${JavaRun}" ]; then
+			if [ ! -d "${LangBin}" ] && [ ! -z "${LangCpl}" ] && [ ! -z "${LangRun}" ]; then
 				mkdir "${LangBin}"
 			fi
 			;;
@@ -139,24 +140,24 @@ UseJava()
                         ;;
 		CplVersion)
 			echo "[Java JDK/JRE]"
-			local JavaRunVersion=$(${JavaRun} --version 2> /dev/null)
-			local JavaCplVersion=$(${JavaCpl} --version 2> /dev/null)
-			if [ ! -z "${JavaRunVersion}" ]; then
-				JavaRunVersion=$(${JavaRun} --version | head -n 1)
-				JavaCplVersion=$(${JavaCpl} --version | head -n 1)
-				echo "${JavaRunVersion}"
-				echo "${JavaCplVersion}"
+			local LangRunVersion=$(${LangRun} --version 2> /dev/null)
+			local LangCplVersion=$(${LangCpl} --version 2> /dev/null)
+			if [ ! -z "${LangRunVersion}" ]; then
+				LangRunVersion=$(${LangRun} --version | head -n 1)
+				LangCplVersion=$(${LangCpl} --version | head -n 1)
+				echo "${LangRunVersion}"
+				echo "${LangCplVersion}"
 			else
-				${JavaRun} -version
-				${JavaCpl} -version
+				${LangRun} -version
+				${LangCpl} -version
 			fi
 			echo ""
 			;;
 		selectCode)
 			local name=$1
 			#Correct filename
-			if [[ ! "${name}" == *".java" ]]; then
-				name="${name}.java"
+			if [[ ! "${name}" == *"${LangExt}" ]]; then
+				name="${name}${LangExt}"
 			fi
 			echo ${name}
 			;;
@@ -164,9 +165,9 @@ UseJava()
 			local src=$1
 			local new=$2
 			case ${src} in
-				*.java)
+				*${LangExt})
 					case ${new} in
-						*.java)
+						*${LangExt})
 							if [ -f "${new}" ]; then
 								echo "${src},${new}"
 							else
@@ -174,8 +175,8 @@ UseJava()
 							fi
 							;;
 						*)
-							if [ -f "${new}.java" ]; then
-								echo "${src},${new}.java"
+							if [ -f "${new}${LangExt}" ]; then
+								echo "${src},${new}${LangExt}"
 							else
 								echo "${src}"
 							fi
@@ -190,16 +191,16 @@ UseJava()
 			local src=$1
 			local num=$2
 			case ${src} in
-				*.java)
+				*${LangExt})
 					if [[ "${src}" == *","* ]]; then
 						if [ -z ${num} ]; then
 							errorCode "editNull"
 						else
 							if [[ "${src}" == *"${num}"* ]]; then
-								if [[ "${num}" == *".java" ]]; then
+								if [[ "${num}" == *"${LangExt}" ]]; then
 									${editor} ${num}
 								else
-									${editor} "${num}.java"
+									${editor} "${num}${LangExt}"
 								fi
 							else
 								errorCode "editNot"
@@ -217,16 +218,16 @@ UseJava()
 			local src=$1
 			local num=$2
 			case ${src} in
-				*.java)
+				*${LangExt})
 					if [[ "${src}" == *","* ]]; then
 						if [ -z ${num} ]; then
 							errorCode "readNull"
 						else
 							if [[ "${src}" == *"${num}"* ]]; then
-								if [[ "${num}" == *".java" ]]; then
+								if [[ "${num}" == *"${LangExt}" ]]; then
 									${ReadBy} ${num}
 								else
-									${ReadBy} "${num}.java"
+									${ReadBy} "${num}${LangExt}"
 								fi
 							else
 								errorCode "readNot"
@@ -261,12 +262,12 @@ UseJava()
 			esac
 			#Compile source code
 			case ${src} in
-				*.java)
+				*${LangExt})
 					#Multiple code selected
 					if [[ "${src}" == *","* ]]; then
 						if [[ "${project}" == *"/" ]]; then
 							#Compile Java prgram
-							ERROR=$(${JavaCpl} *.java 2>&1 | tr '\n' '|')
+							ERROR=$(${LangCpl} *${LangExt} 2>&1 | tr '\n' '|')
 							#move Java Class to Binary dir
 							if [ -f *.class ]; then
 								mv *.class ${TheBinDir}/
@@ -283,7 +284,7 @@ UseJava()
 					#single code selected
 					else
 						#Compile Java prgram
-						ERROR=$(${JavaCpl} ${src} 2>&1 | tr '\n' '|')
+						ERROR=$(${LangCpl} ${src} 2>&1 | tr '\n' '|')
 						#get Java Class/compiled file name
 						des=${src%.*}.class
 						if [ -f ${des} ]; then
@@ -342,8 +343,8 @@ UseJava()
 			esac
 			;;
 		newProject)
-			local project=$1
-			local type=$2
+			local type=$1
+			local project=$2
 			local path=${LangSrc}/${project}
 			if [ ! -d ${path} ]; then
 				mkdir ${path}
@@ -374,7 +375,7 @@ UseJava()
 			local src=$1
 			#cd "${LangSrc}"
 			#Get Java Name
-			src="${src%.*}.java"
+			src="${src%.*}${LangExt}"
 			#Check if Java source exists
 			if [ -f "${LangSrc}/${src}" ]; then
 				#Return Java Source Name
@@ -384,7 +385,7 @@ UseJava()
 		SwapToBin)
 			local bin=$1
 			case ${bin} in
-				*.java)
+				*${LangExt})
 					#cd "${LangBin}"
 					#Keep SrcName
 					OldBin="${bin}"
@@ -407,10 +408,10 @@ UseJava()
 			local bin=$1
 			local BinFile="${bin%.*}"
 			#Java binary
-			if [[ "${bin}" == *".java" ]]; then
+			if [[ "${bin}" == *"${LangExt}" ]]; then
 				#Check for Jar file
 				if [ -f "${LangBin}/${BinFile}.jar" ]; then
-					AddAlias "${BinFile}" "${JavaRun} -jar ${LangBin}/${BinFile}.jar"
+					AddAlias "${BinFile}" "${LangRun} -jar ${LangBin}/${BinFile}.jar"
 				elif [ -f "${LangBin}/${bin}.class" ]; then
 					echo "Please compile as jar file"
 					echo "[hint] $ cpl jar"
@@ -436,12 +437,12 @@ UseJava()
 				#Program Args Given
 				if [ ! -z "${Args}" ];then
 					cd ${LangBin}
-					java newJava ${Args[@]}
+					${LangRun} newJava ${Args[@]}
 					cd - > /dev/null
-					mv "${LangBin}/*.java" . 2> /dev/null
+					mv "${LangBin}/*${LangExt}" . 2> /dev/null
 				else
 					cd ${LangBin}
-					java newJava --help
+					${LangRun} newJava --help
 					cd - > /dev/null
 				fi
 			#Check for Custom Code Template...is jar
@@ -450,10 +451,10 @@ UseJava()
 				read -a Args
 				#Program Args Given
 				if [ ! -z "${Args}" ];then
-					java -jar ${TemplateCodeJar} ${Args[@]}
+					${LangRun} -jar ${TemplateCodeJar} ${Args[@]}
 				#No Program Name Given
 				else
-					java -jar ${TemplateCodeJar} --help
+					${LangRun} -jar ${TemplateCodeJar} --help
 				fi
 			else
 				#Program Name Given
@@ -465,8 +466,8 @@ UseJava()
 			local Project=$2
 			local Type=$3
 			Type=$(echo ${Type} | tr A-Z a-z)
-			name=${name%.java}
-			if [ ! -f ${name}.java ]; then
+			name=${name%${LangExt}}
+			if [ ! -f ${name}${LangExt} ]; then
 				#Check for Custom Code Template...is class
 				if [ -f ${TemplateCodeClass} ]; then
 					#Program Name Given
@@ -475,21 +476,21 @@ UseJava()
 							#create main file
 							main)
 								cd ${LangBin}
-								java newJava --user $USER --main --shell --write-file --read-file --user-input --name ${name}
+								${LangRun} newJava --user $USER --main --shell --write-file --read-file --user-input --name ${name}
 								cd - > /dev/null
-								mv "${LangBin}/${name}.java" .
+								mv "${LangBin}/${name}${LangExt}" .
 								;;
 							#create component file
 							component)
 								cd ${LangBin}
-								java newJava --user $USER --write-file --read-file --name "${name}"
+								${LangRun} newJava --user $USER --write-file --read-file --name "${name}"
 								cd - > /dev/null
-								mv "${LangBin}/${name}.java" .
+								mv "${LangBin}/${name}${LangExt}" .
 								;;
 							#cl[ide] knows best
 							*)
 								#main class already created
-								if [[ "${oldCode}" == *".java" ]]; then
+								if [[ "${oldCode}" == *"${LangExt}" ]]; then
 									#Create libary class
 									UseJava "newCode" ${name} ${oldCode} ${Project} "component"
 								else
@@ -511,16 +512,16 @@ UseJava()
 					case ${Type} in
 						#create main file
 						main)
-							java -jar ${TemplateCodeJar} --user $USER --main --shell --write-file --read-file --user-input --name "${name}"
+							${LangRun} -jar ${TemplateCodeJar} --user $USER --main --shell --write-file --read-file --user-input --name "${name}"
 							;;
 						#create component file
 						component)
-							java -jar ${TemplateCodeJar} --user $USER --write-file --read-file --name "${name}"
+							${LangRun} -jar ${TemplateCodeJar} --user $USER --write-file --read-file --name "${name}"
 							;;
 						#cl[ide] knows best
 						*)
 							#main class already created
-							if [[ "${oldCode}" == *".java" ]]; then
+							if [[ "${oldCode}" == *"${LangExt}" ]]; then
 								#Create libary class
 								UseJava "newCode" ${name} ${oldCode} ${Project} "component"
 							else
@@ -531,15 +532,15 @@ UseJava()
 					esac
 					#No Program Name Given
 					else
-						java -jar ${TemplateCodeJar} --help
+						${LangRun} -jar ${TemplateCodeJar} --help
 					fi
 				#No Program Name Given
 				else
 					#Program Name Given
 					if [ ! -z "${name}" ];then
 						local Content="//class path goes here\n\n/**\n *\n * @author $USER\n */\n\n//class name\npublic class ${name} {\n\n\t/**\n\t* @param args the command line arguments\n\t*/\n\tpublic static void main(String[] args) {\n\n\t}\n}"
-						touch ${name}.java
-						echo -e "${Content}" > ${name}.java
+						touch ${name}${LangExt}
+						echo -e "${Content}" > ${name}${LangExt}
 					else
 						errorCode "newCode"
 					fi
@@ -604,7 +605,7 @@ UseJava()
 			#Check for Java System.getProperty
 			local getPropPresent=$(grep "System.getProperty" ${name} | grep \, | tr -d '\t')
 			if [ ! -z "${getPropPresent}" ] && [ -z "${JavaProp}" ]; then
-				if [ -z "${JavaRunProp}" ]; then
+				if [ -z "${LangRunProp}" ]; then
 					#User Provide Values
 					echo "Please Provide Java Property"
 					echo -n "-D"
@@ -616,8 +617,8 @@ UseJava()
 				if [[ "${EnvArgs}" == "-D"*"=\""*"\"" ]]; then
 					JavaProp=${EnvArgs}
 				#Args pre-set
-				elif [[ "${JavaRunProp}" == "-D"*"=\""*"\"" ]]; then
-					JavaProp=${JavaRunProp}
+				elif [[ "${LangRunProp}" == "-D"*"=\""*"\"" ]]; then
+					JavaProp=${LangRunProp}
 				else
 					JavaProp=""
 				fi
@@ -651,16 +652,16 @@ UseJava()
 				case ${JavaProp} in
 					none)
 						#Execute without
-						${JavaRun} ${TheBin} ${Args[@]}
+						${LangRun} ${TheBin} ${Args[@]}
 						;;
 					*)
-						${JavaRun} "${JavaProp}" ${TheBin} ${Args[@]}
+						${LangRun} "${JavaProp}" ${TheBin} ${Args[@]}
 						;;
 				esac
 				cd - > /dev/null
 			#Check if Java Jar exists
 			elif [ -f ${TheBinDir}/${TheJar} ]; then
-				${JavaRun} -jar ${TheBinDir}/${TheJar} ${Args[@]}
+				${LangRun} -jar ${TheBinDir}/${TheJar} ${Args[@]}
 			else
 				errorCode "cpl" "need" "${name}"
 			fi
@@ -695,21 +696,21 @@ UseJava()
 			local TheOld=$1
 			local TheNew=$2
 			if [ ! -z "${TheNew}" ]; then
-				TheOld="${TheOld%.java}"
-				TheNew="${TheNew%.java}"
-				sed "s/${TheOld}/${TheNew}/g" ${LangSrc}/${TheOld}.java > ${LangSrc}/${TheNew}.java
-				rm ${LangSrc}/${TheOld}.java
-				echo ${TheNew}.java
+				TheOld="${TheOld%${LangExt}}"
+				TheNew="${TheNew%${LangExt}}"
+				sed "s/${TheOld}/${TheNew}/g" ${LangSrc}/${TheOld}${LangExt} > ${LangSrc}/${TheNew}${LangExt}
+				rm ${LangSrc}/${TheOld}${LangExt}
+				echo ${TheNew}${LangExt}
 			fi
 			;;
 		copy)
 			local TheOld=$1
 			local TheNew=$2
 			if [ ! -z "${TheNew}" ]; then
-				TheOld="${TheOld%.java}"
-				TheNew="${TheNew%.java}"
-				sed "s/${TheOld}/${TheNew}/g" ${LangSrc}/${TheOld}.java > ${LangSrc}/${TheNew}.java
-				echo ${TheNew}.java
+				TheOld="${TheOld%${LangExt}}"
+				TheNew="${TheNew%${LangExt}}"
+				sed "s/${TheOld}/${TheNew}/g" ${LangSrc}/${TheOld}${LangExt} > ${LangSrc}/${TheNew}${LangExt}
+				echo ${TheNew}${LangExt}
 			fi
 			;;
 		*)

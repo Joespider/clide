@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.18"
+SupportV="0.1.21"
 
 ProgDir=$1
 shift
@@ -37,11 +37,12 @@ OtherColor()
 
 UseRuby()
 {
-	local RubyRun=ruby
+	local LangRun=ruby
 	local LangHome=${ProgDir}/Ruby
 	local LangSrc=${LangHome}/src
 	local LangBin=${LangHome}/bin
-	local TemplateCode=${LangBin}/newRuby.rb
+	local LangExt=".rb"
+	local TemplateCode=${LangBin}/newRuby${LangExt}
 	local Type=$1
 	shift
 	case ${Type} in
@@ -64,7 +65,7 @@ UseRuby()
 			echo -e "cpl, compile\t\t\t: \"make code executable\""
 			;;
 		pgLang)
-			local HasLang=$(which ${RubyRun} 2> /dev/null)
+			local HasLang=$(which ${LangRun} 2> /dev/null)
 			if [ ! -z "${HasLang}" ]; then
 				#Return Ruby tag
 				echo "Ruby"
@@ -77,15 +78,15 @@ UseRuby()
 			local name=$1
 			case ${CodeProject} in
 				none)
-					if [ -f ${LangSrc}/${name}.rb ]; then
-						echo ${name}.rb
+					if [ -f ${LangSrc}/${name}${LangExt} ]; then
+						echo ${name}${LangExt}
 					elif [ -f ${LangSrc}/${name} ]; then
 						echo ${name}
 					fi
 					;;
 				*)
-					if [ -f ${LangSrc}/${CodeProject}/src/${name}.rb ]; then
-						echo ${name}.rb
+					if [ -f ${LangSrc}/${CodeProject}/src/${name}${LangExt} ]; then
+						echo ${name}${LangExt}
 					elif [ -f ${LangSrc}/${CodeProject}/src/${name} ]; then
 						echo ${name}
 					fi
@@ -93,7 +94,7 @@ UseRuby()
 			esac
 			;;
 		BeforeFiles|AfterFiles)
-			ls *.rb
+			ls *${LangExt}
 			;;
 		pgDir)
 			#Return Ruby src Dir
@@ -110,36 +111,36 @@ UseRuby()
 			;;
 		EnsureDirs)
 			#Home
-			if [ ! -d "${LangHome}" ] && [ ! -z "${RubyRun}" ]; then
+			if [ ! -d "${LangHome}" ] && [ ! -z "${LangRun}" ]; then
 				mkdir "${LangHome}"
 			fi
 			#Src
-			if [ ! -d "${LangSrc}" ] && [ ! -z "${RubyRun}" ]; then
+			if [ ! -d "${LangSrc}" ] && [ ! -z "${LangRun}" ]; then
 				mkdir "${LangSrc}"
 			fi
 			#Bin
-			if [ ! -d "${LangBin}" ] && [ ! -z "${RubyRun}" ]; then
+			if [ ! -d "${LangBin}" ] && [ ! -z "${LangRun}" ]; then
 				mkdir "${LangBin}"
 			fi
 			;;
 		TemplateVersion)
 			if [ -f ${TemplateCode} ]; then
 				echo -n "${TemplateCode##*/} "
-				${RubyRun} ${TemplateCode} 2> /dev/null | grep Version | sed "s/Version//g"
+				${LangRun} ${TemplateCode} 2> /dev/null | grep Version | sed "s/Version//g"
 			else
 				echo "no ${TemplateCode##*/} found"
 			fi
 			;;
 		CplVersion)
 			echo "[Ruby Shell]"
-			${RubyRun} --version
+			${LangRun} --version
 			echo ""
 			;;
 		selectCode)
 			local name=$1
 			#Correct filename
-			if [[ ! "${name}" == *".rb" ]]; then
-				name="${name}.rb"
+			if [[ ! "${name}" == *"${LangExt}" ]]; then
+				name="${name}${LangExt}"
 			fi
 			echo ${name}
 			;;
@@ -147,9 +148,9 @@ UseRuby()
 			local src=$1
 			local new=$2
 			case ${src} in
-				*.rb)
+				*${LangExt})
 					case ${new} in
-						*.rb)
+						*${LangExt})
 							if [ -f "${new}" ]; then
 								echo "${src},${new}"
 							else
@@ -157,8 +158,8 @@ UseRuby()
 							fi
 							;;
 						*)
-							if [ -f "${new}.rb" ]; then
-								echo "${src},${new}.rb"
+							if [ -f "${new}${LangExt}" ]; then
+								echo "${src},${new}${LangExt}"
 							else
 								echo "${src}"
 							fi
@@ -173,16 +174,16 @@ UseRuby()
 			local src=$1
 			local num=$2
 			case ${src} in
-				*.rb)
+				*${LangExt})
 					if [[ "${src}" == *","* ]]; then
 						if [ -z ${num} ]; then
 							errorCode "editNull"
 						else
 							if [[ "${src}" == *"${num}"* ]]; then
-								if [[ "${num}" == *".rb" ]]; then
+								if [[ "${num}" == *"${LangExt}" ]]; then
 									${editor} ${num}
 								else
-									${editor} "${num}.rb"
+									${editor} "${num}${LangExt}"
 								fi
 							else
 								errorCode "editNot"
@@ -200,16 +201,16 @@ UseRuby()
 			local src=$1
 			local num=$2
 			case ${src} in
-				*.rb)
+				*${LangExt})
 					if [[ "${src}" == *","* ]]; then
 						if [ -z ${num} ]; then
 							errorCode "readNull"
 						else
 							if [[ "${src}" == *"${num}"* ]]; then
-								if [[ "${num}" == *".rb" ]]; then
+								if [[ "${num}" == *"${LangExt}" ]]; then
 									${ReadBy} ${num}
 								else
-									${ReadBy} "${num}.rb"
+									${ReadBy} "${num}${LangExt}"
 								fi
 							else
 								errorCode "readNot"
@@ -243,7 +244,7 @@ UseRuby()
 					;;
 			esac
 			case ${src} in
-				*.rb)
+				*${LangExt})
 					#Multiple code selected
 					if [[ "${src}" == *","* ]]; then
 						#variable is empty
@@ -254,9 +255,9 @@ UseRuby()
 							#chosen file is in the list of files
 							if [[ "${src}" == *"${name}"* ]]; then
 								#only name is given
-								if [[ "${name}" != *".rb" ]]; then
+								if [[ "${name}" != *"${LangExt}" ]]; then
 									#full filename given
-									num=${name}.rb
+									num=${name}${LangExt}
 								fi
 								#Make Ruby Script executable
 								chmod +x ${name}
@@ -316,8 +317,8 @@ UseRuby()
 			esac
 			;;
 		newProject)
-			local project=$1
-			local type=$2
+			local type=$1
+			local project=$2
 			local path=${LangSrc}/${project}
 			if [ ! -d ${path} ]; then
 				mkdir ${path}
@@ -353,7 +354,7 @@ UseRuby()
 		SwapToBin)
 			local bin=$1
 			case ${bin} in
-				*.rb)
+				*${LangExt})
 				#Get Ruby Name
 				#	bin="${bin%.*}"
 				#Check if Perl Binary exists
@@ -376,7 +377,7 @@ UseRuby()
 			#Make sure Binary exists
 			if [ -f "${LangBin}/${bin}" ]; then
 				#Add command to Aliases
-				AddAlias "${BinFile}" "${RubyRun} ${LangBin}/${bin}"
+				AddAlias "${BinFile}" "${LangRun} ${LangBin}/${bin}"
 			elif [ ! -f "${LangBin}/${bin}" ]; then
 				errorCode "install" "${bin}"
 			else
@@ -388,14 +389,14 @@ UseRuby()
 			local cTemplate=$(OtherColor ${TemplateCode##*/})
 			#Check for Custom Code Template
 			if [ -f ${TemplateCode} ]; then
-				echo -n "${cLang}\$ ${RubyRun} ${cTemplate} "
+				echo -n "${cLang}\$ ${LangRun} ${cTemplate} "
 				read -a Args
 				#Program Args Given
 				if [ ! -z "${Args}" ];then
-					${RubyRun} ${TemplateCode} ${Args[@]}
+					${LangRun} ${TemplateCode} ${Args[@]}
 				#No Program Name Given
 				else
-					${RubyRun} ${TemplateCode} --help
+					${LangRun} ${TemplateCode} --help
 				fi
 			else
 				#Program Name Given
@@ -407,21 +408,21 @@ UseRuby()
 			local Project=$2
 			local Type=$3
 			Type=$(echo ${Type} | tr A-Z a-z)
-			name=${name%.rb}
-			if [ ! -f ${name}.rb ]; then
+			name=${name%${LangExt}}
+			if [ ! -f ${name}${LangExt} ]; then
 				#Check for Custom Code Template
 				if [ -f ${TemplateCode} ]; then
 					#Program Name Given
 					if [ ! -z "${name}" ];then
-						${RubyRun} ${TemplateCode} -n ${name} --cli --user $USER --main --write-file --read-file --user-input
+						${LangRun} ${TemplateCode} -n ${name} --cli --user $USER --main --write-file --read-file --user-input
 					#No Program Name Given
 					else
-						${RubyRun} ${TemplateCode} --help
+						${LangRun} ${TemplateCode} --help
 					fi
 				else
 					#Program Name Given
 					if [ ! -z "${name}" ];then
-						touch ${name}.rb
+						touch ${name}${LangExt}
 					else
 						errorCode "newCode"
 					fi
@@ -430,7 +431,7 @@ UseRuby()
 			;;
 		cli)
 			local TheName=$(OtherColor $1)
-			echo "${RubyRun} ${TheName}"
+			echo "${LangRun} ${TheName}"
 			;;
 		runCode)
                         local name=$1
@@ -453,7 +454,7 @@ UseRuby()
 			esac
 			#Check if Ruby Bin exists
 			if [ -f ${TheBinDir}/${TheBin} ]; then
-				${RubyRun} ${TheBinDir}/${TheBin} ${Args[@]}
+				${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
 			else
 				errorCode "cpl" "need" "${name}"
 			fi
@@ -488,20 +489,20 @@ UseRuby()
 			local TheOld=$1
 			local TheNew=$2
 			if [ ! -z "${TheNew}" ]; then
-				TheOld="${TheOld%.rb}" 
-				TheNew="${TheNew%.rb}"
-				mv ${LangSrc}/${TheOld}.rb ${LangSrc}/${TheNew}.rb
-				echo ${TheNew}.rb
+				TheOld="${TheOld%${LangExt}}" 
+				TheNew="${TheNew%${LangExt}}"
+				mv ${LangSrc}/${TheOld}${LangExt} ${LangSrc}/${TheNew}${LangExt}
+				echo ${TheNew}${LangExt}
 			fi
 			;;
 		copy)
 			local TheOld=$1
 			local TheNew=$2
 			if [ ! -z "${TheNew}" ]; then
-				TheOld="${TheOld%.rb}" 
-				TheNew="${TheNew%.rb}"
-				cp ${LangSrc}/${TheOld}.rb ${LangSrc}/${TheNew}.rb
-				echo ${TheNew}.rb
+				TheOld="${TheOld%${LangExt}}" 
+				TheNew="${TheNew%${LangExt}}"
+				cp ${LangSrc}/${TheOld}${LangExt} ${LangSrc}/${TheNew}${LangExt}
+				echo ${TheNew}${LangExt}
 			fi
 			;;
 		*)

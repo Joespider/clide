@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.20"
+SupportV="0.1.23"
 
 ProgDir=$1
 shift
@@ -37,11 +37,12 @@ OtherColor()
 
 UsePython()
 {
-	local PythonRun=python
+	local LangRun=python
 	local LangHome=${ProgDir}/Python
 	local LangSrc=${LangHome}/src
 	local LangBin=${LangHome}/bin
-	local TemplateCode=${LangBin}/newPython.py
+	local LangExt=".py"
+	local TemplateCode=${LangBin}/newPython${LangExt}
 	local Type=$1
 	shift
 	case ${Type} in
@@ -68,16 +69,16 @@ UsePython()
 			case ${CodeProject} in
 				none)
 					#Get code 
-					if [ -f ${LangSrc}/${name}.py ]; then
-						echo ${name}.py
+					if [ -f ${LangSrc}/${name}${LangExt} ]; then
+						echo ${name}${LangExt}
 					elif [ -f ${LangSrc}/${name} ]; then
 						echo ${name}
 					fi
 					;;
 				*)
 					#Get code 
-					if [ -f ${LangSrc}/${CodeProject}/src/${name}.py ]; then
-						echo ${name}.py
+					if [ -f ${LangSrc}/${CodeProject}/src/${name}${LangExt} ]; then
+						echo ${name}${LangExt}
 					elif [ -f ${LangSrc}/${CodeProject}/src/${name} ]; then
 						echo ${name}
 					fi
@@ -85,10 +86,10 @@ UsePython()
 			esac
 			;;
 		BeforeFiles|AfterFiles)
-			ls *.py 2> /dev/null
+			ls *${LangExt} 2> /dev/null
 			;;
 		pgLang)
-			local HasLang=$(which ${PythonRun} 2> /dev/null)
+			local HasLang=$(which ${LangRun} 2> /dev/null)
 			if [ ! -z "${HasLang}" ]; then
 				#Return Python tag
 				echo "Python"
@@ -104,7 +105,7 @@ UsePython()
 		CreateHelp)
 			;;
 		shell)
-			${PythonRun}
+			${LangRun}
 			;;
 		newCodeHelp)
 			if [ -f ${TemplateCode} ]; then
@@ -113,36 +114,36 @@ UsePython()
 			;;
 		EnsureDirs)
 			#Home
-			if [ ! -d "${LangHome}" ] && [ ! -z "${PythonRun}" ]; then
+			if [ ! -d "${LangHome}" ] && [ ! -z "${LangRun}" ]; then
 				mkdir "${LangHome}"
 			fi
 			#Src
-			if [ ! -d "${LangSrc}" ] && [ ! -z "${PythonRun}" ]; then
+			if [ ! -d "${LangSrc}" ] && [ ! -z "${LangRun}" ]; then
 				mkdir "${LangSrc}"
 			fi
 			#Bin
-			if [ ! -d "${LangBin}" ] && [ ! -z "${PythonRun}" ]; then
+			if [ ! -d "${LangBin}" ] && [ ! -z "${LangRun}" ]; then
 				mkdir "${LangBin}"
 			fi
 			;;
 		TemplateVersion)
 			if [ -f ${TemplateCode} ]; then
 				echo -n "${TemplateCode##*/} "
-				${PythonRun} ${TemplateCode} 2> /dev/null | grep Version | sed "s/Version//g"
+				${LangRun} ${TemplateCode} 2> /dev/null | grep Version | sed "s/Version//g"
 			else
 				echo "no ${TemplateCode##*/} found"
 			fi
 			;;
 		CplVersion)
 			echo "[Python Shell]"
-			${PythonRun} --version
+			${LangRun} --version
 			echo ""
 			;;
 		selectCode)
 			local name=$1
 			#Correct filename
-			if [[ ! "${name}" == *".py" ]]; then
-				name="${name}.py"
+			if [[ ! "${name}" == *"${LangExt}" ]]; then
+				name="${name}${LangExt}"
 			fi
 			echo ${name}
 			;;
@@ -150,9 +151,9 @@ UsePython()
 			local src=$1
 			local new=$2
 			case ${src} in
-				*.py)
+				*${LangExt})
 					case ${new} in
-						*.py)
+						*${LangExt})
 							if [ -f "${new}" ]; then
 								echo "${src},${new}"
 							else
@@ -160,8 +161,8 @@ UsePython()
 							fi
 							;;
 						*)
-							if [ -f "${new}.py" ]; then
-								echo "${src},${new}.py"
+							if [ -f "${new}${LangExt}" ]; then
+								echo "${src},${new}${LangExt}"
 							else
 								echo "${src}"
 							fi
@@ -176,16 +177,16 @@ UsePython()
 			local src=$1
 			local num=$2
 			case ${src} in
-				*.py)
+				*${LangExt})
 					if [[ "${src}" == *","* ]]; then
 						if [ -z ${num} ]; then
 							errorCode "editNull"
 						else
 							if [[ "${src}" == *"${num}"* ]]; then
-								if [[ "${num}" == *".py" ]]; then
+								if [[ "${num}" == *"${LangExt}" ]]; then
 									${editor} ${num}
 								else
-									${editor} "${num}.py"
+									${editor} "${num}${LangExt}"
 								fi
 							else
 								errorCode "editNot"
@@ -203,16 +204,16 @@ UsePython()
 			local src=$1
 			local num=$2
 			case ${src} in
-				*.py)
+				*${LangExt})
 					if [[ "${src}" == *","* ]]; then
 						if [ -z ${num} ]; then
 							errorCode "readNull"
 						else
 							if [[ "${src}" == *"${num}"* ]]; then
-								if [[ "${num}" == *".py" ]]; then
+								if [[ "${num}" == *"${LangExt}" ]]; then
 									${ReadBy} ${num}
 								else
-									${ReadBy} "${num}.py"
+									${ReadBy} "${num}${LangExt}"
 								fi
 							else
 								errorCode "readNot"
@@ -246,7 +247,7 @@ UsePython()
 					;;
 			esac
 			case ${src} in
-				*.py)
+				*${LangExt})
 					#Compile Python Script
 					#py2bin "${src}"
 					#Get Python Name
@@ -264,9 +265,9 @@ UsePython()
 							#chosen file is in the list of files
 							if [[ "${src}" == *"${name}"* ]]; then
 								#only name is given
-								if [[ "${name}" != *".py" ]]; then
+								if [[ "${name}" != *"${LangExt}" ]]; then
 									#full filename given
-									num=${name}.py
+									num=${name}${LangExt}
 								fi
 								#Make Python Script executable
 								chmod +x ${name}
@@ -326,8 +327,8 @@ UsePython()
 			esac
 			;;
 		newProject)
-			local project=$1
-			local type=$2
+			local type=$1
+			local project=$2
 			local path=${LangSrc}/${project}
 			if [ ! -d ${path} ]; then
 				mkdir ${path}
@@ -358,7 +359,7 @@ UsePython()
 		SwapToSrc)
 			local src=$1
 			#Get Python Name
-		#	src="${src}.py"
+		#	src="${src}${LangExt}"
 		#	#Check if Python source exists
 		#	if [[ -f "${LangSrc}/${src}" ]]; then
 		#		#Return Python Source Name
@@ -368,7 +369,7 @@ UsePython()
 		SwapToBin)
 			local bin=$1
 			case ${bin} in
-				*.py)
+				*${LangExt})
 					#Get Python Name
 				#	bin="${bin%.*}"
 					#Check if Python Binary exists
@@ -391,7 +392,7 @@ UsePython()
 			#Make sure Binary exists
 			if [ -f "${LangBin}/${bin}" ]; then
 				#Add command to Aliases
-				AddAlias "${BinFile}" "${PythonRun} ${LangBin}/${bin}"
+				AddAlias "${BinFile}" "${LangRun} ${LangBin}/${bin}"
 			elif [ ! -f "${LangBin}/${bin}" ]; then
 				errorCode "install" "${bin}"
 			else
@@ -403,14 +404,14 @@ UsePython()
 			local cTemplate=$(OtherColor ${TemplateCode##*/})
 			#Check for Custom Code Template
 			if [ -f ${TemplateCode} ]; then
-				echo -n "${cLang}\$ ${PythonRun} ${cTemplate} "
+				echo -n "${cLang}\$ ${LangRun} ${cTemplate} "
 				read -a Args
 				#Program Args Given
 				if [ ! -z "${Args}" ];then
-					${PythonRun} ${TemplateCode} ${Args[@]}
+					${LangRun} ${TemplateCode} ${Args[@]}
 				#No Program Name Given
 				else
-					${PythonRun} ${TemplateCode} --help
+					${LangRun} ${TemplateCode} --help
 				fi
 			else
 				#Program Name Given
@@ -422,23 +423,23 @@ UsePython()
 			local Project=$2
 			local Type=$3
 			Type=$(echo ${Type} | tr A-Z a-z)
-			local name=${name%.py}
-			if [ ! -f ${name}.py ]; then
+			local name=${name%${LangExt}}
+			if [ ! -f ${name}${LangExt} ]; then
 				#Check for Custom Code Template
 				if [ -f ${TemplateCode} ]; then
 					#Program Name Given
 					if [ ! -z "${name}" ];then
-						${PythonRun} ${TemplateCode} -n ${name} --cli --main --shell --write-file --read-file --os --random
+						${LangRun} ${TemplateCode} -n ${name} --cli --main --shell --write-file --read-file --os --random
 					#No Program Name Given
 					else
-						${PythonRun} ${TemplateCode} --help
+						${LangRun} ${TemplateCode} --help
 					fi
 				else
 					#Program Name Given
 					if [ ! -z "${name}" ];then
 						local Content="import sys\n\n#python main\ndef main():\n\tArgs = sys.argv\n\nmain()"
-						touch ${name}.py
-						echo -e "${Content}" > ${name}.py
+						touch ${name}${LangExt}
+						echo -e "${Content}" > ${name}${LangExt}
 					else
 						errorCode "newCode"
 					fi
@@ -447,7 +448,7 @@ UsePython()
 			;;
 		cli)
 			local TheName=$(OtherColor $1)
-			echo "${PythonRun} ${TheName}"
+			echo "${LangRun} ${TheName}"
 			;;
 		runCode)
 			local name=$1
@@ -470,7 +471,7 @@ UsePython()
 			esac
 			#Check if Python Bin exists
 			if [ -f ${TheBinDir}/${TheBin} ]; then
-				${PythonRun} ${TheBinDir}/${TheBin} ${Args[@]}
+				${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
 			else
 				errorCode "cpl" "need" "${name}"
 			fi
@@ -505,20 +506,20 @@ UsePython()
 			local TheOld=$1
 			local TheNew=$2
 			if [ ! -z "${TheNew}" ]; then
-				TheOld="${TheOld%.py}" 
-				TheNew="${TheNew%.py}"
-				mv ${LangSrc}/${TheOld}.py ${LangSrc}/${TheNew}.py
-				echo ${TheNew}.py
+				TheOld="${TheOld%${LangExt}}" 
+				TheNew="${TheNew%${LangExt}}"
+				mv ${LangSrc}/${TheOld}${LangExt} ${LangSrc}/${TheNew}${LangExt}
+				echo ${TheNew}${LangExt}
 			fi
 			;;
 		copy)
 			local TheOld=$1
 			local TheNew=$2
 			if [ ! -z "${TheNew}" ]; then
-				TheOld="${TheOld%.py}" 
-				TheNew="${TheNew%.py}"
-				cp ${LangSrc}/${TheOld}.py ${LangSrc}/${TheNew}.py
-				echo ${TheNew}.py
+				TheOld="${TheOld%${LangExt}}" 
+				TheNew="${TheNew%${LangExt}}"
+				cp ${LangSrc}/${TheOld}${LangExt} ${LangSrc}/${TheNew}${LangExt}
+				echo ${TheNew}${LangExt}
 			fi
 			;;
 		*)

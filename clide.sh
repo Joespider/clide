@@ -79,6 +79,7 @@ MenuHelp()
 	echo -e "using\t\t\t\t: \"get the language being used\""
 	echo -e "unset\t\t\t\t: \"deselect source code\""
 	echo -e "use <language> <code>\t\t: \"choose language\""
+	echo -e "using\t\t\t\t:\"Display what language is being used\""
 	echo -e "save\t\t\t\t: \"Save session\""
 #	echo -e "swap, swp {src|bin}\t\t: \"swap between sorce code and executable\""
 	echo -e "create <arg>\t\t\t: \"create compile and runtime arguments"
@@ -266,9 +267,11 @@ ManageLangs()
 	fi
 }
 
-ModeHanlder()
+ModeHandler()
 {
-	local Mode=$1
+	local Lang=$1
+	local cLang=$2
+	local Mode=$3
 	case ${Mode} in
 		${repoTool}|repo)
 			#Use ONLY for Projects
@@ -279,7 +282,7 @@ ModeHanlder()
 			fi
 			;;
 		add)
-				${ModesDir}/add.sh
+				${ModesDir}/add.sh "${LibDir}" "${LangsDir}" "${ClideProjectDir}" ${Lang} ${cLang}
 			;;
 		-h|--help)
 			ModesHelp
@@ -315,6 +318,8 @@ EnsureDirs()
 
 	if [ ! -d "${ClideProjectDir}" ]; then
 		mkdir "${ClideProjectDir}"
+		mkdir "${ClideProjectDir}/Template"
+		mkdir "${ClideProjectDir}/Active"
 	fi
 
 	local Langs=$(ls ${LangsDir}/ | sed "s/Lang.//g" | tr '\n' '|' | rev | sed "s/|//1" | rev)
@@ -509,7 +514,7 @@ importProject()
 	local Lang=$1
 	local Name=$2
 	local Path=$3
-	local ProjectFile=${ClideProjectDir}/${Name}.clide
+	local ProjectFile=${ClideProjectDir}/Active/${Name}.clide
 	if [ ! -z "${Name}" ]; then
 		Path=$(eval $(echo ${Path}))
 		if [ ! -f ${ProjectFile} ]; then
@@ -551,7 +556,7 @@ newProject()
 	local lang=$1
 	local project=$2
 	local projectType=$3
-	local ProjectFile=${ClideProjectDir}/${project}.clide
+	local ProjectFile=${ClideProjectDir}/Active/${project}.clide
 	local path=""
 	#No Project is found
 	if [ -z "${project}" ]; then
@@ -586,7 +591,7 @@ updateProject()
 {
 	local project=$1
 	local src=$2
-	local ProjectFile=${ClideProjectDir}/${project}.clide
+	local ProjectFile=${ClideProjectDir}/Active/${project}.clide
 	#No Project is found
 	if [ ! -z ${src} ]; then
 		#Locate Project Directory
@@ -604,14 +609,14 @@ updateProject()
 listProjects()
 {
 	#Get list of active prijects from .clide files
-	ls ${ClideProjectDir}/ | sed "s/.clide//g"
+	ls ${ClideProjectDir}/Active/ | sed "s/.clide//g"
 }
 
 #Load active projects
 loadProject()
 {
 	local project=$1
-	local ProjectFile=${ClideProjectDir}/${project}.clide
+	local ProjectFile=${ClideProjectDir}/Active/${project}.clide
 	local path=""
 	local RtnVals=""
 	local tag=""
@@ -1234,7 +1239,7 @@ Actions()
 #					;;
 				#Modes
 				mode)
-					ModeHanlder ${UserIn[1]}
+					ModeHandler ${Lang} ${cLang} ${UserIn[1]}
 					;;
 				#search for element in project
 				search)
@@ -1545,7 +1550,7 @@ loadAuto()
 	comp_list "pwd"
 	comp_list "mkdir"
 	comp_list "use" "${pg}"
-	comp_list "project" "load import new list"
+	comp_list "project" "load import new list update"
 	comp_list "shell"
 	comp_list "new" "--version -v --help -h --custom -c"
 	comp_list "${editor} ed edit" "non-lang"

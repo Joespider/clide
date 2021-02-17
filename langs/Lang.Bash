@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.20"
+SupportV="0.1.23"
 
 ProgDir=$1
 shift
@@ -37,11 +37,12 @@ OtherColor()
 
 UseBash()
 {
-	local BashCpl=bash
+	local LangCpl=bash
 	local LangHome=${ProgDir}/Bash
 	local LangSrc=${LangHome}/src
 	local LangBin=${LangHome}/bin
-	local TemplateCode=${LangBin}/newBash.sh
+	local LangExt=".sh"
+	local TemplateCode=${LangBin}/newBash${LangExt}
 	local Type=$1
 	shift
 	case ${Type} in
@@ -63,7 +64,7 @@ UseBash()
 			echo -e "cpl, compile\t\t\t: \"make code executable\""
 			;;
 		pgLang)
-			HasLang=$(which ${BashCpl} 2> /dev/null)
+			HasLang=$(which ${LangCpl} 2> /dev/null)
 			if [ ! -z "${HasLang}" ]; then
 				#Return Bash tag
 				echo "Bash"
@@ -78,15 +79,15 @@ UseBash()
 			#Get code
                         case ${project} in
                                 none)
-					if [ -f ${LangSrc}/${name}.sh ]; then
-						echo ${name}.sh
+					if [ -f ${LangSrc}/${name}${LangExt} ]; then
+						echo ${name}${LangExt}
 					elif [ -f ${LangSrc}/${name} ]; then
 						echo ${name}
 					fi
 					;;
 				*)
-					if [ -f ${LangSrc}/${project}/src/${name}.sh ]; then
-						echo ${name}.sh
+					if [ -f ${LangSrc}/${project}/src/${name}${LangExt} ]; then
+						echo ${name}${LangExt}
 					elif [ -f ${LangSrc}/${project}/src/${name} ]; then
 						echo ${name}
 					fi
@@ -94,7 +95,7 @@ UseBash()
 			esac
                         ;;
 		BeforeFiles|AfterFiles)
-				ls *.sh 2> /dev/null
+				ls *${LangExt} 2> /dev/null
 			;;
 		pgDir)
 			#Return Bash src Dir
@@ -111,15 +112,15 @@ UseBash()
 			;;
 		EnsureDirs)
 			#Home
-			if [ ! -d "${LangHome}" ] && [ ! -z "${BashCpl}" ]; then
+			if [ ! -d "${LangHome}" ] && [ ! -z "${LangCpl}" ]; then
 				mkdir "${LangHome}"
 			fi
 			#Src
-			if [ ! -d "${LangSrc}" ] && [ ! -z "${BashCpl}" ]; then
+			if [ ! -d "${LangSrc}" ] && [ ! -z "${LangCpl}" ]; then
 				mkdir "${LangSrc}"
 			fi
 			#Bin
-			if [ ! -d "${LangBin}" ] && [ ! -z "${BashCpl}" ]; then
+			if [ ! -d "${LangBin}" ] && [ ! -z "${LangCpl}" ]; then
 				mkdir "${LangBin}"
 			fi
 			;;
@@ -133,14 +134,14 @@ UseBash()
 			;;
 		CplVersion)
 			echo "[Shell]"
-			${BashCpl} --version | head -n 1
+			${LangCpl} --version | head -n 1
 			echo ""
 			;;
 		selectCode)
 			local name=$1
 			#Correct filename
-			if [[ ! "${name}" == *".sh" ]]; then
-				name="${name}.sh"
+			if [[ ! "${name}" == *"${LangExt}" ]]; then
+				name="${name}${LangExt}"
 			fi
 			echo ${name}
 			;;
@@ -149,9 +150,9 @@ UseBash()
 			local src=$1
 			local new=$2
 			case ${src} in
-				*.sh)
+				*${LangExt})
 					case ${new} in
-						*.sh)
+						*${LangExt})
 							if [ -f "${new}" ]; then
 							echo "${src},${new}"
 						else
@@ -159,8 +160,8 @@ UseBash()
 						fi
 						;;
 					*)
-						if [ -f "${new}.sh" ]; then
-							echo "${src},${new}.sh"
+						if [ -f "${new}${LangExt}" ]; then
+							echo "${src},${new}${LangExt}"
 						else
 							echo "${src}"
 						fi
@@ -175,16 +176,16 @@ UseBash()
 			local src=$1
 			local num=$2
 			case ${src} in
-				*.sh)
+				*${LangExt})
 					if [[ "${src}" == *","* ]]; then
 						if [ -z ${num} ]; then
 							errorCode "editNull"
 						else
 							if [[ "${src}" == *"${num}"* ]]; then
-								if [[ "${num}" == *".sh" ]]; then
+								if [[ "${num}" == *"${LangExt}" ]]; then
 									${editor} ${num}
 								else
-									${editor} "${num}.sh"
+									${editor} "${num}${LangExt}"
 								fi
 							else
 								errorCode "editNot"
@@ -192,7 +193,7 @@ UseBash()
 						fi
 					else
 						case ${src} in
-							clide.sh)
+							clide${LangExt})
 								errorCode "editMe"
 							;;
 						*)
@@ -209,16 +210,16 @@ UseBash()
 			local src=$1
 			local num=$2
 			case ${src} in
-				*.sh)
+				*${LangExt})
 					if [[ "${src}" == *","* ]]; then
 						if [ -z ${num} ]; then
 							errorCode "readNull"
 						else
 							if [[ "${src}" == *"${num}"* ]]; then
-								if [[ "${num}" == *".sh" ]]; then
+								if [[ "${num}" == *"${LangExt}" ]]; then
 									${ReadBy} ${num}
 								else
-									${ReadBy} "${num}.sh"
+									${ReadBy} "${num}${LangExt}"
 								fi
 							else
 								errorCode "readNot"
@@ -253,7 +254,7 @@ UseBash()
 			esac
 
 			case ${src} in
-				*.sh)
+				*${LangExt})
 					#Multiple code selected
 					if [[ "${src}" == *","* ]]; then
 						#varable is empty
@@ -263,9 +264,9 @@ UseBash()
 							#chosen file is in the list of files
 							if [[ "${src}" == *"${name}"* ]]; then
 								#only name is given
-								if [[ "${name}" != *".sh" ]]; then
+								if [[ "${name}" != *"${LangExt}" ]]; then
 									#full filename given
-									num=${name}.sh
+									num=${name}${LangExt}
 								fi
 								#Make Bash Script executable
 								chmod +x ${name}
@@ -324,8 +325,8 @@ UseBash()
 			esac
 			;;
 		newProject)
-			local project=$1
-			local type=$2
+			local type=$1
+			local project=$2
 			local path=${LangSrc}/${project}
 			if [ ! -d ${path} ]; then
 				mkdir ${path}
@@ -360,7 +361,7 @@ UseBash()
 		SwapToBin)
 			local bin=$1
 			case ${bin} in
-				*.sh)
+				*${LangExt})
 					#Check if Bash Binary exists
 					if [ -f "${LangBin}/${bin}" ]; then
 						#Return Bash Binary Name
@@ -413,13 +414,13 @@ UseBash()
 			local Project=$2
 			local Type=$3
 			Type=$(echo ${Type} | tr A-Z a-z)
-			name=${name%.sh}
-			if [ ! -f ${name}.sh ]; then
+			name=${name%${LangExt}}
+			if [ ! -f ${name}${LangExt} ]; then
 				#Check for Custom Code Template
 				if [ -f ${TemplateCode} ]; then
 					#Program Name Given
 					if [ ! -z "${name}" ];then
-						${TemplateCode} ${name} > ${name}.sh
+						${TemplateCode} ${name} > ${name}${LangExt}
 					#No Program Name Given
 					else
 						${TemplateCode} --help
@@ -427,8 +428,8 @@ UseBash()
 				else
 					#Program Name Given
 					if [ ! -z "${name}" ];then
-						touch ${name}.sh
-						echo -e "#!/bin/bash\n" > ${name}.sh
+						touch ${name}${LangExt}
+						echo -e "#!/bin/bash\n" > ${name}${LangExt}
 					else
 						errorCode "newCode"
 					fi
@@ -495,20 +496,20 @@ UseBash()
 			local TheOld=$1
 			local TheNew=$2
 			if [ ! -z "${TheNew}" ]; then
-				TheOld="${TheOld%.sh}"
-				TheNew="${TheNew%.sh}"
-				mv ${LangSrc}/${TheOld}.sh ${LangSrc}/${TheNew}.sh
-				echo ${TheNew}.sh
+				TheOld="${TheOld%${LangExt}}"
+				TheNew="${TheNew%${LangExt}}"
+				mv ${LangSrc}/${TheOld}${LangExt} ${LangSrc}/${TheNew}${LangExt}
+				echo ${TheNew}${LangExt}
 			fi
 			;;
 		copy)
 			local TheOld=$1
 			local TheNew=$2
 			if [ ! -z "${TheNew}" ]; then
-				TheOld="${TheOld%.sh}"
-				TheNew="${TheNew%.sh}"
-				cp ${LangSrc}/${TheOld}.sh ${LangSrc}/${TheNew}.sh
-				echo ${TheNew}.sh
+				TheOld="${TheOld%${LangExt}}"
+				TheNew="${TheNew%${LangExt}}"
+				cp ${LangSrc}/${TheOld}${LangExt} ${LangSrc}/${TheNew}${LangExt}
+				echo ${TheNew}${LangExt}
 			fi
 			;;
 		*)

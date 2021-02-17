@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.26"
+SupportV="0.1.30"
 
 ProgDir=$1
 shift
@@ -35,12 +35,13 @@ OtherColor()
 	echo -e "\e[1;35m${text}\e[0m"
 }
 
-UseCpp()
+UseC++()
 {
-	local CppCpl=g++
+	local LangCpl=g++
 	local LangHome=${ProgDir}/C++
 	local LangSrc=${LangHome}/src
 	local LangBin=${LangHome}/bin
+	local LangExt=".cpp"
 	local TemplateCode=${LangBin}/newC++
 	local Type=$1
 	shift
@@ -66,8 +67,8 @@ UseCpp()
 			local name=$1
 			case ${CodeProject} in
 				none)
-					if [ -f ${LangSrc}/${name}.cpp ]; then
-						echo ${name}.cpp
+					if [ -f ${LangSrc}/${name}${LangExt} ]; then
+						echo ${name}${LangExt}
 					elif [ -f ${LangSrc}/${name}.h ]; then
 						echo ${name}.h
 					elif [ -f ${LangSrc}/${name} ]; then
@@ -75,8 +76,8 @@ UseCpp()
 					fi
 					;;
 				*)
-					if [ -f ${LangSrc}/${CodeProject}/src/${name}.cpp ]; then
-						echo ${name}.cpp
+					if [ -f ${LangSrc}/${CodeProject}/src/${name}${LangExt} ]; then
+						echo ${name}${LangExt}
 					elif [ -f ${LangSrc}/${CodeProject}/src/${name}.h ]; then
 						echo ${name}.h
 					elif [ -f ${LangSrc}/${project}/src/${name} ]; then
@@ -86,7 +87,7 @@ UseCpp()
 			esac
 			;;
 		pgLang)
-			local HasLang=$(which ${CppCpl} 2> /dev/null)
+			local HasLang=$(which ${LangCpl} 2> /dev/null)
 			if [ ! -z "${HasLang}" ]; then
 				#Return C++ tag
 				echo "C++"
@@ -96,7 +97,7 @@ UseCpp()
 			fi
 			;;
 		BeforeFiles|AfterFiles)
-			ls *.cpp *.h 2> /dev/null
+			ls *${LangExt} *.h 2> /dev/null
 			;;
 		pgDir)
 			#Return C++ src Dir
@@ -115,15 +116,15 @@ UseCpp()
 			;;
 		EnsureDirs)
 			#Home
-			if [ ! -d "${LangHome}" ] && [ ! -z "${CppCpl}" ]; then
+			if [ ! -d "${LangHome}" ] && [ ! -z "${LangCpl}" ]; then
 				mkdir "${LangHome}"
 			fi
 			#Src
-			if [ ! -d "${LangSrc}" ] && [ ! -z "${CppCpl}" ]; then
+			if [ ! -d "${LangSrc}" ] && [ ! -z "${LangCpl}" ]; then
 				mkdir "${LangSrc}"
 			fi
 			#Bin
-			if [ ! -d "${LangBin}" ] && [ ! -z "${CppCpl}" ]; then
+			if [ ! -d "${LangBin}" ] && [ ! -z "${LangCpl}" ]; then
 				mkdir "${LangBin}"
 			fi
 			;;
@@ -137,14 +138,14 @@ UseCpp()
 			;;
 		CplVersion)
 			echo "[C++ Compiler]"
-			${CppCpl} --version | head -n 1
+			${LangCpl} --version | head -n 1
 			echo ""
 			;;
 		selectCode)
 			local name=$1
 			#Correct filename
-			if [[ ! "${name}" == *".cpp" ]] && [ -f "${name}.cpp" ]; then
-				name="${name}.cpp"
+			if [[ ! "${name}" == *"${LangExt}" ]] && [ -f "${name}${LangExt}" ]; then
+				name="${name}${LangExt}"
 			elif [[ ! "${name}" == *".h" ]] && [ -f "${name}.h" ]; then
 				name="${name}.h"
 			fi
@@ -154,10 +155,10 @@ UseCpp()
 			local src=$1
 			local new=$2
 			case ${src} in
-				*.cpp|*.h)
+				*${LangExt}|*.h)
 					#Add cpp or header files with file extensions
 					case ${new} in
-						*.cpp|*.h)
+						*${LangExt}|*.h)
 							#Append file
 							if [ -f "${new}" ]; then
 								echo "${src},${new}"
@@ -168,8 +169,8 @@ UseCpp()
 						#Add cpp or header files without file extensions
 						*)
 							#Append cpp files
-							if [ -f "${new}.cpp" ]; then
-								echo "${src},${new}.cpp"
+							if [ -f "${new}${LangExt}" ]; then
+								echo "${src},${new}${LangExt}"
 							#Append header files
 							elif [ -f "${new}.h" ]; then
 								echo "${src},${new}.h"
@@ -187,16 +188,16 @@ UseCpp()
 			local src=$1
 			local num=$2
 			case ${src} in
-				*.cpp|*.h)
+				*${LangExt}|*.h)
 					if [[ "${src}" == *","* ]]; then
 						if [ -z ${num} ]; then
 							errorCode "editNull"
 						else
 							if [[ "${src}" == *"${num}"* ]]; then
-								if [[ "${num}" == *".cpp" ]] || [[ "${num}" == *".h" ]]; then
+								if [[ "${num}" == *"${LangExt}" ]] || [[ "${num}" == *".h" ]]; then
 									${editor} ${num}
 								else
-									${editor} "${num}.cpp"
+									${editor} "${num}${LangExt}"
 								fi
 							else
 								errorCode "editNot"
@@ -214,16 +215,16 @@ UseCpp()
 			local src=$1
 			local num=$2
 			case ${src} in
-				*.cpp|*.h)
+				*${LangExt}|*.h)
 					if [[ "${src}" == *","* ]]; then
 						if [ -z ${num} ]; then
 							errorCode "readNull"
 						else
 							if [[ "${src}" == *"${num}"* ]]; then
-								if [[ "${num}" == *".cpp" ]] || [[ "${num}" == *".h" ]]; then
+								if [[ "${num}" == *"${LangExt}" ]] || [[ "${num}" == *".h" ]]; then
 									${ReadBy} ${num}
 								else
-									${ReadBy} "${num}.cpp"
+									${ReadBy} "${num}${LangExt}"
 								fi
 							else
 								errorCode "readNot"
@@ -255,8 +256,8 @@ UseCpp()
 					TheBinDir="${LangSrc}/${project}bin"
 					;;
 			esac
-			if [[ "$src" == *".cpp"* ]] || [ -f ${LangSrc}/${project}makefile ]; then
-				cplArgs=${CppCplVersion}
+			if [[ "$src" == *"${LangExt}"* ]] || [ -f ${LangSrc}/${project}makefile ]; then
+				cplArgs=${LangCplVersion}
 				if [ -f ${LangSrc}/${project}makefile ]; then
 					cd ${LangSrc}/${project}
 					echo "make"
@@ -276,7 +277,7 @@ UseCpp()
 							if [ ! -z "${NeedThreads}" ]; then
 								cplArgs="${cplArgs} -lpthread"
 							fi
-							ERROR=$(${CppCpl} ${prog} -o ${TheBinDir}/${name} ${cplArgs} 2>&1 | tr '\n' '|')
+							ERROR=$(${LangCpl} ${prog} -o ${TheBinDir}/${name} ${cplArgs} 2>&1 | tr '\n' '|')
 							if [ -z "${ERROR}" ]; then
 								echo -e "\e[1;44m[C++ Code Compiled]\e[0m"
 							else
@@ -295,7 +296,7 @@ UseCpp()
 							cplArgs="${cplArgs} -lpthread"
 						fi
 						#Compile and move C++ to Binary dir
-						ERROR=$(${CppCpl} ${src} -o ${TheBinDir}/${src%.*} ${cplArgs} 2>&1 | tr '\n' '|')
+						ERROR=$(${LangCpl} ${src} -o ${TheBinDir}/${src%.*} ${cplArgs} 2>&1 | tr '\n' '|')
 						if [ -z "${ERROR}" ]; then
 							echo -e "\e[1;44m[C++ Code Compiled]\e[0m"
 						else
@@ -330,7 +331,7 @@ UseCpp()
 			;;
 		create-version|create-std=*)
 			Type=${Type#create-}
-			local cLang=$(UseCpp color)
+			local cLang=$(UseC++ color)
 			case ${UserIn[1]} in
 				-std=*)
 					CplArgs="${UserIn[1]}"
@@ -360,8 +361,8 @@ UseCpp()
 			echo ${CplArgs}
 			;;
 		newProject)
-			local project=$1
 			local type=$1
+			local project=$2
 			local path=${LangSrc}/${project}
 			#create and cd to project dir
 			if [ ! -d ${path} ]; then
@@ -400,7 +401,7 @@ UseCpp()
 			local src=$1
 			#cd "${LangSrc}"
 			#Get C++ Name
-			src="${src}.cpp"
+			src="${src}${LangExt}"
 			#Check if C++ source exists
 			if [ -f "${LangSrc}/${src}" ]; then
 				#Return C++ Source Name
@@ -410,7 +411,7 @@ UseCpp()
 		SwapToBin)
 			local bin=$1
 			case ${bin} in
-				*.cpp)
+				*${LangExt})
 					#cd "${LangBin}"
 					#Keep Src Name
 					local OldBin="${bin}"
@@ -444,7 +445,7 @@ UseCpp()
 			fi
 			;;
 		customCode)
-			local cLang=$(UseCpp "color")
+			local cLang=$(UseC++ "color")
 			local cTemplate=$(OtherColor ${TemplateCode##*/})
 			#Check for Custom Code Template
 			if [ -f ${TemplateCode} ]; then
@@ -468,9 +469,9 @@ UseCpp()
 			local Project=$2
 			local Type=$3
 			Type=$(echo ${Type} | tr A-Z a-z)
-			name=${name%.cpp}
+			name=${name%${LangExt}}
 			name=${name%.h}
-			if [ ! -f ${name}.cpp ] || [ ! -f ${name}.h ]; then
+			if [ ! -f ${name}${LangExt} ] || [ ! -f ${name}.h ]; then
 				case ${Type} in
 					#create header file
 					header)
@@ -497,8 +498,8 @@ UseCpp()
 							#Program Name Given
 							if [ ! -z "${name}" ];then
 								local Content="#include <iostream>\n\n//C++ Main\nint main()\n{\n\n\treturn 0;\n}"
-								touch ${name}.cpp
-								echo -e "${Content}" > ${name}.cpp
+								touch ${name}${LangExt}
+								echo -e "${Content}" > ${name}${LangExt}
 							else
 								errorCode "newCode"
 							fi
@@ -518,7 +519,7 @@ UseCpp()
 						else
 							#Program Name Given
 							if [ ! -z "${name}" ];then
-								touch ${name}.cpp
+								touch ${name}${LangExt}
 							else
 								errorCode "newCode"
 							fi
@@ -529,15 +530,15 @@ UseCpp()
 						#Is not a project
 						case ${Project} in
 							none)
-								UseCpp "newCode" ${name} ${oldCode} ${Project} "main"
+								UseC++ "newCode" ${name} ${oldCode} ${Project} "main"
 								;;
 							#Is a project
 							*)
 								#clide knows best
-								if [[ "${oldCode}" == *".cpp" ]] || [[ "${oldCode}" == *".cpp" ]]; then
-									UseCpp "newCode" ${name} ${oldCode} ${Project} "component"
+								if [[ "${oldCode}" == *"${LangExt}" ]] || [[ "${oldCode}" == *"${LangExt}" ]]; then
+									UseC++ "newCode" ${name} ${oldCode} ${Project} "component"
 								else
-									UseCpp "newCode" ${name} ${oldCode} ${Project} "main"
+									UseC++ "newCode" ${name} ${oldCode} ${Project} "main"
 								fi
 								;;
 						esac
@@ -605,20 +606,20 @@ UseCpp()
 			local TheOld=$1
 			local TheNew=$2
 			if [ ! -z "${TheNew}" ]; then
-				TheOld="${TheOld%.cpp}" 
-				TheNew="${TheNew%.cpp}"
-				mv ${LangSrc}/${TheOld}.cpp ${LangSrc}/${TheNew}.cpp
-				echo ${TheNew}.cpp
+				TheOld="${TheOld%${LangExt}}" 
+				TheNew="${TheNew%${LangExt}}"
+				mv ${LangSrc}/${TheOld}${LangExt} ${LangSrc}/${TheNew}${LangExt}
+				echo ${TheNew}${LangExt}
 			fi
 			;;
 		copy)
 			local TheOld=$1
 			local TheNew=$2
 			if [ ! -z "${TheNew}" ]; then
-				TheOld="${TheOld%.cpp}" 
-				TheNew="${TheNew%.cpp}"
-				cp ${LangSrc}/${TheOld}.cpp ${LangSrc}/${TheNew}.cpp
-				echo ${TheNew}.cpp
+				TheOld="${TheOld%${LangExt}}" 
+				TheNew="${TheNew%${LangExt}}"
+				cp ${LangSrc}/${TheOld}${LangExt} ${LangSrc}/${TheNew}${LangExt}
+				echo ${TheNew}${LangExt}
 			fi
 			;;
 		*)
@@ -626,4 +627,4 @@ UseCpp()
 	esac
 }
 
-UseCpp $@
+UseC++ $@
