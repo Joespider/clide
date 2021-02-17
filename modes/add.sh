@@ -52,6 +52,8 @@ Help()
 			echo "Component: Language Support"
 			echo -e "create <new language>\t\t:\"Create support for another language\""
 			echo -e "import\t\t\t\t:\"import new language to support (Lang.<type> FILE MUST EXIST)\""
+			echo -e "change <lang> {run|cpl} <val>\t\t:\"Change the compiler/interpretor\""
+			echo -e "change {run|cpl} <val>\t\t\t:\"Change the compiler/interpretor\""
 			echo -e "correct\t\t\t\t:\"Adjust existing support for Langauge\""
 			echo ""
 			echo -e "done\t\t\t\t: \"done with adding component\""
@@ -74,12 +76,12 @@ AddLangSupport()
 	local Lang=$1
 	local Choice=$2
 	local NewLang=$3
-	NewLang=${NewLang^}
 	local NewSupportFile
 	local SupportFile
 	case ${Choice} in
 		create)
 			if [ ! -z "${NewLang}" ]; then
+				NewLang=${NewLang^}
 				NewSupportFile=${LangsDir}/Lang.${NewLang}
 				local GetLang
 				local OldVersion
@@ -145,6 +147,38 @@ AddLangSupport()
 			;;
 		import)
 			errorCode "no-support" "add-Lang"
+			;;
+		change)
+			local prop=$4
+			local to=$5
+			if [ ! -z "${prop}" ] && [ -z "${to}" ]; then
+				to=${prop}
+				prop=${NewLang}
+				NewLang=${Lang}
+			fi
+			local OldCpl
+			local NewCpl
+			local OldRun
+			local NewRun
+			SupportFile=${LangsDir}/Lang.${NewLang^}
+			case ${prop} in
+				cpl)
+					#Change Compiler
+					OldCpl=$(grep "LangCpl=" "${SupportFile}" | tr -d '\t' | sed "s/local LangCpl=//g")
+					if [ ! -z "${OldCpl}" ]; then
+						sed -i "s/local LangCpl=${OldCpl}/local LangCpl=${to}/g" "${SupportFile}"
+					fi
+					;;
+				run)
+					#Change Interpretor
+					OldRun=$(grep "LangRun=" "${SupportFile}" | tr -d '\t' | sed "s/local LangRun=//g" | tr -d '\n')
+					if [ ! -z "${OldRun}" ]; then
+						sed -i "s/local LangRun=${OldRun}/local LangRun=${to}/g" "${SupportFile}"
+					fi
+					;;
+				*)
+					;;
+			esac
 			;;
 		correct)
 			echo "Manually correct project template"
@@ -214,13 +248,13 @@ Add()
 			done)
 				component=$(SelectComp "")
 				;;
-			create|import|correct)
+			create|import|change|correct)
 				case ${component} in
 					project)
 						AddProjectTemplate ${Lang} ${UserArg}
 						;;
 					language)
-						AddLangSupport ${Lang} ${UserArg} ${UserIn[1]}
+						AddLangSupport ${Lang} ${UserIn[@]}
 						;;
 					*)
 						;;

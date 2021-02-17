@@ -1373,6 +1373,9 @@ SelectLangByCode()
 		*.py)
 			pgLang Python
 			;;
+		*.go)
+			pgLang Go
+			;;
 		*.cpp|*.h)
 			pgLang C++
 			;;
@@ -1818,18 +1821,25 @@ main()
 						;;
 				esac
 				;;
-			*.sh|*.py|*.cpp|*.h|*.java|*.pl|*.rb)
+			*.sh|*.py|*.go|*.cpp|*.h|*.java|*.pl|*.rb)
 				local Code=$1
 				local Lang=$(SelectLangByCode $1)
 				local CodeDir=$(pgDir ${Lang})
-				if [ ! -z "${CodeDir}" ]; then
-					cd ${CodeDir}
-					Code=$(selectCode ${Lang} ${Code})
-					if [ ! -z "${Code}" ]; then
-						#Start IDE
-						Actions ${Lang} ${Code}
-					fi
-				fi
+				case ${CodeDir} in
+					no)
+						errorCode "not-a-lang"
+						;;
+					*)
+						if [ ! -z "${CodeDir}" ]; then
+							cd ${CodeDir}
+							Code=$(selectCode ${Lang} ${Code})
+							if [ ! -z "${Code}" ]; then
+								#Start IDE
+								Actions ${Lang} ${Code}
+							fi
+						fi
+						;;
+				esac
 				;;
 			#Check for language given
 			*)

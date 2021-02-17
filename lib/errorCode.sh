@@ -228,6 +228,9 @@ errorCode()
 			echo "No Languages installed"
 			echo "Please Lang.<language> in \"${LangsDir}/\""
 			;;
+		not-a-lang)
+			echo "Language is not found"
+			;;
 		add)
 			case ${sec} in
 				support)
