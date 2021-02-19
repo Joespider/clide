@@ -46,7 +46,7 @@ Help()
 			echo -e "correct\t\t\t\t:\"Adjust existing project tempalte\""
 			echo ""
 			echo -e "done\t\t\t\t: \"done with adding component\""
-			echo -e "exit,close\t\t\t\t: \"close mode\""
+			echo -e "exit, close\t\t\t\t: \"close mode\""
 			;;
 		language)
 			echo "Component: Language Support"
@@ -57,16 +57,16 @@ Help()
 			echo -e "correct\t\t\t\t:\"Adjust existing support for Langauge\""
 			echo ""
 			echo -e "done\t\t\t\t: \"done with adding component\""
-			echo -e "exit,close\t\t\t\t: \"close mode\""
+			echo -e "exit, close\t\t\t\t: \"close mode\""
 			;;
 		*)
 			echo "Help options"
 			echo -e "add <cmp>\t\t\t: \"select component to add\""
-			echo -e "\tproject\t: \"select the 'project' component\""
-			echo -e "\tsupport, language\t: \"select the 'project' component\""
+			echo -e "\tproject\t\t\t: \"select the 'project' component\""
+			echo -e "\tsupport, language\t: \"select the 'language' component\""
 			echo -e "using\t\t\t\t: \"Show what langauge is being used\""
 			echo ""
-			echo -e "exit,close\t\t\t\t: \"close mode\""
+			echo -e "exit, close\t\t\t: \"close mode\""
 			;;
 	esac
 }
@@ -108,13 +108,13 @@ AddLangSupport()
 						#Reset Version
 						#{
 						OldVersion=$(grep "SupportV=" "${SupportFile}" | tr -d '\t')
-						NewVersion="SupportV=\"0.0.1\""
+						NewVersion="SupportV=\"0.1.0\""
 						sed -i "s/${OldVersion}/${NewVersion}/g" "${NewSupportFile}"
 						#}
 						OldExt=$(grep "LangExt=" "${SupportFile}" | tr -d '\t' | sed "s/local LangExt=//g")
 						echo -n "\"${NewLang}\" extension > "
 						read NewExt
-						sed -i "s/LangExt=${OldExt}/local LangExt=\"${NewExt}\"/g" "${NewSupportFile}"
+						sed -i "s/LangExt=${OldExt}/LangExt=\"${NewExt}\"/g" "${NewSupportFile}"
 						#Change Compiler/Interpretor
 						OldCpl=$(grep "LangCpl=" "${SupportFile}" | tr -d '\t' | sed "s/local LangCpl=//g")
 						OldRun=$(grep "LangRun=" "${SupportFile}" | tr -d '\t' | sed "s/local LangRun=//g" | tr -d '\n')

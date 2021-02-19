@@ -84,6 +84,7 @@ MenuHelp()
 #	echo -e "swap, swp {src|bin}\t\t: \"swap between sorce code and executable\""
 	echo -e "create <arg>\t\t\t: \"create compile and runtime arguments"
 	ManageLangs ${Lang} "MenuHelp"
+	echo -e "car\t\t\t\t: \"compile and run\""
 	echo -e "rm, remove, delete\t\t: \"delete src file\""
 	echo -e "set <file>\t\t\t: \"select source code\""
 	echo -e "add <file>\t\t\t: \"add new file to project\""
@@ -1043,7 +1044,7 @@ Actions()
 					esac
 					;;
 				#Swap Programming Languages
-				use|c++|java|python|perl|ruby|bash)
+				use|c++|java|python|perl|ruby|bash|go)
 					Old=${Lang}
 					OldCode=${Code}
 					case ${UserIn[0]} in
@@ -1291,10 +1292,16 @@ Actions()
 							;;
 					esac
 					;;
+				#(c)ompile (a)nd (r)un
+				car)
+					ManageLangs ${Lang} "compileCode" ${Code} ${UserIn[1]} ${UserIn[2]}
+					if [ ! -z "${Code}" ]; then
+						runCode ${Lang} ${Code} ${UserIn[1]}
+					fi
+					;;
 				#Compile code
 				compile|cpl)
 					ManageLangs ${Lang} "compileCode" ${Code} ${UserIn[1]} ${UserIn[2]}
-					#Code=$(ManageLangs ${Lang} "SwapToBin" ${Code})
 					;;
 				#Install compiled code into aliases
 				install)
@@ -1364,35 +1371,43 @@ Actions()
 #Choose Lang by code
 SelectLangByCode()
 {
-	local Code=$1
-	#Select Language
-	case ${Code} in
-		*.sh)
-			pgLang Bash
-			;;
-		*.py)
-			pgLang Python
-			;;
-		*.go)
-			pgLang Go
-			;;
-		*.cpp|*.h)
-			pgLang C++
-			;;
-		*.java)
-			pgLang Java
-			;;
-		*.pl)
-			pgLang Perl
-			;;
-		*.rb)
-			pgLang Ruby
-			;;
-		*)
-			echo "no"
-			;;
-	esac
+	local GetExt=$1
+	local Langs
+	local NumOfLangs
+	local look
+	local text
+	local LangExt
+	local ChosenLangs
+	if [ ! -z "${GetExt}" ]; then
+#		GetExt=".${GetExt##*.}"
+#		echo ${GetExt}
+		Langs=$(ls ${LangsDir}/ | sed "s/Lang.//g" | tr '\n' '|' | rev | sed "s/|//1" | rev)
+		NumOfLangs=$(ls ${LangsDir}/ | wc -l)
+		look=1
+		while [ ${look} -le ${NumOfLangs} ];
+		do
+			text=$(echo ${Langs} | cut -d '|' -f ${look})
+			text=$(ManageLangs ${text} "pgLang")
+			case ${text} in
+				no)
+					;;
+				*)
+					LangExt=$(ManageLangs ${text} "getExt")
+					case ${GetExt} in
+						*${LangExt})
+							pgLang ${text}
+							break
+							;;
+						*)
+							;;
+					esac
+					;;
+			esac
+			look=$((${look}+1))
+		done
+	fi
 }
+
 
 #Autocomplete Function
 autocomp()
@@ -1562,7 +1577,7 @@ loadAuto()
 	comp_list "${repoTool} repo"
 	comp_list "search"
 	comp_list "create" "make version -std= jar manifest args prop properties -D reset"
-	comp_list "compile cpl"
+	comp_list "compile cpl car"
 	comp_list "execute exe run" "-a --args"
 	comp_list "version"
 	comp_list "help"
@@ -1821,7 +1836,8 @@ main()
 						;;
 				esac
 				;;
-			*.sh|*.py|*.go|*.cpp|*.h|*.java|*.pl|*.rb)
+			#Get by file extension
+			*.*)
 				local Code=$1
 				local Lang=$(SelectLangByCode $1)
 				local CodeDir=$(pgDir ${Lang})

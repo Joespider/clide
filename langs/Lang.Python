@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.23"
+SupportV="0.1.24"
 
 ProgDir=$1
 shift
@@ -54,7 +54,10 @@ UsePython()
 			local text=$1
 			if [ ! -z "${text}" ]; then
 				echo -e "\e[1;43m${text}\e[0m"
-			fi 
+			fi
+			;;
+		getExt)
+			echo ${LangExt}
 			;;
 		SupportVersion)
 			echo ${SupportV}

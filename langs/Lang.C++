@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.30"
+SupportV="0.1.31"
 
 ProgDir=$1
 shift
@@ -55,6 +55,9 @@ UseC++()
 			if [ ! -z "${text}" ]; then
 				echo -e "\e[1;44m${text}\e[0m"
 			fi 
+			;;
+		getExt)
+			echo ${LangExt}
 			;;
 		SupportVersion)
 			echo ${SupportV}

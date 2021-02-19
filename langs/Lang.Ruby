@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.21"
+SupportV="0.1.22"
 
 ProgDir=$1
 shift
@@ -55,6 +55,9 @@ UseRuby()
 			if [ ! -z "${text}" ]; then
 				echo -e "\e[1;41m${text}\e[0m"
 			fi 
+			;;
+		getExt)
+			echo ${LangExt}
 			;;
 		SupportVersion)
 			echo ${SupportV}

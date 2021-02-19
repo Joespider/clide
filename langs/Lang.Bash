@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.23"
+SupportV="0.1.24"
 
 ProgDir=$1
 shift
@@ -58,6 +58,9 @@ UseBash()
 			;;
 		SupportVersion)
 			echo ${SupportV}
+			;;
+		getExt)
+			echo ${LangExt}
 			;;
 		MenuHelp)
 			echo -e "new <file>\t\t\t: \"create new ${Lang} script\""

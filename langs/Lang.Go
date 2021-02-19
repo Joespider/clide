@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.0.1"
+SupportV="0.1.1"
 
 ProgDir=$1
 shift
@@ -41,7 +41,7 @@ UseGo()
 	local LangHome=${ProgDir}/Go
 	local LangSrc=${LangHome}/src
 	local LangBin=${LangHome}/bin
-	local local LangExt=".go"
+	local LangExt=".go"
 	local TemplateCode=${LangBin}/newGo
 	local Type=$1
 	shift
@@ -55,6 +55,9 @@ UseGo()
 			if [ ! -z "${text}" ]; then
 				echo -e "\e[1;42m${text}\e[0m"
 			fi 
+			;;
+		getExt)
+			echo ${LangExt}
 			;;
 		SupportVersion)
 			echo ${SupportV}
