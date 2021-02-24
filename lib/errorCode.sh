@@ -228,6 +228,36 @@ errorCode()
 			echo "No Languages installed"
 			echo "Please Lang.<language> in \"${LangsDir}/\""
 			;;
+		not-a-lang)
+			echo "Language is not found"
+			;;
+		add)
+			case ${sec} in
+				support)
+					case ${thr} in
+						no-lang)
+							echo "Please provide a new language"
+							echo "[Hint] create <lang>"
+							;;
+						not-supported)
+							echo "\"${four}\" is not a supported language"
+							;;
+						already-supported)
+							echo "\"${four}\" is already supported language"
+							;;
+						*)
+							echo "Adding Language Support error"
+							;;
+					esac
+					;;
+				*)
+					;;
+			esac
+			;;
+		no-support)
+			echo "The following feature is not yet supported"
+			echo "Feature: ${sec}"
+			;;
 		*)
 			;;
 	esac

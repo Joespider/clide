@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.18"
+SupportV="0.1.23"
 
 ProgDir=$1
 shift
@@ -37,11 +37,12 @@ OtherColor()
 
 UsePerl()
 {
-	local PerlRun=perl
+	local LangRun=perl
 	local LangHome=${ProgDir}/Perl
 	local LangSrc=${LangHome}/src
 	local LangBin=${LangHome}/bin
-	local TemplateCode=${LangBin}/newPerl.pl
+	local LangExt=".pl"
+	local TemplateCode=${LangBin}/newPerl${LangExt}
 	local Type=$1
 	shift
 	case ${Type} in
@@ -55,6 +56,9 @@ UsePerl()
 				echo -e "\e[1;45m${text}\e[0m"
 			fi
 			;;
+		getExt)
+			echo ${LangExt}
+			;;
 		SupportVersion)
 			echo ${SupportV}
 			;;
@@ -66,15 +70,15 @@ UsePerl()
 			local name=$1
 			case ${CodeProject} in
 				none)
-					if [ -f ${LangSrc}/${name}.pl ]; then
-						echo ${name}.pl
+					if [ -f ${LangSrc}/${name}${LangExt} ]; then
+						echo ${name}${LangExt}
 					elif [ -f ${LangSrc}/${name} ]; then
 						echo ${name}
 					fi
 					;;
 				*)
-					if [ -f ${LangSrc}/${CodeProject}/src/${name}.pl ]; then
-						echo ${name}.pl
+					if [ -f ${LangSrc}/${CodeProject}/src/${name}${LangExt} ]; then
+						echo ${name}${LangExt}
 					elif [ -f ${LangSrc}/${CodeProject}/src/${name} ]; then
 						echo ${name}
 					fi
@@ -82,10 +86,10 @@ UsePerl()
 			esac
 			;;
 		BeforeFiles|AfterFiles)
-			ls *.pl 2> /dev/null
+			ls *${LangExt} 2> /dev/null
 			;;
 		pgLang)
-			local HasLang=$(which ${PerlRun} 2> /dev/null)
+			local HasLang=$(which ${LangRun} 2> /dev/null)
 			if [ ! -z "${HasLang}" ]; then
 				#Return Perl tag
 				echo "Perl"
@@ -109,36 +113,36 @@ UsePerl()
 			;;
 		EnsureDirs)
 			#Home
-			if [ ! -d "${LangHome}" ] && [ ! -z "${PerlRun}" ]; then
+			if [ ! -d "${LangHome}" ] && [ ! -z "${LangRun}" ]; then
 				mkdir "${LangHome}"
 			fi
 			#Src
-			if [ ! -d "${LangSrc}" ] && [ ! -z "${PerlRun}" ]; then
+			if [ ! -d "${LangSrc}" ] && [ ! -z "${LangRun}" ]; then
 				mkdir "${LangSrc}"
 			fi
 			#Bin
-			if [ ! -d "${LangBin}" ] && [ ! -z "${PerlRun}" ]; then
+			if [ ! -d "${LangBin}" ] && [ ! -z "${LangRun}" ]; then
 				mkdir "${LangBin}"
 			fi
 			;;
 		TemplateVersion)
 			if [ -f ${TemplateCode} ]; then
 				echo -n "${TemplateCode##*/} "
-				${PerlRun} ${TemplateCode} 2> /dev/null | grep Version | sed "s/Version//g"
+				${LangRun} ${TemplateCode} 2> /dev/null | grep Version | sed "s/Version//g"
 			else
 				echo "no ${TemplateCode##*/} found"
 			fi
 			;;
 		CplVersion)
 			echo "[Perl Shell]"
-			${PerlRun} --version 2> /dev/null | grep Version
+			${LangRun} --version 2> /dev/null | grep Version
 			echo ""
 			;;
 		selectCode)
 			local name=$1
 			#Correct filename
-			if [[ ! "${name}" == *".pl" ]]; then
-				name="${name}.pl"
+			if [[ ! "${name}" == *"${LangExt}" ]]; then
+				name="${name}${LangExt}"
 			fi
 			echo ${name}
 			;;
@@ -146,9 +150,9 @@ UsePerl()
 			local src=$1
 			local new=$2
 			case ${src} in
-				*.pl)
+				*${LangExt})
 					case ${new} in
-						*.pl)
+						*${LangExt})
 							if [ -f "${new}" ]; then
 								echo "${src},${new}"
 							else
@@ -156,8 +160,8 @@ UsePerl()
 							fi
 							;;
 						*)
-							if [ -f "${new}.pl" ]; then
-								echo "${src},${new}.pl"
+							if [ -f "${new}${LangExt}" ]; then
+								echo "${src},${new}${LangExt}"
 							else
 								echo "${src}"
 							fi
@@ -172,16 +176,16 @@ UsePerl()
 			local src=$1
 			local num=$2
 			case ${src} in
-				*.pl)
+				*${LangExt})
 					if [[ "${src}" == *","* ]]; then
 						if [ -z ${num} ]; then
 							errorCode "editNull"
 						else
 							if [[ "${src}" == *"${num}"* ]]; then
-								if [[ "${num}" == *".pl" ]]; then
+								if [[ "${num}" == *"${LangExt}" ]]; then
 									${editor} ${num}
 								else
-									${editor} "${num}.pl"
+									${editor} "${num}${LangExt}"
 								fi
 							else
 								errorCode "editNot"
@@ -199,16 +203,16 @@ UsePerl()
 			local src=$1
 			local num=$2
 			case ${src} in
-				*.pl)
+				*${LangExt})
 					if [[ "${src}" == *","* ]]; then
 						if [ -z ${num} ]; then
 							errorCode "readNull"
 						else
 							if [[ "${src}" == *"${num}"* ]]; then
-								if [[ "${num}" == *".pl" ]]; then
+								if [[ "${num}" == *"${LangExt}" ]]; then
 									${ReadBy} ${num}
 								else
-									${ReadBy} "${num}.pl"
+									${ReadBy} "${num}${LangExt}"
 								fi
 							else
 								errorCode "readNot"
@@ -227,22 +231,22 @@ UsePerl()
 			local name=$2
 			local keep=$3
 			local project=${CodeProject}
-                        local cplArgs=""
-                        local TheBinDir
-                        local ERROR
-                        #Handle Project Dir
-                        case ${project} in
-                                none)
-                                        project=""
-                                        TheBinDir=${LangBin}
-                                        ;;
-                                *)
-                                        project="${project}/"
-                                        TheBinDir="${LangSrc}/${project}bin"
+			local cplArgs=""
+			local TheBinDir
+			local ERROR
+			#Handle Project Dir
+			case ${project} in
+				none)
+					project=""
+					TheBinDir=${LangBin}
 					;;
+				*)
+					project="${project}/"
+					TheBinDir="${LangSrc}/${project}bin"
+				;;
                         esac
 			case ${src} in
-				*.pl)
+				*${LangExt})
 					#Multiple code selected
 					if [[ "${src}" == *","* ]]; then
 						#variable is empty
@@ -253,9 +257,9 @@ UsePerl()
 							#chosen file is in the list of files
 							if [[ "${src}" == *"${name}"* ]]; then
 								#only name is given
-								if [[ "${name}" != *".pl" ]]; then
+								if [[ "${name}" != *"${LangExt}" ]]; then
 									#full filename given
-									num=${name}.pl
+									num=${name}${LangExt}
 								fi
 								#Make Perl Script executable
 								chmod +x ${name}
@@ -314,8 +318,8 @@ UsePerl()
 			esac
 			;;
 		newProject)
-			local project=$1
-			local type=$2
+			local type=$1
+			local project=$2
 			local path=${LangSrc}/${project}
 			if [ ! -d ${path} ]; then
 				mkdir ${path}
@@ -351,7 +355,7 @@ UsePerl()
 		SwapToBin)
 			bin=$1
 			case ${bin} in
-				*.pl)
+				*${LangExt})
 					#Get Perl Name
 					#	bin="${bin%.*}"
 					#Check if Perl Binary exists
@@ -371,11 +375,24 @@ UsePerl()
 		Install)
 			bin=$1
 			BinFile="${bin%.*}"
+			local project=${CodeProject}
+			local TheBinDir
+			#Handle Project Dir
+			case ${project} in
+				none)
+					project=""
+					TheBinDir=${LangBin}
+					;;
+				*)
+					project="${project}/"
+					TheBinDir="${LangSrc}/${project}bin"
+					;;
+                        esac
 			#Make sure Binary exists
-			if [ -f "${LangBin}/${bin}" ]; then
+			if [ -f "${TheBinDir}/${bin}" ]; then
 				#Add command to Aliases
-				AddAlias "${BinFile}" "${PerlRun} ${LangBin}/${bin}"
-			elif [ ! -f "${LangBin}/${bin}" ]; then
+				AddAlias "${BinFile}" "${LangRun} ${TheBinDir}/${bin}"
+			elif [ ! -f "${TheBinDir}/${bin}" ]; then
 				errorCode "install" "${bin}"
 			else
 				errorCode "noCode"
@@ -385,14 +402,14 @@ UsePerl()
 			local cLang=$(UsePerl "color")
 			local cTemplate=$(OtherColor ${TemplateCode##*/})
 			if [ -f ${TemplateCode} ]; then
-				echo -n "${cLang}\$ ${PerlRun} ${cTemplate} "
+				echo -n "${cLang}\$ ${LangRun} ${cTemplate} "
 				read -a Args
 				#Program Args Given
 				if [ ! -z "${Args}" ];then
-					${PerlRun} ${TemplateCode} ${Args[@]}
+					${LangRun} ${TemplateCode} ${Args[@]}
 				#No Program Name Given
 				else
-					${PerlRun} ${TemplateCode} --help
+					${LangRun} ${TemplateCode} --help
 				fi
 			else
 				#Program Name Given
@@ -404,21 +421,21 @@ UsePerl()
 			Project=$2
 			Type=$3
 			Type=$(echo ${Type} | tr A-Z a-z)
-			name=${name%.pl}
-			if [ ! -f ${name}.pl ]; then
+			name=${name%${LangExt}}
+			if [ ! -f ${name}${LangExt} ]; then
 				#Check for Custom Code Template
 				if [ -f ${TemplateCode} ]; then
 					#Program Name Given
 					if [ ! -z "${name}" ];then
-						${PerlRun} ${TemplateCode} --name ${name} --cli --main --write-file --read-file --os
+						${LangRun} ${TemplateCode} --name ${name} --cli --main --write-file --read-file --os
 					#No Program Name Given
 					else
-						${PerlRun} ${TemplateCode} --help
+						${LangRun} ${TemplateCode} --help
 					fi
 				else
 					#Program Name Given
 					if [ ! -z "${name}" ];then
-						touch ${name}.pl
+						touch ${name}${LangExt}
 					else
 						errorCode "newCode"
 					fi
@@ -427,7 +444,7 @@ UsePerl()
 			;;
 		cli)
 			local TheName=$(OtherColor $2)
-			echo "${PerlRun} ${TheName}"
+			echo "${LangRun} ${TheName}"
 			;;
 		runCode)
 			local name=$1
@@ -450,7 +467,7 @@ UsePerl()
                         esac
 			#Check if Perl Bin exists
 			if [ -f ${TheBinDir}/${TheBin} ]; then
-				${PerlRun} ${TheBinDir}/${TheBin} ${Args[@]}
+				${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
 			else
 				errorCode "cpl" "need" "${name}"
 			fi
@@ -485,20 +502,20 @@ UsePerl()
 			local TheOld=$1
 			local TheNew=$2
 			if [ ! -z "${TheNew}" ]; then
-				TheOld="${TheOld%.pl}" 
-				TheNew="${TheNew%.pl}"
-				mv ${LangSrc}/${TheOld}.pl ${LangSrc}/${TheNew}.pl
-				echo ${TheNew}.pl
+				TheOld="${TheOld%${LangExt}}" 
+				TheNew="${TheNew%${LangExt}}"
+				mv ${LangSrc}/${TheOld}${LangExt} ${LangSrc}/${TheNew}${LangExt}
+				echo ${TheNew}${LangExt}
 			fi
 			;;
 		copy)
 			local TheOld=$1
 			local TheNew=$2
 			if [ ! -z "${TheNew}" ]; then
-				TheOld="${TheOld%.pl}" 
-				TheNew="${TheNew%.pl}"
-				cp ${LangSrc}/${TheOld}.pl ${LangSrc}/${TheNew}.pl
-				echo ${TheNew}.pl
+				TheOld="${TheOld%${LangExt}}" 
+				TheNew="${TheNew%${LangExt}}"
+				cp ${LangSrc}/${TheOld}${LangExt} ${LangSrc}/${TheNew}${LangExt}
+				echo ${TheNew}${LangExt}
 			fi
 			;;
 		*)

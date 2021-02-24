@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.32"
+SupportV="0.1.2"
 
 ProgDir=$1
 shift
@@ -35,25 +35,25 @@ OtherColor()
 	echo -e "\e[1;35m${text}\e[0m"
 }
 
-UseC++()
+UseGo()
 {
-	local LangCpl=g++
-	local LangHome=${ProgDir}/C++
+	local LangCpl=go
+	local LangHome=${ProgDir}/Go
 	local LangSrc=${LangHome}/src
 	local LangBin=${LangHome}/bin
-	local LangExt=".cpp"
-	local TemplateCode=${LangBin}/newC++
+	local LangExt=".go"
+	local TemplateCode=${LangBin}/newGo
 	local Type=$1
 	shift
 	case ${Type} in
 		color)
-			#Return Blue
-			echo -e "\e[1;34mC++\e[0m"
+			#Return Green
+			echo -e "\e[1;32mGo\e[0m"
 			;;
 		ProjectColor)
 			local text=$1
 			if [ ! -z "${text}" ]; then
-				echo -e "\e[1;44m${text}\e[0m"
+				echo -e "\e[1;42m${text}\e[0m"
 			fi 
 			;;
 		getExt)
@@ -92,8 +92,8 @@ UseC++()
 		pgLang)
 			local HasLang=$(which ${LangCpl} 2> /dev/null)
 			if [ ! -z "${HasLang}" ]; then
-				#Return C++ tag
-				echo "C++"
+				#Return Go tag
+				echo "Go"
 			else
 				#Return rejection
 				echo "no"
@@ -103,7 +103,7 @@ UseC++()
 			ls *${LangExt} *.h 2> /dev/null
 			;;
 		pgDir)
-			#Return C++ src Dir
+			#Return Go src Dir
 			echo ${LangSrc}
 			;;
 		CreateHelp)
@@ -140,8 +140,8 @@ UseC++()
 			fi
 			;;
 		CplVersion)
-			echo "[C++ Compiler]"
-			${LangCpl} --version | head -n 1
+			echo "[Go Compiler]"
+			${LangCpl} version | head -n 1
 			echo ""
 			;;
 		selectCode)
@@ -265,7 +265,7 @@ UseC++()
 					cd ${LangSrc}/${project}
 					echo "make"
 					cd - > /dev/null
-					echo -e "\e[1;44m[C++ Code Compiled]\e[0m"
+					echo -e "\e[1;42m[Go Code Compiled]\e[0m"
 				else
 					#Multiple code selected
 					if [[ "${src}" == *","* ]]; then
@@ -280,13 +280,14 @@ UseC++()
 							if [ ! -z "${NeedThreads}" ]; then
 								cplArgs="${cplArgs} -lpthread"
 							fi
-							ERROR=$(${LangCpl} ${prog} -o ${TheBinDir}/${name} ${cplArgs} 2>&1 | tr '\n' '|')
+							ERROR=$(${LangCpl} build ${prog} 2>&1 | tr '\n' '|')
 							if [ -z "${ERROR}" ]; then
-								echo -e "\e[1;44m[C++ Code Compiled]\e[0m"
+								mv ${prog%.*} ${LangBin}
+								echo -e "\e[1;42m[Go Code Compiled]\e[0m"
 							else
-								echo -en "\e[1;34m[C++ \e[0m"
+								echo -en "\e[1;32m[Go \e[0m"
 								echo -en "\e[1;41mERROR\e[0m"
-								echo -e "\e[1;34m]\e[0m"
+								echo -e "\e[1;32m]\e[0m"
 								ERROR=$(echo ${ERROR} | tr '|' '\n')
 								echo -e "\e[1;31m${ERROR}\e[0m"
 							fi
@@ -298,10 +299,11 @@ UseC++()
 						if [ ! -z "${NeedThreads}" ]; then
 							cplArgs="${cplArgs} -lpthread"
 						fi
-						#Compile and move C++ to Binary dir
-						ERROR=$(${LangCpl} ${src} -o ${TheBinDir}/${src%.*} ${cplArgs} 2>&1 | tr '\n' '|')
+						#Compile and move Go to Binary dir
+						ERROR=$(${LangCpl} build ${src} 2>&1 | tr '\n' '|')
 						if [ -z "${ERROR}" ]; then
-							echo -e "\e[1;44m[C++ Code Compiled]\e[0m"
+							mv ${src%.*} ${LangBin}
+							echo -e "\e[1;42m[Go Code Compiled]\e[0m"
 						else
 							echo -en "\e[1;31m[\e[0m"
 							echo -en "\e[1;41mERROR\e[0m"
@@ -317,7 +319,7 @@ UseC++()
 			case ${CodeProject} in
 				#No Project
 				none)
-					echo "Project C++ ONLY"
+					echo "Project Go ONLY"
 					;;
 				#Is a project
 				*)
@@ -334,7 +336,7 @@ UseC++()
 			;;
 		create-version|create-std=*)
 			Type=${Type#create-}
-			local cLang=$(UseC++ color)
+			local cLang=$(UseGo color)
 			case ${UserIn[1]} in
 				-std=*)
 					CplArgs="${UserIn[1]}"
@@ -403,11 +405,11 @@ UseC++()
 		SwapToSrc)
 			local src=$1
 			#cd "${LangSrc}"
-			#Get C++ Name
+			#Get Go Name
 			src="${src}${LangExt}"
-			#Check if C++ source exists
+			#Check if Go source exists
 			if [ -f "${LangSrc}/${src}" ]; then
-				#Return C++ Source Name
+				#Return Go Source Name
 				echo "${src}"
 			fi
 			;;
@@ -418,11 +420,11 @@ UseC++()
 					#cd "${LangBin}"
 					#Keep Src Name
 					local OldBin="${bin}"
-					#Get C++ Name
+					#Get Go Name
 					bin="${bin%.*}"
-					#Check if C++ Binary exists
+					#Check if Go Binary exists
 					if [ -f "${LangBin}/${bin}" ]; then
-						#Return C++ Binary Name
+						#Return Go Binary Name
 						echo "${bin}"
 					else
 						echo "${OldBin}"
@@ -450,10 +452,10 @@ UseC++()
 					;;
 			esac
 			#Make sure Binary exists
-			if [ -f "${TheBinDir}/${BinFile}" ]; then
+			if [ -f "${TheBinDir}/${bin}" ]; then
 				#Add command to Aliases
-				AddAlias "${BinFile}" "${TheBinDir}/${BinFile}"
-			elif [ ! -f "${TheBinDir}/${BinFile}" ]; then
+				AddAlias "${bin}" "${TheBinDir}/${bin}"
+			elif [ ! -f "${TheBinDir}/${bin}" ]; then
 				#compule or swap to binary
 				errorCode "install" "${bin}"
 			else
@@ -461,7 +463,7 @@ UseC++()
 			fi
 			;;
 		customCode)
-			local cLang=$(UseC++ "color")
+			local cLang=$(UseGo "color")
 			local cTemplate=$(OtherColor ${TemplateCode##*/})
 			#Check for Custom Code Template
 			if [ -f ${TemplateCode} ]; then
@@ -487,17 +489,8 @@ UseC++()
 			Type=$(echo ${Type} | tr A-Z a-z)
 			name=${name%${LangExt}}
 			name=${name%.h}
-			if [ ! -f ${name}${LangExt} ] || [ ! -f ${name}.h ]; then
+			if [ ! -f ${name}${LangExt} ]; then
 				case ${Type} in
-					#create header file
-					header)
-						#Program Name Given
-						if [ ! -z "${name}" ];then
-							touch "${name}.h"
-						else
-							errorCode "newCode"
-						fi
-						;;
 					#create main file
 					main)
 						#Check for Custom Code Template
@@ -513,7 +506,7 @@ UseC++()
 						else
 							#Program Name Given
 							if [ ! -z "${name}" ];then
-								local Content="#include <iostream>\n\n//C++ Main\nint main()\n{\n\n\treturn 0;\n}"
+								local Content="package main\n\nimport \"fmt\"\n\nfunc main() {\n\tfmt.Println(\"Hello, World!\")\n}"
 								touch ${name}${LangExt}
 								echo -e "${Content}" > ${name}${LangExt}
 							else
@@ -546,16 +539,12 @@ UseC++()
 						#Is not a project
 						case ${Project} in
 							none)
-								UseC++ "newCode" ${name} ${oldCode} ${Project} "main"
+								UseGo "newCode" ${name} ${oldCode} ${Project} "main"
 								;;
 							#Is a project
 							*)
 								#clide knows best
-								if [[ "${oldCode}" == *"${LangExt}" ]] || [[ "${oldCode}" == *"${LangExt}" ]]; then
-									UseC++ "newCode" ${name} ${oldCode} ${Project} "component"
-								else
-									UseC++ "newCode" ${name} ${oldCode} ${Project} "main"
-								fi
+								UseGo "newCode" ${name} ${oldCode} ${Project} "main"
 								;;
 						esac
 						;;
@@ -643,4 +632,4 @@ UseC++()
 	esac
 }
 
-UseC++ $@
+UseGo $@

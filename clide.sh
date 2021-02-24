@@ -77,12 +77,15 @@ MenuHelp()
 	echo -e "ls\t\t\t\t: \"list progams\""
 	echo -e "lscpl\t\t\t\t: \"list compiled progams\""
 	echo -e "using\t\t\t\t: \"get the language being used\""
+	echo -e "type\t\t\t\t: \"display the type of project\""
 	echo -e "unset\t\t\t\t: \"deselect source code\""
 	echo -e "use <language> <code>\t\t: \"choose language\""
+	echo -e "using\t\t\t\t:\"Display what language is being used\""
 	echo -e "save\t\t\t\t: \"Save session\""
 #	echo -e "swap, swp {src|bin}\t\t: \"swap between sorce code and executable\""
 	echo -e "create <arg>\t\t\t: \"create compile and runtime arguments"
 	ManageLangs ${Lang} "MenuHelp"
+	echo -e "car\t\t\t\t: \"compile and run\""
 	echo -e "rm, remove, delete\t\t: \"delete src file\""
 	echo -e "set <file>\t\t\t: \"select source code\""
 	echo -e "add <file>\t\t\t: \"add new file to project\""
@@ -181,6 +184,7 @@ CliHelp()
 	echo ""
 	echo "-----------------------------------------------"
 	echo -e "\t\t\"Quick ${Head} Functions\""
+	echo -e "{Action} Items"
 	echo -e "--edit\t\t\t\t:\"Edit source code\""
 	echo -e "--cpl, --compile\t\t:\"Compile source code\""
 	echo -e "--install\t\t\t:\"install program (.bash_aliases)\""
@@ -189,6 +193,8 @@ CliHelp()
 	echo -e "--list\t\t\t\t:\"List source code\""
 	echo ""
 	echo -e "$ clide <Action> <Language> <Code> <Args>"
+	echo "or"
+	echo -e "$ clide <Action> <Code> <Args>"
 	echo ""
 	echo "-----------------------------------------------"
 	echo -e "\t\t\"Run ${Head} IDE\""
@@ -266,9 +272,11 @@ ManageLangs()
 	fi
 }
 
-ModeHanlder()
+ModeHandler()
 {
-	local Mode=$1
+	local Lang=$1
+	local cLang=$2
+	local Mode=$3
 	case ${Mode} in
 		${repoTool}|repo)
 			#Use ONLY for Projects
@@ -279,7 +287,7 @@ ModeHanlder()
 			fi
 			;;
 		add)
-				${ModesDir}/add.sh
+				${ModesDir}/add.sh "${LibDir}" "${LangsDir}" "${ClideProjectDir}" ${Lang} ${cLang}
 			;;
 		-h|--help)
 			ModesHelp
@@ -315,6 +323,8 @@ EnsureDirs()
 
 	if [ ! -d "${ClideProjectDir}" ]; then
 		mkdir "${ClideProjectDir}"
+		mkdir "${ClideProjectDir}/Template"
+		mkdir "${ClideProjectDir}/Active"
 	fi
 
 	local Langs=$(ls ${LangsDir}/ | sed "s/Lang.//g" | tr '\n' '|' | rev | sed "s/|//1" | rev)
@@ -509,7 +519,7 @@ importProject()
 	local Lang=$1
 	local Name=$2
 	local Path=$3
-	local ProjectFile=${ClideProjectDir}/${Name}.clide
+	local ProjectFile=${ClideProjectDir}/Active/${Name}.clide
 	if [ ! -z "${Name}" ]; then
 		Path=$(eval $(echo ${Path}))
 		if [ ! -f ${ProjectFile} ]; then
@@ -551,7 +561,7 @@ newProject()
 	local lang=$1
 	local project=$2
 	local projectType=$3
-	local ProjectFile=${ClideProjectDir}/${project}.clide
+	local ProjectFile=${ClideProjectDir}/Active/${project}.clide
 	local path=""
 	#No Project is found
 	if [ -z "${project}" ]; then
@@ -586,7 +596,7 @@ updateProject()
 {
 	local project=$1
 	local src=$2
-	local ProjectFile=${ClideProjectDir}/${project}.clide
+	local ProjectFile=${ClideProjectDir}/Active/${project}.clide
 	#No Project is found
 	if [ ! -z ${src} ]; then
 		#Locate Project Directory
@@ -604,14 +614,14 @@ updateProject()
 listProjects()
 {
 	#Get list of active prijects from .clide files
-	ls ${ClideProjectDir}/ | sed "s/.clide//g"
+	ls ${ClideProjectDir}/Active/ | sed "s/.clide//g"
 }
 
 #Load active projects
 loadProject()
 {
 	local project=$1
-	local ProjectFile=${ClideProjectDir}/${project}.clide
+	local ProjectFile=${ClideProjectDir}/Active/${project}.clide
 	local path=""
 	local RtnVals=""
 	local tag=""
@@ -924,8 +934,19 @@ Actions()
 					Remove ${Code} ${UserIn[1]} ${UserIn[2]}
 					Code=""
 					;;
+				#Display the language being used
 				using)
 					echo "${cLang}"
+					;;
+				type)
+					case ${CodeProject} in
+						none)
+							echo "Test/Non-spectic Project"
+							;;
+						*)
+							echo "Generic Project"
+							;;
+					esac
 					;;
 				#change dir in project
 				cd)
@@ -1038,7 +1059,7 @@ Actions()
 					esac
 					;;
 				#Swap Programming Languages
-				use|c++|java|python|perl|ruby|bash)
+				use|c++|java|python|perl|ruby|bash|go)
 					Old=${Lang}
 					OldCode=${Code}
 					case ${UserIn[0]} in
@@ -1234,7 +1255,7 @@ Actions()
 #					;;
 				#Modes
 				mode)
-					ModeHanlder ${UserIn[1]}
+					ModeHandler ${Lang} ${cLang} ${UserIn[1]}
 					;;
 				#search for element in project
 				search)
@@ -1286,10 +1307,16 @@ Actions()
 							;;
 					esac
 					;;
+				#(c)ompile (a)nd (r)un
+				car)
+					ManageLangs ${Lang} "compileCode" ${Code} ${UserIn[1]} ${UserIn[2]}
+					if [ ! -z "${Code}" ]; then
+						runCode ${Lang} ${Code} ${UserIn[1]}
+					fi
+					;;
 				#Compile code
 				compile|cpl)
 					ManageLangs ${Lang} "compileCode" ${Code} ${UserIn[1]} ${UserIn[2]}
-					#Code=$(ManageLangs ${Lang} "SwapToBin" ${Code})
 					;;
 				#Install compiled code into aliases
 				install)
@@ -1359,32 +1386,43 @@ Actions()
 #Choose Lang by code
 SelectLangByCode()
 {
-	local Code=$1
-	#Select Language
-	case ${Code} in
-		*.sh)
-			pgLang Bash
-			;;
-		*.py)
-			pgLang Python
-			;;
-		*.cpp|*.h)
-			pgLang C++
-			;;
-		*.java)
-			pgLang Java
-			;;
-		*.pl)
-			pgLang Perl
-			;;
-		*.rb)
-			pgLang Ruby
-			;;
-		*)
-			echo "no"
-			;;
-	esac
+	local GetExt=$1
+	local Langs
+	local NumOfLangs
+	local look
+	local text
+	local LangExt
+	local ChosenLangs
+	if [ ! -z "${GetExt}" ]; then
+#		GetExt=".${GetExt##*.}"
+#		echo ${GetExt}
+		Langs=$(ls ${LangsDir}/ | sed "s/Lang.//g" | tr '\n' '|' | rev | sed "s/|//1" | rev)
+		NumOfLangs=$(ls ${LangsDir}/ | wc -l)
+		look=1
+		while [ ${look} -le ${NumOfLangs} ];
+		do
+			text=$(echo ${Langs} | cut -d '|' -f ${look})
+			text=$(ManageLangs ${text} "pgLang")
+			case ${text} in
+				no)
+					;;
+				*)
+					LangExt=$(ManageLangs ${text} "getExt")
+					case ${GetExt} in
+						*${LangExt})
+							pgLang ${text}
+							break
+							;;
+						*)
+							;;
+					esac
+					;;
+			esac
+			look=$((${look}+1))
+		done
+	fi
 }
+
 
 #Autocomplete Function
 autocomp()
@@ -1534,6 +1572,7 @@ loadAuto()
 	bind -x '"\C-l":clear'
 	comp_list "ls"
 	comp_list "save"
+	comp_list "type"
 	comp_list "lscpl"
 	comp_list "using"
 	comp_list "ll"
@@ -1545,7 +1584,7 @@ loadAuto()
 	comp_list "pwd"
 	comp_list "mkdir"
 	comp_list "use" "${pg}"
-	comp_list "project" "load import new list"
+	comp_list "project" "load import new list update"
 	comp_list "shell"
 	comp_list "new" "--version -v --help -h --custom -c"
 	comp_list "${editor} ed edit" "non-lang"
@@ -1554,7 +1593,7 @@ loadAuto()
 	comp_list "${repoTool} repo"
 	comp_list "search"
 	comp_list "create" "make version -std= jar manifest args prop properties -D reset"
-	comp_list "compile cpl"
+	comp_list "compile cpl car"
 	comp_list "execute exe run" "-a --args"
 	comp_list "version"
 	comp_list "help"
@@ -1813,18 +1852,26 @@ main()
 						;;
 				esac
 				;;
-			*.sh|*.py|*.cpp|*.h|*.java|*.pl|*.rb)
+			#Get by file extension
+			*.*)
 				local Code=$1
 				local Lang=$(SelectLangByCode $1)
 				local CodeDir=$(pgDir ${Lang})
-				if [ ! -z "${CodeDir}" ]; then
-					cd ${CodeDir}
-					Code=$(selectCode ${Lang} ${Code})
-					if [ ! -z "${Code}" ]; then
-						#Start IDE
-						Actions ${Lang} ${Code}
-					fi
-				fi
+				case ${CodeDir} in
+					no)
+						errorCode "not-a-lang"
+						;;
+					*)
+						if [ ! -z "${CodeDir}" ]; then
+							cd ${CodeDir}
+							Code=$(selectCode ${Lang} ${Code})
+							if [ ! -z "${Code}" ]; then
+								#Start IDE
+								Actions ${Lang} ${Code}
+							fi
+						fi
+						;;
+				esac
 				;;
 			#Check for language given
 			*)
