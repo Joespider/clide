@@ -1,9 +1,18 @@
 Aliases=~/.bash_aliases
+ShellPath=$(realpath $0)
+root=$(dirname ${ShellPath})
+
+errorCode()
+{
+	${root}/errorCode.sh $@
+}
+
 #Handle Aliases
 AddAlias()
 {
         local AliasName=$1
-        local Command="$2 $3"
+	shift
+        local Command="$@"
         local Insert="alias ${AliasName}=\"${Command} \$@\""
         if [[ "$USER" == "root" ]]; then
                 Replace="\\$HOME\\/"

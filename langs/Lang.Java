@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.29"
+SupportV="0.1.31"
 
 ProgDir=$1
 shift
@@ -410,12 +410,25 @@ UseJava()
 		Install)
 			local bin=$1
 			local BinFile="${bin%.*}"
+			local project=${CodeProject}
+			local TheBinDir
+			#Handle Project Dir
+			case ${project} in
+				none)
+					project=""
+					TheBinDir=${LangBin}
+					;;
+				*)
+					project="${project}/"
+					TheBinDir="${LangSrc}/${project}bin"
+					;;
+			esac
 			#Java binary
 			if [[ "${bin}" == *"${LangExt}" ]]; then
 				#Check for Jar file
-				if [ -f "${LangBin}/${BinFile}.jar" ]; then
-					AddAlias "${BinFile}" "${LangRun} -jar ${LangBin}/${BinFile}.jar"
-				elif [ -f "${LangBin}/${bin}.class" ]; then
+				if [ -f "${TheBinDir}/${BinFile}.jar" ]; then
+					AddAlias "${BinFile}" "${LangRun} -jar ${TheBinDir}/${BinFile}.jar"
+				elif [ -f "${TheBinDir}/${BinFile}.class" ]; then
 					echo "Please compile as jar file"
 					echo "[hint] $ cpl jar"
 				else
@@ -468,6 +481,9 @@ UseJava()
 			local name=$1
 			local Project=$2
 			local Type=$3
+			local TemplateC=${TemplateCodeClass##*/}
+			TemplateC=${TemplateC%.*}
+
 			Type=$(echo ${Type} | tr A-Z a-z)
 			name=${name%${LangExt}}
 			if [ ! -f ${name}${LangExt} ]; then
@@ -479,14 +495,14 @@ UseJava()
 							#create main file
 							main)
 								cd ${LangBin}
-								${LangRun} newJava --user $USER --main --shell --write-file --read-file --user-input --name ${name}
+								${LangRun} ${TemplateC} --user $USER --main --shell --write-file --read-file --user-input --append-array --name ${name}
 								cd - > /dev/null
 								mv "${LangBin}/${name}${LangExt}" .
 								;;
 							#create component file
 							component)
 								cd ${LangBin}
-								${LangRun} newJava --user $USER --write-file --read-file --name "${name}"
+								${LangRun} ${TemplateC} --user $USER --write-file --read-file --name "${name}"
 								cd - > /dev/null
 								mv "${LangBin}/${name}${LangExt}" .
 								;;
@@ -505,7 +521,7 @@ UseJava()
 					#No Program Name Given
 					else
 						cd ${LangBin}
-						java newJava --help
+						${LangRun} ${TemplateC} --help
 					cd - > /dev/null
 				fi
 			#Check for Custom Code Template...is jar
@@ -515,7 +531,7 @@ UseJava()
 					case ${Type} in
 						#create main file
 						main)
-							${LangRun} -jar ${TemplateCodeJar} --user $USER --main --shell --write-file --read-file --user-input --name "${name}"
+							${LangRun} -jar ${TemplateCodeJar} --user $USER --main --shell --write-file --read-file --user-input --append-array --name "${name}"
 							;;
 						#create component file
 						component)

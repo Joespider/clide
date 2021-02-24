@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.22"
+SupportV="0.1.23"
 
 ProgDir=$1
 shift
@@ -377,11 +377,24 @@ UseRuby()
 		Install)
 			local bin=$1
 			local BinFile="${bin%.*}"
+			local project=${CodeProject}
+			local TheBinDir
+			#Handle Project Dir
+			case ${project} in
+				none)
+					project=""
+					TheBinDir=${LangBin}
+					;;
+				*)
+					project="${project}/"
+					TheBinDir="${LangSrc}/${project}bin"
+					;;
+			esac
 			#Make sure Binary exists
-			if [ -f "${LangBin}/${bin}" ]; then
+			if [ -f "${TheBinDir}/${bin}" ]; then
 				#Add command to Aliases
-				AddAlias "${BinFile}" "${LangRun} ${LangBin}/${bin}"
-			elif [ ! -f "${LangBin}/${bin}" ]; then
+				AddAlias "${BinFile}" "${LangRun} ${TheBinDir}/${bin}"
+			elif [ ! -f "${TheBinDir}/${bin}" ]; then
 				errorCode "install" "${bin}"
 			else
 				errorCode "noCode"

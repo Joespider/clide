@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.31"
+SupportV="0.1.32"
 
 ProgDir=$1
 shift
@@ -436,11 +436,24 @@ UseC++()
 		Install)
 			local bin=$1
 			local BinFile="${bin%.*}"
+			local project=${CodeProject}
+			local TheBinDir
+			#Handle Project Dir
+			case ${project} in
+				none)
+					project=""
+					TheBinDir=${LangBin}
+					;;
+				*)
+					project="${project}/"
+					TheBinDir="${LangSrc}/${project}bin"
+					;;
+			esac
 			#Make sure Binary exists
-			if [ -f "${LangBin}/${bin}" ]; then
+			if [ -f "${TheBinDir}/${BinFile}" ]; then
 				#Add command to Aliases
-				AddAlias "${bin}" "${LangBin}/${bin}"
-			elif [ ! -f "${LangBin}/${bin}" ]; then
+				AddAlias "${BinFile}" "${TheBinDir}/${BinFile}"
+			elif [ ! -f "${TheBinDir}/${BinFile}" ]; then
 				#compule or swap to binary
 				errorCode "install" "${bin}"
 			else

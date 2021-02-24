@@ -77,6 +77,7 @@ MenuHelp()
 	echo -e "ls\t\t\t\t: \"list progams\""
 	echo -e "lscpl\t\t\t\t: \"list compiled progams\""
 	echo -e "using\t\t\t\t: \"get the language being used\""
+	echo -e "type\t\t\t\t: \"display the type of project\""
 	echo -e "unset\t\t\t\t: \"deselect source code\""
 	echo -e "use <language> <code>\t\t: \"choose language\""
 	echo -e "using\t\t\t\t:\"Display what language is being used\""
@@ -183,6 +184,7 @@ CliHelp()
 	echo ""
 	echo "-----------------------------------------------"
 	echo -e "\t\t\"Quick ${Head} Functions\""
+	echo -e "{Action} Items"
 	echo -e "--edit\t\t\t\t:\"Edit source code\""
 	echo -e "--cpl, --compile\t\t:\"Compile source code\""
 	echo -e "--install\t\t\t:\"install program (.bash_aliases)\""
@@ -191,6 +193,8 @@ CliHelp()
 	echo -e "--list\t\t\t\t:\"List source code\""
 	echo ""
 	echo -e "$ clide <Action> <Language> <Code> <Args>"
+	echo "or"
+	echo -e "$ clide <Action> <Code> <Args>"
 	echo ""
 	echo "-----------------------------------------------"
 	echo -e "\t\t\"Run ${Head} IDE\""
@@ -930,8 +934,19 @@ Actions()
 					Remove ${Code} ${UserIn[1]} ${UserIn[2]}
 					Code=""
 					;;
+				#Display the language being used
 				using)
 					echo "${cLang}"
+					;;
+				type)
+					case ${CodeProject} in
+						none)
+							echo "Test/Non-spectic Project"
+							;;
+						*)
+							echo "Generic Project"
+							;;
+					esac
 					;;
 				#change dir in project
 				cd)
@@ -1557,6 +1572,7 @@ loadAuto()
 	bind -x '"\C-l":clear'
 	comp_list "ls"
 	comp_list "save"
+	comp_list "type"
 	comp_list "lscpl"
 	comp_list "using"
 	comp_list "ll"
