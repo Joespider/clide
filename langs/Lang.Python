@@ -1,12 +1,13 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.25"
+SupportV="0.1.26"
 
 ProgDir=$1
 shift
 ClideDir=$1
 LibDir=${ClideDir}/lib
+VarDir=${ClideDir}/var
 shift
 editor=$1
 shift
@@ -37,7 +38,10 @@ OtherColor()
 
 UsePython()
 {
-	local LangRun=python
+	local LangConfig=$(grep Python ${VarDir}/clide.conf | sed "s/Python=//1")
+	local LangRun=${LangConfig}
+
+#	local LangRun=python
 	local LangHome=${ProgDir}/Python
 	local LangSrc=${LangHome}/src
 	local LangBin=${LangHome}/bin

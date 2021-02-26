@@ -1,12 +1,13 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.31"
+SupportV="0.1.32"
 
 ProgDir=$1
 shift
 ClideDir=$1
 LibDir=${ClideDir}/lib
+VarDir=${ClideDir}/var
 shift
 editor=$1
 shift
@@ -37,8 +38,12 @@ OtherColor()
 
 UseJava()
 {
-	local LangCpl=javac
-	local LangRun=java
+	local LangConfig=$(grep Java ${VarDir}/clide.conf | sed "s/Java=//1")
+	local LangCpl=$(echo ${LangConfig} | cut -d ',' -f 1)
+	local LangRun=$(echo ${LangConfig} | cut -d ',' -f 2)
+
+#	local LangCpl=javac
+#	local LangRun=java
 	local LangHome=${ProgDir}/Java
 	local LangSrc=${LangHome}/src
 	local LangBin=${LangHome}/bin

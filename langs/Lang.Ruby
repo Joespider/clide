@@ -1,12 +1,13 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.23"
+SupportV="0.1.24"
 
 ProgDir=$1
 shift
 ClideDir=$1
 LibDir=${ClideDir}/lib
+VarDir=${ClideDir}/var
 shift
 editor=$1
 shift
@@ -37,7 +38,10 @@ OtherColor()
 
 UseRuby()
 {
-	local LangRun=ruby
+	local LangConfig=$(grep Ruby ${VarDir}/clide.conf | sed "s/Ruby=//1")
+	local LangRun=${LangConfig}
+
+#	local LangRun=ruby
 	local LangHome=${ProgDir}/Ruby
 	local LangSrc=${LangHome}/src
 	local LangBin=${LangHome}/bin

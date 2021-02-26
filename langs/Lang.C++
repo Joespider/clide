@@ -1,12 +1,13 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.32"
+SupportV="0.1.33"
 
 ProgDir=$1
 shift
 ClideDir=$1
 LibDir=${ClideDir}/lib
+VarDir=${ClideDir}/var
 shift
 editor=$1
 shift
@@ -37,7 +38,10 @@ OtherColor()
 
 UseC++()
 {
-	local LangCpl=g++
+	local LangConfig=$(grep C++ ${VarDir}/clide.conf | sed "s/C++=//1")
+	local LangCpl=${LangConfig}
+
+#	local LangCpl=g++
 	local LangHome=${ProgDir}/C++
 	local LangSrc=${LangHome}/src
 	local LangBin=${LangHome}/bin

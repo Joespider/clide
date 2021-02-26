@@ -1,12 +1,13 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.2"
+SupportV="0.1.3"
 
 ProgDir=$1
 shift
 ClideDir=$1
 LibDir=${ClideDir}/lib
+VarDir=${ClideDir}/var
 shift
 editor=$1
 shift
@@ -37,7 +38,10 @@ OtherColor()
 
 UseGo()
 {
-	local LangCpl=go
+	local LangConfig=$(grep Go ${VarDir}/clide.conf | sed "s/Go=//1")
+	local LangCpl=${LangConfig}
+
+#	local LangCpl=go
 	local LangHome=${ProgDir}/Go
 	local LangSrc=${LangHome}/src
 	local LangBin=${LangHome}/bin

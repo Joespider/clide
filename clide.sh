@@ -178,7 +178,7 @@ CliHelp()
 	echo -e "-tv, --temp-version\t\t: \"Get Code Template Version\""
 	echo -e "-rv, --repo-version\t\t: \"Get git/svn Version\""
 	echo -e "-c, --config\t\t\t: \"Get Clide Config\""
-	echo -e "-p, --projects\t\t\t: \"List Clide Projects\""
+	echo -e "-p, --project <project>\t\t: \"List or Load Clide Projects\""
 	echo -e "-h, --help\t\t\t: \"Get CLI Help Page (Cl[ide] Menu: \"help\")\""
 	echo -e "-l, --last, --load\t\t: \"Load last session\""
 	echo ""
@@ -815,78 +815,66 @@ Actions()
 	local Dir=""
 	local ProjectDir=""
 	local Lang=$1
+	local Code="$2"
+	shift
+	shift
 	local CodeDir=$(pgDir ${Lang})
 	local pLangs=$(ColorCodes)
 	local prompt=""
-	local UserArg=""
-	local Code="$2"
-	local FirstAction="$3"
+	local refresh
+	local UserArg
+	local ThePWD
+	local FirstAction=$1
+	#Pass into array
+	local UserIn=( $@ )
 	CodeProject="none"
-
-#	#No Project Given
-#	if [ -z $2 ]; then
-#		Code=""
-#	else
-#		Code=$2
-#	fi
-#
-#	#No Project Given
-#	if [ -z $3 ]; then
-#		CodeProject="none"
-#	else
-#		CodeProject=$3
-#		Dir="${CodeProject}"
-#	fi
-#
-#	#Avoid getting incorrect directory name
-#	if [[ "${Dir}" == "none" ]]; then
-#		Dir=""
-#	fi
 
 	#Language Chosen
 	if [[ ! "${CodeDir}" == "no" ]]; then
 		cd ${CodeDir}/${Dir}
 		Code=$(selectCode ${Lang} ${Code})
+		#Change Color for Language
+		cLang=$(color ${Lang})
+		#Change Color for Code
+		cCode=$(color ${Code})
+		#Handle the CLI User Interface
+		#{
+		if [[ "${Code}" == "" ]]; then
+			case ${CodeProject} in
+				none)
+					#Menu with no code
+					prompt="${Name}(${cLang}):$ "
+					;;
+				*)
+					ThePWD=$(pwd)
+					ProjectDir=$(echo ${ThePWD#*${CodeProject}} | sed "s/\//:/1")
+					cCodeProject=$(ManageLangs ${Lang} "ProjectColor" "${CodeProject}")
+					#Menu with no code
+					prompt="${Name}([${cCodeProject}${ProjectDir}]):$ "
+					;;
+			esac
+		else
+			case ${CodeProject} in
+				none)
+					#Menu with code
+					prompt="${Name}(${cLang}{${cCode}}):$ "
+					;;
+				*)
+					ThePWD=$(pwd)
+					ProjectDir=$(echo ${ThePWD#*${CodeProject}} | sed "s/\//:/1")
+					#Menu with no code
+					cCodeProject=$(ManageLangs ${Lang} "ProjectColor" "${CodeProject}")
+					prompt="${Name}([${cCodeProject}${ProjectDir}]{${cCode}}):$ "
+					;;
+			esac
+		fi
+		#}
 		Banner
 		while true
 		do
-			#Change Color for Language
-			cLang=$(color ${Lang})
-			#Change Color for Code
-			cCode=$(color ${Code})
-
-			if [[ "${Code}" == "" ]]; then
-				case ${CodeProject} in
-					none)
-						#Menu with no code
-						prompt="${Name}(${cLang}):$ "
-						;;
-					*)
-						ThePWD=$(pwd)
-						ProjectDir=$(echo ${ThePWD#*${CodeProject}} | sed "s/\//:/1")
-						cCodeProject=$(ManageLangs ${Lang} "ProjectColor" "${CodeProject}")
-						#Menu with no code
-						prompt="${Name}([${cCodeProject}${ProjectDir}]):$ "
-						;;
-				esac
-			else
-				case ${CodeProject} in
-					none)
-						#Menu with code
-						prompt="${Name}(${cLang}{${cCode}}):$ "
-						;;
-					*)
-						ThePWD=$(pwd)
-						ProjectDir=$(echo ${ThePWD#*${CodeProject}} | sed "s/\//:/1")
-						#Menu with no code
-						cCodeProject=$(ManageLangs ${Lang} "ProjectColor" "${CodeProject}")
-						prompt="${Name}([${cCodeProject}${ProjectDir}]{${cCode}}):$ "
-						;;
-				esac
-			fi
 			#User's first action
 			if [ ! -z "${FirstAction}" ]; then
-				UserArg=${FirstAction}
+				UserArg=$(echo ${FirstAction} | tr A-Z a-z)
 				FirstAction=""
 			else
 				#Handle CLI
@@ -894,16 +882,6 @@ Actions()
 				read -e -p "${prompt}" -a UserIn
 				UserArg=$(echo ${UserIn[0]} | tr A-Z a-z)
 
-			fi
-			if [ ! -z "${UserIn[0]}" ]; then
-				case ${UserIn[0]} in
-					#ignore anything beginning with '-'
-					-*)
-						;;
-					*)
-						history -s "${UserIn[@]}"
-						;;
-				esac
 			fi
 			case ${UserArg} in
 				#List files
@@ -924,15 +902,18 @@ Actions()
 				#Set for session
 				set)
 					Code=$(selectCode ${Lang} ${UserIn[1]} ${Code})
+					refresh="yes"
 					;;
 				#Unset code for session
 				unset)
 					Code=""
+					refresh="yes"
 					;;
 				#Delete source code
 				rm|remove|delete)
 					Remove ${Code} ${UserIn[1]} ${UserIn[2]}
 					Code=""
+					refresh="yes"
 					;;
 				#Display the language being used
 				using)
@@ -962,6 +943,7 @@ Actions()
 								errorCode "project" "can-not-leave"
 								cd - > /dev/null
 							fi
+							refresh="yes"
 							;;
 					esac
 					;;
@@ -1006,6 +988,7 @@ Actions()
 									fi
 								fi
 							fi
+							refresh="yes"
 							;;
 						#Update live project
 						update)
@@ -1057,6 +1040,7 @@ Actions()
 							ProjectHelp
 							;;
 					esac
+					refresh="yes"
 					;;
 				#Swap Programming Languages
 				use|c++|java|python|perl|ruby|bash|go)
@@ -1090,6 +1074,7 @@ Actions()
 						Lang=${Old}
 						echo "Supported Languages: ${pLangs}"
 					fi
+					refresh="yes"
 					;;
 				bkup|backup)
 					local chosen=${UserIn[1]}
@@ -1138,6 +1123,7 @@ Actions()
 								if [[ "${Code}" == *"${chosen}"* ]]; then
 									ManageLangs ${Lang} "rename" ${chosen} ${TheNewChosen} > /dev/null
 									Code=$(echo ${Code} | sed "s/${chosen}/${TheNewChosen}/g")
+									refresh="yes"
 								else
 									errorCode "rename" "wrong"
 								fi
@@ -1149,6 +1135,7 @@ Actions()
 							Code=$(ManageLangs ${Lang} "rename" ${Code} ${chosen})
 							;;
 					esac
+					refresh="yes"
 					;;
 				copy)
 					local chosen=${UserIn[1]}
@@ -1170,6 +1157,7 @@ Actions()
 							Code=$(ManageLangs ${Lang} "copy" ${Code} ${chosen})
 							;;
 					esac
+					refresh="yes"
 					;;
 				#use the shell of a given language
 				shell)
@@ -1213,11 +1201,13 @@ Actions()
 								#Return the name of source code
 								ManageLangs ${Lang} "newCode" ${UserIn[1]} ${CodeProject} ${UserIn[2]}
 								Code=$(ManageLangs ${Lang} "getCode" ${UserIn[1]})
+								refresh="yes"
 							else
 								newCodeHelp ${Lang}
 							fi
 							;;
 					esac
+					refresh="yes"
 					;;
 				#Edit new source code
 				${editor}|edit|ed)
@@ -1238,6 +1228,7 @@ Actions()
 				#Add code to Source Code
 				add)
 					Code=$(ManageLangs ${Lang} "addCode" ${Code} ${UserIn[1]})
+					refresh="yes"
 					;;
 				#Read code without editing
 				${ReadBy}|read)
@@ -1360,6 +1351,7 @@ Actions()
 						#Go to dir
 						cd ${CodeDir}
 					fi
+					refresh="yes"
 					;;
 				#List supported languages
 				langs|languages)
@@ -1379,6 +1371,62 @@ Actions()
 				*)
 					;;
 			esac
+			if [ ! -z "${UserIn[0]}" ]; then
+				case ${UserIn[0]} in
+					#ignore anything beginning with '-'
+					-*)
+						;;
+					*)
+						history -s "${UserIn[@]}"
+						#Refresh CLI User Interface
+						case ${refresh} in
+							yes)
+								#Handle the CLI User Interface
+								#{
+								#Change Color for Language
+								cLang=$(color ${Lang})
+								#Change Color for Code
+								cCode=$(color ${Code})
+								#Handle the CLI User Interface
+								if [[ "${Code}" == "" ]]; then
+									case ${CodeProject} in
+										none)
+											#Menu with no code
+											prompt="${Name}(${cLang}):$ "
+											;;
+										*)
+											ThePWD=$(pwd)
+											ProjectDir=$(echo ${ThePWD#*${CodeProject}} | sed "s/\//:/1")
+											cCodeProject=$(ManageLangs ${Lang} "ProjectColor" "${CodeProject}")
+											#Menu with no code
+											prompt="${Name}([${cCodeProject}${ProjectDir}]):$ "
+											;;
+									esac
+								else
+									case ${CodeProject} in
+										none)
+											#Menu with code
+											prompt="${Name}(${cLang}{${cCode}}):$ "
+											;;
+										*)
+											ThePWD=$(pwd)
+											ProjectDir=$(echo ${ThePWD#*${CodeProject}} | sed "s/\//:/1")
+											#Menu with no code
+											cCodeProject=$(ManageLangs ${Lang} "ProjectColor" "${CodeProject}")
+											prompt="${Name}([${cCodeProject}${ProjectDir}]{${cCode}}):$ "
+											;;
+									esac
+								fi
+								#}
+								refresh="no"
+								;;
+							*)
+								refresh="no"
+								;;
+						esac
+						;;
+				esac
+			fi
 		done
 	fi
 }
@@ -1670,8 +1718,20 @@ main()
 				RepoVersion
 				;;
 			#List projects from cli
-			-p|--projects)
-				listProjects
+			-p|--project)
+				shift
+				local GetProject=$1
+				if [ ! -z "${GetProject}" ]; then
+					TheProject=$(loadProject ${GetProject})
+					if [ "${TheProject}" != "no" ]; then
+#						Lang=$(echo ${TheProject} | cut -d ";" -f 1)
+#						Lang=$(pgLang ${Lang})
+#						Actions ${Lang} "code" "project" "load" "${GetProject}"
+						Actions "Bash" "code" "project" "load" "${GetProject}"
+					fi
+				else
+					listProjects
+				fi
 				;;
 			#Get cli help page
 			-h|--help)
