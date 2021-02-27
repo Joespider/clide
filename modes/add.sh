@@ -52,8 +52,8 @@ Help()
 			echo "Component: Language Support"
 			echo -e "create <new language>\t\t:\"Create support for another language\""
 			echo -e "import\t\t\t\t:\"import new language to support (Lang.<type> FILE MUST EXIST)\""
-			echo -e "change <lang> {run|cpl} <val>\t\t:\"Change the compiler/interpretor\""
-			echo -e "change {run|cpl} <val>\t\t\t:\"Change the compiler/interpretor\""
+#			echo -e "change <lang> {run|cpl} <val>\t\t:\"Change the compiler/interpretor\""
+#			echo -e "change {run|cpl} <val>\t\t\t:\"Change the compiler/interpretor\""
 			echo -e "correct\t\t\t\t:\"Adjust existing support for Langauge\""
 			echo ""
 			echo -e "done\t\t\t\t: \"done with adding component\""
@@ -148,27 +148,27 @@ AddLangSupport()
 		import)
 			errorCode "no-support" "add-Lang"
 			;;
-		change)
-			local prop=$4
-			local to=$5
-			if [ ! -z "${prop}" ] && [ -z "${to}" ]; then
-				to=${prop}
-				prop=${NewLang}
-				NewLang=${Lang}
-			fi
-			local OldCpl
-			local NewCpl
-			local OldRun
-			local NewRun
-			SupportFile=${LangsDir}/Lang.${NewLang^}
-			case ${prop} in
-				cpl)
-					#Change Compiler
-					OldCpl=$(grep "LangCpl=" "${SupportFile}" | tr -d '\t' | sed "s/local LangCpl=//g")
-					if [ ! -z "${OldCpl}" ]; then
-						sed -i "s/local LangCpl=${OldCpl}/local LangCpl=${to}/g" "${SupportFile}"
-					fi
-					;;
+#		change)
+#			local prop=$4
+#			local to=$5
+#			if [ ! -z "${prop}" ] && [ -z "${to}" ]; then
+#				to=${prop}
+#				prop=${NewLang}
+#				NewLang=${Lang}
+#			fi
+#			local OldCpl
+#			local NewCpl
+#			local OldRun
+#			local NewRun
+#			SupportFile=${LangsDir}/Lang.${NewLang^}
+#			case ${prop} in
+#				cpl)
+#					#Change Compiler
+#					OldCpl=$(grep "LangCpl=" "${SupportFile}" | tr -d '\t' | sed "s/local LangCpl=//g")
+#					if [ ! -z "${OldCpl}" ]; then
+#						sed -i "s/local LangCpl=${OldCpl}/local LangCpl=${to}/g" "${SupportFile}"
+#					fi
+#					;;
 				run)
 					#Change Interpretor
 					OldRun=$(grep "LangRun=" "${SupportFile}" | tr -d '\t' | sed "s/local LangRun=//g" | tr -d '\n')
