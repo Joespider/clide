@@ -1,12 +1,13 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.25"
+SupportV="0.1.26"
 
 ProgDir=$1
 shift
 ClideDir=$1
 LibDir=${ClideDir}/lib
+VarDir=${ClideDir}/var
 shift
 editor=$1
 shift
@@ -37,7 +38,10 @@ OtherColor()
 
 UseBash()
 {
-	local LangCpl=bash
+	local LangConfig=$(grep Bash ${VarDir}/clide.conf | sed "s/Bash=//1")
+	local LangCpl=${LangConfig}
+
+#	local LangCpl=bash
 	local LangHome=${ProgDir}/Bash
 	local LangSrc=${LangHome}/src
 	local LangBin=${LangHome}/bin

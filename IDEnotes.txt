@@ -1,5 +1,0 @@
-[Java]
-	projects
-		Standard:
-			Project/src
-			Project/bin
