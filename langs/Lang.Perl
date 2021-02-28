@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.24"
+SupportV="0.1.25"
 
 ProgDir=$1
 shift
@@ -148,7 +148,10 @@ UsePerl()
 			if [[ ! "${name}" == *"${LangExt}" ]]; then
 				name="${name}${LangExt}"
 			fi
-			echo ${name}
+			#Return source file if exists
+			if [ -f "${name}" ]; then
+				echo "${name}"
+			fi
 			;;
 		addCode)
 			local src=$1

@@ -186,12 +186,59 @@ UseJava()
 		selectCode)
 			local name=$1
 			local project=${CodeProject}
+			local newName
+			local DirPath
+			local TheSrcDir
 			#Correct filename
 			if [ ! -z "${name}" ]; then
-				if [[ ! "${name}" == *"${LangExt}" ]]; then
-					name="${name}${LangExt}"
-				fi
-				echo ${name}
+				case ${project} in
+					#not a project
+					none)
+						name=${name%${LangExt}}${LangExt}
+						#Return source file if exists
+						if [ -f "${name}" ]; then
+							echo "${name}"
+						fi
+						;;
+					#is a project
+					*)
+						#has package or no package
+						case ${name} in
+							#has package and input by path
+							*/*|*/*.*)
+								name=${name%${LangExt}}
+								newName=${name##*/}
+								DirPath=${name%${newName}}
+								TheSrcDir="${LangSrc}/${project}/src/${DirPath}"
+								if [ -f ${TheSrcDir}${newName}${LangExt} ]; then
+									name="${name}${LangExt}"
+									echo ${name} | tr '/' '.'
+								fi
+								;;
+							#has package and input by package name
+							*.*)
+								name=${name%${LangExt}}
+								newName=${name##*.}
+								DirPath=$(echo ${name%${newName}} | tr '.' '/')
+								TheSrcDir="${LangSrc}/${project}/src/${DirPath}"
+								echo ${TheSrDir}
+								if [ -f ${TheSrcDir}${newName}${LangExt} ]; then
+									name="${name}${LangExt}"
+									echo ${name}
+								fi
+								;;
+							#has not package
+							*)
+								#Correct filename
+								name=${name%${LangExt}}${LangExt}
+								#Return source file if exists
+								if [ -f "${name}" ]; then
+									echo "${name}"
+								fi
+								;;
+						esac
+					;;
+				esac
 			fi
 			;;
 		addCode)
@@ -258,17 +305,17 @@ UseJava()
 								;;
 							*)
 								case ${src} in
+									*/*|*/*.*)
+										src=${src%${LangExt}}
+										newName=${src##*/}
+										DirPath=${src%${newName}}
+										TheSrcDir="${LangSrc}/${project}/src/${DirPath}"
+										${editor} ${TheSrcDir}${newName}${LangExt}
+										;;
 									*.*)
 										src=${src%${LangExt}}
 										newName=${src##*.}
 										DirPath=$(echo ${src%${newName}} | tr '.' '/')
-										TheSrcDir="${LangSrc}/${project}/src/${DirPath}"
-										${editor} ${TheSrcDir}${newName}${LangExt}
-										;;
-									*/*)
-										src=${src%${LangExt}}
-										newName=${src##*/}
-										DirPath=${src%${newName}}
 										TheSrcDir="${LangSrc}/${project}/src/${DirPath}"
 										${editor} ${TheSrcDir}${newName}${LangExt}
 										;;

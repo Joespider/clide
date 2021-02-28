@@ -749,12 +749,10 @@ selectCode()
 	local name=$2
 	local old=$3
 	name=$(ManageLangs ${Lang} "selectCode" ${name})
-	#Return source file if exists
-	if [ -f "${name}" ]; then
-		echo "${name}"
-	#Return old source file if new does not exist
+	if [ ! -z "${name}" ]; then
+		echo ${name}
 	else
-		echo "${old}"
+		echo ${old}
 	fi
 }
 

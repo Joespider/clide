@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.26"
+SupportV="0.1.27"
 
 ProgDir=$1
 shift
@@ -150,7 +150,10 @@ UseBash()
 			if [[ ! "${name}" == *"${LangExt}" ]]; then
 				name="${name}${LangExt}"
 			fi
-			echo ${name}
+			#Return source file if exists
+			if [ -f "${name}" ]; then
+				echo "${name}"
+			fi
 			;;
 			#Add code to active session
 		addCode)

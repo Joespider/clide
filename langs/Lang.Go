@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.3"
+SupportV="0.1.4"
 
 ProgDir=$1
 shift
@@ -156,7 +156,10 @@ UseGo()
 			elif [[ ! "${name}" == *".h" ]] && [ -f "${name}.h" ]; then
 				name="${name}.h"
 			fi
-			echo ${name}
+			#Return source file if exists
+			if [ -f "${name}" ]; then
+				echo "${name}"
+			fi
 			;;
 		addCode)
 			local src=$1
