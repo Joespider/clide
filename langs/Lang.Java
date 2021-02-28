@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.32"
+SupportV="0.1.33"
 
 ProgDir=$1
 shift
@@ -78,19 +78,40 @@ UseJava()
 			;;
 		getCode)
 			local name=$1
-			case ${CodeProject} in
+			name=${name%${LangExt}}
+			local project=${CodeProject}
+			local newName
+			local DirPath
+			local PackageName
+			local TheSrcDir
+			case ${project} in
 				none)
 					if [ -f ${LangSrc}/${name}${LangExt} ]; then
 						echo ${name}${LangExt}
-					elif [ -f ${LangSrc}/${name} ]; then
-						echo ${name}
 					fi
 					;;
 				*)
-					if [ -f ${LangSrc}/${CodeProject}/src/${name}${LangExt} ]; then
+					case ${name} in
+						*.*)
+							newName=${name##*.}
+							DirPath=$(echo ${name%${newName}} | tr '.' '/')
+							PackageName=${name%.*}
+							TheSrcDir="${LangSrc}/${project}/src/${DirPath}"
+							;;
+						*/*)
+							newName=${name##*/}
+							PackageName=$(echo ${name%/*} | tr '/' '.')
+							DirPath=${name%${newName}}
+							TheSrcDir="${LangSrc}/${project}/src/${DirPath}"
+							;;
+						*)
+							PackageName=$(pwd | sed "s/${project}\/src/|/g" | cut -d '|' -f 2 | tr '/' '.')
+							TheSrcDir="$(pwd)/"
+							newName=${name}
+							;;
+					esac
+					if [ -f ${TheSrcDir}${newName}${LangExt} ]; then
 						echo ${name}${LangExt}
-					elif [ -f ${LangSrc}/${CodeProject}/src/${name} ]; then
-						echo ${name}
 					fi
 					;;
 			esac
@@ -107,6 +128,7 @@ UseJava()
 			fi
 			;;
 		BeforeFiles|AfterFiles)
+			local project=${CodeProject}
 			ls *${LangExt} 2> /dev/null
 			;;
 		pgDir)
@@ -163,15 +185,19 @@ UseJava()
 			;;
 		selectCode)
 			local name=$1
+			local project=${CodeProject}
 			#Correct filename
-			if [[ ! "${name}" == *"${LangExt}" ]]; then
-				name="${name}${LangExt}"
+			if [ ! -z "${name}" ]; then
+				if [[ ! "${name}" == *"${LangExt}" ]]; then
+					name="${name}${LangExt}"
+				fi
+				echo ${name}
 			fi
-			echo ${name}
 			;;
 		addCode)
 			local src=$1
 			local new=$2
+			local project=${CodeProject}
 			case ${src} in
 				*${LangExt})
 					case ${new} in
@@ -198,24 +224,61 @@ UseJava()
 		editCode)
 			local src=$1
 			local num=$2
+			local project=${CodeProject}
+			local newName
+			local DirPath
+			local TheSrcDir
 			case ${src} in
 				*${LangExt})
 					if [[ "${src}" == *","* ]]; then
-						if [ -z ${num} ]; then
-							errorCode "editNull"
-						else
-							if [[ "${src}" == *"${num}"* ]]; then
-								if [[ "${num}" == *"${LangExt}" ]]; then
-									${editor} ${num}
+						case ${project} in
+							none)
+								if [ -z ${num} ]; then
+									errorCode "editNull"
 								else
-									${editor} "${num}${LangExt}"
+									if [[ "${src}" == *"${num}"* ]]; then
+										if [[ "${num}" == *"${LangExt}" ]]; then
+											${editor} ${num}
+										else
+											${editor} "${num}${LangExt}"
+										fi
+									else
+										errorCode "editNot"
+									fi
 								fi
-							else
-								errorCode "editNot"
-							fi
-						fi
+								;;
+							*)
+								echo "Please fix for projects"
+								;;
+						esac
 					else
-						${editor} ${src}
+						case ${project} in
+							none)
+								${editor} ${src}
+								;;
+							*)
+								case ${src} in
+									*.*)
+										src=${src%${LangExt}}
+										newName=${src##*.}
+										DirPath=$(echo ${src%${newName}} | tr '.' '/')
+										TheSrcDir="${LangSrc}/${project}/src/${DirPath}"
+										${editor} ${TheSrcDir}${newName}${LangExt}
+										;;
+									*/*)
+										src=${src%${LangExt}}
+										newName=${src##*/}
+										DirPath=${src%${newName}}
+										TheSrcDir="${LangSrc}/${project}/src/${DirPath}"
+										${editor} ${TheSrcDir}${newName}${LangExt}
+										;;
+									*)
+										${editor} ${src}
+										;;
+								esac
+								;;
+						esac
+
 					fi
 					;;
 				*)
@@ -225,6 +288,10 @@ UseJava()
 		readCode)
 			local src=$1
 			local num=$2
+			local project=${CodeProject}
+			local newName
+			local DirPath
+			local TheSrcDir
 			case ${src} in
 				*${LangExt})
 					if [[ "${src}" == *","* ]]; then
@@ -242,7 +309,33 @@ UseJava()
 							fi
 						fi
 					else
-						${ReadBy} ${src}
+						case ${project} in
+							none)
+								${editor} ${src}
+								;;
+							*)
+								case ${src} in
+									*.*)
+										src=${src%${LangExt}}
+										newName=${src##*.}
+										DirPath=$(echo ${src%${newName}} | tr '.' '/')
+										TheSrcDir="${LangSrc}/${project}/src/${DirPath}"
+										${ReadBy} ${TheSrcDir}${newName}${LangExt}
+										;;
+									*/*)
+										src=${src%${LangExt}}
+										newName=${src##*/}
+										DirPath=${src%${newName}}
+										TheSrcDir="${LangSrc}/${project}/src/${DirPath}"
+										${ReadBy} ${TheSrcDir}${newName}${LangExt}
+										;;
+									*)
+										${ReadBy} ${src}
+										;;
+								esac
+								;;
+						esac
+
 					fi
 					;;
 				*)
@@ -251,9 +344,9 @@ UseJava()
 			;;
 		compileCode)
 			local src=$1
-			local project=${CodeProject}
 			local name=$2
 			local keep=$3
+			local project=${CodeProject}
 			local cplArgs=""
 			local TheBinDir
 			local ERROR
@@ -264,6 +357,10 @@ UseJava()
 					TheBinDir=${LangBin}
 					;;
 				*)
+#					local tag="|EXT|"
+#					local revTag=$(echo ${tag} | rev)
+#					local revExt=$(echo ${LangExt} | rev)
+#					src=$(echo ${src} | rev | sed "s/${revExt}/${revTag}/1" | tr '.' '/' | rev | sed "s/${tag}/${LangExt}/g")
 					project="${project}/"
 					TheBinDir="${LangSrc}/${project}bin"
 					;;
@@ -482,89 +579,217 @@ UseJava()
 				errorCode "customCode" "notemp" "${Lang}"
 			fi
 			;;
+		#Create new code
 		newCode)
 			local name=$1
-			local Project=$2
+			local project=$2
 			local Type=$3
+			local newName
+			local DirPath
+			local PackageName
+			local Content
 			local TemplateC=${TemplateCodeClass##*/}
 			TemplateC=${TemplateC%.*}
 
 			Type=$(echo ${Type} | tr A-Z a-z)
 			name=${name%${LangExt}}
-			if [ ! -f ${name}${LangExt} ]; then
-				#Check for Custom Code Template...is class
-				if [ -f ${TemplateCodeClass} ]; then
-					#Program Name Given
-					if [ ! -z "${name}" ];then
-						case ${Type} in
-							#create main file
-							main)
-								cd ${LangBin}
-								${LangRun} ${TemplateC} --user $USER --main --shell --write-file --read-file --user-input --append-array --name ${name}
-								cd - > /dev/null
-								mv "${LangBin}/${name}${LangExt}" .
-								;;
-							#create component file
-							component)
-								cd ${LangBin}
-								${LangRun} ${TemplateC} --user $USER --write-file --read-file --name "${name}"
-								cd - > /dev/null
-								mv "${LangBin}/${name}${LangExt}" .
-								;;
-							#cl[ide] knows best
-							*)
-								#main class already created
-								if [[ "${oldCode}" == *"${LangExt}" ]]; then
-									#Create libary class
-									UseJava "newCode" ${name} ${oldCode} ${Project} "component"
-								else
-									#Create new main code
-									UseJava "newCode" ${name} ${oldCode} ${Project} "main"
-								fi
-								;;
-						esac
-					#No Program Name Given
-					else
-						cd ${LangBin}
-						${LangRun} ${TemplateC} --help
-					cd - > /dev/null
-				fi
-			#Check for Custom Code Template...is jar
-			elif [ -f ${TemplateCodeJar} ]; then
-				#Program Name Given
-				if [ ! -z "${name}" ];then
-					case ${Type} in
-						#create main file
-						main)
-							${LangRun} -jar ${TemplateCodeJar} --user $USER --main --shell --write-file --read-file --user-input --append-array --name "${name}"
+			local TheSrcDir
+			#Handle Project Dir
+			case ${project} in
+				none)
+					TheSrcDir="${LangSrc}/"
+					newName=${name##*.}
+					;;
+				*)
+					case ${name} in
+						*.*)
+							newName=${name##*.}
+							DirPath=$(echo ${name%${newName}} | tr '.' '/')
+							PackageName=${name%.*}
+							TheSrcDir="${LangSrc}/${project}/src/${DirPath}/"
 							;;
-						#create component file
-						component)
-							${LangRun} -jar ${TemplateCodeJar} --user $USER --write-file --read-file --name "${name}"
+						*/*)
+							newName=${name##*/}
+							PackageName=${name%/*}
+							PackageName=$(echo ${PackageName} | tr '/' '.')
+							DirPath=${name%${newName}}
+							TheSrcDir="${LangSrc}/${project}/src/${DirPath}/"
 							;;
-						#cl[ide] knows best
 						*)
-							#main class already created
-							if [[ "${oldCode}" == *"${LangExt}" ]]; then
-								#Create libary class
-								UseJava "newCode" ${name} ${oldCode} ${Project} "component"
+							PackageName=$(pwd | sed "s/${project}\/src/|/g" | cut -d '|' -f 2 | tr '/' '.')
+							TheSrcDir="$(pwd)/"
+							newName=${name}
+							;;
+					esac
+					;;
+			esac
+			#source file does not exist
+			if [ ! -f ${TheSrcDir}${newName}${LangExt} ]; then
+				#Program Name Given
+				if [ ! -z "${name}" ]; then
+					#Determine if project
+					case ${project} in
+						#not a project
+						none)
+							#Check for Custom Code Template...is class
+							if [ -f ${TemplateCodeClass} ]; then
+								case ${Type} in
+									#create main file
+									main)
+										cd ${LangBin}
+										${LangRun} ${TemplateC} --user $USER --main --shell --write-file --read-file --user-input --append-array --name ${name}
+										cd - > /dev/null
+										mv "${LangBin}/${newName}${LangExt}" .
+										;;
+									#create component file
+									component)
+										cd ${LangBin}
+										${LangRun} ${TemplateC} --user $USER --write-file --read-file --user-input --append-array --name ${name}
+										cd - > /dev/null
+										mv "${LangBin}/${newName}${LangExt}" . 2> /dev/null
+										;;
+									#cl[ide] knows best
+									*)
+										#main class already created
+										if [[ "${oldCode}" == *"${LangExt}" ]]; then
+											#Create libary class
+											UseJava "newCode" ${name} ${oldCode} ${project} "component"
+										else
+											#Create new main code
+											UseJava "newCode" ${name} ${oldCode} ${project} "main"
+										fi
+										;;
+								esac
+							#Check for Custom Code Template...is jar
+							elif [ -f ${TemplateCodeJar} ]; then
+								case ${Type} in
+									#create main file
+									main)
+										${LangRun} -jar ${TemplateCodeJar} --user $USER --main --shell --write-file --read-file --user-input --append-array --name "${name}"
+										;;
+									#create component file
+									component)
+										${LangRun} -jar ${TemplateCodeJar} --user $USER --write-file --read-file --name "${name}"
+										;;
+									#cl[ide] knows best
+									*)
+										#main class already created
+										if [[ "${oldCode}" == *"${LangExt}" ]]; then
+											#Create libary class
+											UseJava "newCode" ${name} ${oldCode} ${project} "component"
+										else
+											#Create new main code
+											UseJava "newCode" ${name} ${oldCode} ${project} "main"
+										fi
+										;;
+								esac
+							#No Template Program
 							else
-								#Create new main code
-								UseJava "newCode" ${name} ${oldCode} ${Project} "main"
+								Content="//class path goes here\n\n/**\n *\n * @author $USER\n */\n\n//class name\npublic class ${name} {\n\n\t/**\n\t* @param args the command line arguments\n\t*/\n\tpublic static void main(String[] args) {\n\n\t}\n}"
+								touch ${newName}${LangExt}
+								echo -e "${Content}" > ${newName}${LangExt}
+							fi
+							;;
+						#Handle Project Specific code
+						*)
+							#Check for Custom Code Template...is class
+							if [ -f ${TemplateCodeClass} ]; then
+								case ${Type} in
+									#create main file
+									main)
+										cd ${LangBin}
+										#Create include package
+										if [ ! -z "${PackageName}" ]; then
+											${LangRun} ${TemplateC} --user $USER --main --shell --write-file --read-file --user-input --append-array --package ${PackageName#.*} --name ${newName}
+										else
+											${LangRun} ${TemplateC} --user $USER --main --shell --write-file --read-file --user-input --append-array --name ${newName}
+										fi
+										cd - > /dev/null
+										mv "${LangBin}/${newName}${LangExt}" . 2> /dev/null
+										;;
+									component)
+										cd ${LangBin}
+										#Create include package
+										if [ ! -z "${PackageName}" ]; then
+											${LangRun} ${TemplateC} --user $USER --write-file --read-file --user-input --append-array --package ${PackageName#.*} --name ${newName}
+										else
+											${LangRun} ${TemplateC} --user $USER --write-file --read-file --user-input --append-array --name ${newName}
+										fi
+										cd - > /dev/null
+										mv "${LangBin}/${newName}${LangExt}" . 2> /dev/null
+										;;
+									#cl[ide] knows best
+									*)
+										#main class already created
+										if [[ "${oldCode}" == *"${LangExt}" ]]; then
+											#Create libary class
+											UseJava "newCode" ${name} ${oldCode} ${project} "component"
+										else
+											#Create new main code
+											UseJava "newCode" ${name} ${oldCode} ${project} "main"
+										fi
+										;;
+								esac
+							#Check for Custom Code Template...is jar
+							elif [ -f ${TemplateCodeJar} ]; then
+								case ${Type} in
+									#create main file
+									main)
+										#Create include package
+										if [ ! -z "${PackageName}" ]; then
+											${LangRun} -jar ${TemplateCodeJar} --user $USER --main --shell --write-file --read-file --user-input --append-array --package ${PackageName#.*} --name ${newName}
+										else
+											${LangRun} -jar ${TemplateCodeJar} --user $USER --main --shell --write-file --read-file --user-input --append-array --name ${newName}
+										fi
+										;;
+									component)
+										#Create include package
+										if [ ! -z "${PackageName}" ]; then
+											${LangRun} -jar ${TemplateCodeJar} --user $USER --write-file --read-file --user-input --append-array --package ${PackageName#.*} --name ${newName}
+										else
+											${LangRun} -jar ${TemplateCodeJar} --user $USER --write-file --read-file --user-input --append-array --name ${newName}
+										fi
+										;;
+									#cl[ide] knows best
+									*)
+										#main class already created
+										if [[ "${oldCode}" == *"${LangExt}" ]]; then
+											#Create libary class
+											UseJava "newCode" ${name} ${oldCode} ${project} "component"
+										else
+											#Create new main code
+											UseJava "newCode" ${name} ${oldCode} ${project} "main"
+										fi
+										;;
+								esac
+							else
+								#Create include package
+								if [ ! -z "${PackageName}" ]; then
+									Content="package ${PackageName#.*};\n\n/**\n *\n * @author $USER\n */\n\n//class name\npublic class ${newName} {\n\n\t/**\n\t* @param args the command line arguments\n\t*/\n\tpublic static void main(String[] args) {\n\n\t}\n}"
+								else
+									Content="//class path goes here\n\n/**\n *\n * @author $USER\n */\n\n//class name\npublic class ${newName} {\n\n\t/**\n\t* @param args the command line arguments\n\t*/\n\tpublic static void main(String[] args) {\n\n\t}\n}"
+								fi
+								touch ${TheSrcDir}${newName}${LangExt}
+								echo -e "${Content}" > ${TheSrcDir}${newName}${LangExt}
+							fi
+							#Move new file to dir
+							if [ -f ${newName}${LangExt} ]; then
+								if [ ! -z "${DirPath}" ]; then
+									mv ${newName}${LangExt} ${TheSrcDir} 2> /dev/null
+								fi
 							fi
 							;;
 					esac
-					#No Program Name Given
-					else
-						${LangRun} -jar ${TemplateCodeJar} --help
-					fi
 				#No Program Name Given
 				else
-					#Program Name Given
-					if [ ! -z "${name}" ];then
-						local Content="//class path goes here\n\n/**\n *\n * @author $USER\n */\n\n//class name\npublic class ${name} {\n\n\t/**\n\t* @param args the command line arguments\n\t*/\n\tpublic static void main(String[] args) {\n\n\t}\n}"
-						touch ${name}${LangExt}
-						echo -e "${Content}" > ${name}${LangExt}
+					#Check for Custom Code Template...is class
+					if [ -f ${TemplateCodeClass} ]; then
+						cd ${LangBin}
+						${LangRun} ${TemplateC} --help
+						cd - > /dev/null
+					#Check for Custom Code Template...is jar
+					elif [ -f ${TemplateCodeJar} ]; then
+						${LangRun} -jar ${TemplateCodeJar} --help
 					else
 						errorCode "newCode"
 					fi

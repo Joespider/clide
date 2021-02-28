@@ -1,0 +1,16 @@
+[Java <project>]
+
+[Directories]
+	<project>/
+		src/
+			main/
+				java/
+				webapp/
+			test/
+				java/
+					<sub>/
+						<directory>/
+								<package>/
+
+[source file]
+package <sub>.<directory>.<package>;

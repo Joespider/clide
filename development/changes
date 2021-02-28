@@ -1,7 +1,9 @@
+https://manparvesh.com/post/2017-08-15-understand-java-project-structure/
 Added:
 	Compile and Run (car)
 	Load project from CLI ($ clide -p <project>)
 	Langauges pull compiler/interpreter from clide.conf
+	adding packages with source code (Lang.Java)
 
 Concept:
 	Managing different project types
