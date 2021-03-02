@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.27"
+SupportV="0.1.30"
 
 ProgDir=$1
 shift
@@ -14,6 +14,10 @@ shift
 ReadBy=$1
 shift
 CodeProject=$1
+shift
+ProjectType=$1
+shift
+TemplateProjectDir=$1
 shift
 CplArgs=$1
 shift
@@ -38,27 +42,25 @@ OtherColor()
 
 UseBash()
 {
-	local LangConfig=$(grep Bash ${VarDir}/clide.conf | sed "s/Bash=//1")
+	local Lang=Bash
+	local LangConfig=$(grep ${Lang} ${VarDir}/clide.conf | sed "s/${Lang}=//1")
 	local LangCpl=${LangConfig}
 
 #	local LangCpl=bash
-	local LangHome=${ProgDir}/Bash
+	local LangHome=${ProgDir}/${Lang}
 	local LangSrc=${LangHome}/src
 	local LangBin=${LangHome}/bin
 	local LangExt=".sh"
-	local TemplateCode=${LangBin}/newBash${LangExt}
+	local TemplateCode=${LangBin}/new${Lang}${LangExt}
 	local Type=$1
 	shift
 	case ${Type} in
 		color)
 			#Return Green
-			echo -e "\e[1;32mBash\e[0m"
+			echo -e "\e[1;32m${Lang}\e[0m"
 			;;
 		ProjectColor)
-			local text=$1
-			if [ ! -z "${text}" ]; then
-				echo -e "\e[1;42m${text}\e[0m"
-			fi
+			echo -e "\e[1;42m${CodeProject}\e[0m"
 			;;
 		SupportVersion)
 			echo ${SupportV}
@@ -74,7 +76,7 @@ UseBash()
 			HasLang=$(which ${LangCpl} 2> /dev/null)
 			if [ ! -z "${HasLang}" ]; then
 				#Return Bash tag
-				echo "Bash"
+				echo "${Lang}"
 			else
 				#Return rejection
 				echo "no"
@@ -289,7 +291,7 @@ UseBash()
 									#Change to Bash Source dir
 									cd - > /dev/null
 									if [ -f "${TheBinDir}/${name}" ]; then
-										echo -e "\e[1;42m[Bash Code Compiled]\e[0m"
+										echo -e "\e[1;42m[${Lang} Code Compiled]\e[0m"
 									else
 										ERROR=$(echo ${ERROR} | tr '|' '\n')
 										echo -en "\e[1;31m[\e[0m"
@@ -317,7 +319,7 @@ UseBash()
 							#Change to Bash Source dir
 							cd - > /dev/null
 							if [ -f "${TheBinDir}/${src}" ]; then
-								echo -e "\e[1;42m[Bash Code Compiled]\e[0m"
+								echo -e "\e[1;42m[${Lang} Code Compiled]\e[0m"
 							else
 								ERROR=$(echo ${ERROR} | tr '|' '\n')
 								echo -en "\e[1;31m[\e[0m"
@@ -339,9 +341,13 @@ UseBash()
 			local project=$2
 			local path=${LangSrc}/${project}
 			if [ ! -d ${path} ]; then
-				mkdir ${path}
-				cd ${path}
-				mkdir src bin
+				if [ -f ${TemplateProjectDir}/${Lang}.${type} ]; then
+					${TemplateProjectDir}/${Lang}.${type} newProject ${project}
+				else
+					mkdir ${path}
+					cd ${path}
+					mkdir src bin
+				fi
 				cd ${path}/src
 			else
 				cd ${path}/srs
@@ -435,8 +441,10 @@ UseBash()
 			;;
 		newCode)
 			local name=$1
-			local Project=$2
-			local Type=$3
+			local Type=$2
+			local oldCode=$3
+			local project=${CodeProject}
+
 			Type=$(echo ${Type} | tr A-Z a-z)
 			name=${name%${LangExt}}
 			if [ ! -f ${name}${LangExt} ]; then
@@ -453,7 +461,7 @@ UseBash()
 					#Program Name Given
 					if [ ! -z "${name}" ];then
 						touch ${name}${LangExt}
-						echo -e "#!/bin/bash\n" > ${name}${LangExt}
+						echo -e "#!/bin/${Lang}\n" > ${name}${LangExt}
 					else
 						errorCode "newCode"
 					fi

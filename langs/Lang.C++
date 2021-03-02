@@ -1,7 +1,7 @@
-Shell=$(which bash)
+wShell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.34"
+SupportV="0.1.37"
 
 ProgDir=$1
 shift
@@ -14,6 +14,10 @@ shift
 ReadBy=$1
 shift
 CodeProject=$1
+shift
+ProjectType=$1
+shift
+TemplateProjectDir=$1
 shift
 CplArgs=$1
 shift
@@ -38,27 +42,25 @@ OtherColor()
 
 UseC++()
 {
-	local LangConfig=$(grep C++ ${VarDir}/clide.conf | sed "s/C++=//1")
+	local Lang=C++
+	local LangConfig=$(grep ${Lang} ${VarDir}/clide.conf | sed "s/${Lang}=//1")
 	local LangCpl=${LangConfig}
 
 #	local LangCpl=g++
-	local LangHome=${ProgDir}/C++
+	local LangHome=${ProgDir}/${Lang}
 	local LangSrc=${LangHome}/src
 	local LangBin=${LangHome}/bin
 	local LangExt=".cpp"
-	local TemplateCode=${LangBin}/newC++
+	local TemplateCode=${LangBin}/new${Lang}
 	local Type=$1
 	shift
 	case ${Type} in
 		color)
 			#Return Blue
-			echo -e "\e[1;34mC++\e[0m"
+			echo -e "\e[1;34m${Lang}\e[0m"
 			;;
 		ProjectColor)
-			local text=$1
-			if [ ! -z "${text}" ]; then
-				echo -e "\e[1;44m${text}\e[0m"
-			fi 
+			echo -e "\e[1;44m${CodeProject}\e[0m"
 			;;
 		getExt)
 			echo ${LangExt}
@@ -97,7 +99,7 @@ UseC++()
 			local HasLang=$(which ${LangCpl} 2> /dev/null)
 			if [ ! -z "${HasLang}" ]; then
 				#Return C++ tag
-				echo "C++"
+				echo "${Lang}"
 			else
 				#Return rejection
 				echo "no"
@@ -144,7 +146,7 @@ UseC++()
 			fi
 			;;
 		CplVersion)
-			echo "[C++ Compiler]"
+			echo "[${Lang} Compiler]"
 			${LangCpl} --version | head -n 1
 			echo ""
 			;;
@@ -272,7 +274,7 @@ UseC++()
 					cd ${LangSrc}/${project}
 					echo "make"
 					cd - > /dev/null
-					echo -e "\e[1;44m[C++ Code Compiled]\e[0m"
+					echo -e "\e[1;44m[${Lang} Code Compiled]\e[0m"
 				else
 					#Multiple code selected
 					if [[ "${src}" == *","* ]]; then
@@ -289,9 +291,9 @@ UseC++()
 							fi
 							ERROR=$(${LangCpl} ${prog} -o ${TheBinDir}/${name} ${cplArgs} 2>&1 | tr '\n' '|')
 							if [ -z "${ERROR}" ]; then
-								echo -e "\e[1;44m[C++ Code Compiled]\e[0m"
+								echo -e "\e[1;44m[${Lang} Code Compiled]\e[0m"
 							else
-								echo -en "\e[1;34m[C++ \e[0m"
+								echo -en "\e[1;34m[${Lang} \e[0m"
 								echo -en "\e[1;41mERROR\e[0m"
 								echo -e "\e[1;34m]\e[0m"
 								ERROR=$(echo ${ERROR} | tr '|' '\n')
@@ -308,7 +310,7 @@ UseC++()
 						#Compile and move C++ to Binary dir
 						ERROR=$(${LangCpl} ${src} -o ${TheBinDir}/${src%.*} ${cplArgs} 2>&1 | tr '\n' '|')
 						if [ -z "${ERROR}" ]; then
-							echo -e "\e[1;44m[C++ Code Compiled]\e[0m"
+							echo -e "\e[1;44m[${Lang} Code Compiled]\e[0m"
 						else
 							echo -en "\e[1;31m[\e[0m"
 							echo -en "\e[1;41mERROR\e[0m"
@@ -324,7 +326,7 @@ UseC++()
 			case ${CodeProject} in
 				#No Project
 				none)
-					echo "Project C++ ONLY"
+					echo "Project ${Lang} ONLY"
 					;;
 				#Is a project
 				*)
@@ -376,15 +378,19 @@ UseC++()
 			local path=${LangSrc}/${project}
 			#create and cd to project dir
 			if [ ! -d ${path} ]; then
-				mkdir ${path}
-				mkdir ${path}/bin
-				mkdir ${path}/build
-				mkdir ${path}/doc
-				mkdir ${path}/include
-				mkdir ${path}/lib
-				mkdir ${path}/spike
-				mkdir ${path}/src
-				mkdir ${path}/test
+				if [ -f ${TemplateProjectDir}/${Lang}.${type} ]; then
+					${TemplateProjectDir}/${Lang}.${type} newProject ${project}
+				else
+					mkdir ${path}
+					mkdir ${path}/bin
+					mkdir ${path}/build
+					mkdir ${path}/doc
+					mkdir ${path}/include
+					mkdir ${path}/lib
+					mkdir ${path}/spike
+					mkdir ${path}/src
+					mkdir ${path}/test
+				fi
 				cd ${path}/src
 			else
 				cd ${path}/src
@@ -489,8 +495,10 @@ UseC++()
 			;;
 		newCode)
 			local name=$1
-			local Project=$2
-			local Type=$3
+			local Type=$2
+                        local oldCode=$3
+			local project=${CodeProject}
+
 			Type=$(echo ${Type} | tr A-Z a-z)
 			name=${name%${LangExt}}
 			name=${name%.h}
@@ -520,7 +528,7 @@ UseC++()
 						else
 							#Program Name Given
 							if [ ! -z "${name}" ];then
-								local Content="#include <iostream>\n\n//C++ Main\nint main()\n{\n\n\treturn 0;\n}"
+								local Content="#include <iostream>\n\n//${Lang} Main\nint main()\n{\n\n\treturn 0;\n}"
 								touch ${name}${LangExt}
 								echo -e "${Content}" > ${name}${LangExt}
 							else
@@ -551,17 +559,17 @@ UseC++()
 					#cl[ide] knows best
 					*)
 						#Is not a project
-						case ${Project} in
+						case ${project} in
 							none)
-								UseC++ "newCode" ${name} ${oldCode} ${Project} "main"
+								UseC++ "newCode" ${name}  "main" ${oldCode}
 								;;
 							#Is a project
 							*)
 								#clide knows best
 								if [[ "${oldCode}" == *"${LangExt}" ]] || [[ "${oldCode}" == *"${LangExt}" ]]; then
-									UseC++ "newCode" ${name} ${oldCode} ${Project} "component"
+									UseC++ "newCode" ${name} "component" ${oldCode}
 								else
-									UseC++ "newCode" ${name} ${oldCode} ${Project} "main"
+									UseC++ "newCode" ${name} "main" ${oldCode}
 								fi
 								;;
 						esac

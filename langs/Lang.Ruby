@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.25"
+SupportV="0.1.28"
 
 ProgDir=$1
 shift
@@ -14,6 +14,10 @@ shift
 ReadBy=$1
 shift
 CodeProject=$1
+shift
+ProjectType=$1
+shift
+TemplateProjectDir=$1
 shift
 CplArgs=$1
 shift
@@ -38,27 +42,25 @@ OtherColor()
 
 UseRuby()
 {
-	local LangConfig=$(grep Ruby ${VarDir}/clide.conf | sed "s/Ruby=//1")
+	local Lang=Ruby
+	local LangConfig=$(grep ${Lang} ${VarDir}/clide.conf | sed "s/${Lang}=//1")
 	local LangRun=${LangConfig}
 
 #	local LangRun=ruby
-	local LangHome=${ProgDir}/Ruby
+	local LangHome=${ProgDir}/${Lang}
 	local LangSrc=${LangHome}/src
 	local LangBin=${LangHome}/bin
 	local LangExt=".rb"
-	local TemplateCode=${LangBin}/newRuby${LangExt}
+	local TemplateCode=${LangBin}/new${Lang}${LangExt}
 	local Type=$1
 	shift
 	case ${Type} in
 		color)
 		#Return Red
-			echo -e "\e[1;31mRuby\e[0m"
+			echo -e "\e[1;31m${Lang}\e[0m"
 			;;
 		ProjectColor)
-			local text=$1
-			if [ ! -z "${text}" ]; then
-				echo -e "\e[1;41m${text}\e[0m"
-			fi 
+			echo -e "\e[1;41m${CodeProject}\e[0m"
 			;;
 		getExt)
 			echo ${LangExt}
@@ -75,7 +77,7 @@ UseRuby()
 			local HasLang=$(which ${LangRun} 2> /dev/null)
 			if [ ! -z "${HasLang}" ]; then
 				#Return Ruby tag
-				echo "Ruby"
+				echo "${Lang}"
 			else
 				#Return rejection
 				echo "no"
@@ -139,7 +141,7 @@ UseRuby()
 			fi
 			;;
 		CplVersion)
-			echo "[Ruby Shell]"
+			echo "[${Lang} Shell]"
 			${LangRun} --version
 			echo ""
 			;;
@@ -280,7 +282,7 @@ UseRuby()
 									#Change to Ruby Source dir
 									cd - > /dev/null
 									if [ -f "${TheBinDir}/${name}" ]; then
-										echo -e "\e[1;41m[Ruby Code Compiled]\e[0m"
+										echo -e "\e[1;41m[${Lang} Code Compiled]\e[0m"
 									else
 										ERROR=$(echo ${ERROR} | tr '|' '\n')
 										echo -en "\e[1;31m[\e[0m"
@@ -308,7 +310,7 @@ UseRuby()
 							#Change to Ruby Source dir
 							cd - > /dev/null
 							if [ -f "${TheBinDir}/${src}" ]; then
-								echo -e "\e[1;41m[Ruby Code Compiled]\e[0m"
+								echo -e "\e[1;41m[${Lang} Code Compiled]\e[0m"
 							else
 								ERROR=$(echo ${ERROR} | tr '|' '\n')
 								echo -en "\e[1;31m[\e[0m"
@@ -331,9 +333,13 @@ UseRuby()
 			local project=$2
 			local path=${LangSrc}/${project}
 			if [ ! -d ${path} ]; then
-				mkdir ${path}
-				mkdir ${path}/src
-				mkdir ${path}/bin
+				if [ -f ${TemplateProjectDir}/${Lang}.${type} ]; then
+					${TemplateProjectDir}/${Lang}.${type} newProject ${project}
+				else
+					mkdir ${path}
+					mkdir ${path}/src
+					mkdir ${path}/bin
+				fi
 				cd ${path}/src
 			else
 				cd ${path}/src
@@ -428,8 +434,10 @@ UseRuby()
 			;;
 		newCode)
 			local name=$1
-			local Project=$2
-			local Type=$3
+			local Type=$2
+			local oldCode=$3
+			local project=${CodeProject}
+
 			Type=$(echo ${Type} | tr A-Z a-z)
 			name=${name%${LangExt}}
 			if [ ! -f ${name}${LangExt} ]; then
