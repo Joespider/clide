@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.26"
+SupportV="0.1.30"
 
 ProgDir=$1
 shift
@@ -14,6 +14,10 @@ shift
 ReadBy=$1
 shift
 CodeProject=$1
+shift
+ProjectType=$1
+shift
+TemplateProjectDir=$1
 shift
 CplArgs=$1
 shift
@@ -38,27 +42,25 @@ OtherColor()
 
 UsePython()
 {
-	local LangConfig=$(grep Python ${VarDir}/clide.conf | sed "s/Python=//1")
+	local Lang=Python
+	local LangConfig=$(grep ${Lang} ${VarDir}/clide.conf | sed "s/${Lang}=//1")
 	local LangRun=${LangConfig}
 
 #	local LangRun=python
-	local LangHome=${ProgDir}/Python
+	local LangHome=${ProgDir}/${Lang}
 	local LangSrc=${LangHome}/src
 	local LangBin=${LangHome}/bin
 	local LangExt=".py"
-	local TemplateCode=${LangBin}/newPython${LangExt}
+	local TemplateCode=${LangBin}/new${Lang}${LangExt}
 	local Type=$1
 	shift
 	case ${Type} in
 		color)
 			#Return Yellow
-			echo -e "\e[1;33mPython\e[0m"
+			echo -e "\e[1;33m${Lang}\e[0m"
 			;;
 		ProjectColor)
-			local text=$1
-			if [ ! -z "${text}" ]; then
-				echo -e "\e[1;43m${text}\e[0m"
-			fi
+			echo -e "\e[1;43m${CodeProject}\e[0m"
 			;;
 		getExt)
 			echo ${LangExt}
@@ -99,7 +101,7 @@ UsePython()
 			local HasLang=$(which ${LangRun} 2> /dev/null)
 			if [ ! -z "${HasLang}" ]; then
 				#Return Python tag
-				echo "Python"
+				echo "${Lang}"
 			else
 				#Return rejection
 				echo "no"
@@ -142,7 +144,7 @@ UsePython()
 			fi
 			;;
 		CplVersion)
-			echo "[Python Shell]"
+			echo "[${Lang} Shell]"
 			${LangRun} --version
 			echo ""
 			;;
@@ -152,7 +154,10 @@ UsePython()
 			if [[ ! "${name}" == *"${LangExt}" ]]; then
 				name="${name}${LangExt}"
 			fi
-			echo ${name}
+			#Return source file if exists
+			if [ -f "${name}" ]; then
+				echo "${name}"
+			fi
 			;;
 		addCode)
 			local src=$1
@@ -287,7 +292,7 @@ UsePython()
 									#Change to Python Source dir
 									cd - > /dev/null
 									if [ -f "${TheBinDir}/${name}" ]; then
-										echo -e "\e[1;43m[Python Code Compiled]\e[0m"
+										echo -e "\e[1;43m[${Lang} Code Compiled]\e[0m"
 		                                                        else
 										ERROR=$(echo ${ERROR} | tr '|' '\n')
 										echo -en "\e[1;31m[\e[0m"
@@ -315,7 +320,7 @@ UsePython()
 							#Change to Python Source dir
 							cd - > /dev/null
 							if [ -f "${TheBinDir}/${src}" ]; then
-								echo -e "\e[1;43m[Python Code Compiled]\e[0m"
+								echo -e "\e[1;43m[${Lang} Code Compiled]\e[0m"
                                                         else
 								ERROR=$(echo ${ERROR} | tr '|' '\n')
 								echo -en "\e[1;31m[\e[0m"
@@ -338,9 +343,13 @@ UsePython()
 			local project=$2
 			local path=${LangSrc}/${project}
 			if [ ! -d ${path} ]; then
-				mkdir ${path}
-				mkdir ${path}/src
-				mkdir ${path}/bin
+				if [ -f ${TemplateProjectDir}/${Lang}.${type} ]; then
+					${TemplateProjectDir}/${Lang}.${type} newProject ${project}
+				else
+					mkdir ${path}
+					mkdir ${path}/src
+					mkdir ${path}/bin
+				fi
 				cd ${path}/src
 			else
 				cd ${path}/src
@@ -440,8 +449,10 @@ UsePython()
 			;;
 		newCode)
 			local name=$1
-			local Project=$2
-			local Type=$3
+			local Type=$2
+			local oldCode=$3
+			local project=${CodeProject}
+
 			Type=$(echo ${Type} | tr A-Z a-z)
 			local name=${name%${LangExt}}
 			if [ ! -f ${name}${LangExt} ]; then
@@ -457,7 +468,7 @@ UsePython()
 				else
 					#Program Name Given
 					if [ ! -z "${name}" ];then
-						local Content="import sys\n\n#python main\ndef main():\n\tArgs = sys.argv\n\nmain()"
+						local Content="import sys\n\n#${Lang} main\ndef main():\n\tArgs = sys.argv\n\nmain()"
 						touch ${name}${LangExt}
 						echo -e "${Content}" > ${name}${LangExt}
 					else

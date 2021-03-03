@@ -1,0 +1,16 @@
+https://manparvesh.com/post/2017-08-15-understand-java-project-structure/
+Added:
+	Compile and Run (car)
+	Load project from CLI ($ clide -p <project>)
+	Langauges pull compiler/interpreter from clide.conf
+	adding packages with source code (Lang.Java)
+	Use custom project templates
+
+Concept:
+	Managing different project types
+
+Bug Fixes:
+	"install" on projects and non-projects (issue: projects would not be installed in .bash_aliases)
+	"AddAlias.sh" was not finding "errorCode.sh"
+	performance improvements (CLI User Interface only changes after TRUE changes)
+	code refactering

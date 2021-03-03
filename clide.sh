@@ -21,10 +21,6 @@ IDE=$(echo -e "\e[1;40mide\e[0m")
 Name="cl[${IDE}]"
 
 #Version tracking
-#Increment by 1 number per category
-#1st # = Overflow
-#2nd # = Additional features
-#3rd # = Bug/code tweaks/fixes
 Version=$(GetConfig Version)
 
 #cl[ide] config
@@ -42,10 +38,13 @@ NotesDir=${ClideDir}/notes
 LibDir=${ClideDir}/lib
 LangsDir=${ClideDir}/langs
 ClideProjectDir=${ClideDir}/projects
+ActiveProjectDir=${ClideProjectDir}/Active
+TemplateProjectDir=${ClideProjectDir}/Templates
 
 #Global Vars
 #{
 CodeProject="none"
+ProjectType="Generic"
 RunTimeArgs=""
 RunCplArgs="none"
 declare -A Commands
@@ -71,7 +70,7 @@ Art()
 MenuHelp()
 {
 	local Lang=$1
-	local project=$2
+	local project=${CodeProject}
 	echo ""
 	echo "----------------[(${Head}) Menu]----------------"
 	echo -e "ls\t\t\t\t: \"list progams\""
@@ -266,7 +265,7 @@ ManageLangs()
 	shift
 	local Manage=$@
 	if [ -f ${LangsDir}/Lang.${Langs^} ]; then
-		${LangsDir}/Lang.${Langs^} ${ProgDir} ${ClideDir} ${editor} ${ReadBy} ${CodeProject} ${RunCplArgs} ${Manage[@]}
+		${LangsDir}/Lang.${Langs^} ${ProgDir} ${ClideDir} ${editor} ${ReadBy} ${CodeProject} ${ProjectType} ${TemplateProjectDir} ${RunCplArgs} ${Manage[@]}
 	else
 		UseOther ${Langs} ${Manage[@]}
 	fi
@@ -323,8 +322,8 @@ EnsureDirs()
 
 	if [ ! -d "${ClideProjectDir}" ]; then
 		mkdir "${ClideProjectDir}"
-		mkdir "${ClideProjectDir}/Template"
-		mkdir "${ClideProjectDir}/Active"
+		mkdir "${TemplateProjectDir}"
+		mkdir "${ActiveProjectDir}"
 	fi
 
 	local Langs=$(ls ${LangsDir}/ | sed "s/Lang.//g" | tr '\n' '|' | rev | sed "s/|//1" | rev)
@@ -472,7 +471,7 @@ errorCode()
 #Search selected code for element
 lookFor()
 {
-	local project=$1
+	local project=${CodeProject}
 	local search=$2
 	case ${project} in
 		none)
@@ -488,13 +487,22 @@ lookFor()
 	esac
 }
 
+GetProjectType()
+{
+	local GetType
+	GetType=$(ManageLangs "${text}" "GetProjectType")
+	if [ ! -z "${GetType}" ]; then
+		ProjectType=${GetType}
+	fi
+}
+
 #Save Last Session
 SaveSession()
 {
 	local Session="${ClideDir}/session"
+	local Project=${CodeProject}
 	local Language=$1
-	local Project=$2
-	local SrcCode=$3
+	local SrcCode=$2
 	#Source Needs to be present
 	if [ ! -z ${SrcCode} ]; then
 		touch ${Session}
@@ -519,7 +527,12 @@ importProject()
 	local Lang=$1
 	local Name=$2
 	local Path=$3
-	local ProjectFile=${ClideProjectDir}/Active/${Name}.clide
+	local projectType=$4
+	if [ -z "${projectType}" ]; then
+		projectType="Generic"
+	fi
+
+	local ProjectFile=${ActiveProjectDir}/${Name}.clide
 	if [ ! -z "${Name}" ]; then
 		Path=$(eval $(echo ${Path}))
 		if [ ! -f ${ProjectFile} ]; then
@@ -537,6 +550,7 @@ importProject()
 
 						echo "name=${Name}" > ${ProjectFile}
 						echo "lang=${Lang}" >> ${ProjectFile}
+						echo "type=${projectType}" >> ${ProjectFile}
 						echo "path=${Path}" >> ${ProjectFile}
 						echo "src=" >> ${ProjectFile}
 						echo "Project \"${Name}\" Imported"
@@ -561,14 +575,15 @@ newProject()
 	local lang=$1
 	local project=$2
 	local projectType=$3
-	local ProjectFile=${ClideProjectDir}/Active/${project}.clide
+	local ProjectFile=${ActiveProjectDir}/${project}.clide
 	local path=""
 	#No Project is found
 	if [ -z "${project}" ]; then
 		errorCode "project" "none" "${Head}"
 	else
 		if [ -z "${projectType}" ]; then
-			projectType="default"
+			projectType="Generic"
+
 		fi
 		path=$(ManageLangs ${Lang} "newProject" "${projectType}" ${project})
 		if [ ! -z "${path}" ]; then
@@ -594,9 +609,9 @@ newProject()
 #Update config of active Projects
 updateProject()
 {
-	local project=$1
-	local src=$2
-	local ProjectFile=${ClideProjectDir}/Active/${project}.clide
+	local src=$1
+	local project=${CodeProject}
+	local ProjectFile=${ActiveProjectDir}/${project}.clide
 	#No Project is found
 	if [ ! -z ${src} ]; then
 		#Locate Project Directory
@@ -614,14 +629,14 @@ updateProject()
 listProjects()
 {
 	#Get list of active prijects from .clide files
-	ls ${ClideProjectDir}/Active/ | sed "s/.clide//g"
+	ls ${ActiveProjectDir}/ | sed "s/.clide//g"
 }
 
 #Load active projects
 loadProject()
 {
 	local project=$1
-	local ProjectFile=${ClideProjectDir}/Active/${project}.clide
+	local ProjectFile=${ActiveProjectDir}/${project}.clide
 	local path=""
 	local RtnVals=""
 	local tag=""
@@ -637,6 +652,9 @@ loadProject()
 				#Name Value
 				tag="name="
 				name=$(grep ${tag} ${ProjectFile} | sed "s/${tag}//g")
+				#Project Type
+				tag="type="
+				ProjectType=$(grep ${tag} ${ProjectFile} | sed "s/${tag}//g")
 				#Language Value
 				tag="lang="
 				lang=$(grep ${tag} ${ProjectFile} | sed "s/${tag}//g")
@@ -749,12 +767,10 @@ selectCode()
 	local name=$2
 	local old=$3
 	name=$(ManageLangs ${Lang} "selectCode" ${name})
-	#Return source file if exists
-	if [ -f "${name}" ]; then
-		echo "${name}"
-	#Return old source file if new does not exist
+	if [ ! -z "${name}" ]; then
+		echo ${name}
 	else
-		echo "${old}"
+		echo ${old}
 	fi
 }
 
@@ -848,9 +864,9 @@ Actions()
 				*)
 					ThePWD=$(pwd)
 					ProjectDir=$(echo ${ThePWD#*${CodeProject}} | sed "s/\//:/1")
-					cCodeProject=$(ManageLangs ${Lang} "ProjectColor" "${CodeProject}")
+					cCodeProject=$(ManageLangs ${Lang} "ProjectColor")
 					#Menu with no code
-					prompt="${Name}([${cCodeProject}${ProjectDir}]):$ "
+					prompt="${Name}(${cCodeProject}[${ProjectType}${ProjectDir}]):$ "
 					;;
 			esac
 		else
@@ -863,8 +879,8 @@ Actions()
 					ThePWD=$(pwd)
 					ProjectDir=$(echo ${ThePWD#*${CodeProject}} | sed "s/\//:/1")
 					#Menu with no code
-					cCodeProject=$(ManageLangs ${Lang} "ProjectColor" "${CodeProject}")
-					prompt="${Name}([${cCodeProject}${ProjectDir}]{${cCode}}):$ "
+					cCodeProject=$(ManageLangs ${Lang} "ProjectColor")
+					prompt="${Name}(${cCodeProject}[${ProjectType}${ProjectDir}]{${cCode}}):$ "
 					;;
 			esac
 		fi
@@ -889,7 +905,7 @@ Actions()
 					ls ${UserIn[1]}
 					;;
 				lscpl)
-					ManageLangs ${Lang} "lscpl" ${UserIn[1]} ${CodeProject} ${UserIn[2]}
+					ManageLangs ${Lang} "lscpl"
 					;;
 				ll)
 					shift
@@ -922,10 +938,10 @@ Actions()
 				type)
 					case ${CodeProject} in
 						none)
-							echo "Test/Non-spectic Project"
+							echo "\"${Lang}\" Code"
 							;;
 						*)
-							echo "Generic Project"
+							echo "${ProjectType} \"${Lang}\" Project"
 							;;
 					esac
 					;;
@@ -939,10 +955,14 @@ Actions()
 						*)
 							cd ${UserIn[1]} 2> /dev/null
 							here=$(pwd)
-							if [[ ! "${here}" == *"${CodeProject}"* ]]; then
-								errorCode "project" "can-not-leave"
-								cd - > /dev/null
-							fi
+							case ${here} in
+								*${CodeProject}*)
+									;;
+								*)
+									errorCode "project" "can-not-leave"
+									cd - > /dev/null
+									;;
+							esac
 							refresh="yes"
 							;;
 					esac
@@ -950,21 +970,27 @@ Actions()
 				#get pwd of dir
 				pwd)
 					#Use ONLY for Projects
-					if [[ ! "${CodeProject}" == "none" ]]; then
-						here=$(pwd)/
-						echo ${here#*${CodeProject}}
-					else
-						errorCode "project" "none" "${Head}"
-					fi
+					case ${CodeProject} in
+						none)
+							errorCode "project" "none" "${Head}"
+							;;
+						*)
+							here=$(pwd)/
+							echo ${here#*${CodeProject}}
+							;;
+					esac
 					;;
 				#make dir in project
 				mkdir)
 					#Use ONLY for Projects
-					if [[ ! "${CodeProject}" == "none" ]]; then
-						mkdir ${UserIn[1]}
-					else
-						errorCode "project" "none" "${Head}"
-					fi
+					case ${CodeProject} in
+						none)
+							errorCode "project" "none" "${Head}"
+							;;
+						*)
+							mkdir ${UserIn[1]}
+							;;
+					esac
 					;;
 				#Handle Projects
 				project)
@@ -978,9 +1004,9 @@ Actions()
 								if [ -f "${ClideDir}/projects/${UserIn[2]}.clide" ]; then
 									errorCode "project" "exists" ${UserIn[2]}
 								else
-									newProject ${Lang} ${UserIn[2]}
+									newProject ${Lang} ${UserIn[2]} ${UserIn[3]}
 									Code=""
-									updateProject ${UserIn[2]} ${Code}
+									updateProject ${Code}
 									if [ ! -z "${UserIn[2]}" ]; then
 										CodeProject=${UserIn[2]}
 										echo "Created \"${CodeProject}\""
@@ -992,7 +1018,7 @@ Actions()
 							;;
 						#Update live project
 						update)
-							updateProject ${CodeProject} ${Code}
+							updateProject ${Code}
 							echo "\"${CodeProject}\" updated"
 							;;
 						#Load an existing project
@@ -1067,8 +1093,9 @@ Actions()
 						#Rest
 						#{
 						Code=$(selectCode ${Lang} ${Code} "")
-						RunTimeArgs=""
 						CodeProject="none"
+						ProjectType="Generic"
+						RunTimeArgs=""
 						#}
 					else
 						Lang=${Old}
@@ -1081,11 +1108,14 @@ Actions()
 					case ${Code} in
 						*,*)
 							if [ ! -z "${chosen}" ]; then
-								if [[ "${Code}" == *"${chosen}"* ]]; then
-									ManageLangs ${Lang} "backup" ${chosen}
-								else
-									errorCode "backup" "wrong"
-								fi
+								case ${Code} in
+									*${chosen}*)
+										ManageLangs ${Lang} "backup" ${chosen}
+										;;
+									*)
+										errorCode "backup" "wrong"
+										;;
+								esac
 							else
 								errorCode "backup" "null"
 							fi
@@ -1100,11 +1130,14 @@ Actions()
 					case ${Code} in
 						*,*)
 							if [ ! -z "${chosen}" ]; then
-								if [[ "${Code}" == *"${chosen}"* ]]; then
-									ManageLangs ${Lang} "restore" ${chosen}
-								else
-									errorCode "backup" "wrong"
-								fi
+								case ${Code} in
+									*${chosen}*)
+										ManageLangs ${Lang} "restore" ${chosen}
+										;;
+									*)
+										errorCode "backup" "wrong"
+										;;
+								esac
 							else
 								errorCode "backup" "null"
 							fi
@@ -1120,13 +1153,16 @@ Actions()
 					case ${Code} in
 						*,*)
 							if [ ! -z "${TheNewChosen}" ]; then
-								if [[ "${Code}" == *"${chosen}"* ]]; then
-									ManageLangs ${Lang} "rename" ${chosen} ${TheNewChosen} > /dev/null
-									Code=$(echo ${Code} | sed "s/${chosen}/${TheNewChosen}/g")
-									refresh="yes"
-								else
-									errorCode "rename" "wrong"
-								fi
+								case ${Code} in
+									*${chosen}*)
+										ManageLangs ${Lang} "rename" ${chosen} ${TheNewChosen} > /dev/null
+										Code=$(echo ${Code} | sed "s/${chosen}/${TheNewChosen}/g")
+										refresh="yes"
+										;;
+									*)
+										errorCode "rename" "wrong"
+										;;
+								esac
 							else
 								errorCode "rename" "null"
 							fi
@@ -1143,12 +1179,15 @@ Actions()
 					case ${Code} in
 						*,*)
 							if [ ! -z "${TheNewChosen}" ]; then
-								if [[ "${Code}" == *"${chosen}"* ]]; then
-									ManageLangs ${Lang} "copy" ${chosen} ${TheNewChosen} > /dev/null
-									Code=$(echo ${Code} | sed "s/${chosen}/${TheNewChosen}/g")
-								else
-									errorCode "copy" "wrong"
-								fi
+								case ${Code} in
+									*${chosen}*)
+										ManageLangs ${Lang} "copy" ${chosen} ${TheNewChosen} > /dev/null
+										Code=$(echo ${Code} | sed "s/${chosen}/${TheNewChosen}/g")
+										;;
+									*)
+										errorCode "copy" "wrong"
+										;;
+								esac
 							else
 								errorCode "backup" "null"
 							fi
@@ -1199,7 +1238,7 @@ Actions()
 							#Ensure filename is given
 							if [ ! -z "${UserIn[1]}" ]; then
 								#Return the name of source code
-								ManageLangs ${Lang} "newCode" ${UserIn[1]} ${CodeProject} ${UserIn[2]}
+								ManageLangs ${Lang} "newCode" ${UserIn[1]} ${UserIn[2]} ${Code}
 								Code=$(ManageLangs ${Lang} "getCode" ${UserIn[1]})
 								refresh="yes"
 							else
@@ -1250,7 +1289,7 @@ Actions()
 					;;
 				#search for element in project
 				search)
-					lookFor ${CodeProject} ${UserIn[1]}
+					lookFor ${UserIn[1]}
 					;;
 				#Write notes for code
 				notes)
@@ -1332,7 +1371,7 @@ Actions()
 					;;
 				#Display help page
 				help)
-					MenuHelp ${Lang} ${CodeProject}
+					MenuHelp ${Lang}
 					;;
 				#load last session
 				last|load)
@@ -1360,7 +1399,7 @@ Actions()
 					;;
 				#Save cl[ide] session
 				save)
-					SaveSession ${CodeProject} ${Lang} ${Code}
+					SaveSession ${Lang} ${Code}
 					echo "session saved"
 					;;
 				#Close cl[ide]
@@ -1397,9 +1436,9 @@ Actions()
 										*)
 											ThePWD=$(pwd)
 											ProjectDir=$(echo ${ThePWD#*${CodeProject}} | sed "s/\//:/1")
-											cCodeProject=$(ManageLangs ${Lang} "ProjectColor" "${CodeProject}")
+											cCodeProject=$(ManageLangs ${Lang} "ProjectColor")
 											#Menu with no code
-											prompt="${Name}([${cCodeProject}${ProjectDir}]):$ "
+											prompt="${Name}(${cCodeProject}[${ProjectType}${ProjectDir}]):$ "
 											;;
 									esac
 								else
@@ -1412,8 +1451,8 @@ Actions()
 											ThePWD=$(pwd)
 											ProjectDir=$(echo ${ThePWD#*${CodeProject}} | sed "s/\//:/1")
 											#Menu with no code
-											cCodeProject=$(ManageLangs ${Lang} "ProjectColor" "${CodeProject}")
-											prompt="${Name}([${cCodeProject}${ProjectDir}]{${cCode}}):$ "
+											cCodeProject=$(ManageLangs ${Lang} "ProjectColor")
+											prompt="${Name}(${cCodeProject}[${ProjectType}${ProjectDir}]{${cCode}}):$ "
 											;;
 									esac
 								fi

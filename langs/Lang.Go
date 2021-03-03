@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.3"
+SupportV="0.1.6"
 
 ProgDir=$1
 shift
@@ -14,6 +14,10 @@ shift
 ReadBy=$1
 shift
 CodeProject=$1
+shift
+ProjectType=$1
+shift
+TemplateProjectDir=$1
 shift
 CplArgs=$1
 shift
@@ -38,27 +42,25 @@ OtherColor()
 
 UseGo()
 {
-	local LangConfig=$(grep Go ${VarDir}/clide.conf | sed "s/Go=//1")
+	local Lang=Go
+	local LangConfig=$(grep ${Lang} ${VarDir}/clide.conf | sed "s/${Lang}=//1")
 	local LangCpl=${LangConfig}
 
 #	local LangCpl=go
-	local LangHome=${ProgDir}/Go
+	local LangHome=${ProgDir}/${Lang}
 	local LangSrc=${LangHome}/src
 	local LangBin=${LangHome}/bin
 	local LangExt=".go"
-	local TemplateCode=${LangBin}/newGo
+	local TemplateCode=${LangBin}/new${Lang}
 	local Type=$1
 	shift
 	case ${Type} in
 		color)
 			#Return Green
-			echo -e "\e[1;32mGo\e[0m"
+			echo -e "\e[1;32m${Lang}\e[0m"
 			;;
 		ProjectColor)
-			local text=$1
-			if [ ! -z "${text}" ]; then
-				echo -e "\e[1;42m${text}\e[0m"
-			fi 
+			echo -e "\e[1;42m${CodeProject}\e[0m"
 			;;
 		getExt)
 			echo ${LangExt}
@@ -97,7 +99,7 @@ UseGo()
 			local HasLang=$(which ${LangCpl} 2> /dev/null)
 			if [ ! -z "${HasLang}" ]; then
 				#Return Go tag
-				echo "Go"
+				echo "${Lang}"
 			else
 				#Return rejection
 				echo "no"
@@ -144,7 +146,7 @@ UseGo()
 			fi
 			;;
 		CplVersion)
-			echo "[Go Compiler]"
+			echo "[${Lang} Compiler]"
 			${LangCpl} version | head -n 1
 			echo ""
 			;;
@@ -156,7 +158,10 @@ UseGo()
 			elif [[ ! "${name}" == *".h" ]] && [ -f "${name}.h" ]; then
 				name="${name}.h"
 			fi
-			echo ${name}
+			#Return source file if exists
+			if [ -f "${name}" ]; then
+				echo "${name}"
+			fi
 			;;
 		addCode)
 			local src=$1
@@ -269,7 +274,7 @@ UseGo()
 					cd ${LangSrc}/${project}
 					echo "make"
 					cd - > /dev/null
-					echo -e "\e[1;42m[Go Code Compiled]\e[0m"
+					echo -e "\e[1;42m[${Lang} Code Compiled]\e[0m"
 				else
 					#Multiple code selected
 					if [[ "${src}" == *","* ]]; then
@@ -287,9 +292,9 @@ UseGo()
 							ERROR=$(${LangCpl} build ${prog} 2>&1 | tr '\n' '|')
 							if [ -z "${ERROR}" ]; then
 								mv ${prog%.*} ${LangBin}
-								echo -e "\e[1;42m[Go Code Compiled]\e[0m"
+								echo -e "\e[1;42m[${Lang} Code Compiled]\e[0m"
 							else
-								echo -en "\e[1;32m[Go \e[0m"
+								echo -en "\e[1;32m[${Lang} \e[0m"
 								echo -en "\e[1;41mERROR\e[0m"
 								echo -e "\e[1;32m]\e[0m"
 								ERROR=$(echo ${ERROR} | tr '|' '\n')
@@ -307,7 +312,7 @@ UseGo()
 						ERROR=$(${LangCpl} build ${src} 2>&1 | tr '\n' '|')
 						if [ -z "${ERROR}" ]; then
 							mv ${src%.*} ${LangBin}
-							echo -e "\e[1;42m[Go Code Compiled]\e[0m"
+							echo -e "\e[1;42m[${Lang} Code Compiled]\e[0m"
 						else
 							echo -en "\e[1;31m[\e[0m"
 							echo -en "\e[1;41mERROR\e[0m"
@@ -323,7 +328,7 @@ UseGo()
 			case ${CodeProject} in
 				#No Project
 				none)
-					echo "Project Go ONLY"
+					echo "Project ${Lang} ONLY"
 					;;
 				#Is a project
 				*)
@@ -375,15 +380,13 @@ UseGo()
 			local path=${LangSrc}/${project}
 			#create and cd to project dir
 			if [ ! -d ${path} ]; then
-				mkdir ${path}
-				mkdir ${path}/bin
-				mkdir ${path}/build
-				mkdir ${path}/doc
-				mkdir ${path}/include
-				mkdir ${path}/lib
-				mkdir ${path}/spike
-				mkdir ${path}/src
-				mkdir ${path}/test
+				if [ -f ${TemplateProjectDir}/${Lang}.${type} ]; then
+                                        ${TemplateProjectDir}/${Lang}.${type} newProject ${project}
+                                else
+					mkdir ${path}
+					mkdir ${path}/bin
+					mkdir ${path}/src
+                                fi
 				cd ${path}/src
 			else
 				cd ${path}/src
@@ -488,8 +491,10 @@ UseGo()
 			;;
 		newCode)
 			local name=$1
-			local Project=$2
-			local Type=$3
+			local Type=$2
+			local oldCode=$3
+			local project=${CodeProject}
+
 			Type=$(echo ${Type} | tr A-Z a-z)
 			name=${name%${LangExt}}
 			name=${name%.h}
@@ -541,7 +546,7 @@ UseGo()
 					#cl[ide] knows best
 					*)
 						#Is not a project
-						case ${Project} in
+						case ${project} in
 							none)
 								UseGo "newCode" ${name} ${oldCode} ${Project} "main"
 								;;

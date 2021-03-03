@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.24"
+SupportV="0.1.29"
 
 ProgDir=$1
 shift
@@ -14,6 +14,10 @@ shift
 ReadBy=$1
 shift
 CodeProject=$1
+shift
+ProjectType=$1
+shift
+TemplateProjectDir=$1
 shift
 CplArgs=$1
 shift
@@ -38,27 +42,25 @@ OtherColor()
 
 UsePerl()
 {
-	local LangConfig=$(grep Perl ${VarDir}/clide.conf | sed "s/Perl=//1")
+	local Lang=Perl
+	local LangConfig=$(grep ${Lang} ${VarDir}/clide.conf | sed "s/${Lang}=//1")
 	local LangRun=${LangConfig}
 
 #	local LangRun=perl
-	local LangHome=${ProgDir}/Perl
+	local LangHome=${ProgDir}/${Lang}
 	local LangSrc=${LangHome}/src
 	local LangBin=${LangHome}/bin
 	local LangExt=".pl"
-	local TemplateCode=${LangBin}/newPerl${LangExt}
+	local TemplateCode=${LangBin}/new${Lang}${LangExt}
 	local Type=$1
 	shift
 	case ${Type} in
 		color)
 			#Return Purple
-			echo -e "\e[1;35mPerl\e[0m"
+			echo -e "\e[1;35m${Lang}\e[0m"
 			;;
 		ProjectColor)
-			local text=$1
-			if [ ! -z "${text}" ]; then
-				echo -e "\e[1;45m${text}\e[0m"
-			fi
+			echo -e "\e[1;45m${CodeProject}\e[0m"
 			;;
 		getExt)
 			echo ${LangExt}
@@ -96,7 +98,7 @@ UsePerl()
 			local HasLang=$(which ${LangRun} 2> /dev/null)
 			if [ ! -z "${HasLang}" ]; then
 				#Return Perl tag
-				echo "Perl"
+				echo "${Lang}"
 			else
 				#Return rejection
 				echo "no"
@@ -138,7 +140,7 @@ UsePerl()
 			fi
 			;;
 		CplVersion)
-			echo "[Perl Shell]"
+			echo "[${Lang} Shell]"
 			${LangRun} --version 2> /dev/null | grep Version
 			echo ""
 			;;
@@ -148,7 +150,10 @@ UsePerl()
 			if [[ ! "${name}" == *"${LangExt}" ]]; then
 				name="${name}${LangExt}"
 			fi
-			echo ${name}
+			#Return source file if exists
+			if [ -f "${name}" ]; then
+				echo "${name}"
+			fi
 			;;
 		addCode)
 			local src=$1
@@ -276,7 +281,7 @@ UsePerl()
 									#Change to Perl Source dir
 									cd - > /dev/null
 									if [ -f "${TheBinDir}/${name}" ]; then
-										echo -e "\e[1;45m[Perl Code Compiled]\e[0m"
+										echo -e "\e[1;45m[${Lang} Code Compiled]\e[0m"
 									else
 										ERROR=$(echo ${ERROR} | tr '|' '\n')
 										echo -en "\e[1;31m[\e[0m"
@@ -304,7 +309,7 @@ UsePerl()
 							#Change to Perl Source dir
 							cd - > /dev/null
 							if [ -f "${TheBinDir}/${src}" ]; then
-								echo -e "\e[1;45m[Perl Code Compiled]\e[0m"
+								echo -e "\e[1;45m[${Lang} Code Compiled]\e[0m"
 							else
 								ERROR=$(echo ${ERROR} | tr '|' '\n')
 								echo -en "\e[1;31m[\e[0m"
@@ -326,9 +331,13 @@ UsePerl()
 			local project=$2
 			local path=${LangSrc}/${project}
 			if [ ! -d ${path} ]; then
-				mkdir ${path}
-				mkdir ${path}/src
-				mkdir ${path}/bin
+				if [ -f ${TemplateProjectDir}/${Lang}.${type} ]; then
+					${TemplateProjectDir}/${Lang}.${type} newProject ${project}
+				else
+					mkdir ${path}
+					mkdir ${path}/src
+					mkdir ${path}/bin
+				fi
 				cd ${path}/src
 			else
 				cd ${path}/src
@@ -421,9 +430,11 @@ UsePerl()
 			fi
 			;;
 		newCode)
-			name=$1
-			Project=$2
-			Type=$3
+			local name=$1
+			local Type=$2
+			local oldCode=$3
+			local project=${CodeProject}
+
 			Type=$(echo ${Type} | tr A-Z a-z)
 			name=${name%${LangExt}}
 			if [ ! -f ${name}${LangExt} ]; then
