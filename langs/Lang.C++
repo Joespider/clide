@@ -1,7 +1,7 @@
 wShell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.37"
+SupportV="0.1.38"
 
 ProgDir=$1
 shift
@@ -293,11 +293,7 @@ UseC++()
 							if [ -z "${ERROR}" ]; then
 								echo -e "\e[1;44m[${Lang} Code Compiled]\e[0m"
 							else
-								echo -en "\e[1;34m[${Lang} \e[0m"
-								echo -en "\e[1;41mERROR\e[0m"
-								echo -e "\e[1;34m]\e[0m"
-								ERROR=$(echo ${ERROR} | tr '|' '\n')
-								echo -e "\e[1;31m${ERROR}\e[0m"
+								errorCode "cpl" "ERROR" "${ERROR}"
 							fi
 						fi
 					#single code selected
@@ -312,11 +308,7 @@ UseC++()
 						if [ -z "${ERROR}" ]; then
 							echo -e "\e[1;44m[${Lang} Code Compiled]\e[0m"
 						else
-							echo -en "\e[1;31m[\e[0m"
-							echo -en "\e[1;41mERROR\e[0m"
-							echo -e "\e[1;31m]\e[0m"
-							ERROR=$(echo ${ERROR} | tr '|' '\n')
-							echo -e "\e[1;31m${ERROR}\e[0m"
+							errorCode "cpl" "ERROR" "${ERROR}"
 						fi
 					fi
 				fi

@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.28"
+SupportV="0.1.29"
 
 ProgDir=$1
 shift
@@ -284,11 +284,7 @@ UseRuby()
 									if [ -f "${TheBinDir}/${name}" ]; then
 										echo -e "\e[1;41m[${Lang} Code Compiled]\e[0m"
 									else
-										ERROR=$(echo ${ERROR} | tr '|' '\n')
-										echo -en "\e[1;31m[\e[0m"
-										echo -en "\e[1;41mERROR\e[0m"
-										echo -e "\e[1;31m]\e[0m"
-										echo -e "\e[1;31m${ERROR}\e[0m"
+										errorCode "cpl" "ERROR" "${ERROR}"
 									fi
 								else
 									errorCode "cpl" "already" ${name}
@@ -312,11 +308,7 @@ UseRuby()
 							if [ -f "${TheBinDir}/${src}" ]; then
 								echo -e "\e[1;41m[${Lang} Code Compiled]\e[0m"
 							else
-								ERROR=$(echo ${ERROR} | tr '|' '\n')
-								echo -en "\e[1;31m[\e[0m"
-								echo -en "\e[1;41mERROR\e[0m"
-								echo -e "\e[1;31m]\e[0m"
-								echo -e "\e[1;31m${ERROR}\e[0m"
+								errorCode "cpl" "ERROR" "${ERROR}"
 							fi
 						#Code is already found
 						else

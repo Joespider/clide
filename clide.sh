@@ -186,6 +186,7 @@ CliHelp()
 	echo -e "{Action} Items"
 	echo -e "--edit\t\t\t\t:\"Edit source code\""
 	echo -e "--cpl, --compile\t\t:\"Compile source code\""
+	echo -e "--build\t\t:\"Compile and build a given project\""
 	echo -e "--install\t\t\t:\"install program (.bash_aliases)\""
 	echo -e "--run\t\t\t\t:\"Run compiled code\""
 	echo -e "--read\t\t\t\t:\"Read out (cat) source code\""
@@ -1809,6 +1810,30 @@ main()
 								echo "Source code not found"
 							fi
 					esac
+				fi
+				;;
+			--build)
+				shift
+				local GetProject=$1
+				if [ ! -z "${GetProject}" ]; then
+					TheProject=$(loadProject ${GetProject})
+					if [ "${TheProject}" != "no" ]; then
+						Lang=$(echo ${TheProject} | cut -d ";" -f 1)
+						Lang=$(pgLang ${Lang})
+						local CodeDir=$(echo ${TheProject} | cut -d ";" -f 3)
+						if [ ! -z "${CodeDir}" ]; then
+							#cd ${CodeDir}
+							echo "Needs some work"
+#							Code=$(selectCode ${Lang} ${Code})
+#							ManageLangs ${Lang} "compileCode" ${Code} ${Args[@]}
+						else
+							echo "Source code not found"
+						fi
+					else
+						echo "\"${GetProject}\" is Not a valid project"
+					fi
+				else
+					echo "No project given"
 				fi
 				;;
 			#compile code without entering cl[ide]

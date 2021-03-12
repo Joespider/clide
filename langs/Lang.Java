@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.36"
+SupportV="0.1.38"
 
 ProgDir=$1
 shift
@@ -420,113 +420,175 @@ UseJava()
 			local keep=$3
 			local project=${CodeProject}
 			local cplArgs=""
+			local TheSrcDir
 			local TheBinDir
 			local ERROR
 			#Handle Project Dir
 			case ${project} in
+				#Code is NOT part of a project
 				none)
 					project=""
 					TheBinDir=${LangBin}
-					;;
-				*)
-#					[Classes]
-#						find -name "*.java" > sources.txt
-#						javac @sources.txt
-#						rm sources.txt
-#
-#					[Jar]
-#						[Class]
-#						find -name "*.class" > sources.txt
-#						rm sources.txt
-#						jar cvfm project.jar manifest.txt @sources.txt
-#
-#					local tag="|EXT|"
-#					local revTag=$(echo ${tag} | rev)
-#					local revExt=$(echo ${LangExt} | rev)
-#					src=$(echo ${src} | rev | sed "s/${revExt}/${revTag}/1" | tr '.' '/' | rev | sed "s/${tag}/${LangExt}/g")
-					project="${project}/"
-					TheBinDir="${LangSrc}/${project}bin"
-					;;
-			esac
-			#Compile source code
-			case ${src} in
-				*${LangExt})
-					#Multiple code selected
-					if [[ "${src}" == *","* ]]; then
-						if [[ "${project}" == *"/" ]]; then
-							#Compile Java prgram
-							ERROR=$(${LangCpl} *${LangExt} 2>&1 | tr '\n' '|')
-							#move Java Class to Binary dir
-							if [ -f *.class ]; then
-								mv *.class ${TheBinDir}/
-							else
-								ERROR=$(echo ${ERROR} | tr '|' '\n')
-								echo -en "\e[1;31m[\e[0m"
-								echo -en "\e[1;41mERROR\e[0m"
-								echo -e "\e[1;31m]\e[0m"
-								echo -e "\e[1;31m${ERROR}\e[0m"
-							fi
-						else
-							echo "Is not a project"
-						fi
-					#single code selected
-					else
-						#Compile Java prgram
-						ERROR=$(${LangCpl} ${src} 2>&1 | tr '\n' '|')
-						#get Java Class/compiled file name
-						des=${src%.*}.class
-						if [ -f ${des} ]; then
-							#Compile as jar or class
-							case ${name} in
-								#Compile as Jar
-								--jar)
-									if [ ! -f manifest.mf ]; then
-										echo "Manifest-Version: 1.1" > manifest.mf
-										echo "Created-By: $USER" >> manifest.mf
-										echo "Main-Class: ${des%.class}" >> manifest.mf
-										echo "Sealed: true" >> manifest.mf
-									fi
-									jar -cmf manifest.mf ${des%.class}.jar *.class
-									#remove class file
-									if [ -f  ${TheBinDir}/${des} ]; then
-										rm  ${TheBinDir}/${des}
-									fi
-									#Keep Generated Manafest file
-									case ${keep} in
-										--keep-manifest)
-											#rm ${des}
-											rm *.class
-											;;
-										*)
-											#rm manifest.mf ${des}
-											rm manifest.mf *.class
-										;;
-									esac
-									#move Java Jar to Binary dir
-									mv ${des%.class}.jar ${TheBinDir}/
-									echo -e "\e[1;41m[${Lang} Code Compiled (JAR)]\e[0m"
-									;;
-								#Do nothing...keep class
-								*|--class)
+					#Compile source code
+					case ${src} in
+						*${LangExt})
+							#Multiple code selected
+							if [[ "${src}" == *","* ]]; then
+								if [[ "${project}" == *"/" ]]; then
+									#Compile Java prgram
+									ERROR=$(${LangCpl} *${LangExt} 2>&1 | tr '\n' '|')
 									#move Java Class to Binary dir
-									mv *.class ${TheBinDir}/
-									#remove old jar
-									if [ -f ${TheBinDir}/${des%.class}.jar ]; then
-										rm ${TheBinDir}/${des%.class}.jar
+									if [ -f *.class ]; then
+										mv *.class ${TheBinDir}/
+									else
+										errorCode "cpl" "ERROR" "${ERROR}"
 									fi
-									echo -e "\e[1;41m[${Lang} Code Compiled (CLASS)]\e[0m"
-									;;
-							esac
-						else
-							ERROR=$(echo ${ERROR} | tr '|' '\n')
-							echo -en "\e[1;31m[\e[0m"
-							echo -en "\e[1;41mERROR\e[0m"
-							echo -e "\e[1;31m]\e[0m"
-							echo -e "\e[1;31m${ERROR}\e[0m"
-						fi
-					fi
+								else
+									echo "Is not a project"
+								fi
+							#single code selected
+							else
+								#Compile Java prgram
+								ERROR=$(${LangCpl} ${src} 2>&1 | tr '\n' '|')
+								#get Java Class/compiled file name
+								des=${src%.*}.class
+								if [ -f ${des} ]; then
+									#Compile as jar or class
+									case ${name} in
+										#Compile as Jar
+										--jar)
+											if [ ! -f manifest.mf ]; then
+												echo "Manifest-Version: 1.1" > manifest.mf
+												echo "Created-By: $USER" >> manifest.mf
+												echo "Main-Class: ${des%.class}" >> manifest.mf
+												echo "Sealed: true" >> manifest.mf
+											fi
+											jar -cmf manifest.mf ${des%.class}.jar *.class
+											#remove class file
+											if [ -f  ${TheBinDir}/${des} ]; then
+												rm  ${TheBinDir}/${des}
+											fi
+											#Keep Generated Manafest file
+											case ${keep} in
+												--keep-manifest)
+													#rm ${des}
+													rm *.class
+													;;
+												*)
+													#rm manifest.mf ${des}
+													rm manifest.mf *.class
+												;;
+											esac
+											#move Java Jar to Binary dir
+											mv ${des%.class}.jar ${TheBinDir}/
+											echo -e "\e[1;41m[${Lang} Code Compiled (JAR)]\e[0m"
+											;;
+										#Do nothing...keep class
+										*|--class)
+											#move Java Class to Binary dir
+											mv *.class ${TheBinDir}/
+											#remove old jar
+											if [ -f ${TheBinDir}/${des%.class}.jar ]; then
+												rm ${TheBinDir}/${des%.class}.jar
+											fi
+											echo -e "\e[1;41m[${Lang} Code Compiled (CLASS)]\e[0m"
+											;;
+									esac
+								else
+									#Display Error from compiler
+									errorCode "cpl" "ERROR" "${ERROR}"
+								fi
+							fi
+							;;
+						*)
+							;;
+					esac
 					;;
+				#Code is part of a project
 				*)
+					local Package
+					local IsMain
+					local TheMain
+					local TheClassPath
+					local ManifestFile=META-INF/MANIFEST.MF
+					local TheLibDir="${LangSrc}/${project}/lib/"
+					TheSrcDir="${LangSrc}/${project}/src/"
+					local ThePWD=${LangSrc}/${project}/
+					cd ${ThePWD}
+					local ReplaceTheSrcDir=$(echo ${LangSrc}/${project}/ | tr '/' '|')
+					local ReplaceTheBinDir=$(echo ${LangSrc}/${project}/classes/ | tr '/' '|')
+					TheBinDir="${LangSrc}/${project}/bin"
+					find ${TheSrcDir} -name "*${LangExt}" | tr '/' '|' | sed "s/${ReplaceTheSrcDir}//g" | tr '|' '/'  > sources.txt
+
+					#Compile java code with lib jars
+					if [ -d "${TheLibDir}" ]; then
+						local ReplaceTheLibDir=$(echo "${LangSrc}/${project}/" | tr '/' '|')
+						TheClassPath=$(find ${TheLibDir} -name "*.jar" | tr '/' '|' | sed "s/${ReplaceTheLibDir}//g" | tr '|' '/' | tr '\n' ';' | rev | sed "s/;//1" | rev)
+						#make sure jars exist in lib
+						if [ ! -z "${TheClassPath}" ]; then
+							ERROR=$(${LangCpl} -cp ".;${TheClassPath}" -d classes @sources.txt 2>&1 | tr '\n' '|')
+						#jars don't exist in lib...compile as usual
+						else
+							ERROR=$(${LangCpl} -d classes @sources.txt 2>&1 | tr '\n' '|')
+						fi
+					#jars don't exist in lib...compile as usual
+					else
+						ERROR=$(${LangCpl} -d classes @sources.txt 2>&1 | tr '\n' '|')
+					fi
+
+					#Convert Class files to Jar
+					if [ -z "${ERROR}" ]; then
+						#Look for java class containing main
+						#{
+						local Files=$(cat sources.txt | tr '\n' '|')
+						IFS="|"
+						for val in ${Files};
+						do
+							IsMain=$(grep -w "public static void main" ${val})
+							if [ ! -z "${IsMain}" ]; then
+								TheMain=${val}
+								Package=$(grep -w "package" ${TheMain} | head -n 1 | tr -d ';' | sed "s/package //g")
+								TheMain=${TheMain##*/}
+								break
+							fi
+						done
+						#}
+
+						#Create manifest file
+						#{
+						echo "Manifest-Version: 1.1" > ${ManifestFile}
+						echo "Created-By: $USER" >> ${ManifestFile}
+						#format for manifest file
+						if [ -d "${TheLibDir}" ]; then
+							TheClassPath=$(echo ${TheClassPath} | tr ';' ' ')
+							#Class path found
+							if [ ! -z "${TheClassPath}" ]; then
+								#Add to manifest
+								echo "Class-Path: ${TheClassPath}" >> ${ManifestFile}
+							fi
+						fi
+						echo "Package-Names: ${Package}" >> ${ManifestFile}
+						echo "Main-Class: ${Package}.${TheMain%${LangExt}}" >> ${ManifestFile}
+						echo "Sealed: true" >> ${ManifestFile}
+						#}
+
+						#Look for compiled classes
+						find ${ThePWD} -name "*.class" | tr '/' '|' | sed "s/${ReplaceTheBinDir}//g" | tr '|' '/'  > sources.txt
+						ERROR=$(jar -cfm ${project}.jar ${ManifestFile} -C classes @sources.txt 2>&1 | tr '/' '|' | sed "s/${ReplaceTheSrcDir}/\//g" | tr '|' '/' | tr '\n' '|')
+						#move Java Class to Binary dir
+						if [ -z "${ERROR}" ]; then
+							mv ${project}.jar ${TheBinDir}/
+							echo -e "\e[1;41m[Project \"${project}\" Compiled]\e[0m"
+						else
+							#Display Error from compiler
+							errorCode "cpl" "ERROR" "${ERROR}"
+						fi
+					else
+						#Display Error from compiler
+						errorCode "cpl" "ERROR" "${ERROR}"
+					fi
+					rm sources.txt
+					cd - > /dev/null
 					;;
 			esac
 			;;
@@ -540,7 +602,9 @@ UseJava()
 				else
 					mkdir ${path}
 					cd ${path}
-					touch manifest.txt
+					mkdir lib
+					mkdir classes
+					mkdir META-INF
 					mkdir src bin
 					mkdir src/main src/test
 					mkdir src/main/java src/test/java
@@ -873,33 +937,44 @@ UseJava()
 				none)
 					project=""
 					TheBinDir=${LangBin}
+					#Check if Java Class exists
+					if [ -f ${TheBinDir}/${TheBin} ]; then
+						TheBin=${TheBin%.*}
+						cd ${TheBinDir}
+						#If no JavaProp found
+						case ${JavaProp} in
+							none)
+								#Execute without
+								${LangRun} ${TheBin} ${Args[@]}
+								;;
+							*)
+								${LangRun} "${JavaProp}" ${TheBin} ${Args[@]}
+								;;
+						esac
+						cd - > /dev/null
+					#Check if Java Jar exists
+					elif [ -f ${TheBinDir}/${TheJar} ]; then
+						${LangRun} -jar ${TheBinDir}/${TheJar} ${Args[@]}
+					else
+						errorCode "cpl" "need" "${name}"
+					fi
 					;;
 				*)
-					project="${project}/"
-					TheBinDir="${LangSrc}/${project}bin"
+					TheJar="${project}.jar"
+					TheBinDir="${LangSrc}/${project}/bin"
+					#Check if Java Jar exists
+					if [ -f ${TheBinDir}/${TheJar} ]; then
+						${LangRun} -jar ${TheBinDir}/${TheJar} ${Args[@]}
+					else
+						errorCode "cpl" "need" "${name}"
+					fi
+#					[Run Class]
+#						main/java$ ls com/my/project/
+#						none.class none.java
+#
+#						main/java$ java com.my.project.none
 					;;
 			esac
-			#Check if Java Class exists
-			if [ -f ${TheBinDir}/${TheBin} ]; then
-				TheBin=${TheBin%.*}
-				cd ${TheBinDir}
-				#If no JavaProp found
-				case ${JavaProp} in
-					none)
-						#Execute without
-						${LangRun} ${TheBin} ${Args[@]}
-						;;
-					*)
-						${LangRun} "${JavaProp}" ${TheBin} ${Args[@]}
-						;;
-				esac
-				cd - > /dev/null
-			#Check if Java Jar exists
-			elif [ -f ${TheBinDir}/${TheJar} ]; then
-				${LangRun} -jar ${TheBinDir}/${TheJar} ${Args[@]}
-			else
-				errorCode "cpl" "need" "${name}"
-			fi
 			;;
 		backup)
 			local name=$1
