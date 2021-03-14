@@ -6,6 +6,7 @@ Added:
 	adding packages with source code (Lang.Java)
 	Use custom project templates
 	Provided better support for Java Projects (Lang.Java)
+	project mode addition is in progress (ie main vs test)
 
 Concept:
 	Managing different project types
@@ -16,3 +17,4 @@ Bug Fixes:
 	performance improvements (CLI User Interface only changes after TRUE changes)
 	code refactering
 	moved Compile error message to "errorCode.sh"
+	removed .h support from Go support (Lang.Go)

@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.39"
+SupportV="0.1.41"
 
 ProgDir=$1
 shift
@@ -77,6 +77,11 @@ UseJava()
 			echo -e "\t--class\t\t\t: \"make code (CLASS) executable\""
 			echo -e "\t--jar\t\t\t: \"make code (JAR) executable\""
 			echo -e "\t--jar --keep-manifest\t: \"keep manifest.mf\""
+			;;
+		ProjectHelp)
+			echo ""
+			echo -e "${Lang} specific project help"
+			echo ""
 			;;
 		getCode)
 			local name=$1
@@ -651,6 +656,25 @@ UseJava()
 				cd ${path}
 			fi
 			echo ${path}
+			;;
+		projectMode)
+			local mode=$1
+			case ${ProjectType} in
+				Generic)
+					case ${mode} in
+						main|test)
+							echo "${mode}"
+							;;
+						*)
+							;;
+					esac
+					;;
+				*)
+					if [ -f ${TemplateProjectDir}/${Lang}.${type} ]; then
+						${TemplateProjectDir}/${Lang}.${type} projectMode ${mode}
+					fi
+					;;
+			esac
 			;;
 		lscpl)
 			local project

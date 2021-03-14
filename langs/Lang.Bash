@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.31"
+SupportV="0.1.33"
 
 ProgDir=$1
 shift
@@ -71,6 +71,11 @@ UseBash()
 		MenuHelp)
 			echo -e "new <file>\t\t\t: \"create new ${Lang} script\""
 			echo -e "cpl, compile\t\t\t: \"make code executable\""
+			;;
+		ProjectHelp)
+			echo ""
+			echo -e "${Lang} specific project help"
+			echo ""
 			;;
 		pgLang)
 			HasLang=$(which ${LangCpl} 2> /dev/null)
@@ -345,6 +350,25 @@ UseBash()
 				cd ${path}/srs
 			fi
 			echo ${path}
+			;;
+		projectMode)
+			local mode=$1
+			case ${ProjectType} in
+				Generic)
+					case ${mode} in
+#						main|test)
+#							echo "${mode}"
+#							;;
+						*)
+							;;
+					esac
+					;;
+				*)
+					if [ -f ${TemplateProjectDir}/${Lang}.${type} ]; then
+						${TemplateProjectDir}/${Lang}.${type} projectMode ${mode}
+					fi
+					;;
+			esac
 			;;
 		lscpl)
 			local project

@@ -44,6 +44,7 @@ TemplateProjectDir=${ClideProjectDir}/Templates
 #Global Vars
 #{
 CodeProject="none"
+ProjectMode="main"
 ProjectType="Generic"
 RunTimeArgs=""
 RunCplArgs="none"
@@ -137,6 +138,7 @@ ProjectHelp()
 	echo -e "load <project>\t\t\t: \"Choose a project to make active\""
 	echo -e "list\t\t\t\t: \"List ALL projects\""
 	echo -e "active\t\t\t\t: \"Display the name of the current project\""
+	ManageLangs ${Lang} "ProjectHelp"
 	echo "----------------------------------------------------------"
 	echo ""
 }
@@ -762,6 +764,13 @@ runCode()
 	fi
 }
 
+selectProjectMode()
+{
+	local Lang=$1
+	local mode=$2
+	ManageLangs ${Lang} "projectMode" ${mode}
+}
+
 selectCode()
 {
 	local Lang=$1
@@ -1061,6 +1070,21 @@ Actions()
 						#List all known projects
 						list)
 							listProjects
+							;;
+						#Swap between main and test
+						mode)
+							#Make sure this is a porject
+							case ${CodeProject} in
+								none)
+									errorCode "project" "active"
+									;;
+								*)
+									local newMode=$(selectProjectMode ${Lang} ${UserIn[2]})
+									if [ ! -z "${newMode}"]; then
+										ProjectMode=${newMode}
+									fi
+									;;
+							esac
 							;;
 						#Show Project help page
 						*)

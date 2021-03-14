@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.6"
+SupportV="0.1.8"
 
 ProgDir=$1
 shift
@@ -72,14 +72,17 @@ UseGo()
 			echo -e "new <file> {main|header|component} : \"create new ${Lang} source file\""
 			echo -e "cpl, compile\t\t\t: \"make code executable\""
 			;;
+		ProjectHelp)
+			echo ""
+			echo -e "${Lang} specific project help"
+			echo ""
+			;;
 		getCode)
 			local name=$1
 			case ${CodeProject} in
 				none)
 					if [ -f ${LangSrc}/${name}${LangExt} ]; then
 						echo ${name}${LangExt}
-					elif [ -f ${LangSrc}/${name}.h ]; then
-						echo ${name}.h
 					elif [ -f ${LangSrc}/${name} ]; then
 						echo ${name}
 					fi
@@ -87,8 +90,6 @@ UseGo()
 				*)
 					if [ -f ${LangSrc}/${CodeProject}/src/${name}${LangExt} ]; then
 						echo ${name}${LangExt}
-					elif [ -f ${LangSrc}/${CodeProject}/src/${name}.h ]; then
-						echo ${name}.h
 					elif [ -f ${LangSrc}/${project}/src/${name} ]; then
 						echo ${name}
 					fi
@@ -106,7 +107,7 @@ UseGo()
 			fi
 			;;
 		BeforeFiles|AfterFiles)
-			ls *${LangExt} *.h 2> /dev/null
+			ls *${LangExt} 2> /dev/null
 			;;
 		pgDir)
 			#Return Go src Dir
@@ -155,8 +156,6 @@ UseGo()
 			#Correct filename
 			if [[ ! "${name}" == *"${LangExt}" ]] && [ -f "${name}${LangExt}" ]; then
 				name="${name}${LangExt}"
-			elif [[ ! "${name}" == *".h" ]] && [ -f "${name}.h" ]; then
-				name="${name}.h"
 			fi
 			#Return source file if exists
 			if [ -f "${name}" ]; then
@@ -167,10 +166,10 @@ UseGo()
 			local src=$1
 			local new=$2
 			case ${src} in
-				*${LangExt}|*.h)
-					#Add cpp or header files with file extensions
+				*${LangExt})
+					#Add go or header files with file extensions
 					case ${new} in
-						*${LangExt}|*.h)
+						*${LangExt})
 							#Append file
 							if [ -f "${new}" ]; then
 								echo "${src},${new}"
@@ -178,14 +177,11 @@ UseGo()
 								echo "${src}"
 							fi
 							;;
-						#Add cpp or header files without file extensions
+						#Add go or header files without file extensions
 						*)
-							#Append cpp files
+							#Append go files
 							if [ -f "${new}${LangExt}" ]; then
 								echo "${src},${new}${LangExt}"
-							#Append header files
-							elif [ -f "${new}.h" ]; then
-								echo "${src},${new}.h"
 							else
 								echo "${src}"
 							fi
@@ -200,13 +196,13 @@ UseGo()
 			local src=$1
 			local num=$2
 			case ${src} in
-				*${LangExt}|*.h)
+				*${LangExt})
 					if [[ "${src}" == *","* ]]; then
 						if [ -z ${num} ]; then
 							errorCode "editNull"
 						else
 							if [[ "${src}" == *"${num}"* ]]; then
-								if [[ "${num}" == *"${LangExt}" ]] || [[ "${num}" == *".h" ]]; then
+								if [[ "${num}" == *"${LangExt}" ]]; then
 									${editor} ${num}
 								else
 									${editor} "${num}${LangExt}"
@@ -227,13 +223,13 @@ UseGo()
 			local src=$1
 			local num=$2
 			case ${src} in
-				*${LangExt}|*.h)
+				*${LangExt})
 					if [[ "${src}" == *","* ]]; then
 						if [ -z ${num} ]; then
 							errorCode "readNull"
 						else
 							if [[ "${src}" == *"${num}"* ]]; then
-								if [[ "${num}" == *"${LangExt}" ]] || [[ "${num}" == *".h" ]]; then
+								if [[ "${num}" == *"${LangExt}" ]]; then
 									${ReadBy} ${num}
 								else
 									${ReadBy} "${num}${LangExt}"
@@ -294,11 +290,7 @@ UseGo()
 								mv ${prog%.*} ${LangBin}
 								echo -e "\e[1;42m[${Lang} Code Compiled]\e[0m"
 							else
-								echo -en "\e[1;32m[${Lang} \e[0m"
-								echo -en "\e[1;41mERROR\e[0m"
-								echo -e "\e[1;32m]\e[0m"
-								ERROR=$(echo ${ERROR} | tr '|' '\n')
-								echo -e "\e[1;31m${ERROR}\e[0m"
+								errorCode "cpl" "ERROR" "${ERROR}"
 							fi
 						fi
 					#single code selected
@@ -314,11 +306,7 @@ UseGo()
 							mv ${src%.*} ${LangBin}
 							echo -e "\e[1;42m[${Lang} Code Compiled]\e[0m"
 						else
-							echo -en "\e[1;31m[\e[0m"
-							echo -en "\e[1;41mERROR\e[0m"
-							echo -e "\e[1;31m]\e[0m"
-							ERROR=$(echo ${ERROR} | tr '|' '\n')
-							echo -e "\e[1;31m${ERROR}\e[0m"
+							errorCode "cpl" "ERROR" "${ERROR}"
 						fi
 					fi
 				fi
@@ -392,6 +380,25 @@ UseGo()
 				cd ${path}/src
 			fi
 			echo ${path}
+			;;
+		projectMode)
+			local mode=$1
+			case ${ProjectType} in
+				Generic)
+					case ${mode} in
+#						main|test)
+#							echo "${mode}"
+#							;;
+						*)
+							;;
+					esac
+					;;
+				*)
+					if [ -f ${TemplateProjectDir}/${Lang}.${type} ]; then
+						${TemplateProjectDir}/${Lang}.${type} projectMode ${mode}
+					fi
+					;;
+			esac
 			;;
 		lscpl)
 			local project
@@ -497,7 +504,6 @@ UseGo()
 
 			Type=$(echo ${Type} | tr A-Z a-z)
 			name=${name%${LangExt}}
-			name=${name%.h}
 			if [ ! -f ${name}${LangExt} ]; then
 				case ${Type} in
 					#create main file
