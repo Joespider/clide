@@ -72,3 +72,7 @@ Status: Proposed
 		...as of now, would only include compileCode(cpl) and runCode(run, run -a)
 
 		if default project is given, clide passed "default" to Lang.<language>
+
+3: Project Tests
+	Allow for written test cases, like is done in java
+	Have a "test" function

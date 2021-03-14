@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.38"
+SupportV="0.1.39"
 
 ProgDir=$1
 shift
@@ -518,77 +518,115 @@ UseJava()
 					local ReplaceTheSrcDir=$(echo ${LangSrc}/${project}/ | tr '/' '|')
 					local ReplaceTheBinDir=$(echo ${LangSrc}/${project}/classes/ | tr '/' '|')
 					TheBinDir="${LangSrc}/${project}/bin"
-					find ${TheSrcDir} -name "*${LangExt}" | tr '/' '|' | sed "s/${ReplaceTheSrcDir}//g" | tr '|' '/'  > sources.txt
 
-					#Compile java code with lib jars
-					if [ -d "${TheLibDir}" ]; then
-						local ReplaceTheLibDir=$(echo "${LangSrc}/${project}/" | tr '/' '|')
-						TheClassPath=$(find ${TheLibDir} -name "*.jar" | tr '/' '|' | sed "s/${ReplaceTheLibDir}//g" | tr '|' '/' | tr '\n' ';' | rev | sed "s/;//1" | rev)
-						#make sure jars exist in lib
-						if [ ! -z "${TheClassPath}" ]; then
-							ERROR=$(${LangCpl} -cp ".;${TheClassPath}" -d classes @sources.txt 2>&1 | tr '\n' '|')
-						#jars don't exist in lib...compile as usual
-						else
-							ERROR=$(${LangCpl} -d classes @sources.txt 2>&1 | tr '\n' '|')
-						fi
-					#jars don't exist in lib...compile as usual
-					else
-						ERROR=$(${LangCpl} -d classes @sources.txt 2>&1 | tr '\n' '|')
-					fi
+					#Compile as jar or class
+					case ${name} in
+						#Compile as Jar
+						--jar)
+							find ${TheSrcDir} -name "*${LangExt}" | tr '/' '|' | sed "s/${ReplaceTheSrcDir}//g" | tr '|' '/'  > sources.txt
 
-					#Convert Class files to Jar
-					if [ -z "${ERROR}" ]; then
-						#Look for java class containing main
-						#{
-						local Files=$(cat sources.txt | tr '\n' '|')
-						IFS="|"
-						for val in ${Files};
-						do
-							IsMain=$(grep -w "public static void main" ${val})
-							if [ ! -z "${IsMain}" ]; then
-								TheMain=${val}
-								Package=$(grep -w "package" ${TheMain} | head -n 1 | tr -d ';' | sed "s/package //g")
-								TheMain=${TheMain##*/}
-								break
+							#Compile java code with lib jars
+							if [ -d "${TheLibDir}" ]; then
+								local ReplaceTheLibDir=$(echo "${LangSrc}/${project}/" | tr '/' '|')
+								TheClassPath=$(find ${TheLibDir} -name "*.jar" | tr '/' '|' | sed "s/${ReplaceTheLibDir}//g" | tr '|' '/' | tr '\n' ';' | rev | sed "s/;//1" | rev)
+								#make sure jars exist in lib
+								if [ ! -z "${TheClassPath}" ]; then
+									ERROR=$(${LangCpl} -cp ".;${TheClassPath}" -d classes @sources.txt 2>&1 | tr '\n' '|')
+								#jars don't exist in lib...compile as usual
+								else
+									ERROR=$(${LangCpl} -d classes @sources.txt 2>&1 | tr '\n' '|')
+								fi
+							#jars don't exist in lib...compile as usual
+							else
+								ERROR=$(${LangCpl} -d classes @sources.txt 2>&1 | tr '\n' '|')
 							fi
-						done
-						#}
 
-						#Create manifest file
-						#{
-						echo "Manifest-Version: 1.1" > ${ManifestFile}
-						echo "Created-By: $USER" >> ${ManifestFile}
-						#format for manifest file
-						if [ -d "${TheLibDir}" ]; then
-							TheClassPath=$(echo ${TheClassPath} | tr ';' ' ')
-							#Class path found
-							if [ ! -z "${TheClassPath}" ]; then
-								#Add to manifest
-								echo "Class-Path: ${TheClassPath}" >> ${ManifestFile}
+							#Convert Class files to Jar
+							if [ -z "${ERROR}" ]; then
+								#Look for java class containing main
+								#{
+								local Files=$(cat sources.txt | tr '\n' '|')
+								IFS="|"
+								for val in ${Files};
+								do
+									IsMain=$(grep -w "public static void main" ${val})
+									if [ ! -z "${IsMain}" ]; then
+										TheMain=${val}
+										Package=$(grep -w "package" ${TheMain} | head -n 1 | tr -d ';' | sed "s/package //g")
+										TheMain=${TheMain##*/}
+										break
+									fi
+								done
+								#}
+
+								#Create manifest file
+								#{
+								echo "Manifest-Version: 1.1" > ${ManifestFile}
+								echo "Created-By: $USER" >> ${ManifestFile}
+								#format for manifest file
+								if [ -d "${TheLibDir}" ]; then
+									TheClassPath=$(echo ${TheClassPath} | tr ';' ' ')
+									#Class path found
+									if [ ! -z "${TheClassPath}" ]; then
+										#Add to manifest
+										echo "Class-Path: ${TheClassPath}" >> ${ManifestFile}
+										fi
+									fi
+								echo "Package-Names: ${Package}" >> ${ManifestFile}
+								echo "Main-Class: ${Package}.${TheMain%${LangExt}}" >> ${ManifestFile}
+								echo "Sealed: true" >> ${ManifestFile}
+								#}
+
+								#Look for compiled classes
+								find ${ThePWD} -name "*.class" | tr '/' '|' | sed "s/${ReplaceTheBinDir}//g" | tr '|' '/'  > sources.txt
+								ERROR=$(jar -cfm ${project}.jar ${ManifestFile} -C classes @sources.txt 2>&1 | tr '/' '|' | sed "s/${ReplaceTheSrcDir}/\//g" | tr '|' '/' | tr '\n' '|')
+									#move Java Class to Binary dir
+									if [ -z "${ERROR}" ]; then
+										mv ${project}.jar ${TheBinDir}/
+										echo -e "\e[1;41m[Project \"${project}\" Compiled (JAR)]\e[0m"
+									else
+										#Display Error from compiler
+										errorCode "cpl" "ERROR" "${ERROR}"
+									fi
+								else
+									#Display Error from compiler
+									errorCode "cpl" "ERROR" "${ERROR}"
+								fi
+								rm sources.txt
+								cd - > /dev/null
+							;;
+
+						#Do nothing...keep class
+						*|--class)
+							find ${TheSrcDir} -name "*${LangExt}" | tr '/' '|' | sed "s/${ReplaceTheSrcDir}//g" | tr '|' '/'  > sources.txt
+
+							#Compile java code with lib jars
+							if [ -d "${TheLibDir}" ]; then
+								local ReplaceTheLibDir=$(echo "${LangSrc}/${project}/" | tr '/' '|')
+								TheClassPath=$(find ${TheLibDir} -name "*.jar" | tr '/' '|' | sed "s/${ReplaceTheLibDir}//g" | tr '|' '/' | tr '\n' ';' | rev | sed "s/;//1" | rev)
+								#make sure jars exist in lib
+								if [ ! -z "${TheClassPath}" ]; then
+									ERROR=$(${LangCpl} -cp ".;${TheClassPath}" -d classes @sources.txt 2>&1 | tr '\n' '|')
+								#jars don't exist in lib...compile as usual
+								else
+									ERROR=$(${LangCpl} -d classes @sources.txt 2>&1 | tr '\n' '|')
+								fi
+							#jars don't exist in lib...compile as usual
+							else
+								ERROR=$(${LangCpl} -d classes @sources.txt 2>&1 | tr '\n' '|')
 							fi
-						fi
-						echo "Package-Names: ${Package}" >> ${ManifestFile}
-						echo "Main-Class: ${Package}.${TheMain%${LangExt}}" >> ${ManifestFile}
-						echo "Sealed: true" >> ${ManifestFile}
-						#}
 
-						#Look for compiled classes
-						find ${ThePWD} -name "*.class" | tr '/' '|' | sed "s/${ReplaceTheBinDir}//g" | tr '|' '/'  > sources.txt
-						ERROR=$(jar -cfm ${project}.jar ${ManifestFile} -C classes @sources.txt 2>&1 | tr '/' '|' | sed "s/${ReplaceTheSrcDir}/\//g" | tr '|' '/' | tr '\n' '|')
-						#move Java Class to Binary dir
-						if [ -z "${ERROR}" ]; then
-							mv ${project}.jar ${TheBinDir}/
-							echo -e "\e[1;41m[Project \"${project}\" Compiled]\e[0m"
-						else
-							#Display Error from compiler
-							errorCode "cpl" "ERROR" "${ERROR}"
-						fi
-					else
-						#Display Error from compiler
-						errorCode "cpl" "ERROR" "${ERROR}"
-					fi
-					rm sources.txt
-					cd - > /dev/null
+							if [ -z "${ERROR}" ]; then
+								mv ${project}.jar ${TheBinDir}/
+								echo -e "\e[1;41m[Project \"${project}\" Compiled (CLASS)]\e[0m"
+							else
+								#Display Error from compiler
+								errorCode "cpl" "ERROR" "${ERROR}"
+							fi
+							rm sources.txt
+							cd - > /dev/null
+							;;
+					esac
 					;;
 			esac
 			;;
