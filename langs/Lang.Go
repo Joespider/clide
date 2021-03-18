@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.8"
+SupportV="0.1.9"
 
 ProgDir=$1
 shift
@@ -16,6 +16,8 @@ shift
 CodeProject=$1
 shift
 ProjectType=$1
+shift
+ProjectMode=$1
 shift
 TemplateProjectDir=$1
 shift

@@ -268,7 +268,7 @@ ManageLangs()
 	shift
 	local Manage=$@
 	if [ -f ${LangsDir}/Lang.${Langs^} ]; then
-		${LangsDir}/Lang.${Langs^} ${ProgDir} ${ClideDir} ${editor} ${ReadBy} ${CodeProject} ${ProjectType} ${TemplateProjectDir} ${RunCplArgs} ${Manage[@]}
+		${LangsDir}/Lang.${Langs^} ${ProgDir} ${ClideDir} ${editor} ${ReadBy} ${CodeProject} ${ProjectType} ${ProjectMode} ${TemplateProjectDir} ${RunCplArgs} ${Manage[@]}
 	else
 		UseOther ${Langs} ${Manage[@]}
 	fi
@@ -283,7 +283,7 @@ ModeHandler()
 		${repoTool}|repo)
 			#Use ONLY for Projects
 			if [[ ! "${CodeProject}" == "none" ]]; then
-				${ModesDir}/repo.sh ${repoTool} ${CodeProject}
+				${ModesDir}/repo.sh ${repoTool} ${CodeProject} ${repoAssist}
 			else
 				echo "Must have an active project"
 			fi
@@ -1702,7 +1702,6 @@ loadAuto()
 	comp_list "${editor} ed edit" "non-lang"
 	comp_list "add"
 	comp_list "${ReadBy} read"
-	comp_list "${repoTool} repo"
 	comp_list "search"
 	comp_list "create" "make version -std= jar manifest args prop properties -D reset"
 	comp_list "compile cpl car"
@@ -1863,8 +1862,9 @@ main()
 			#compile code without entering cl[ide]
 			--cpl|--compile)
 				shift
-				local Lang=$(pgLang $1)
+				local Lang
 				local Code=$2
+				local Args
 				if [ -z "${Code}" ]; then
 					Lang=$(SelectLangByCode $1)
 					Code=$1
@@ -1872,9 +1872,20 @@ main()
 					local Args=$@
 					main --cpl "${Lang}" "${Code}" ${Args[@]}
 				else
-					shift
-					shift
-					local Args=$@
+					case ${Code} in
+						--*)
+							Lang=$(SelectLangByCode $1)
+							Code=$1
+							shift
+							Args=$@
+							;;
+						*)
+							Lang=$(pgLang $1)
+							shift
+							shift
+							Args=$@
+							;;
+					esac
 					case ${Lang} in
 						no)
 							echo "\"$1\" is not a supported language"

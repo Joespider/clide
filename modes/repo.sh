@@ -5,10 +5,51 @@ Head="cl[ide]"
 IDE=$(echo -e "\e[1;43mrepo\e[0m")
 Name="cl[${IDE}]"
 
+repoTool=$1
+shift
+CodeProject=$1
+shift
+repoAssist=$1
+shift
+
+IsInstalled=$(which ${repoTool})
+#check if git is installed
+GitTool=$(which git)
+#check if svn is installed
+SvnTool=$(which svn)
+
+Help()
+{
+	case ${repoTool} in
+		git)
+			echo "GIT Help"
+			echo ""
+			echo "ActiveBranch"
+			echo "new, init"
+			echo "setup, clone"
+			echo "add"
+			echo "message, commit"
+			echo "branch, branches"
+			echo "upload, push"
+			echo "download, pull"
+			echo "state, status"
+			echo "slamdunk"
+			echo "help, options"
+			echo "version"
+			;;
+		svn)
+			echo "SVN Help"
+			;;
+		*)
+			;;
+	esac
+}
+
+#Adjust colors
 colors()
 {
-	text=$1
-	IsBranch=$2
+	local text=$1
+	local IsBranch=$2
 	case ${text} in
 		git)
 			echo -e "\e[1;34m${text}\e[0m"
@@ -30,7 +71,6 @@ colors()
 
 RepoVersion()
 {
-	IsInstalled=$(which ${repoTool})
 	if [ ! -z "${IsInstalled}" ]; then
 		${repoTool} --version
 	else
@@ -43,11 +83,12 @@ gitHandler()
 {
 	local repoAct=$1
 	shift
-	#check if git is installed
-	GitTool=$(which git)
 	#Git is installed
 	if [ ! -z "${GitTool}" ]; then
 		case ${repoAct} in
+			ActiveBranch)
+				git branch 2> /dev/null| grep "*" | sed "s/* //g"
+				;;
 			#Create a new repo
 			new|init)
 				echo git init
@@ -79,7 +120,7 @@ gitHandler()
 				files=$@
 				#Files given
 				if [ ! -z "${files}" ]; then
-					echo git add ${files}
+					echo git add ${files[@]}
 				else
 					#Get ALL files from user
 					echo git add .
@@ -93,15 +134,7 @@ gitHandler()
 					echo git commit -m "\"${msg}\""
 				#No message found
 				else
-					#As for user...get EVERYTHING typed
-					echo -n "Message: "
-					read -a msg
-					#Message given
-					if [ ! -z "${msg}" ]; then
-						gitHandler "commit" "${msg[@]}"
-					else
-						echo "No message found"
-					fi
+					echo git commit
 				fi
 				;;
 			#Handles Git Branches
@@ -203,10 +236,12 @@ gitHandler()
 				gitHandler "push"
 				;;
 			help|options)
-				echo "git help page"
+				Help
+				;;
+			version)
+				RepoVersion
 				;;
 			*)
-				RepoVersion
 				;;
 		esac
 	#git is not installed
@@ -219,8 +254,6 @@ svnHandler()
 {
 	local repoAct=$1
 	shift
-	#check if git is installed
-	SvnTool=$(which svn)
 	#Git is installed
 	if [ ! -z "${SvnTool}" ]; then
 		echo "svn is installed"
@@ -232,42 +265,30 @@ svnHandler()
 
 repoHandler()
 {
-	case ${repoTool} in
-		git)
-			#git execution is handled by user
-			if [[ "${repoAssist}" == "False" ]] && [[ "$1" == "${repoTool}" ]]; then
-				IsInstalled=$(which ${repoTool})
-				if [ ! -z "${IsInstalled}" ]; then
-					$@
-				else
-					echo "\"${repoTool}\" is not installed"
-				fi
-			#git execution is handled by cl[ide]
-			elif [[ "${repoAssist}" == "True" ]]; then
-				shift
-				gitHandler $@
+	case ${repoAssist} in
+		False)
+			if [ ! -z "${IsInstalled}" ]; then
+				$@
 			else
-				echo "repo version control has been disabled"
+				echo "\"${repoTool}\" is not installed"
 			fi
 			;;
-		svn)
-			#svn execution is handled by user
-			if [[ "${repoAssist}" == "False" ]] && [[ "$1" == "${repoTool}" ]]; then
-				IsInstalled=$(which ${repoTool})
-				if [ ! -z "${IsInstalled}" ]; then
-					$@
-				else
-					echo "\"${repoTool}\" is not installed"
-				fi
-			#svn execution is handled by cl[ide]
-			elif [[ "${repoAssist}" == "True" ]]; then
-				shift
-				svnHandler $@
-			else
-				echo "repo version control has been disabled"
-			fi
+		True)
+			case ${repoTool} in
+				git)
+					#git execution is handled by cl[ide]
+					gitHandler $@
+					;;
+				svn)
+					#svn execution is handled by user
+					svnHandler $@
+					;;
+				*)
+					;;
+			esac
 			;;
 		*)
+			echo "repo version control has been disabled"
 			;;
 	esac
 }
@@ -275,37 +296,34 @@ repoHandler()
 #IDE
 Repo()
 {
-	local repoTool=$1
 	local cRepoTool=$(colors ${repoTool})
-	local CodeProject=$2
-	local Branch="master"
-	local cBranch=$(colors "${Branch}" "branch")
+	local Branch
+	local cBranch
 	local prompt=""
 	local UserArg=""
 	while true
 	do
+		Branch=$(gitHandler "ActiveBranch")
 		if [ -z "${Branch}" ]; then
 			prompt="${Name}(${cRepoTool}):$ "
 		else
+			cBranch=$(colors "${Branch}" "branch")
 			prompt="${Name}(${cRepoTool}{${cBranch}}):$ "
 		fi
 		#Handle CLI
 		read -e -p "${prompt}" -a UserIn
-		UserArg=$(echo ${UserIn[0]} | tr A-Z a-z)
-		case ${UserArg} in
-			#git/svn handler
-			${repoTool}|repo)
-				repoHandler ${UserIn[@]}
-				;;
+		case ${UserIn[0]} in
 			exit|close)
 				break
 				;;
-			#ignore all other commands
 			*)
+				if [ ! -z "${UserIn[0]}" ]; then
+					repoHandler ${UserIn[@]}
+				fi
 				;;
 		esac
 	done
 }
 
 #Repo IDE
-Repo $@
+Repo
