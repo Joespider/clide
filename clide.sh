@@ -138,6 +138,7 @@ ProjectHelp()
 	echo -e "load <project>\t\t\t: \"Choose a project to make active\""
 	echo -e "list\t\t\t\t: \"List ALL projects\""
 	echo -e "active\t\t\t\t: \"Display the name of the current project\""
+	echo -e "types\t\t\t\t: \"Display the types of projects under ${Lang}\""
 	ManageLangs ${Lang} "ProjectHelp"
 	echo "----------------------------------------------------------"
 	echo ""
@@ -264,11 +265,12 @@ UseOther()
 ManageLangs()
 {
 	local Langs=$1
+	local PassedVars=( "${ProgDir}" "${ClideDir}" "${editor}" "${ReadBy}" "${CodeProject}" "${ProjectType}" "${ProjectMode}" "${TemplateProjectDir}" "${RunCplArgs}")
 	#Make first letter uppercase
 	shift
 	local Manage=$@
 	if [ -f ${LangsDir}/Lang.${Langs^} ]; then
-		${LangsDir}/Lang.${Langs^} ${ProgDir} ${ClideDir} ${editor} ${ReadBy} ${CodeProject} ${ProjectType} ${ProjectMode} ${TemplateProjectDir} ${RunCplArgs} ${Manage[@]}
+		${LangsDir}/Lang.${Langs^} ${PassedVars[@]} ${Manage[@]}
 	else
 		UseOther ${Langs} ${Manage[@]}
 	fi
@@ -586,7 +588,6 @@ newProject()
 	else
 		if [ -z "${projectType}" ]; then
 			projectType="Generic"
-
 		fi
 		path=$(ManageLangs ${Lang} "newProject" "${projectType}" ${project})
 		if [ ! -z "${path}" ]; then
@@ -597,12 +598,17 @@ newProject()
 			echo "lang=${lang}" >> ${ProjectFile}
 			#Type Value
 			echo "type=${projectType}" >> ${ProjectFile}
-			#Create Project and get path
-			cd ${path}/src
 			#Path Value
 			echo "path=${path}" >> ${ProjectFile}
 			#Source Value
 			echo "src=" >> ${ProjectFile}
+			if [ -d "${path}/src/" ]; then
+				#Create Project and get path
+				cd ${path}/src
+				ProjectType=${projectType}
+			else
+				rm ${ProjectFile}
+			fi
 		else
 			errorCode "project" "type" "${Head}"
 		fi
@@ -668,7 +674,7 @@ loadProject()
 				tag="src="
 				src=$(grep ${tag} ${ProjectFile} | sed "s/${tag}//g")
 				#return valid
-				RtnVals="${lang};${src};${path}"
+				RtnVals="${lang};${src};${path};${ProjectType}"
 				echo ${RtnVals}
 			else
 				#return false value
@@ -1014,13 +1020,17 @@ Actions()
 								if [ -f "${ClideDir}/projects/${UserIn[2]}.clide" ]; then
 									errorCode "project" "exists" ${UserIn[2]}
 								else
-									newProject ${Lang} ${UserIn[2]} ${UserIn[3]}
-									Code=""
-									updateProject ${Code}
-									if [ ! -z "${UserIn[2]}" ]; then
-										CodeProject=${UserIn[2]}
-										echo "Created \"${CodeProject}\""
-										ProjectDir=$(echo ${ThePWD#*${CodeProject}} | sed "s/\//:/1")
+									newProject ${Lang} ${UserIn[2]} ${UserIn[3]} ${UserIn[4]}
+									if [ -f ${ActiveProjectDir}/${UserIn[2]}.clide ]; then
+										Code=""
+										updateProject ${Code}
+										if [ ! -z "${UserIn[2]}" ]; then
+											CodeProject=${UserIn[2]}
+											echo "Created \"${CodeProject}\""
+											ProjectDir=$(echo ${ThePWD#*${CodeProject}} | sed "s/\//:/1")
+										fi
+									else
+										errorCode "project" "not-exist" ${UserIn[2]}
 									fi
 								fi
 							fi
@@ -1040,6 +1050,7 @@ Actions()
 								if [ -d ${CodeDir} ]; then
 									Lang=$(echo ${project} | cut -d ";" -f 1)
 									Code=$(echo ${project} | cut -d ";" -f 2)
+									ProjectType=$(echo ${project} | cut -d ";" -f 4)
 									CodeProject=${UserIn[2]}
 									cd ${CodeDir}/src
 									echo "Project \"${CodeProject}\" loaded"
@@ -1085,6 +1096,12 @@ Actions()
 									fi
 									;;
 							esac
+							;;
+						#List the projects under the language
+						types)
+							cd ${TemplateProjectDir}/
+							ls ${Lang}.* | sed "s/${Lang}.//g"
+							cd - > /dev/null
 							;;
 						#Show Project help page
 						*)
@@ -1696,7 +1713,7 @@ loadAuto()
 	comp_list "pwd"
 	comp_list "mkdir"
 	comp_list "use" "${pg}"
-	comp_list "project" "load import new list update"
+	comp_list "project" "load import new list update types"
 	comp_list "shell"
 	comp_list "new" "--version -v --help -h --custom -c"
 	comp_list "${editor} ed edit" "non-lang"

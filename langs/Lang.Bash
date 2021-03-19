@@ -1,7 +1,8 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.34"
+SupportV="0.1.36"
+Lang=Bash
 
 ProgDir=$1
 shift
@@ -42,9 +43,25 @@ OtherColor()
 	echo -e "\e[1;35m${text}\e[0m"
 }
 
+ProjectTemplateHandler()
+{
+	local SupportArgs=( "${LibDir}" "${VarDir}" "${editor}" "${ReadBy}" "${CodeProject}" "${ProjectMode}" "${CplArgs}" )
+	local Envs=( ${Lang} "$1" "$2" "$3" "$4" "$5" )
+	shift
+	shift
+	shift
+	shift
+	shift
+
+	local Type=$1
+	shift
+	if [ -f ${TemplateProjectDir}/${Lang}.${ProjectType} ]; then
+		${TemplateProjectDir}/${Lang}.${ProjectType} ${SupportArgs[@]} ${Envs[@]} ${Type} $@
+	fi
+}
+
 UseBash()
 {
-	local Lang=Bash
 	local LangConfig=$(grep ${Lang} ${VarDir}/clide.conf | sed "s/${Lang}=//1")
 	local LangCpl=${LangConfig}
 
@@ -54,6 +71,7 @@ UseBash()
 	local LangBin=${LangHome}/bin
 	local LangExt=".sh"
 	local TemplateCode=${LangBin}/new${Lang}${LangExt}
+	local EnvVars=( ${LangRun} ${LangHome} ${LangSrc} ${LangBin} ${LangExt} )
 	local Type=$1
 	shift
 	case ${Type} in
@@ -102,11 +120,18 @@ UseBash()
 					fi
 					;;
 				*)
-					if [ -f ${LangSrc}/${project}/src/${name}${LangExt} ]; then
-						echo ${name}${LangExt}
-					elif [ -f ${LangSrc}/${project}/src/${name} ]; then
-						echo ${name}
-					fi
+					case ${ProjectType} in
+						Generic) 
+							if [ -f ${LangSrc}/${project}/src/${name}${LangExt} ]; then
+								echo ${name}${LangExt}
+							elif [ -f ${LangSrc}/${project}/src/${name} ]; then
+								echo ${name}
+							fi
+							;;
+						*)
+							ProjectTemplateHandler ${EnvVars[@]} ${Type} ${mode}
+							;;
+						esac
 					;;
 			esac
                         ;;
@@ -212,10 +237,11 @@ UseBash()
 						fi
 					else
 						case ${src} in
+							#Anything but clide
 							clide${LangExt})
 								errorCode "editMe"
-							;;
-						*)
+								;;
+							*)
 								${editor} ${src}
 								;;
 						esac
@@ -336,18 +362,21 @@ UseBash()
 			esac
 			;;
 		newProject)
-			local type=$1
+			local TheProjectType=$1
 			local project=$2
 			local path=${LangSrc}/${project}
 			if [ ! -d ${path} ]; then
-				if [ -f ${TemplateProjectDir}/${Lang}.${type} ]; then
-					${TemplateProjectDir}/${Lang}.${type} newProject ${project}
-				else
-					mkdir ${path}
-					cd ${path}
-					mkdir src bin
-				fi
-				cd ${path}/src
+				case ${ProjectType} in
+					Generic)
+						mkdir ${path}
+						cd ${path}
+						mkdir src bin
+						cd ${path}/src
+						;;
+					*)
+						ProjectTemplateHandler ${EnvVars[@]} ${Type} ${project}
+						;;
+				esac
 			else
 				cd ${path}/srs
 			fi
@@ -366,9 +395,7 @@ UseBash()
 					esac
 					;;
 				*)
-					if [ -f ${TemplateProjectDir}/${Lang}.${type} ]; then
-						${TemplateProjectDir}/${Lang}.${type} projectMode ${mode}
-					fi
+					ProjectTemplateHandler ${EnvVars[@]} ${Type} ${mode}
 					;;
 			esac
 			;;

@@ -1,7 +1,8 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.42"
+SupportV="0.1.44"
+Lang=Java
 
 ProgDir=$1
 shift
@@ -42,21 +43,36 @@ OtherColor()
 	echo -e "\e[1;35m${text}\e[0m"
 }
 
+ProjectTemplateHandler()
+{
+	local SupportArgs=( "${LibDir}" "${VarDir}" "${editor}" "${ReadBy}" "${CodeProject}" "${ProjectMode}" "${CplArgs}" )
+	local Envs=( ${Lang} "$1" "$2" "$3" "$4" "$5" )
+	shift
+	shift
+	shift
+	shift
+	shift
+
+	local Type=$1
+	shift
+	if [ -f ${TemplateProjectDir}/${Lang}.${ProjectType} ]; then
+		${TemplateProjectDir}/${Lang}.${ProjectType} ${SupportArgs[@]} ${Envs[@]} ${Type} $@
+	fi
+}
+
 UseJava()
 {
-	local Lang=Java
 	local LangConfig=$(grep ${Lang} ${VarDir}/clide.conf | sed "s/${Lang}=//1")
 	local LangCpl=$(echo ${LangConfig} | cut -d ',' -f 1)
 	local LangRun=$(echo ${LangConfig} | cut -d ',' -f 2)
 
-#	local LangCpl=javac
-#	local LangRun=java
 	local LangHome=${ProgDir}/${Lang}
 	local LangSrc=${LangHome}/src
 	local LangBin=${LangHome}/bin
 	local LangExt=".java"
 	local TemplateCodeClass=${LangBin}/new${Lang}.class
 	local TemplateCodeJar=${LangBin}/new${Lang}.jar
+	local EnvVars=( ${LangRun} ${LangHome} ${LangSrc} ${LangBin} ${LangExt} )
 	local Type=$1
 	shift
 	case ${Type} in
@@ -100,28 +116,35 @@ UseJava()
 					fi
 					;;
 				*)
-					case ${name} in
-						*.*)
-							newName=${name##*.}
-							DirPath=$(echo ${name%${newName}} | tr '.' '/')
-							PackageName=$(echo ${name%.*} | sed "s/main.java.//1" | sed "s/test.java.//1" | tr '/' '.')
-							TheSrcDir="${LangSrc}/${project}/src/${DirPath}"
-							;;
-						*/*)
-							newName=${name##*/}
-							PackageName=$(echo ${name%/*} | sed "s/main\/java\///1" | sed "s/test\/java\///1" | tr '/' '.')
-							DirPath=${name%${newName}}
-							TheSrcDir="${LangSrc}/${project}/src/${DirPath}"
+					case ${ProjectType} in
+						Generic)
+							case ${name} in
+								*.*)
+									newName=${name##*.}
+									DirPath=$(echo ${name%${newName}} | tr '.' '/')
+									PackageName=$(echo ${name%.*} | sed "s/main.java.//1" | sed "s/test.java.//1" | tr '/' '.')
+									TheSrcDir="${LangSrc}/${project}/src/${DirPath}"
+									;;
+								*/*)
+									newName=${name##*/}
+									PackageName=$(echo ${name%/*} | sed "s/main\/java\///1" | sed "s/test\/java\///1" | tr '/' '.')
+									DirPath=${name%${newName}}
+									TheSrcDir="${LangSrc}/${project}/src/${DirPath}"
+									;;
+								*)
+									PackageName=$(pwd | sed "s/${project}\/src/|/g" | sed "s/main\/java\///1" | sed "s/test\/java\///1" | cut -d '|' -f 2 | tr '/' '.')
+									TheSrcDir="$(pwd)/"
+									newName=${name}
+									;;
+							esac
+							if [ -f ${TheSrcDir}${newName}${LangExt} ]; then
+								echo ${name}${LangExt}
+							fi
 							;;
 						*)
-							PackageName=$(pwd | sed "s/${project}\/src/|/g" | sed "s/main\/java\///1" | sed "s/test\/java\///1" | cut -d '|' -f 2 | tr '/' '.')
-							TheSrcDir="$(pwd)/"
-							newName=${name}
+							ProjectTemplateHandler ${EnvVars[@]} ${Type} ${mode}
 							;;
 					esac
-					if [ -f ${TheSrcDir}${newName}${LangExt} ]; then
-						echo ${name}${LangExt}
-					fi
 					;;
 			esac
 			;;
@@ -638,22 +661,25 @@ UseJava()
 			esac
 			;;
 		newProject)
-			local type=$1
+			local TheProjectType=$1
 			local project=$2
 			local path=${LangSrc}/${project}
 			if [ ! -d ${path} ]; then
-				if [ -f ${TemplateProjectDir}/${Lang}.${type} ]; then
-					${TemplateProjectDir}/${Lang}.${type} newProject ${project}
-				else
-					mkdir ${path}
-					cd ${path}
-					mkdir lib
-					mkdir classes
-					mkdir META-INF
-					mkdir src bin
-					mkdir src/main src/test
-					mkdir src/main/java src/test/java
-				fi
+				case ${ProjectType} in
+					Generic)
+						mkdir ${path}
+						cd ${path}
+						mkdir lib
+						mkdir classes
+						mkdir META-INF
+						mkdir src bin
+						mkdir src/main src/test
+						mkdir src/main/java src/test/java
+						;;
+					*)
+						ProjectTemplateHandler ${EnvVars[@]} ${Type} ${project}
+						;;
+				esac
 			else
 				cd ${path}
 			fi
@@ -672,9 +698,7 @@ UseJava()
 					esac
 					;;
 				*)
-					if [ -f ${TemplateProjectDir}/${Lang}.${type} ]; then
-						${TemplateProjectDir}/${Lang}.${type} projectMode ${mode}
-					fi
+					ProjectTemplateHandler ${EnvVars[@]} ${Type} ${mode}
 					;;
 			esac
 			;;

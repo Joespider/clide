@@ -1,7 +1,8 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.9"
+SupportV="0.1.10"
+Lang=Go
 
 ProgDir=$1
 shift
@@ -42,9 +43,17 @@ OtherColor()
 	echo -e "\e[1;35m${text}\e[0m"
 }
 
+ProjectTemplateHandler()
+{
+	local Type=$1
+	shift
+	if [ -f ${TemplateProjectDir}/${Lang}.${ProjectType} ]; then
+		${TemplateProjectDir}/${Lang}.${ProjectType} ${Type} ${ProgDir} ${ClideDir} ${LibDir} ${VarDir} ${editor} ${ReadBy} ${CodeProject} ${ProjectMode} ${CplArgs} $@
+	fi
+}
+
 UseGo()
 {
-	local Lang=Go
 	local LangConfig=$(grep ${Lang} ${VarDir}/clide.conf | sed "s/${Lang}=//1")
 	local LangCpl=${LangConfig}
 
@@ -90,11 +99,18 @@ UseGo()
 					fi
 					;;
 				*)
-					if [ -f ${LangSrc}/${CodeProject}/src/${name}${LangExt} ]; then
-						echo ${name}${LangExt}
-					elif [ -f ${LangSrc}/${project}/src/${name} ]; then
-						echo ${name}
-					fi
+					case ${ProjectType} in
+						Generic)
+							if [ -f ${LangSrc}/${CodeProject}/src/${name}${LangExt} ]; then
+								echo ${name}${LangExt}
+							elif [ -f ${LangSrc}/${project}/src/${name} ]; then
+								echo ${name}
+							fi
+							;;
+						*)
+							ProjectTemplateHandler ${Type} ${mode}
+							;;
+					esac
 					;;
 			esac
 			;;
@@ -365,19 +381,24 @@ UseGo()
 			echo ${CplArgs}
 			;;
 		newProject)
-			local type=$1
+			local TheProjectType=$1
 			local project=$2
 			local path=${LangSrc}/${project}
 			#create and cd to project dir
 			if [ ! -d ${path} ]; then
-				if [ -f ${TemplateProjectDir}/${Lang}.${type} ]; then
-                                        ${TemplateProjectDir}/${Lang}.${type} newProject ${project}
-                                else
-					mkdir ${path}
-					mkdir ${path}/bin
-					mkdir ${path}/src
-                                fi
-				cd ${path}/src
+
+
+				case ${ProjectType} in
+					Generic)
+						mkdir ${path}
+						mkdir ${path}/bin
+						mkdir ${path}/src
+						cd ${path}/src
+						;;
+					*)
+						ProjectTemplateHandler ${Type} ${project}
+						;;
+				esac
 			else
 				cd ${path}/src
 			fi
@@ -396,9 +417,7 @@ UseGo()
 					esac
 					;;
 				*)
-					if [ -f ${TemplateProjectDir}/${Lang}.${type} ]; then
-						${TemplateProjectDir}/${Lang}.${type} projectMode ${mode}
-					fi
+					ProjectTemplateHandler ${Type} ${mode}
 					;;
 			esac
 			;;

@@ -162,6 +162,9 @@ errorCode()
 							;;
 					esac
 					;;
+				not-exist)
+					echo "Unable to create your project \"${thr}\""
+					;;
 				exists)
 					echo "\"${thr}\" is already a project"
 					;;

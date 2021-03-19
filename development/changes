@@ -7,7 +7,7 @@ Added:
 	Use custom project templates
 	Provided better support for Java Projects (Lang.Java)
 	project mode addition is in progress (ie main vs test)
-	Refactoring repo support (repo.sh)
+	begun adding project type support (project/Template/<Lang>.<type>)
 
 Concept:
 	Managing different project types
@@ -20,4 +20,3 @@ Bug Fixes:
 	moved Compile error message to "errorCode.sh"
 	removed .h support from Go support (Lang.Go)
 	fixed argument handling of pre-compiling code
-	fixing repo arguments
