@@ -4,11 +4,8 @@ Shell=$(which bash)
 errorCode()
 {
 	local ecd=$1
-	local sec=$2
-	local thr=$3
-	local four=$4
-	local five=$5
-	local six=$6
+	shift
+	local sec=$1
 	case $ecd in
 		alias)
 			echo "\"${sec}\" already installed"
@@ -41,6 +38,8 @@ errorCode()
 			esac
 			;;
 		remove)
+			shift
+			local thr=$1
 			case ${sec} in
 				sure)
 					echo "WARNING: YOU ARE TRYING TO DELETE A FILE"
@@ -71,6 +70,8 @@ errorCode()
 			echo "${sec} can only handle ONE file"
 			;;
 		customCode)
+			shift
+			local thr=$1
 			case ${sec} in
 				completeNotFound)
 					echo "${Head} did not find, or is not configured to find, your program"
@@ -103,6 +104,8 @@ errorCode()
 			echo "code is not found in project"
 			;;
 		project)
+			shift
+			local thr=$1
 			case ${sec} in
 				none)
 					echo "Your session MUST be a ${thr} Project"
@@ -120,6 +123,8 @@ errorCode()
 					echo "Leaving your project is not allowed"
 					;;
 				import)
+					shift
+					local four=$1
 					case ${thr} in
 						link-nothing)
 							echo "\"${four}\" is not a working directory"
@@ -144,6 +149,8 @@ errorCode()
 					esac
 					;;
 				load)
+					shift
+					local four=$1
 					case ${thr} in
 						no-path)
 							echo "Project \"${four}\" Directory not Found"
@@ -154,6 +161,9 @@ errorCode()
 						*)
 							;;
 					esac
+					;;
+				not-exist)
+					echo "Unable to create your project \"${thr}\""
 					;;
 				exists)
 					echo "\"${thr}\" is already a project"
@@ -168,16 +178,29 @@ errorCode()
 			;;
 		cpl)
 			case ${sec} in
+				ERROR)
+					shift
+					local thr=$@
+					local ERROR=$(echo ${thr} | tr '|' '\n')
+					echo -en "\e[1;31m[\e[0m"
+					echo -en "\e[1;41mERROR\e[0m"
+					echo -e "\e[1;31m]\e[0m"
+					echo -e "\e[1;31m${ERROR}\e[0m"
+					;;
 				choose)
 					echo "hint: please choose a program name"
 					;;
 				already)
+					shift
+					local thr=$1
 					echo "\"${thr}\" already compiled"
 					;;
 				not)
 					echo "code not found"
 					;;
 				need)
+					shift
+					local thr=$1
 					echo "${thr} is not compiled"
 					echo "[HINT] \$ cpl"
 					;;
@@ -232,6 +255,10 @@ errorCode()
 			echo "Language is not found"
 			;;
 		add)
+			shift
+			local thr=$1
+			shift
+			local four=$1
 			case ${sec} in
 				support)
 					case ${thr} in

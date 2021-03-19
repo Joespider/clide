@@ -5,6 +5,9 @@ Added:
 	Langauges pull compiler/interpreter from clide.conf
 	adding packages with source code (Lang.Java)
 	Use custom project templates
+	Provided better support for Java Projects (Lang.Java)
+	project mode addition is in progress (ie main vs test)
+	begun adding project type support (project/Template/<Lang>.<type>)
 
 Concept:
 	Managing different project types
@@ -14,3 +17,6 @@ Bug Fixes:
 	"AddAlias.sh" was not finding "errorCode.sh"
 	performance improvements (CLI User Interface only changes after TRUE changes)
 	code refactering
+	moved Compile error message to "errorCode.sh"
+	removed .h support from Go support (Lang.Go)
+	fixed argument handling of pre-compiling code

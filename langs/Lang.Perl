@@ -1,7 +1,8 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.29"
+SupportV="0.1.34"
+Lang=Perl
 
 ProgDir=$1
 shift
@@ -16,6 +17,8 @@ shift
 CodeProject=$1
 shift
 ProjectType=$1
+shift
+ProjectMode=$1
 shift
 TemplateProjectDir=$1
 shift
@@ -40,18 +43,34 @@ OtherColor()
 	echo -e "\e[1;35m${text}\e[0m"
 }
 
+ProjectTemplateHandler()
+{
+	local SupportArgs=( "${LibDir}" "${VarDir}" "${editor}" "${ReadBy}" "${CodeProject}" "${ProjectMode}" "${CplArgs}" )
+	local Envs=( ${Lang} "$1" "$2" "$3" "$4" "$5" )
+	shift
+	shift
+	shift
+	shift
+	shift
+
+	local Type=$1
+	shift
+	if [ -f ${TemplateProjectDir}/${Lang}.${ProjectType} ]; then
+		${TemplateProjectDir}/${Lang}.${ProjectType} ${SupportArgs[@]} ${Envs[@]} ${Type} $@
+	fi
+}
+
 UsePerl()
 {
-	local Lang=Perl
 	local LangConfig=$(grep ${Lang} ${VarDir}/clide.conf | sed "s/${Lang}=//1")
 	local LangRun=${LangConfig}
 
-#	local LangRun=perl
 	local LangHome=${ProgDir}/${Lang}
 	local LangSrc=${LangHome}/src
 	local LangBin=${LangHome}/bin
 	local LangExt=".pl"
 	local TemplateCode=${LangBin}/new${Lang}${LangExt}
+	local EnvVars=( ${LangRun} ${LangHome} ${LangSrc} ${LangBin} ${LangExt} )
 	local Type=$1
 	shift
 	case ${Type} in
@@ -72,6 +91,11 @@ UsePerl()
 			echo -e "new <file>\t\t\t: \"create new ${Lang} script\""
 			echo -e "cpl, compile\t\t\t: \"make code executable\""
 			;;
+		ProjectHelp)
+			echo ""
+			echo -e "${Lang} specific project help"
+			echo ""
+			;;
 		getCode)
 			local name=$1
 			case ${CodeProject} in
@@ -83,11 +107,18 @@ UsePerl()
 					fi
 					;;
 				*)
-					if [ -f ${LangSrc}/${CodeProject}/src/${name}${LangExt} ]; then
-						echo ${name}${LangExt}
-					elif [ -f ${LangSrc}/${CodeProject}/src/${name} ]; then
-						echo ${name}
-					fi
+					case ${ProjectType} in
+						Generic)
+							if [ -f ${LangSrc}/${CodeProject}/src/${name}${LangExt} ]; then
+								echo ${name}${LangExt}
+							elif [ -f ${LangSrc}/${CodeProject}/src/${name} ]; then
+								echo ${name}
+							fi
+							;;
+						*)
+							ProjectTemplateHandler ${EnvVars[@]} ${Type} ${mode}
+							;;
+					esac
 					;;
 			esac
 			;;
@@ -283,11 +314,7 @@ UsePerl()
 									if [ -f "${TheBinDir}/${name}" ]; then
 										echo -e "\e[1;45m[${Lang} Code Compiled]\e[0m"
 									else
-										ERROR=$(echo ${ERROR} | tr '|' '\n')
-										echo -en "\e[1;31m[\e[0m"
-										echo -en "\e[1;41mERROR\e[0m"
-										echo -e "\e[1;31m]\e[0m"
-										echo -e "\e[1;31m${ERROR}\e[0m"
+										errorCode "cpl" "ERROR" "${ERROR}"
 									fi
 								else
 									errorCode "cpl" "already" ${name}
@@ -311,11 +338,7 @@ UsePerl()
 							if [ -f "${TheBinDir}/${src}" ]; then
 								echo -e "\e[1;45m[${Lang} Code Compiled]\e[0m"
 							else
-								ERROR=$(echo ${ERROR} | tr '|' '\n')
-								echo -en "\e[1;31m[\e[0m"
-								echo -en "\e[1;41mERROR\e[0m"
-								echo -e "\e[1;31m]\e[0m"
-								echo -e "\e[1;31m${ERROR}\e[0m"
+								errorCode "cpl" "ERROR" "${ERROR}"
 							fi
 						else
 							errorCode "cpl" "already" ${src}
@@ -327,22 +350,42 @@ UsePerl()
 			esac
 			;;
 		newProject)
-			local type=$1
+			local TheProjectType=$1
 			local project=$2
 			local path=${LangSrc}/${project}
 			if [ ! -d ${path} ]; then
-				if [ -f ${TemplateProjectDir}/${Lang}.${type} ]; then
-					${TemplateProjectDir}/${Lang}.${type} newProject ${project}
-				else
-					mkdir ${path}
-					mkdir ${path}/src
-					mkdir ${path}/bin
-				fi
-				cd ${path}/src
+				case ${ProjectType} in
+					Generic)
+						mkdir ${path}
+						mkdir ${path}/src
+						mkdir ${path}/bin
+						cd ${path}/src
+						;;
+					*)
+						ProjectTemplateHandler ${EnvVars[@]} ${Type} ${project}
+						;;
+				esac
 			else
 				cd ${path}/src
 			fi
 			echo ${path}
+			;;
+		projectMode)
+			local mode=$1
+			case ${ProjectType} in
+				Generic)
+					case ${mode} in
+#						main|test)
+#							echo "${mode}"
+#							;;
+						*)
+							;;
+					esac
+					;;
+				*)
+					ProjectTemplateHandler ${EnvVars[@]} ${Type} ${mode}
+					;;
+			esac
 			;;
 		lscpl)
 			local project

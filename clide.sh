@@ -44,6 +44,7 @@ TemplateProjectDir=${ClideProjectDir}/Templates
 #Global Vars
 #{
 CodeProject="none"
+ProjectMode="main"
 ProjectType="Generic"
 RunTimeArgs=""
 RunCplArgs="none"
@@ -137,6 +138,8 @@ ProjectHelp()
 	echo -e "load <project>\t\t\t: \"Choose a project to make active\""
 	echo -e "list\t\t\t\t: \"List ALL projects\""
 	echo -e "active\t\t\t\t: \"Display the name of the current project\""
+	echo -e "types\t\t\t\t: \"Display the types of projects under ${Lang}\""
+	ManageLangs ${Lang} "ProjectHelp"
 	echo "----------------------------------------------------------"
 	echo ""
 }
@@ -186,6 +189,7 @@ CliHelp()
 	echo -e "{Action} Items"
 	echo -e "--edit\t\t\t\t:\"Edit source code\""
 	echo -e "--cpl, --compile\t\t:\"Compile source code\""
+	echo -e "--build\t\t:\"Compile and build a given project\""
 	echo -e "--install\t\t\t:\"install program (.bash_aliases)\""
 	echo -e "--run\t\t\t\t:\"Run compiled code\""
 	echo -e "--read\t\t\t\t:\"Read out (cat) source code\""
@@ -261,11 +265,12 @@ UseOther()
 ManageLangs()
 {
 	local Langs=$1
+	local PassedVars=( "${ProgDir}" "${ClideDir}" "${editor}" "${ReadBy}" "${CodeProject}" "${ProjectType}" "${ProjectMode}" "${TemplateProjectDir}" "${RunCplArgs}")
 	#Make first letter uppercase
 	shift
 	local Manage=$@
 	if [ -f ${LangsDir}/Lang.${Langs^} ]; then
-		${LangsDir}/Lang.${Langs^} ${ProgDir} ${ClideDir} ${editor} ${ReadBy} ${CodeProject} ${ProjectType} ${TemplateProjectDir} ${RunCplArgs} ${Manage[@]}
+		${LangsDir}/Lang.${Langs^} ${PassedVars[@]} ${Manage[@]}
 	else
 		UseOther ${Langs} ${Manage[@]}
 	fi
@@ -280,7 +285,7 @@ ModeHandler()
 		${repoTool}|repo)
 			#Use ONLY for Projects
 			if [[ ! "${CodeProject}" == "none" ]]; then
-				${ModesDir}/repo.sh ${repoTool} ${CodeProject}
+				${ModesDir}/repo.sh ${repoTool} ${CodeProject} ${repoAssist}
 			else
 				echo "Must have an active project"
 			fi
@@ -583,7 +588,6 @@ newProject()
 	else
 		if [ -z "${projectType}" ]; then
 			projectType="Generic"
-
 		fi
 		path=$(ManageLangs ${Lang} "newProject" "${projectType}" ${project})
 		if [ ! -z "${path}" ]; then
@@ -594,12 +598,17 @@ newProject()
 			echo "lang=${lang}" >> ${ProjectFile}
 			#Type Value
 			echo "type=${projectType}" >> ${ProjectFile}
-			#Create Project and get path
-			cd ${path}/src
 			#Path Value
 			echo "path=${path}" >> ${ProjectFile}
 			#Source Value
 			echo "src=" >> ${ProjectFile}
+			if [ -d "${path}/src/" ]; then
+				#Create Project and get path
+				cd ${path}/src
+				ProjectType=${projectType}
+			else
+				rm ${ProjectFile}
+			fi
 		else
 			errorCode "project" "type" "${Head}"
 		fi
@@ -665,7 +674,7 @@ loadProject()
 				tag="src="
 				src=$(grep ${tag} ${ProjectFile} | sed "s/${tag}//g")
 				#return valid
-				RtnVals="${lang};${src};${path}"
+				RtnVals="${lang};${src};${path};${ProjectType}"
 				echo ${RtnVals}
 			else
 				#return false value
@@ -759,6 +768,13 @@ runCode()
 		esac
 		ManageLangs ${Lang} "runCode" "${TheBin}" "${JavaProp}" ${Args[@]}
 	fi
+}
+
+selectProjectMode()
+{
+	local Lang=$1
+	local mode=$2
+	ManageLangs ${Lang} "projectMode" ${mode}
 }
 
 selectCode()
@@ -1004,13 +1020,17 @@ Actions()
 								if [ -f "${ClideDir}/projects/${UserIn[2]}.clide" ]; then
 									errorCode "project" "exists" ${UserIn[2]}
 								else
-									newProject ${Lang} ${UserIn[2]} ${UserIn[3]}
-									Code=""
-									updateProject ${Code}
-									if [ ! -z "${UserIn[2]}" ]; then
-										CodeProject=${UserIn[2]}
-										echo "Created \"${CodeProject}\""
-										ProjectDir=$(echo ${ThePWD#*${CodeProject}} | sed "s/\//:/1")
+									newProject ${Lang} ${UserIn[2]} ${UserIn[3]} ${UserIn[4]}
+									if [ -f ${ActiveProjectDir}/${UserIn[2]}.clide ]; then
+										Code=""
+										updateProject ${Code}
+										if [ ! -z "${UserIn[2]}" ]; then
+											CodeProject=${UserIn[2]}
+											echo "Created \"${CodeProject}\""
+											ProjectDir=$(echo ${ThePWD#*${CodeProject}} | sed "s/\//:/1")
+										fi
+									else
+										errorCode "project" "not-exist" ${UserIn[2]}
 									fi
 								fi
 							fi
@@ -1030,6 +1050,7 @@ Actions()
 								if [ -d ${CodeDir} ]; then
 									Lang=$(echo ${project} | cut -d ";" -f 1)
 									Code=$(echo ${project} | cut -d ";" -f 2)
+									ProjectType=$(echo ${project} | cut -d ";" -f 4)
 									CodeProject=${UserIn[2]}
 									cd ${CodeDir}/src
 									echo "Project \"${CodeProject}\" loaded"
@@ -1060,6 +1081,27 @@ Actions()
 						#List all known projects
 						list)
 							listProjects
+							;;
+						#Swap between main and test
+						mode)
+							#Make sure this is a porject
+							case ${CodeProject} in
+								none)
+									errorCode "project" "active"
+									;;
+								*)
+									local newMode=$(selectProjectMode ${Lang} ${UserIn[2]})
+									if [ ! -z "${newMode}"]; then
+										ProjectMode=${newMode}
+									fi
+									;;
+							esac
+							;;
+						#List the projects under the language
+						types)
+							cd ${TemplateProjectDir}/
+							ls ${Lang}.* | sed "s/${Lang}.//g"
+							cd - > /dev/null
 							;;
 						#Show Project help page
 						*)
@@ -1671,13 +1713,12 @@ loadAuto()
 	comp_list "pwd"
 	comp_list "mkdir"
 	comp_list "use" "${pg}"
-	comp_list "project" "load import new list update"
+	comp_list "project" "load import new list update types"
 	comp_list "shell"
 	comp_list "new" "--version -v --help -h --custom -c"
 	comp_list "${editor} ed edit" "non-lang"
 	comp_list "add"
 	comp_list "${ReadBy} read"
-	comp_list "${repoTool} repo"
 	comp_list "search"
 	comp_list "create" "make version -std= jar manifest args prop properties -D reset"
 	comp_list "compile cpl car"
@@ -1811,11 +1852,36 @@ main()
 					esac
 				fi
 				;;
+			--build)
+				shift
+				local GetProject=$1
+				if [ ! -z "${GetProject}" ]; then
+					TheProject=$(loadProject ${GetProject})
+					if [ "${TheProject}" != "no" ]; then
+						Lang=$(echo ${TheProject} | cut -d ";" -f 1)
+						Lang=$(pgLang ${Lang})
+						local CodeDir=$(echo ${TheProject} | cut -d ";" -f 3)
+						if [ ! -z "${CodeDir}" ]; then
+							#cd ${CodeDir}
+							echo "Needs some work"
+#							Code=$(selectCode ${Lang} ${Code})
+#							ManageLangs ${Lang} "compileCode" ${Code} ${Args[@]}
+						else
+							echo "Source code not found"
+						fi
+					else
+						echo "\"${GetProject}\" is Not a valid project"
+					fi
+				else
+					echo "No project given"
+				fi
+				;;
 			#compile code without entering cl[ide]
 			--cpl|--compile)
 				shift
-				local Lang=$(pgLang $1)
+				local Lang
 				local Code=$2
+				local Args
 				if [ -z "${Code}" ]; then
 					Lang=$(SelectLangByCode $1)
 					Code=$1
@@ -1823,9 +1889,20 @@ main()
 					local Args=$@
 					main --cpl "${Lang}" "${Code}" ${Args[@]}
 				else
-					shift
-					shift
-					local Args=$@
+					case ${Code} in
+						--*)
+							Lang=$(SelectLangByCode $1)
+							Code=$1
+							shift
+							Args=$@
+							;;
+						*)
+							Lang=$(pgLang $1)
+							shift
+							shift
+							Args=$@
+							;;
+					esac
 					case ${Lang} in
 						no)
 							echo "\"$1\" is not a supported language"
