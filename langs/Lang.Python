@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.35"
+SupportV="0.1.37"
 Lang=Python
 
 ProgDir=$1
@@ -288,75 +288,53 @@ UsePython()
 					TheBinDir="${LangSrc}/${project}bin"
 					;;
 			esac
+
+			#Handle multiple files
+			if [[ "${src}" == *","* ]]; then
+				if [ -z "${name}" ]; then
+					name=$(echo ${src} | tr ',' ' ')
+					name=$(grep -l "if __name__ == '__main__':" ${name} 2> /dev/null)
+					src=""
+					if [ -z "${name}" ]; then
+						echo "Unable to find the \"main\" file"
+						echo -n "Please choose: "
+						read name
+						if [ ! -f ${LangSrc}/${project}${name%.*}${LangExt} ]; then
+							name=""
+						fi
+					fi
+
+					if [ ! -z "${name}" ]; then
+						src="${name%.*}${LangExt}"
+					fi
+				fi
+			fi
+
+			#Set Code to executable
 			case ${src} in
 				*${LangExt})
-					#Compile Python Script
-					#py2bin "${src}"
-					#Get Python Name
-			                #pyBin="${src%.*}"
-					#Move Python Program to Binary dir
-					#mv ${pyBin} ../bin/
+					#Make Python Script executable
+					chmod +x ${src} 2> /dev/null
 					#Check if Python Script does NOT exist
-					#Multiple code selected
-					if [[ "${src}" == *","* ]]; then
-						#variable is empty
-						if [ -z ${name} ]; then
-							errorCode "cpl" "choose"
-						#variable found
+					if [ ! -f "${TheBinDir}/${src}" ]; then
+						#Change to Python Binary dir
+						cd ${TheBinDir}
+						#Create Symbolic Link to Python Script
+						ERROR=$(ln -s ../src/${src} 2>&1 | tr '\n' '|')
+						#Change to Python Source dir
+						cd - > /dev/null
+						if [ -f "${TheBinDir}/${src}" ]; then
+							echo -e "\e[1;43m[${Lang} Code Compiled]\e[0m"
 						else
-							#chosen file is in the list of files
-							if [[ "${src}" == *"${name}"* ]]; then
-								#only name is given
-								if [[ "${name}" != *"${LangExt}" ]]; then
-									#full filename given
-									num=${name}${LangExt}
-								fi
-								#Make Python Script executable
-								chmod +x ${name}
-								#Check if Python Script does NOT exist
-								if [ ! -f "${TheBinDir}/${name}" ]; then
-									#Change to Python Binary dir
-									cd ${TheBinDir}
-									#Create Symbolic Link to Python Script
-									ERROR=$(ln -s ../src/${name} 2>&1 | tr '\n' '|')
-									#Change to Python Source dir
-									cd - > /dev/null
-									if [ -f "${TheBinDir}/${name}" ]; then
-										echo -e "\e[1;43m[${Lang} Code Compiled]\e[0m"
-		                                                        else
-										errorCode "cpl" "ERROR" "${ERROR}"
-									fi
-								else
-									errorCode "cpl" "already" ${name}
-								fi
-							else
-								echo "code not found"
-							fi
+							errorCode "cpl" "ERROR" "${ERROR}"
 						fi
-					#single code selected
+					#Code is already found
 					else
-						#Make Python Script executable
-						chmod +x ${src}
-						#Check if Python Script does NOT exist
-						if [ ! -f "${TheBinDir}/${src}" ]; then
-							#Change to Python Binary dir
-							cd ${TheBinDir}
-							#Create Symbolic Link to Python Script
-							ERROR=$(ln -s ../src/${src} 2>&1 | tr '\n' '|')
-							#Change to Python Source dir
-							cd - > /dev/null
-							if [ -f "${TheBinDir}/${src}" ]; then
-								echo -e "\e[1;43m[${Lang} Code Compiled]\e[0m"
-                                                        else
-								errorCode "cpl" "ERROR" "${ERROR}"
-							fi
-						#Code is already found
-						else
-							errorCode "cpl" "already" ${src}
-						fi
+						errorCode "cpl" "already" ${src}
 					fi
 					;;
 				*)
+					errorCode "cpl" "choose"
 					;;
 			esac
 			;;
@@ -527,7 +505,7 @@ UsePython()
 			;;
 		runCode)
 			local name=$1
-			local TheBin="${name}"
+			local TheBin="${name%.*}${LangExt}"
 			local project=${CodeProject}
 			local TheBinDir
 			shift
@@ -538,12 +516,27 @@ UsePython()
 				none)
 					project=""
 					TheBinDir=${LangBin}
+					cd ${LangSrc}/
 					;;
 				*)
 					project="${project}/"
 					TheBinDir="${LangSrc}/${project}bin"
+					cd ${LangSrc}/${project}/src
 					;;
 			esac
+
+			#Handle multiple files
+			if [[ "${name}" == *","* ]]; then
+				name=$(echo ${name} | tr ',' ' ')
+				name=$(grep -l "if __name__ == '__main__':" ${name} 2> /dev/null)
+				if [ -z "${name}" ]; then
+					echo "Unable to find the \"main\" file"
+					echo -n "Please choose: "
+					read name
+				fi
+				TheBin="${name}"
+			fi
+
 			#Check if Python Bin exists
 			if [ -f ${TheBinDir}/${TheBin} ]; then
 				${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}

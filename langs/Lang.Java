@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.44"
+SupportV="0.1.46"
 Lang=Java
 
 ProgDir=$1
@@ -452,6 +452,7 @@ UseJava()
 			local cplArgs=""
 			local TheSrcDir
 			local TheBinDir
+			local des
 			local ERROR
 			#Handle Project Dir
 			case ${project} in
@@ -462,26 +463,23 @@ UseJava()
 					#Compile source code
 					case ${src} in
 						*${LangExt})
-							#Multiple code selected
-							if [[ "${src}" == *","* ]]; then
-								if [[ "${project}" == *"/" ]]; then
-									#Compile Java prgram
-									ERROR=$(${LangCpl} *${LangExt} 2>&1 | tr '\n' '|')
-									#move Java Class to Binary dir
-									if [ -f *.class ]; then
-										mv *.class ${TheBinDir}/
-									else
-										errorCode "cpl" "ERROR" "${ERROR}"
-									fi
+							if [[ "${project}" == *"/" ]]; then
+								#Compile Java prgram
+								ERROR=$(${LangCpl} *${LangExt} 2>&1 | tr '\n' '|')
+								#move Java Class to Binary dir
+								if [ -f *.class ]; then
+									mv *.class ${TheBinDir}/
 								else
-									echo "Is not a project"
+									errorCode "cpl" "ERROR" "${ERROR}"
 								fi
-							#single code selected
+							#non-project code selected
 							else
+								src=$(echo ${src} | tr ',' ' ')
 								#Compile Java prgram
 								ERROR=$(${LangCpl} ${src} 2>&1 | tr '\n' '|')
+								des=$(grep -l "public static void main" ${src})
 								#get Java Class/compiled file name
-								des=${src%.*}.class
+								des=${des%.*}.class
 								if [ -f ${des} ]; then
 									#Compile as jar or class
 									case ${name} in
@@ -1021,48 +1019,65 @@ UseJava()
 			shift
 			local Args=$@
 
-			case ${project} in
-				none)
-					project=""
-					TheBinDir=${LangBin}
-					#Check if Java Class exists
-					if [ -f ${TheBinDir}/${TheBin} ]; then
-						TheBin=${TheBin%.*}
-						cd ${TheBinDir}
-						#If no JavaProp found
-						case ${JavaProp} in
-							none)
-								#Execute without
-								${LangRun} ${TheBin} ${Args[@]}
-								;;
-							*)
-								${LangRun} "${JavaProp}" ${TheBin} ${Args[@]}
-								;;
-						esac
-						cd - > /dev/null
-					#Check if Java Jar exists
-					elif [ -f ${TheBinDir}/${TheJar} ]; then
-						${LangRun} -jar ${TheBinDir}/${TheJar} ${Args[@]}
-					else
-						errorCode "cpl" "need" "${name}"
-					fi
-					;;
-				*)
-					TheJar="${project}.jar"
-					TheBinDir="${LangSrc}/${project}/bin"
-					#Check if Java Jar exists
-					if [ -f ${TheBinDir}/${TheJar} ]; then
-						${LangRun} -jar ${TheBinDir}/${TheJar} ${Args[@]}
-					else
-						errorCode "cpl" "need" "${name}"
-					fi
-#					[Run Class]
-#						main/java$ ls com/my/project/
-#						none.class none.java
+			#Handle multiple files
+			if [[ "${name}" == *","* ]]; then
+				name=$(echo ${name} | tr ',' ' ')
+				name=$(grep -l "public static void main" ${name})
+				if [ -z "${name}" ]; then
+					echo "Unable to find the \"main\" file"
+					echo -n "Please choose: "
+					read name
+				fi
+				TheBin="${name%.*}.class"
+				TheJar="${name%.*}.jar"
+			fi
+
+			if [ ! -z "${name}" ]; then
+				case ${project} in
+					none)
+						project=""
+						TheBinDir=${LangBin}
+						#Check if Java Class exists
+						if [ -f ${TheBinDir}/${TheBin} ]; then
+							TheBin=${TheBin%.*}
+							cd ${TheBinDir}
+							#If no JavaProp found
+							case ${JavaProp} in
+								none)
+									#Execute without
+									${LangRun} ${TheBin} ${Args[@]}
+									;;
+								*)
+									${LangRun} "${JavaProp}" ${TheBin} ${Args[@]}
+									;;
+							esac
+							cd - > /dev/null
+						#Check if Java Jar exists
+						elif [ -f ${TheBinDir}/${TheJar} ]; then
+							${LangRun} -jar ${TheBinDir}/${TheJar} ${Args[@]}
+						else
+							errorCode "cpl" "need" "${name}"
+						fi
+						;;
+					*)
+						TheJar="${project}.jar"
+						TheBinDir="${LangSrc}/${project}/bin"
+						#Check if Java Jar exists
+						if [ -f ${TheBinDir}/${TheJar} ]; then
+							${LangRun} -jar ${TheBinDir}/${TheJar} ${Args[@]}
+						else
+							errorCode "cpl" "need" "${name}"
+						fi
+#						[Run Class]
+#							main/java$ ls com/my/project/
+#							none.class none.java
 #
-#						main/java$ java com.my.project.none
-					;;
-			esac
+#							main/java$ java com.my.project.none
+						;;
+				esac
+			else
+				echo "Unable to locate executable"
+			fi
 			;;
 		backup)
 			local name=$1
