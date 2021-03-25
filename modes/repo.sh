@@ -231,12 +231,12 @@ gitHandler()
 				esac
 				;;
 			upload|push)
-				branch=$1
+				local branch=$1
 				if [ ! -z "${branch}" ]; then
 					git push origin "${branch}"
 				else
 					if [ ! -z "${Branch}" ]; then
-						gitHandler "push" "${branch}"
+						gitHandler "push" "${Branch}"
 					else
 						echo "Code not pushed; no branch found"
 					fi
