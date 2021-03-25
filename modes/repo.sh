@@ -11,6 +11,8 @@ CodeProject="testing"
 shift
 repoAssist="True"
 shift
+Branch=""
+
 
 #Refresh page
 Refresh=True
@@ -134,10 +136,10 @@ gitHandler()
 				files=$@
 				#Files given
 				if [ ! -z "${files}" ]; then
-					echo git add ${files[@]}
+					git add ${files[@]}
 				else
 					#Get ALL files from user
-					echo git add .
+					git add .
 				fi
 				;;
 			#Provide message for repo
@@ -145,10 +147,10 @@ gitHandler()
 				#Get message
 				msg=$@
 				if [ ! -z "${msg}" ]; then
-					echo git commit -m "\"${msg}\""
+					git commit -m "\"${msg}\""
 				#No message found
 				else
-					echo git commit
+					git commit
 				fi
 				;;
 			#Handles Git Branches
@@ -159,7 +161,7 @@ gitHandler()
 					new)
 						name=$1
 						if [ ! -z "${name}" ]; then
-							echo git checkout -b "${name}"
+							git checkout -b "${name}"
 							#Refresh page
 							Refresh=True
 						else
@@ -231,14 +233,12 @@ gitHandler()
 			upload|push)
 				branch=$1
 				if [ ! -z "${branch}" ]; then
-					echo git push origin "\"${branch}\""
+					git push origin "${branch}"
 				else
-					echo -n "Please choose a banch: "
-					read branch
-					if [ ! -z "${branch}" ]; then
+					if [ ! -z "${Branch}" ]; then
 						gitHandler "push" "${branch}"
 					else
-						echo "Code not pushed"
+						echo "Code not pushed; no branch found"
 					fi
 				fi
 				;;
@@ -318,7 +318,6 @@ repoHandler()
 Repo()
 {
 	local cRepoTool=$(colors ${repoTool})
-	local Branch
 	local cBranch
 	local prompt=""
 	local UserArg=""
