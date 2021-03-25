@@ -11,6 +11,11 @@ CodeProject=$1
 shift
 repoAssist=$1
 shift
+Branch=""
+
+
+#Refresh page
+Refresh=True
 
 IsInstalled=$(which ${repoTool})
 #check if git is installed
@@ -20,22 +25,33 @@ SvnTool=$(which svn)
 
 Help()
 {
+	local Selection=$1
 	case ${repoTool} in
 		git)
-			echo "GIT Help"
-			echo ""
-			echo "ActiveBranch"
-			echo "new, init"
-			echo "setup, clone"
-			echo "add"
-			echo "message, commit"
-			echo "branch, branches"
-			echo "upload, push"
-			echo "download, pull"
-			echo "state, status"
-			echo "slamdunk"
-			echo "help, options"
-			echo "version"
+			case ${Selection} in
+				branch|branches)
+					echo "help"
+					echo "new"
+					echo "remove, delete"
+					echo "select, checkout"
+					;;
+				*)
+					echo "GIT Help"
+					echo ""
+					echo "ActiveBranch"
+					echo "use, init"
+					echo "setup, clone"
+					echo "add"
+					echo "message, commit"
+					echo "branch, branches"
+					echo "upload, push"
+					echo "download, pull"
+					echo "state, status"
+					echo "slamdunk"
+					echo "help, options"
+					echo "version"
+					;;
+			esac
 			;;
 		svn)
 			echo "SVN Help"
@@ -94,7 +110,7 @@ gitHandler()
 				echo git init
 				;;
 			#clone a new repo
-			setup|clone)
+			use|clone)
 				#Find repo name
 				repo=$@
 				if [ ! -z "${repo}" ]; then
@@ -120,10 +136,10 @@ gitHandler()
 				files=$@
 				#Files given
 				if [ ! -z "${files}" ]; then
-					echo git add ${files[@]}
+					git add ${files[@]}
 				else
 					#Get ALL files from user
-					echo git add .
+					git add .
 				fi
 				;;
 			#Provide message for repo
@@ -131,10 +147,10 @@ gitHandler()
 				#Get message
 				msg=$@
 				if [ ! -z "${msg}" ]; then
-					echo git commit -m "\"${msg}\""
+					git commit -m "\"${msg}\""
 				#No message found
 				else
-					echo git commit
+					git commit
 				fi
 				;;
 			#Handles Git Branches
@@ -145,12 +161,14 @@ gitHandler()
 					new)
 						name=$1
 						if [ ! -z "${name}" ]; then
-							echo git checkout -b "${name}"
+							git checkout -b "${name}"
+							#Refresh page
+							Refresh=True
 						else
 							echo -n "Provide a branch name"
 							read name
 							if [ ! -z "${name}" ]; then
-								gitHandler "branch" "new" "${name}"
+								gitHandler "${repoAct}" "${branchAct}" "${name}"
 							else
 								echo "No branch has been created"
 							fi
@@ -172,7 +190,7 @@ gitHandler()
 							#branch name given
 							if [ ! -z "${name}" ]; then
 								#remove branch
-								gitHandler "branch" "delete" "${name}"
+								gitHandler "${repoAct}" "${branchAct}" "${name}"
 							#no branch name given
 							else
 								echo "No Branch has been deleted"
@@ -185,7 +203,9 @@ gitHandler()
 						#branch name given
 						if [ ! -z "${name}" ]; then
 							#Select branch
-							echo git checkout "${name}"
+							git checkout "${name}"
+							#Refresh page
+							Refresh=True
 						#no branch name given
 						else
 							#Get user to type branch name
@@ -194,46 +214,71 @@ gitHandler()
 							#branch name given
 							if [ ! -z "${name}" ]; then
 								#Select branch
-								gitHandler "branch" "checkout" "${name}"
+								gitHandler "${repoAct}" "${branchAct}" "${name}"
 							#no branch name given
 							else
 								echo "No Branch has been selected"
 							fi
 						fi
 						;;
+					help)
+						Help "${repoAct}"
+						;;
 					#list all branches
 					*)
-						echo git branch -a
+						git branch -a
 						;;
 				esac
 				;;
 			upload|push)
-				branch=$1
+				local branch=$1
 				if [ ! -z "${branch}" ]; then
-					echo git push origin "\"${branch}\""
+					git push origin "${branch}"
 				else
-					echo -n "Please choose a banch: "
-					read branch
-					if [ ! -z "${branch}" ]; then
-						gitHandler "push" "${branch}"
+					if [ ! -z "${Branch}" ]; then
+						gitHandler "${repoAct}" "${Branch}"
 					else
-						echo "Code not pushed"
+						echo "Code not pushed; no branch found"
 					fi
 				fi
 				;;
 			#Download from the repo
 			download|pull)
-				echo git pull
+				git pull
 				;;
 			#Display repo infortmation
 			state|status)
-				echo git status
+				git status
 				;;
 			#Peform quick and dirty commit
 			slamdunk)
-				gitHandler "add"
-				gitHandler "commit"
-				gitHandler "push"
+				local sure=$1
+				case ${sure} in
+					yes)
+						gitHandler "add"
+						gitHandler "commit"
+						gitHandler "push"
+						;;
+					no)
+						;;
+					*)
+						while true
+						do
+							echo "Are you sure? There is no stopping what is being done"
+							echo -n "(yes/no)> "
+							read sure
+							sure=${sure,,}
+							case ${sure} in
+								yes|no)
+									gitHandler "${repoAct}" "${sure}"
+									break
+									;;
+								*)
+									;;
+							esac
+						done
+						;;
+				esac
 				;;
 			help|options)
 				Help
@@ -297,19 +342,25 @@ repoHandler()
 Repo()
 {
 	local cRepoTool=$(colors ${repoTool})
-	local Branch
 	local cBranch
 	local prompt=""
 	local UserArg=""
 	while true
 	do
-		Branch=$(gitHandler "ActiveBranch")
-		if [ -z "${Branch}" ]; then
-			prompt="${Name}(${cRepoTool}):$ "
-		else
-			cBranch=$(colors "${Branch}" "branch")
-			prompt="${Name}(${cRepoTool}{${cBranch}}):$ "
-		fi
+		case ${Refresh} in
+			True)
+				Branch=$(gitHandler "ActiveBranch")
+				if [ -z "${Branch}" ]; then
+					prompt="${Name}(${cRepoTool}):$ "
+				else
+					cBranch=$(colors "${Branch}" "branch")
+					prompt="${Name}(${cRepoTool}{${cBranch}}):$ "
+				fi
+				Refresh=False
+				;;
+			*)
+				;;
+		esac
 		#Handle CLI
 		read -e -p "${prompt}" -a UserIn
 		case ${UserIn[0]} in

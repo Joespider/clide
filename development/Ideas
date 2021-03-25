@@ -1,5 +1,5 @@
 1: Have cl[ide] figure out language via file extension
-Status: Implimented
+Status: Finished
 	bash: .sh
 	c++: .cpp, .h
 	python: .py

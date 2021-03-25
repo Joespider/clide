@@ -1,8 +1,9 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.44"
+SupportV="0.1.48"
 Lang=Java
+ColorNum=1
 
 ProgDir=$1
 shift
@@ -78,10 +79,10 @@ UseJava()
 	case ${Type} in
 		color)
 			#Return Red
-			echo -e "\e[1;31m${Lang}\e[0m"
+			echo -e "\e[1;3${ColorNum}m${Lang}\e[0m"
 			;;
 		ProjectColor)
-			echo -e "\e[1;41m${CodeProject}\e[0m"
+			echo -e "\e[1;4${ColorNum}m${CodeProject}\e[0m"
 			;;
 		getExt)
 			echo ${LangExt}
@@ -452,6 +453,7 @@ UseJava()
 			local cplArgs=""
 			local TheSrcDir
 			local TheBinDir
+			local des
 			local ERROR
 			#Handle Project Dir
 			case ${project} in
@@ -462,26 +464,23 @@ UseJava()
 					#Compile source code
 					case ${src} in
 						*${LangExt})
-							#Multiple code selected
-							if [[ "${src}" == *","* ]]; then
-								if [[ "${project}" == *"/" ]]; then
-									#Compile Java prgram
-									ERROR=$(${LangCpl} *${LangExt} 2>&1 | tr '\n' '|')
-									#move Java Class to Binary dir
-									if [ -f *.class ]; then
-										mv *.class ${TheBinDir}/
-									else
-										errorCode "cpl" "ERROR" "${ERROR}"
-									fi
+							if [[ "${project}" == *"/" ]]; then
+								#Compile Java prgram
+								ERROR=$(${LangCpl} *${LangExt} 2>&1 | tr '\n' '|')
+								#move Java Class to Binary dir
+								if [ -f *.class ]; then
+									mv *.class ${TheBinDir}/
 								else
-									echo "Is not a project"
+									errorCode "cpl" "ERROR" "${ERROR}"
 								fi
-							#single code selected
+							#non-project code selected
 							else
+								src=$(echo ${src} | tr ',' ' ')
 								#Compile Java prgram
 								ERROR=$(${LangCpl} ${src} 2>&1 | tr '\n' '|')
+								des=$(grep -l "public static void main" ${src})
 								#get Java Class/compiled file name
-								des=${src%.*}.class
+								des=${des%.*}.class
 								if [ -f ${des} ]; then
 									#Compile as jar or class
 									case ${name} in
@@ -511,7 +510,7 @@ UseJava()
 											esac
 											#move Java Jar to Binary dir
 											mv ${des%.class}.jar ${TheBinDir}/
-											echo -e "\e[1;41m[${Lang} Code Compiled (JAR)]\e[0m"
+											echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled (JAR)]\e[0m"
 											;;
 										#Do nothing...keep class
 										*|--class)
@@ -521,7 +520,7 @@ UseJava()
 											if [ -f ${TheBinDir}/${des%.class}.jar ]; then
 												rm ${TheBinDir}/${des%.class}.jar
 											fi
-											echo -e "\e[1;41m[${Lang} Code Compiled (CLASS)]\e[0m"
+											echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled (CLASS)]\e[0m"
 											;;
 									esac
 								else
@@ -613,7 +612,7 @@ UseJava()
 									#move Java Class to Binary dir
 									if [ -z "${ERROR}" ]; then
 										mv ${project}.jar ${TheBinDir}/
-										echo -e "\e[1;41m[Project \"${project}\" Compiled (JAR)]\e[0m"
+										echo -e "\e[1;4${ColorNum}m[Project \"${project}\" Compiled (JAR)]\e[0m"
 									else
 										#Display Error from compiler
 										errorCode "cpl" "ERROR" "${ERROR}"
@@ -648,7 +647,7 @@ UseJava()
 
 							if [ -z "${ERROR}" ]; then
 								mv ${project}.jar ${TheBinDir}/
-								echo -e "\e[1;41m[Project \"${project}\" Compiled (CLASS)]\e[0m"
+								echo -e "\e[1;4${ColorNum}m[Project \"${project}\" Compiled (CLASS)]\e[0m"
 							else
 								#Display Error from compiler
 								errorCode "cpl" "ERROR" "${ERROR}"
@@ -789,7 +788,7 @@ UseJava()
 			local TemplateJ=${TemplateCodeJar##*/}
 			local cTemplateC=$(OtherColor ${TemplateC})
 			local cTemplateJ=$(OtherColor ${TemplateJ})
-			Type=$(echo ${Type} | tr A-Z a-z)
+			Type=${Type,,}
 			#Check for Custom Code Template...is class
 			if [ -f ${TemplateCodeClass} ]; then
 				echo -n "${cLang}\$ java ${cTemplateC} "
@@ -835,7 +834,7 @@ UseJava()
 			local TemplateC=${TemplateCodeClass##*/}
 			TemplateC=${TemplateC%.*}
 
-			Type=$(echo ${Type} | tr A-Z a-z)
+			Type=${Type,,}
 			name=${name%${LangExt}}
 			local TheSrcDir
 
@@ -1021,48 +1020,65 @@ UseJava()
 			shift
 			local Args=$@
 
-			case ${project} in
-				none)
-					project=""
-					TheBinDir=${LangBin}
-					#Check if Java Class exists
-					if [ -f ${TheBinDir}/${TheBin} ]; then
-						TheBin=${TheBin%.*}
-						cd ${TheBinDir}
-						#If no JavaProp found
-						case ${JavaProp} in
-							none)
-								#Execute without
-								${LangRun} ${TheBin} ${Args[@]}
-								;;
-							*)
-								${LangRun} "${JavaProp}" ${TheBin} ${Args[@]}
-								;;
-						esac
-						cd - > /dev/null
-					#Check if Java Jar exists
-					elif [ -f ${TheBinDir}/${TheJar} ]; then
-						${LangRun} -jar ${TheBinDir}/${TheJar} ${Args[@]}
-					else
-						errorCode "cpl" "need" "${name}"
-					fi
-					;;
-				*)
-					TheJar="${project}.jar"
-					TheBinDir="${LangSrc}/${project}/bin"
-					#Check if Java Jar exists
-					if [ -f ${TheBinDir}/${TheJar} ]; then
-						${LangRun} -jar ${TheBinDir}/${TheJar} ${Args[@]}
-					else
-						errorCode "cpl" "need" "${name}"
-					fi
-#					[Run Class]
-#						main/java$ ls com/my/project/
-#						none.class none.java
+			#Handle multiple files
+			if [[ "${name}" == *","* ]]; then
+				name=$(echo ${name} | tr ',' ' ')
+				name=$(grep -l "public static void main" ${name})
+				if [ -z "${name}" ]; then
+					echo "Unable to find the \"main\" file"
+					echo -n "Please choose: "
+					read name
+				fi
+				TheBin="${name%.*}.class"
+				TheJar="${name%.*}.jar"
+			fi
+
+			if [ ! -z "${name}" ]; then
+				case ${project} in
+					none)
+						project=""
+						TheBinDir=${LangBin}
+						#Check if Java Class exists
+						if [ -f ${TheBinDir}/${TheBin} ]; then
+							TheBin=${TheBin%.*}
+							cd ${TheBinDir}
+							#If no JavaProp found
+							case ${JavaProp} in
+								none)
+									#Execute without
+									${LangRun} ${TheBin} ${Args[@]}
+									;;
+								*)
+									${LangRun} "${JavaProp}" ${TheBin} ${Args[@]}
+									;;
+							esac
+							cd - > /dev/null
+						#Check if Java Jar exists
+						elif [ -f ${TheBinDir}/${TheJar} ]; then
+							${LangRun} -jar ${TheBinDir}/${TheJar} ${Args[@]}
+						else
+							errorCode "cpl" "need" "${name}"
+						fi
+						;;
+					*)
+						TheJar="${project}.jar"
+						TheBinDir="${LangSrc}/${project}/bin"
+						#Check if Java Jar exists
+						if [ -f ${TheBinDir}/${TheJar} ]; then
+							${LangRun} -jar ${TheBinDir}/${TheJar} ${Args[@]}
+						else
+							errorCode "cpl" "need" "${name}"
+						fi
+#						[Run Class]
+#							main/java$ ls com/my/project/
+#							none.class none.java
 #
-#						main/java$ java com.my.project.none
-					;;
-			esac
+#							main/java$ java com.my.project.none
+						;;
+				esac
+			else
+				echo "Unable to locate executable"
+			fi
 			;;
 		backup)
 			local name=$1

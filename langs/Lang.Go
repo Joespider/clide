@@ -1,8 +1,9 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.10"
+SupportV="0.1.13"
 Lang=Go
+ColorNum=2
 
 ProgDir=$1
 shift
@@ -45,10 +46,18 @@ OtherColor()
 
 ProjectTemplateHandler()
 {
+	local SupportArgs=( "${LibDir}" "${VarDir}" "${editor}" "${ReadBy}" "${CodeProject}" "${ProjectMode}" "${CplArgs}" )
+	local Envs=( ${Lang} "$1" "$2" "$3" "$4" "$5" )
+	shift
+	shift
+	shift
+	shift
+	shift
+
 	local Type=$1
 	shift
 	if [ -f ${TemplateProjectDir}/${Lang}.${ProjectType} ]; then
-		${TemplateProjectDir}/${Lang}.${ProjectType} ${Type} ${ProgDir} ${ClideDir} ${LibDir} ${VarDir} ${editor} ${ReadBy} ${CodeProject} ${ProjectMode} ${CplArgs} $@
+		${TemplateProjectDir}/${Lang}.${ProjectType} ${SupportArgs[@]} ${Envs[@]} ${Type} $@
 	fi
 }
 
@@ -56,22 +65,21 @@ UseGo()
 {
 	local LangConfig=$(grep ${Lang} ${VarDir}/clide.conf | sed "s/${Lang}=//1")
 	local LangCpl=${LangConfig}
-
-#	local LangCpl=go
 	local LangHome=${ProgDir}/${Lang}
 	local LangSrc=${LangHome}/src
 	local LangBin=${LangHome}/bin
 	local LangExt=".go"
 	local TemplateCode=${LangBin}/new${Lang}
+	local EnvVars=( ${LangRun} ${LangHome} ${LangSrc} ${LangBin} ${LangExt} )
 	local Type=$1
 	shift
 	case ${Type} in
 		color)
-			#Return Green
-			echo -e "\e[1;32m${Lang}\e[0m"
+			#Return Blue
+			echo -e "\e[1;3${ColorNum}m${Lang}\e[0m"
 			;;
 		ProjectColor)
-			echo -e "\e[1;42m${CodeProject}\e[0m"
+			echo -e "\e[1;4${ColorNum}m${CodeProject}\e[0m"
 			;;
 		getExt)
 			echo ${LangExt}
@@ -94,6 +102,8 @@ UseGo()
 				none)
 					if [ -f ${LangSrc}/${name}${LangExt} ]; then
 						echo ${name}${LangExt}
+					elif [ -f ${LangSrc}/${name}.h ]; then
+						echo ${name}.h
 					elif [ -f ${LangSrc}/${name} ]; then
 						echo ${name}
 					fi
@@ -103,12 +113,14 @@ UseGo()
 						Generic)
 							if [ -f ${LangSrc}/${CodeProject}/src/${name}${LangExt} ]; then
 								echo ${name}${LangExt}
+							elif [ -f ${LangSrc}/${CodeProject}/src/${name}.h ]; then
+								echo ${name}.h
 							elif [ -f ${LangSrc}/${project}/src/${name} ]; then
 								echo ${name}
 							fi
 							;;
 						*)
-							ProjectTemplateHandler ${Type} ${mode}
+							ProjectTemplateHandler ${EnvVars[@]} ${Type} ${mode}
 							;;
 					esac
 					;;
@@ -125,15 +137,13 @@ UseGo()
 			fi
 			;;
 		BeforeFiles|AfterFiles)
-			ls *${LangExt} 2> /dev/null
+			ls *${LangExt} *.h 2> /dev/null
 			;;
 		pgDir)
 			#Return Go src Dir
 			echo ${LangSrc}
 			;;
 		CreateHelp)
-			echo -e "make\t\t\t: create makefile"
-			echo -e "version, -std=<c++#>\t: create makefile"
 			;;
 		shell)
 			;;
@@ -166,7 +176,7 @@ UseGo()
 			;;
 		CplVersion)
 			echo "[${Lang} Compiler]"
-			${LangCpl} version | head -n 1
+			${LangCpl} version 2> /dev/null | head -n 1
 			echo ""
 			;;
 		selectCode)
@@ -185,7 +195,7 @@ UseGo()
 			local new=$2
 			case ${src} in
 				*${LangExt})
-					#Add go or header files with file extensions
+					#Add cpp or header files with file extensions
 					case ${new} in
 						*${LangExt})
 							#Append file
@@ -195,9 +205,9 @@ UseGo()
 								echo "${src}"
 							fi
 							;;
-						#Add go or header files without file extensions
+						#Add cpp or header files without file extensions
 						*)
-							#Append go files
+							#Append cpp files
 							if [ -f "${new}${LangExt}" ]; then
 								echo "${src},${new}${LangExt}"
 							else
@@ -271,6 +281,19 @@ UseGo()
 			local project=${CodeProject}
 			local TheBinDir
 			local ERROR
+
+			#Handle multiple files
+			if [ -z "${name}" ]; then
+				if [[ "${src}" == *","* ]]; then
+					src=$(echo ${src} | tr ',' ' ')
+					name=$(grep -l "int main(" ${src} 2> /dev/null)
+					name=${name%.*}
+				else
+					name=${src%.*}
+				fi
+				cplArgs=$2
+			fi
+
 			#Handle Project Dir
 			case ${project} in
 				none)
@@ -282,47 +305,33 @@ UseGo()
 					TheBinDir="${LangSrc}/${project}bin"
 					;;
 			esac
+
+			#Compile ONLY if source code is selected OR makefile is present
 			if [[ "$src" == *"${LangExt}"* ]] || [ -f ${LangSrc}/${project}makefile ]; then
 				cplArgs=${LangCplVersion}
+				#Compile with makefile
 				if [ -f ${LangSrc}/${project}makefile ]; then
 					cd ${LangSrc}/${project}
 					echo "make"
 					cd - > /dev/null
-					echo -e "\e[1;42m[${Lang} Code Compiled]\e[0m"
+					echo -e "\e[1;44m[${Lang} Code Compiled]\e[0m"
+				#Compile without makefile
 				else
-					#Multiple code selected
-					if [[ "${src}" == *","* ]]; then
-						#num is empty
-						if [ -z ${name} ]; then
-							errorCode "cpl" "choose"
-						else
-							#Separate list of selected code
-							prog=$(echo ${src} | sed "s/,/ /g")
-							#Compile for Threads
-							NeedThreads=$(grep "#include <thread>" ${prog})
-							if [ ! -z "${NeedThreads}" ]; then
-								cplArgs="${cplArgs} -lpthread"
-							fi
-							ERROR=$(${LangCpl} build ${prog} 2>&1 | tr '\n' '|')
-							if [ -z "${ERROR}" ]; then
-								mv ${prog%.*} ${LangBin}
-								echo -e "\e[1;42m[${Lang} Code Compiled]\e[0m"
-							else
-								errorCode "cpl" "ERROR" "${ERROR}"
-							fi
-						fi
-					#single code selected
+					#source file is empty
+					if [ -z ${name} ]; then
+						errorCode "cpl" "choose"
 					else
-						#Compile for threading
+						#Compile for Threads
 						NeedThreads=$(grep "#include <thread>" ${src})
 						if [ ! -z "${NeedThreads}" ]; then
 							cplArgs="${cplArgs} -lpthread"
 						fi
-						#Compile and move Go to Binary dir
+						#Compile and check for errors
 						ERROR=$(${LangCpl} build ${src} 2>&1 | tr '\n' '|')
+						#Code compiled successfully
 						if [ -z "${ERROR}" ]; then
-							mv ${src%.*} ${LangBin}
-							echo -e "\e[1;42m[${Lang} Code Compiled]\e[0m"
+							mv ${LangSrc}/${src%.*} ${LangBin}/
+							echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
 						else
 							errorCode "cpl" "ERROR" "${ERROR}"
 						fi
@@ -372,7 +381,7 @@ UseGo()
 					*)
 						;;
 				esac
-				if [ ! -z "${CplArgs}" ] && [[ "${CplArgs}" == *"c++"* ]]; then
+				if [ ! -z "${CplArgs}" ] && [[ "${CplArgs}" == *"Go"* ]]; then
 					CplArgs="-std=${CplArgs}"
 				else
 					CplArgs="none"
@@ -381,13 +390,11 @@ UseGo()
 			echo ${CplArgs}
 			;;
 		newProject)
-			local TheProjectType=$1
+			ProjectType=$1
 			local project=$2
 			local path=${LangSrc}/${project}
 			#create and cd to project dir
 			if [ ! -d ${path} ]; then
-
-
 				case ${ProjectType} in
 					Generic)
 						mkdir ${path}
@@ -396,7 +403,7 @@ UseGo()
 						cd ${path}/src
 						;;
 					*)
-						ProjectTemplateHandler ${Type} ${project}
+						ProjectTemplateHandler ${EnvVars[@]} ${Type} ${project}
 						;;
 				esac
 			else
@@ -417,7 +424,7 @@ UseGo()
 					esac
 					;;
 				*)
-					ProjectTemplateHandler ${Type} ${mode}
+					ProjectTemplateHandler ${EnvVars[@]} ${Type} ${mode}
 					;;
 			esac
 			;;
@@ -487,10 +494,10 @@ UseGo()
 					;;
 			esac
 			#Make sure Binary exists
-			if [ -f "${TheBinDir}/${bin}" ]; then
+			if [ -f "${TheBinDir}/${BinFile}" ]; then
 				#Add command to Aliases
-				AddAlias "${bin}" "${TheBinDir}/${bin}"
-			elif [ ! -f "${TheBinDir}/${bin}" ]; then
+				AddAlias "${BinFile}" "${TheBinDir}/${BinFile}"
+			elif [ ! -f "${TheBinDir}/${BinFile}" ]; then
 				#compule or swap to binary
 				errorCode "install" "${bin}"
 			else
@@ -520,13 +527,23 @@ UseGo()
 		newCode)
 			local name=$1
 			local Type=$2
-			local oldCode=$3
+                        local oldCode=$3
 			local project=${CodeProject}
 
-			Type=$(echo ${Type} | tr A-Z a-z)
+			Type=${Type,,}
 			name=${name%${LangExt}}
+			name=${name%.h}
 			if [ ! -f ${name}${LangExt} ]; then
 				case ${Type} in
+					#create header file
+					header)
+						#Program Name Given
+						if [ ! -z "${name}" ];then
+							touch "${name}.h"
+						else
+							errorCode "newCode"
+						fi
+						;;
 					#create main file
 					main)
 						#Check for Custom Code Template
@@ -575,12 +592,16 @@ UseGo()
 						#Is not a project
 						case ${project} in
 							none)
-								UseGo "newCode" ${name} ${oldCode} ${Project} "main"
+								UseGo "newCode" ${name}  "main" ${oldCode}
 								;;
 							#Is a project
 							*)
 								#clide knows best
-								UseGo "newCode" ${name} ${oldCode} ${Project} "main"
+								if [[ "${oldCode}" == *"${LangExt}" ]] || [[ "${oldCode}" == *"${LangExt}" ]]; then
+									UseGo "newCode" ${name} "component" ${oldCode}
+								else
+									UseGo "newCode" ${name} "main" ${oldCode}
+								fi
 								;;
 						esac
 						;;
@@ -592,25 +613,49 @@ UseGo()
 			TheName=$(OtherColor "${TheName%.*}")
 			echo "./${TheName}"
 			;;
+		#Run the compiled code
 		runCode)
 			local name=$1
+			#Handle Extension
+			case ${name} in
+				*${LangExt})
+					;;
+				*)
+					name="${name}${LangExt}"
+					;;
+			esac
+
 			shift
 			shift
 			local Args=$@
 			local TheBin="${name%.*}"
 			local project=${CodeProject}
 			local TheBinDir
+
 			#Handle Project Dir
 			case ${project} in
 				none)
 					project=""
 					TheBinDir=${LangBin}
+					cd ${LangSrc}/
 					;;
 				*)
-					project="${project}/"
-					TheBinDir="${LangSrc}/${project}bin"
+					TheBinDir="${LangSrc}/${project}/bin"
+					cd ${LangSrc}/${project}/src
 					;;
 			esac
+
+			#Handle multiple src files
+			if [[ "${name}" == *","* ]]; then
+				#Find the main file
+				if [ ! -z "${name}" ]; then
+					name=$(echo ${name} | tr ',' ' ')
+					name=$(grep -l "func main(" ${name} 2> /dev/null)
+					TheBin="${name%.*}"
+				fi
+			fi
+
+			#Find Executable
 			if [ -f ${TheBinDir}/${TheBin} ]; then
 				${TheBinDir}/${TheBin} ${Args[@]}
 			else
@@ -620,9 +665,12 @@ UseGo()
 		backup)
 			local name=$1
 			if [ ! -z "${name}" ]; then
+				#Backup file does NOT exist
 				if [ ! -f "${LangSrc}/${name}.bak" ]; then
+					#Make backup
 					cp ${LangSrc}/${name} ${LangSrc}/${name}.bak
 					echo "\"${name}\" backed-up"
+				#Backup file exists
 				else
 					errorCode "backup" "exists"
 				fi
@@ -633,9 +681,12 @@ UseGo()
 		restore)
 			local name=$1
 			if [ ! -z "${name}" ]; then
+				#Backup file exists
 				if [ -f "${LangSrc}/${name}.bak" ]; then
+					#Restore from backup
 					mv ${LangSrc}/${name}.bak ${LangSrc}/${name}
 					echo "\"${name}\" restored"
+				#Backup file does NOT exist
 				else
 					errorCode "restore" "exists"
 				fi
@@ -667,5 +718,5 @@ UseGo()
 			;;
 	esac
 }
-
+#init
 UseGo $@

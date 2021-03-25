@@ -1,0 +1,5 @@
+name=game
+lang=Python
+type=pygame
+path=/home/joespider/Programs/Python/src/game
+src=

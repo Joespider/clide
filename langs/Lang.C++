@@ -1,8 +1,9 @@
-wShell=$(which bash)
+Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.43"
+SupportV="0.1.49"
 Lang=C++
+ColorNum=4
 
 ProgDir=$1
 shift
@@ -64,7 +65,6 @@ UseC++()
 {
 	local LangConfig=$(grep ${Lang} ${VarDir}/clide.conf | sed "s/${Lang}=//1")
 	local LangCpl=${LangConfig}
-
 	local LangHome=${ProgDir}/${Lang}
 	local LangSrc=${LangHome}/src
 	local LangBin=${LangHome}/bin
@@ -79,7 +79,7 @@ UseC++()
 			echo -e "\e[1;34m${Lang}\e[0m"
 			;;
 		ProjectColor)
-			echo -e "\e[1;44m${CodeProject}\e[0m"
+			echo -e "\e[1;4${ColorNum}m${CodeProject}\e[0m"
 			;;
 		getExt)
 			echo ${LangExt}
@@ -288,6 +288,19 @@ UseC++()
 			local project=${CodeProject}
 			local TheBinDir
 			local ERROR
+
+			#Handle multiple files
+			if [ -z "${name}" ]; then
+				if [[ "${src}" == *","* ]]; then
+					src=$(echo ${src} | tr ',' ' ')
+					name=$(grep -l "int main(" ${src} 2> /dev/null)
+					name=${name%.*}
+				else
+					name=${src%.*}
+				fi
+				cplArgs=$2
+			fi
+
 			#Handle Project Dir
 			case ${project} in
 				none)
@@ -299,45 +312,32 @@ UseC++()
 					TheBinDir="${LangSrc}/${project}bin"
 					;;
 			esac
+
+			#Compile ONLY if source code is selected OR makefile is present
 			if [[ "$src" == *"${LangExt}"* ]] || [ -f ${LangSrc}/${project}makefile ]; then
 				cplArgs=${LangCplVersion}
+				#Compile with makefile
 				if [ -f ${LangSrc}/${project}makefile ]; then
 					cd ${LangSrc}/${project}
 					echo "make"
 					cd - > /dev/null
-					echo -e "\e[1;44m[${Lang} Code Compiled]\e[0m"
+					echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
+				#Compile without makefile
 				else
-					#Multiple code selected
-					if [[ "${src}" == *","* ]]; then
-						#num is empty
-						if [ -z ${name} ]; then
-							errorCode "cpl" "choose"
-						else
-							#Separate list of selected code
-							prog=$(echo ${src} | sed "s/,/ /g")
-							#Compile for Threads
-							NeedThreads=$(grep "#include <thread>" ${prog})
-							if [ ! -z "${NeedThreads}" ]; then
-								cplArgs="${cplArgs} -lpthread"
-							fi
-							ERROR=$(${LangCpl} ${prog} -o ${TheBinDir}/${name} ${cplArgs} 2>&1 | tr '\n' '|')
-							if [ -z "${ERROR}" ]; then
-								echo -e "\e[1;44m[${Lang} Code Compiled]\e[0m"
-							else
-								errorCode "cpl" "ERROR" "${ERROR}"
-							fi
-						fi
-					#single code selected
+					#source file is empty
+					if [ -z ${name} ]; then
+						errorCode "cpl" "choose"
 					else
-						#Compile for threading
+						#Compile for Threads
 						NeedThreads=$(grep "#include <thread>" ${src})
 						if [ ! -z "${NeedThreads}" ]; then
 							cplArgs="${cplArgs} -lpthread"
 						fi
-						#Compile and move C++ to Binary dir
-						ERROR=$(${LangCpl} ${src} -o ${TheBinDir}/${src%.*} ${cplArgs} 2>&1 | tr '\n' '|')
+						#Compile and check for errors
+						ERROR=$(${LangCpl} ${src} -o ${TheBinDir}/${name} ${cplArgs} 2>&1 | tr '\n' '|')
+						#Code compiled successfully
 						if [ -z "${ERROR}" ]; then
-							echo -e "\e[1;44m[${Lang} Code Compiled]\e[0m"
+							echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
 						else
 							errorCode "cpl" "ERROR" "${ERROR}"
 						fi
@@ -542,7 +542,7 @@ UseC++()
                         local oldCode=$3
 			local project=${CodeProject}
 
-			Type=$(echo ${Type} | tr A-Z a-z)
+			Type=${Type,,}
 			name=${name%${LangExt}}
 			name=${name%.h}
 			if [ ! -f ${name}${LangExt} ] || [ ! -f ${name}.h ]; then
@@ -625,25 +625,49 @@ UseC++()
 			TheName=$(OtherColor "${TheName%.*}")
 			echo "./${TheName}"
 			;;
+		#Run the compiled code
 		runCode)
 			local name=$1
+			#Handle Extension
+			case ${name} in
+				*${LangExt})
+					;;
+				*)
+					name="${name}${LangExt}"
+					;;
+			esac
+
 			shift
 			shift
 			local Args=$@
 			local TheBin="${name%.*}"
 			local project=${CodeProject}
 			local TheBinDir
+
 			#Handle Project Dir
 			case ${project} in
 				none)
 					project=""
 					TheBinDir=${LangBin}
+					cd ${LangSrc}/
 					;;
 				*)
-					project="${project}/"
-					TheBinDir="${LangSrc}/${project}bin"
+					TheBinDir="${LangSrc}/${project}/bin"
+					cd ${LangSrc}/${project}/src
 					;;
 			esac
+
+			#Handle multiple src files
+			if [[ "${name}" == *","* ]]; then
+				#Find the main file
+				if [ ! -z "${name}" ]; then
+					name=$(echo ${name} | tr ',' ' ')
+					name=$(grep -l "int main(" ${name} 2> /dev/null)
+					TheBin="${name%.*}"
+				fi
+			fi
+
+			#Find Executable
 			if [ -f ${TheBinDir}/${TheBin} ]; then
 				${TheBinDir}/${TheBin} ${Args[@]}
 			else
@@ -653,9 +677,12 @@ UseC++()
 		backup)
 			local name=$1
 			if [ ! -z "${name}" ]; then
+				#Backup file does NOT exist
 				if [ ! -f "${LangSrc}/${name}.bak" ]; then
+					#Make backup
 					cp ${LangSrc}/${name} ${LangSrc}/${name}.bak
 					echo "\"${name}\" backed-up"
+				#Backup file exists
 				else
 					errorCode "backup" "exists"
 				fi
@@ -666,9 +693,12 @@ UseC++()
 		restore)
 			local name=$1
 			if [ ! -z "${name}" ]; then
+				#Backup file exists
 				if [ -f "${LangSrc}/${name}.bak" ]; then
+					#Restore from backup
 					mv ${LangSrc}/${name}.bak ${LangSrc}/${name}
 					echo "\"${name}\" restored"
+				#Backup file does NOT exist
 				else
 					errorCode "restore" "exists"
 				fi
@@ -700,5 +730,5 @@ UseC++()
 			;;
 	esac
 }
-
+#init
 UseC++ $@

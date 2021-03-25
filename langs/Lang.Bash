@@ -1,8 +1,9 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.36"
+SupportV="0.1.38"
 Lang=Bash
+ColorNum=2
 
 ProgDir=$1
 shift
@@ -77,10 +78,10 @@ UseBash()
 	case ${Type} in
 		color)
 			#Return Green
-			echo -e "\e[1;32m${Lang}\e[0m"
+			echo -e "\e[1;3${ColorNum}m${Lang}\e[0m"
 			;;
 		ProjectColor)
-			echo -e "\e[1;42m${CodeProject}\e[0m"
+			echo -e "\e[1;4${ColorNum}m${CodeProject}\e[0m"
 			;;
 		SupportVersion)
 			echo ${SupportV}
@@ -324,7 +325,7 @@ UseBash()
 									#Change to Bash Source dir
 									cd - > /dev/null
 									if [ -f "${TheBinDir}/${name}" ]; then
-										echo -e "\e[1;42m[${Lang} Code Compiled]\e[0m"
+										echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
 									else
 										errorCode "cpl" "ERROR" "${ERROR}"
 									fi
@@ -348,7 +349,7 @@ UseBash()
 							#Change to Bash Source dir
 							cd - > /dev/null
 							if [ -f "${TheBinDir}/${src}" ]; then
-								echo -e "\e[1;42m[${Lang} Code Compiled]\e[0m"
+								echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
 							else
 								errorCode "cpl" "ERROR" "${ERROR}"
 							fi
@@ -467,7 +468,7 @@ UseBash()
 		customCode)
 			local cLang=$(UseBash "color")
 			local cTemplate=$(OtherColor ${TemplateCode##*/})
-			local Type=$(echo ${Type} | tr A-Z a-z)
+			local Type=${Type,,}
 			#Check for Custom Code Template
 			if [ -f ${TemplateCode} ]; then
 				echo -n "${cLang}\$ ./${cTemplate} "
@@ -490,7 +491,7 @@ UseBash()
 			local oldCode=$3
 			local project=${CodeProject}
 
-			Type=$(echo ${Type} | tr A-Z a-z)
+			Type=${Type,,}
 			name=${name%${LangExt}}
 			if [ ! -f ${name}${LangExt} ]; then
 				#Check for Custom Code Template

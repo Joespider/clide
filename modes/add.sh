@@ -99,7 +99,7 @@ AddLangSupport()
 					echo -n "\"${Lang}\"> "
 					read GetLang
 					if [ ! -z "${GetLang}" ]; then
-						GetLang=$(echo ${GetLang} | tr A-Z a-z)
+						GetLang=${GetLang,,}
 						Lang=${GetLang^}
 					fi
 					SupportFile=${LangsDir}/Lang.${Lang^}
@@ -240,7 +240,7 @@ Add()
 		fi
 		#Handle CLI
 		read -e -p "${prompt}" -a UserIn
-		UserArg=$(echo ${UserIn[0]} | tr A-Z a-z)
+		UserArg=${UserIn[0],,}
 		case ${UserArg} in
 			add)
 				component=$(SelectComp "${UserIn[1]}")

@@ -194,6 +194,7 @@ CliHelp()
 	echo -e "--run\t\t\t\t:\"Run compiled code\""
 	echo -e "--read\t\t\t\t:\"Read out (cat) source code\""
 	echo -e "--list\t\t\t\t:\"List source code\""
+	echo -e "--list-cpl\t\t\t:\"List compiled code\""
 	echo ""
 	echo -e "$ clide <Action> <Language> <Code> <Args>"
 	echo "or"
@@ -739,35 +740,31 @@ runCode()
 	local Args=""
 	local JavaProp="none"
 	local TheBin=""
-	if [[ "${name}" == *","* ]]; then
-		errorCode "runCode" "${Head}"
-	else
-		TheBin=${name}
-		#Come up with a way to know if arguments are needed
-		TheLang=$(color "${Lang}")
-		#User Wishes to provide arments for program
-		case ${option} in
-			-a|--args)
-				CLIout=$(ManageLangs ${Lang} "cli" "${TheBin}")
-				CLIout="$USER@${Name}:~/${TheLang}\$ ${CLIout}"
-				#User Args not Pre-done
-				if [ -z "${RunTimeArgs}" ]; then
-					#Get User Args
-					echo -n "${CLIout} "
-					read -a Args
-				#User Args Pre-done
-				else
-					#Show Args
-					echo -n ${CLIout} "${RunTimeArgs[@]}"
-					read
-					Args=${RunTimeArgs[@]}
-				fi
-				;;
-			*)
-				;;
-		esac
-		ManageLangs ${Lang} "runCode" "${TheBin}" "${JavaProp}" ${Args[@]}
-	fi
+	TheBin=${name}
+	#Come up with a way to know if arguments are needed
+	TheLang=$(color "${Lang}")
+	#User Wishes to provide arments for program
+	case ${option} in
+		-a|--args)
+			CLIout=$(ManageLangs ${Lang} "cli" "${TheBin}")
+			CLIout="$USER@${Name}:~/${TheLang}\$ ${CLIout}"
+			#User Args not Pre-done
+			if [ -z "${RunTimeArgs}" ]; then
+				#Get User Args
+				echo -n "${CLIout} "
+				read -a Args
+			#User Args Pre-done
+			else
+				#Show Args
+				echo -n ${CLIout} "${RunTimeArgs[@]}"
+				read
+				Args=${RunTimeArgs[@]}
+			fi
+			;;
+		*)
+			;;
+	esac
+	ManageLangs ${Lang} "runCode" "${TheBin}" "${JavaProp}" ${Args[@]}
 }
 
 selectProjectMode()
@@ -800,7 +797,8 @@ pgDir()
 #get Language Name
 pgLang()
 {
-	local Lang=$(echo "$1" | tr A-Z a-z)
+	local Lang=$1
+	Lang=${Lang,,}
 	ManageLangs ${Lang} "pgLang"
 }
 
@@ -906,14 +904,13 @@ Actions()
 		do
 			#User's first action
 			if [ ! -z "${FirstAction}" ]; then
-				UserArg=$(echo ${FirstAction} | tr A-Z a-z)
+				UserArg=${FirstAction,,}
 				FirstAction=""
 			else
 				#Handle CLI
 				#read -a UserIn
 				read -e -p "${prompt}" -a UserIn
-				UserArg=$(echo ${UserIn[0]} | tr A-Z a-z)
-
+				UserArg=${UserIn[0],,}
 			fi
 			case ${UserArg} in
 				#List files
@@ -2025,6 +2022,18 @@ main()
 						if [ ! -z "${CodeDir}" ]; then
 							ls ${CodeDir}
 						fi
+						;;
+				esac
+				;;
+			--list-cpl)
+				shift
+				local Lang=$(pgLang $1)
+				case ${Lang} in
+					no)
+						echo "\"$1\" is not a supported language"
+						;;
+					*)
+						ManageLangs ${Lang} "lscpl"
 						;;
 				esac
 				;;
