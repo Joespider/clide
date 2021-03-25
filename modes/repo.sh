@@ -5,11 +5,11 @@ Head="cl[ide]"
 IDE=$(echo -e "\e[1;43mrepo\e[0m")
 Name="cl[${IDE}]"
 
-repoTool="git"
+repoTool=$1
 shift
-CodeProject="testing"
+CodeProject=$1
 shift
-repoAssist="True"
+repoAssist=$1
 shift
 Branch=""
 
@@ -265,7 +265,7 @@ gitHandler()
 						while true
 						do
 							echo "Are you sure? There is no stopping what is being done"
-							echo -n "(yes/no)"
+							echo -n "(yes/no)> "
 							read sure
 							sure=$(echo ${sure} | tr A-Z a-z)
 							case ${sure} in
