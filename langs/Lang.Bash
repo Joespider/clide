@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.37"
+SupportV="0.1.38"
 Lang=Bash
 ColorNum=2
 
@@ -468,7 +468,7 @@ UseBash()
 		customCode)
 			local cLang=$(UseBash "color")
 			local cTemplate=$(OtherColor ${TemplateCode##*/})
-			local Type=$(echo ${Type} | tr A-Z a-z)
+			local Type=${Type,,}
 			#Check for Custom Code Template
 			if [ -f ${TemplateCode} ]; then
 				echo -n "${cLang}\$ ./${cTemplate} "
@@ -491,7 +491,7 @@ UseBash()
 			local oldCode=$3
 			local project=${CodeProject}
 
-			Type=$(echo ${Type} | tr A-Z a-z)
+			Type=${Type,,}
 			name=${name%${LangExt}}
 			if [ ! -f ${name}${LangExt} ]; then
 				#Check for Custom Code Template

@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.38"
+SupportV="0.1.39"
 Lang=Python
 ColorNum=3
 
@@ -476,7 +476,7 @@ UsePython()
 			local oldCode=$3
 			local project=${CodeProject}
 
-			Type=$(echo ${Type} | tr A-Z a-z)
+			Type=${Type,,}
 			local name=${name%${LangExt}}
 			if [ ! -f ${name}${LangExt} ]; then
 				#Check for Custom Code Template

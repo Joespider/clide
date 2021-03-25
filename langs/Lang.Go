@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.12"
+SupportV="0.1.13"
 Lang=Go
 ColorNum=2
 
@@ -530,7 +530,7 @@ UseGo()
                         local oldCode=$3
 			local project=${CodeProject}
 
-			Type=$(echo ${Type} | tr A-Z a-z)
+			Type=${Type,,}
 			name=${name%${LangExt}}
 			name=${name%.h}
 			if [ ! -f ${name}${LangExt} ]; then

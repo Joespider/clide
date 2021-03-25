@@ -797,7 +797,8 @@ pgDir()
 #get Language Name
 pgLang()
 {
-	local Lang=$(echo "$1" | tr A-Z a-z)
+	local Lang=$1
+	Lang=${Lang,,}
 	ManageLangs ${Lang} "pgLang"
 }
 
@@ -903,14 +904,13 @@ Actions()
 		do
 			#User's first action
 			if [ ! -z "${FirstAction}" ]; then
-				UserArg=$(echo ${FirstAction} | tr A-Z a-z)
+				UserArg=${FirstAction,,}
 				FirstAction=""
 			else
 				#Handle CLI
 				#read -a UserIn
 				read -e -p "${prompt}" -a UserIn
-				UserArg=$(echo ${UserIn[0]} | tr A-Z a-z)
-
+				UserArg=${UserIn[0],,}
 			fi
 			case ${UserArg} in
 				#List files

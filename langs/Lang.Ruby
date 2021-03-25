@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.34"
+SupportV="0.1.35"
 Lang=Ruby
 ColorNum=1
 
@@ -482,7 +482,7 @@ UseRuby()
 			local oldCode=$3
 			local project=${CodeProject}
 
-			Type=$(echo ${Type} | tr A-Z a-z)
+			Type=${Type,,}
 			name=${name%${LangExt}}
 			if [ ! -f ${name}${LangExt} ]; then
 				#Check for Custom Code Template

@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.48"
+SupportV="0.1.49"
 Lang=C++
 ColorNum=4
 
@@ -542,7 +542,7 @@ UseC++()
                         local oldCode=$3
 			local project=${CodeProject}
 
-			Type=$(echo ${Type} | tr A-Z a-z)
+			Type=${Type,,}
 			name=${name%${LangExt}}
 			name=${name%.h}
 			if [ ! -f ${name}${LangExt} ] || [ ! -f ${name}.h ]; then

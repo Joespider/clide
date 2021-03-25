@@ -21,3 +21,5 @@ Bug Fixes:
 	moved Compile error message to "errorCode.sh"
 	removed .h support from Go support (Lang.Go)
 	fixed argument handling of pre-compiling code
+	performance improvements (converted 'tr A-Z a-z' to '${var,,}')
+	improving repo support

@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.35"
+SupportV="0.1.36"
 Lang=Perl
 ColorNum=5
 
@@ -479,7 +479,7 @@ UsePerl()
 			local oldCode=$3
 			local project=${CodeProject}
 
-			Type=$(echo ${Type} | tr A-Z a-z)
+			Type=${Type,,}
 			name=${name%${LangExt}}
 			if [ ! -f ${name}${LangExt} ]; then
 				#Check for Custom Code Template

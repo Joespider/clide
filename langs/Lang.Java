@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.47"
+SupportV="0.1.48"
 Lang=Java
 ColorNum=1
 
@@ -788,7 +788,7 @@ UseJava()
 			local TemplateJ=${TemplateCodeJar##*/}
 			local cTemplateC=$(OtherColor ${TemplateC})
 			local cTemplateJ=$(OtherColor ${TemplateJ})
-			Type=$(echo ${Type} | tr A-Z a-z)
+			Type=${Type,,}
 			#Check for Custom Code Template...is class
 			if [ -f ${TemplateCodeClass} ]; then
 				echo -n "${cLang}\$ java ${cTemplateC} "
@@ -834,7 +834,7 @@ UseJava()
 			local TemplateC=${TemplateCodeClass##*/}
 			TemplateC=${TemplateC%.*}
 
-			Type=$(echo ${Type} | tr A-Z a-z)
+			Type=${Type,,}
 			name=${name%${LangExt}}
 			local TheSrcDir
 
