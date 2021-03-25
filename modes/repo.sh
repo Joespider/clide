@@ -168,7 +168,7 @@ gitHandler()
 							echo -n "Provide a branch name"
 							read name
 							if [ ! -z "${name}" ]; then
-								gitHandler "branch" "new" "${name}"
+								gitHandler "${repoAct}" "${branchAct}" "${name}"
 							else
 								echo "No branch has been created"
 							fi
@@ -190,7 +190,7 @@ gitHandler()
 							#branch name given
 							if [ ! -z "${name}" ]; then
 								#remove branch
-								gitHandler "branch" "delete" "${name}"
+								gitHandler "${repoAct}" "${branchAct}" "${name}"
 							#no branch name given
 							else
 								echo "No Branch has been deleted"
@@ -214,7 +214,7 @@ gitHandler()
 							#branch name given
 							if [ ! -z "${name}" ]; then
 								#Select branch
-								gitHandler "branch" "checkout" "${name}"
+								gitHandler "${repoAct}" "${branchAct}" "${name}"
 							#no branch name given
 							else
 								echo "No Branch has been selected"
@@ -236,7 +236,7 @@ gitHandler()
 					git push origin "${branch}"
 				else
 					if [ ! -z "${Branch}" ]; then
-						gitHandler "push" "${Branch}"
+						gitHandler "${repoAct}" "${Branch}"
 					else
 						echo "Code not pushed; no branch found"
 					fi
@@ -252,9 +252,33 @@ gitHandler()
 				;;
 			#Peform quick and dirty commit
 			slamdunk)
-				gitHandler "add"
-				gitHandler "commit"
-				gitHandler "push"
+				local sure=$1
+				case ${sure} in
+					yes)
+						gitHandler "add"
+						gitHandler "commit"
+						gitHandler "push"
+						;;
+					no)
+						;;
+					*)
+						while true
+						do
+							echo "Are you sure? There is no stopping what is being done"
+							echo -n "(yes/no)"
+							read sure
+							sure=$(echo ${sure} | tr A-Z a-z)
+							case ${sure} in
+								yes|no)
+									gitHandler "${repoAct}" "${sure}"
+									break
+									;;
+								*)
+									;;
+							esac
+						done
+						;;
+				esac
 				;;
 			help|options)
 				Help
