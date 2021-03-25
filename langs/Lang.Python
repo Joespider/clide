@@ -1,8 +1,9 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.37"
+SupportV="0.1.38"
 Lang=Python
+ColorNum=3
 
 ProgDir=$1
 shift
@@ -75,10 +76,10 @@ UsePython()
 	case ${Type} in
 		color)
 			#Return Yellow
-			echo -e "\e[1;33m${Lang}\e[0m"
+			echo -e "\e[1;3${ColorNum}m${Lang}\e[0m"
 			;;
 		ProjectColor)
-			echo -e "\e[1;43m${CodeProject}\e[0m"
+			echo -e "\e[1;4${ColorNum}m${CodeProject}\e[0m"
 			;;
 		getExt)
 			echo ${LangExt}
@@ -324,7 +325,7 @@ UsePython()
 						#Change to Python Source dir
 						cd - > /dev/null
 						if [ -f "${TheBinDir}/${src}" ]; then
-							echo -e "\e[1;43m[${Lang} Code Compiled]\e[0m"
+							echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
 						else
 							errorCode "cpl" "ERROR" "${ERROR}"
 						fi

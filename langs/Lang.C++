@@ -1,8 +1,9 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.47"
+SupportV="0.1.48"
 Lang=C++
+ColorNum=4
 
 ProgDir=$1
 shift
@@ -78,7 +79,7 @@ UseC++()
 			echo -e "\e[1;34m${Lang}\e[0m"
 			;;
 		ProjectColor)
-			echo -e "\e[1;44m${CodeProject}\e[0m"
+			echo -e "\e[1;4${ColorNum}m${CodeProject}\e[0m"
 			;;
 		getExt)
 			echo ${LangExt}
@@ -320,7 +321,7 @@ UseC++()
 					cd ${LangSrc}/${project}
 					echo "make"
 					cd - > /dev/null
-					echo -e "\e[1;44m[${Lang} Code Compiled]\e[0m"
+					echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
 				#Compile without makefile
 				else
 					#source file is empty
@@ -336,7 +337,7 @@ UseC++()
 						ERROR=$(${LangCpl} ${src} -o ${TheBinDir}/${name} ${cplArgs} 2>&1 | tr '\n' '|')
 						#Code compiled successfully
 						if [ -z "${ERROR}" ]; then
-							echo -e "\e[1;44m[${Lang} Code Compiled]\e[0m"
+							echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
 						else
 							errorCode "cpl" "ERROR" "${ERROR}"
 						fi

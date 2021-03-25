@@ -1,8 +1,9 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.46"
+SupportV="0.1.47"
 Lang=Java
+ColorNum=1
 
 ProgDir=$1
 shift
@@ -78,10 +79,10 @@ UseJava()
 	case ${Type} in
 		color)
 			#Return Red
-			echo -e "\e[1;31m${Lang}\e[0m"
+			echo -e "\e[1;3${ColorNum}m${Lang}\e[0m"
 			;;
 		ProjectColor)
-			echo -e "\e[1;41m${CodeProject}\e[0m"
+			echo -e "\e[1;4${ColorNum}m${CodeProject}\e[0m"
 			;;
 		getExt)
 			echo ${LangExt}
@@ -509,7 +510,7 @@ UseJava()
 											esac
 											#move Java Jar to Binary dir
 											mv ${des%.class}.jar ${TheBinDir}/
-											echo -e "\e[1;41m[${Lang} Code Compiled (JAR)]\e[0m"
+											echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled (JAR)]\e[0m"
 											;;
 										#Do nothing...keep class
 										*|--class)
@@ -519,7 +520,7 @@ UseJava()
 											if [ -f ${TheBinDir}/${des%.class}.jar ]; then
 												rm ${TheBinDir}/${des%.class}.jar
 											fi
-											echo -e "\e[1;41m[${Lang} Code Compiled (CLASS)]\e[0m"
+											echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled (CLASS)]\e[0m"
 											;;
 									esac
 								else
@@ -611,7 +612,7 @@ UseJava()
 									#move Java Class to Binary dir
 									if [ -z "${ERROR}" ]; then
 										mv ${project}.jar ${TheBinDir}/
-										echo -e "\e[1;41m[Project \"${project}\" Compiled (JAR)]\e[0m"
+										echo -e "\e[1;4${ColorNum}m[Project \"${project}\" Compiled (JAR)]\e[0m"
 									else
 										#Display Error from compiler
 										errorCode "cpl" "ERROR" "${ERROR}"
@@ -646,7 +647,7 @@ UseJava()
 
 							if [ -z "${ERROR}" ]; then
 								mv ${project}.jar ${TheBinDir}/
-								echo -e "\e[1;41m[Project \"${project}\" Compiled (CLASS)]\e[0m"
+								echo -e "\e[1;4${ColorNum}m[Project \"${project}\" Compiled (CLASS)]\e[0m"
 							else
 								#Display Error from compiler
 								errorCode "cpl" "ERROR" "${ERROR}"

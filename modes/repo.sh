@@ -5,12 +5,15 @@ Head="cl[ide]"
 IDE=$(echo -e "\e[1;43mrepo\e[0m")
 Name="cl[${IDE}]"
 
-repoTool=$1
+repoTool="git"
 shift
-CodeProject=$1
+CodeProject="testing"
 shift
-repoAssist=$1
+repoAssist="True"
 shift
+
+#Refresh page
+Refresh=True
 
 IsInstalled=$(which ${repoTool})
 #check if git is installed
@@ -20,22 +23,33 @@ SvnTool=$(which svn)
 
 Help()
 {
+	local Selection=$1
 	case ${repoTool} in
 		git)
-			echo "GIT Help"
-			echo ""
-			echo "ActiveBranch"
-			echo "new, init"
-			echo "setup, clone"
-			echo "add"
-			echo "message, commit"
-			echo "branch, branches"
-			echo "upload, push"
-			echo "download, pull"
-			echo "state, status"
-			echo "slamdunk"
-			echo "help, options"
-			echo "version"
+			case ${Selection} in
+				branch|branches)
+					echo "help"
+					echo "new"
+					echo "remove, delete"
+					echo "select, checkout"
+					;;
+				*)
+					echo "GIT Help"
+					echo ""
+					echo "ActiveBranch"
+					echo "use, init"
+					echo "setup, clone"
+					echo "add"
+					echo "message, commit"
+					echo "branch, branches"
+					echo "upload, push"
+					echo "download, pull"
+					echo "state, status"
+					echo "slamdunk"
+					echo "help, options"
+					echo "version"
+					;;
+			esac
 			;;
 		svn)
 			echo "SVN Help"
@@ -94,7 +108,7 @@ gitHandler()
 				echo git init
 				;;
 			#clone a new repo
-			setup|clone)
+			use|clone)
 				#Find repo name
 				repo=$@
 				if [ ! -z "${repo}" ]; then
@@ -146,6 +160,8 @@ gitHandler()
 						name=$1
 						if [ ! -z "${name}" ]; then
 							echo git checkout -b "${name}"
+							#Refresh page
+							Refresh=True
 						else
 							echo -n "Provide a branch name"
 							read name
@@ -185,7 +201,9 @@ gitHandler()
 						#branch name given
 						if [ ! -z "${name}" ]; then
 							#Select branch
-							echo git checkout "${name}"
+							git checkout "${name}"
+							#Refresh page
+							Refresh=True
 						#no branch name given
 						else
 							#Get user to type branch name
@@ -201,9 +219,12 @@ gitHandler()
 							fi
 						fi
 						;;
+					help)
+						Help "${repoAct}"
+						;;
 					#list all branches
 					*)
-						echo git branch -a
+						git branch -a
 						;;
 				esac
 				;;
@@ -223,11 +244,11 @@ gitHandler()
 				;;
 			#Download from the repo
 			download|pull)
-				echo git pull
+				git pull
 				;;
 			#Display repo infortmation
 			state|status)
-				echo git status
+				git status
 				;;
 			#Peform quick and dirty commit
 			slamdunk)
@@ -303,13 +324,20 @@ Repo()
 	local UserArg=""
 	while true
 	do
-		Branch=$(gitHandler "ActiveBranch")
-		if [ -z "${Branch}" ]; then
-			prompt="${Name}(${cRepoTool}):$ "
-		else
-			cBranch=$(colors "${Branch}" "branch")
-			prompt="${Name}(${cRepoTool}{${cBranch}}):$ "
-		fi
+		case ${Refresh} in
+			True)
+				Branch=$(gitHandler "ActiveBranch")
+				if [ -z "${Branch}" ]; then
+					prompt="${Name}(${cRepoTool}):$ "
+				else
+					cBranch=$(colors "${Branch}" "branch")
+					prompt="${Name}(${cRepoTool}{${cBranch}}):$ "
+				fi
+				Refresh=False
+				;;
+			*)
+				;;
+		esac
 		#Handle CLI
 		read -e -p "${prompt}" -a UserIn
 		case ${UserIn[0]} in

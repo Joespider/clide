@@ -1,8 +1,9 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.33"
+SupportV="0.1.34"
 Lang=Ruby
+ColorNum=1
 
 ProgDir=$1
 shift
@@ -76,10 +77,10 @@ UseRuby()
 	case ${Type} in
 		color)
 		#Return Red
-			echo -e "\e[1;31m${Lang}\e[0m"
+			echo -e "\e[1;3${ColorNum}m${Lang}\e[0m"
 			;;
 		ProjectColor)
-			echo -e "\e[1;41m${CodeProject}\e[0m"
+			echo -e "\e[1;4${ColorNum}m${CodeProject}\e[0m"
 			;;
 		getExt)
 			echo ${LangExt}
@@ -313,7 +314,7 @@ UseRuby()
 									#Change to Ruby Source dir
 									cd - > /dev/null
 									if [ -f "${TheBinDir}/${name}" ]; then
-										echo -e "\e[1;41m[${Lang} Code Compiled]\e[0m"
+										echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
 									else
 										errorCode "cpl" "ERROR" "${ERROR}"
 									fi
@@ -337,7 +338,7 @@ UseRuby()
 							#Change to Ruby Source dir
 							cd - > /dev/null
 							if [ -f "${TheBinDir}/${src}" ]; then
-								echo -e "\e[1;41m[${Lang} Code Compiled]\e[0m"
+								echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
 							else
 								errorCode "cpl" "ERROR" "${ERROR}"
 							fi
