@@ -653,6 +653,7 @@ loadProject()
 	if [ ! -d "${ClideDir}" ]; then
 		errorCode "project"
 	else
+		#Is not a project
 		if [ -z ${project} ]; then
 			echo "no"
 		else
@@ -1081,15 +1082,17 @@ Actions()
 							;;
 						#Swap between main and test
 						mode)
-							#Make sure this is a porject
+							#Make sure this is a project
 							case ${CodeProject} in
 								none)
 									errorCode "project" "active"
 									;;
 								*)
-									local newMode=$(selectProjectMode ${Lang} ${UserIn[2]})
-									if [ ! -z "${newMode}"]; then
-										ProjectMode=${newMode}
+									if [ ! -z "${UserIn[2]}" ]; then
+										local newMode=$(selectProjectMode ${Lang} ${UserIn[2]})
+										if [ ! -z "${newMode}"]; then
+											ProjectMode=${newMode}
+										fi
 									fi
 									;;
 							esac
@@ -1097,7 +1100,7 @@ Actions()
 						#List the projects under the language
 						types)
 							cd ${TemplateProjectDir}/
-							ls ${Lang}.* | sed "s/${Lang}.//g"
+							ls ${Lang}.* 2> /dev/null | sed "s/${Lang}.//g"
 							cd - > /dev/null
 							;;
 						#Show Project help page
@@ -1393,11 +1396,24 @@ Actions()
 					;;
 				#run compiled code
 				execute|exe|run)
-					if [ ! -z "${Code}" ]; then
-						runCode ${Lang} ${Code} ${UserIn[1]}
-					else
-						errorCode "cpl" "none"
-					fi
+					case ${CodeProject} in
+						none)
+							if [ ! -z "${Code}" ]; then
+								runCode ${Lang} ${Code} ${UserIn[1]}
+							else
+								errorCode "cpl" "none"
+							fi
+							;;
+						#It is assumed that the project name is the binary
+						*)
+							if [ ! -z "${Code}" ]; then
+								runCode ${Lang} ${Code} ${UserIn[1]}
+							else
+								#May Cause Prolems
+								runCode ${Lang} ${CodeProject} ${UserIn[1]}
+							fi
+							;;
+					esac
 					;;
 				#Display cl[ide] version
 				version|v)
@@ -1710,7 +1726,7 @@ loadAuto()
 	comp_list "pwd"
 	comp_list "mkdir"
 	comp_list "use" "${pg}"
-	comp_list "project" "load import new list update types"
+	comp_list "project" "load import new list update types mode"
 	comp_list "shell"
 	comp_list "new" "--version -v --help -h --custom -c"
 	comp_list "${editor} ed edit" "non-lang"

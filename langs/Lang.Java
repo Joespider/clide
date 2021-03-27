@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.48"
+SupportV="0.1.49"
 Lang=Java
 ColorNum=1
 
@@ -123,17 +123,17 @@ UseJava()
 								*.*)
 									newName=${name##*.}
 									DirPath=$(echo ${name%${newName}} | tr '.' '/')
-									PackageName=$(echo ${name%.*} | sed "s/main.java.//1" | sed "s/test.java.//1" | tr '/' '.')
+									PackageName=$(echo ${name%.*} | sed "s/${ProjectMode}.java.//1" | tr '/' '.')
 									TheSrcDir="${LangSrc}/${project}/src/${DirPath}"
 									;;
 								*/*)
 									newName=${name##*/}
-									PackageName=$(echo ${name%/*} | sed "s/main\/java\///1" | sed "s/test\/java\///1" | tr '/' '.')
+									PackageName=$(echo ${name%/*} | sed "s/${ProjectMode}\/java\///1" | tr '/' '.')
 									DirPath=${name%${newName}}
 									TheSrcDir="${LangSrc}/${project}/src/${DirPath}"
 									;;
 								*)
-									PackageName=$(pwd | sed "s/${project}\/src/|/g" | sed "s/main\/java\///1" | sed "s/test\/java\///1" | cut -d '|' -f 2 | tr '/' '.')
+									PackageName=$(pwd | sed "s/${project}\/src/|/g" | sed "s/${ProjectMode}\/java\///1" | cut -d '|' -f 2 | tr '/' '.')
 									TheSrcDir="$(pwd)/"
 									newName=${name}
 									;;
@@ -236,12 +236,13 @@ UseJava()
 					#is a project
 					*)
 						TheSrcDir="${LangSrc}/${project}/src/"
-						local NumFound=$(find ${TheSrcDir} -name ${name} 2> /dev/null | wc -l)
+						local NumFound=$(find ${TheSrcDir} -name ${name} 2> /dev/null | grep "${ProjectMode}" | wc -l)
 						case ${NumFound} in
 							0)
 								;;
 							1)
-								name=$(find ${TheSrcDir} -name ${name} 2> /dev/null)
+								name=$(find ${TheSrcDir} -name ${name} 2> /dev/null | grep "${ProjectMode}")
+
 								if [ -f ${name} ]; then
 									name=${name%${LangExt}}
 									newName=${name##*/}
@@ -316,25 +317,25 @@ UseJava()
 								;;
 							*)
 								TheSrcDir="${LangSrc}/${project}/src/"
-								local NumFound=$(find -name ${src} ${TheSrcDir} 2> /dev/null | wc -l)
+								local NumFound=$(find -name ${src} ${TheSrcDir} 2> /dev/null | grep "${ProjectMode}" | wc -l)
 								case ${NumFound} in
 									0)
 										;;
 									1)
-										src=$(find -name ${src} ${TheSrcDir} 2> /dev/null)
+										src=$(find -name ${src} ${TheSrcDir} 2> /dev/null | grep "${ProjectMode}")
 										if [ -f ${src} ]; then
 											${editor} "${src}"
 										fi
 										;;
 									*)
 										local Select
-										find ${TheSrcDir} -name ${src} 2> /dev/null | sed "s/\/${project}\/src\//|/1" | cut -d '|' -f 2 | nl
+										find ${TheSrcDir} -name ${src} 2> /dev/null | grep "${ProjectMode}" | sed "s/\/${project}\/src\//|/1" | cut -d '|' -f 2 | nl
 										echo -n "> "
 										read Select
 										Select=$(echo ${Select} | grep "^-\?[0-9]*$")
 										if [ ! -z "${Select}" ]; then
 											if [ ${Select} -le ${NumFound} ] && [ ${Select} -gt 0 ]; then
-												src=$(find ${TheSrcDir} -name ${src} 2> /dev/null | tr '\n' '|' | cut -d '|' -f ${Select})
+												src=$(find ${TheSrcDir} -name ${src} 2> /dev/null | grep "${ProjectMode}" | tr '\n' '|' | cut -d '|' -f ${Select})
 												${editor} ${src}
 											fi
 										fi
@@ -349,25 +350,25 @@ UseJava()
 								;;
 							*)
 								TheSrcDir="${LangSrc}/${project}/src/"
-								local NumFound=$(find ${TheSrcDir} -name ${src} 2> /dev/null | wc -l)
+								local NumFound=$(find ${TheSrcDir} -name ${src} 2> /dev/null | grep "${ProjectMode}" | wc -l)
 								case ${NumFound} in
 									0)
 										;;
 									1)
-										src=$(find ${TheSrcDir} -name ${src} 2> /dev/null)
+										src=$(find ${TheSrcDir} -name ${src} 2> /dev/null | grep "${ProjectMode}")
 										if [ -f ${src} ]; then
 											${editor} ${src}
 										fi
 										;;
 									*)
 										local Select
-										find ${TheSrcDir} -name ${src} 2> /dev/null | sed "s/\/${project}\/src\//|/1" | cut -d '|' -f 2 | nl
+										find ${TheSrcDir} -name ${src} 2> /dev/null | grep "${ProjectMode}" | sed "s/\/${project}\/src\//|/1" | cut -d '|' -f 2 | nl
 										echo -n "> "
 										read Select
 										Select=$(echo ${Select} | grep "^-\?[0-9]*$")
 										if [ ! -z "${Select}" ]; then
 											if [ ${Select} -le ${NumFound} ] && [ ${Select} -gt 0 ]; then
-												src=$(find ${TheSrcDir} -name ${src} 2> /dev/null | tr '\n' '|' | cut -d '|' -f ${Select})
+												src=$(find ${TheSrcDir} -name ${src} 2> /dev/null | grep "${ProjectMode}" | tr '\n' '|' | cut -d '|' -f ${Select})
 												${editor} ${src}
 											fi
 										fi
@@ -412,25 +413,25 @@ UseJava()
 								;;
 							*)
 								TheSrcDir="${LangSrc}/${project}/src/"
-								local NumFound=$(find -name ${src} ${TheSrcDir} 2> /dev/null | wc -l)
+								local NumFound=$(find -name ${src} ${TheSrcDir} 2> /dev/null | grep "${ProjectMode}" | wc -l)
 								case ${NumFound} in
 									0)
 										;;
 									1)
-										src=$(find -name ${src} ${TheSrcDir} 2> /dev/null)
+										src=$(find -name ${src} ${TheSrcDir} 2> /dev/null | grep "${ProjectMode}")
 										if [ -f ${src} ]; then
 											${ReadBy} ${src}
 										fi
 										;;
 									*)
 										local Select
-										find ${TheSrcDir} -name ${src} 2> /dev/null | sed "s/\/${project}\/src\//|/1" | cut -d '|' -f 2 | nl
+										find ${TheSrcDir} -name ${src} 2> /dev/null | grep "${ProjectMode}" | sed "s/\/${project}\/src\//|/1" | cut -d '|' -f 2 | nl
 										echo -n "> "
 										read Select
 										Select=$(echo ${Select} | grep "^-\?[0-9]*$")
 										if [ ! -z "${Select}" ]; then
 											if [ ${Select} -le ${NumFound} ] && [ ${Select} -gt 0 ]; then
-												src=$(find ${TheSrcDir} -name ${src} 2> /dev/null | tr '\n' '|' | cut -d '|' -f ${Select})
+												src=$(find ${TheSrcDir} -name ${src} 2> /dev/null | grep "${ProjectMode}" | tr '\n' '|' | cut -d '|' -f ${Select})
 												${ReadBy} ${src}
 											fi
 										fi
@@ -455,6 +456,7 @@ UseJava()
 			local TheBinDir
 			local des
 			local ERROR
+
 			#Handle Project Dir
 			case ${project} in
 				#Code is NOT part of a project
@@ -543,6 +545,7 @@ UseJava()
 					local TheLibDir="${LangSrc}/${project}/lib/"
 					TheSrcDir="${LangSrc}/${project}/src/"
 					local ThePWD=${LangSrc}/${project}/
+					local TheClassDir=${ThePWD}classes/
 					cd ${ThePWD}
 					local ReplaceTheSrcDir=$(echo ${LangSrc}/${project}/ | tr '/' '|')
 					local ReplaceTheBinDir=$(echo ${LangSrc}/${project}/classes/ | tr '/' '|')
@@ -552,24 +555,8 @@ UseJava()
 					case ${name} in
 						#Compile as Jar
 						--jar)
-							find ${TheSrcDir} -name "*${LangExt}" | tr '/' '|' | sed "s/${ReplaceTheSrcDir}//g" | tr '|' '/'  > sources.txt
-
-							#Compile java code with lib jars
-							if [ -d "${TheLibDir}" ]; then
-								local ReplaceTheLibDir=$(echo "${LangSrc}/${project}/" | tr '/' '|')
-								TheClassPath=$(find ${TheLibDir} -name "*.jar" | tr '/' '|' | sed "s/${ReplaceTheLibDir}//g" | tr '|' '/' | tr '\n' ';' | rev | sed "s/;//1" | rev)
-								#make sure jars exist in lib
-								if [ ! -z "${TheClassPath}" ]; then
-									ERROR=$(${LangCpl} -cp ".;${TheClassPath}" -d classes @sources.txt 2>&1 | tr '\n' '|')
-								#jars don't exist in lib...compile as usual
-								else
-									ERROR=$(${LangCpl} -d classes @sources.txt 2>&1 | tr '\n' '|')
-								fi
-							#jars don't exist in lib...compile as usual
-							else
-								ERROR=$(${LangCpl} -d classes @sources.txt 2>&1 | tr '\n' '|')
-							fi
-
+							#Compile to Class
+							ERROR=$(UseJava ${Type} ${src} --class ${keep})
 							#Convert Class files to Jar
 							if [ -z "${ERROR}" ]; then
 								#Look for java class containing main
@@ -607,32 +594,37 @@ UseJava()
 								#}
 
 								#Look for compiled classes
-								find ${ThePWD} -name "*.class" | tr '/' '|' | sed "s/${ReplaceTheBinDir}//g" | tr '|' '/'  > sources.txt
-								ERROR=$(jar -cfm ${project}.jar ${ManifestFile} -C classes @sources.txt 2>&1 | tr '/' '|' | sed "s/${ReplaceTheSrcDir}/\//g" | tr '|' '/' | tr '\n' '|')
+								find ${TheClassDir} -name "*.class" | tr '/' '|' | sed "s/${ReplaceTheBinDir}//g" | tr '|' '/'  > sources.txt
+								local ClassFound=$(cat sources.txt)
+								#package as jar of class found
+								if [ ! -z "${ClassFound}" ]; then
+									ERROR=$(jar -cfm ${project}.jar ${ManifestFile} -C classes @sources.txt 2>&1 | tr '/' '|' | sed "s/${ReplaceTheSrcDir}/\//g" | tr '|' '/' | tr '\n' '|')
 									#move Java Class to Binary dir
 									if [ -z "${ERROR}" ]; then
-										mv ${project}.jar ${TheBinDir}/
+										mv ${project}.jar ${TheBinDir}/ 2> /dev/null
+										rm -rf ${TheClassDir}* 2> /dev/null
 										echo -e "\e[1;4${ColorNum}m[Project \"${project}\" Compiled (JAR)]\e[0m"
 									else
 										#Display Error from compiler
 										errorCode "cpl" "ERROR" "${ERROR}"
 									fi
 								else
-									#Display Error from compiler
-									errorCode "cpl" "ERROR" "${ERROR}"
+									errorCode "cpl" "ERROR" "No compiled Clases found"
 								fi
-								rm sources.txt
-								cd - > /dev/null
+							else
+								#Display Error from compiler
+								errorCode "cpl" "ERROR" "${ERROR}"
+							fi
+							rm sources.txt
+							cd - > /dev/null
 							;;
-
-						#Do nothing...keep class
-						*|--class)
-							find ${TheSrcDir} -name "*${LangExt}" | tr '/' '|' | sed "s/${ReplaceTheSrcDir}//g" | tr '|' '/'  > sources.txt
-
+						#compile class
+						--class)
+							find ${TheSrcDir} -name "*${LangExt}" | grep "${ProjectMode}" | tr '/' '|' | sed "s/${ReplaceTheSrcDir}//g" | tr '|' '/'  > sources.txt
 							#Compile java code with lib jars
 							if [ -d "${TheLibDir}" ]; then
 								local ReplaceTheLibDir=$(echo "${LangSrc}/${project}/" | tr '/' '|')
-								TheClassPath=$(find ${TheLibDir} -name "*.jar" | tr '/' '|' | sed "s/${ReplaceTheLibDir}//g" | tr '|' '/' | tr '\n' ';' | rev | sed "s/;//1" | rev)
+								TheClassPath=$(find ${TheLibDir} -name "*.jar" | grep "${ProjectMode}" | tr '/' '|' | sed "s/${ReplaceTheLibDir}//g" | tr '|' '/' | tr '\n' ';' | rev | sed "s/;//1" | rev)
 								#make sure jars exist in lib
 								if [ ! -z "${TheClassPath}" ]; then
 									ERROR=$(${LangCpl} -cp ".;${TheClassPath}" -d classes @sources.txt 2>&1 | tr '\n' '|')
@@ -644,13 +636,26 @@ UseJava()
 							else
 								ERROR=$(${LangCpl} -d classes @sources.txt 2>&1 | tr '\n' '|')
 							fi
-
-							if [ -z "${ERROR}" ]; then
-								mv ${project}.jar ${TheBinDir}/
+							echo ${ERROR}
+							;;
+						#default
+						*)
+							#Compile to Class
+							ERROR=$(UseJava ${Type} ${src} --class ${keep})
+							IsClass=$(find ${ThePWD} -name "*.class")
+							#Code Compile from Java
+							if [ -z "${ERROR}" ] && [ ! -z "${IsClass}" ]; then
+								if [ -f ${TheBinDir}/${project}.jar ]; then
+									rm ${TheBinDir}/${project}.jar
+								fi
 								echo -e "\e[1;4${ColorNum}m[Project \"${project}\" Compiled (CLASS)]\e[0m"
 							else
-								#Display Error from compiler
-								errorCode "cpl" "ERROR" "${ERROR}"
+								if [ -z "${IsClass}" ]; then
+									errorCode "cpl" "ERROR" "Class did not compile"
+								else
+									#Display Error from compiler
+									errorCode "cpl" "ERROR" "${ERROR}"
+								fi
 							fi
 							rm sources.txt
 							cd - > /dev/null
@@ -1015,7 +1020,9 @@ UseJava()
 			local TheBin="${name%.*}.class"
 			local TheJar="${name%.*}.jar"
 			local project=${CodeProject}
-			local TheBinDir
+			local package
+			local TheClassDir
+			local TheJarDir
 			local JavaProp=$2
 			shift
 			local Args=$@
@@ -1033,49 +1040,47 @@ UseJava()
 				TheJar="${name%.*}.jar"
 			fi
 
+			#Run Compiled Code
 			if [ ! -z "${name}" ]; then
 				case ${project} in
 					none)
 						project=""
-						TheBinDir=${LangBin}
-						#Check if Java Class exists
-						if [ -f ${TheBinDir}/${TheBin} ]; then
-							TheBin=${TheBin%.*}
-							cd ${TheBinDir}
-							#If no JavaProp found
-							case ${JavaProp} in
-								none)
-									#Execute without
-									${LangRun} ${TheBin} ${Args[@]}
-									;;
-								*)
-									${LangRun} "${JavaProp}" ${TheBin} ${Args[@]}
-									;;
-							esac
-							cd - > /dev/null
-						#Check if Java Jar exists
-						elif [ -f ${TheBinDir}/${TheJar} ]; then
-							${LangRun} -jar ${TheBinDir}/${TheJar} ${Args[@]}
-						else
-							errorCode "cpl" "need" "${name}"
-						fi
+						TheClassDir=${LangBin}/
+						TheJarDir=${LangBin}
 						;;
 					*)
 						TheJar="${project}.jar"
-						TheBinDir="${LangSrc}/${project}/bin"
-						#Check if Java Jar exists
-						if [ -f ${TheBinDir}/${TheJar} ]; then
-							${LangRun} -jar ${TheBinDir}/${TheJar} ${Args[@]}
-						else
-							errorCode "cpl" "need" "${name}"
+						TheClassDir=${LangSrc}/${project}/classes/
+						package=$(find ${TheClassDir} -name "*.class")
+						if [ ! -z "${package}" ]; then
+							package="${package%${TheBin}}"
+							package="${package#${TheClassDir}}"
 						fi
-#						[Run Class]
-#							main/java$ ls com/my/project/
-#							none.class none.java
-#
-#							main/java$ java com.my.project.none
+						TheJarDir="${LangSrc}/${project}/bin"
 						;;
 				esac
+				#Check if Java Class exists
+				if [ -f ${TheClassDir}${package}${TheBin} ]; then
+					TheBin=${TheBin%.*}
+					cd ${TheClassDir}
+					package=$(echo ${package} | tr '/' '.')
+					#If no JavaProp found
+					case ${JavaProp} in
+						none)
+							#Execute without
+							${LangRun} ${package}${TheBin} ${Args[@]}
+							;;
+						*)
+							${LangRun} "${JavaProp}" ${package}${TheBin} ${Args[@]}
+							;;
+					esac
+					cd - > /dev/null
+				#Check if Java Jar exists
+				elif [ -f ${TheJarDir}/${TheJar} ]; then
+					${LangRun} -jar ${TheJarDir}/${TheJar} ${Args[@]}
+				else
+					errorCode "cpl" "need" "${name}"
+				fi
 			else
 				echo "Unable to locate executable"
 			fi

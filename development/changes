@@ -9,6 +9,8 @@ Added:
 	project mode addition is in progress (ie main vs test)
 	begun adding project type support (project/Template/<Lang>.<type>)
 	listing compiled code ($ clide --list-cpl <language>)
+	Java project run and compile (.class and .jar) much like standard programs (Lang.Java)
+	Java projects are made to compile with the name of the project (Lang.Java)
 
 Concept:
 	Managing different project types
@@ -23,3 +25,4 @@ Bug Fixes:
 	fixed argument handling of pre-compiling code
 	performance improvements (converted 'tr A-Z a-z' to '${var,,}')
 	improving repo support
+	refactored code in Java language support (Lang.Java)
