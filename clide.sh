@@ -25,6 +25,7 @@ Version=$(GetConfig Version)
 
 #cl[ide] colors
 #{
+VerColor=$(GetConfig VerColor)
 IDEcolor=$(GetConfig IDEcolor)
 CLcolor=$(GetConfig CLcolor)
 BKTcolor=$(GetConfig BKTcolor)
@@ -482,7 +483,12 @@ CodeVersion()
 Banner()
 {
 	Art
-	echo "(${Version})"
+	if [ ! -z "${VerColor}" ]; then
+		Version=$(echo ${Version} | tr -d '\n')
+		echo -e "(\e[1;4${VerColor}m${Version}\e[0m)"
+	else
+		echo "(${Version})"
+	fi
 	echo ""
 	echo "\"Welcome to ${Head}\""
 	echo "\"The command line IDE for the Linux/Unix user\""
