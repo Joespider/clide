@@ -23,6 +23,13 @@ Name="cl[${IDE}]"
 #Version tracking
 Version=$(GetConfig Version)
 
+#cl[ide] colors
+#{
+IDEcolor=$(GetConfig IDEcolor)
+CLcolor=$(GetConfig CLcolor)
+BKTcolor=$(GetConfig BKTcolor)
+#}
+
 #cl[ide] config
 #{
 editor=$(GetConfig editor)
@@ -55,16 +62,29 @@ declare -A Commands
 
 Art()
 {
-	echo "                ____                       ____ "
-	echo "               |  __|                     |__  |"
-	echo "   ___   _     | |  _______   _____    ____  | |"
-	echo "  / __| | |    | | |__   __| |  __ \  |  __| | |"
-	echo " / /    | |    | |    | |    | |  \ \ | |_   | |"
-	echo "| |     | |    | |    | |    | |  | | |  _|  | |"
-	echo " \ \__  | |__  | |  __| |__  | |__/ / | |__  | |"
-	echo "  \___| |____| | | |_______| |_____/  |____| | |"
-	echo "               | |__                       __| |"
-	echo "               |____|                     |____|"
+	if [ ! -z "${IDEcolor}" ] && [ ! -z "${CLcolor}" ] && [ ! -z "${BKTcolor}" ]; then
+		echo -e "                ____                         ____ "
+		echo -e "               \e[1;4${BKTcolor}m|  __|\e[0m                       \e[1;4${BKTcolor}m|__  |\e[0m"
+		echo -e "   ___   _     \e[1;4${BKTcolor}m| |\e[0m  _______    _____     ____  \e[1;4${BKTcolor}m| |\e[0m"
+		echo -e "  \e[1;4${CLcolor}m/ __|\e[0m \e[1;4${CLcolor}m| |\e[0m    \e[1;4${BKTcolor}m| |\e[0m \e[1;4${IDEcolor}m|__   __|\e[0m  \e[1;4${IDEcolor}m|  __ \ \e[0m  \e[1;4${IDEcolor}m|  __|\e[0m \e[1;4${BKTcolor}m| |\e[0m"
+		echo -e " \e[1;4${CLcolor}m/ /\e[0m    \e[1;4${CLcolor}m| |\e[0m    \e[1;4${BKTcolor}m| |\e[0m    \e[1;4${IDEcolor}m| |\e[0m     \e[1;4${IDEcolor}m| |\e[0m  \e[1;4${IDEcolor}m\ \ \e[0m \e[1;4${IDEcolor}m| |\e[0m_   \e[1;4${BKTcolor}m| |\e[0m"
+		echo -e "\e[1;4${CLcolor}m| |\e[0m     \e[1;4${CLcolor}m| |\e[0m    \e[1;4${BKTcolor}m| |\e[0m    \e[1;4${IDEcolor}m| |\e[0m     \e[1;4${IDEcolor}m| |\e[0m  \e[1;4${IDEcolor}m| |\e[0m  \e[1;4${IDEcolor}m|  _|\e[0m  \e[1;4${BKTcolor}m| |\e[0m"
+		echo -e " \e[1;4${CLcolor}m\ \_\e[0m_  \e[1;4${CLcolor}m| |\e[0m__  \e[1;4${BKTcolor}m| |\e[0m  __\e[1;4${IDEcolor}m| |\e[0m__   \e[1;4${IDEcolor}m| |\e[0m__\e[1;4${IDEcolor}m/ /\e[0m  \e[1;4${IDEcolor}m| |\e[0m__  \e[1;4${BKTcolor}m| |\e[0m"
+		echo -e "  \e[1;4${CLcolor}m\___|\e[0m \e[1;4${CLcolor}m|____|\e[0m \e[1;4${BKTcolor}m| |\e[0m \e[1;4${IDEcolor}m|_______|\e[0m  \e[1;4${IDEcolor}m|_____/\e[0m   \e[1;4${IDEcolor}m|____|\e[0m \e[1;4${BKTcolor}m| |\e[0m"
+		echo -e "               \e[1;4${BKTcolor}m| |\e[0m__                         __\e[1;4${BKTcolor}m| |\e[0m"
+		echo -e "               \e[1;4${BKTcolor}m|____|\e[0m                       \e[1;4${BKTcolor}m|____|\e[0m"
+	else
+		echo -e "                ____                         ____ "
+		echo -e "               |  __|                       |__  |"
+		echo -e "   ___   _     | |  _______    _____     ____  | |"
+		echo -e "  / __| | |    | | |__   __|  |  __ \   |  __| | |"
+		echo -e " / /    | |    | |    | |     | |  \ \  | |_   | |"
+		echo -e "| |     | |    | |    | |     | |  | |  |  _|  | |"
+		echo -e " \ \__  | |__  | |  __| |__   | |__/ /  | |__  | |"
+		echo -e "  \___| |____| | | |_______|  |_____/   |____| | |"
+		echo -e "               | |__                         __| |"
+		echo -e "               |____|                       |____|"
+	fi
 }
 
 #Clide menu help page
