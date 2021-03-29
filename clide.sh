@@ -21,7 +21,7 @@ IDE=$(echo -e "\e[1;40mide\e[0m")
 Name="cl[${IDE}]"
 
 #Version tracking
-Version=$(GetConfig Version)
+Version=$(grep "Version" ${root}/var/version | grep -v "#" | cut -d "=" -f 2)
 
 #cl[ide] colors
 #{
