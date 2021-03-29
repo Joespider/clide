@@ -21,7 +21,15 @@ IDE=$(echo -e "\e[1;40mide\e[0m")
 Name="cl[${IDE}]"
 
 #Version tracking
-Version=$(GetConfig Version)
+Version=$(grep "Version" ${root}/var/version | grep -v "#" | cut -d "=" -f 2)
+
+#cl[ide] colors
+#{
+VerColor=$(GetConfig VerColor)
+IDEcolor=$(GetConfig IDEcolor)
+CLcolor=$(GetConfig CLcolor)
+BKTcolor=$(GetConfig BKTcolor)
+#}
 
 #cl[ide] config
 #{
@@ -55,16 +63,29 @@ declare -A Commands
 
 Art()
 {
-	echo "                ____                       ____ "
-	echo "               |  __|                     |__  |"
-	echo "   ___   _     | |  _______   _____    ____  | |"
-	echo "  / __| | |    | | |__   __| |  __ \  |  __| | |"
-	echo " / /    | |    | |    | |    | |  \ \ | |_   | |"
-	echo "| |     | |    | |    | |    | |  | | |  _|  | |"
-	echo " \ \__  | |__  | |  __| |__  | |__/ / | |__  | |"
-	echo "  \___| |____| | | |_______| |_____/  |____| | |"
-	echo "               | |__                       __| |"
-	echo "               |____|                     |____|"
+	if [ ! -z "${IDEcolor}" ] && [ ! -z "${CLcolor}" ] && [ ! -z "${BKTcolor}" ]; then
+		echo -e "                ____                         ____ "
+		echo -e "               \e[1;4${BKTcolor}m|  __|\e[0m                       \e[1;4${BKTcolor}m|__  |\e[0m"
+		echo -e "   ___   _     \e[1;4${BKTcolor}m| |\e[0m  _______    _____     ____  \e[1;4${BKTcolor}m| |\e[0m"
+		echo -e "  \e[1;4${CLcolor}m/ __|\e[0m \e[1;4${CLcolor}m| |\e[0m    \e[1;4${BKTcolor}m| |\e[0m \e[1;4${IDEcolor}m|__   __|\e[0m  \e[1;4${IDEcolor}m|  __ \ \e[0m  \e[1;4${IDEcolor}m|  __|\e[0m \e[1;4${BKTcolor}m| |\e[0m"
+		echo -e " \e[1;4${CLcolor}m/ /\e[0m    \e[1;4${CLcolor}m| |\e[0m    \e[1;4${BKTcolor}m| |\e[0m    \e[1;4${IDEcolor}m| |\e[0m     \e[1;4${IDEcolor}m| |\e[0m  \e[1;4${IDEcolor}m\ \ \e[0m \e[1;4${IDEcolor}m| |\e[0m_   \e[1;4${BKTcolor}m| |\e[0m"
+		echo -e "\e[1;4${CLcolor}m| |\e[0m     \e[1;4${CLcolor}m| |\e[0m    \e[1;4${BKTcolor}m| |\e[0m    \e[1;4${IDEcolor}m| |\e[0m     \e[1;4${IDEcolor}m| |\e[0m  \e[1;4${IDEcolor}m| |\e[0m  \e[1;4${IDEcolor}m|  _|\e[0m  \e[1;4${BKTcolor}m| |\e[0m"
+		echo -e " \e[1;4${CLcolor}m\ \_\e[0m_  \e[1;4${CLcolor}m| |\e[0m__  \e[1;4${BKTcolor}m| |\e[0m  __\e[1;4${IDEcolor}m| |\e[0m__   \e[1;4${IDEcolor}m| |\e[0m__\e[1;4${IDEcolor}m/ /\e[0m  \e[1;4${IDEcolor}m| |\e[0m__  \e[1;4${BKTcolor}m| |\e[0m"
+		echo -e "  \e[1;4${CLcolor}m\___|\e[0m \e[1;4${CLcolor}m|____|\e[0m \e[1;4${BKTcolor}m| |\e[0m \e[1;4${IDEcolor}m|_______|\e[0m  \e[1;4${IDEcolor}m|_____/\e[0m   \e[1;4${IDEcolor}m|____|\e[0m \e[1;4${BKTcolor}m| |\e[0m"
+		echo -e "               \e[1;4${BKTcolor}m| |\e[0m__                         __\e[1;4${BKTcolor}m| |\e[0m"
+		echo -e "               \e[1;4${BKTcolor}m|____|\e[0m                       \e[1;4${BKTcolor}m|____|\e[0m"
+	else
+		echo -e "                ____                         ____ "
+		echo -e "               |  __|                       |__  |"
+		echo -e "   ___   _     | |  _______    _____     ____  | |"
+		echo -e "  / __| | |    | | |__   __|  |  __ \   |  __| | |"
+		echo -e " / /    | |    | |    | |     | |  \ \  | |_   | |"
+		echo -e "| |     | |    | |    | |     | |  | |  |  _|  | |"
+		echo -e " \ \__  | |__  | |  __| |__   | |__/ /  | |__  | |"
+		echo -e "  \___| |____| | | |_______|  |_____/   |____| | |"
+		echo -e "               | |__                         __| |"
+		echo -e "               |____|                       |____|"
+	fi
 }
 
 #Clide menu help page
@@ -462,7 +483,12 @@ CodeVersion()
 Banner()
 {
 	Art
-	echo "(${Version})"
+	if [ ! -z "${VerColor}" ]; then
+		Version=$(echo ${Version} | tr -d '\n')
+		echo -e "(\e[1;4${VerColor}m${Version}\e[0m)"
+	else
+		echo "(${Version})"
+	fi
 	echo ""
 	echo "\"Welcome to ${Head}\""
 	echo "\"The command line IDE for the Linux/Unix user\""
@@ -653,6 +679,7 @@ loadProject()
 	if [ ! -d "${ClideDir}" ]; then
 		errorCode "project"
 	else
+		#Is not a project
 		if [ -z ${project} ]; then
 			echo "no"
 		else
@@ -1081,15 +1108,17 @@ Actions()
 							;;
 						#Swap between main and test
 						mode)
-							#Make sure this is a porject
+							#Make sure this is a project
 							case ${CodeProject} in
 								none)
 									errorCode "project" "active"
 									;;
 								*)
-									local newMode=$(selectProjectMode ${Lang} ${UserIn[2]})
-									if [ ! -z "${newMode}"]; then
-										ProjectMode=${newMode}
+									if [ ! -z "${UserIn[2]}" ]; then
+										local newMode=$(selectProjectMode ${Lang} ${UserIn[2]})
+										if [ ! -z "${newMode}"]; then
+											ProjectMode=${newMode}
+										fi
 									fi
 									;;
 							esac
@@ -1097,7 +1126,7 @@ Actions()
 						#List the projects under the language
 						types)
 							cd ${TemplateProjectDir}/
-							ls ${Lang}.* | sed "s/${Lang}.//g"
+							ls ${Lang}.* 2> /dev/null | sed "s/${Lang}.//g"
 							cd - > /dev/null
 							;;
 						#Show Project help page
@@ -1393,11 +1422,24 @@ Actions()
 					;;
 				#run compiled code
 				execute|exe|run)
-					if [ ! -z "${Code}" ]; then
-						runCode ${Lang} ${Code} ${UserIn[1]}
-					else
-						errorCode "cpl" "none"
-					fi
+					case ${CodeProject} in
+						none)
+							if [ ! -z "${Code}" ]; then
+								runCode ${Lang} ${Code} ${UserIn[1]}
+							else
+								errorCode "cpl" "none"
+							fi
+							;;
+						#It is assumed that the project name is the binary
+						*)
+							if [ ! -z "${Code}" ]; then
+								runCode ${Lang} ${Code} ${UserIn[1]}
+							else
+								#May Cause Prolems
+								runCode ${Lang} ${CodeProject} ${UserIn[1]}
+							fi
+							;;
+					esac
 					;;
 				#Display cl[ide] version
 				version|v)
@@ -1710,7 +1752,7 @@ loadAuto()
 	comp_list "pwd"
 	comp_list "mkdir"
 	comp_list "use" "${pg}"
-	comp_list "project" "load import new list update types"
+	comp_list "project" "load import new list update types mode"
 	comp_list "shell"
 	comp_list "new" "--version -v --help -h --custom -c"
 	comp_list "${editor} ed edit" "non-lang"

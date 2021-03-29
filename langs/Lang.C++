@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.49"
+SupportV="0.1.50"
 Lang=C++
 ColorNum=4
 
@@ -286,6 +286,10 @@ UseC++()
 			local name=$2
 			local cplArgs=$3
 			local project=${CodeProject}
+			local NeedThreads
+			local HasXlib
+			local HasXutil
+			local HasXos
 			local TheBinDir
 			local ERROR
 
@@ -328,11 +332,24 @@ UseC++()
 					if [ -z ${name} ]; then
 						errorCode "cpl" "choose"
 					else
-						#Compile for Threads
+						#[Threads] Compile for Threads
+						#{
 						NeedThreads=$(grep "#include <thread>" ${src})
 						if [ ! -z "${NeedThreads}" ]; then
 							cplArgs="${cplArgs} -lpthread"
 						fi
+						#}
+
+						#[X11] Compile with X11 code
+						#{
+						HasXlib=$(grep "#include <X11/Xlib.h>" ${src})
+						HasXutil=$(grep "#include <X11/Xutil.h>" ${src})
+						HasXos=$(grep "#include <X11/Xos.h>" ${src})
+						if [ ! -z "${HasXlib}" ] || [ ! -z "${HasXutil}" ] || [ ! -z "${HasXos}" ]; then
+							cplArgs="${cplArgs} -I /usr/X11/include -L /usr/X11/lib -lX11"
+						fi
+						#}
+
 						#Compile and check for errors
 						ERROR=$(${LangCpl} ${src} -o ${TheBinDir}/${name} ${cplArgs} 2>&1 | tr '\n' '|')
 						#Code compiled successfully
