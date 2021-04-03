@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.38"
+SupportV="0.1.39"
 Lang=Bash
 ColorNum=2
 
@@ -217,20 +217,48 @@ UseBash()
 					;;
 			esac
 			;;
-		editCode)
+		editCode|readCode)
 			local src=$1
 			local num=$2
+			local ReadOrEdit
+
+			#Select the tool
+			#{
+			case ${Type} in
+				readCode)
+					ReadOrEdit=${ReadBy}
+					;;
+				editCode)
+					ReadOrEdit=${editor}
+					;;
+				*)
+					;;
+			esac
+			#}
+
 			case ${src} in
 				*${LangExt})
 					if [[ "${src}" == *","* ]]; then
 						if [ -z ${num} ]; then
-							errorCode "editNull"
+							#ERROR
+							#{
+							case ${Type} in
+								readCode)
+									errorCode "readNull"
+									;;
+								editCode)
+									errorCode "editNull"
+									;;
+								*)
+									;;
+							esac
+							#}
 						else
 							if [[ "${src}" == *"${num}"* ]]; then
 								if [[ "${num}" == *"${LangExt}" ]]; then
-									${editor} ${num}
+									${ReadOrEdit} ${num}
 								else
-									${editor} "${num}${LangExt}"
+									${ReadOrEdit} "${num}${LangExt}"
 								fi
 							else
 								errorCode "editNot"
@@ -240,39 +268,24 @@ UseBash()
 						case ${src} in
 							#Anything but clide
 							clide${LangExt})
-								errorCode "editMe"
+								#ERROR
+								#{
+								case ${Type} in
+									readCode)
+										errorCode "readNot"
+										;;
+									editCode)
+										errorCode "editMe"
+										;;
+									*)
+										;;
+								esac
+								#}
 								;;
 							*)
-								${editor} ${src}
+								${ReadOrEdit} ${src}
 								;;
 						esac
-					fi
-					;;
-				*)
-					;;
-			esac
-			;;
-		readCode)
-			local src=$1
-			local num=$2
-			case ${src} in
-				*${LangExt})
-					if [[ "${src}" == *","* ]]; then
-						if [ -z ${num} ]; then
-							errorCode "readNull"
-						else
-							if [[ "${src}" == *"${num}"* ]]; then
-								if [[ "${num}" == *"${LangExt}" ]]; then
-									${ReadBy} ${num}
-								else
-									${ReadBy} "${num}${LangExt}"
-								fi
-							else
-								errorCode "readNot"
-							fi
-						fi
-					else
-						${ReadBy} ${src}
 					fi
 					;;
 				*)

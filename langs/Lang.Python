@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.39"
+SupportV="0.1.40"
 Lang=Python
 ColorNum=3
 
@@ -216,54 +216,76 @@ UsePython()
 					;;
 			esac
 			;;
-		editCode)
+		editCode|readCode)
 			local src=$1
 			local num=$2
-			case ${src} in
-				*${LangExt})
-					if [[ "${src}" == *","* ]]; then
-						if [ -z ${num} ]; then
-							errorCode "editNull"
-						else
-							if [[ "${src}" == *"${num}"* ]]; then
-								if [[ "${num}" == *"${LangExt}" ]]; then
-									${editor} ${num}
-								else
-									${editor} "${num}${LangExt}"
-								fi
-							else
-								errorCode "editNot"
-							fi
-						fi
-					else
-						${editor} ${src}
-					fi
+			local ReadOrEdit
+
+			#Select the tool
+			#{
+			case ${Type} in
+				readCode)
+					ReadOrEdit=${ReadBy}
+					;;
+				editCode)
+					ReadOrEdit=${editor}
 					;;
 				*)
 					;;
 			esac
-			;;
-		readCode)
-			local src=$1
-			local num=$2
+			#}
+
 			case ${src} in
 				*${LangExt})
 					if [[ "${src}" == *","* ]]; then
 						if [ -z ${num} ]; then
-							errorCode "readNull"
+							#Error
+							#{
+							case ${Type} in
+								readCode)
+									errorCode "readNull"
+									;;
+								editCode)
+									errorCode "editNull"
+									;;
+								*)
+									;;
+							esac
+							#}
 						else
 							if [[ "${src}" == *"${num}"* ]]; then
 								if [[ "${num}" == *"${LangExt}" ]]; then
-									${ReadBy} ${num}
+									#Read or Write Code
+									#{
+									${ReadOrEdit} ${num}
+									#}
 								else
-									${ReadBy} "${num}${LangExt}"
+									#Read or Write Code
+									#{
+									${ReadOrEdit} "{num}${LangExt}"
+									#}
 								fi
 							else
-								errorCode "readNot"
+								#Error
+								#{
+								case ${Type} in
+									readCode)
+										errorCode "readNot"
+										;;
+									editCode)
+										errorCode "editNot"
+										;;
+									*)
+										;;
+								esac
+								#}
 							fi
 						fi
 					else
-						${ReadBy} ${src}
+						#Read or Write Code
+						#{
+						${ReadOrEdit} ${src}
+						#}
 					fi
 					;;
 				*)
