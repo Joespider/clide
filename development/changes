@@ -14,6 +14,7 @@ Added:
 	Change the CLI logo for cl[ide] using the config file (var/clide.conf)
 	Added C++ X11 support (Lang.C++)
 	Improving project support for C++ (Lang.C++)
+	new code template now named in clide.conf (var/clide.conf)
 
 Concept:
 	Managing different project types
