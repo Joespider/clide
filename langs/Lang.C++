@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.50"
+SupportV="0.1.52"
 Lang=C++
 ColorNum=4
 
@@ -76,7 +76,7 @@ UseC++()
 	case ${Type} in
 		color)
 			#Return Blue
-			echo -e "\e[1;34m${Lang}\e[0m"
+			echo -e "\e[1;3${ColorNum}m${Lang}\e[0m"
 			;;
 		ProjectColor)
 			echo -e "\e[1;4${ColorNum}m${CodeProject}\e[0m"
@@ -98,33 +98,51 @@ UseC++()
 			;;
 		getCode)
 			local name=$1
-			case ${CodeProject} in
+			name=${name%${LangExt}}
+                        local project=${CodeProject}
+                        local newName
+                        local DirPath
+                        local TheSrcDir
+			case ${project} in
 				none)
-					if [ -f ${LangSrc}/${name}${LangExt} ]; then
-						echo ${name}${LangExt}
-					elif [ -f ${LangSrc}/${name}.h ]; then
-						echo ${name}.h
-					elif [ -f ${LangSrc}/${name} ]; then
-						echo ${name}
-					fi
+					TheSrcDir=${LangSrc}
 					;;
 				*)
 					case ${ProjectType} in
 						Generic)
-							if [ -f ${LangSrc}/${CodeProject}/src/${name}${LangExt} ]; then
-								echo ${name}${LangExt}
-							elif [ -f ${LangSrc}/${CodeProject}/src/${name}.h ]; then
-								echo ${name}.h
-							elif [ -f ${LangSrc}/${project}/src/${name} ]; then
-								echo ${name}
-							fi
+							case ${name} in
+								*.*)
+									newName=${name##*.}
+									DirPath=$(echo ${name%${newName}} | tr '.' '/')
+									TheSrcDir="${LangSrc}/${project}/src/${DirPath}"
+									name=${newName}
+									;;
+								*/*)
+									newName=${name##*/}
+									DirPath=${name%${newName}}
+									TheSrcDir="${LangSrc}/${project}/src/${DirPath}"
+									name=${newName}
+									;;
+								*)
+									TheSrcDir="$(pwd)/"
+									;;
+							esac
 							;;
 						*)
-							ProjectTemplateHandler ${EnvVars[@]} ${Type} ${mode}
+							TheSrcDir=$(ProjectTemplateHandler ${EnvVars[@]} ${Type} ${mode})
 							;;
 					esac
 					;;
 			esac
+
+			if [ -f ${TheSrcDir}/${name}${LangExt} ]; then
+				echo ${name}${LangExt}
+			elif [ -f ${TheSrcDir}/${name}.h ]; then
+				echo ${name}.h
+			elif [ -f ${TheSrcDir}/${name} ]; then
+				echo ${name}
+			fi
+
 			;;
 		pgLang)
 			local HasLang=$(which ${LangCpl} 2> /dev/null)
@@ -183,15 +201,62 @@ UseC++()
 			;;
 		selectCode)
 			local name=$1
+			local project=${CodeProject}
+			local newName
+			local DirPath
+			local TheSrcDir
+
 			#Correct filename
-			if [[ ! "${name}" == *"${LangExt}" ]] && [ -f "${name}${LangExt}" ]; then
-				name="${name}${LangExt}"
-			elif [[ ! "${name}" == *".h" ]] && [ -f "${name}.h" ]; then
-				name="${name}.h"
-			fi
-			#Return source file if exists
-			if [ -f "${name}" ]; then
-				echo "${name}"
+			if [ ! -z "${name}" ]; then
+
+				case ${project} in
+					#not a project
+					none)
+						#Correct filename
+						if [[ ! "${name}" == *"${LangExt}" ]] && [ -f "${name}${LangExt}" ]; then
+							name="${name}${LangExt}"
+						elif [[ ! "${name}" == *".h" ]] && [ -f "${name}.h" ]; then
+							name="${name}.h"
+						fi
+
+						#Return source file if exists
+						if [ -f "${name}" ]; then
+							echo "${name}"
+						fi
+						;;
+					#is a project
+					*)
+						TheSrcDir="${LangSrc}/${project}/src/"
+
+						#Correct filename
+						if [[ ! "${name}" == *"${LangExt}" ]]; then
+							name="${name}${LangExt}"
+						elif [[ ! "${name}" == *".h" ]]; then
+							name="${name}.h"
+						fi
+
+						local NumFound=$(find ${TheSrcDir} -name ${name} 2> /dev/null | wc -l)
+						case ${NumFound} in
+							0)
+								;;
+							1)
+								name=$(find ${TheSrcDir} -name ${name} 2> /dev/null)
+								if [ -f ${name} ]; then
+									newName=${name##*/}
+									echo ${newName}
+								fi
+								;;
+							*)
+#								find ${TheSrcDir} -name ${name} 2> /dev/null | nl
+#								if [ -f ${name} ]; then
+#									name=${name%${LangExt}}
+#									newName=${name##*/}
+#									echo ${newName}${LangExt}
+#								fi
+								;;
+						esac
+					;;
+				esac
 			fi
 			;;
 		addCode)
@@ -227,60 +292,154 @@ UseC++()
 					;;
 			esac
 			;;
-		editCode)
+		editCode|readCode)
 			local src=$1
 			local num=$2
-			case ${src} in
-				*${LangExt}|*.h)
-					if [[ "${src}" == *","* ]]; then
-						if [ -z ${num} ]; then
-							errorCode "editNull"
-						else
-							if [[ "${src}" == *"${num}"* ]]; then
-								if [[ "${num}" == *"${LangExt}" ]] || [[ "${num}" == *".h" ]]; then
-									${editor} ${num}
-								else
-									${editor} "${num}${LangExt}"
-								fi
-							else
-								errorCode "editNot"
-							fi
-						fi
-					else
-						 ${editor} ${src}
-					fi
+			local project=${CodeProject}
+			local newName
+			local DirPath
+			local TheSrcDir
+			local ReadOrEdit
+
+			#Select the tool
+			#{
+			case ${Type} in
+				readCode)
+					ReadOrEdit=${ReadBy}
+					;;
+				editCode)
+					ReadOrEdit=${editor}
 					;;
 				*)
 					;;
 			esac
-			;;
-		readCode)
-			local src=$1
-			local num=$2
+			#}
+
 			case ${src} in
 				*${LangExt}|*.h)
-					if [[ "${src}" == *","* ]]; then
-						if [ -z ${num} ]; then
-							errorCode "readNull"
-						else
-							if [[ "${src}" == *"${num}"* ]]; then
-								if [[ "${num}" == *"${LangExt}" ]] || [[ "${num}" == *".h" ]]; then
-									${ReadBy} ${num}
+					case ${project} in
+						none)
+							if [[ "${src}" == *","* ]]; then
+								if [ -z ${num} ]; then
+									#Error
+									#{
+									case ${Type} in
+										readCode)
+											errorCode "readNull"
+											;;
+										editCode)
+											errorCode "editNull"
+											;;
+										*)
+											;;
+									esac
+									#}
 								else
-									${ReadBy} "${num}${LangExt}"
+									if [[ "${src}" == *"${num}"* ]]; then
+										if [[ "${num}" == *"${LangExt}" ]] || [[ "${num}" == *".h" ]]; then
+											#Read or Write Code
+											#{
+											${ReadOrEdit} ${num}
+											#}
+										else
+											#Read or Write Code
+											#{
+											${ReadOrEdit} "${num}${LangExt}"
+											#}
+										fi
+									else
+										#Error
+										#{
+										case ${Type} in
+											readCode)
+												errorCode "readNot"
+												;;
+											editCode)
+												errorCode "editNot"
+												;;
+											*)
+												;;
+										esac
+										#}
+									fi
 								fi
 							else
-								errorCode "readNot"
+								#Read or Write Code
+								#{
+								${ReadOrEdit} ${src}
+								#}
 							fi
-						fi
-					else
-						${ReadBy} ${src}
-					fi
+							;;
+						*)
+							TheSrcDir="${LangSrc}/${project}/src/"
+							local NumFound
+							if [[ "${src}" == *","* ]]; then
+								if [ -z ${num} ]; then
+									errorCode "editNull"
+								else
+									if [[ "${src}" == *"${num}"* ]]; then
+										if [[ "${num}" == *"${LangExt}" ]] || [[ "${num}" == *".h" ]]; then
+											src=${num}
+										else
+											src=${num}${LangExt}
+										fi
+										NumFound=$(find ${TheSrcDir} -name ${src} 2> /dev/null | wc -l)
+									else
+										#Error
+										#{
+										case ${Type} in
+											readCode)
+												errorCode "readNot"
+												;;
+											editCode)
+												errorCode "editNot"
+												;;
+											*)
+												;;
+										esac
+										#}
+									fi
+								fi
+							else
+								NumFound=$(find ${TheSrcDir} -name ${src} 2> /dev/null | wc -l)
+							fi
+
+							case ${NumFound} in
+								0)
+									;;
+								1)
+									src=$(find ${TheSrcDir} -name ${src} 2> /dev/null)
+									if [ -f ${src} ]; then
+										#Read or Write Code
+										#{
+										${ReadOrEdit} ${src}
+										#}
+									fi
+									;;
+								*)
+									local Select
+									find ${TheSrcDir} -name ${src} 2> /dev/null | sed "s/\/${project}\/src\//|/1" | cut -d '|' -f 2 | nl
+									echo -n "> "
+									read Select
+									Select=$(echo ${Select} | grep "^-\?[0-9]*$")
+									if [ ! -z "${Select}" ]; then
+										if [ ${Select} -le ${NumFound} ] && [ ${Select} -gt 0 ]; then
+											src=$(find ${TheSrcDir} -name ${src} 2> /dev/null | tr '\n' '|' | cut -d '|' -f ${Select})
+											#Read or Write Code
+											#{
+											${ReadOrEdit} ${src}
+											#}
+										fi
+									fi
+									;;
+							esac
+							;;
+					esac
 					;;
 				*)
 					;;
 			esac
-			;;
+			 ;;
 		compileCode)
 			local src=$1
 			local name=$2
@@ -290,6 +449,8 @@ UseC++()
 			local HasXlib
 			local HasXutil
 			local HasXos
+			local ReplaceTheSrcDir
+			local TheSrcDir
 			local TheBinDir
 			local ERROR
 
@@ -308,17 +469,28 @@ UseC++()
 			#Handle Project Dir
 			case ${project} in
 				none)
+					TheSrcDir=${LangSrc}
 					project=""
 					TheBinDir=${LangBin}
 					;;
 				*)
+					name=${project}
 					project="${project}/"
+					TheSrcDir="${LangSrc}/${project}src"
+					#if NO code is selected, then select ALL
+					#{
+					if [ -z ${src} ]; then
+						ReplaceTheSrcDir=$(echo "${LangSrc}/${project}src/" | tr '/' '|')
+						src=$(find ${TheSrcDir} -name "*${LangExt}" | tr '/' '|' | sed "s/${ReplaceTheSrcDir}//g" | tr '|' '/')
+					fi
+					#}
 					TheBinDir="${LangSrc}/${project}bin"
 					;;
 			esac
 
 			#Compile ONLY if source code is selected OR makefile is present
 			if [[ "$src" == *"${LangExt}"* ]] || [ -f ${LangSrc}/${project}makefile ]; then
+				cd ${TheSrcDir}
 				cplArgs=${LangCplVersion}
 				#Compile with makefile
 				if [ -f ${LangSrc}/${project}makefile ]; then
@@ -352,6 +524,7 @@ UseC++()
 
 						#Compile and check for errors
 						ERROR=$(${LangCpl} ${src} -o ${TheBinDir}/${name} ${cplArgs} 2>&1 | tr '\n' '|')
+
 						#Code compiled successfully
 						if [ -z "${ERROR}" ]; then
 							echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
@@ -359,6 +532,7 @@ UseC++()
 							errorCode "cpl" "ERROR" "${ERROR}"
 						fi
 					fi
+				cd - > /dev/null
 				fi
 			fi
 			;;
@@ -553,6 +727,7 @@ UseC++()
 				errorCode "customCode" "notemp" "${Lang}"
 			fi
 			;;
+		#Create new src files
 		newCode)
 			local name=$1
 			local Type=$2
@@ -625,12 +800,18 @@ UseC++()
 								;;
 							#Is a project
 							*)
-								#clide knows best
-								if [[ "${oldCode}" == *"${LangExt}" ]] || [[ "${oldCode}" == *"${LangExt}" ]]; then
-									UseC++ "newCode" ${name} "component" ${oldCode}
-								else
-									UseC++ "newCode" ${name} "main" ${oldCode}
-								fi
+								local TheSrcDir="${LangSrc}/${project}/src/"
+								local NumFound=$(find ${TheSrcDir} -name ${name} 2> /dev/null | wc -l)
+								case ${NumFound} in
+									0)
+										UseC++ "newCode" ${name} "main" ${oldCode}
+										;;
+									1)
+										UseC++ "newCode" ${name} "component" ${oldCode}
+										;;
+									*)
+										;;
+								esac
 								;;
 						esac
 						;;
@@ -645,6 +826,7 @@ UseC++()
 		#Run the compiled code
 		runCode)
 			local name=$1
+
 			#Handle Extension
 			case ${name} in
 				*${LangExt})
@@ -688,7 +870,14 @@ UseC++()
 			if [ -f ${TheBinDir}/${TheBin} ]; then
 				${TheBinDir}/${TheBin} ${Args[@]}
 			else
-				errorCode "cpl" "need" "${name}"
+				case ${project} in
+					none)
+						errorCode "cpl" "need" "${name}"
+						;;
+					*)
+						errorCode "cpl" "need" "${TheBin}"
+						;;
+				esac
 			fi
 			;;
 		backup)

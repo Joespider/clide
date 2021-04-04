@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.49"
+SupportV="0.1.50"
 Lang=Java
 ColorNum=1
 
@@ -289,66 +289,88 @@ UseJava()
 					;;
 			esac
 			;;
-		editCode)
+		editCode|readCode)
 			local src=$1
 			local num=$2
 			local project=${CodeProject}
 			local newName
 			local DirPath
 			local TheSrcDir
+			local ReadOrEdit
+
+			#Select the tool
+			#{
+			case ${Type} in
+				readCode)
+					ReadOrEdit=${ReadBy}
+					;;
+				editCode)
+					ReadOrEdit=${editor}
+					;;
+				*)
+					;;
+			esac
+			#}
+
 			case ${src} in
 				*${LangExt})
-					if [[ "${src}" == *","* ]]; then
-						case ${project} in
-							none)
+					case ${project} in
+						none)
+							if [[ "${src}" == *","* ]]; then
 								if [ -z ${num} ]; then
-									errorCode "editNull"
+									#Error
+									#{
+									case ${Type} in
+										readCode)
+											errorCode "readNull"
+											;;
+										editCode)
+											errorCode "editNull"
+											;;
+										*)
+											;;
+									esac
+									#}
 								else
 									if [[ "${src}" == *"${num}"* ]]; then
 										if [[ "${num}" == *"${LangExt}" ]]; then
-											${editor} ${num}
+											#Read or Write Code
+											#{
+											${ReadOrEdit} ${num}
+											#}
 										else
-											${editor} "${num}${LangExt}"
+											#Read or Write Code
+											#{
+											${ReadOrEdit} "${num}${LangExt}"
+											#}
 										fi
 									else
-										errorCode "editNot"
+										#Error
+										#{
+										case ${Type} in
+											readCode)
+												errorCode "readNot"
+												;;
+											editCode)
+												errorCode "editNot"
+												;;
+											*)
+												;;
+										esac
+										#}
 									fi
 								fi
-								;;
-							*)
-								TheSrcDir="${LangSrc}/${project}/src/"
-								local NumFound=$(find -name ${src} ${TheSrcDir} 2> /dev/null | grep "${ProjectMode}" | wc -l)
-								case ${NumFound} in
-									0)
-										;;
-									1)
-										src=$(find -name ${src} ${TheSrcDir} 2> /dev/null | grep "${ProjectMode}")
-										if [ -f ${src} ]; then
-											${editor} "${src}"
-										fi
-										;;
-									*)
-										local Select
-										find ${TheSrcDir} -name ${src} 2> /dev/null | grep "${ProjectMode}" | sed "s/\/${project}\/src\//|/1" | cut -d '|' -f 2 | nl
-										echo -n "> "
-										read Select
-										Select=$(echo ${Select} | grep "^-\?[0-9]*$")
-										if [ ! -z "${Select}" ]; then
-											if [ ${Select} -le ${NumFound} ] && [ ${Select} -gt 0 ]; then
-												src=$(find ${TheSrcDir} -name ${src} 2> /dev/null | grep "${ProjectMode}" | tr '\n' '|' | cut -d '|' -f ${Select})
-												${editor} ${src}
-											fi
-										fi
-										;;
-								esac
-								;;
-						esac
-					else
-						case ${project} in
-							none)
-								${editor} ${src}
-								;;
-							*)
+							else
+								#Read or Write Code
+								#{
+								${ReadOrEdit} ${src}
+								#}
+							fi
+							;;
+						*)
+							if [[ "${src}" == *","* ]]; then
+								echo "Please Add support for handling ${src}"
+							else
 								TheSrcDir="${LangSrc}/${project}/src/"
 								local NumFound=$(find ${TheSrcDir} -name ${src} 2> /dev/null | grep "${ProjectMode}" | wc -l)
 								case ${NumFound} in
@@ -357,7 +379,10 @@ UseJava()
 									1)
 										src=$(find ${TheSrcDir} -name ${src} 2> /dev/null | grep "${ProjectMode}")
 										if [ -f ${src} ]; then
-											${editor} ${src}
+											#Read or Write Code
+											#{
+											${ReadOrEdit} ${src}
+											#}
 										fi
 										;;
 									*)
@@ -369,78 +394,18 @@ UseJava()
 										if [ ! -z "${Select}" ]; then
 											if [ ${Select} -le ${NumFound} ] && [ ${Select} -gt 0 ]; then
 												src=$(find ${TheSrcDir} -name ${src} 2> /dev/null | grep "${ProjectMode}" | tr '\n' '|' | cut -d '|' -f ${Select})
-												${editor} ${src}
+												#Read or Write Code
+												#{
+												${ReadOrEdit} ${src}
+												#}
 											fi
 										fi
 										;;
 								esac
-								;;
-						esac
 
-					fi
-					;;
-				*)
-					;;
-			esac
-			;;
-		readCode)
-			local src=$1
-			local num=$2
-			local project=${CodeProject}
-			local newName
-			local DirPath
-			local TheSrcDir
-			case ${src} in
-				*${LangExt})
-					if [[ "${src}" == *","* ]]; then
-						if [ -z ${num} ]; then
-							errorCode "readNull"
-						else
-							if [[ "${src}" == *"${num}"* ]]; then
-								if [[ "${num}" == *"${LangExt}" ]]; then
-									${ReadBy} ${num}
-								else
-									${ReadBy} "${num}${LangExt}"
-								fi
-							else
-								errorCode "readNot"
 							fi
-						fi
-					else
-						case ${project} in
-							none)
-								${ReadBy} ${src}
-								;;
-							*)
-								TheSrcDir="${LangSrc}/${project}/src/"
-								local NumFound=$(find -name ${src} ${TheSrcDir} 2> /dev/null | grep "${ProjectMode}" | wc -l)
-								case ${NumFound} in
-									0)
-										;;
-									1)
-										src=$(find -name ${src} ${TheSrcDir} 2> /dev/null | grep "${ProjectMode}")
-										if [ -f ${src} ]; then
-											${ReadBy} ${src}
-										fi
-										;;
-									*)
-										local Select
-										find ${TheSrcDir} -name ${src} 2> /dev/null | grep "${ProjectMode}" | sed "s/\/${project}\/src\//|/1" | cut -d '|' -f 2 | nl
-										echo -n "> "
-										read Select
-										Select=$(echo ${Select} | grep "^-\?[0-9]*$")
-										if [ ! -z "${Select}" ]; then
-											if [ ${Select} -le ${NumFound} ] && [ ${Select} -gt 0 ]; then
-												src=$(find ${TheSrcDir} -name ${src} 2> /dev/null | grep "${ProjectMode}" | tr '\n' '|' | cut -d '|' -f ${Select})
-												${ReadBy} ${src}
-											fi
-										fi
-										;;
-								esac
-								;;
-						esac
-
-					fi
+							;;
+					esac
 					;;
 				*)
 					;;

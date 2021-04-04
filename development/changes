@@ -13,6 +13,7 @@ Added:
 	Java projects are made to compile with the name of the project (Lang.Java)
 	Change the CLI logo for cl[ide] using the config file (var/clide.conf)
 	Added C++ X11 support (Lang.C++)
+	Improving project support for C++ (Lang.C++)
 
 Concept:
 	Managing different project types
@@ -28,3 +29,4 @@ Bug Fixes:
 	performance improvements (converted 'tr A-Z a-z' to '${var,,}')
 	improving repo support
 	refactored code in Java language support (Lang.Java)
+	refactored code in ALL language support files (Lang.*)

@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.35"
+SupportV="0.1.36"
 Lang=Ruby
 ColorNum=1
 
@@ -214,54 +214,67 @@ UseRuby()
 					;;
 			esac
 			;;
-		editCode)
+		editCode|readCode)
 			local src=$1
 			local num=$2
-			case ${src} in
-				*${LangExt})
-					if [[ "${src}" == *","* ]]; then
-						if [ -z ${num} ]; then
-							errorCode "editNull"
-						else
-							if [[ "${src}" == *"${num}"* ]]; then
-								if [[ "${num}" == *"${LangExt}" ]]; then
-									${editor} ${num}
-								else
-									${editor} "${num}${LangExt}"
-								fi
-							else
-								errorCode "editNot"
-							fi
-						fi
-					else
-						${editor} ${src}
-					fi
+			local ReadOrEdit
+
+			#Select the tool
+			#{
+			case ${Type} in
+				readCode)
+					ReadOrEdit=${ReadBy}
+					;;
+				editCode)
+					ReadOrEdit=${editor}
 					;;
 				*)
 					;;
 			esac
-			;;
-		readCode)
-			local src=$1
-			local num=$2
+			#}
+
 			case ${src} in
 				*${LangExt})
 					if [[ "${src}" == *","* ]]; then
 						if [ -z ${num} ]; then
-							errorCode "readNull"
+							#ERROR
+							#{
+							case ${Type} in
+								readCode)
+									errorCode "readNull"
+									;;
+								editCode)
+									errorCode "editNull"
+									;;
+								*)
+									;;
+							esac
+							#}
 						else
 							if [[ "${src}" == *"${num}"* ]]; then
 								if [[ "${num}" == *"${LangExt}" ]]; then
-									${ReadBy} ${num}
+									${ReadOrEdit} ${num}
 								else
-									${ReadBy} "${num}${LangExt}"
+									${ReadOrEdit} "${num}${LangExt}"
 								fi
 							else
-								errorCode "readNot"
+								#ERROR
+								#{
+								case ${Type} in
+									readCode)
+										errorCode "readNot"
+										;;
+									editCode)
+										errorCode "editNot"
+										;;
+									*)
+										;;
+								esac
+								#}
 							fi
 						fi
 					else
-						${ReadBy} ${src}
+						${ReadOrEdit} ${src}
 					fi
 					;;
 				*)
