@@ -13,7 +13,6 @@ repoAssist=$1
 shift
 Branch=""
 
-
 #Refresh page
 Refresh=True
 
@@ -147,7 +146,7 @@ gitHandler()
 				#Get message
 				msg=$@
 				if [ ! -z "${msg}" ]; then
-					git commit -m "\"${msg}\""
+					git commit -m "\"${msg[@]}\""
 				#No message found
 				else
 					git commit
@@ -253,24 +252,28 @@ gitHandler()
 			#Peform quick and dirty commit
 			slamdunk)
 				local sure=$1
+				local message
 				case ${sure} in
 					yes)
+						shift
+						message=$@
 						gitHandler "add"
-						gitHandler "commit"
+						gitHandler "commit" "${message[@]}"
 						gitHandler "push"
 						;;
 					no)
 						;;
 					*)
+						message=$@
 						while true
 						do
 							echo "Are you sure? There is no stopping what is being done"
 							echo -n "(yes/no)> "
 							read sure
-							sure=${sure,,}
+							sure=$(echo ${sure} | tr A-Z a-z)
 							case ${sure} in
 								yes|no)
-									gitHandler "${repoAct}" "${sure}"
+									gitHandler "${repoAct}" "${sure}" "${message[@]}"
 									break
 									;;
 								*)
