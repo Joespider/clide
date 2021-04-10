@@ -15,6 +15,7 @@ Added:
 	Added C++ X11 support (Lang.C++)
 	Improving project support for C++ (Lang.C++)
 	new code template now named in clide.conf (var/clide.conf)
+	Added C language support (Lang.C)
 
 Concept:
 	Managing different project types
@@ -31,3 +32,4 @@ Bug Fixes:
 	improving repo support
 	refactored code in Java language support (Lang.Java)
 	refactored code in ALL language support files (Lang.*)
+	prevents code from aliased code from being selected; otherwise breaks the code

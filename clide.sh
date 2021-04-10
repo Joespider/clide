@@ -106,7 +106,7 @@ MenuHelp()
 #	echo -e "swap, swp {src|bin}\t\t: \"swap between sorce code and executable\""
 	echo -e "create <arg>\t\t\t: \"create compile and runtime arguments"
 	ManageLangs ${Lang} "MenuHelp"
-	echo -e "car\t\t\t\t: \"compile and run\""
+	echo -e "car, car-a\t\t\t: \"compile and run; compile and run with arguments\""
 	echo -e "rm, remove, delete\t\t: \"delete src file\""
 	echo -e "set <file>\t\t\t: \"select source code\""
 	echo -e "add <file>\t\t\t: \"add new file to project\""
@@ -1406,10 +1406,21 @@ Actions()
 					esac
 					;;
 				#(c)ompile (a)nd (r)un
-				car)
+				car|car-a)
 					ManageLangs ${Lang} "compileCode" ${Code} ${UserIn[1]} ${UserIn[2]}
 					if [ ! -z "${Code}" ]; then
-						runCode ${Lang} ${Code} ${UserIn[1]}
+						case ${UserArg} in
+							#Run without args
+							car)
+								runCode ${Lang} ${Code}
+								;;
+							#Run WITH args
+							car-a)
+								runCode ${Lang} ${Code} "--args"
+								;;
+							*)
+								;;
+						esac
 					fi
 					;;
 				#Compile code
@@ -1760,7 +1771,7 @@ loadAuto()
 	comp_list "${ReadBy} read"
 	comp_list "search"
 	comp_list "create" "make version -std= jar manifest args prop properties -D reset"
-	comp_list "compile cpl car"
+	comp_list "compile cpl car car-a"
 	comp_list "execute exe run" "-a --args"
 	comp_list "version"
 	comp_list "help"
@@ -2114,6 +2125,10 @@ main()
 	fi
 }
 
-history -c
-#Run clide
-main $@
+#Ignore if program resolves to alias
+AliasTest=$(echo $@ | grep "/")
+if [ -z "${AliasTest}" ]; then
+	history -c
+	#Run clide
+	main $@
+fi
