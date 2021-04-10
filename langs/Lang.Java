@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.50"
+SupportV="0.1.51"
 Lang=Java
 ColorNum=1
 
@@ -63,7 +63,8 @@ ProjectTemplateHandler()
 
 UseJava()
 {
-	local LangConfig=$(grep ${Lang} ${VarDir}/clide.conf | sed "s/${Lang}=//1")
+	local LookForLang="Use(${Lang})"
+	local LangConfig=$(grep "${LookForLang}" ${VarDir}/clide.conf | sed "s/${LookForLang}=//1")
 	local LangCpl=$(echo ${LangConfig} | cut -d ',' -f 1)
 	local LangRun=$(echo ${LangConfig} | cut -d ',' -f 2)
 
@@ -71,8 +72,16 @@ UseJava()
 	local LangSrc=${LangHome}/src
 	local LangBin=${LangHome}/bin
 	local LangExt=".java"
-	local TemplateCodeClass=${LangBin}/new${Lang}.class
-	local TemplateCodeJar=${LangBin}/new${Lang}.jar
+
+	local NewLangSrc="New(${Lang})"
+	local TemplateCode=$(grep "${NewLangSrc}" ${VarDir}/clide.conf | sed "s/${NewLangSrc}=//1")
+	TemplateCode=${TemplateCode%.class}
+	TemplateCode=${TemplateCode%.jar}
+	TemplateCode=${TemplateCode%${LangExt}}
+
+	local TemplateCodeClass=${LangBin}/${TemplateCode}.class
+	local TemplateCodeJar=${LangBin}/${TemplateCode}.jar
+
 	local EnvVars=( ${LangRun} ${LangHome} ${LangSrc} ${LangBin} ${LangExt} )
 	local Type=$1
 	shift

@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.37"
+SupportV="0.1.38"
 Lang=Perl
 ColorNum=5
 
@@ -63,14 +63,18 @@ ProjectTemplateHandler()
 
 UsePerl()
 {
-	local LangConfig=$(grep ${Lang} ${VarDir}/clide.conf | sed "s/${Lang}=//1")
-	local LangRun=${LangConfig}
+	local LookForLang="Use(${Lang})"
+	local LangRun=$(grep "${LookForLang}" ${VarDir}/clide.conf | sed "s/${LookForLang}=//1")
 
 	local LangHome=${ProgDir}/${Lang}
 	local LangSrc=${LangHome}/src
 	local LangBin=${LangHome}/bin
 	local LangExt=".pl"
-	local TemplateCode=${LangBin}/new${Lang}${LangExt}
+
+	local NewLangSrc="New(${Lang})"
+	local TemplateCode=$(grep "${NewLangSrc}" ${VarDir}/clide.conf | sed "s/${NewLangSrc}=//1")
+	TemplateCode=${LangBin}/${TemplateCode%${LangExt}}${LangExt}
+
 	local EnvVars=( ${LangRun} ${LangHome} ${LangSrc} ${LangBin} ${LangExt} )
 	local Type=$1
 	shift

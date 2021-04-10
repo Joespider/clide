@@ -1,9 +1,10 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.16"
-Lang=Go
-ColorNum=2
+SupportV="0.1.00"
+Lang=C
+#Return Yellow
+ColorNum=3
 
 ProgDir=$1
 shift
@@ -61,25 +62,26 @@ ProjectTemplateHandler()
 	fi
 }
 
-UseGo()
+UseC()
 {
 	local LookForLang="Use(${Lang})"
 	local LangCpl=$(grep "${LookForLang}" ${VarDir}/clide.conf | sed "s/${LookForLang}=//1")
+
 	local LangHome=${ProgDir}/${Lang}
 	local LangSrc=${LangHome}/src
 	local LangBin=${LangHome}/bin
-	local LangExt=".go"
+	local LangExt=".c"
 
 	local NewLangSrc="New(${Lang})"
 	local TemplateCode=$(grep "${NewLangSrc}" ${VarDir}/clide.conf | sed "s/${NewLangSrc}=//1")
 	TemplateCode=${LangBin}/${TemplateCode%${LangExt}}
+
 
 	local EnvVars=( ${LangRun} ${LangHome} ${LangSrc} ${LangBin} ${LangExt} )
 	local Type=$1
 	shift
 	case ${Type} in
 		color)
-			#Return Blue
 			echo -e "\e[1;3${ColorNum}m${Lang}\e[0m"
 			;;
 		ProjectColor)
@@ -141,6 +143,8 @@ UseGo()
 
 			if [ -f ${TheSrcDir}/${name}${LangExt} ]; then
 				echo ${name}${LangExt}
+			elif [ -f ${TheSrcDir}/${name}.h ]; then
+				echo ${name}.h
 			elif [ -f ${TheSrcDir}/${name} ]; then
 				echo ${name}
 			fi
@@ -149,7 +153,7 @@ UseGo()
 		pgLang)
 			local HasLang=$(which ${LangCpl} 2> /dev/null)
 			if [ ! -z "${HasLang}" ]; then
-				#Return go tag
+				#Return C tag
 				echo "${Lang}"
 			else
 				#Return rejection
@@ -157,15 +161,15 @@ UseGo()
 			fi
 			;;
 		BeforeFiles|AfterFiles)
-			ls *${LangExt} 2> /dev/null
+			ls *${LangExt} *.h 2> /dev/null
 			;;
 		pgDir)
-			#Return go src Dir
+			#Return C src Dir
 			echo ${LangSrc}
 			;;
 		CreateHelp)
 			echo -e "make\t\t\t: create makefile"
-			echo -e "version, -std=<go#>\t: create makefile"
+			echo -e "version, -std=<c++#>\t: create makefile"
 			;;
 		shell)
 			;;
@@ -217,6 +221,8 @@ UseGo()
 						#Correct filename
 						if [[ ! "${name}" == *"${LangExt}" ]] && [ -f "${name}${LangExt}" ]; then
 							name="${name}${LangExt}"
+						elif [[ ! "${name}" == *".h" ]] && [ -f "${name}.h" ]; then
+							name="${name}.h"
 						fi
 
 						#Return source file if exists
@@ -231,6 +237,8 @@ UseGo()
 						#Correct filename
 						if [[ ! "${name}" == *"${LangExt}" ]]; then
 							name="${name}${LangExt}"
+						elif [[ ! "${name}" == *".h" ]]; then
+							name="${name}.h"
 						fi
 
 						local NumFound=$(find ${TheSrcDir} -name ${name} 2> /dev/null | wc -l)
@@ -261,10 +269,10 @@ UseGo()
 			local src=$1
 			local new=$2
 			case ${src} in
-				*${LangExt})
+				*${LangExt}|*.h)
 					#Add cpp or header files with file extensions
 					case ${new} in
-						*${LangExt})
+						*${LangExt}|*.h)
 							#Append file
 							if [ -f "${new}" ]; then
 								echo "${src},${new}"
@@ -277,6 +285,9 @@ UseGo()
 							#Append cpp files
 							if [ -f "${new}${LangExt}" ]; then
 								echo "${src},${new}${LangExt}"
+							#Append header files
+							elif [ -f "${new}.h" ]; then
+								echo "${src},${new}.h"
 							else
 								echo "${src}"
 							fi
@@ -311,7 +322,7 @@ UseGo()
 			#}
 
 			case ${src} in
-				*${LangExt})
+				*${LangExt}|*.h)
 					case ${project} in
 						none)
 							if [[ "${src}" == *","* ]]; then
@@ -331,7 +342,7 @@ UseGo()
 									#}
 								else
 									if [[ "${src}" == *"${num}"* ]]; then
-										if [[ "${num}" == *"${LangExt}" ]]; then
+										if [[ "${num}" == *"${LangExt}" ]] || [[ "${num}" == *".h" ]]; then
 											#Read or Write Code
 											#{
 											${ReadOrEdit} ${num}
@@ -373,7 +384,7 @@ UseGo()
 									errorCode "editNull"
 								else
 									if [[ "${src}" == *"${num}"* ]]; then
-										if [[ "${num}" == *"${LangExt}" ]]; then
+										if [[ "${num}" == *"${LangExt}" ]] || [[ "${num}" == *".h" ]]; then
 											src=${num}
 										else
 											src=${num}${LangExt}
@@ -453,7 +464,7 @@ UseGo()
 			if [ -z "${name}" ]; then
 				if [[ "${src}" == *","* ]]; then
 					src=$(echo ${src} | tr ',' ' ')
-					name=$(grep -l "func main(" ${src} 2> /dev/null)
+					name=$(grep -l "int main(" ${src} 2> /dev/null)
 					name=${name%.*}
 				else
 					name=${src%.*}
@@ -484,23 +495,50 @@ UseGo()
 			esac
 
 			#Compile ONLY if source code is selected OR makefile is present
-			if [[ "$src" == *"${LangExt}"* ]]; then
+			if [[ "$src" == *"${LangExt}"* ]] || [ -f ${LangSrc}/${project}makefile ]; then
 				cd ${TheSrcDir}
 				cplArgs=${LangCplVersion}
-				#source file is empty
-				if [ -z ${name} ]; then
-					errorCode "cpl" "choose"
-				else
-					#Compile and check for errors
-					ERROR=$(${LangCpl} build ${src} 2>&1 | tr '\n' '|')
-					#Code compiled successfully
-					if [ -z "${ERROR}" ]; then
-						mv ${name} ${TheBinDir}/ 2> /dev/null
-						echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
-					else
-						errorCode "cpl" "ERROR" "${ERROR}"
-					fi
+				#Compile with makefile
+				if [ -f ${LangSrc}/${project}makefile ]; then
+					cd ${LangSrc}/${project}
+					echo "make"
 					cd - > /dev/null
+					echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
+				#Compile without makefile
+				else
+					#source file is empty
+					if [ -z ${name} ]; then
+						errorCode "cpl" "choose"
+					else
+						#[Threads] Compile for Threads
+						#{
+						NeedThreads=$(grep "#include <thread>" ${src})
+						if [ ! -z "${NeedThreads}" ]; then
+							cplArgs="${cplArgs} -lpthread"
+						fi
+						#}
+
+						#[X11] Compile with X11 code
+						#{
+						HasXlib=$(grep "#include <X11/Xlib.h>" ${src})
+						HasXutil=$(grep "#include <X11/Xutil.h>" ${src})
+						HasXos=$(grep "#include <X11/Xos.h>" ${src})
+						if [ ! -z "${HasXlib}" ] || [ ! -z "${HasXutil}" ] || [ ! -z "${HasXos}" ]; then
+							cplArgs="${cplArgs} -I /usr/X11/include -L /usr/X11/lib -lX11"
+						fi
+						#}
+
+						#Compile and check for errors
+						ERROR=$(${LangCpl} ${src} -o ${TheBinDir}/${name} ${cplArgs} 2>&1 | tr '\n' '|')
+
+						#Code compiled successfully
+						if [ -z "${ERROR}" ]; then
+							echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
+						else
+							errorCode "cpl" "ERROR" "${ERROR}"
+						fi
+					fi
+				cd - > /dev/null
 				fi
 			fi
 			;;
@@ -525,7 +563,7 @@ UseGo()
 			;;
 		create-version|create-std=*)
 			Type=${Type#create-}
-			local cLang=$(UseGo color)
+			local cLang=$(UseC color)
 			case ${UserIn[1]} in
 				-std=*)
 					CplArgs="${UserIn[1]}"
@@ -546,7 +584,7 @@ UseGo()
 					*)
 						;;
 				esac
-				if [ ! -z "${CplArgs}" ] && [[ "${CplArgs}" == *"go"* ]]; then
+				if [ ! -z "${CplArgs}" ] && [[ "${CplArgs}" == *"c++"* ]]; then
 					CplArgs="-std=${CplArgs}"
 				else
 					CplArgs="none"
@@ -618,11 +656,11 @@ UseGo()
 		SwapToSrc)
 			local src=$1
 			#cd "${LangSrc}"
-			#Get go Name
+			#Get C Name
 			src="${src}${LangExt}"
-			#Check if go source exists
+			#Check if C source exists
 			if [ -f "${LangSrc}/${src}" ]; then
-				#Return go Source Name
+				#Return C Source Name
 				echo "${src}"
 			fi
 			;;
@@ -633,11 +671,11 @@ UseGo()
 					#cd "${LangBin}"
 					#Keep Src Name
 					local OldBin="${bin}"
-					#Get go Name
+					#Get C Name
 					bin="${bin%.*}"
-					#Check if go Binary exists
+					#Check if C Binary exists
 					if [ -f "${LangBin}/${bin}" ]; then
-						#Return go Binary Name
+						#Return C Binary Name
 						echo "${bin}"
 					else
 						echo "${OldBin}"
@@ -676,7 +714,7 @@ UseGo()
 			fi
 			;;
 		customCode)
-			local cLang=$(UseGo "color")
+			local cLang=$(UseC "color")
 			local cTemplate=$(OtherColor ${TemplateCode##*/})
 			#Check for Custom Code Template
 			if [ -f ${TemplateCode} ]; then
@@ -731,7 +769,7 @@ UseGo()
 						else
 							#Program Name Given
 							if [ ! -z "${name}" ];then
-								local Content="#include <iostream>\n\n//${Lang} Main\nint main()\n{\n\n\treturn 0;\n}"
+								local Content="#include <stdio.h>\n\n//${Lang} Main\nint main()\n{\n\n\treturn 0;\n}"
 								touch ${name}${LangExt}
 								echo -e "${Content}" > ${name}${LangExt}
 							else
@@ -764,7 +802,7 @@ UseGo()
 						#Is not a project
 						case ${project} in
 							none)
-								UseGo "newCode" ${name}  "main" ${oldCode}
+								UseC "newCode" ${name}  "main" ${oldCode}
 								;;
 							#Is a project
 							*)
@@ -772,10 +810,10 @@ UseGo()
 								local NumFound=$(find ${TheSrcDir} -name ${name} 2> /dev/null | wc -l)
 								case ${NumFound} in
 									0)
-										UseGo "newCode" ${name} "main" ${oldCode}
+										UseC "newCode" ${name} "main" ${oldCode}
 										;;
 									1)
-										UseGo "newCode" ${name} "component" ${oldCode}
+										UseC "newCode" ${name} "component" ${oldCode}
 										;;
 									*)
 										;;
@@ -905,4 +943,4 @@ UseGo()
 	esac
 }
 #init
-UseGo $@
+UseC $@

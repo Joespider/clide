@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.36"
+SupportV="0.1.37"
 Lang=Ruby
 ColorNum=1
 
@@ -63,14 +63,19 @@ ProjectTemplateHandler()
 
 UseRuby()
 {
-	local LangConfig=$(grep ${Lang} ${VarDir}/clide.conf | sed "s/${Lang}=//1")
+	local LookForLang="Use(${Lang})"
+	local LangConfig=$(grep "${LookForLang}" ${VarDir}/clide.conf | sed "s/${LookForLang}=//1")
 	local LangRun=${LangConfig}
 
 	local LangHome=${ProgDir}/${Lang}
 	local LangSrc=${LangHome}/src
 	local LangBin=${LangHome}/bin
 	local LangExt=".rb"
-	local TemplateCode=${LangBin}/new${Lang}${LangExt}
+
+	local NewLangSrc="New(${Lang})"
+	local TemplateCode=$(grep "${NewLangSrc}" ${VarDir}/clide.conf | sed "s/${NewLangSrc}=//1")
+	TemplateCode=${LangBin}/${TemplateCode%${LangExt}}${LangExt}
+
 	local EnvVars=( ${LangRun} ${LangHome} ${LangSrc} ${LangBin} ${LangExt} )
 	local Type=$1
 	shift

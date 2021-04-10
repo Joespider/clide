@@ -63,13 +63,19 @@ ProjectTemplateHandler()
 
 UseC++()
 {
-	local LangConfig=$(grep ${Lang} ${VarDir}/clide.conf | sed "s/${Lang}=//1")
-	local LangCpl=${LangConfig}
+	local LookForLang="Use(${Lang})"
+	local LangCpl=$(grep "${LookForLang}" ${VarDir}/clide.conf | sed "s/${LookForLang}=//1")
+
 	local LangHome=${ProgDir}/${Lang}
 	local LangSrc=${LangHome}/src
 	local LangBin=${LangHome}/bin
 	local LangExt=".cpp"
-	local TemplateCode=${LangBin}/new${Lang}
+
+	local NewLangSrc="New(${Lang})"
+	local TemplateCode=$(grep "${NewLangSrc}" ${VarDir}/clide.conf | sed "s/${NewLangSrc}=//1")
+	TemplateCode=${LangBin}/${TemplateCode%${LangExt}}
+
+
 	local EnvVars=( ${LangRun} ${LangHome} ${LangSrc} ${LangBin} ${LangExt} )
 	local Type=$1
 	shift

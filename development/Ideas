@@ -11,7 +11,7 @@ Status: Finished
 		cl[ide](Java{MyProgram.java}):$
 
 2: Project Templates
-Status: Proposed
+Status: Implimented
 	Just like Language support, (ie lang/Langs.<language>) have project template scripts
 	Standard/Default Project Tempaltes are built into the Lang.<language>
 	Each project template would have to correspond to a langauge
@@ -74,5 +74,6 @@ Status: Proposed
 		if default project is given, clide passed "default" to Lang.<language>
 
 3: Project Tests
+Status: Implimented
 	Allow for written test cases, like is done in java
 	Have a "test" function
