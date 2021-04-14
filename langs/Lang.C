@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.01"
+SupportV="0.1.02"
 Lang=C
 #Return Yellow
 ColorNum=3
@@ -771,7 +771,7 @@ UseC()
 						else
 							#Program Name Given
 							if [ ! -z "${name}" ];then
-								local Content="#include <iostream>\n\n//${Lang} Main\nint main()\n{\n\n\treturn 0;\n}"
+								local Content="#include <stdio.h>\n\n//${Lang} Main\nint main()\n{\n\n\treturn 0;\n}"
 								touch ${name}${LangExt}
 								echo -e "${Content}" > ${name}${LangExt}
 							else
