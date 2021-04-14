@@ -957,8 +957,12 @@ Actions()
 					;;
 				#Set for session
 				set)
-					Code=$(selectCode ${Lang} ${UserIn[1]} ${Code})
-					refresh="yes"
+					if [ -z "${Code}" ]; then
+						Code=$(selectCode ${Lang} ${UserIn[1]} ${Code})
+						refresh="yes"
+					else
+						errorCode "selectCode" "exists"
+					fi
 					;;
 				#Unset code for session
 				unset)
@@ -1307,7 +1311,13 @@ Actions()
 							if [ ! -z "${UserIn[1]}" ]; then
 								#Return the name of source code
 								ManageLangs ${Lang} "newCode" ${UserIn[1]} ${UserIn[2]} ${Code}
-								Code=$(ManageLangs ${Lang} "getCode" ${UserIn[1]})
+								if [ ! -z "${Code}" ]; then
+									local OldCode=${Code}
+									Code=$(ManageLangs ${Lang} "getCode" ${UserIn[1]})
+									Code=$(ManageLangs ${Lang} "addCode" ${OldCode} ${UserIn[1]})
+								else
+									Code=$(ManageLangs ${Lang} "getCode" ${UserIn[1]})
+								fi
 								refresh="yes"
 							else
 								newCodeHelp ${Lang}
@@ -1334,8 +1344,14 @@ Actions()
 					;;
 				#Add code to Source Code
 				add)
-					Code=$(ManageLangs ${Lang} "addCode" ${Code} ${UserIn[1]})
-					refresh="yes"
+					#Ensure Code is not added twice
+					if [[ ! "${Code}" == *"${UserIn[1]}"* ]]; then
+						Code=$(ManageLangs ${Lang} "addCode" ${Code} ${UserIn[1]})
+						refresh="yes"
+					#Code is trying to be added twice
+					else
+						errorCode "selectCode" "already"
+					fi
 					;;
 				#Read code without editing
 				${ReadBy}|read)

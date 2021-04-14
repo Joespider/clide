@@ -34,3 +34,4 @@ Bug Fixes:
 	refactored code in ALL language support files (Lang.*)
 	prevents code from aliased code from being selected; otherwise breaks the code
 	improved repo.sh support
+	bug fix: improved code selection and creating new code handling; improvements in handling C/C++ code (Lang.C; Lang.C++)

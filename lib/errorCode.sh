@@ -92,7 +92,20 @@ errorCode()
 			echo "code is not found in project"
 			;;
 		selectCode)
-			echo "Please select a file to edit"
+			shift
+			local thr=$1
+			case ${sec} in
+				exists)
+					echo "Source Code has already been selected"
+					echo "[HINT]: add <source>"
+					;;
+				already)
+					echo "No need to add it again"
+					;;
+				*)
+					echo "Please select a file to edit"
+					;;
+			esac
 			;;
 		editMe)
 			echo "For your safety, I am not allowed to edit myself"
@@ -109,7 +122,7 @@ errorCode()
 			case ${sec} in
 				none)
 					echo "Your session MUST be a ${thr} Project"
-					echo "hint: Please create or load a project"
+					echo "[HINT]: Please create or load a project"
 					echo "$ project new <project>"
 					echo "$ project load <project>"
 					;;

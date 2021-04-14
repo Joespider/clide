@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.00"
+SupportV="0.1.01"
 Lang=C
 #Return Yellow
 ColorNum=3
@@ -70,7 +70,7 @@ UseC()
 	local LangHome=${ProgDir}/${Lang}
 	local LangSrc=${LangHome}/src
 	local LangBin=${LangHome}/bin
-	local LangExt=".c"
+	local LangExt=".cpp"
 
 	local NewLangSrc="New(${Lang})"
 	local TemplateCode=$(grep "${NewLangSrc}" ${VarDir}/clide.conf | sed "s/${NewLangSrc}=//1")
@@ -82,6 +82,7 @@ UseC()
 	shift
 	case ${Type} in
 		color)
+			#Return Blue
 			echo -e "\e[1;3${ColorNum}m${Lang}\e[0m"
 			;;
 		ProjectColor)
@@ -105,6 +106,7 @@ UseC()
 		getCode)
 			local name=$1
 			name=${name%${LangExt}}
+			name=${name%.h}
                         local project=${CodeProject}
                         local newName
                         local DirPath
@@ -169,7 +171,7 @@ UseC()
 			;;
 		CreateHelp)
 			echo -e "make\t\t\t: create makefile"
-			echo -e "version, -std=<c++#>\t: create makefile"
+			echo -e "version, -std=<C#>\t: create makefile"
 			;;
 		shell)
 			;;
@@ -342,17 +344,9 @@ UseC()
 									#}
 								else
 									if [[ "${src}" == *"${num}"* ]]; then
-										if [[ "${num}" == *"${LangExt}" ]] || [[ "${num}" == *".h" ]]; then
-											#Read or Write Code
-											#{
-											${ReadOrEdit} ${num}
-											#}
-										else
-											#Read or Write Code
-											#{
-											${ReadOrEdit} "${num}${LangExt}"
-											#}
-										fi
+										#Choose file from list of choices
+										num=$(echo ${src} | tr ',' '\n' | grep ${num})
+										${ReadOrEdit} ${num}
 									else
 										#Error
 										#{
@@ -584,7 +578,7 @@ UseC()
 					*)
 						;;
 				esac
-				if [ ! -z "${CplArgs}" ] && [[ "${CplArgs}" == *"c++"* ]]; then
+				if [ ! -z "${CplArgs}" ] && [[ "${CplArgs}" == *"C"* ]]; then
 					CplArgs="-std=${CplArgs}"
 				else
 					CplArgs="none"
@@ -741,8 +735,16 @@ UseC()
 			local project=${CodeProject}
 
 			Type=${Type,,}
-			name=${name%${LangExt}}
-			name=${name%.h}
+			case ${name} in
+				*.h)
+					name=${name%.h}
+					Type="header"
+					;;
+				*)
+					name=${name%${LangExt}}
+					;;
+			esac
+
 			if [ ! -f ${name}${LangExt} ] || [ ! -f ${name}.h ]; then
 				case ${Type} in
 					#create header file
@@ -769,7 +771,7 @@ UseC()
 						else
 							#Program Name Given
 							if [ ! -z "${name}" ];then
-								local Content="#include <stdio.h>\n\n//${Lang} Main\nint main()\n{\n\n\treturn 0;\n}"
+								local Content="#include <iostream>\n\n//${Lang} Main\nint main()\n{\n\n\treturn 0;\n}"
 								touch ${name}${LangExt}
 								echo -e "${Content}" > ${name}${LangExt}
 							else
@@ -932,7 +934,7 @@ UseC()
 			local TheOld=$1
 			local TheNew=$2
 			if [ ! -z "${TheNew}" ]; then
-				TheOld="${TheOld%${LangExt}}" 
+				TheOld="${TheOld%${LangExt}}"
 				TheNew="${TheNew%${LangExt}}"
 				cp ${LangSrc}/${TheOld}${LangExt} ${LangSrc}/${TheNew}${LangExt}
 				echo ${TheNew}${LangExt}

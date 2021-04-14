@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.52"
+SupportV="0.1.53"
 Lang=C++
 ColorNum=4
 
@@ -105,6 +105,7 @@ UseC++()
 		getCode)
 			local name=$1
 			name=${name%${LangExt}}
+			name=${name%.h}
                         local project=${CodeProject}
                         local newName
                         local DirPath
@@ -342,17 +343,9 @@ UseC++()
 									#}
 								else
 									if [[ "${src}" == *"${num}"* ]]; then
-										if [[ "${num}" == *"${LangExt}" ]] || [[ "${num}" == *".h" ]]; then
-											#Read or Write Code
-											#{
-											${ReadOrEdit} ${num}
-											#}
-										else
-											#Read or Write Code
-											#{
-											${ReadOrEdit} "${num}${LangExt}"
-											#}
-										fi
+										#Choose file from list of choices
+										num=$(echo ${src} | tr ',' '\n' | grep ${num})
+										${ReadOrEdit} ${num}
 									else
 										#Error
 										#{
@@ -741,8 +734,16 @@ UseC++()
 			local project=${CodeProject}
 
 			Type=${Type,,}
-			name=${name%${LangExt}}
-			name=${name%.h}
+			case ${name} in
+				*.h)
+					name=${name%.h}
+					Type="header"
+					;;
+				*)
+					name=${name%${LangExt}}
+					;;
+			esac
+
 			if [ ! -f ${name}${LangExt} ] || [ ! -f ${name}.h ]; then
 				case ${Type} in
 					#create header file
@@ -932,7 +933,7 @@ UseC++()
 			local TheOld=$1
 			local TheNew=$2
 			if [ ! -z "${TheNew}" ]; then
-				TheOld="${TheOld%${LangExt}}" 
+				TheOld="${TheOld%${LangExt}}"
 				TheNew="${TheNew%${LangExt}}"
 				cp ${LangSrc}/${TheOld}${LangExt} ${LangSrc}/${TheNew}${LangExt}
 				echo ${TheNew}${LangExt}
