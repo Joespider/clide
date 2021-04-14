@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.02"
+SupportV="0.1.03"
 Lang=C
 #Return Yellow
 ColorNum=3
@@ -70,7 +70,7 @@ UseC()
 	local LangHome=${ProgDir}/${Lang}
 	local LangSrc=${LangHome}/src
 	local LangBin=${LangHome}/bin
-	local LangExt=".cpp"
+	local LangExt=".c"
 
 	local NewLangSrc="New(${Lang})"
 	local TemplateCode=$(grep "${NewLangSrc}" ${VarDir}/clide.conf | sed "s/${NewLangSrc}=//1")
