@@ -1,8 +1,10 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.41"
+SupportV="0.1.42"
 Lang=Python
+LangExt=".py"
+#Color Yellow
 ColorNum=3
 
 ProgDir=$1
@@ -68,7 +70,7 @@ UsePython()
 	local LangHome=${ProgDir}/${Lang}
 	local LangSrc=${LangHome}/src
 	local LangBin=${LangHome}/bin
-	local LangExt=".py"
+	local LangProject=${LangHome}/projects
 	local NewLangSrc="New(${Lang})"
 	local TemplateCode=$(grep "${NewLangSrc}" ${VarDir}/clide.conf | sed "s/${NewLangSrc}=//1")
 	TemplateCode=${LangBin}/${TemplateCode%${LangExt}}${LangExt}
@@ -156,17 +158,23 @@ UsePython()
 			fi
 			;;
 		EnsureDirs)
-			#Home
-			if [ ! -d "${LangHome}" ] && [ ! -z "${LangRun}" ]; then
-				mkdir "${LangHome}"
-			fi
-			#Src
-			if [ ! -d "${LangSrc}" ] && [ ! -z "${LangRun}" ]; then
-				mkdir "${LangSrc}"
-			fi
-			#Bin
-			if [ ! -d "${LangBin}" ] && [ ! -z "${LangRun}" ]; then
-				mkdir "${LangBin}"
+			if [ ! -z "${LangRun}" ]; then
+				#Home
+				if [ ! -d "${LangHome}" ]; then
+					mkdir "${LangHome}"
+				fi
+				#Src
+				if [ ! -d "${LangSrc}" ]; then
+					mkdir "${LangSrc}"
+				fi
+				#Bin
+				if [ ! -d "${LangBin}" ]; then
+					mkdir "${LangBin}"
+				fi
+				#projects
+				if [ ! -d "${LangProject}" ]; then
+					mkdir "${LangProject}"
+				fi
 			fi
 			;;
 		TemplateVersion)
@@ -311,7 +319,7 @@ UsePython()
 					;;
 				*)
 					project="${project}/"
-					TheBinDir="${LangSrc}/${project}bin"
+					TheBinDir="${LangProject}/${project}bin"
 					;;
 			esac
 
@@ -325,7 +333,7 @@ UsePython()
 						echo "Unable to find the \"main\" file"
 						echo -n "Please choose: "
 						read name
-						if [ ! -f ${LangSrc}/${project}${name%.*}${LangExt} ]; then
+						if [ ! -f ${LangProject}/${project}${name%.*}${LangExt} ]; then
 							name=""
 						fi
 					fi
@@ -339,8 +347,6 @@ UsePython()
 			#Set Code to executable
 			case ${src} in
 				*${LangExt})
-					#Make Python Script executable
-					chmod +x ${src} 2> /dev/null
 					#Check if Python Script does NOT exist
 					if [ ! -f "${TheBinDir}/${src}" ]; then
 						#Change to Python Binary dir
@@ -364,11 +370,18 @@ UsePython()
 					;;
 			esac
 			;;
+		discoverProject)
+			local path=${LangProject}/
+			local ProjectList=$(ls ${path} 2> /dev/null | tr '\n' '|' | rev | sed "s/|//1" | rev)
+			if [ ! -z "${ProjectList}" ]; then
+				echo "${path}:${ProjectList}"
+			fi
+			;;
 		newProject)
 			ProjectType=$1
 			local project=$2
 			CodeProject=${project}
-			local path=${LangSrc}/${project}
+			local path=${LangProject}/${project}
 			if [ ! -d ${path} ]; then
 				case ${ProjectType} in
 					Generic)
@@ -413,7 +426,7 @@ UsePython()
 					;;
 				*)
 					project=${CodeProject}
-					path=${LangSrc}/${project}/bin
+					path=${LangProject}/${project}/bin
 					;;
 			esac
 			if [ -d ${path} ]; then
@@ -463,7 +476,7 @@ UsePython()
 					;;
 				*)
 					project="${project}/"
-					TheBinDir="${LangSrc}/${project}bin"
+					TheBinDir="${LangProject}/${project}bin"
 					;;
 			esac
 			#Make sure Binary exists
@@ -546,8 +559,8 @@ UsePython()
 					;;
 				*)
 					project="${project}/"
-					TheBinDir="${LangSrc}/${project}bin"
-					cd ${LangSrc}/${project}/src
+					TheBinDir="${LangProject}/${project}bin"
+					cd ${LangProject}/${project}/src
 					;;
 			esac
 

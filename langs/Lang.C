@@ -1,8 +1,9 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.03"
+SupportV="0.1.04"
 Lang=C
+LangExt=".c"
 #Return Yellow
 ColorNum=3
 
@@ -70,7 +71,7 @@ UseC()
 	local LangHome=${ProgDir}/${Lang}
 	local LangSrc=${LangHome}/src
 	local LangBin=${LangHome}/bin
-	local LangExt=".c"
+	local LangProject=${LangHome}/projects
 
 	local NewLangSrc="New(${Lang})"
 	local TemplateCode=$(grep "${NewLangSrc}" ${VarDir}/clide.conf | sed "s/${NewLangSrc}=//1")
@@ -122,13 +123,13 @@ UseC()
 								*.*)
 									newName=${name##*.}
 									DirPath=$(echo ${name%${newName}} | tr '.' '/')
-									TheSrcDir="${LangSrc}/${project}/src/${DirPath}"
+									TheSrcDir="${LangProject}/${project}/src/${DirPath}"
 									name=${newName}
 									;;
 								*/*)
 									newName=${name##*/}
 									DirPath=${name%${newName}}
-									TheSrcDir="${LangSrc}/${project}/src/${DirPath}"
+									TheSrcDir="${LangProject}/${project}/src/${DirPath}"
 									name=${newName}
 									;;
 								*)
@@ -181,17 +182,23 @@ UseC()
 			fi
 			;;
 		EnsureDirs)
-			#Home
-			if [ ! -d "${LangHome}" ] && [ ! -z "${LangCpl}" ]; then
-				mkdir "${LangHome}"
-			fi
-			#Src
-			if [ ! -d "${LangSrc}" ] && [ ! -z "${LangCpl}" ]; then
-				mkdir "${LangSrc}"
-			fi
-			#Bin
-			if [ ! -d "${LangBin}" ] && [ ! -z "${LangCpl}" ]; then
-				mkdir "${LangBin}"
+			if [ ! -z "${LangCpl}" ]; then
+				#Home
+				if [ ! -d "${LangHome}" ]; then
+					mkdir "${LangHome}"
+				fi
+				#Src
+				if [ ! -d "${LangSrc}" ]; then
+					mkdir "${LangSrc}"
+				fi
+				#Bin
+				if [ ! -d "${LangBin}" ]; then
+					mkdir "${LangBin}"
+				fi
+				#projects
+				if [ ! -d "${LangProject}" ]; then
+					mkdir "${LangProject}"
+				fi
 			fi
 			;;
 		TemplateVersion)
@@ -234,7 +241,7 @@ UseC()
 						;;
 					#is a project
 					*)
-						TheSrcDir="${LangSrc}/${project}/src/"
+						TheSrcDir="${LangProject}/${project}/src/"
 
 						#Correct filename
 						if [[ ! "${name}" == *"${LangExt}" ]]; then
@@ -371,7 +378,7 @@ UseC()
 							fi
 							;;
 						*)
-							TheSrcDir="${LangSrc}/${project}/src/"
+							TheSrcDir="${LangProject}/${project}/src/"
 							local NumFound
 							if [[ "${src}" == *","* ]]; then
 								if [ -z ${num} ]; then
@@ -476,25 +483,25 @@ UseC()
 				*)
 					name=${project}
 					project="${project}/"
-					TheSrcDir="${LangSrc}/${project}src"
+					TheSrcDir="${LangProject}/${project}src"
 					#if NO code is selected, then select ALL
 					#{
 					if [ -z ${src} ]; then
-						ReplaceTheSrcDir=$(echo "${LangSrc}/${project}src/" | tr '/' '|')
+						ReplaceTheSrcDir=$(echo "${LangProject}/${project}src/" | tr '/' '|')
 						src=$(find ${TheSrcDir} -name "*${LangExt}" | tr '/' '|' | sed "s/${ReplaceTheSrcDir}//g" | tr '|' '/')
 					fi
 					#}
-					TheBinDir="${LangSrc}/${project}bin"
+					TheBinDir="${LangProject}/${project}bin"
 					;;
 			esac
 
 			#Compile ONLY if source code is selected OR makefile is present
-			if [[ "$src" == *"${LangExt}"* ]] || [ -f ${LangSrc}/${project}makefile ]; then
+			if [[ "$src" == *"${LangExt}"* ]] || [ -f ${LangProject}/${project}makefile ]; then
 				cd ${TheSrcDir}
 				cplArgs=${LangCplVersion}
 				#Compile with makefile
-				if [ -f ${LangSrc}/${project}makefile ]; then
-					cd ${LangSrc}/${project}
+				if [ -f ${LangProject}/${project}makefile ]; then
+					cd ${LangProject}/${project}
 					echo "make"
 					cd - > /dev/null
 					echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
@@ -586,10 +593,17 @@ UseC()
 			fi
 			echo ${CplArgs}
 			;;
+		discoverProject)
+			local path=${LangProject}/
+			local ProjectList=$(ls ${path} 2> /dev/null | tr '\n' '|' | rev | sed "s/|//1" | rev)
+			if [ ! -z "${ProjectList}" ]; then
+				echo "${path}:${ProjectList}"
+			fi
+			;;
 		newProject)
 			ProjectType=$1
 			local project=$2
-			local path=${LangSrc}/${project}
+			local path=${LangProject}/${project}
 			#create and cd to project dir
 			if [ ! -d ${path} ]; then
 				case ${ProjectType} in
@@ -640,7 +654,7 @@ UseC()
 					;;
 				*)
 					project=${CodeProject}
-					path=${LangSrc}/${project}/bin
+					path=${LangProject}/${project}/bin
 					;;
 			esac
 			if [ -d ${path} ]; then
@@ -693,7 +707,7 @@ UseC()
 					;;
 				*)
 					project="${project}/"
-					TheBinDir="${LangSrc}/${project}bin"
+					TheBinDir="${LangProject}/${project}bin"
 					;;
 			esac
 			#Make sure Binary exists
@@ -808,7 +822,7 @@ UseC()
 								;;
 							#Is a project
 							*)
-								local TheSrcDir="${LangSrc}/${project}/src/"
+								local TheSrcDir="${LangProject}/${project}/src/"
 								local NumFound=$(find ${TheSrcDir} -name ${name} 2> /dev/null | wc -l)
 								case ${NumFound} in
 									0)
@@ -859,8 +873,8 @@ UseC()
 					cd ${LangSrc}/
 					;;
 				*)
-					TheBinDir="${LangSrc}/${project}/bin"
-					cd ${LangSrc}/${project}/src
+					TheBinDir="${LangProject}/${project}/bin"
+					cd ${LangProject}/${project}/src
 					;;
 			esac
 

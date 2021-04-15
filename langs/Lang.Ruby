@@ -1,8 +1,9 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.37"
+SupportV="0.1.38"
 Lang=Ruby
+LangExt=".rb"
 ColorNum=1
 
 ProgDir=$1
@@ -70,7 +71,7 @@ UseRuby()
 	local LangHome=${ProgDir}/${Lang}
 	local LangSrc=${LangHome}/src
 	local LangBin=${LangHome}/bin
-	local LangExt=".rb"
+	local LangProject=${LangHome}/projects
 
 	local NewLangSrc="New(${Lang})"
 	local TemplateCode=$(grep "${NewLangSrc}" ${VarDir}/clide.conf | sed "s/${NewLangSrc}=//1")
@@ -156,17 +157,23 @@ UseRuby()
 			fi
 			;;
 		EnsureDirs)
-			#Home
-			if [ ! -d "${LangHome}" ] && [ ! -z "${LangRun}" ]; then
-				mkdir "${LangHome}"
-			fi
-			#Src
-			if [ ! -d "${LangSrc}" ] && [ ! -z "${LangRun}" ]; then
-				mkdir "${LangSrc}"
-			fi
-			#Bin
-			if [ ! -d "${LangBin}" ] && [ ! -z "${LangRun}" ]; then
-				mkdir "${LangBin}"
+			if [ ! -z "${LangRun}" ]; then
+				#Home
+				if [ ! -d "${LangHome}" ]; then
+					mkdir "${LangHome}"
+				fi
+				#Src
+				if [ ! -d "${LangSrc}" ]; then
+					mkdir "${LangSrc}"
+				fi
+				#Bin
+				if [ ! -d "${LangBin}" ]; then
+					mkdir "${LangBin}"
+				fi
+				#projects
+				if [ ! -d "${LangProject}" ]; then
+					mkdir "${LangProject}"
+				fi
 			fi
 			;;
 		TemplateVersion)
@@ -302,7 +309,7 @@ UseRuby()
 					;;
 				*)
 					project="${project}/"
-					TheBinDir="${LangSrc}/${project}bin"
+					TheBinDir="${LangProject}/${project}bin"
 					;;
 			esac
 			case ${src} in
@@ -345,8 +352,6 @@ UseRuby()
 						fi
 					#single code selected
 					else
-						#Make Ruby Script executable
-						chmod +x ${src}
 						#Check if Ruby Script does NOT exist
 						if [ ! -f "${TheBinDir}/${src}" ]; then
 							#Change to Ruby Binary dir
@@ -370,10 +375,17 @@ UseRuby()
 					;;
 			esac
 			;;
+		discoverProject)
+			local path=${LangProject}/
+			local ProjectList=$(ls ${path} 2> /dev/null | tr '\n' '|' | rev | sed "s/|//1" | rev)
+			if [ ! -z "${ProjectList}" ]; then
+				echo "${path}:${ProjectList}"
+			fi
+			;;
 		newProject)
 			local TheProjectType=$1
 			local project=$2
-			local path=${LangSrc}/${project}
+			local path=${LangProject}/${project}
 			if [ ! -d ${path} ]; then
 				case ${ProjectType} in
 					Generic)
@@ -417,7 +429,7 @@ UseRuby()
                                         ;;
                                 *)
                                         project=${CodeProject}
-                                        path=${LangSrc}/${project}/bin
+                                        path=${LangProject}/${project}/bin
                                         ;;
                         esac
                         if [ -d ${path} ]; then
@@ -462,7 +474,7 @@ UseRuby()
 					;;
 				*)
 					project="${project}/"
-					TheBinDir="${LangSrc}/${project}bin"
+					TheBinDir="${LangProject}/${project}bin"
 					;;
 			esac
 			#Make sure Binary exists
@@ -542,7 +554,7 @@ UseRuby()
                                         ;;
                                 *)
                                         project="${project}/"
-					TheBinDir="${LangSrc}/${project}bin"
+					TheBinDir="${LangProject}/${project}bin"
 				;;
 			esac
 			#Check if Ruby Bin exists

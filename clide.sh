@@ -120,7 +120,7 @@ MenuHelp()
 			;;
 		*)
 #			echo -e "project {new|update|list|load|active}\t: \"handle projects\""
-			echo -e "project {new|update|list|load}\t: \"handle projects\""
+			echo -e "project {new|update|list|load|discover}\t: \"handle projects\""
 			echo -e "${repoTool}, repo\t: \"handle repos\""
 			;;
 	esac
@@ -160,6 +160,7 @@ ProjectHelp()
 	echo -e "list\t\t\t\t: \"List ALL projects\""
 	echo -e "active\t\t\t\t: \"Display the name of the current project\""
 	echo -e "types\t\t\t\t: \"Display the types of projects under ${Lang}\""
+	echo -e "discover\t\t\t\t: \"Discover project on system (creates project profile)"
 	ManageLangs ${Lang} "ProjectHelp"
 	echo "----------------------------------------------------------"
 	echo ""
@@ -566,7 +567,7 @@ importProject()
 
 	local ProjectFile=${ActiveProjectDir}/${Name}.clide
 	if [ ! -z "${Name}" ]; then
-		Path=$(eval $(echo ${Path}))
+#		Path=$(eval $(echo ${Path}))
 		if [ ! -f ${ProjectFile} ]; then
 			if [ -z "${Path}" ]; then
 				local prompt="Import Project \"${Name}\" from : "
@@ -666,6 +667,41 @@ listProjects()
 {
 	#Get list of active prijects from .clide files
 	ls ${ActiveProjectDir}/ | sed "s/.clide//g"
+}
+
+#Discover Project in clide
+discoverProject()
+{
+	local TheLang
+	local Langs=$(ls ${LangsDir}/ | sed "s/Lang.//g" | tr '\n' '|' | rev | sed "s/|//1" | rev)
+	local NumOfLangs=$(ls ${LangsDir}/ | wc -l)
+	local NumOfProject
+	local look=1
+	local For
+	local text
+	local Name
+	local Path
+	local ChosenLangs=""
+	while [ ${look} -le ${NumOfLangs} ];
+	do
+		TheLang=$(echo ${Langs} | cut -d '|' -f ${look})
+		text=$(ManageLangs ${TheLang} "discoverProject")
+		if [ ! -z "${text}" ]; then
+			Path=$(echo ${text} | cut -d ":" -f 1)
+			text=$(echo ${text} | cut -d ":" -f 2)
+			NumOfProject=$(echo ${text} | tr '|' '\n' | wc -l)
+			For=1
+			while [ ${For} -le ${NumOfProject} ];
+			do
+				Name=$(echo ${text} | cut -d '|' -f ${For})
+				importProject ${TheLang} ${Name} ${Path}${Name} > /dev/null
+				For=$((${For}+1))
+			done
+
+		fi
+		look=$((${look}+1))
+	done
+	echo "${Head} is all caught up"
 }
 
 #Load active projects
@@ -1080,7 +1116,7 @@ Actions()
 									Code=$(echo ${project} | cut -d ";" -f 2)
 									ProjectType=$(echo ${project} | cut -d ";" -f 4)
 									CodeProject=${UserIn[2]}
-									cd ${CodeDir}/src
+									cd ${CodeDir}/src 2> /dev/null
 									echo "Project \"${CodeProject}\" loaded"
 								else
 									errorCode "project" "load" "no-path" "${UserIn[2]}"
@@ -1092,6 +1128,10 @@ Actions()
 						#Import project not created by cl[ide]
 						import)
 							importProject ${Lang} ${UserIn[2]} ${UserIn[3]}
+							;;
+						#Discover projects for clide
+						discover)
+							discoverProject
 							;;
 						#Display active project
 						active)
@@ -1141,7 +1181,7 @@ Actions()
 					refresh="yes"
 					;;
 				#Swap Programming Languages
-				use|c++|java|python|perl|ruby|bash|go)
+				use|bash|c|c++|go|java|python|perl|ruby)
 					Old=${Lang}
 					OldCode=${Code}
 					case ${UserIn[0]} in
@@ -1779,7 +1819,7 @@ loadAuto()
 	comp_list "pwd"
 	comp_list "mkdir"
 	comp_list "use" "${pg}"
-	comp_list "project" "load import new list update types mode"
+	comp_list "project" "load import new list update types mode discover"
 	comp_list "shell"
 	comp_list "new" "--version -v --help -h --custom -c"
 	comp_list "${editor} ed edit" "non-lang"
@@ -1868,13 +1908,20 @@ main()
 				shift
 				local GetProject=$1
 				if [ ! -z "${GetProject}" ]; then
-					TheProject=$(loadProject ${GetProject})
-					if [ "${TheProject}" != "no" ]; then
-#						Lang=$(echo ${TheProject} | cut -d ";" -f 1)
-#						Lang=$(pgLang ${Lang})
-#						Actions ${Lang} "code" "project" "load" "${GetProject}"
-						Actions "Bash" "code" "project" "load" "${GetProject}"
-					fi
+					case ${GetProject} in
+						--discover)
+							discoverProject
+							;;
+						*)
+							TheProject=$(loadProject ${GetProject})
+							if [ "${TheProject}" != "no" ]; then
+#								Lang=$(echo ${TheProject} | cut -d ";" -f 1)
+#								Lang=$(pgLang ${Lang})
+#								Actions ${Lang} "code" "project" "load" "${GetProject}"
+								Actions "Bash" "code" "project" "load" "${GetProject}"
+							fi
+							;;
+					esac
 				else
 					listProjects
 				fi

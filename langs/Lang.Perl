@@ -1,8 +1,10 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.38"
+SupportV="0.1.39"
 Lang=Perl
+LangExt=".pl"
+#Color Purple
 ColorNum=5
 
 ProgDir=$1
@@ -69,7 +71,7 @@ UsePerl()
 	local LangHome=${ProgDir}/${Lang}
 	local LangSrc=${LangHome}/src
 	local LangBin=${LangHome}/bin
-	local LangExt=".pl"
+	local LangProject=${LangHome}/projects
 
 	local NewLangSrc="New(${Lang})"
 	local TemplateCode=$(grep "${NewLangSrc}" ${VarDir}/clide.conf | sed "s/${NewLangSrc}=//1")
@@ -154,17 +156,23 @@ UsePerl()
 			fi
 			;;
 		EnsureDirs)
-			#Home
-			if [ ! -d "${LangHome}" ] && [ ! -z "${LangRun}" ]; then
-				mkdir "${LangHome}"
-			fi
-			#Src
-			if [ ! -d "${LangSrc}" ] && [ ! -z "${LangRun}" ]; then
-				mkdir "${LangSrc}"
-			fi
-			#Bin
-			if [ ! -d "${LangBin}" ] && [ ! -z "${LangRun}" ]; then
-				mkdir "${LangBin}"
+			if [ ! -z "${LangRun}" ]; then
+				#Home
+				if [ ! -d "${LangHome}" ]; then
+					mkdir "${LangHome}"
+				fi
+				#Src
+				if [ ! -d "${LangSrc}" ]; then
+					mkdir "${LangSrc}"
+				fi
+				#Bin
+				if [ ! -d "${LangBin}" ]; then
+					mkdir "${LangBin}"
+				fi
+				#projects
+				if [ ! -d "${LangProject}" ]; then
+					mkdir "${LangProject}"
+				fi
 			fi
 			;;
 		TemplateVersion)
@@ -300,7 +308,7 @@ UsePerl()
 					;;
 				*)
 					project="${project}/"
-					TheBinDir="${LangSrc}/${project}bin"
+					TheBinDir="${LangProject}/${project}bin"
 				;;
                         esac
 			case ${src} in
@@ -343,8 +351,6 @@ UsePerl()
 						fi
 					#single code selected
 					else
-						#Make Perl Script executable
-						chmod +x ${src}
 						#Check if Perl Script does NOT exist
 						if [ ! -f "${TheBinDir}/${src}" ]; then
 							#Change to Perl Binary dir
@@ -367,10 +373,17 @@ UsePerl()
 					;;
 			esac
 			;;
+		discoverProject)
+			local path=${LangProject}/
+			local ProjectList=$(ls ${path} 2> /dev/null | tr '\n' '|' | rev | sed "s/|//1" | rev)
+			if [ ! -z "${ProjectList}" ]; then
+				echo "${path}:${ProjectList}"
+			fi
+			;;
 		newProject)
 			local TheProjectType=$1
 			local project=$2
-			local path=${LangSrc}/${project}
+			local path=${LangProject}/${project}
 			if [ ! -d ${path} ]; then
 				case ${ProjectType} in
 					Generic)
@@ -414,7 +427,7 @@ UsePerl()
 					;;
 				*)
 					project=${CodeProject}
-					path=${LangSrc}/${project}/bin
+					path=${LangProject}/${project}/bin
 					;;
 			esac
 			if [ -d ${path} ]; then
@@ -459,7 +472,7 @@ UsePerl()
 					;;
 				*)
 					project="${project}/"
-					TheBinDir="${LangSrc}/${project}bin"
+					TheBinDir="${LangProject}/${project}bin"
 					;;
                         esac
 			#Make sure Binary exists
@@ -538,7 +551,7 @@ UsePerl()
                                         ;;
                                 *)
                                         project="${project}/"
-                                        TheBinDir="${LangSrc}/${project}bin"
+                                        TheBinDir="${LangProject}/${project}bin"
 					;;
                         esac
 			#Check if Perl Bin exists

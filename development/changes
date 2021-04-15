@@ -16,6 +16,8 @@ Added:
 	Improving project support for C++ (Lang.C++)
 	new code template now named in clide.conf (var/clide.conf)
 	Added C language support (Lang.C)
+	Moved project directories to <lang>/project/<project> isntead of <lang>/src/<project>
+	Added Project discovery ($clide -p --discover) when having clide find active projects
 
 Concept:
 	Managing different project types
