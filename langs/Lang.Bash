@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.41"
+SupportV="0.1.42"
 Lang=Bash
 LangExt=".sh"
 ColorNum=2
@@ -101,6 +101,10 @@ UseBash()
 			echo ""
 			echo -e "${Lang} specific project help"
 			echo ""
+			;;
+		getProjectDir)
+			local project=${CodeProject}
+			echo ${LangProject}/${project}
 			;;
 		pgLang)
 			HasLang=$(which ${LangRun} 2> /dev/null)

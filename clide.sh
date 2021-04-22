@@ -830,6 +830,23 @@ runCode()
 	ManageLangs ${Lang} "runCode" "${TheBin}" "${JavaProp}" ${Args[@]}
 }
 
+ManageCreate()
+{
+	local Lang=$1
+	shift
+	local Code=$1
+	shift
+	local Choice=$1
+	shift
+	local CreateArgs=( $@ )
+	if [ ! -z ${Choice} ]; then
+		ManageLangs ${Lang} "${Choice}" ${Code} ${UserIn[@]}
+	else
+		#Show help page
+		CreateHelp ${Lang}
+	fi
+}
+
 selectProjectMode()
 {
 	local Lang=$1
@@ -1027,22 +1044,27 @@ Actions()
 					;;
 				#change dir in project
 				cd)
+					local ProjectDir=$(ManageLangs ${Lang} "getProjectDir")
 					#Use ONLY for Projects
 					case ${CodeProject} in
 						none)
 							errorCode "project" "none"
 							;;
 						*)
-							cd ${UserIn[1]} 2> /dev/null
-							here=$(pwd)
-							case ${here} in
-								*${CodeProject}*)
-									;;
-								*)
-									errorCode "project" "can-not-leave"
-									cd - > /dev/null
-									;;
-							esac
+							if [ ! -z "${UserIn[1]}" ]; then
+								cd ${UserIn[1]} 2> /dev/null
+								here=$(pwd)
+								case ${here} in
+									${ProjectDir}*)
+										;;
+									*)
+										errorCode "project" "can-not-leave"
+										cd - > /dev/null
+										;;
+								esac
+							else
+								cd ${ProjectDir}
+							fi
 							refresh="yes"
 							;;
 					esac
@@ -1384,13 +1406,17 @@ Actions()
 					;;
 				#Add code to Source Code
 				add)
-					#Ensure Code is not added twice
-					if [[ ! "${Code}" == *"${UserIn[1]}"* ]]; then
-						Code=$(ManageLangs ${Lang} "addCode" ${Code} ${UserIn[1]})
-						refresh="yes"
-					#Code is trying to be added twice
+					if [ ! -z "${UserIn[1]}" ]; then
+						#Ensure Code is not added twice
+						if [[ ! "${Code}" == *"${UserIn[1]}"* ]]; then
+							Code=$(ManageLangs ${Lang} "addCode" ${Code} ${UserIn[1]})
+							refresh="yes"
+						#Code is trying to be added twice
+						else
+							errorCode "selectCode" "already"
+						fi
 					else
-						errorCode "selectCode" "already"
+						errorCode "selectCode" "nothing"
 					fi
 					;;
 				#Read code without editing
@@ -1452,12 +1478,13 @@ Actions()
 							RunCplArgs="none"
 							echo "All rest"
 							;;
+						#Compile arguments
 						${UserIn[1]}-${UserIn[2]})
 							RunCplArgs=$(ManageLangs ${Lang} "${UserIn[1]}-${UserIn[2]}" ${Code} ${UserIn[@]})
 							;;
-						#Show help page
+						#Manage Create
 						*)
-							CreateHelp ${Lang}
+							ManageCreate ${Lang} ${Code} ${UserIn[1]} ${UserIn[2]} ${UserIn[3]}
 							;;
 					esac
 					;;

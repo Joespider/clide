@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.39"
+SupportV="0.1.40"
 Lang=Perl
 LangExt=".pl"
 #Color Purple
@@ -102,6 +102,10 @@ UsePerl()
 			echo ""
 			echo -e "${Lang} specific project help"
 			echo ""
+			;;
+		getProjectDir)
+			local project=${CodeProject}
+			echo ${LangProject}/${project}
 			;;
 		getCode)
 			local name=$1

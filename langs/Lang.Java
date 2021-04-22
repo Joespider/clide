@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.52"
+SupportV="0.1.55"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -111,6 +111,10 @@ UseJava()
 			echo ""
 			echo -e "${Lang} specific project help"
 			echo ""
+			;;
+		getProjectDir)
+			local project=${CodeProject}
+			echo ${LangProject}/${project}
 			;;
 		getCode)
 			local name=$1
@@ -233,8 +237,9 @@ UseJava()
 			fi
 			echo ""
 			;;
-		selectCode)
+		selectCode|addCode)
 			local name=$1
+			local new=$2
 			local project=${CodeProject}
 			local newName
 			local DirPath
@@ -245,26 +250,79 @@ UseJava()
 				case ${project} in
 					#not a project
 					none)
-						#Return source file if exists
-						if [ -f "${name}" ]; then
-							echo "${name}"
-						fi
+						case ${Type} in
+							addCode)
+								case ${new} in
+									*${LangExt})
+										if [ -f "${new}" ]; then
+											echo "${name},${new}"
+										else
+											echo "${name}"
+										fi
+										;;
+									*)
+										if [ -f "${new}${LangExt}" ]; then
+											echo "${name},${new}${LangExt}"
+										else
+											echo "${name}"
+										fi
+										;;
+								esac
+								;;
+							selectCode)
+									#Return source file if exists
+									if [ -f "${name}" ]; then
+										echo "${name}"
+									fi
+									;;
+							*)
+									;;
+						esac
 						;;
 					#is a project
 					*)
+						local LookFor
 						TheSrcDir="${LangProject}/${project}/src/"
-						local NumFound=$(find ${TheSrcDir} -name ${name} 2> /dev/null | grep "${ProjectMode}" | wc -l)
+						case ${Type} in
+							addCode)
+								new=${new%${LangExt}}${LangExt}
+								LookFor=${new}
+								;;
+							selectCode)
+								name=${name%${LangExt}}${LangExt}
+								LookFor=${name}
+								;;
+							*)
+								;;
+						esac
+
+						local NumFound=$(find ${TheSrcDir} -name ${LookFor} 2> /dev/null | grep "${ProjectMode}" | wc -l)
 						case ${NumFound} in
 							0)
 								;;
 							1)
-								name=$(find ${TheSrcDir} -name ${name} 2> /dev/null | grep "${ProjectMode}")
-
-								if [ -f ${name} ]; then
-									name=${name%${LangExt}}
-									newName=${name##*/}
-									echo ${newName}${LangExt}
-								fi
+								case ${Type} in
+									addCode)
+										new=$(find ${TheSrcDir} -name ${new} 2> /dev/null | grep "${ProjectMode}")
+										if [ -f ${new} ]; then
+											new=${new%${LangExt}}
+											newName=${new##*/}
+											echo "${name},${newName}${LangExt}"
+										else
+											echo "${name}"
+										fi
+										;;
+									selectCode)
+										name=$(find ${TheSrcDir} -name ${name} 2> /dev/null | grep "${ProjectMode}")
+										if [ -f ${name} ]; then
+											name=${name%${LangExt}}
+											newName=${name##*/}
+											echo ${newName}${LangExt}
+										fi
+										;;
+									*)
+										;;
+								esac
 								;;
 							*)
 #								find ${TheSrcDir} -name ${name} 2> /dev/null | nl
@@ -278,33 +336,6 @@ UseJava()
 					;;
 				esac
 			fi
-			;;
-		addCode)
-			local src=$1
-			local new=$2
-			local project=${CodeProject}
-			case ${src} in
-				*${LangExt})
-					case ${new} in
-						*${LangExt})
-							if [ -f "${new}" ]; then
-								echo "${src},${new}"
-							else
-								echo "${src}"
-							fi
-							;;
-						*)
-							if [ -f "${new}${LangExt}" ]; then
-								echo "${src},${new}${LangExt}"
-							else
-								echo "${src}"
-							fi
-							;;
-					esac
-					;;
-				*)
-					;;
-			esac
 			;;
 		editCode|readCode)
 			local src=$1
@@ -332,6 +363,7 @@ UseJava()
 			case ${src} in
 				*${LangExt})
 					case ${project} in
+						#Is NOT a project
 						none)
 							if [[ "${src}" == *","* ]]; then
 								if [ -z ${num} ]; then
@@ -384,6 +416,7 @@ UseJava()
 								#}
 							fi
 							;;
+						#Is a project
 						*)
 							if [[ "${src}" == *","* ]]; then
 								echo "Please Add support for handling ${src}"

@@ -95,6 +95,9 @@ errorCode()
 			shift
 			local thr=$1
 			case ${sec} in
+				nothing)
+					echo "There is nothing to add"
+					;;
 				exists)
 					echo "Source Code has already been selected"
 					echo "[HINT]: add <source>"

@@ -18,6 +18,7 @@ Added:
 	Added C language support (Lang.C)
 	Moved project directories to <lang>/project/<project> isntead of <lang>/src/<project>
 	Added Project discovery ($clide -p --discover) when having clide find active projects
+	Adding "create make" in C++ (Not yet finished)
 
 Concept:
 	Managing different project types
@@ -37,3 +38,5 @@ Bug Fixes:
 	prevents code from aliased code from being selected; otherwise breaks the code
 	improved repo.sh support
 	bug fix: improved code selection and creating new code handling; improvements in handling C/C++ code (Lang.C; Lang.C++)
+	bug fix: C/C++ now propperly selects and adds code for project and non-specific code (Lang.C; Lang.C++)
+	bug fix: while in a project; command "cd" now jumps to root of project instead of trying to jump out and triggering an error

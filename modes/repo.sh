@@ -1,6 +1,10 @@
 Shell=$(which bash)
 #!${Shell}
 
+#Add submodule feature
+#https://git-scm.com/book/en/v2/Git-Tools-Submodules
+#git submodule add https://github.com/chaconinc/DbConnector
+
 Head="cl[ide]"
 IDE=$(echo -e "\e[1;43mrepo\e[0m")
 Name="cl[${IDE}]"

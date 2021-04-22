@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.38"
+SupportV="0.1.39"
 Lang=Ruby
 LangExt=".rb"
 ColorNum=1
@@ -103,6 +103,10 @@ UseRuby()
 			echo ""
 			echo -e "${Lang} specific project help"
 			echo ""
+			;;
+		getProjectDir)
+			local project=${CodeProject}
+			echo ${LangProject}/${project}
 			;;
 		pgLang)
 			local HasLang=$(which ${LangRun} 2> /dev/null)
