@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.57"
+SupportV="0.1.58"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -716,12 +716,18 @@ UseJava()
 			local packagePath=$(echo ${name} | tr '.' '/')
 			local project=${CodeProject}
 			local path=${LangProject}/${project}/src/${ProjectMode}/java/
-			if [ ! -z "${name}" ]; then
-				cd ${path}
-				mkdir -p ${packagePath}
-				echo "package \"${name}\" created"
-				cd - > /dev/null
-			fi
+			case ${project} in
+				none)
+					;;
+				*)
+					if [ ! -z "${name}" ]; then
+						cd ${path}
+						mkdir -p ${packagePath}
+						echo "package \"${name}\" created"
+						cd - > /dev/null
+					fi
+					;;
+			esac
 			;;
 		projectMode)
 			local mode=$1
