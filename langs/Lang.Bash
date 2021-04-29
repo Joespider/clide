@@ -119,6 +119,7 @@ UseBash()
 		getCode)
 			local name=$1
 			local project=${CodeProject}
+			local DirPath
 			#Get code
                         case ${project} in
                                 none)
@@ -130,10 +131,10 @@ UseBash()
 					;;
 				*)
 					case ${ProjectType} in
-						Generic) 
-							if [ -f ${LangProject}/${project}/src/${name}${LangExt} ]; then
+						Generic)
+							if [ -f ${LangProject}/${project}/src/${DirPath}${name}${LangExt} ]; then
 								echo ${name}${LangExt}
-							elif [ -f ${LangProject}/${project}/src/${name} ]; then
+							elif [ -f ${LangProject}/${project}/src/${DirPath}${name} ]; then
 								echo ${name}
 							fi
 							;;
@@ -541,7 +542,7 @@ UseBash()
 					#Program Name Given
 					if [ ! -z "${name}" ];then
 						touch ${name}${LangExt}
-						echo -e "#!/bin/${Lang}\n" > ${name}${LangExt}
+						echo -e "#!/bin/${LangRun}\n" > ${name}${LangExt}
 					else
 						errorCode "newCode"
 					fi

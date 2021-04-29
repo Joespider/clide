@@ -1363,6 +1363,9 @@ Actions()
 								Code=$(selectCode ${Lang} ${NewCode} ${Code})
 							fi
 							;;
+						--package)
+							ManageLangs ${Lang} "newPackage" ${UserIn[2]}
+							;;
 						#Protect against incorrect file naming
 						-*)
 							echo "\"${UserIn[1]}\" is not a valid program name"
