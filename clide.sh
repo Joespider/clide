@@ -2,10 +2,6 @@ Shell=$(which bash)
 #!${Shell}
 ShellPath=$(realpath $0)
 root=$(dirname ${ShellPath})
-#cl[ide] future features
-#{
-	#provide X11 support via -lX11 g++ flag
-#}
 
 GetConfig()
 {
@@ -103,7 +99,6 @@ MenuHelp()
 	echo -e "use <language> <code>\t\t: \"choose language\""
 	echo -e "using\t\t\t\t:\"Display what language is being used\""
 	echo -e "save\t\t\t\t: \"Save session\""
-#	echo -e "swap, swp {src|bin}\t\t: \"swap between sorce code and executable\""
 	echo -e "create <arg>\t\t\t: \"create compile and runtime arguments"
 	ManageLangs ${Lang} "MenuHelp"
 	echo -e "car, car-a\t\t\t: \"compile and run; compile and run with arguments\""
@@ -202,9 +197,9 @@ CliHelp()
 	echo -e "-tv, --temp-version\t\t: \"Get Code Template Version\""
 	echo -e "-rv, --repo-version\t\t: \"Get git/svn Version\""
 	echo -e "-c, --config\t\t\t: \"Get Clide Config\""
-	echo -e "-p, --project <project>\t\t: \"List or Load Clide Projects\""
 	echo -e "-h, --help\t\t\t: \"Get CLI Help Page (Cl[ide] Menu: \"help\")\""
 	echo -e "-l, --last, --load\t\t: \"Load last session\""
+	echo -e "-p, --project <project>\t\t: \"List or Load Clide Projects\""
 	echo ""
 	echo "-----------------------------------------------"
 	echo -e "\t\t\"Quick ${Head} Functions\""
@@ -273,9 +268,6 @@ UseOther()
 		TemplateVersion)
 			echo "Please Choose a Language"
 			;;
-#		SwapToSrc|SwapToBin)
-#			echo "${Args[0]}"
-#			;;
 		Install)
 			errorCode "noCode"
 			;;
@@ -957,7 +949,8 @@ Actions()
 					;;
 				*)
 					ThePWD=$(pwd)
-					ProjectDir=$(echo ${ThePWD#*${CodeProject}} | sed "s/\//:/1")
+					ProjectDir=$(echo ${ThePWD#*${CodeProject}})
+					ProjectDir=${ProjectDir/\//:}
 					cCodeProject=$(ManageLangs ${Lang} "ProjectColor")
 					#Menu with no code
 					prompt="${Name}(${cCodeProject}[${ProjectType}${ProjectDir}]):$ "
@@ -971,7 +964,8 @@ Actions()
 					;;
 				*)
 					ThePWD=$(pwd)
-					ProjectDir=$(echo ${ThePWD#*${CodeProject}} | sed "s/\//:/1")
+					ProjectDir=$(echo ${ThePWD#*${CodeProject}})
+					ProjectDir=${ProjectDir/\//:}
 					#Menu with no code
 					cCodeProject=$(ManageLangs ${Lang} "ProjectColor")
 					prompt="${Name}(${cCodeProject}[${ProjectType}${ProjectDir}]{${cCode}}):$ "
@@ -1094,6 +1088,29 @@ Actions()
 							;;
 					esac
 					;;
+				#handle java packages
+				package)
+					#Make sure this is a project
+					case ${CodeProject} in
+						none)
+							errorCode "project" "active"
+							;;
+						*)
+							#package commands
+							case ${UserIn[1]} in
+								#Create new package
+								new)
+									#Ensure package has a name
+									if [ ! -z "${UserIn[2]}" ]; then
+										ManageLangs ${Lang} "newPackage" ${UserIn[2]}
+									fi
+									;;
+								*)
+									;;
+							esac
+							;;
+					esac
+					;;
 				#Handle Projects
 				project)
 					#Project commands
@@ -1113,7 +1130,8 @@ Actions()
 										if [ ! -z "${UserIn[2]}" ]; then
 											CodeProject=${UserIn[2]}
 											echo "Created \"${CodeProject}\""
-											ProjectDir=$(echo ${ThePWD#*${CodeProject}} | sed "s/\//:/1")
+											ProjectDir=$(echo ${ThePWD#*${CodeProject}})
+											ProjectDir=${ProjectDir/\//:}
 										fi
 									else
 										errorCode "project" "not-exist" ${UserIn[2]}
@@ -1290,7 +1308,7 @@ Actions()
 								case ${Code} in
 									*${chosen}*)
 										ManageLangs ${Lang} "rename" ${chosen} ${TheNewChosen} > /dev/null
-										Code=$(echo ${Code} | sed "s/${chosen}/${TheNewChosen}/g")
+										Code=${Code//${chosen}/${TheNewChosen}}
 										refresh="yes"
 										;;
 									*)
@@ -1307,7 +1325,7 @@ Actions()
 					esac
 					refresh="yes"
 					;;
-				copy)
+				cp|copy)
 					local chosen=${UserIn[1]}
 					local TheNewChosen=${UserIn[2]}
 					case ${Code} in
@@ -1316,7 +1334,7 @@ Actions()
 								case ${Code} in
 									*${chosen}*)
 										ManageLangs ${Lang} "copy" ${chosen} ${TheNewChosen} > /dev/null
-										Code=$(echo ${Code} | sed "s/${chosen}/${TheNewChosen}/g")
+										Code=${Code//${chosen}/${TheNewChosen}}
 										;;
 									*)
 										errorCode "copy" "wrong"
@@ -1362,9 +1380,6 @@ Actions()
 								#Select new Code
 								Code=$(selectCode ${Lang} ${NewCode} ${Code})
 							fi
-							;;
-						--package)
-							ManageLangs ${Lang} "newPackage" ${UserIn[2]}
 							;;
 						#Protect against incorrect file naming
 						-*)
@@ -1426,16 +1441,6 @@ Actions()
 				${ReadBy}|read)
 					ManageLangs ${Lang} "readCode" ${Code} ${UserIn[1]}
 					;;
-#				#Swap from Binary to Src and vise-versa
-#				swap|swp)
-#					if [[ "${UserIn[1]}" == "bin" ]]; then
-#						Code=$(ManageLangs ${Lang} "SwapToBin" ${Code})
-#					elif [[ "${UserIn[1]}" == "src" ]]; then
-#						Code=$(ManageLangs ${Lang} "SwapToSrc" ${Code})
-#					else
-#						echo "${mode} (src|bin)"
-#					fi
-#					;;
 				#Modes
 				mode)
 					ModeHandler ${Lang} ${cLang} ${UserIn[1]}
@@ -1613,7 +1618,8 @@ Actions()
 											;;
 										*)
 											ThePWD=$(pwd)
-											ProjectDir=$(echo ${ThePWD#*${CodeProject}} | sed "s/\//:/1")
+											ProjectDir=$(echo ${ThePWD#*${CodeProject}})
+											ProjectDir=${ProjectDir/\//:}
 											cCodeProject=$(ManageLangs ${Lang} "ProjectColor")
 											#Menu with no code
 											prompt="${Name}(${cCodeProject}[${ProjectType}${ProjectDir}]):$ "
@@ -1627,7 +1633,8 @@ Actions()
 											;;
 										*)
 											ThePWD=$(pwd)
-											ProjectDir=$(echo ${ThePWD#*${CodeProject}} | sed "s/\//:/1")
+											ProjectDir=$(echo ${ThePWD#*${CodeProject}})
+											ProjectDir=${ProjectDir/\//:}
 											#Menu with no code
 											cCodeProject=$(ManageLangs ${Lang} "ProjectColor")
 											prompt="${Name}(${cCodeProject}[${ProjectType}${ProjectDir}]{${cCode}}):$ "
@@ -1850,6 +1857,7 @@ loadAuto()
 	comp_list "mkdir"
 	comp_list "use" "${pg}"
 	comp_list "project" "load import new list update types mode discover"
+	comp_list "package" "new"
 	comp_list "shell"
 	comp_list "new" "--version -v --help -h --custom -c"
 	comp_list "${editor} ed edit" "non-lang"

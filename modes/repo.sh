@@ -274,7 +274,7 @@ gitHandler()
 							echo "Are you sure? There is no stopping what is being done"
 							echo -n "(yes/no)> "
 							read sure
-							sure=$(echo ${sure} | tr A-Z a-z)
+							sure=${sure,,}
 							case ${sure} in
 								yes|no)
 									gitHandler "${repoAct}" "${sure}" "${message[@]}"

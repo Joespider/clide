@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.58"
+SupportV="0.1.59"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -102,6 +102,8 @@ UseJava()
 			;;
 		MenuHelp)
 			echo -e "new <file> {main|component}\t: \"create new ${Lang} source file\""
+			echo -e "package new <package>\t: \"create a new package\""
+			echo -e "\tie: package new this.is.a.package"
 			echo -e "compile, cpl <type> <manifest>\t: \"make code executable\""
 			echo -e "\t--class\t\t\t: \"make code (CLASS) executable\""
 			echo -e "\t--jar\t\t\t: \"make code (JAR) executable\""
