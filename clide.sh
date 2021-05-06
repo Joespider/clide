@@ -189,39 +189,174 @@ newCodeHelp()
 #Clide cli help page
 CliHelp()
 {
+	local calledBy=$1
+	local cmd="clide ${calledBy}"
+	local option=$2
+	case ${option} in
+		info)
+			echo ""
+			echo "----------------[(${Head}) Info]----------------"
+			echo ""
+			echo "\"If you have a quick question for me, just ask.\""
+			echo "\"What do you want to know about me?\""
+			echo ""
+			echo -e "-v, --version\t\t\t: \"My Version\""
+			echo -e "-sv, --support-version\t\t: \"My Support Version for each langauge\""
+			echo -e "-cv, --code-version\t\t: \"The Compile/Interpreter Version\""
+			echo -e "-tv, --temp-version\t\t: \"The Code Template Version\""
+			echo -e "-rv, --repo-version\t\t: \"The ${repoTool} Version\""
+			echo -e "-c, --config\t\t\t: \"Read my configuration\""
+			echo -e "-ll, --languages\t\t: \"List the languages I know\""
+			echo -e "-h, --help\t\t\t: \"Get to know me better\""
+			echo -e "-l, --last, --load\t\t: \"Lets start back where we left; that is if you saved it\""
+			echo ""
+			echo "\"I hope this helps\""
+			echo "-----------------------------------------------"
+			echo ""
+			;;
+		function)
+			echo ""
+			echo "----------------[(${Head}) Functions]----------------"
+			echo ""
+			echo "\"Don't want to chat long? Want me to perform a simple task?\""
+			echo "\"I can perform normal tasks quickly.\""
+			echo "\"Here is how I can help\""
+			echo ""
+			echo -e "--edit\t\t\t\t: \"Edit source code\""
+			echo -e "--cpl, --compile\t\t: \"Compile source code\""
+			echo -e "--install\t\t\t: \"install program (.bash_aliases)\""
+			echo -e "--run\t\t\t\t: \"Run compiled code\""
+			echo -e "--read\t\t\t\t: \"Read out (cat) source code\""
+			echo -e "--list\t\t\t\t: \"List source code\""
+			echo -e "--list-cpl\t\t\t: \"List compiled code\""
+			echo -e "-p, --project <act> <project>\t: \"List or Load Clide Projects\""
+			echo ""
+			echo "-----------------------------------------------"
+			echo ""
+			;;
+		usage)
+			echo ""
+			echo "----------------[(${Head}) Usage]----------------"
+			echo ""
+			echo "\"Ready to work? Lets get started!\""
+			echo ""
+			echo "\"Lets start with a language; just tell me what we are using.\""
+			echo "\"Say you're using Java\""
+			echo "$ clide Java"
+			echo ""
+			echo "\"If you want to save time, you can pre-select the code\""
+			echo "$ clide Java MyCode"
+			echo ""
+			echo "\"I can determine the langauge by providing the extention of your source code\""
+			echo "$ clide MyCode.java"
+			echo ""
+			echo "\"You want something done quickly?\""
+			echo "\"Provide me with the action as well as the language and/or source code\""
+			echo "[\"Learn more by asking or help regarding my 'function'\"]"
+			echo "$ clide <Action> <Language> <Code> <Args>"
+			echo "or"
+			echo "$ clide <Action> <Code> <Args>"
+			echo ""
+			echo "\"Don't have anything in mind? Give me a call.\""
+			echo "$ clide"
+			echo ""
+			echo "\"Happy Programming!\""
+			echo "-----------------------------------------------"
+			echo ""
+			;;
+		*)
+			echo ""
+			echo "----------------[(${Head}) Help]----------------"
+			echo "\"Hello ${USER}!\""
+			echo ""
+			echo "\"My name is clide; I am here to help with all your programming needs.\""
+			echo "\"Lets get to know each other:\""
+			echo "\"To start, ask me the following:\""
+			echo ""
+			echo -e "${cmd} info\t: \"Get to know some information about me\""
+			echo -e "${cmd} function\t: \"Ask me to perform a quick task\""
+			echo -e "${cmd} usage\t: \"How we can start programming\""
+			echo "-----------------------------------------------"
+			echo ""
+			;;
+	esac
+}
+
+RunHelp()
+{
+	local cli="--run"
+	local cmd="\$ clide ${cli}"
 	echo ""
-	echo "----------------[(${Head}) CLI]----------------"
-	echo -e "-v, --version\t\t\t: \"Get Clide Version\""
-	echo -e "-sv, --support-version\t\t: \"Get Code Support Version\""
-	echo -e "-cv, --code-version\t\t: \"Get Compile/Interpreter Version\""
-	echo -e "-tv, --temp-version\t\t: \"Get Code Template Version\""
-	echo -e "-rv, --repo-version\t\t: \"Get git/svn Version\""
-	echo -e "-c, --config\t\t\t: \"Get Clide Config\""
-	echo -e "-h, --help\t\t\t: \"Get CLI Help Page (Cl[ide] Menu: \"help\")\""
-	echo -e "-l, --last, --load\t\t: \"Load last session\""
-	echo -e "-p, --project <project>\t\t: \"List or Load Clide Projects\""
+	echo "----------------[(${Head}) cli {${cli}}]----------------"
+	echo -e "Run your compiled code without having a ${Head} session"
 	echo ""
+	echo -e "${cmd} <language> <code> {arguments}\t:\"Run compiled code\""
+	echo -e "${cmd} <code> {arguments}\t\t:\"Run compiled code\""
+	echo -e "${cmd} -h, --help\t\t\t: \"help page\""
 	echo "-----------------------------------------------"
-	echo -e "\t\t\"Quick ${Head} Functions\""
-	echo -e "{Action} Items"
-	echo -e "--edit\t\t\t\t:\"Edit source code\""
-	echo -e "--cpl, --compile\t\t:\"Compile source code\""
-	echo -e "--build\t\t:\"Compile and build a given project\""
-	echo -e "--install\t\t\t:\"install program (.bash_aliases)\""
-	echo -e "--run\t\t\t\t:\"Run compiled code\""
-	echo -e "--read\t\t\t\t:\"Read out (cat) source code\""
-	echo -e "--list\t\t\t\t:\"List source code\""
-	echo -e "--list-cpl\t\t\t:\"List compiled code\""
 	echo ""
-	echo -e "$ clide <Action> <Language> <Code> <Args>"
-	echo "or"
-	echo -e "$ clide <Action> <Code> <Args>"
+}
+
+
+cplHelp()
+{
+	local cli="--cpl"
+	local cmd="\$ clide ${cli}"
 	echo ""
+	echo "----------------[(${Head}) cli {${cli}}]----------------"
+	echo -e "\"Compile your code without having a session\""
+	echo ""
+	echo -e "${cmd} <language> <code>\t: \"compiled code by identifying language and source code\""
+	echo -e "${cmd} <code>\t\t\t: \"compiled code by providing source code and extension\""
+	echo -e "${cmd} -h, --help\t\t: \"help page\""
 	echo "-----------------------------------------------"
-	echo -e "\t\t\"Run ${Head} IDE\""
-	echo -e "$ clide <language> <code>\t: start clide"
-	echo -e "$ clide java program.java\t: start clide using java and program.java"
-	echo -e "$ clide java\t\t\t: start clide using java"
+	echo ""
+}
+
+EditHelp()
+{
+	local cli="--edit"
+	local cmd="\$ clide ${cli}"
+	echo ""
+	echo "----------------[(${Head}) cli {${cli}}]----------------"
+	echo -e "\"Edit your code without having a session\""
+	echo ""
+	echo -e "${cmd} --config\t\t\t: \"Edit the ${Head} config file\""
+	echo -e "${cmd} <language> <code>\t: \"Edit the source code by identifying langauge and source code\""
+	echo -e "${cmd} <code>\t\t\t: \"Edit source code by providing source code and extension\""
+	echo -e "${cmd} -h, --help\t\t: \"help page\""
+	echo "-----------------------------------------------"
+	echo ""
+}
+
+ProjectCliHelp()
+{
+	local cli="$1"
+	local cmd="\$ clide ${cli}"
+	echo ""
+	echo "----------------[(${Head}) cli {${cli}}]----------------"
+	echo -e "\"Handle loading Projects\""
+	echo ""
+	echo -e "${cmd} <project>\t: \"Select and Load\""
+	echo -e "${cmd} --list\t: \"List ${Head} Projects\""
+	echo -e "${cmd} --build\t: \"Build a ${Head} Project\""
+	echo -e "${cmd} --discover\t: \"Discover ${Head} Projects\""
+	echo -e "${cmd} -h, --help\t: \"help page\""
+	echo "-----------------------------------------------"
+	echo ""
+}
+
+BuildHelp()
+{
+	local cli="$1 --build"
+	local cmd="\$ clide ${cli}"
+	echo ""
+	echo "----------------[(${Head}) cli {${cli}}]----------------"
+	echo -e "\"Compile your project without having a session\""
+	echo ""
+	echo -e "${cmd} <project>\t\t: \"Select and Build your Project\""
+	echo -e "${cmd} -h, --help\t\t: \"help page\""
+	echo "-----------------------------------------------"
 	echo ""
 }
 
@@ -1941,6 +2076,11 @@ main()
 			-rv|--repo-version)
 				RepoVersion
 				;;
+			#list supported Langauges
+			-ll|--languages)
+				local pg=$(ColorCodes)
+				echo "Supported Languages: ${pg}"
+				;;
 			#List projects from cli
 			-p|--project)
 				shift
@@ -1949,6 +2089,44 @@ main()
 					case ${GetProject} in
 						--discover)
 							discoverProject
+							;;
+						--build)
+							shift
+							local Lang
+							local GetProject=$1
+							if [ -z "${GetProject}" ]; then
+								BuildHelp ${UserArg}
+							else
+								case ${GetProject} in
+									#Provide the help page
+									-h|--help)
+										BuildHelp ${UserArg}
+										;;
+									*)
+										TheProject=$(loadProject ${GetProject})
+										if [ "${TheProject}" != "no" ]; then
+											Lang=$(echo ${TheProject} | cut -d ";" -f 1)
+											Lang=$(pgLang ${Lang})
+											local CodeDir=$(echo ${TheProject} | cut -d ";" -f 3)
+											if [ ! -z "${CodeDir}" ]; then
+												echo "Needs work"
+												cd ${CodeDir}
+												ManageLangs ${Lang} "compileCode" ${GetProject} ${Args[@]}
+											else
+												echo "Source code not found"
+											fi
+										else
+											echo "\"${GetProject}\" is Not a valid project"
+										fi
+										;;
+								esac
+							fi
+							;;
+						--list)
+							listProjects
+							;;
+						-h|--help)
+							ProjectCliHelp ${UserArg}
 							;;
 						*)
 							TheProject=$(loadProject ${GetProject})
@@ -1961,12 +2139,12 @@ main()
 							;;
 					esac
 				else
-					listProjects
+					ProjectCliHelp ${UserArg}
 				fi
 				;;
 			#Get cli help page
 			-h|--help)
-				CliHelp
+				CliHelp ${UserArg} $2
 				;;
 			#Load last saved session
 			-l|--load|--last)
@@ -1979,53 +2157,49 @@ main()
 				;;
 			--edit)
 				shift
-				local Lang=$(pgLang $1)
-				local Code=$2
-				if [ -z "${Code}" ]; then
-					Lang=$(SelectLangByCode $1)
-					Code=$1
-					shift
-					main --edit "${Lang}" "${Code}"
-				else
-					case ${Lang} in
-						no)
-							echo "\"$1\" is not a supported language"
-							;;
-						*)
-							local CodeDir=$(pgDir ${Lang})
-							if [ ! -z "${CodeDir}" ]; then
-								cd ${CodeDir}
-								Code=$(selectCode ${Lang} ${Code})
-								ManageLangs ${Lang} "editCode" ${Code}
-							else
-								echo "Source code not found"
-							fi
-					esac
-				fi
-				;;
-			--build)
-				shift
-				local GetProject=$1
-				if [ ! -z "${GetProject}" ]; then
-					TheProject=$(loadProject ${GetProject})
-					if [ "${TheProject}" != "no" ]; then
-						Lang=$(echo ${TheProject} | cut -d ";" -f 1)
-						Lang=$(pgLang ${Lang})
-						local CodeDir=$(echo ${TheProject} | cut -d ";" -f 3)
-						if [ ! -z "${CodeDir}" ]; then
-							#cd ${CodeDir}
-							echo "Needs some work"
-#							Code=$(selectCode ${Lang} ${Code})
-#							ManageLangs ${Lang} "compileCode" ${Code} ${Args[@]}
+				local Action=$1
+				case ${Action} in
+					--config)
+						${editor} ${root}/var/clide.conf
+						;;
+					*)
+						if [ -z "${Action}" ]; then
+							EditHelp
 						else
-							echo "Source code not found"
+							case ${Action} in
+								-h|--help)
+									EditHelp
+									;;
+								*)
+									local Lang=$(pgLang $1)
+									local Code=$2
+									if [ -z "${Code}" ]; then
+										Lang=$(SelectLangByCode $1)
+										Code=$1
+										shift
+										main --edit "${Lang}" "${Code}"
+									else
+										case ${Lang} in
+											no)
+												echo "\"$1\" is not a supported language"
+												;;
+											*)
+												local CodeDir=$(pgDir ${Lang})
+												if [ ! -z "${CodeDir}" ]; then
+													cd ${CodeDir}
+													Code=$(selectCode ${Lang} ${Code})
+													ManageLangs ${Lang} "editCode" ${Code}
+												else
+													echo "Source code not found"
+												fi
+												;;
+										esac
+									fi
+									;;
+							esac
 						fi
-					else
-						echo "\"${GetProject}\" is Not a valid project"
-					fi
-				else
-					echo "No project given"
-				fi
+						;;
+				esac
 				;;
 			#compile code without entering cl[ide]
 			--cpl|--compile)
@@ -2035,10 +2209,14 @@ main()
 				local Args
 				if [ -z "${Code}" ]; then
 					Lang=$(SelectLangByCode $1)
-					Code=$1
-					shift
-					local Args=$@
-					main --cpl "${Lang}" "${Code}" ${Args[@]}
+					if [ ! -z "${Lang}" ]; then
+						Code=$1
+						shift
+						local Args=$@
+						main --cpl "${Lang}" "${Code}" ${Args[@]}
+					else
+						cplHelp
+					fi
 				else
 					case ${Code} in
 						--*)
@@ -2105,29 +2283,43 @@ main()
 			#run compiled code
 			--run)
 				shift
-				local Lang=$(pgLang $1)
-				local Code=$2
-				if [ -z "${Code}" ]; then
-					Lang=$(SelectLangByCode $1)
-					Code=$1
-					shift
-					local Args=$@
-					main --run "${Lang}" "${Code}" ${Args[@]}
+				local Lang=$1
+				#Provide the help page
+				if [ -z "${Lang}" ]; then
+					RunHelp
 				else
-					shift
-					shift
-					local Args=$@
+					local Lang=$(pgLang ${Lang})
 					case ${Lang} in
-						no)
-							echo "\"$1\" is not a supported language"
+						#Provide the help page
+						-h|--help)
+							RunHelp
 							;;
 						*)
-							local CodeDir=$(pgDir ${Lang})
-							if [ ! -z "${CodeDir}" ]; then
-								ManageLangs ${Lang} "runCode" "${Code}" ${Args[@]}
+							local Code=$2
+							if [ -z "${Code}" ]; then
+								Lang=$(SelectLangByCode $1)
+								Code=$1
+								shift
+								local Args=$@
+								main --run "${Lang}" "${Code}" ${Args[@]}
 							else
-								errorCode "cpl" "none"
+								shift
+								shift
+								local Args=$@
+								case ${Lang} in
+									no)
+										echo "\"$1\" is not a supported language"
+										;;
+									*)
+										local CodeDir=$(pgDir ${Lang})
+										if [ ! -z "${CodeDir}" ]; then
+											ManageLangs ${Lang} "runCode" "${Code}" ${Args[@]}
+										else
+											errorCode "cpl" "none"
+										fi
+								esac
 							fi
+							;;
 					esac
 				fi
 				;;
