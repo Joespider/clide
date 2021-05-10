@@ -7,24 +7,6 @@ LangExt=".go"
 #Color Green
 ColorNum=2
 
-ProgDir=$1
-shift
-ClideDir=$1
-LibDir=${ClideDir}/lib
-VarDir=${ClideDir}/var
-shift
-editor=$1
-shift
-ReadBy=$1
-shift
-CodeProject=$1
-shift
-ProjectType=$1
-shift
-ProjectMode=$1
-shift
-TemplateProjectDir=$1
-shift
 CplArgs=$1
 shift
 
@@ -65,15 +47,13 @@ ProjectTemplateHandler()
 
 UseGo()
 {
-	local LookForLang="Use(${Lang})"
-	local LangCpl=$(grep "${LookForLang}" ${VarDir}/clide.conf | sed "s/${LookForLang}=//1")
+	local LangCpl=${UseGo}
 	local LangHome=${ProgDir}/${Lang}
 	local LangSrc=${LangHome}/src
 	local LangBin=${LangHome}/bin
 	local LangProject=${LangHome}/projects
 
-	local NewLangSrc="New(${Lang})"
-	local TemplateCode=$(grep "${NewLangSrc}" ${VarDir}/clide.conf | sed "s/${NewLangSrc}=//1")
+	local TemplateCode=${NewGo}
 	TemplateCode=${LangBin}/${TemplateCode%${LangExt}}
 
 	local EnvVars=( ${LangRun} ${LangHome} ${LangSrc} ${LangBin} ${LangExt} )

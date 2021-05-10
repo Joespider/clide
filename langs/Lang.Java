@@ -6,24 +6,6 @@ Lang=Java
 LangExt=".java"
 ColorNum=1
 
-ProgDir=$1
-shift
-ClideDir=$1
-LibDir=${ClideDir}/lib
-VarDir=${ClideDir}/var
-shift
-editor=$1
-shift
-ReadBy=$1
-shift
-CodeProject=$1
-shift
-ProjectType=$1
-shift
-ProjectMode=$1
-shift
-TemplateProjectDir=$1
-shift
 CplArgs=$1
 shift
 
@@ -64,8 +46,7 @@ ProjectTemplateHandler()
 
 UseJava()
 {
-	local LookForLang="Use(${Lang})"
-	local LangConfig=$(grep "${LookForLang}" ${VarDir}/clide.conf | sed "s/${LookForLang}=//1")
+	local LangConfig=${UseJava}
 	local LangCpl=$(echo ${LangConfig} | cut -d ',' -f 1)
 	local LangRun=$(echo ${LangConfig} | cut -d ',' -f 2)
 
@@ -74,7 +55,7 @@ UseJava()
 	local LangBin=${LangHome}/bin
 	local LangProject=${LangHome}/projects
 
-	local NewLangSrc="New(${Lang})"
+	local NewLangSrc=${NewJava}
 	local TemplateCode=$(grep "${NewLangSrc}" ${VarDir}/clide.conf | sed "s/${NewLangSrc}=//1")
 	TemplateCode=${TemplateCode%.class}
 	TemplateCode=${TemplateCode%.jar}

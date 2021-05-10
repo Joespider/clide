@@ -219,7 +219,7 @@ AddShortcut()
 		create)
 			case ${Choice[1],,} in
 				clide)
-					echo -e "[Desktop Entry]\nName=cl[ide]\nEncoding=UTF-8\nExec=bash -c \"${root}/clide.sh\"\nIcon=${root}/clide.png\nStartupNotify=false\nTerminal=true\nType=Application\nCategories=Programming;" > clide.desktop
+					echo -e "[Desktop Entry]\nName=cl[ide]\nEncoding=UTF-8\nExec=bash -c \"${root}/clide.sh\"\nIcon=${root}/icons/clide.png\nStartupNotify=false\nTerminal=true\nType=Application\nCategories=Programming;" > clide.desktop
 					if [ -f clide.desktop ]; then
 						case $USER in
 							root)

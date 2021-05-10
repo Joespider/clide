@@ -2,60 +2,28 @@ Shell=$(which bash)
 #!${Shell}
 ShellPath=$(realpath $0)
 root=$(dirname ${ShellPath})
-
-GetConfig()
-{
-	local ConfigFile=${root}/var/clide.conf
-	local Item=$1
-	if [ ! -z "${Item}" ]; then
-		grep "${Item}" ${ConfigFile} | grep -v "#" | cut -d "=" -f 2
-	fi
-}
+source ${root}/var/clide.conf
+source ${root}/var/version
 
 Head="cl[ide]"
 IDE=$(echo -e "\e[1;40mide\e[0m")
 Name="cl[${IDE}]"
 
-#Version tracking
-Version=$(grep "Version" ${root}/var/version | grep -v "#" | cut -d "=" -f 2)
-
-#cl[ide] colors
-#{
-VerColor=$(GetConfig VerColor)
-IDEcolor=$(GetConfig IDEcolor)
-CLcolor=$(GetConfig CLcolor)
-BKTcolor=$(GetConfig BKTcolor)
-#}
-
-#cl[ide] config
-#{
-editor=$(GetConfig editor)
-ReadBy=$(GetConfig ReadBy)
-repoTool=$(GetConfig repoTool)
-repoAssist=$(GetConfig repoAssist)
-
-#root dir
-ProgDir=$(eval echo $(GetConfig ProgDir))
-ClideDir=${root}
-ModesDir=${ClideDir}/modes
-NotesDir=${ClideDir}/notes
-LibDir=${ClideDir}/lib
-LangsDir=${ClideDir}/langs
-ClideProjectDir=${ClideDir}/projects
-ActiveProjectDir=${ClideProjectDir}/Active
-TemplateProjectDir=${ClideProjectDir}/Templates
-
 #Global Vars
 #{
-CodeProject="none"
-ProjectMode="main"
-ProjectType="Generic"
-RunTimeArgs=""
-RunCplArgs="none"
 declare -A Commands
 #}
 
-#}
+errorCode()
+{
+        ${LibDir}/errorCode.sh $@
+}
+
+#Handle Aliases
+AddAlias()
+{
+        ${LibDir}/AddAlias.sh $@
+}
 
 Art()
 {
@@ -414,15 +382,16 @@ UseOther()
 #Select Languge
 ManageLangs()
 {
-	local Langs=$1
-	local PassedVars=( "${ProgDir}" "${ClideDir}" "${editor}" "${ReadBy}" "${CodeProject}" "${ProjectType}" "${ProjectMode}" "${TemplateProjectDir}" "${RunCplArgs}")
+	local TheLang=$1
+	local Langs=${LangsDir}/Lang.${TheLang^}
+	local PassedVars=( "${RunCplArgs}" )
 	#Make first letter uppercase
 	shift
 	local Manage=$@
-	if [ -f ${LangsDir}/Lang.${Langs^} ]; then
-		${LangsDir}/Lang.${Langs^} ${PassedVars[@]} ${Manage[@]}
+	if [ -f ${Langs} ]; then
+		${Langs} ${PassedVars[@]} ${Manage[@]}
 	else
-		UseOther ${Langs} ${Manage[@]}
+		UseOther ${TheLang} ${Manage[@]}
 	fi
 }
 
@@ -620,12 +589,6 @@ Banner()
 	echo ""
 	echo "\"Welcome to ${Head}\""
 	echo "\"The command line IDE for the Linux/Unix user\""
-}
-
-#Error messages
-errorCode()
-{
-	${LibDir}/errorCode.sh $@
 }
 
 #Search selected code for element
@@ -2160,7 +2123,24 @@ main()
 				local Action=$1
 				case ${Action} in
 					--config)
-						${editor} ${root}/var/clide.conf
+						local YourAnswer
+						echo "WARNING!!!"
+						echo "Editing this file incorrectly could render ${Head} unusable"
+						echo ""
+						echo -n "Do you wish to continue (y/n)> "
+						read YourAnswer
+						YourAnswer=${YourAnswer,,}
+						case ${YourAnswer} in
+							y)
+								${editor} ${root}/var/clide.conf
+								clear
+								echo "Please restart ${Head} for changes to take affect"
+								echo "May God have mercy on your ${Head}"
+								echo ""
+								;;
+							*)
+								;;
+						esac
 						;;
 					*)
 						if [ -z "${Action}" ]; then

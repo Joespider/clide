@@ -6,36 +6,18 @@ Lang=Bash
 LangExt=".sh"
 ColorNum=2
 
-ProgDir=$1
-shift
-ClideDir=$1
-LibDir=${ClideDir}/lib
-VarDir=${ClideDir}/var
-shift
-editor=$1
-shift
-ReadBy=$1
-shift
-CodeProject=$1
-shift
-ProjectType=$1
-shift
-ProjectMode=$1
-shift
-TemplateProjectDir=$1
-shift
 CplArgs=$1
 shift
 
 errorCode()
 {
-	${LibDir}/errorCode.sh $@
+        ${LibDir}/errorCode.sh $@
 }
 
 #Handle Aliases
 AddAlias()
 {
-	${LibDir}/AddAlias.sh $@
+        ${LibDir}/AddAlias.sh $@
 }
 
 OtherColor()
@@ -64,16 +46,14 @@ ProjectTemplateHandler()
 
 UseBash()
 {
-	local LookForLang="Use(${Lang})"
-	local LangRun=$(grep "${LookForLang}" ${VarDir}/clide.conf | sed "s/${LookForLang}=//1")
+	local LangRun=${UseBash}
 
 	local LangHome=${ProgDir}/${Lang}
 	local LangSrc=${LangHome}/src
 	local LangBin=${LangHome}/bin
 	local LangProject=${LangHome}/projects
 
-	local NewLangSrc="New(${Lang})"
-	local TemplateCode=$(grep "${NewLangSrc}" ${VarDir}/clide.conf | sed "s/${NewLangSrc}=//1")
+	local TemplateCode=${NewBash}
 	TemplateCode=${LangBin}/${TemplateCode%${LangExt}}${LangExt}
 
 	local EnvVars=( ${LangRun} ${LangHome} ${LangSrc} ${LangBin} ${LangExt} )

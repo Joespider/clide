@@ -1,11 +1,7 @@
-Aliases=~/.bash_aliases
-ShellPath=$(realpath $0)
-root=$(dirname ${ShellPath})
+Shell=$(which bash)
+#!${Shell}
 
-errorCode()
-{
-	${root}/errorCode.sh $@
-}
+Aliases=~/.bash_aliases
 
 #Handle Aliases
 AddAlias()
