@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.59"
+SupportV="0.1.60"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -55,8 +55,7 @@ UseJava()
 	local LangBin=${LangHome}/bin
 	local LangProject=${LangHome}/projects
 
-	local NewLangSrc=${NewJava}
-	local TemplateCode=$(grep "${NewLangSrc}" ${VarDir}/clide.conf | sed "s/${NewLangSrc}=//1")
+	local TemplateCode=${NewJava}
 	TemplateCode=${TemplateCode%.class}
 	TemplateCode=${TemplateCode%.jar}
 	TemplateCode=${TemplateCode%${LangExt}}
