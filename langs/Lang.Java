@@ -703,10 +703,17 @@ UseJava()
 					;;
 				*)
 					if [ ! -z "${name}" ]; then
-						cd ${path}
-						mkdir -p ${packagePath}
-						echo "package \"${name}\" created"
-						cd - > /dev/null
+						case ${name} in
+							*.new.*|*.this.*)
+								echo "\"${name}\" is not a valid package"
+								;;
+							*)
+								cd ${path}
+								mkdir -p ${packagePath}
+								echo "package \"${name}\" created"
+								cd - > /dev/null
+								;;
+						esac
 					fi
 					;;
 			esac

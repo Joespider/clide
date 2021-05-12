@@ -62,7 +62,6 @@ MenuHelp()
 	echo -e "ls\t\t\t\t: \"list progams\""
 	echo -e "lscpl\t\t\t\t: \"list compiled progams\""
 	echo -e "using\t\t\t\t: \"get the language being used\""
-	echo -e "type\t\t\t\t: \"display the type of project\""
 	echo -e "unset\t\t\t\t: \"deselect source code\""
 	echo -e "use <language> <code>\t\t: \"choose language\""
 	echo -e "using\t\t\t\t:\"Display what language is being used\""
@@ -83,7 +82,7 @@ MenuHelp()
 			;;
 		*)
 #			echo -e "project {new|update|list|load|active}\t: \"handle projects\""
-			echo -e "project {new|update|list|load|discover}\t: \"handle projects\""
+			echo -e "project {new|type|update|list|load|discover}\t: \"handle projects\""
 			echo -e "${repoTool}, repo\t: \"handle repos\""
 			;;
 	esac
@@ -120,6 +119,8 @@ ProjectHelp()
 	echo -e "import <project> <path>\t\t: \"Import projects\""
 	echo -e "update\t\t\t\t: \"Update the active project\""
 	echo -e "load <project>\t\t\t: \"Choose a project to make active\""
+	echo -e "type\t\t\t\t: \"display the type of project\""
+	echo -e "\tlist\t\t: \"Show list of possible project types\""
 	echo -e "list\t\t\t\t: \"List ALL projects\""
 	echo -e "active\t\t\t\t: \"Display the name of the current project\""
 	echo -e "types\t\t\t\t: \"Display the types of projects under ${Lang}\""
@@ -241,9 +242,9 @@ CliHelp()
 			echo "\"Lets get to know each other:\""
 			echo "\"To start, ask me the following:\""
 			echo ""
-			echo -e "${cmd} info\t: \"Get to know some information about me\""
+			echo -e "${cmd} info\t\t: \"Get to know some information about me\""
 			echo -e "${cmd} function\t: \"Ask me to perform a quick task\""
-			echo -e "${cmd} usage\t: \"How we can start programming\""
+			echo -e "${cmd} usage\t\t: \"How we can start programming\""
 			echo "-----------------------------------------------"
 			echo ""
 			;;
@@ -1051,7 +1052,7 @@ Actions()
 					ProjectDir=${ProjectDir/\//:}
 					cCodeProject=$(ManageLangs ${Lang} "ProjectColor")
 					#Menu with no code
-					prompt="${Name}(${cCodeProject}[${ProjectType}${ProjectDir}]):$ "
+					prompt="${Name}(${cCodeProject}[${ProjectType:0:1}${ProjectDir}]):$ "
 					;;
 			esac
 		else
@@ -1066,7 +1067,7 @@ Actions()
 					ProjectDir=${ProjectDir/\//:}
 					#Menu with no code
 					cCodeProject=$(ManageLangs ${Lang} "ProjectColor")
-					prompt="${Name}(${cCodeProject}[${ProjectType}${ProjectDir}]{${cCode}}):$ "
+					prompt="${Name}(${cCodeProject}[${ProjectType:0:1}${ProjectDir}]{${cCode}}):$ "
 					;;
 			esac
 		fi
@@ -1123,16 +1124,6 @@ Actions()
 				#Display the language being used
 				using)
 					echo "${cLang}"
-					;;
-				type)
-					case ${CodeProject} in
-						none)
-							echo "\"${Lang}\" Code"
-							;;
-						*)
-							echo "${ProjectType} \"${Lang}\" Project"
-							;;
-					esac
 					;;
 				#change dir in project
 				cd)
@@ -1306,10 +1297,24 @@ Actions()
 							esac
 							;;
 						#List the projects under the language
-						types)
-							cd ${TemplateProjectDir}/
-							ls ${Lang}.* 2> /dev/null | sed "s/${Lang}.//g"
-							cd - > /dev/null
+						type)
+							case ${UserIn[2]} in
+								list)
+									cd ${TemplateProjectDir}/
+									ls ${Lang}.* 2> /dev/null | sed "s/${Lang}.//g"
+									cd - > /dev/null
+									;;
+								*)
+									case ${CodeProject} in
+										none)
+											echo "\"${Lang}\" Code"
+											;;
+										*)
+											echo "${ProjectType} \"${Lang}\" Project"
+											;;
+										esac
+									;;
+							esac
 							;;
 						#Show Project help page
 						*)
@@ -1720,7 +1725,7 @@ Actions()
 											ProjectDir=${ProjectDir/\//:}
 											cCodeProject=$(ManageLangs ${Lang} "ProjectColor")
 											#Menu with no code
-											prompt="${Name}(${cCodeProject}[${ProjectType}${ProjectDir}]):$ "
+											prompt="${Name}(${cCodeProject}[${ProjectType:0:1}${ProjectDir}]):$ "
 											;;
 									esac
 								else
@@ -1735,7 +1740,7 @@ Actions()
 											ProjectDir=${ProjectDir/\//:}
 											#Menu with no code
 											cCodeProject=$(ManageLangs ${Lang} "ProjectColor")
-											prompt="${Name}(${cCodeProject}[${ProjectType}${ProjectDir}]{${cCode}}):$ "
+											prompt="${Name}(${cCodeProject}[${ProjectType:0:1}${ProjectDir}]{${cCode}}):$ "
 											;;
 									esac
 								fi
@@ -1942,7 +1947,6 @@ loadAuto()
 	bind -x '"\C-l":clear'
 	comp_list "ls"
 	comp_list "save"
-	comp_list "type"
 	comp_list "lscpl"
 	comp_list "using"
 	comp_list "ll"
@@ -1954,7 +1958,7 @@ loadAuto()
 	comp_list "pwd"
 	comp_list "mkdir"
 	comp_list "use" "${pg}"
-	comp_list "project" "load import new list update types mode discover"
+	comp_list "project" "load import new list update type mode discover"
 	comp_list "package" "new"
 	comp_list "shell"
 	comp_list "new" "--version -v --help -h --custom -c"
@@ -2094,10 +2098,9 @@ main()
 						*)
 							TheProject=$(loadProject ${GetProject})
 							if [ "${TheProject}" != "no" ]; then
-#								Lang=$(echo ${TheProject} | cut -d ";" -f 1)
-#								Lang=$(pgLang ${Lang})
-#								Actions ${Lang} "code" "project" "load" "${GetProject}"
-								Actions "Bash" "code" "project" "load" "${GetProject}"
+								Lang=$(echo ${TheProject} | cut -d ";" -f 1)
+								Lang=$(pgLang ${Lang})
+								Actions ${Lang} "code" "project" "load" "${GetProject}"
 							fi
 							;;
 					esac
