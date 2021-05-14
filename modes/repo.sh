@@ -1,6 +1,10 @@
 Shell=$(which bash)
 #!${Shell}
 
+#Add submodule feature
+#https://git-scm.com/book/en/v2/Git-Tools-Submodules
+#git submodule add https://github.com/chaconinc/DbConnector
+
 Head="cl[ide]"
 IDE=$(echo -e "\e[1;43mrepo\e[0m")
 Name="cl[${IDE}]"
@@ -270,7 +274,7 @@ gitHandler()
 							echo "Are you sure? There is no stopping what is being done"
 							echo -n "(yes/no)> "
 							read sure
-							sure=$(echo ${sure} | tr A-Z a-z)
+							sure=${sure,,}
 							case ${sure} in
 								yes|no)
 									gitHandler "${repoAct}" "${sure}" "${message[@]}"

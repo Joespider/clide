@@ -1,28 +1,11 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.51"
+SupportV="0.1.60"
 Lang=Java
+LangExt=".java"
 ColorNum=1
 
-ProgDir=$1
-shift
-ClideDir=$1
-LibDir=${ClideDir}/lib
-VarDir=${ClideDir}/var
-shift
-editor=$1
-shift
-ReadBy=$1
-shift
-CodeProject=$1
-shift
-ProjectType=$1
-shift
-ProjectMode=$1
-shift
-TemplateProjectDir=$1
-shift
 CplArgs=$1
 shift
 
@@ -63,18 +46,16 @@ ProjectTemplateHandler()
 
 UseJava()
 {
-	local LookForLang="Use(${Lang})"
-	local LangConfig=$(grep "${LookForLang}" ${VarDir}/clide.conf | sed "s/${LookForLang}=//1")
+	local LangConfig=${UseJava}
 	local LangCpl=$(echo ${LangConfig} | cut -d ',' -f 1)
 	local LangRun=$(echo ${LangConfig} | cut -d ',' -f 2)
 
 	local LangHome=${ProgDir}/${Lang}
 	local LangSrc=${LangHome}/src
 	local LangBin=${LangHome}/bin
-	local LangExt=".java"
+	local LangProject=${LangHome}/projects
 
-	local NewLangSrc="New(${Lang})"
-	local TemplateCode=$(grep "${NewLangSrc}" ${VarDir}/clide.conf | sed "s/${NewLangSrc}=//1")
+	local TemplateCode=${NewJava}
 	TemplateCode=${TemplateCode%.class}
 	TemplateCode=${TemplateCode%.jar}
 	TemplateCode=${TemplateCode%${LangExt}}
@@ -101,6 +82,8 @@ UseJava()
 			;;
 		MenuHelp)
 			echo -e "new <file> {main|component}\t: \"create new ${Lang} source file\""
+			echo -e "package new <package>\t: \"create a new package\""
+			echo -e "\tie: package new this.is.a.package"
 			echo -e "compile, cpl <type> <manifest>\t: \"make code executable\""
 			echo -e "\t--class\t\t\t: \"make code (CLASS) executable\""
 			echo -e "\t--jar\t\t\t: \"make code (JAR) executable\""
@@ -110,6 +93,10 @@ UseJava()
 			echo ""
 			echo -e "${Lang} specific project help"
 			echo ""
+			;;
+		getProjectDir)
+			local project=${CodeProject}
+			echo ${LangProject}/${project}
 			;;
 		getCode)
 			local name=$1
@@ -133,13 +120,13 @@ UseJava()
 									newName=${name##*.}
 									DirPath=$(echo ${name%${newName}} | tr '.' '/')
 									PackageName=$(echo ${name%.*} | sed "s/${ProjectMode}.java.//1" | tr '/' '.')
-									TheSrcDir="${LangSrc}/${project}/src/${DirPath}"
+									TheSrcDir="${LangProject}/${project}/src/${DirPath}"
 									;;
 								*/*)
 									newName=${name##*/}
 									PackageName=$(echo ${name%/*} | sed "s/${ProjectMode}\/java\///1" | tr '/' '.')
 									DirPath=${name%${newName}}
-									TheSrcDir="${LangSrc}/${project}/src/${DirPath}"
+									TheSrcDir="${LangProject}/${project}/src/${DirPath}"
 									;;
 								*)
 									PackageName=$(pwd | sed "s/${project}\/src/|/g" | sed "s/${ProjectMode}\/java\///1" | cut -d '|' -f 2 | tr '/' '.')
@@ -189,17 +176,24 @@ UseJava()
 			fi
 			;;
 		EnsureDirs)
-			#Home
-			if [ ! -d "${LangHome}" ] && [ ! -z "${LangCpl}" ] && [ ! -z "${LangRun}" ]; then
-				mkdir "${LangHome}"
-			fi
-			#Src
-			if [ ! -d "${LangSrc}" ] && [ ! -z "${LangCpl}" ] && [ ! -z "${LangRun}" ]; then
-				mkdir "${LangSrc}"
-			fi
-			#Bin
-			if [ ! -d "${LangBin}" ] && [ ! -z "${LangCpl}" ] && [ ! -z "${LangRun}" ]; then
-				mkdir "${LangBin}"
+			if [ ! -z "${LangCpl}" ] && [ ! -z "${LangRun}" ]; then
+
+				#Home
+				if [ ! -d "${LangHome}" ]; then
+					mkdir "${LangHome}"
+				fi
+				#Src
+				if [ ! -d "${LangSrc}" ]; then
+					mkdir "${LangSrc}"
+				fi
+				#Bin
+				if [ ! -d "${LangBin}" ]; then
+					mkdir "${LangBin}"
+				fi
+				#projects
+				if [ ! -d "${LangProject}" ]; then
+					mkdir "${LangProject}"
+				fi
 			fi
 			;;
 		TemplateVersion)
@@ -225,8 +219,9 @@ UseJava()
 			fi
 			echo ""
 			;;
-		selectCode)
+		selectCode|addCode)
 			local name=$1
+			local new=$2
 			local project=${CodeProject}
 			local newName
 			local DirPath
@@ -237,26 +232,79 @@ UseJava()
 				case ${project} in
 					#not a project
 					none)
-						#Return source file if exists
-						if [ -f "${name}" ]; then
-							echo "${name}"
-						fi
+						case ${Type} in
+							addCode)
+								case ${new} in
+									*${LangExt})
+										if [ -f "${new}" ]; then
+											echo "${name},${new}"
+										else
+											echo "${name}"
+										fi
+										;;
+									*)
+										if [ -f "${new}${LangExt}" ]; then
+											echo "${name},${new}${LangExt}"
+										else
+											echo "${name}"
+										fi
+										;;
+								esac
+								;;
+							selectCode)
+									#Return source file if exists
+									if [ -f "${name}" ]; then
+										echo "${name}"
+									fi
+									;;
+							*)
+									;;
+						esac
 						;;
 					#is a project
 					*)
-						TheSrcDir="${LangSrc}/${project}/src/"
-						local NumFound=$(find ${TheSrcDir} -name ${name} 2> /dev/null | grep "${ProjectMode}" | wc -l)
+						local LookFor
+						TheSrcDir="${LangProject}/${project}/src/"
+						case ${Type} in
+							addCode)
+								new=${new%${LangExt}}${LangExt}
+								LookFor=${new}
+								;;
+							selectCode)
+								name=${name%${LangExt}}${LangExt}
+								LookFor=${name}
+								;;
+							*)
+								;;
+						esac
+
+						local NumFound=$(find ${TheSrcDir} -name ${LookFor} 2> /dev/null | grep "${ProjectMode}" | wc -l)
 						case ${NumFound} in
 							0)
 								;;
 							1)
-								name=$(find ${TheSrcDir} -name ${name} 2> /dev/null | grep "${ProjectMode}")
-
-								if [ -f ${name} ]; then
-									name=${name%${LangExt}}
-									newName=${name##*/}
-									echo ${newName}${LangExt}
-								fi
+								case ${Type} in
+									addCode)
+										new=$(find ${TheSrcDir} -name ${new} 2> /dev/null | grep "${ProjectMode}")
+										if [ -f ${new} ]; then
+											new=${new%${LangExt}}
+											newName=${new##*/}
+											echo "${name},${newName}${LangExt}"
+										else
+											echo "${name}"
+										fi
+										;;
+									selectCode)
+										name=$(find ${TheSrcDir} -name ${name} 2> /dev/null | grep "${ProjectMode}")
+										if [ -f ${name} ]; then
+											name=${name%${LangExt}}
+											newName=${name##*/}
+											echo ${newName}${LangExt}
+										fi
+										;;
+									*)
+										;;
+								esac
 								;;
 							*)
 #								find ${TheSrcDir} -name ${name} 2> /dev/null | nl
@@ -270,33 +318,6 @@ UseJava()
 					;;
 				esac
 			fi
-			;;
-		addCode)
-			local src=$1
-			local new=$2
-			local project=${CodeProject}
-			case ${src} in
-				*${LangExt})
-					case ${new} in
-						*${LangExt})
-							if [ -f "${new}" ]; then
-								echo "${src},${new}"
-							else
-								echo "${src}"
-							fi
-							;;
-						*)
-							if [ -f "${new}${LangExt}" ]; then
-								echo "${src},${new}${LangExt}"
-							else
-								echo "${src}"
-							fi
-							;;
-					esac
-					;;
-				*)
-					;;
-			esac
 			;;
 		editCode|readCode)
 			local src=$1
@@ -324,6 +345,7 @@ UseJava()
 			case ${src} in
 				*${LangExt})
 					case ${project} in
+						#Is NOT a project
 						none)
 							if [[ "${src}" == *","* ]]; then
 								if [ -z ${num} ]; then
@@ -376,11 +398,12 @@ UseJava()
 								#}
 							fi
 							;;
+						#Is a project
 						*)
 							if [[ "${src}" == *","* ]]; then
 								echo "Please Add support for handling ${src}"
 							else
-								TheSrcDir="${LangSrc}/${project}/src/"
+								TheSrcDir="${LangProject}/${project}/src/"
 								local NumFound=$(find ${TheSrcDir} -name ${src} 2> /dev/null | grep "${ProjectMode}" | wc -l)
 								case ${NumFound} in
 									0)
@@ -516,14 +539,14 @@ UseJava()
 					local TheMain
 					local TheClassPath
 					local ManifestFile=META-INF/MANIFEST.MF
-					local TheLibDir="${LangSrc}/${project}/lib/"
-					TheSrcDir="${LangSrc}/${project}/src/"
-					local ThePWD=${LangSrc}/${project}/
+					local TheLibDir="${LangProject}/${project}/lib/"
+					TheSrcDir="${LangProject}/${project}/src/"
+					local ThePWD=${LangProject}/${project}/
 					local TheClassDir=${ThePWD}classes/
 					cd ${ThePWD}
-					local ReplaceTheSrcDir=$(echo ${LangSrc}/${project}/ | tr '/' '|')
-					local ReplaceTheBinDir=$(echo ${LangSrc}/${project}/classes/ | tr '/' '|')
-					TheBinDir="${LangSrc}/${project}/bin"
+					local ReplaceTheSrcDir=$(echo ${LangProject}/${project}/ | tr '/' '|')
+					local ReplaceTheBinDir=$(echo ${LangProject}/${project}/classes/ | tr '/' '|')
+					TheBinDir="${LangProject}/${project}/bin"
 
 					#Compile as jar or class
 					case ${name} in
@@ -597,7 +620,7 @@ UseJava()
 							find ${TheSrcDir} -name "*${LangExt}" | grep "${ProjectMode}" | tr '/' '|' | sed "s/${ReplaceTheSrcDir}//g" | tr '|' '/'  > sources.txt
 							#Compile java code with lib jars
 							if [ -d "${TheLibDir}" ]; then
-								local ReplaceTheLibDir=$(echo "${LangSrc}/${project}/" | tr '/' '|')
+								local ReplaceTheLibDir=$(echo "${LangProject}/${project}/" | tr '/' '|')
 								TheClassPath=$(find ${TheLibDir} -name "*.jar" | grep "${ProjectMode}" | tr '/' '|' | sed "s/${ReplaceTheLibDir}//g" | tr '|' '/' | tr '\n' ';' | rev | sed "s/;//1" | rev)
 								#make sure jars exist in lib
 								if [ ! -z "${TheClassPath}" ]; then
@@ -638,10 +661,17 @@ UseJava()
 					;;
 			esac
 			;;
+		discoverProject)
+			local path=${LangProject}/
+			local ProjectList=$(ls ${path} 2> /dev/null | tr '\n' '|' | rev | sed "s/|//1" | rev)
+			if [ ! -z "${ProjectList}" ]; then
+				echo "${path}:${ProjectList}"
+			fi
+			;;
 		newProject)
 			local TheProjectType=$1
 			local project=$2
-			local path=${LangSrc}/${project}
+			local path=${LangProject}/${project}
 			if [ ! -d ${path} ]; then
 				case ${ProjectType} in
 					Generic)
@@ -662,6 +692,31 @@ UseJava()
 				cd ${path}
 			fi
 			echo ${path}
+			;;
+		newPackage)
+			local name=$1
+			local packagePath=$(echo ${name} | tr '.' '/')
+			local project=${CodeProject}
+			local path=${LangProject}/${project}/src/${ProjectMode}/java/
+			case ${project} in
+				none)
+					;;
+				*)
+					if [ ! -z "${name}" ]; then
+						case ${name} in
+							*.new.*|*.this.*)
+								echo "\"${name}\" is not a valid package"
+								;;
+							*)
+								cd ${path}
+								mkdir -p ${packagePath}
+								echo "package \"${name}\" created"
+								cd - > /dev/null
+								;;
+						esac
+					fi
+					;;
+			esac
 			;;
 		projectMode)
 			local mode=$1
@@ -689,7 +744,7 @@ UseJava()
 					;;
 				*)
 					project=${CodeProject}
-					path=${LangSrc}/${project}/bin/
+					path=${LangProject}/${project}/bin/
 					;;
 			esac
 			if [ -d ${path} ]; then
@@ -742,7 +797,7 @@ UseJava()
 					;;
 				*)
 					project="${project}/"
-					TheBinDir="${LangSrc}/${project}bin"
+					TheBinDir="${LangProject}/${project}bin"
 					;;
 			esac
 			#Java binary
@@ -1024,13 +1079,13 @@ UseJava()
 						;;
 					*)
 						TheJar="${project}.jar"
-						TheClassDir=${LangSrc}/${project}/classes/
+						TheClassDir=${LangProject}/${project}/classes/
 						package=$(find ${TheClassDir} -name "*.class")
 						if [ ! -z "${package}" ]; then
 							package="${package%${TheBin}}"
 							package="${package#${TheClassDir}}"
 						fi
-						TheJarDir="${LangSrc}/${project}/bin"
+						TheJarDir="${LangProject}/${project}/bin"
 						;;
 				esac
 				#Check if Java Class exists

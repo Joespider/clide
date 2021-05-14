@@ -1,29 +1,11 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.00"
+SupportV="0.1.07"
 Lang=C
-#Return Yellow
+LangExt=".c"
 ColorNum=3
 
-ProgDir=$1
-shift
-ClideDir=$1
-LibDir=${ClideDir}/lib
-VarDir=${ClideDir}/var
-shift
-editor=$1
-shift
-ReadBy=$1
-shift
-CodeProject=$1
-shift
-ProjectType=$1
-shift
-ProjectMode=$1
-shift
-TemplateProjectDir=$1
-shift
 CplArgs=$1
 shift
 
@@ -64,16 +46,14 @@ ProjectTemplateHandler()
 
 UseC()
 {
-	local LookForLang="Use(${Lang})"
-	local LangCpl=$(grep "${LookForLang}" ${VarDir}/clide.conf | sed "s/${LookForLang}=//1")
+	local LangCpl=${UseC}
 
 	local LangHome=${ProgDir}/${Lang}
 	local LangSrc=${LangHome}/src
 	local LangBin=${LangHome}/bin
-	local LangExt=".c"
+	local LangProject=${LangHome}/projects
 
-	local NewLangSrc="New(${Lang})"
-	local TemplateCode=$(grep "${NewLangSrc}" ${VarDir}/clide.conf | sed "s/${NewLangSrc}=//1")
+	local TemplateCode=${NewC}
 	TemplateCode=${LangBin}/${TemplateCode%${LangExt}}
 
 
@@ -82,6 +62,7 @@ UseC()
 	shift
 	case ${Type} in
 		color)
+			#Return Blue
 			echo -e "\e[1;3${ColorNum}m${Lang}\e[0m"
 			;;
 		ProjectColor)
@@ -102,9 +83,14 @@ UseC()
 			echo -e "${Lang} specific project help"
 			echo ""
 			;;
+		getProjectDir)
+			local project=${CodeProject}
+			echo ${LangProject}/${project}
+			;;
 		getCode)
 			local name=$1
 			name=${name%${LangExt}}
+			name=${name%.h}
                         local project=${CodeProject}
                         local newName
                         local DirPath
@@ -120,13 +106,13 @@ UseC()
 								*.*)
 									newName=${name##*.}
 									DirPath=$(echo ${name%${newName}} | tr '.' '/')
-									TheSrcDir="${LangSrc}/${project}/src/${DirPath}"
+									TheSrcDir="${LangProject}/${project}/src/${DirPath}"
 									name=${newName}
 									;;
 								*/*)
 									newName=${name##*/}
 									DirPath=${name%${newName}}
-									TheSrcDir="${LangSrc}/${project}/src/${DirPath}"
+									TheSrcDir="${LangProject}/${project}/src/${DirPath}"
 									name=${newName}
 									;;
 								*)
@@ -153,7 +139,7 @@ UseC()
 		pgLang)
 			local HasLang=$(which ${LangCpl} 2> /dev/null)
 			if [ ! -z "${HasLang}" ]; then
-				#Return C tag
+				#Return C++ tag
 				echo "${Lang}"
 			else
 				#Return rejection
@@ -164,7 +150,7 @@ UseC()
 			ls *${LangExt} *.h 2> /dev/null
 			;;
 		pgDir)
-			#Return C src Dir
+			#Return C++ src Dir
 			echo ${LangSrc}
 			;;
 		CreateHelp)
@@ -179,17 +165,23 @@ UseC()
 			fi
 			;;
 		EnsureDirs)
-			#Home
-			if [ ! -d "${LangHome}" ] && [ ! -z "${LangCpl}" ]; then
-				mkdir "${LangHome}"
-			fi
-			#Src
-			if [ ! -d "${LangSrc}" ] && [ ! -z "${LangCpl}" ]; then
-				mkdir "${LangSrc}"
-			fi
-			#Bin
-			if [ ! -d "${LangBin}" ] && [ ! -z "${LangCpl}" ]; then
-				mkdir "${LangBin}"
+			if [ ! -z "${LangCpl}" ]; then
+				#Home
+				if [ ! -d "${LangHome}" ]; then
+					mkdir "${LangHome}"
+				fi
+				#Src
+				if [ ! -d "${LangSrc}" ]; then
+					mkdir "${LangSrc}"
+				fi
+				#Bin
+				if [ ! -d "${LangBin}" ]; then
+					mkdir "${LangBin}"
+				fi
+				#projects
+				if [ ! -d "${LangProject}" ]; then
+					mkdir "${LangProject}"
+				fi
 			fi
 			;;
 		TemplateVersion)
@@ -205,8 +197,9 @@ UseC()
 			${LangCpl} --version | head -n 1
 			echo ""
 			;;
-		selectCode)
+		selectCode|addCode)
 			local name=$1
+			local new=$2
 			local project=${CodeProject}
 			local newName
 			local DirPath
@@ -218,39 +211,108 @@ UseC()
 				case ${project} in
 					#not a project
 					none)
-						#Correct filename
-						if [[ ! "${name}" == *"${LangExt}" ]] && [ -f "${name}${LangExt}" ]; then
-							name="${name}${LangExt}"
-						elif [[ ! "${name}" == *".h" ]] && [ -f "${name}.h" ]; then
-							name="${name}.h"
-						fi
+						case ${Type} in
+							selectCode)
+								#Correct filename
+								if [[ ! "${name}" == *"${LangExt}" ]] && [ -f "${name}${LangExt}" ]; then
+									name="${name}${LangExt}"
+								elif [[ ! "${name}" == *".h" ]] && [ -f "${name}.h" ]; then
+									name="${name}.h"
+								fi
 
-						#Return source file if exists
-						if [ -f "${name}" ]; then
-							echo "${name}"
-						fi
+								#Return source file if exists
+								if [ -f "${name}" ]; then
+									echo "${name}"
+								fi
+								;;
+							addCode)
+								case ${name} in
+									*${LangExt}|*.h)
+										#Add cpp or header files with file extensions
+										case ${new} in
+											*${LangExt}|*.h)
+												#Append file
+												if [ -f "${new}" ]; then
+													echo "${name},${new}"
+												else
+													echo "${name}"
+												fi
+												;;
+											#Add cpp or header files without file extensions
+											*)
+												#Append cpp files
+												if [ -f "${new}${LangExt}" ]; then
+													echo "${name},${new}${LangExt}"
+												#Append header files
+												elif [ -f "${new}.h" ]; then
+													echo "${name},${new}.h"
+												else
+													echo "${name}"
+												fi
+												;;
+										esac
+										;;
+									*)
+										;;
+								esac
+								;;
+							*)
+								;;
+						esac
 						;;
 					#is a project
 					*)
-						TheSrcDir="${LangSrc}/${project}/src/"
+						TheSrcDir="${LangProject}/${project}/src/"
+						local LookFor
+						case ${Type} in
+							addCode)
+								#Correct filename
+								if [[ ! "${new}" == *"${LangExt}" ]]; then
+									new="${new}${LangExt}"
+								elif [[ ! "${new}" == *".h" ]]; then
+									new="${new}.h"
+								fi
+								LookFor=${new}
+								;;
+							selectCode)
+								#Correct filename
+								if [[ ! "${name}" == *"${LangExt}" ]]; then
+									name="${name}${LangExt}"
+								elif [[ ! "${name}" == *".h" ]]; then
+									name="${name}.h"
+								fi
+								LookFor=${name}
+								;;
+							*)
+								;;
+						esac
 
-						#Correct filename
-						if [[ ! "${name}" == *"${LangExt}" ]]; then
-							name="${name}${LangExt}"
-						elif [[ ! "${name}" == *".h" ]]; then
-							name="${name}.h"
-						fi
-
-						local NumFound=$(find ${TheSrcDir} -name ${name} 2> /dev/null | wc -l)
+						local NumFound=$(find ${TheSrcDir} -name ${LookFor} 2> /dev/null | wc -l)
 						case ${NumFound} in
 							0)
 								;;
 							1)
-								name=$(find ${TheSrcDir} -name ${name} 2> /dev/null)
-								if [ -f ${name} ]; then
-									newName=${name##*/}
-									echo ${newName}
-								fi
+								case ${Type} in
+									addCode)
+										new=$(find ${TheSrcDir} -name ${new} 2> /dev/null)
+										#Append file
+										if [ -f "${new}" ]; then
+											new=${new##*/}
+											echo "${name},${new}"
+										else
+											echo "${name}"
+										fi
+										;;
+									selectCode)
+										name=$(find ${TheSrcDir} -name ${name} 2> /dev/null)
+										if [ -f ${name} ]; then
+											newName=${name##*/}
+											echo ${newName}
+										fi
+										;;
+									*)
+										;;
+								esac
 								;;
 							*)
 #								find ${TheSrcDir} -name ${name} 2> /dev/null | nl
@@ -261,42 +323,9 @@ UseC()
 #								fi
 								;;
 						esac
-					;;
+						;;
 				esac
 			fi
-			;;
-		addCode)
-			local src=$1
-			local new=$2
-			case ${src} in
-				*${LangExt}|*.h)
-					#Add cpp or header files with file extensions
-					case ${new} in
-						*${LangExt}|*.h)
-							#Append file
-							if [ -f "${new}" ]; then
-								echo "${src},${new}"
-							else
-								echo "${src}"
-							fi
-							;;
-						#Add cpp or header files without file extensions
-						*)
-							#Append cpp files
-							if [ -f "${new}${LangExt}" ]; then
-								echo "${src},${new}${LangExt}"
-							#Append header files
-							elif [ -f "${new}.h" ]; then
-								echo "${src},${new}.h"
-							else
-								echo "${src}"
-							fi
-							;;
-					esac
-					;;
-				*)
-					;;
-			esac
 			;;
 		editCode|readCode)
 			local src=$1
@@ -342,17 +371,9 @@ UseC()
 									#}
 								else
 									if [[ "${src}" == *"${num}"* ]]; then
-										if [[ "${num}" == *"${LangExt}" ]] || [[ "${num}" == *".h" ]]; then
-											#Read or Write Code
-											#{
-											${ReadOrEdit} ${num}
-											#}
-										else
-											#Read or Write Code
-											#{
-											${ReadOrEdit} "${num}${LangExt}"
-											#}
-										fi
+										#Choose file from list of choices
+										num=$(echo ${src} | tr ',' '\n' | grep ${num})
+										${ReadOrEdit} ${num}
 									else
 										#Error
 										#{
@@ -377,11 +398,12 @@ UseC()
 							fi
 							;;
 						*)
-							TheSrcDir="${LangSrc}/${project}/src/"
+							TheSrcDir="${LangProject}/${project}/src/"
 							local NumFound
 							if [[ "${src}" == *","* ]]; then
 								if [ -z ${num} ]; then
 									errorCode "editNull"
+									NumFound=0
 								else
 									if [[ "${src}" == *"${num}"* ]]; then
 										if [[ "${num}" == *"${LangExt}" ]] || [[ "${num}" == *".h" ]]; then
@@ -403,6 +425,7 @@ UseC()
 											*)
 												;;
 										esac
+										NumFound=0
 										#}
 									fi
 								fi
@@ -482,25 +505,25 @@ UseC()
 				*)
 					name=${project}
 					project="${project}/"
-					TheSrcDir="${LangSrc}/${project}src"
+					TheSrcDir="${LangProject}/${project}src"
 					#if NO code is selected, then select ALL
 					#{
 					if [ -z ${src} ]; then
-						ReplaceTheSrcDir=$(echo "${LangSrc}/${project}src/" | tr '/' '|')
+						ReplaceTheSrcDir=$(echo "${LangProject}/${project}src/" | tr '/' '|')
 						src=$(find ${TheSrcDir} -name "*${LangExt}" | tr '/' '|' | sed "s/${ReplaceTheSrcDir}//g" | tr '|' '/')
 					fi
 					#}
-					TheBinDir="${LangSrc}/${project}bin"
+					TheBinDir="${LangProject}/${project}bin"
 					;;
 			esac
 
 			#Compile ONLY if source code is selected OR makefile is present
-			if [[ "$src" == *"${LangExt}"* ]] || [ -f ${LangSrc}/${project}makefile ]; then
+			if [[ "$src" == *"${LangExt}"* ]] || [ -f ${LangProject}/${project}makefile ]; then
 				cd ${TheSrcDir}
 				cplArgs=${LangCplVersion}
 				#Compile with makefile
-				if [ -f ${LangSrc}/${project}makefile ]; then
-					cd ${LangSrc}/${project}
+				if [ -f ${LangProject}/${project}makefile ]; then
+					cd ${LangProject}/${project}
 					echo "make"
 					cd - > /dev/null
 					echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
@@ -592,10 +615,17 @@ UseC()
 			fi
 			echo ${CplArgs}
 			;;
+		discoverProject)
+			local path=${LangProject}/
+			local ProjectList=$(ls ${path} 2> /dev/null | tr '\n' '|' | rev | sed "s/|//1" | rev)
+			if [ ! -z "${ProjectList}" ]; then
+				echo "${path}:${ProjectList}"
+			fi
+			;;
 		newProject)
 			ProjectType=$1
 			local project=$2
-			local path=${LangSrc}/${project}
+			local path=${LangProject}/${project}
 			#create and cd to project dir
 			if [ ! -d ${path} ]; then
 				case ${ProjectType} in
@@ -646,7 +676,7 @@ UseC()
 					;;
 				*)
 					project=${CodeProject}
-					path=${LangSrc}/${project}/bin
+					path=${LangProject}/${project}/bin
 					;;
 			esac
 			if [ -d ${path} ]; then
@@ -656,11 +686,11 @@ UseC()
 		SwapToSrc)
 			local src=$1
 			#cd "${LangSrc}"
-			#Get C Name
+			#Get C++ Name
 			src="${src}${LangExt}"
-			#Check if C source exists
+			#Check if C++ source exists
 			if [ -f "${LangSrc}/${src}" ]; then
-				#Return C Source Name
+				#Return C++ Source Name
 				echo "${src}"
 			fi
 			;;
@@ -671,11 +701,11 @@ UseC()
 					#cd "${LangBin}"
 					#Keep Src Name
 					local OldBin="${bin}"
-					#Get C Name
+					#Get C++ Name
 					bin="${bin%.*}"
-					#Check if C Binary exists
+					#Check if C++ Binary exists
 					if [ -f "${LangBin}/${bin}" ]; then
-						#Return C Binary Name
+						#Return C++ Binary Name
 						echo "${bin}"
 					else
 						echo "${OldBin}"
@@ -699,7 +729,7 @@ UseC()
 					;;
 				*)
 					project="${project}/"
-					TheBinDir="${LangSrc}/${project}bin"
+					TheBinDir="${LangProject}/${project}bin"
 					;;
 			esac
 			#Make sure Binary exists
@@ -741,8 +771,16 @@ UseC()
 			local project=${CodeProject}
 
 			Type=${Type,,}
-			name=${name%${LangExt}}
-			name=${name%.h}
+			case ${name} in
+				*.h)
+					name=${name%.h}
+					Type="header"
+					;;
+				*)
+					name=${name%${LangExt}}
+					;;
+			esac
+
 			if [ ! -f ${name}${LangExt} ] || [ ! -f ${name}.h ]; then
 				case ${Type} in
 					#create header file
@@ -769,7 +807,7 @@ UseC()
 						else
 							#Program Name Given
 							if [ ! -z "${name}" ];then
-								local Content="#include <stdio.h>\n\n//${Lang} Main\nint main()\n{\n\n\treturn 0;\n}"
+								local Content="#include <iostream>\n\n//${Lang} Main\nint main()\n{\n\n\treturn 0;\n}"
 								touch ${name}${LangExt}
 								echo -e "${Content}" > ${name}${LangExt}
 							else
@@ -806,7 +844,7 @@ UseC()
 								;;
 							#Is a project
 							*)
-								local TheSrcDir="${LangSrc}/${project}/src/"
+								local TheSrcDir="${LangProject}/${project}/src/"
 								local NumFound=$(find ${TheSrcDir} -name ${name} 2> /dev/null | wc -l)
 								case ${NumFound} in
 									0)
@@ -857,8 +895,8 @@ UseC()
 					cd ${LangSrc}/
 					;;
 				*)
-					TheBinDir="${LangSrc}/${project}/bin"
-					cd ${LangSrc}/${project}/src
+					TheBinDir="${LangProject}/${project}/bin"
+					cd ${LangProject}/${project}/src
 					;;
 			esac
 
@@ -932,7 +970,7 @@ UseC()
 			local TheOld=$1
 			local TheNew=$2
 			if [ ! -z "${TheNew}" ]; then
-				TheOld="${TheOld%${LangExt}}" 
+				TheOld="${TheOld%${LangExt}}"
 				TheNew="${TheNew%${LangExt}}"
 				cp ${LangSrc}/${TheOld}${LangExt} ${LangSrc}/${TheNew}${LangExt}
 				echo ${TheNew}${LangExt}

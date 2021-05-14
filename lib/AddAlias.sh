@@ -1,11 +1,7 @@
-Aliases=~/.bash_aliases
-ShellPath=$(realpath $0)
-root=$(dirname ${ShellPath})
+Shell=$(which bash)
+#!${Shell}
 
-errorCode()
-{
-	${root}/errorCode.sh $@
-}
+Aliases=~/.bash_aliases
 
 #Handle Aliases
 AddAlias()
@@ -20,7 +16,7 @@ AddAlias()
                 Replace="\\/home\\/$USER\\/"
         fi
         local With="\~\\/"
-        local CheckFor=$(echo ${Insert} | sed "s/${Replace}/${With}/g")
+        local CheckFor=${Insert//${Replace}/${With}}
         touch ${Aliases}
         if grep -q "alias ${AliasName}=" ${Aliases}; then
                 errorCode "alias" ${AliasName}

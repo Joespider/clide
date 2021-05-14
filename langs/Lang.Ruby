@@ -1,28 +1,11 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.37"
+SupportV="0.1.39"
 Lang=Ruby
+LangExt=".rb"
 ColorNum=1
 
-ProgDir=$1
-shift
-ClideDir=$1
-LibDir=${ClideDir}/lib
-VarDir=${ClideDir}/var
-shift
-editor=$1
-shift
-ReadBy=$1
-shift
-CodeProject=$1
-shift
-ProjectType=$1
-shift
-ProjectMode=$1
-shift
-TemplateProjectDir=$1
-shift
 CplArgs=$1
 shift
 
@@ -63,17 +46,15 @@ ProjectTemplateHandler()
 
 UseRuby()
 {
-	local LookForLang="Use(${Lang})"
-	local LangConfig=$(grep "${LookForLang}" ${VarDir}/clide.conf | sed "s/${LookForLang}=//1")
+	local LangConfig=${UseRuby}
 	local LangRun=${LangConfig}
 
 	local LangHome=${ProgDir}/${Lang}
 	local LangSrc=${LangHome}/src
 	local LangBin=${LangHome}/bin
-	local LangExt=".rb"
+	local LangProject=${LangHome}/projects
 
-	local NewLangSrc="New(${Lang})"
-	local TemplateCode=$(grep "${NewLangSrc}" ${VarDir}/clide.conf | sed "s/${NewLangSrc}=//1")
+	local TemplateCode=${NewRuby}
 	TemplateCode=${LangBin}/${TemplateCode%${LangExt}}${LangExt}
 
 	local EnvVars=( ${LangRun} ${LangHome} ${LangSrc} ${LangBin} ${LangExt} )
@@ -102,6 +83,10 @@ UseRuby()
 			echo ""
 			echo -e "${Lang} specific project help"
 			echo ""
+			;;
+		getProjectDir)
+			local project=${CodeProject}
+			echo ${LangProject}/${project}
 			;;
 		pgLang)
 			local HasLang=$(which ${LangRun} 2> /dev/null)
@@ -156,17 +141,23 @@ UseRuby()
 			fi
 			;;
 		EnsureDirs)
-			#Home
-			if [ ! -d "${LangHome}" ] && [ ! -z "${LangRun}" ]; then
-				mkdir "${LangHome}"
-			fi
-			#Src
-			if [ ! -d "${LangSrc}" ] && [ ! -z "${LangRun}" ]; then
-				mkdir "${LangSrc}"
-			fi
-			#Bin
-			if [ ! -d "${LangBin}" ] && [ ! -z "${LangRun}" ]; then
-				mkdir "${LangBin}"
+			if [ ! -z "${LangRun}" ]; then
+				#Home
+				if [ ! -d "${LangHome}" ]; then
+					mkdir "${LangHome}"
+				fi
+				#Src
+				if [ ! -d "${LangSrc}" ]; then
+					mkdir "${LangSrc}"
+				fi
+				#Bin
+				if [ ! -d "${LangBin}" ]; then
+					mkdir "${LangBin}"
+				fi
+				#projects
+				if [ ! -d "${LangProject}" ]; then
+					mkdir "${LangProject}"
+				fi
 			fi
 			;;
 		TemplateVersion)
@@ -302,7 +293,7 @@ UseRuby()
 					;;
 				*)
 					project="${project}/"
-					TheBinDir="${LangSrc}/${project}bin"
+					TheBinDir="${LangProject}/${project}bin"
 					;;
 			esac
 			case ${src} in
@@ -345,8 +336,6 @@ UseRuby()
 						fi
 					#single code selected
 					else
-						#Make Ruby Script executable
-						chmod +x ${src}
 						#Check if Ruby Script does NOT exist
 						if [ ! -f "${TheBinDir}/${src}" ]; then
 							#Change to Ruby Binary dir
@@ -370,10 +359,17 @@ UseRuby()
 					;;
 			esac
 			;;
+		discoverProject)
+			local path=${LangProject}/
+			local ProjectList=$(ls ${path} 2> /dev/null | tr '\n' '|' | rev | sed "s/|//1" | rev)
+			if [ ! -z "${ProjectList}" ]; then
+				echo "${path}:${ProjectList}"
+			fi
+			;;
 		newProject)
 			local TheProjectType=$1
 			local project=$2
-			local path=${LangSrc}/${project}
+			local path=${LangProject}/${project}
 			if [ ! -d ${path} ]; then
 				case ${ProjectType} in
 					Generic)
@@ -417,7 +413,7 @@ UseRuby()
                                         ;;
                                 *)
                                         project=${CodeProject}
-                                        path=${LangSrc}/${project}/bin
+                                        path=${LangProject}/${project}/bin
                                         ;;
                         esac
                         if [ -d ${path} ]; then
@@ -462,7 +458,7 @@ UseRuby()
 					;;
 				*)
 					project="${project}/"
-					TheBinDir="${LangSrc}/${project}bin"
+					TheBinDir="${LangProject}/${project}bin"
 					;;
 			esac
 			#Make sure Binary exists
@@ -542,7 +538,7 @@ UseRuby()
                                         ;;
                                 *)
                                         project="${project}/"
-					TheBinDir="${LangSrc}/${project}bin"
+					TheBinDir="${LangProject}/${project}bin"
 				;;
 			esac
 			#Check if Ruby Bin exists

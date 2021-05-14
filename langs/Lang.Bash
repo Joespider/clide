@@ -1,40 +1,23 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.40"
+SupportV="0.1.42"
 Lang=Bash
+LangExt=".sh"
 ColorNum=2
 
-ProgDir=$1
-shift
-ClideDir=$1
-LibDir=${ClideDir}/lib
-VarDir=${ClideDir}/var
-shift
-editor=$1
-shift
-ReadBy=$1
-shift
-CodeProject=$1
-shift
-ProjectType=$1
-shift
-ProjectMode=$1
-shift
-TemplateProjectDir=$1
-shift
 CplArgs=$1
 shift
 
 errorCode()
 {
-	${LibDir}/errorCode.sh $@
+        ${LibDir}/errorCode.sh $@
 }
 
 #Handle Aliases
 AddAlias()
 {
-	${LibDir}/AddAlias.sh $@
+        ${LibDir}/AddAlias.sh $@
 }
 
 OtherColor()
@@ -63,16 +46,14 @@ ProjectTemplateHandler()
 
 UseBash()
 {
-	local LookForLang="Use(${Lang})"
-	local LangCpl=$(grep "${LookForLang}" ${VarDir}/clide.conf | sed "s/${LookForLang}=//1")
+	local LangRun=${UseBash}
 
 	local LangHome=${ProgDir}/${Lang}
 	local LangSrc=${LangHome}/src
 	local LangBin=${LangHome}/bin
-	local LangExt=".sh"
+	local LangProject=${LangHome}/projects
 
-	local NewLangSrc="New(${Lang})"
-	local TemplateCode=$(grep "${NewLangSrc}" ${VarDir}/clide.conf | sed "s/${NewLangSrc}=//1")
+	local TemplateCode=${NewBash}
 	TemplateCode=${LangBin}/${TemplateCode%${LangExt}}${LangExt}
 
 	local EnvVars=( ${LangRun} ${LangHome} ${LangSrc} ${LangBin} ${LangExt} )
@@ -101,8 +82,12 @@ UseBash()
 			echo -e "${Lang} specific project help"
 			echo ""
 			;;
+		getProjectDir)
+			local project=${CodeProject}
+			echo ${LangProject}/${project}
+			;;
 		pgLang)
-			HasLang=$(which ${LangCpl} 2> /dev/null)
+			HasLang=$(which ${LangRun} 2> /dev/null)
 			if [ ! -z "${HasLang}" ]; then
 				#Return Bash tag
 				echo "${Lang}"
@@ -114,6 +99,7 @@ UseBash()
 		getCode)
 			local name=$1
 			local project=${CodeProject}
+			local DirPath
 			#Get code
                         case ${project} in
                                 none)
@@ -125,10 +111,10 @@ UseBash()
 					;;
 				*)
 					case ${ProjectType} in
-						Generic) 
-							if [ -f ${LangSrc}/${project}/src/${name}${LangExt} ]; then
+						Generic)
+							if [ -f ${LangProject}/${project}/src/${DirPath}${name}${LangExt} ]; then
 								echo ${name}${LangExt}
-							elif [ -f ${LangSrc}/${project}/src/${name} ]; then
+							elif [ -f ${LangProject}/${project}/src/${DirPath}${name} ]; then
 								echo ${name}
 							fi
 							;;
@@ -156,17 +142,23 @@ UseBash()
 			fi
 			;;
 		EnsureDirs)
-			#Home
-			if [ ! -d "${LangHome}" ] && [ ! -z "${LangCpl}" ]; then
-				mkdir "${LangHome}"
-			fi
-			#Src
-			if [ ! -d "${LangSrc}" ] && [ ! -z "${LangCpl}" ]; then
-				mkdir "${LangSrc}"
-			fi
-			#Bin
-			if [ ! -d "${LangBin}" ] && [ ! -z "${LangCpl}" ]; then
-				mkdir "${LangBin}"
+			if [ ! -z "${LangRun}" ]; then
+				#Home
+				if [ ! -d "${LangHome}" ]; then
+					mkdir "${LangHome}"
+				fi
+				#Src
+				if [ ! -d "${LangSrc}" ]; then
+					mkdir "${LangSrc}"
+				fi
+				#Bin
+				if [ ! -d "${LangBin}" ]; then
+					mkdir "${LangBin}"
+				fi
+				#projects
+				if [ ! -d "${LangProject}" ]; then
+					mkdir "${LangProject}"
+				fi
 			fi
 			;;
 		TemplateVersion)
@@ -179,7 +171,7 @@ UseBash()
 			;;
 		CplVersion)
 			echo "[Shell]"
-			${LangCpl} --version | head -n 1
+			${LangRun} --version | head -n 1
 			echo ""
 			;;
 		selectCode)
@@ -311,7 +303,7 @@ UseBash()
 					;;
 				*)
 					project="${project}/"
-					TheBinDir="${LangSrc}/${project}bin"
+					TheBinDir="${LangProject}/${project}bin"
 					;;
 			esac
 
@@ -378,10 +370,17 @@ UseBash()
 					;;
 			esac
 			;;
+		discoverProject)
+			local path=${LangProject}/
+			local ProjectList=$(ls ${path} 2> /dev/null | tr '\n' '|' | rev | sed "s/|//1" | rev)
+			if [ ! -z "${ProjectList}" ]; then
+				echo "${path}:${ProjectList}"
+			fi
+			;;
 		newProject)
 			local TheProjectType=$1
 			local project=$2
-			local path=${LangSrc}/${project}
+			local path=${LangProject}/${project}
 			if [ ! -d ${path} ]; then
 				case ${ProjectType} in
 					Generic)
@@ -425,7 +424,7 @@ UseBash()
 					;;
 				*)
 					project=${CodeProject}
-					path=${LangSrc}/${project}/bin/
+					path=${LangProject}/${project}/bin/
 					;;
 			esac
 			if [ -d ${path} ]; then
@@ -467,7 +466,7 @@ UseBash()
 					;;
 				*)
 					project="${project}/"
-					TheBinDir="${LangSrc}/${project}bin"
+					TheBinDir="${LangProject}/${project}bin"
 					;;
 			esac
 
@@ -523,7 +522,7 @@ UseBash()
 					#Program Name Given
 					if [ ! -z "${name}" ];then
 						touch ${name}${LangExt}
-						echo -e "#!/bin/${Lang}\n" > ${name}${LangExt}
+						echo -e "#!/bin/${LangRun}\n" > ${name}${LangExt}
 					else
 						errorCode "newCode"
 					fi
@@ -549,7 +548,7 @@ UseBash()
 					;;
 				*)
 					project="${project}/"
-					TheBinDir="${LangSrc}/${project}bin"
+					TheBinDir="${LangProject}/${project}bin"
 				;;
                         esac
 
