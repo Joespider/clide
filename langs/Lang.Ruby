@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.39"
+SupportV="0.1.40"
 Lang=Ruby
 LangExt=".rb"
 ColorNum=1
@@ -61,6 +61,8 @@ UseRuby()
 	local Type=$1
 	shift
 	case ${Type} in
+		Art)
+			;;
 		color)
 		#Return Red
 			echo -e "\e[1;3${ColorNum}m${Lang}\e[0m"

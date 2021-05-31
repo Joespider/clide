@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.18"
+SupportV="0.1.19"
 Lang=Go
 LangExt=".go"
 #Color Green
@@ -60,6 +60,8 @@ UseGo()
 	local Type=$1
 	shift
 	case ${Type} in
+		Art)
+			;;
 		color)
 			#Return Blue
 			echo -e "\e[1;3${ColorNum}m${Lang}\e[0m"

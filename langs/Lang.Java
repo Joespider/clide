@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.60"
+SupportV="0.1.62"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -67,6 +67,8 @@ UseJava()
 	local Type=$1
 	shift
 	case ${Type} in
+		Art)
+			;;
 		color)
 			#Return Red
 			echo -e "\e[1;3${ColorNum}m${Lang}\e[0m"
@@ -206,11 +208,9 @@ UseJava()
                         ;;
 		CplVersion)
 			echo "[${Lang} JDK/JRE]"
-			local LangRunVersion=$(${LangRun} --version 2> /dev/null)
-			local LangCplVersion=$(${LangCpl} --version 2> /dev/null)
+			local LangRunVersion=$(${LangRun} --version 2> /dev/null | head -n 1)
+			local LangCplVersion=$(${LangCpl} --version 2> /dev/null | head -n 1)
 			if [ ! -z "${LangRunVersion}" ]; then
-				LangRunVersion=$(${LangRun} --version | head -n 1)
-				LangCplVersion=$(${LangCpl} --version | head -n 1)
 				echo "${LangRunVersion}"
 				echo "${LangCplVersion}"
 			else

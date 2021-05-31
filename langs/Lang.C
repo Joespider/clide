@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.07"
+SupportV="0.1.08"
 Lang=C
 LangExt=".c"
 ColorNum=3
@@ -61,6 +61,8 @@ UseC()
 	local Type=$1
 	shift
 	case ${Type} in
+		Art)
+			;;
 		color)
 			#Return Blue
 			echo -e "\e[1;3${ColorNum}m${Lang}\e[0m"

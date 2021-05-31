@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.40"
+SupportV="0.1.41"
 Lang=Perl
 LangExt=".pl"
 #Color Purple
@@ -61,6 +61,8 @@ UsePerl()
 	local Type=$1
 	shift
 	case ${Type} in
+		Art)
+			;;
 		color)
 			#Return Purple
 			echo -e "\e[1;3${ColorNum}m${Lang}\e[0m"

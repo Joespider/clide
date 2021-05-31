@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.42"
+SupportV="0.1.44"
 Lang=Bash
 LangExt=".sh"
 ColorNum=2
@@ -60,6 +60,8 @@ UseBash()
 	local Type=$1
 	shift
 	case ${Type} in
+		Art)
+			;;
 		color)
 			#Return Green
 			echo -e "\e[1;3${ColorNum}m${Lang}\e[0m"
@@ -535,6 +537,7 @@ UseBash()
 			;;
 		runCode)
 			local name=$1
+			local TheBin="${name%.*}${LangExt}"
 			local project=${CodeProject}
 			local TheBinDir
 			shift
@@ -545,16 +548,18 @@ UseBash()
 				none)
 					project=""
 					TheBinDir=${LangBin}
+					cd ${LangSrc}/
 					;;
 				*)
 					project="${project}/"
 					TheBinDir="${LangProject}/${project}bin"
-				;;
-                        esac
+					cd ${LangProject}/${project}/src
+					;;
+			esac
 
-			#Check if Bash Script exists
-			if [ -f ${TheBinDir}/${name} ]; then
-				${TheBinDir}/${name} ${Args[@]}
+			#Check if Python Bin exists
+			if [ -f ${TheBinDir}/${TheBin} ]; then
+				${TheBinDir}/${TheBin} ${Args[@]}
 			else
 				errorCode "cpl" "need" "${name}"
 			fi
