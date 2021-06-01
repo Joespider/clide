@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.44"
+SupportV="0.1.45"
 Lang=Bash
 LangExt=".sh"
 ColorNum=2
@@ -61,6 +61,16 @@ UseBash()
 	shift
 	case ${Type} in
 		Art)
+			local srt="\e[1;3${ColorNum}m"
+			local end="\e[0m"
+			echo -e "${srt}oooooooooo.${end}                     ${srt}oooo${end}"
+			echo -e "${srt}\`888'${end}   ${srt}\`Y8b${end}                    ${srt}\`888${end}"
+			echo -e " ${srt}888${end}     ${srt}888${end}  ${srt}.oooo.${end}    ${srt}.oooo.o${end}  ${srt}888${end} ${srt}.oo.${end}"
+			echo -e " ${srt}888oooo888'${end} ${srt}\`P${end}  ${srt})88b${end}  ${srt}d88(${end}  ${srt}\"8${end}  ${srt}888P\"Y88b${end}"
+			echo -e " ${srt}888${end}    ${srt}\`88b${end}  ${srt}.oP\"888${end}  ${srt}\`\"Y88b.${end}   ${srt}888${end}   ${srt}888${end}"
+			echo -e " ${srt}888${end}    ${srt}.88P${end} ${srt}d8(${end}  ${srt}888${end}  ${srt}o.${end}  ${srt})88b${end}  ${srt}888${end}   ${srt}888${end}"
+			echo -e "${srt}o888bood8P'${end}  ${srt}\`Y888\"\"8o${end} ${srt}8\"\"888P'${end} ${srt}o888o${end} ${srt}o888o${end}"
+			echo ""
 			;;
 		color)
 			#Return Green

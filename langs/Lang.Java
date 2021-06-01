@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.62"
+SupportV="0.1.63"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -68,6 +68,17 @@ UseJava()
 	shift
 	case ${Type} in
 		Art)
+			local srt="\e[1;3${ColorNum}m"
+			local end="\e[0m"
+			echo -e "   ${srt}oooo${end}"
+			echo -e "   ${srt}\`888${end}"
+			echo -e "    ${srt}888${end}  ${srt}.oooo.${end}   ${srt}oooo${end}    ${srt}ooo${end}  ${srt}.oooo.${end}"
+			echo -e "    ${srt}888${end} ${srt}\`P${end}  ${srt})88b${end}   ${srt}\`88.${end}  ${srt}.8'${end}  ${srt}\`P${end}  ${srt})88b${end}"
+			echo -e "    ${srt}888${end}  ${srt}.oP\"888${end}    ${srt}\`88..8'${end}    ${srt}.oP\"888${end}"
+			echo -e "    ${srt}888${end} ${srt}d8(${end}  ${srt}888${end}     ${srt}\`888'${end}    ${srt}d8(${end}  ${srt}888${end}"
+			echo -e "${srt}.o. ${srt}88P${end} ${srt}\`Y888\"\"8o${end}     ${srt}\`8'${end}     ${srt}\`Y888\"\"8o${end}"
+			echo -e "${srt}\`Y888P${end}"
+			echo ""
 			;;
 		color)
 			#Return Red

@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.46"
+SupportV="0.1.47"
 Lang=Python
 LangExt=".py"
 #Color Yellow
@@ -61,6 +61,18 @@ UsePython()
 	shift
 	case ${Type} in
 		Art)
+			local srt="\e[1;3${ColorNum}m"
+			local end="\e[0m"
+			echo -e "${srt}ooooooooo.${end}                   ${srt}.${end}   ${srt}oooo${end}"
+			echo -e "${srt}\`888${end}   ${srt}\`Y88.${end}               ${srt}.o8${end}   ${srt}\`888${end}"
+			echo -e " ${srt}888${end}   ${srt}.d88'${end} ${srt}oooo${end}    ${srt}ooo${end} ${srt}.o888oo${end}  ${srt}888${end} ${srt}.oo.${end}    ${srt}.ooooo.${end}  ${srt}#ooo.${end} ${srt}.oo.${end}"
+			echo -e " ${srt}888ooo88P'${end}   ${srt}\`88.${end}  ${srt}.8'${end}    ${srt}888${end}    ${srt}888P\"Y88b${end}  ${srt}d88'${end} ${srt}\`88b${end} ${srt}#\`888P\"Y88b${end}"
+			echo -e " ${srt}888${end}           ${srt}\`88..8'${end}     ${srt}888${end}    ${srt}888${end}   ${srt}888${end}  ${srt}888${end}   ${srt}888${end}  ${srt}888${end}   ${srt}#888${end}"
+			echo -e " ${srt}888${end}            ${srt}\`888'${end}      ${srt}888${end} ${srt}.${end}  ${srt}888${end}   ${srt}888${end}  ${srt}888${end}   ${srt}888${end}  ${srt}888${end}   ${srt}#888${end}"
+			echo -e "${srt}o888o${end}            ${srt}.8'${end}       ${srt}\"888\"${end} ${srt}o888o${end} ${srt}o888o${end} ${srt}\`Y8bod8P'${end} ${srt}#o888o${end} ${srt}o888o${end}"
+			echo -e "             ${srt}.o..P'${end}"
+			echo -e "             ${srt}\`Y8P'${end}"
+			echo ""	
 			;;
 		color)
 			#Return Yellow

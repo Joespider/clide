@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.08"
+SupportV="0.1.09"
 Lang=C
 LangExt=".c"
 ColorNum=3
@@ -62,6 +62,16 @@ UseC()
 	shift
 	case ${Type} in
 		Art)
+			local srt="\e[1;3${ColorNum}m"
+			local end="\e[0m"
+			echo -e "  ${srt}.oooooo.${end}"
+			echo -e " ${srt}d8P'${end}  ${srt}\`Y8b${end}"
+			echo -e "${srt}888${end}"
+			echo -e "${srt}888${end}"
+			echo -e "${srt}888${end}"
+			echo -e "${srt}\`88b${end}    ${srt}ooo${end}"
+			echo -e " ${srt}\`Y8bood8P'${end}"
+			echo ""
 			;;
 		color)
 			#Return Blue

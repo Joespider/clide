@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.41"
+SupportV="0.1.42"
 Lang=Perl
 LangExt=".pl"
 #Color Purple
@@ -62,6 +62,16 @@ UsePerl()
 	shift
 	case ${Type} in
 		Art)
+			local srt="\e[1;3${ColorNum}m"
+			local end="\e[0m"
+			echo -e "${srt}ooooooooo.${end}                      ${srt}oooo${end}"
+			echo -e "${srt}\`888${end}   ${srt}\`Y88.${end}                    ${srt}\`888${end}"
+			echo -e " ${srt}888${end}   ${srt}.d88'${end}  ${srt}.ooooo.${end}  ${srt}oooo${end} ${srt}d8b${end}  ${srt}888${end}" 
+			echo -e " ${srt}888ooo88P'${end}  ${srt}d88'${end} ${srt}\`88b${end} ${srt}\`888\"\"8P${end}  ${srt}888${end}" 
+			echo -e " ${srt}888${end}         ${srt}888ooo888${end}  ${srt}888${end}      ${srt}888${end}" 
+			echo -e " ${srt}888${end}         ${srt}888${end}    ${srt}.o${end}  ${srt}888${end}      ${srt}888${end}" 
+			echo -e "${srt}o888o${end}        ${srt}\`Y8bod8P'${end} ${srt}d888b${end}    ${srt}o888o${end}"
+			echo ""
 			;;
 		color)
 			#Return Purple

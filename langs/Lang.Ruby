@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.40"
+SupportV="0.1.41"
 Lang=Ruby
 LangExt=".rb"
 ColorNum=1
@@ -62,6 +62,18 @@ UseRuby()
 	shift
 	case ${Type} in
 		Art)
+			local srt="\e[1;3${ColorNum}m"
+			local end="\e[0m"
+			echo -e "${srt}ooooooooo.${end}                ${srt}.o8${end}"
+			echo -e "${srt}\`888${end}   ${srt}\`Y88.${end}             ${srt}\"888${end}"
+			echo -e " ${srt}888${end}   ${srt}.d88'${end} ${srt}oooo${end}  ${srt}oooo${end}   ${srt}888oooo.${end}  ${srt}oooo${end}    ${srt}ooo${end}"
+			echo -e " ${srt}888ooo88P'${end}  ${srt}\`888${end}  ${srt}\`888${end}   ${srt}d88'${end} ${srt}\`88b${end}  ${srt}\`88.${end}  ${srt}.8'${end}"
+			echo -e " ${srt}888\`88b.${end}     ${srt}888${end}   ${srt}888${end}   ${srt}888${end}   ${srt}888${end}   ${srt}\`88..8'${end}"
+			echo -e " ${srt}888${end}  ${srt}\`88b.${end}   ${srt}888${end}   ${srt}888${end}   ${srt}888${end}   ${srt}888${end}    ${srt}\`888'${end}"
+			echo -e "${srt}o888o${end}  ${srt}o888o${end}  ${srt}\`V88V\"V8P'${end}  ${srt}\`Y8bod8P'${end}     ${srt}.8'${end}"
+			echo -e "                                    ${srt}.o..P'${end}"
+			echo -e "                                    ${srt}\`Y8P'${end}"
+			echo ""
 			;;
 		color)
 		#Return Red
