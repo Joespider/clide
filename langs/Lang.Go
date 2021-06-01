@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.18"
+SupportV="0.1.20"
 Lang=Go
 LangExt=".go"
 #Color Green
@@ -60,6 +60,17 @@ UseGo()
 	local Type=$1
 	shift
 	case ${Type} in
+		Art)
+			local srt="\e[1;3${ColorNum}m"
+			local end="\e[0m"
+			echo -e "  ${srt}.oooooo.${end}"
+			echo -e " ${srt}d8P'${end}  ${srt}\`Y8b${end}"
+			echo -e "${srt}888${end}            ${srt}.ooooo.${end}"
+			echo -e "${srt}888${end}           ${srt}d88'${end} ${srt}\`88b${end}"
+			echo -e "${srt}888${end}     ${srt}ooooo${end} ${srt}888${end}   ${srt}888${end}"
+			echo -e "${srt}\`88.${end}    ${srt}.88'${end}  ${srt}888${end}   ${srt}888${end}"
+			echo -e " ${srt}\`Y8bood8P'${end}   ${srt}\`Y8bod8P'${end}"
+			;;
 		color)
 			#Return Blue
 			echo -e "\e[1;3${ColorNum}m${Lang}\e[0m"

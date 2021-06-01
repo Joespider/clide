@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.58"
+SupportV="0.1.61"
 Lang=C++
 LangExt=".cpp"
 ColorNum=4
@@ -61,6 +61,18 @@ UseC++()
 	local Type=$1
 	shift
 	case ${Type} in
+		Art)
+			local srt="\e[1;3${ColorNum}m"
+			local end="\e[0m"
+			echo -e "  ${srt}.oooooo.${end}"
+			echo -e " ${srt}d8P'${end}  ${srt}\`Y8b${end}"
+			echo -e "${srt}888${end}              ${srt}88${end}         ${srt}88${end}"
+			echo -e "${srt}888${end}              ${srt}88${end}         ${srt}88${end}"
+			echo -e "${srt}888${end}          ${srt}8888888888${end} ${srt}8888888888${end}"
+			echo -e "${srt}\`88b${end}    ${srt}ooo${end}      ${srt}88${end}         ${srt}88${end}"
+			echo -e " ${srt}\`Y8bood8P'${end}      ${srt}88${end}         ${srt}88${end}"
+			echo ""
+			;;
 		color)
 			#Return Blue
 			echo -e "\e[1;3${ColorNum}m${Lang}\e[0m"
@@ -691,7 +703,7 @@ UseC++()
 			fi
 			;;
 		newProject)
-			ProjectType=$1
+			local ProjectType=$1
 			local project=$2
 			local path=${LangProject}/${project}
 			#create and cd to project dir

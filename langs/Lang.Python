@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.43"
+SupportV="0.1.47"
 Lang=Python
 LangExt=".py"
 #Color Yellow
@@ -60,6 +60,20 @@ UsePython()
 	local Type=$1
 	shift
 	case ${Type} in
+		Art)
+			local srt="\e[1;3${ColorNum}m"
+			local end="\e[0m"
+			echo -e "${srt}ooooooooo.${end}                   ${srt}.${end}   ${srt}oooo${end}"
+			echo -e "${srt}\`888${end}   ${srt}\`Y88.${end}               ${srt}.o8${end}   ${srt}\`888${end}"
+			echo -e " ${srt}888${end}   ${srt}.d88'${end} ${srt}oooo${end}    ${srt}ooo${end} ${srt}.o888oo${end}  ${srt}888${end} ${srt}.oo.${end}    ${srt}.ooooo.${end}  ${srt}#ooo.${end} ${srt}.oo.${end}"
+			echo -e " ${srt}888ooo88P'${end}   ${srt}\`88.${end}  ${srt}.8'${end}    ${srt}888${end}    ${srt}888P\"Y88b${end}  ${srt}d88'${end} ${srt}\`88b${end} ${srt}#\`888P\"Y88b${end}"
+			echo -e " ${srt}888${end}           ${srt}\`88..8'${end}     ${srt}888${end}    ${srt}888${end}   ${srt}888${end}  ${srt}888${end}   ${srt}888${end}  ${srt}888${end}   ${srt}#888${end}"
+			echo -e " ${srt}888${end}            ${srt}\`888'${end}      ${srt}888${end} ${srt}.${end}  ${srt}888${end}   ${srt}888${end}  ${srt}888${end}   ${srt}888${end}  ${srt}888${end}   ${srt}#888${end}"
+			echo -e "${srt}o888o${end}            ${srt}.8'${end}       ${srt}\"888\"${end} ${srt}o888o${end} ${srt}o888o${end} ${srt}\`Y8bod8P'${end} ${srt}#o888o${end} ${srt}o888o${end}"
+			echo -e "             ${srt}.o..P'${end}"
+			echo -e "             ${srt}\`Y8P'${end}"
+			echo ""	
+			;;
 		color)
 			#Return Yellow
 			echo -e "\e[1;3${ColorNum}m${Lang}\e[0m"
@@ -89,31 +103,48 @@ UsePython()
 			;;
 		getCode)
 			local name=$1
-			case ${CodeProject} in
+			name=${name%${LangExt}}
+			local project=${CodeProject}
+			local newName
+			local DirPath
+			local TheSrcDir
+			case ${project} in
 				none)
-					#Get code 
-					if [ -f ${LangSrc}/${name}${LangExt} ]; then
-						echo ${name}${LangExt}
-					elif [ -f ${LangSrc}/${name} ]; then
-						echo ${name}
-					fi
+					TheSrcDir=${LangSrc}
 					;;
 				*)
 					case ${ProjectType} in
 						Generic)
-							#Get code 
-							if [ -f ${LangSrc}/${CodeProject}/src/${name}${LangExt} ]; then
-								echo ${name}${LangExt}
-							elif [ -f ${LangSrc}/${CodeProject}/src/${name} ]; then
-								echo ${name}
-							fi
+							case ${name} in
+								*.*)
+									newName=${name##*.}
+									DirPath=$(echo ${name%${newName}} | tr '.' '/')
+									TheSrcDir="${LangProject}/${project}/src/${DirPath}"
+									name=${newName}
+									;;
+								*/*)
+									newName=${name##*/}
+									DirPath=${name%${newName}}
+									TheSrcDir="${LangProject}/${project}/src/${DirPath}"
+									name=${newName}
+									;;
+								*)
+									TheSrcDir="$(pwd)/"
+									;;
+							esac
 							;;
 						*)
-							ProjectTemplateHandler ${EnvVars[@]} ${Type} ${mode}
+							TheSrcDir=$(ProjectTemplateHandler ${EnvVars[@]} ${Type} ${mode})
 							;;
 					esac
 					;;
 			esac
+
+			if [ -f ${TheSrcDir}/${name}${LangExt} ]; then
+				echo ${name}${LangExt}
+			elif [ -f ${TheSrcDir}/${name} ]; then
+				echo ${name}
+			fi
 			;;
 		BeforeFiles|AfterFiles)
 			ls *${LangExt} 2> /dev/null
@@ -175,46 +206,134 @@ UsePython()
 			${LangRun} --version
 			echo ""
 			;;
-		selectCode)
+		selectCode|addCode)
 			local name=$1
-			#Correct filename
-			if [[ ! "${name}" == *"${LangExt}" ]]; then
-				name="${name}${LangExt}"
-			fi
-			#Return source file if exists
-			if [ -f "${name}" ]; then
-				echo "${name}"
-			fi
-			;;
-		addCode)
-			local src=$1
 			local new=$2
-			case ${src} in
-				*${LangExt})
-					case ${new} in
-						*${LangExt})
-							if [ -f "${new}" ]; then
-								echo "${src},${new}"
-							else
-								echo "${src}"
-							fi
-							;;
-						*)
-							if [ -f "${new}${LangExt}" ]; then
-								echo "${src},${new}${LangExt}"
-							else
-								echo "${src}"
-							fi
-							;;
-					esac
-					;;
-				*)
-					;;
-			esac
+			local project=${CodeProject}
+			local newName
+			local DirPath
+			local TheSrcDir
+
+			#Correct filename
+			if [ ! -z "${name}" ]; then
+
+				case ${project} in
+					#not a project
+					none)
+						case ${Type} in
+							selectCode)
+								#Correct filename
+								if [[ ! "${name}" == *"${LangExt}" ]] && [ -f "${name}${LangExt}" ]; then
+									name="${name}${LangExt}"
+								fi
+
+								#Return source file if exists
+								if [ -f "${name}" ]; then
+									echo "${name}"
+								fi
+								;;
+							addCode)
+								case ${name} in
+									*${LangExt}|*.h)
+										#Add cpp or header files with file extensions
+										case ${new} in
+											*${LangExt})
+												#Append file
+												if [ -f "${new}" ]; then
+													echo "${name},${new}"
+												else
+													echo "${name}"
+												fi
+												;;
+											#Add cpp or header files without file extensions
+											*)
+												#Append cpp files
+												if [ -f "${new}${LangExt}" ]; then
+													echo "${name},${new}${LangExt}"
+												else
+													echo "${name}"
+												fi
+												;;
+										esac
+										;;
+									*)
+										;;
+								esac
+								;;
+							*)
+								;;
+						esac
+						;;
+					#is a project
+					*)
+						TheSrcDir="${LangProject}/${project}/src/"
+						local LookFor
+						case ${Type} in
+							addCode)
+								#Correct filename
+								if [[ ! "${new}" == *"${LangExt}" ]]; then
+									new="${new}${LangExt}"
+								fi
+								LookFor=${new}
+								;;
+							selectCode)
+								#Correct filename
+								if [[ ! "${name}" == *"${LangExt}" ]]; then
+									name="${name}${LangExt}"
+								fi
+								LookFor=${name}
+								;;
+							*)
+								;;
+						esac
+
+						local NumFound=$(find ${TheSrcDir} -name ${LookFor} 2> /dev/null | wc -l)
+						case ${NumFound} in
+							0)
+								;;
+							1)
+								case ${Type} in
+									addCode)
+										new=$(find ${TheSrcDir} -name ${new} 2> /dev/null)
+										#Append file
+										if [ -f "${new}" ]; then
+											new=${new##*/}
+											echo "${name},${new}"
+										else
+											echo "${name}"
+										fi
+										;;
+									selectCode)
+										name=$(find ${TheSrcDir} -name ${name} 2> /dev/null)
+										if [ -f ${name} ]; then
+											newName=${name##*/}
+											echo ${newName}
+										fi
+										;;
+									*)
+										;;
+								esac
+								;;
+							*)
+#								find ${TheSrcDir} -name ${name} 2> /dev/null | nl
+#								if [ -f ${name} ]; then
+#									name=${name%${LangExt}}
+#									newName=${name##*/}
+#									echo ${newName}${LangExt}
+#								fi
+								;;
+						esac
+						;;
+				esac
+			fi
 			;;
 		editCode|readCode)
 			local src=$1
 			local num=$2
+			local project=${CodeProject}
+			local newName
+			local DirPath
+			local TheSrcDir
 			local ReadOrEdit
 
 			#Select the tool
@@ -233,61 +352,126 @@ UsePython()
 
 			case ${src} in
 				*${LangExt})
-					if [[ "${src}" == *","* ]]; then
-						if [ -z ${num} ]; then
-							#Error
-							#{
-							case ${Type} in
-								readCode)
-									errorCode "readNull"
-									;;
-								editCode)
-									errorCode "editNull"
-									;;
-								*)
-									;;
-							esac
-							#}
-						else
-							if [[ "${src}" == *"${num}"* ]]; then
-								if [[ "${num}" == *"${LangExt}" ]]; then
-									#Read or Write Code
+					case ${project} in
+						none)
+							if [[ "${src}" == *","* ]]; then
+								if [ -z ${num} ]; then
+									#Error
 									#{
-									${ReadOrEdit} ${num}
+									case ${Type} in
+										readCode)
+											errorCode "readNull"
+											;;
+										editCode)
+											errorCode "editNull"
+											;;
+										*)
+											;;
+									esac
 									#}
 								else
-									#Read or Write Code
-									#{
-									${ReadOrEdit} "{num}${LangExt}"
-									#}
+									if [[ "${src}" == *"${num}"* ]]; then
+										#Choose file from list of choices
+										num=$(echo ${src} | tr ',' '\n' | grep ${num})
+										${ReadOrEdit} ${num}
+									else
+										#Error
+										#{
+										case ${Type} in
+											readCode)
+												errorCode "readNot"
+												;;
+											editCode)
+												errorCode "editNot"
+												;;
+											*)
+												;;
+										esac
+										#}
+									fi
 								fi
 							else
-								#Error
+								#Read or Write Code
 								#{
-								case ${Type} in
-									readCode)
-										errorCode "readNot"
-										;;
-									editCode)
-										errorCode "editNot"
-										;;
-									*)
-										;;
-								esac
+								${ReadOrEdit} ${src}
 								#}
 							fi
-						fi
-					else
-						#Read or Write Code
-						#{
-						${ReadOrEdit} ${src}
-						#}
-					fi
+							;;
+						*)
+							TheSrcDir="${LangProject}/${project}/src/"
+							local NumFound
+							if [[ "${src}" == *","* ]]; then
+								if [ -z ${num} ]; then
+									errorCode "editNull"
+									NumFound=0
+								else
+									if [[ "${src}" == *"${num}"* ]]; then
+										case ${num} in
+											*${LangExt})
+												src=${num}
+												;;
+											*)
+												src=${num}${LangExt}
+												;;
+										esac
+										NumFound=$(find ${TheSrcDir} -name ${src} 2> /dev/null | wc -l)
+									else
+										#Error
+										#{
+										case ${Type} in
+											readCode)
+												errorCode "readNot"
+												;;
+											editCode)
+												errorCode "editNot"
+												;;
+											*)
+												;;
+										esac
+										NumFound=0
+										#}
+									fi
+								fi
+							else
+								NumFound=$(find ${TheSrcDir} -name ${src} 2> /dev/null | wc -l)
+							fi
+
+							case ${NumFound} in
+								0)
+									;;
+								1)
+									src=$(find ${TheSrcDir} -name ${src} 2> /dev/null)
+									if [ -f ${src} ]; then
+										#Read or Write Code
+										#{
+										${ReadOrEdit} ${src}
+										#}
+									fi
+									;;
+								*)
+									local Select
+									find ${TheSrcDir} -name ${src} 2> /dev/null | sed "s/\/${project}\/src\//|/1" | cut -d '|' -f 2 | nl
+									echo -n "> "
+									read Select
+									Select=$(echo ${Select} | grep "^-\?[0-9]*$")
+									if [ ! -z "${Select}" ]; then
+										if [ ${Select} -le ${NumFound} ] && [ ${Select} -gt 0 ]; then
+											src=$(find ${TheSrcDir} -name ${src} 2> /dev/null | tr '\n' '|' | cut -d '|' -f ${Select})
+											#Read or Write Code
+											#{
+											${ReadOrEdit} ${src}
+											#}
+										fi
+									fi
+									;;
+							esac
+							;;
+					esac
 					;;
 				*)
 					;;
 			esac
-			;;
+			 ;;
 		compileCode)
 			local src=$1
 			local name=$2
@@ -363,9 +547,8 @@ UsePython()
 			fi
 			;;
 		newProject)
-			ProjectType=$1
+			local TheProjectType=$1
 			local project=$2
-			CodeProject=${project}
 			local path=${LangProject}/${project}
 			if [ ! -d ${path} ]; then
 				case ${ProjectType} in
@@ -379,9 +562,8 @@ UsePython()
 						ProjectTemplateHandler ${EnvVars[@]} ${Type} ${project}
 						;;
 				esac
-
 			else
-				cd ${path}/src
+				cd ${path}
 			fi
 			echo ${path}
 			;;

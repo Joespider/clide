@@ -580,9 +580,18 @@ CodeVersion()
 
 Banner()
 {
-	Art
+	local Type=$1
+	local Version=$(echo ${Version} | tr -d '\n')
+	case ${Type} in
+		main)
+			Art
+			;;
+		*)
+
+			ManageLangs ${Type} "Art"
+			;;
+	esac
 	if [ ! -z "${VerColor}" ]; then
-		Version=$(echo ${Version} | tr -d '\n')
 		echo -e "(\e[1;4${VerColor}m${Version}\e[0m)"
 	else
 		echo "(${Version})"
@@ -1024,7 +1033,7 @@ Actions()
 	local prompt=""
 	local refresh
 	local UserArg
-	local ThePWD
+	#local ThePWD
 	local FirstAction=$1
 	#Pass into array
 	local UserIn=( $@ )
@@ -1047,7 +1056,7 @@ Actions()
 					prompt="${Name}(${cLang}):$ "
 					;;
 				*)
-					ThePWD=$(pwd)
+					#ThePWD=$(pwd)
 					ProjectDir=$(echo ${ThePWD#*${CodeProject}})
 					ProjectDir=${ProjectDir/\//:}
 					cCodeProject=$(ManageLangs ${Lang} "ProjectColor")
@@ -1062,7 +1071,7 @@ Actions()
 					prompt="${Name}(${cLang}{${cCode}}):$ "
 					;;
 				*)
-					ThePWD=$(pwd)
+					#ThePWD=$(pwd)
 					ProjectDir=$(echo ${ThePWD#*${CodeProject}})
 					ProjectDir=${ProjectDir/\//:}
 					#Menu with no code
@@ -1072,7 +1081,7 @@ Actions()
 			esac
 		fi
 		#}
-		Banner
+		Banner ${Lang}
 		while true
 		do
 			#User's first action
@@ -1997,6 +2006,8 @@ main()
 		local getLang=""
 		if [ ! -z "${pg}" ]; then
 			#CliHelp
+			Banner "main"
+			echo ""
 			echo "~Choose a language~"
 			#Force user to select language
 			while [[ "$getLang" == "" ]] || [[ "$Lang" == "no" ]];
@@ -2013,7 +2024,7 @@ main()
 						;;
 				esac
 			done
-
+			clear
 			if [ ! -z "${Lang}" ]; then
 				#Start IDE
 				Actions ${Lang}

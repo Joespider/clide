@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.60"
+SupportV="0.1.63"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -67,6 +67,19 @@ UseJava()
 	local Type=$1
 	shift
 	case ${Type} in
+		Art)
+			local srt="\e[1;3${ColorNum}m"
+			local end="\e[0m"
+			echo -e "   ${srt}oooo${end}"
+			echo -e "   ${srt}\`888${end}"
+			echo -e "    ${srt}888${end}  ${srt}.oooo.${end}   ${srt}oooo${end}    ${srt}ooo${end}  ${srt}.oooo.${end}"
+			echo -e "    ${srt}888${end} ${srt}\`P${end}  ${srt})88b${end}   ${srt}\`88.${end}  ${srt}.8'${end}  ${srt}\`P${end}  ${srt})88b${end}"
+			echo -e "    ${srt}888${end}  ${srt}.oP\"888${end}    ${srt}\`88..8'${end}    ${srt}.oP\"888${end}"
+			echo -e "    ${srt}888${end} ${srt}d8(${end}  ${srt}888${end}     ${srt}\`888'${end}    ${srt}d8(${end}  ${srt}888${end}"
+			echo -e "${srt}.o. ${srt}88P${end} ${srt}\`Y888\"\"8o${end}     ${srt}\`8'${end}     ${srt}\`Y888\"\"8o${end}"
+			echo -e "${srt}\`Y888P${end}"
+			echo ""
+			;;
 		color)
 			#Return Red
 			echo -e "\e[1;3${ColorNum}m${Lang}\e[0m"
@@ -206,11 +219,9 @@ UseJava()
                         ;;
 		CplVersion)
 			echo "[${Lang} JDK/JRE]"
-			local LangRunVersion=$(${LangRun} --version 2> /dev/null)
-			local LangCplVersion=$(${LangCpl} --version 2> /dev/null)
+			local LangRunVersion=$(${LangRun} --version 2> /dev/null | head -n 1)
+			local LangCplVersion=$(${LangCpl} --version 2> /dev/null | head -n 1)
 			if [ ! -z "${LangRunVersion}" ]; then
-				LangRunVersion=$(${LangRun} --version | head -n 1)
-				LangCplVersion=$(${LangCpl} --version | head -n 1)
 				echo "${LangRunVersion}"
 				echo "${LangCplVersion}"
 			else
