@@ -95,6 +95,8 @@ MenuHelp()
 	echo -e "bkup, backup\t\t\t: \"make backup of existing source code\""
 	echo -e "restore\t\t\t\t: \"make backup of existing source code\""
 	echo -e "rename <new>\t\t\t: \"rename the existing source code\""
+	echo -e "src, source\t\t\t: \"list source code\""
+
 	echo -e "copy <new>\t\t\t: \"copy the existing source code\""
 	echo -e "last, load\t\t\t: \"Load last session\""
 	echo -e "exit, close\t\t\t: \"close ide\""
@@ -1040,9 +1042,11 @@ Actions()
 	local CodeDir=$(pgDir ${Lang})
 	local pLangs=$(ColorCodes)
 	local prompt=""
+	local listSrc
+	local cntSrc
+	local ThePWD
 	local refresh
 	local UserArg
-	#local ThePWD
 	local FirstAction=$1
 	#Pass into array
 	local UserIn=( $@ )
@@ -1054,18 +1058,16 @@ Actions()
 		Code=$(selectCode ${Lang} ${Code})
 		#Change Color for Language
 		cLang=$(color ${Lang})
-		#Change Color for Code
-		cCode=$(color ${Code})
 		#Handle the CLI User Interface
 		#{
-		if [[ "${Code}" == "" ]]; then
+		if [ -z "${Code}" ]; then
 			case ${CodeProject} in
 				none)
 					#Menu with no code
 					prompt="${Name}(${cLang}):$ "
 					;;
 				*)
-					#ThePWD=$(pwd)
+					ThePWD=${PWD}
 					ProjectDir=$(echo ${ThePWD#*${CodeProject}})
 					ProjectDir=${ProjectDir/\//:}
 					cCodeProject=$(ManageLangs ${Lang} "ProjectColor")
@@ -1074,18 +1076,36 @@ Actions()
 					;;
 			esac
 		else
+			#Change Color for Code
+			cCode=$(color ${Code})
+			case ${Code} in
+				*,*)
+					cntSrc=$(echo ${Code} | tr ',' '\n' | wc -l)
+					case ${cntSrc} in
+						2)
+							listSrc=${cCode}
+							;;
+						*)
+							listSrc=$(color ${cntSrc})
+							;;
+					esac
+					;;
+				*)
+					listSrc=${cCode}
+					;;
+			esac
 			case ${CodeProject} in
 				none)
 					#Menu with code
-					prompt="${Name}(${cLang}{${cCode}}):$ "
+					prompt="${Name}(${cLang}{${listSrc}}):$ "
 					;;
 				*)
-					#ThePWD=$(pwd)
+					ThePWD=${PWD}
 					ProjectDir=$(echo ${ThePWD#*${CodeProject}})
 					ProjectDir=${ProjectDir/\//:}
 					#Menu with no code
 					cCodeProject=$(ManageLangs ${Lang} "ProjectColor")
-					prompt="${Name}(${cCodeProject}[${ProjectType:0:1}${ProjectDir}]{${cCode}}):$ "
+					prompt="${Name}(${cCodeProject}[${ProjectType:0:1}${ProjectDir}]{${listSrc}}):$ "
 					;;
 			esac
 		fi
@@ -1217,6 +1237,10 @@ Actions()
 							esac
 							;;
 					esac
+					;;
+				#List source code
+				src|source)
+					echo ${Code} | tr ',' '\n'
 					;;
 				#Handle Projects
 				project)
@@ -1545,17 +1569,21 @@ Actions()
 					;;
 				#Add code to Source Code
 				add)
-					if [ ! -z "${UserIn[1]}" ]; then
-						#Ensure Code is not added twice
-						if [[ ! "${Code}" == *"${UserIn[1]}"* ]]; then
-							Code=$(ManageLangs ${Lang} "addCode" ${Code} ${UserIn[1]})
-							refresh="yes"
-						#Code is trying to be added twice
+					if [ ! -z ${Code} ]; then
+						if [ ! -z "${UserIn[1]}" ]; then
+							#Ensure Code is not added twice
+							if [[ ! "${Code}" == *"${UserIn[1]}"* ]]; then
+								Code=$(ManageLangs ${Lang} "addCode" ${Code} ${UserIn[1]})
+								refresh="yes"
+							#Code is trying to be added twice
+							else
+								errorCode "selectCode" "already"
+							fi
 						else
-							errorCode "selectCode" "already"
+							errorCode "selectCode" "nothing"
 						fi
 					else
-						errorCode "selectCode" "nothing"
+						errorCode "selectCode" "set"
 					fi
 					;;
 				#Read code without editing
@@ -1736,10 +1764,8 @@ Actions()
 								#{
 								#Change Color for Language
 								cLang=$(color ${Lang})
-								#Change Color for Code
-								cCode=$(color ${Code})
 								#Handle the CLI User Interface
-								if [[ "${Code}" == "" ]]; then
+								if [ -z "${Code}" ]; then
 									case ${CodeProject} in
 										none)
 											#Menu with no code
@@ -1755,18 +1781,36 @@ Actions()
 											;;
 									esac
 								else
+									#Change Color for Code
+									cCode=$(color ${Code})
+									case ${Code} in
+										*,*)
+											cntSrc=$(echo ${Code} | tr ',' '\n' | wc -l)
+											case ${cntSrc} in
+												2)
+													listSrc=${cCode}
+													;;
+												*)
+													listSrc=$(color ${cntSrc})
+													;;
+											esac
+											;;
+										*)
+											listSrc=${cCode}
+											;;
+									esac
 									case ${CodeProject} in
 										none)
 											#Menu with code
-											prompt="${Name}(${cLang}{${cCode}}):$ "
+											prompt="${Name}(${cLang}{${listSrc}}):$ "
 											;;
 										*)
-											ThePWD=$(pwd)
-											ProjectDir=$(echo ${ThePWD#*${CodeProject}})
+											ThePWD=${PWD}
+											ProjectDir=$(echo ${${PWD}#*${CodeProject}})
 											ProjectDir=${ProjectDir/\//:}
 											#Menu with no code
 											cCodeProject=$(ManageLangs ${Lang} "ProjectColor")
-											prompt="${Name}(${cCodeProject}[${ProjectType:0:1}${ProjectDir}]{${cCode}}):$ "
+											prompt="${Name}(${cCodeProject}[${ProjectType:0:1}${ProjectDir}]{${listSrc}}):$ "
 											;;
 									esac
 								fi
