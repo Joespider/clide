@@ -13,7 +13,7 @@ ClideProjectDir=$1
 ClideProjectDir=${ClideProjectDir}/Templates
 shift
 
-Version="0.1.01"
+Version="0.1.02"
 IDE=$(echo -e "\e[1;43madd\e[0m")
 Name="cl[${IDE}]"
 
@@ -278,8 +278,9 @@ Add()
 
 		#User's first action
 		if [ ! -z "${FirstAction}" ]; then
-			UserArg="set"
-			component=${FirstAction,,}
+			UserIn[ 0 ]="set"
+			UserIn[ 1 ]=${FirstAction,,}
+			UserArg=${UserIn[0]}
 			FirstAction=""
 		else
 			#Handle CLI
@@ -287,11 +288,10 @@ Add()
 			#Handle CLI
 			read -e -p "${prompt}" -a UserIn
 			UserArg=${UserIn[0],,}
-			component=${UserIn[1],,}
 		fi
 		case ${UserArg} in
 			set)
-				component=$(SelectComp "${component}")
+				component=$(SelectComp "${UserIn[1],,}")
 				Ccomponent=$(echo -e "\e[1;35m${component}\e[0m")
 				;;
 			done)
