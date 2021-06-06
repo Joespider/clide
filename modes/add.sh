@@ -1,5 +1,6 @@
 Shell=$(which bash)
 #!${Shell}
+
 ShellPath=$(realpath $0)
 root=$(dirname ${ShellPath})
 root=${root%/modes}
@@ -12,6 +13,7 @@ ClideProjectDir=$1
 ClideProjectDir=${ClideProjectDir}/Templates
 shift
 
+Version="0.1.01"
 IDE=$(echo -e "\e[1;43madd\e[0m")
 Name="cl[${IDE}]"
 
@@ -20,9 +22,23 @@ errorCode()
 	${LibDir}/errorCode.sh $@
 }
 
+#Select Languge
+ManageLangs()
+{
+	local TheLang=$1
+	local Langs=${LangsDir}/Lang.${TheLang^}
+	local PassedVars=( "${RunCplArgs}" )
+	#Make first letter uppercase
+	shift
+	local Manage=$@
+	if [ -f ${Langs} ]; then
+		${Langs} ${PassedVars[@]} ${Manage[@]}
+	fi
+}
+
 colors()
 {
-	text=$1
+	local text=$1
 	case ${text} in
 		add)
 			echo -e "\e[1;31m${text}\e[0m"
@@ -53,9 +69,8 @@ Help()
 					echo "Component: shortcut"
 					echo -e "create <shortcut>\t\t:\"Create an application shortcut\""
 					echo -e "\tclide\t\t\t:\"Create a clide.desktop\""
-					echo -e "\tproject, app\t\t:\"Create an <application>.desktop\""
-					echo -e "import\t\t\t\t:\"import an existing application shortcut\""
-					echo -e "correct\t\t\t\t:\"Adjust existing application shortcut\""
+					echo -e "\tapp <app> \t\t:\"Create an <app>.desktop\""
+					echo -e "correct <app>\t\t\t:\"Adjust existing application shortcut\""
 					;;
 			esac
 			echo ""
@@ -64,7 +79,7 @@ Help()
 			;;
 		project)
 			echo "Component: Project"
-			echo -e "create <project>\t\t\t:\"Create a brand new project template\""
+			echo -e "create <project>\t\t:\"Create a brand new project template\""
 			echo -e "import\t\t\t\t:\"import a new project type (Lang.${Lang}.<type> FILE MUST EXIST)\""
 			echo -e "correct\t\t\t\t:\"Adjust existing project tempalte\""
 			echo ""
@@ -84,11 +99,11 @@ Help()
 			;;
 		*)
 			echo "Help options"
-			echo -e "add <cmp>\t\t\t: \"select component to add\""
+			echo -e "set <cmp>\t\t\t: \"select component to add\""
 			echo -e "\tshortcut\t\t: \"Create shortcut for cl[ide]\""
 			echo -e "\tproject\t\t\t: \"select the 'project' component\""
 			echo -e "\tsupport, language\t: \"select the 'language' component\""
-			echo -e "using\t\t\t\t: \"Show what langauge is being used\""
+			echo -e "using\t\t\t\t: \"List the content used in cl[ide]\""
 			echo ""
 			echo -e "exit, close\t\t\t: \"close mode\""
 			;;
@@ -105,103 +120,10 @@ AddLangSupport()
 	case ${Choice} in
 		create)
 			echo "refactor please"
-#			if [ ! -z "${NewLang}" ]; then
-#				NewLang=${NewLang^}
-#				NewSupportFile=${LangsDir}/Lang.${NewLang}
-#				local GetLang
-#				local OldVersion
-#				local NewVersion
-#				local OldCpl
-#				local NewCpl
-#				local OldRun
-#				local NewRun
-#				local OldExt
-#				local NewExt
-#				if [ ! -f ${NewSupportFile} ]; then
-#					echo "Which Language is \"${NewLang}\" most like?"
-#					ListLanguages | tr '\n' ' '
-#					echo ""
-#					echo -n "\"${Lang}\"> "
-#					read GetLang
-#					if [ ! -z "${GetLang}" ]; then
-#						GetLang=${GetLang,,}
-#						Lang=${GetLang^}
-#					fi
-#					SupportFile=${LangsDir}/Lang.${Lang^}
-#					if [ -f ${SupportFile} ]; then
-#						cp "${SupportFile}" "${NewSupportFile}"
-#						#Reset Version
-#						#{
-#						OldVersion=$(grep "SupportV=" "${SupportFile}" | tr -d '\t')
-#						NewVersion="SupportV=\"0.1.0\""
-#						sed -i "s/${OldVersion}/${NewVersion}/g" "${NewSupportFile}"
-#						#}
-#						OldExt=$(grep "LangExt=" "${SupportFile}" | tr -d '\t' | sed "s/local LangExt=//g")
-#						echo -n "\"${NewLang}\" extension > "
-#						read NewExt
-#						sed -i "s/LangExt=${OldExt}/LangExt=\"${NewExt}\"/g" "${NewSupportFile}"
-#						#Change Compiler/Interpretor
-#						if [ ! -z "${OldCpl}" ]; then
-#							echo -n "Compiler> "
-#							read NewCpl
-#							if [ ! -z "${NewCpl}" ]; then
-#								sed -i "s/local LangCpl=${OldCpl}/local LangCpl=${NewCpl}/g" "${NewSupportFile}"
-#							fi
-#						fi
-#						if [ ! -z "${OldRun}"  ]; then
-#							echo -n "Interpretor> "
-#							read NewRun
-#							if [ ! -z "${NewRun}" ]; then
-#								sed -i "s/local LangRun=${OldRun}/local LangRun=${NewRun}/g" "${NewSupportFile}"
-#							fi
-#						fi
-#						sed -i "s/${Lang}/${NewLang}/g" "${NewSupportFile}"
-#						echo "Support for \"${NewLang}\" is created"
-#					else
-#						errorCode "add" "support" "not-supported" "${Lang}"
-#					fi
-#				else
-#					errorCode "add" "support" "already-supported" "${NewLang}"
-#				fi
-#			else
-#				errorCode "add" "support" "no-lang"
-#			fi
 			;;
 		import)
 			errorCode "no-support" "add-Lang"
 			;;
-#		change)
-#			local prop=$4
-#			local to=$5
-#			if [ ! -z "${prop}" ] && [ -z "${to}" ]; then
-#				to=${prop}
-#				prop=${NewLang}
-#				NewLang=${Lang}
-#			fi
-#			local OldCpl
-#			local NewCpl
-#			local OldRun
-#			local NewRun
-#			SupportFile=${LangsDir}/Lang.${NewLang^}
-#			case ${prop} in
-#				cpl)
-#					#Change Compiler
-#					OldCpl=$(grep "LangCpl=" "${SupportFile}" | tr -d '\t' | sed "s/local LangCpl=//g")
-#					if [ ! -z "${OldCpl}" ]; then
-#						sed -i "s/local LangCpl=${OldCpl}/local LangCpl=${to}/g" "${SupportFile}"
-#					fi
-#					;;
-#				run)
-#					#Change Interpretor
-#					OldRun=$(grep "LangRun=" "${SupportFile}" | tr -d '\t' | sed "s/local LangRun=//g" | tr -d '\n')
-#					if [ ! -z "${OldRun}" ]; then
-#						sed -i "s/local LangRun=${OldRun}/local LangRun=${to}/g" "${SupportFile}"
-#					fi
-#					;;
-#				*)
-#					;;
-#			esac
-#			;;
 		correct)
 			echo "Manually correct project template"
 			;;
@@ -213,6 +135,10 @@ AddLangSupport()
 AddShortcut()
 {
 	local Lang=$1
+	local Code=$2
+	local Project=$3
+	shift
+	shift
 	shift
 	local Choice=( $@ )
 	case ${Choice[0],,} in
@@ -233,19 +159,58 @@ AddShortcut()
 						echo "unable to create clide.desktop"
 					fi
 					;;
-				project|app)
-					echo "Install project"
+				app)
+					local Name=${Choice[2]}
+					case ${Code} in
+						none)
+							echo "No code found"
+							;;
+						*)
+							case ${Project} in
+								none)
+									;;
+								*)
+									if [ -z "${Name}" ]; then
+										Name=${Project}
+									fi
+									;;
+							esac
+							if [ ! -z "${Name}" ]; then
+								echo "${Name}.desktop"
+								echo "{"
+								echo -e "[Desktop Entry]\nName=${Name}\nEncoding=UTF-8\nExec=bash -c \"\"\nStartupNotify=false\nType=Application"
+								echo "}"
+							else
+								Help "${Lang}" "shortcut" "${Choice[0],,}"
+							fi
+							;;
+					esac
 					;;
 				*)
 					Help "${Lang}" "shortcut" "${Choice[0],,}"
 					;;
 			esac
 			;;
-		import)
-			echo "Import project for ${Lang}"
-			;;
 		correct)
-			echo "Manually correct project template"
+			local shortcut
+			local Name=${Choice[1]}
+			if [ ! -z "${Name}" ]; then
+				shortcut="/usr/share/applications/${Name}.desktop"
+				if [ -f "${shortcut}" ]; then
+					case $USER in
+						root)
+							${editor} ${shortcut}
+							;;
+						*)
+							sudo ${editor} ${shortcut}
+							;;
+					esac
+				else
+					echo "\"${Name}.desktop\" is not installed"
+				fi
+			else
+				Help "${Lang}" "shortcut" "${Choice[0],,}"
+			fi
 			;;
 		*)
 			;;
@@ -295,30 +260,48 @@ Add()
 {
 	local Lang=$1
 	local cLang=$2
+	local Code=$3
+	local cCode=$4
+	local FirstAction=$5
+	local UserIn
 	local prompt
 	local UserArg
 	local component
+	local Ccomponent
 	while true
 	do
 		if [ -z "${component}" ]; then
 			prompt="${Name}:$ "
 		else
-			prompt="${Name}(${component}):$ "
+			prompt="${Name}(${Ccomponent}):$ "
 		fi
-		#Handle CLI
-		read -e -p "${prompt}" -a UserIn
-		UserArg=${UserIn[0],,}
+
+		#User's first action
+		if [ ! -z "${FirstAction}" ]; then
+			UserArg="set"
+			component=${FirstAction,,}
+			FirstAction=""
+		else
+			#Handle CLI
+			#read -a UserIn
+			#Handle CLI
+			read -e -p "${prompt}" -a UserIn
+			UserArg=${UserIn[0],,}
+			component=${UserIn[1],,}
+		fi
 		case ${UserArg} in
-			add)
-				component=$(SelectComp "${UserIn[1]}")
+			set)
+				component=$(SelectComp "${component}")
+				Ccomponent=$(echo -e "\e[1;35m${component}\e[0m")
 				;;
 			done)
 				component=$(SelectComp "")
+				Ccomponent=""
 				;;
 			create|import|change|correct)
 				case ${component} in
 					shortcut)
-						AddShortcut ${Lang} ${UserIn[@]}
+						AddShortcut ${Lang} ${Code} ${CodeProject} ${UserIn[@]}
 						;;
 					project)
 						AddProjectTemplate ${Lang} ${UserArg}
@@ -331,7 +314,22 @@ Add()
 				esac
 				;;
 			using)
-				echo ${cLang}
+				echo "Language: \"${cLang}\""
+				case ${Code} in
+					none)
+						;;
+					*)
+						echo "Code: \"${cCode}\""
+						;;
+				esac
+				case ${CodeProject} in
+					none)
+						;;
+					*)
+						local cCodeProject=$(ManageLangs ${Lang} "ProjectColor")
+						echo "Project: \"${cCodeProject}\""
+						;;
+				esac
 				;;
 			clear)
 				clear

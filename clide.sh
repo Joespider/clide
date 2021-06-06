@@ -28,16 +28,20 @@ AddAlias()
 Art()
 {
 	if [ ! -z "${IDEcolor}" ] && [ ! -z "${CLcolor}" ] && [ ! -z "${BKTcolor}" ]; then
+		local CL="\e[1;4${CLcolor}m"
+		local BKT="\e[1;4${BKTcolor}m"
+		local IDE="\e[1;4${IDEcolor}m"
+		local end="\e[0m"
 		echo -e "                ____                         ____ "
-		echo -e "               \e[1;4${BKTcolor}m|  __|\e[0m                       \e[1;4${BKTcolor}m|__  |\e[0m"
-		echo -e "   ___   _     \e[1;4${BKTcolor}m| |\e[0m  _______    _____     ____  \e[1;4${BKTcolor}m| |\e[0m"
-		echo -e "  \e[1;4${CLcolor}m/ __|\e[0m \e[1;4${CLcolor}m| |\e[0m    \e[1;4${BKTcolor}m| |\e[0m \e[1;4${IDEcolor}m|__   __|\e[0m  \e[1;4${IDEcolor}m|  __ \ \e[0m  \e[1;4${IDEcolor}m|  __|\e[0m \e[1;4${BKTcolor}m| |\e[0m"
-		echo -e " \e[1;4${CLcolor}m/ /\e[0m    \e[1;4${CLcolor}m| |\e[0m    \e[1;4${BKTcolor}m| |\e[0m    \e[1;4${IDEcolor}m| |\e[0m     \e[1;4${IDEcolor}m| |\e[0m  \e[1;4${IDEcolor}m\ \ \e[0m \e[1;4${IDEcolor}m| |\e[0m_   \e[1;4${BKTcolor}m| |\e[0m"
-		echo -e "\e[1;4${CLcolor}m| |\e[0m     \e[1;4${CLcolor}m| |\e[0m    \e[1;4${BKTcolor}m| |\e[0m    \e[1;4${IDEcolor}m| |\e[0m     \e[1;4${IDEcolor}m| |\e[0m  \e[1;4${IDEcolor}m| |\e[0m  \e[1;4${IDEcolor}m|  _|\e[0m  \e[1;4${BKTcolor}m| |\e[0m"
-		echo -e " \e[1;4${CLcolor}m\ \_\e[0m_  \e[1;4${CLcolor}m| |\e[0m__  \e[1;4${BKTcolor}m| |\e[0m  __\e[1;4${IDEcolor}m| |\e[0m__   \e[1;4${IDEcolor}m| |\e[0m__\e[1;4${IDEcolor}m/ /\e[0m  \e[1;4${IDEcolor}m| |\e[0m__  \e[1;4${BKTcolor}m| |\e[0m"
-		echo -e "  \e[1;4${CLcolor}m\___|\e[0m \e[1;4${CLcolor}m|____|\e[0m \e[1;4${BKTcolor}m| |\e[0m \e[1;4${IDEcolor}m|_______|\e[0m  \e[1;4${IDEcolor}m|_____/\e[0m   \e[1;4${IDEcolor}m|____|\e[0m \e[1;4${BKTcolor}m| |\e[0m"
-		echo -e "               \e[1;4${BKTcolor}m| |\e[0m__                         __\e[1;4${BKTcolor}m| |\e[0m"
-		echo -e "               \e[1;4${BKTcolor}m|____|\e[0m                       \e[1;4${BKTcolor}m|____|\e[0m"
+		echo -e "               ${BKT}|  __|${end}                       ${BKT}|__  |${end}"
+		echo -e "   ___   _     ${BKT}| |${end}  _______    _____     ____  ${BKT}| |${end}"
+		echo -e "  ${CL}/ __|${end} ${CL}| |${end}    ${BKT}| |${end} ${IDE}|__   __|${end}  ${IDE}|  __ \ ${end}  ${IDE}|  __|${end} ${BKT}| |${end}"
+		echo -e " ${CL}/ /${end}    ${CL}| |${end}    ${BKT}| |${end}    ${IDE}| |${end}     ${IDE}| |${end}  ${IDE}\ \ ${end} ${IDE}| |${end}_   ${BKT}| |${end}"
+		echo -e "${CL}| |${end}     ${CL}| |${end}    ${BKT}| |${end}    ${IDE}| |${end}     ${IDE}| |${end}  ${IDE}| |${end}  ${IDE}|  _|${end}  ${BKT}| |${end}"
+		echo -e " ${CL}\ \_${end}_  ${CL}| |${end}__  ${BKT}| |${end}  __${IDE}| |${end}__   ${IDE}| |${end}__${IDE}/ /${end}  ${IDE}| |${end}__  ${BKT}| |${end}"
+		echo -e "  ${CL}\___|${end} ${CL}|____|${end} ${BKT}| |${end} ${IDE}|_______|${end}  ${IDE}|_____/${end}   ${IDE}|____|${end} ${BKT}| |${end}"
+		echo -e "               ${BKT}| |${end}__                         __${BKT}| |${end}"
+		echo -e "               ${BKT}|____|${end}                       ${BKT}|____|${end}"
 	else
 		echo -e "                ____                         ____ "
 		echo -e "               |  __|                       |__  |"
@@ -192,6 +196,7 @@ CliHelp()
 			echo "\"Here is how I can help\""
 			echo ""
 			echo -e "--edit\t\t\t\t: \"Edit source code\""
+			echo -e "--edit --config\t\t\t: \"Edit ${Head} config\""
 			echo -e "--cpl, --compile\t\t: \"Compile source code\""
 			echo -e "--install\t\t\t: \"install program (.bash_aliases)\""
 			echo -e "--run\t\t\t\t: \"Run compiled code\""
@@ -243,7 +248,7 @@ CliHelp()
 			echo "\"To start, ask me the following:\""
 			echo ""
 			echo -e "${cmd} info\t\t: \"Get to know some information about me\""
-			echo -e "${cmd} function\t: \"Ask me to perform a quick task\""
+			echo -e "${cmd} function\t\t: \"Ask me to perform a quick task\""
 			echo -e "${cmd} usage\t\t: \"How we can start programming\""
 			echo "-----------------------------------------------"
 			echo ""
@@ -334,7 +339,7 @@ ModesHelp()
 	echo ""
 	echo "----------------[(${Head}) Modes]----------------"
 	echo -e "${repoTool}, repo\t\t: repo management"
-	echo -e "add\t\t\t: install/add component management"
+	echo -e "add <component>\t\t: install/add component management"
 	echo -e "-h, --help\t\t: \"Modes help page\""
 	echo "-----------------------------------------------"
 	echo ""
@@ -398,9 +403,12 @@ ManageLangs()
 
 ModeHandler()
 {
-	local Lang=$1
-	local cLang=$2
-	local Mode=$3
+	local Mode=$1
+	local Lang=$2
+	local cLang=$3
+	local Code=$4
+	local cCode=$5
+	local Arg=$6
 	case ${Mode} in
 		${repoTool}|repo)
 			#Use ONLY for Projects
@@ -411,7 +419,8 @@ ModeHandler()
 			fi
 			;;
 		add)
-				${ModesDir}/add.sh "${LibDir}" "${LangsDir}" "${ClideProjectDir}" ${Lang} ${cLang}
+			${ModesDir}/add.sh "${LibDir}" "${LangsDir}" "${ClideProjectDir}" ${Lang} ${cLang} ${Code} ${cCode} ${Arg}
+
 			;;
 		-h|--help)
 			ModesHelp
@@ -1555,7 +1564,15 @@ Actions()
 					;;
 				#Modes
 				mode)
-					ModeHandler ${Lang} ${cLang} ${UserIn[1]}
+					local passCode=${Code}
+					local passcCode=${cCode}
+					if [ -z "${passCode}" ]; then
+						passCode="none"
+					fi
+					if [ -z "${passcCode}" ]; then
+						passcCode="none"
+					fi
+					ModeHandler ${UserIn[1]} ${Lang} ${cLang} ${passCode} ${passcCode} ${UserIn[2]}
 					;;
 				#search for element in project
 				search)
