@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.63"
+SupportV="0.1.64"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -110,6 +110,34 @@ UseJava()
 		getProjectDir)
 			local project=${CodeProject}
 			echo ${LangProject}/${project}
+			;;
+		getBin)
+			local srcCode=$(echo $1 | sed "s/${LangExt}//g")
+			if [ ! -z "${srcCode}" ]; then
+				local TheCpl
+				local IsJar
+				local IsClass
+				local TheItem
+				local CplList=$(UseJava lscpl | tr '\n' '|')
+				local look=1
+				local NumOfCpls=$(echo ${srcCode} | tr ',' '\n' | wc -l)
+				while [ ${look} -le ${NumOfCpls} ];
+				do
+					TheItem=$(echo ${srcCode} | cut -d ',' -f ${look})
+					IsJar=$(echo ${CplList} | tr '|' '\n' | grep -w ${TheItem}.jar)
+					IsClass=$(echo ${CplList} | tr '|' '\n' | grep -w ${TheItem}.class)
+					if [ ! -z "${IsJar}" ] || [ ! -z "${IsClass}" ] ; then
+						if [ ! -z "${IsJar}" ]; then
+							TheCpl=${IsJar}
+						elif [ ! -z "${IsClass}" ] ; then
+							TheCpl=${IsClass}
+						fi
+					break
+					fi
+					look=$((${look}+1))
+				done
+				echo ${TheCpl}
+				fi
 			;;
 		getCode)
 			local name=$1

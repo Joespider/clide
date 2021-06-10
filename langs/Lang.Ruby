@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.41"
+SupportV="0.1.42"
 Lang=Ruby
 LangExt=".rb"
 ColorNum=1
@@ -110,6 +110,26 @@ UseRuby()
 			else
 				#Return rejection
 				echo "no"
+			fi
+			;;
+		getBin)
+			local srcCode=$(echo $1 | sed "s/${LangExt}//g")
+			if [ ! -z "${srcCode}" ]; then
+				local TheCpl
+				local TheItem
+				local CplList=$(UseRuby lscpl | tr '\n' '|')
+				local look=1
+				local NumOfCpls=$(echo ${srcCode} | tr ',' '\n' | wc -l)
+				while [ ${look} -le ${NumOfCpls} ];
+				do
+					TheItem=$(echo ${srcCode} | cut -d ',' -f ${look})
+					TheCpl=$(echo ${CplList} | tr '|' '\n' | grep -w ${TheItem})
+					if [ ! -z "${TheCpl}" ]; then
+						break
+					fi
+					look=$((${look}+1))
+				done
+				echo ${TheCpl}
 			fi
 			;;
 		getCode)

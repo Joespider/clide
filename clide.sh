@@ -910,11 +910,23 @@ runCode()
 {
 	local Lang=$1
 	local name=$2
+	shift
 	local option=$3
-	local Args=""
+	shift
+	shift
+	shift
+	local Args=( $@ )
+	local First="${Args[0]}"
 	local JavaProp="none"
 	local TheBin=""
-	TheBin=${name}
+	case ${name} in
+		*,*)
+			TheBin=$(ManageLangs ${Lang} "getBin" "${name}")
+			;;
+		*)
+			TheBin=${name}
+			;;
+	esac
 	#Come up with a way to know if arguments are needed
 	TheLang=$(color "${Lang}")
 	#User Wishes to provide arments for program
@@ -922,17 +934,19 @@ runCode()
 		-a|--args)
 			CLIout=$(ManageLangs ${Lang} "cli" "${TheBin}")
 			CLIout="$USER@${Name}:~/${TheLang}\$ ${CLIout}"
-			#User Args not Pre-done
-			if [ -z "${RunTimeArgs}" ]; then
-				#Get User Args
-				echo -n "${CLIout} "
-				read -a Args
-			#User Args Pre-done
-			else
-				#Show Args
-				echo -n ${CLIout} "${RunTimeArgs[@]}"
-				read
-				Args=${RunTimeArgs[@]}
+			#User Args not Pre-done'
+			if [ -z "${First}" ]; then
+				if [ -z "${RunTimeArgs}" ]; then
+					#Get User Args
+					echo -n "${CLIout} "
+					read -a Args
+				#User Args Pre-done
+				else
+					#Show Args
+					echo -n ${CLIout} "${RunTimeArgs[@]}"
+					read
+					Args=${RunTimeArgs[@]}
+				fi
 			fi
 			;;
 		*)
@@ -1664,7 +1678,7 @@ Actions()
 								;;
 							#Run WITH args
 							car-a)
-								runCode ${Lang} ${Code} "--args"
+								runCode ${Lang} ${Code} "run" "--args"
 								;;
 							*)
 								;;
@@ -1684,7 +1698,7 @@ Actions()
 					case ${CodeProject} in
 						none)
 							if [ ! -z "${Code}" ]; then
-								runCode ${Lang} ${Code} ${UserIn[1]}
+								runCode ${Lang} ${Code} ${UserIn[@]}
 							else
 								errorCode "cpl" "none"
 							fi
@@ -1692,10 +1706,10 @@ Actions()
 						#It is assumed that the project name is the binary
 						*)
 							if [ ! -z "${Code}" ]; then
-								runCode ${Lang} ${Code} ${UserIn[1]}
+								runCode ${Lang} ${Code} ${UserIn[@]}
 							else
 								#May Cause Prolems
-								runCode ${Lang} ${CodeProject} ${UserIn[1]}
+								runCode ${Lang} ${CodeProject} ${UserIn[@]}
 							fi
 							;;
 					esac

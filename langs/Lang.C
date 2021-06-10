@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.09"
+SupportV="0.1.10"
 Lang=C
 LangExt=".c"
 ColorNum=3
@@ -98,6 +98,26 @@ UseC()
 		getProjectDir)
 			local project=${CodeProject}
 			echo ${LangProject}/${project}
+			;;
+		getBin)
+			local srcCode=$(echo $1 | sed "s/${LangExt}//g")
+			if [ ! -z "${srcCode}" ]; then
+				local TheCpl
+				local TheItem
+				local CplList=$(UseC lscpl | tr '\n' '|')
+				local look=1
+				local NumOfCpls=$(echo ${srcCode} | tr ',' '\n' | wc -l)
+				while [ ${look} -le ${NumOfCpls} ];
+				do
+					TheItem=$(echo ${srcCode} | cut -d ',' -f ${look})
+					TheCpl=$(echo ${CplList} | tr '|' '\n' | grep -w ${TheItem})
+					if [ ! -z "${TheCpl}" ]; then
+						break
+					fi
+					look=$((${look}+1))
+				done
+				echo ${TheCpl}
+			fi
 			;;
 		getCode)
 			local name=$1
