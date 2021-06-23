@@ -61,47 +61,55 @@ MenuHelp()
 {
 	local Lang=$1
 	local project=${CodeProject}
-	echo ""
-	echo "----------------[(${Head}) Menu]----------------"
-	echo -e "ls\t\t\t\t: \"list progams\""
-	echo -e "lscpl\t\t\t\t: \"list compiled progams\""
-	echo -e "using\t\t\t\t: \"get the language being used\""
-	echo -e "unset\t\t\t\t: \"deselect source code\""
-	echo -e "use <language> <code>\t\t: \"choose language\""
-	echo -e "using\t\t\t\t:\"Display what language is being used\""
-	echo -e "save\t\t\t\t: \"Save session\""
-	echo -e "create <arg>\t\t\t: \"create compile and runtime arguments"
-	ManageLangs ${Lang} "MenuHelp"
-	echo -e "car, car-a\t\t\t: \"compile and run; compile and run with arguments\""
-	echo -e "rm, remove, delete\t\t: \"delete src file\""
-	echo -e "set <file>\t\t\t: \"select source code\""
-	echo -e "add <file>\t\t\t: \"add new file to project\""
-	echo -e "notes <action>\t\t\t: \"make notes for the ${Lang} language\""
-	echo -e "${editor}, edit, ed\t\t\t: \"edit source code\""
-	echo -e "${ReadBy}, read\t\t\t: \"Read source code\""
-	echo -e "search <find>\t\t\t: \"search for code in project\""
-	case ${project} in
-		none)
-			echo -e "project {new|list|load}\t\t: \"handle projects\""
+	case ${Lang} in
+		no-lang)
+			echo ""
+			echo "----------------[(${Lang}) Menu]----------------"
+			echo -e "use <language> <code>\t\t: \"choose language\""
+			echo ""
 			;;
 		*)
-#			echo -e "project {new|update|list|load|active}\t: \"handle projects\""
-			echo -e "project {new|type|update|list|load|discover}\t: \"handle projects\""
-			echo -e "${repoTool}, repo\t: \"handle repos\""
+			echo ""
+			echo "----------------[(${Head}) Menu]----------------"
+			echo -e "ls\t\t\t\t: \"list progams\""
+			echo -e "lscpl\t\t\t\t: \"list compiled progams\""
+			echo -e "using\t\t\t\t: \"get the language being used\""
+			echo -e "unset\t\t\t\t: \"deselect source code\""
+			echo -e "use <language> <code>\t\t: \"choose language\""
+			echo -e "using\t\t\t\t:\"Display what language is being used\""
+			echo -e "save\t\t\t\t: \"Save session\""
+			echo -e "create <arg>\t\t\t: \"create compile and runtime arguments"
+			ManageLangs ${Lang} "MenuHelp"
+			echo -e "car, car-a\t\t\t: \"compile and run; compile and run with arguments\""
+			echo -e "rm, remove, delete\t\t: \"delete src file\""
+			echo -e "set <file>\t\t\t: \"select source code\""
+			echo -e "add <file>\t\t\t: \"add new file to project\""
+			echo -e "notes <action>\t\t\t: \"make notes for the ${Lang} language\""
+			echo -e "${editor}, edit, ed\t\t\t: \"edit source code\""
+			echo -e "${ReadBy}, read\t\t\t: \"Read source code\""
+			echo -e "search <find>\t\t\t: \"search for code in project\""
+			case ${project} in
+				none)
+					echo -e "project {new|list|load}\t\t: \"handle projects\""
+					;;
+				*)
+					echo -e "project {new|type|update|list|load|discover}\t: \"handle projects\""
+					echo -e "${repoTool}, repo\t: \"handle repos\""
+					;;
+			esac
+			echo -e "search\t\t\t\t: \"search project src files for line of code\""
+			echo -e "execute, exe, run {-a|--args}\t: \"run active program\""
+			echo -e "bkup, backup\t\t\t: \"make backup of existing source code\""
+			echo -e "restore\t\t\t\t: \"make backup of existing source code\""
+			echo -e "rename <new>\t\t\t: \"rename the existing source code\""
+			echo -e "src, source\t\t\t: \"list source code\""
+			echo -e "copy <new>\t\t\t: \"copy the existing source code\""
+			echo -e "last, load\t\t\t: \"Load last session\""
+			echo -e "exit, close\t\t\t: \"close ide\""
+			echo "------------------------------------------------"
+			echo ""
 			;;
 	esac
-	echo -e "search\t\t\t\t: \"search project src files for line of code\""
-	echo -e "execute, exe, run {-a|--args}\t: \"run active program\""
-	echo -e "bkup, backup\t\t\t: \"make backup of existing source code\""
-	echo -e "restore\t\t\t\t: \"make backup of existing source code\""
-	echo -e "rename <new>\t\t\t: \"rename the existing source code\""
-	echo -e "src, source\t\t\t: \"list source code\""
-
-	echo -e "copy <new>\t\t\t: \"copy the existing source code\""
-	echo -e "last, load\t\t\t: \"Load last session\""
-	echo -e "exit, close\t\t\t: \"close ide\""
-	echo "------------------------------------------------"
-	echo ""
 }
 
 CreateHelp()
@@ -1043,13 +1051,62 @@ ColorCodes()
 	echo ${ChosenLangs}
 }
 
+#No-Lang IDE
+Actions-NoLang()
+{
+	local UserIn
+	local prompt="${Name}(no-lang):$ "
+	while true
+	do
+		read -e -p "${prompt}" -a UserIn
+		case ${UserIn[0],,} in
+			exit)
+				break
+				;;
+			use|bash|c|c++|go|java|python|perl|ruby)
+				local Lang
+				local Code
+				case ${UserIn[0],,} in
+					use)
+						if [ ! -z "${UserIn[1]}" ]; then
+							Lang=${UserIn[1]}
+							Code=${UserIn[2]}
+						else
+							Lang=""
+						fi
+						;;
+					*)
+						Lang=${UserIn[0]}
+						Code=${UserIn[1]}
+						;;
+				esac
+
+				#Ignore if program resolves to alias
+				local AliasTest=$(echo ${Lang} | grep "/")
+				if [ -z "${AliasTest}" ]; then
+					#Run clide
+					main ${Lang} ${Code}
+				fi
+				break
+				;;
+			#Display help page
+			help)
+				MenuHelp "no-lang"
+				;;
+			*)
+				;;
+		esac
+	done
+}
+
+
 #IDE
 Actions()
 {
 	loadAuto
 	local Dir=""
 	local ProjectDir=""
-	local Lang=$1
+	local Lang="$1"
 	local Code="$2"
 	shift
 	shift
@@ -2082,15 +2139,20 @@ main()
 		if [ ! -z "${pg}" ]; then
 			#CliHelp
 			Banner "main"
+			echo "enter \"no-lang\" to enter into a ${Head} shell"
 			echo ""
 			echo "~Choose a language~"
 			#Force user to select language
-			while [[ "$getLang" == "" ]] || [[ "$Lang" == "no" ]];
+			while [[ "${getLang}" == "" ]] || [[ "${Lang}" == "no" ]];
 			do
 				prompt="${Name}(${pg}):$ "
 				read -e -p "${prompt}" getLang
 				case ${getLang} in
 					exit)
+						break
+						;;
+					no-lang)
+						Lang="${getLang}"
 						break
 						;;
 					*)
@@ -2099,10 +2161,19 @@ main()
 						;;
 				esac
 			done
+
 			clear
 			if [ ! -z "${Lang}" ]; then
-				#Start IDE
-				Actions ${Lang}
+				case ${Lang} in
+					no-lang)
+						#Start IDE
+						Actions-NoLang
+						;;
+					*)
+						#Start IDE
+						Actions ${Lang}
+						;;
+				esac
 			fi
 		else
 			errorCode "no-langs"
@@ -2476,12 +2547,20 @@ main()
 			#Check for language given
 			*)
 				#Verify Language
-				local Lang=$(pgLang $1)
-				shift
-				local Args=$@
-				#Start IDE
-				Actions ${Lang} ${Args[@]}
-
+				local Lang=$1
+				case ${Lang} in
+					no-lang)
+						#Start IDE
+						Actions-NoLang ${Args[@]}
+						;;
+					*)
+						Lang=$(pgLang ${Lang})
+						shift
+						local Args=$@
+						#Start IDE
+						Actions ${Lang} ${Args[@]}
+						;;
+				esac
 				;;
 		esac
 	fi
