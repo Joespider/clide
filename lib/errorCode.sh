@@ -95,6 +95,9 @@ errorCode()
 			shift
 			local thr=$1
 			case ${sec} in
+				set)
+					echo "[HINT]: set <source>"
+					;;
 				nothing)
 					echo "There is nothing to add"
 					;;

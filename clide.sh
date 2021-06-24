@@ -28,16 +28,20 @@ AddAlias()
 Art()
 {
 	if [ ! -z "${IDEcolor}" ] && [ ! -z "${CLcolor}" ] && [ ! -z "${BKTcolor}" ]; then
+		local CL="\e[1;4${CLcolor}m"
+		local BKT="\e[1;4${BKTcolor}m"
+		local IDE="\e[1;4${IDEcolor}m"
+		local end="\e[0m"
 		echo -e "                ____                         ____ "
-		echo -e "               \e[1;4${BKTcolor}m|  __|\e[0m                       \e[1;4${BKTcolor}m|__  |\e[0m"
-		echo -e "   ___   _     \e[1;4${BKTcolor}m| |\e[0m  _______    _____     ____  \e[1;4${BKTcolor}m| |\e[0m"
-		echo -e "  \e[1;4${CLcolor}m/ __|\e[0m \e[1;4${CLcolor}m| |\e[0m    \e[1;4${BKTcolor}m| |\e[0m \e[1;4${IDEcolor}m|__   __|\e[0m  \e[1;4${IDEcolor}m|  __ \ \e[0m  \e[1;4${IDEcolor}m|  __|\e[0m \e[1;4${BKTcolor}m| |\e[0m"
-		echo -e " \e[1;4${CLcolor}m/ /\e[0m    \e[1;4${CLcolor}m| |\e[0m    \e[1;4${BKTcolor}m| |\e[0m    \e[1;4${IDEcolor}m| |\e[0m     \e[1;4${IDEcolor}m| |\e[0m  \e[1;4${IDEcolor}m\ \ \e[0m \e[1;4${IDEcolor}m| |\e[0m_   \e[1;4${BKTcolor}m| |\e[0m"
-		echo -e "\e[1;4${CLcolor}m| |\e[0m     \e[1;4${CLcolor}m| |\e[0m    \e[1;4${BKTcolor}m| |\e[0m    \e[1;4${IDEcolor}m| |\e[0m     \e[1;4${IDEcolor}m| |\e[0m  \e[1;4${IDEcolor}m| |\e[0m  \e[1;4${IDEcolor}m|  _|\e[0m  \e[1;4${BKTcolor}m| |\e[0m"
-		echo -e " \e[1;4${CLcolor}m\ \_\e[0m_  \e[1;4${CLcolor}m| |\e[0m__  \e[1;4${BKTcolor}m| |\e[0m  __\e[1;4${IDEcolor}m| |\e[0m__   \e[1;4${IDEcolor}m| |\e[0m__\e[1;4${IDEcolor}m/ /\e[0m  \e[1;4${IDEcolor}m| |\e[0m__  \e[1;4${BKTcolor}m| |\e[0m"
-		echo -e "  \e[1;4${CLcolor}m\___|\e[0m \e[1;4${CLcolor}m|____|\e[0m \e[1;4${BKTcolor}m| |\e[0m \e[1;4${IDEcolor}m|_______|\e[0m  \e[1;4${IDEcolor}m|_____/\e[0m   \e[1;4${IDEcolor}m|____|\e[0m \e[1;4${BKTcolor}m| |\e[0m"
-		echo -e "               \e[1;4${BKTcolor}m| |\e[0m__                         __\e[1;4${BKTcolor}m| |\e[0m"
-		echo -e "               \e[1;4${BKTcolor}m|____|\e[0m                       \e[1;4${BKTcolor}m|____|\e[0m"
+		echo -e "               ${BKT}|  __|${end}                       ${BKT}|__  |${end}"
+		echo -e "   ___   _     ${BKT}| |${end}  _______    _____     ____  ${BKT}| |${end}"
+		echo -e "  ${CL}/ __|${end} ${CL}| |${end}    ${BKT}| |${end} ${IDE}|__   __|${end}  ${IDE}|  __ \ ${end}  ${IDE}|  __|${end} ${BKT}| |${end}"
+		echo -e " ${CL}/ /${end}    ${CL}| |${end}    ${BKT}| |${end}    ${IDE}| |${end}     ${IDE}| |${end}  ${IDE}\ \ ${end} ${IDE}| |${end}_   ${BKT}| |${end}"
+		echo -e "${CL}| |${end}     ${CL}| |${end}    ${BKT}| |${end}    ${IDE}| |${end}     ${IDE}| |${end}  ${IDE}| |${end}  ${IDE}|  _|${end}  ${BKT}| |${end}"
+		echo -e " ${CL}\ \_${end}_  ${CL}| |${end}__  ${BKT}| |${end}  __${IDE}| |${end}__   ${IDE}| |${end}__${IDE}/ /${end}  ${IDE}| |${end}__  ${BKT}| |${end}"
+		echo -e "  ${CL}\___|${end} ${CL}|____|${end} ${BKT}| |${end} ${IDE}|_______|${end}  ${IDE}|_____/${end}   ${IDE}|____|${end} ${BKT}| |${end}"
+		echo -e "               ${BKT}| |${end}__                         __${BKT}| |${end}"
+		echo -e "               ${BKT}|____|${end}                       ${BKT}|____|${end}"
 	else
 		echo -e "                ____                         ____ "
 		echo -e "               |  __|                       |__  |"
@@ -57,45 +61,55 @@ MenuHelp()
 {
 	local Lang=$1
 	local project=${CodeProject}
-	echo ""
-	echo "----------------[(${Head}) Menu]----------------"
-	echo -e "ls\t\t\t\t: \"list progams\""
-	echo -e "lscpl\t\t\t\t: \"list compiled progams\""
-	echo -e "using\t\t\t\t: \"get the language being used\""
-	echo -e "unset\t\t\t\t: \"deselect source code\""
-	echo -e "use <language> <code>\t\t: \"choose language\""
-	echo -e "using\t\t\t\t:\"Display what language is being used\""
-	echo -e "save\t\t\t\t: \"Save session\""
-	echo -e "create <arg>\t\t\t: \"create compile and runtime arguments"
-	ManageLangs ${Lang} "MenuHelp"
-	echo -e "car, car-a\t\t\t: \"compile and run; compile and run with arguments\""
-	echo -e "rm, remove, delete\t\t: \"delete src file\""
-	echo -e "set <file>\t\t\t: \"select source code\""
-	echo -e "add <file>\t\t\t: \"add new file to project\""
-	echo -e "notes <action>\t\t\t: \"make notes for the ${Lang} language\""
-	echo -e "${editor}, edit, ed\t\t\t: \"edit source code\""
-	echo -e "${ReadBy}, read\t\t\t: \"Read source code\""
-	echo -e "search <find>\t\t\t: \"search for code in project\""
-	case ${project} in
-		none)
-			echo -e "project {new|list|load}\t\t: \"handle projects\""
+	case ${Lang} in
+		no-lang)
+			echo ""
+			echo "----------------[(${Lang}) Menu]----------------"
+			echo -e "use <language> <code>\t\t: \"choose language\""
+			echo ""
 			;;
 		*)
-#			echo -e "project {new|update|list|load|active}\t: \"handle projects\""
-			echo -e "project {new|type|update|list|load|discover}\t: \"handle projects\""
-			echo -e "${repoTool}, repo\t: \"handle repos\""
+			echo ""
+			echo "----------------[(${Head}) Menu]----------------"
+			echo -e "ls\t\t\t\t: \"list progams\""
+			echo -e "lscpl\t\t\t\t: \"list compiled progams\""
+			echo -e "using\t\t\t\t: \"get the language being used\""
+			echo -e "unset\t\t\t\t: \"deselect source code\""
+			echo -e "use <language> <code>\t\t: \"choose language\""
+			echo -e "using\t\t\t\t:\"Display what language is being used\""
+			echo -e "save\t\t\t\t: \"Save session\""
+			echo -e "create <arg>\t\t\t: \"create compile and runtime arguments"
+			ManageLangs ${Lang} "MenuHelp"
+			echo -e "car, car-a\t\t\t: \"compile and run; compile and run with arguments\""
+			echo -e "rm, remove, delete\t\t: \"delete src file\""
+			echo -e "set <file>\t\t\t: \"select source code\""
+			echo -e "add <file>\t\t\t: \"add new file to project\""
+			echo -e "notes <action>\t\t\t: \"make notes for the ${Lang} language\""
+			echo -e "${editor}, edit, ed\t\t\t: \"edit source code\""
+			echo -e "${ReadBy}, read\t\t\t: \"Read source code\""
+			echo -e "search <find>\t\t\t: \"search for code in project\""
+			case ${project} in
+				none)
+					echo -e "project {new|list|load}\t\t: \"handle projects\""
+					;;
+				*)
+					echo -e "project {new|type|update|list|load|discover}\t: \"handle projects\""
+					echo -e "${repoTool}, repo\t: \"handle repos\""
+					;;
+			esac
+			echo -e "search\t\t\t\t: \"search project src files for line of code\""
+			echo -e "execute, exe, run {-a|--args}\t: \"run active program\""
+			echo -e "bkup, backup\t\t\t: \"make backup of existing source code\""
+			echo -e "restore\t\t\t\t: \"make backup of existing source code\""
+			echo -e "rename <new>\t\t\t: \"rename the existing source code\""
+			echo -e "src, source\t\t\t: \"list source code\""
+			echo -e "copy <new>\t\t\t: \"copy the existing source code\""
+			echo -e "last, load\t\t\t: \"Load last session\""
+			echo -e "exit, close\t\t\t: \"close ide\""
+			echo "------------------------------------------------"
+			echo ""
 			;;
 	esac
-	echo -e "search\t\t\t\t: \"search project src files for line of code\""
-	echo -e "execute, exe, run {-a|--args}\t: \"run active program\""
-	echo -e "bkup, backup\t\t\t: \"make backup of existing source code\""
-	echo -e "restore\t\t\t\t: \"make backup of existing source code\""
-	echo -e "rename <new>\t\t\t: \"rename the existing source code\""
-	echo -e "copy <new>\t\t\t: \"copy the existing source code\""
-	echo -e "last, load\t\t\t: \"Load last session\""
-	echo -e "exit, close\t\t\t: \"close ide\""
-	echo "------------------------------------------------"
-	echo ""
 }
 
 CreateHelp()
@@ -192,6 +206,7 @@ CliHelp()
 			echo "\"Here is how I can help\""
 			echo ""
 			echo -e "--edit\t\t\t\t: \"Edit source code\""
+			echo -e "--edit --config\t\t\t: \"Edit ${Head} config\""
 			echo -e "--cpl, --compile\t\t: \"Compile source code\""
 			echo -e "--install\t\t\t: \"install program (.bash_aliases)\""
 			echo -e "--run\t\t\t\t: \"Run compiled code\""
@@ -243,7 +258,7 @@ CliHelp()
 			echo "\"To start, ask me the following:\""
 			echo ""
 			echo -e "${cmd} info\t\t: \"Get to know some information about me\""
-			echo -e "${cmd} function\t: \"Ask me to perform a quick task\""
+			echo -e "${cmd} function\t\t: \"Ask me to perform a quick task\""
 			echo -e "${cmd} usage\t\t: \"How we can start programming\""
 			echo "-----------------------------------------------"
 			echo ""
@@ -334,7 +349,7 @@ ModesHelp()
 	echo ""
 	echo "----------------[(${Head}) Modes]----------------"
 	echo -e "${repoTool}, repo\t\t: repo management"
-	echo -e "add\t\t\t: install/add component management"
+	echo -e "add <component>\t\t: install/add component management"
 	echo -e "-h, --help\t\t: \"Modes help page\""
 	echo "-----------------------------------------------"
 	echo ""
@@ -398,9 +413,12 @@ ManageLangs()
 
 ModeHandler()
 {
-	local Lang=$1
-	local cLang=$2
-	local Mode=$3
+	local Mode=$1
+	local Lang=$2
+	local cLang=$3
+	local Code=$4
+	local cCode=$5
+	local Arg=$6
 	case ${Mode} in
 		${repoTool}|repo)
 			#Use ONLY for Projects
@@ -411,7 +429,8 @@ ModeHandler()
 			fi
 			;;
 		add)
-				${ModesDir}/add.sh "${LibDir}" "${LangsDir}" "${ClideProjectDir}" ${Lang} ${cLang}
+			${ModesDir}/add.sh "${LibDir}" "${LangsDir}" "${ClideProjectDir}" ${Lang} ${cLang} ${Code} ${cCode} ${Arg}
+
 			;;
 		-h|--help)
 			ModesHelp
@@ -899,11 +918,23 @@ runCode()
 {
 	local Lang=$1
 	local name=$2
+	shift
 	local option=$3
-	local Args=""
+	shift
+	shift
+	shift
+	local Args=( $@ )
+	local First="${Args[0]}"
 	local JavaProp="none"
 	local TheBin=""
-	TheBin=${name}
+	case ${name} in
+		*,*)
+			TheBin=$(ManageLangs ${Lang} "getBin" "${name}")
+			;;
+		*)
+			TheBin=${name}
+			;;
+	esac
 	#Come up with a way to know if arguments are needed
 	TheLang=$(color "${Lang}")
 	#User Wishes to provide arments for program
@@ -911,17 +942,19 @@ runCode()
 		-a|--args)
 			CLIout=$(ManageLangs ${Lang} "cli" "${TheBin}")
 			CLIout="$USER@${Name}:~/${TheLang}\$ ${CLIout}"
-			#User Args not Pre-done
-			if [ -z "${RunTimeArgs}" ]; then
-				#Get User Args
-				echo -n "${CLIout} "
-				read -a Args
-			#User Args Pre-done
-			else
-				#Show Args
-				echo -n ${CLIout} "${RunTimeArgs[@]}"
-				read
-				Args=${RunTimeArgs[@]}
+			#User Args not Pre-done'
+			if [ -z "${First}" ]; then
+				if [ -z "${RunTimeArgs}" ]; then
+					#Get User Args
+					echo -n "${CLIout} "
+					read -a Args
+				#User Args Pre-done
+				else
+					#Show Args
+					echo -n ${CLIout} "${RunTimeArgs[@]}"
+					read
+					Args=${RunTimeArgs[@]}
+				fi
 			fi
 			;;
 		*)
@@ -1018,22 +1051,73 @@ ColorCodes()
 	echo ${ChosenLangs}
 }
 
+#No-Lang IDE
+Actions-NoLang()
+{
+	local UserIn
+	local prompt="${Name}(no-lang):$ "
+	while true
+	do
+		read -e -p "${prompt}" -a UserIn
+		case ${UserIn[0],,} in
+			exit)
+				break
+				;;
+			use|bash|c|c++|go|java|python|perl|ruby)
+				local Lang
+				local Code
+				case ${UserIn[0],,} in
+					use)
+						if [ ! -z "${UserIn[1]}" ]; then
+							Lang=${UserIn[1]}
+							Code=${UserIn[2]}
+						else
+							Lang=""
+						fi
+						;;
+					*)
+						Lang=${UserIn[0]}
+						Code=${UserIn[1]}
+						;;
+				esac
+
+				#Ignore if program resolves to alias
+				local AliasTest=$(echo ${Lang} | grep "/")
+				if [ -z "${AliasTest}" ]; then
+					#Run clide
+					main ${Lang} ${Code}
+				fi
+				break
+				;;
+			#Display help page
+			help)
+				MenuHelp "no-lang"
+				;;
+			*)
+				;;
+		esac
+	done
+}
+
+
 #IDE
 Actions()
 {
 	loadAuto
 	local Dir=""
 	local ProjectDir=""
-	local Lang=$1
+	local Lang="$1"
 	local Code="$2"
 	shift
 	shift
 	local CodeDir=$(pgDir ${Lang})
 	local pLangs=$(ColorCodes)
 	local prompt=""
+	local listSrc
+	local cntSrc
+	local ThePWD
 	local refresh
 	local UserArg
-	#local ThePWD
 	local FirstAction=$1
 	#Pass into array
 	local UserIn=( $@ )
@@ -1045,18 +1129,16 @@ Actions()
 		Code=$(selectCode ${Lang} ${Code})
 		#Change Color for Language
 		cLang=$(color ${Lang})
-		#Change Color for Code
-		cCode=$(color ${Code})
 		#Handle the CLI User Interface
 		#{
-		if [[ "${Code}" == "" ]]; then
+		if [ -z "${Code}" ]; then
 			case ${CodeProject} in
 				none)
 					#Menu with no code
 					prompt="${Name}(${cLang}):$ "
 					;;
 				*)
-					#ThePWD=$(pwd)
+					ThePWD=${PWD}
 					ProjectDir=$(echo ${ThePWD#*${CodeProject}})
 					ProjectDir=${ProjectDir/\//:}
 					cCodeProject=$(ManageLangs ${Lang} "ProjectColor")
@@ -1065,18 +1147,36 @@ Actions()
 					;;
 			esac
 		else
+			#Change Color for Code
+			cCode=$(color ${Code})
+			case ${Code} in
+				*,*)
+					cntSrc=$(echo ${Code} | tr ',' '\n' | wc -l)
+					case ${cntSrc} in
+						2)
+							listSrc=${cCode}
+							;;
+						*)
+							listSrc=$(color ${cntSrc})
+							;;
+					esac
+					;;
+				*)
+					listSrc=${cCode}
+					;;
+			esac
 			case ${CodeProject} in
 				none)
 					#Menu with code
-					prompt="${Name}(${cLang}{${cCode}}):$ "
+					prompt="${Name}(${cLang}{${listSrc}}):$ "
 					;;
 				*)
-					#ThePWD=$(pwd)
+					ThePWD=${PWD}
 					ProjectDir=$(echo ${ThePWD#*${CodeProject}})
 					ProjectDir=${ProjectDir/\//:}
 					#Menu with no code
 					cCodeProject=$(ManageLangs ${Lang} "ProjectColor")
-					prompt="${Name}(${cCodeProject}[${ProjectType:0:1}${ProjectDir}]{${cCode}}):$ "
+					prompt="${Name}(${cCodeProject}[${ProjectType:0:1}${ProjectDir}]{${listSrc}}):$ "
 					;;
 			esac
 		fi
@@ -1208,6 +1308,10 @@ Actions()
 							esac
 							;;
 					esac
+					;;
+				#List source code
+				src|source)
+					echo ${Code} | tr ',' '\n'
 					;;
 				#Handle Projects
 				project)
@@ -1536,17 +1640,21 @@ Actions()
 					;;
 				#Add code to Source Code
 				add)
-					if [ ! -z "${UserIn[1]}" ]; then
-						#Ensure Code is not added twice
-						if [[ ! "${Code}" == *"${UserIn[1]}"* ]]; then
-							Code=$(ManageLangs ${Lang} "addCode" ${Code} ${UserIn[1]})
-							refresh="yes"
-						#Code is trying to be added twice
+					if [ ! -z ${Code} ]; then
+						if [ ! -z "${UserIn[1]}" ]; then
+							#Ensure Code is not added twice
+							if [[ ! "${Code}" == *"${UserIn[1]}"* ]]; then
+								Code=$(ManageLangs ${Lang} "addCode" ${Code} ${UserIn[1]})
+								refresh="yes"
+							#Code is trying to be added twice
+							else
+								errorCode "selectCode" "already"
+							fi
 						else
-							errorCode "selectCode" "already"
+							errorCode "selectCode" "nothing"
 						fi
 					else
-						errorCode "selectCode" "nothing"
+						errorCode "selectCode" "set"
 					fi
 					;;
 				#Read code without editing
@@ -1555,7 +1663,15 @@ Actions()
 					;;
 				#Modes
 				mode)
-					ModeHandler ${Lang} ${cLang} ${UserIn[1]}
+					local passCode=${Code}
+					local passcCode=${cCode}
+					if [ -z "${passCode}" ]; then
+						passCode="none"
+					fi
+					if [ -z "${passcCode}" ]; then
+						passcCode="none"
+					fi
+					ModeHandler ${UserIn[1]} ${Lang} ${cLang} ${passCode} ${passcCode} ${UserIn[2]}
 					;;
 				#search for element in project
 				search)
@@ -1619,7 +1735,7 @@ Actions()
 								;;
 							#Run WITH args
 							car-a)
-								runCode ${Lang} ${Code} "--args"
+								runCode ${Lang} ${Code} "run" "--args"
 								;;
 							*)
 								;;
@@ -1639,7 +1755,7 @@ Actions()
 					case ${CodeProject} in
 						none)
 							if [ ! -z "${Code}" ]; then
-								runCode ${Lang} ${Code} ${UserIn[1]}
+								runCode ${Lang} ${Code} ${UserIn[@]}
 							else
 								errorCode "cpl" "none"
 							fi
@@ -1647,10 +1763,10 @@ Actions()
 						#It is assumed that the project name is the binary
 						*)
 							if [ ! -z "${Code}" ]; then
-								runCode ${Lang} ${Code} ${UserIn[1]}
+								runCode ${Lang} ${Code} ${UserIn[@]}
 							else
 								#May Cause Prolems
-								runCode ${Lang} ${CodeProject} ${UserIn[1]}
+								runCode ${Lang} ${CodeProject} ${UserIn[@]}
 							fi
 							;;
 					esac
@@ -1719,10 +1835,8 @@ Actions()
 								#{
 								#Change Color for Language
 								cLang=$(color ${Lang})
-								#Change Color for Code
-								cCode=$(color ${Code})
 								#Handle the CLI User Interface
-								if [[ "${Code}" == "" ]]; then
+								if [ -z "${Code}" ]; then
 									case ${CodeProject} in
 										none)
 											#Menu with no code
@@ -1738,18 +1852,36 @@ Actions()
 											;;
 									esac
 								else
+									#Change Color for Code
+									cCode=$(color ${Code})
+									case ${Code} in
+										*,*)
+											cntSrc=$(echo ${Code} | tr ',' '\n' | wc -l)
+											case ${cntSrc} in
+												2)
+													listSrc=${cCode}
+													;;
+												*)
+													listSrc=$(color ${cntSrc})
+													;;
+											esac
+											;;
+										*)
+											listSrc=${cCode}
+											;;
+									esac
 									case ${CodeProject} in
 										none)
 											#Menu with code
-											prompt="${Name}(${cLang}{${cCode}}):$ "
+											prompt="${Name}(${cLang}{${listSrc}}):$ "
 											;;
 										*)
-											ThePWD=$(pwd)
-											ProjectDir=$(echo ${ThePWD#*${CodeProject}})
+											ThePWD=${PWD}
+											ProjectDir=$(echo ${${PWD}#*${CodeProject}})
 											ProjectDir=${ProjectDir/\//:}
 											#Menu with no code
 											cCodeProject=$(ManageLangs ${Lang} "ProjectColor")
-											prompt="${Name}(${cCodeProject}[${ProjectType:0:1}${ProjectDir}]{${cCode}}):$ "
+											prompt="${Name}(${cCodeProject}[${ProjectType:0:1}${ProjectDir}]{${listSrc}}):$ "
 											;;
 									esac
 								fi
@@ -2007,15 +2139,20 @@ main()
 		if [ ! -z "${pg}" ]; then
 			#CliHelp
 			Banner "main"
+			echo "enter \"no-lang\" to enter into a ${Head} shell"
 			echo ""
 			echo "~Choose a language~"
 			#Force user to select language
-			while [[ "$getLang" == "" ]] || [[ "$Lang" == "no" ]];
+			while [[ "${getLang}" == "" ]] || [[ "${Lang}" == "no" ]];
 			do
 				prompt="${Name}(${pg}):$ "
 				read -e -p "${prompt}" getLang
 				case ${getLang} in
 					exit)
+						break
+						;;
+					no-lang)
+						Lang="${getLang}"
 						break
 						;;
 					*)
@@ -2024,10 +2161,19 @@ main()
 						;;
 				esac
 			done
+
 			clear
 			if [ ! -z "${Lang}" ]; then
-				#Start IDE
-				Actions ${Lang}
+				case ${Lang} in
+					no-lang)
+						#Start IDE
+						Actions-NoLang
+						;;
+					*)
+						#Start IDE
+						Actions ${Lang}
+						;;
+				esac
 			fi
 		else
 			errorCode "no-langs"
@@ -2401,12 +2547,20 @@ main()
 			#Check for language given
 			*)
 				#Verify Language
-				local Lang=$(pgLang $1)
-				shift
-				local Args=$@
-				#Start IDE
-				Actions ${Lang} ${Args[@]}
-
+				local Lang=$1
+				case ${Lang} in
+					no-lang)
+						#Start IDE
+						Actions-NoLang ${Args[@]}
+						;;
+					*)
+						Lang=$(pgLang ${Lang})
+						shift
+						local Args=$@
+						#Start IDE
+						Actions ${Lang} ${Args[@]}
+						;;
+				esac
 				;;
 		esac
 	fi

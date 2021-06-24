@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.09"
+SupportV="0.1.11"
 Lang=C
 LangExt=".c"
 ColorNum=3
@@ -98,6 +98,26 @@ UseC()
 		getProjectDir)
 			local project=${CodeProject}
 			echo ${LangProject}/${project}
+			;;
+		getBin)
+			local srcCode=$(echo $1 | sed "s/${LangExt}//g")
+			if [ ! -z "${srcCode}" ]; then
+				local TheCpl
+				local TheItem
+				local CplList=$(UseC lscpl | tr '\n' '|')
+				local look=1
+				local NumOfCpls=$(echo ${srcCode} | tr ',' '\n' | wc -l)
+				while [ ${look} -le ${NumOfCpls} ];
+				do
+					TheItem=$(echo ${srcCode} | cut -d ',' -f ${look})
+					TheCpl=$(echo ${CplList} | tr '|' '\n' | grep -w ${TheItem})
+					if [ ! -z "${TheCpl}" ]; then
+						break
+					fi
+					look=$((${look}+1))
+				done
+				echo ${TheCpl}
+			fi
 			;;
 		getCode)
 			local name=$1
@@ -819,7 +839,7 @@ UseC()
 						else
 							#Program Name Given
 							if [ ! -z "${name}" ];then
-								local Content="#include <iostream>\n\n//${Lang} Main\nint main()\n{\n\n\treturn 0;\n}"
+								local Content="#include stdio.h\n\n//${Lang} Main\nint main()\n{\n\n\treturn 0;\n}"
 								touch ${name}${LangExt}
 								echo -e "${Content}" > ${name}${LangExt}
 							else

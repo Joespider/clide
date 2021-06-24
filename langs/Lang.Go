@@ -70,6 +70,7 @@ UseGo()
 			echo -e "${srt}888${end}     ${srt}ooooo${end} ${srt}888${end}   ${srt}888${end}"
 			echo -e "${srt}\`88.${end}    ${srt}.88'${end}  ${srt}888${end}   ${srt}888${end}"
 			echo -e " ${srt}\`Y8bood8P'${end}   ${srt}\`Y8bod8P'${end}"
+			echo ""
 			;;
 		color)
 			#Return Blue
