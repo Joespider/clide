@@ -65,7 +65,15 @@ MenuHelp()
 		no-lang)
 			echo ""
 			echo "----------------[(${Lang}) Menu]----------------"
+			echo -e "edit config\t\t\t: \"edit ${Head} config\""
+			echo -e "version\t\t\t\t: \"Get ${Head} Version\""
+			echo -e "cv, code-version\t\t: \"Get compile/interpreter version of supported languages\""
+			echo -e "sv, support-version\t\t: \"#Get compile/interpreter version of supported languages\""
+			echo -e "tv, temp-version\t\t: \"Get version of templates\""
+			echo -e "rv, repo-version\t\t: \"Get version control version\""
 			echo -e "use <language> <code>\t\t: \"choose language\""
+			echo -e "<language> <code>\t\t: \"choose language\""
+			echo "------------------------------------------------"
 			echo ""
 			;;
 		*)
@@ -1054,14 +1062,54 @@ ColorCodes()
 #No-Lang IDE
 Actions-NoLang()
 {
+	history -c
+	local NoLang=cl[$(echo -e "\e[1;41mide\e[0m")]
 	local UserIn
-	local prompt="${Name}(no-lang):$ "
+#	local prompt="${NoLang}($(echo -e "\e[1;41mno-lang\e[0m")):$ "
+#	local prompt="${NoLang}($(echo -e "\e[1;31mno-lang\e[0m")):$ "
+	local prompt="${NoLang}():$ "
+#	local prompt="${NoLang}:$ "
 	while true
 	do
 		read -e -p "${prompt}" -a UserIn
+		if [ ! -z "${UserIn[0]}" ]; then
+			history -s "${UserIn[@]}"
+		fi
+
 		case ${UserIn[0],,} in
+			clear)
+				clear
+				;;
+			edit)
+				case ${UserIn[1],,} in
+					config)
+						main "--edit" "--config"
+						;;
+					*)
+						;;
+				esac
+				;;
 			exit)
 				break
+				;;
+			version)
+				main "--version"
+				;;
+			#Get compile/interpreter version from cli
+			cv|code-version)
+				main "--code-version"
+				;;
+			#Get compile/interpreter version from cli
+			sv|support-version)
+				main "--support-version"
+				;;
+			#Get version of template
+			tv|temp-version)
+				main "--temp-version"
+				;;
+			#Get version control version from cli
+			rv|repo-version)
+				main "--repo-version"
 				;;
 			use|bash|c|c++|go|java|python|perl|ruby)
 				local Lang
@@ -1098,7 +1146,6 @@ Actions-NoLang()
 		esac
 	done
 }
-
 
 #IDE
 Actions()
@@ -2139,7 +2186,7 @@ main()
 		if [ ! -z "${pg}" ]; then
 			#CliHelp
 			Banner "main"
-			echo "enter \"no-lang\" to enter into a ${Head} shell"
+			echo "enter \"no-lang\" or \"nl\" to enter into a ${Head} shell"
 			echo ""
 			echo "~Choose a language~"
 			#Force user to select language
@@ -2151,8 +2198,8 @@ main()
 					exit)
 						break
 						;;
-					no-lang)
-						Lang="${getLang}"
+					no-lang|nl)
+						Lang="no-lang"
 						break
 						;;
 					*)
@@ -2165,7 +2212,7 @@ main()
 			clear
 			if [ ! -z "${Lang}" ]; then
 				case ${Lang} in
-					no-lang)
+					no-lang|nl)
 						#Start IDE
 						Actions-NoLang
 						;;
@@ -2549,7 +2596,7 @@ main()
 				#Verify Language
 				local Lang=$1
 				case ${Lang} in
-					no-lang)
+					no-lang|nl)
 						#Start IDE
 						Actions-NoLang ${Args[@]}
 						;;
