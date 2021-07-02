@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.64"
+SupportV="0.1.65"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -481,6 +481,10 @@ UseJava()
 				*)
 					;;
 			esac
+			;;
+		setCplArgs)
+			;;
+		setCplArgs-help)
 			;;
 		compileCode)
 			local src=$1

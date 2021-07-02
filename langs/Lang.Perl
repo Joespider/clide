@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.43"
+SupportV="0.1.44"
 Lang=Perl
 LangExt=".pl"
 #Color Purple
@@ -307,6 +307,10 @@ UsePerl()
 				*)
 					;;
 			esac
+			;;
+		setCplArgs)
+			;;
+		setCplArgs-help)
 			;;
 		compileCode)
 			local src=$1

@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.48"
+SupportV="0.1.49"
 Lang=Python
 LangExt=".py"
 #Color Yellow
@@ -492,6 +492,10 @@ UsePython()
 					;;
 			esac
 			 ;;
+		setCplArgs)
+			;;
+		setCplArgs-help)
+			;;
 		compileCode)
 			local src=$1
 			local name=$2

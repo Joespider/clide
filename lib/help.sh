@@ -91,13 +91,22 @@ MenuHelp()
 CreateHelp()
 {
 	local Lang=$1
-	echo ""
-	echo "----------------[(${Head}) \"Create\" Help]----------------"
-	echo -e "args\t\t\t: create custom args"
-	ManageLangs ${Lang} "CreateHelp"
-	echo -e "reset\t\t\t: clear all"
-	echo "---------------------------------------------------------"
-	echo ""
+	local Action=$2
+	case ${Action} in
+		cpl|cpl-args)
+			ManageLangs ${Lang} "setCplArgs-help"
+			;;
+		*)
+			echo ""
+			echo "----------------[(${Head}) \"Create\" Help]----------------"
+			echo -e "args\t\t\t: create custom args"
+			echo -e "cpl, cpl-args\t\t: create compiler args"
+			ManageLangs ${Lang} "CreateHelp"
+			echo -e "reset\t\t\t: clear all"
+			echo "---------------------------------------------------------"
+			echo ""
+			;;
+	esac
 }
 
 ProjectHelp()

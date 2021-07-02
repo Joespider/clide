@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.42"
+SupportV="0.1.43"
 Lang=Ruby
 LangExt=".rb"
 ColorNum=1
@@ -310,6 +310,10 @@ UseRuby()
 				*)
 					;;
 			esac
+			;;
+		setCplArgs)
+			;;
+		setCplArgs-help)
 			;;
 		compileCode)
 			local src=$1

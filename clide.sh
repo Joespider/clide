@@ -1416,6 +1416,7 @@ Actions()
 					if [ -z "${passcCode}" ]; then
 						passcCode="none"
 					fi
+					#Swap cl[ide] to a given mode
 					ModeHandler ${UserIn[1]} ${Lang} ${cLang} ${passCode} ${passcCode} ${UserIn[2]}
 					;;
 				#search for element in project
@@ -1424,13 +1425,18 @@ Actions()
 					;;
 				#Write notes for code
 				notes)
+					#Handle language notes
 					case ${UserIn[1]} in
+						#create or edit notes for a given language
 						edit|add)
+							#Notes file does not exist...creating new
 							if [ ! -f "${NotesDir}/${Lang}.notes" ]; then
 								echo "[${Lang} Notes]" > ${NotesDir}/${Lang}.notes
 							fi
-								${editor} ${NotesDir}/${Lang}.notes
+							#Edit notes file
+							${editor} ${NotesDir}/${Lang}.notes
 							;;
+						#If the file exists...read your notes
 						read)
 							if [ -f "${NotesDir}/${Lang}.notes" ]; then
 								${ReadBy} ${NotesDir}/${Lang}.notes
@@ -1445,8 +1451,60 @@ Actions()
 					;;
 				#create various files/vars for running/compiling code
 				create)
+					local NewVal
+					local OldVal=${RunCplArgs}
 					#what to create
 					case ${UserIn[1]} in
+						cpl|cpl-args)
+							case ${UserIn[2]} in
+								#User asks for help page
+								help)
+									#Get help page from language support file
+									ManageLangs ${Lang} "setCplArgs-help"
+									;;
+								*)
+									#No value was given...yet
+									if [ -z "${UserIn[2]}" ]; then
+										#Show compile arguments options
+										ManageLangs ${Lang} "setCplArgs-help"
+										#User input
+										echo -n "${cLang}\$ "
+										read -a NewVal
+
+										#User provided a value
+										if [ ! -z "${NewVal}" ]; then
+											NewVal=( ${UserIn[0]} ${UserIn[1]} ${UserIn[2]} ${NewVal[@]} )
+										fi
+									#User gave pre-set argument
+									else
+										NewVal=${UserIn[@]}
+									fi
+
+									#User Value was given
+									if [ ! -z "${NewVal}" ]; then
+										#Checking and getting compile arguments
+										local newCplArgs=$(ManageLangs ${Lang} "setCplArgs" ${Code} ${NewVal[@]})
+										#compile argument was given
+										if [ ! -z "${newCplArgs}" ]; then
+											#Checks of returned values
+											case ${RunCplArgs} in
+												#Nothing previously given or was reset
+												none)
+													RunCplArgs="${newCplArgs}"
+													;;
+												#Value was already given
+												*${newCplArgs}*)
+													;;
+												#Append new value to existing compile arguments
+												*)
+													RunCplArgs="${RunCplArgs},${newCplArgs}"
+													;;
+											esac
+										fi
+									fi
+									;;
+							esac
+							;;
 						#Args for run time
 						args)
 							echo -n "${cLang}\$ "
@@ -1461,7 +1519,15 @@ Actions()
 							;;
 						#Compile arguments
 						${UserIn[1]}-${UserIn[2]})
-							RunCplArgs=$(ManageLangs ${Lang} "${UserIn[1]}-${UserIn[2]}" ${Code} ${UserIn[@]})
+							case ${OldVal} in
+								none)
+									RunCplArgs=$(ManageLangs ${Lang} "${UserIn[1]}-${UserIn[2]}" ${Code} ${UserIn[@]})
+									;;
+								*)
+									RunCplArgs=$(ManageLangs ${Lang} "${UserIn[1]}-${UserIn[2]}" ${Code} ${UserIn[@]})
+									RunCplArgs="${RunCplArgs} ${OldVal}"
+									;;
+							esac
 							;;
 						#Manage Create
 						*)
@@ -1852,7 +1918,7 @@ loadAuto()
 	comp_list "add"
 	comp_list "${ReadBy} read"
 	comp_list "search"
-	comp_list "create" "make version -std= jar manifest args prop properties -D reset"
+	comp_list "create" "make version args cpl cpl-args reset"
 	comp_list "compile cpl car car-a"
 	comp_list "execute exe run" "-a --args"
 	comp_list "version"
