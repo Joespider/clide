@@ -6,24 +6,25 @@ errorCode()
 	local ecd=$1
 	shift
 	local sec=$1
-	case $ecd in
+	case ${ecd} in
 		alias)
 			echo "\"${sec}\" already installed"
 			;;
 		install)
 			case ${sec} in
 				choose)
-					echo "hint: please choose script"
+					errorCode "HINT" "command"
+					echo "please choose script"
 					;;
 				*.java|*.class)
 					echo "\"${sec}\" needs to be an java jar"
-					echo "[to compile]: cpl --jar"
+					errorCode "HINT" "command"
+					echo "cpl --jar"
 					;;
 				*)
 					echo "\"${sec}\" needs to be an executable"
-					echo "[to compile]: cpl"
-					echo "OR"
-					echo "[swap to executable]: swp bin"
+					errorCode "HINT" "command"
+					echo "cpl"
 					;;
 			esac
 			;;
@@ -49,7 +50,8 @@ errorCode()
 					;;
 				hint)
 					echo ""
-					echo "HINT: to force removal, provide a \"--force\""
+					errorCode "HINT"
+					echo "To force removal, provide a \"--force\""
 					;;
 				not-file)
 					echo "\"${thr}\" not a file"
@@ -60,11 +62,35 @@ errorCode()
 			;;
 		noCode)
 			echo "No Code Found"
-			echo "[to set code]: set <name>"
+			errorCode "HINT" "command"
+			echo "set <name>"
 			;;
 		newCode)
 			echo "Please Provide The Name Of Your New Code"
-			echo "EX: new <name>"
+			errorCode "HINT" "command"
+			echo "new <name>"
+			;;
+		newCodeTemp)
+			case ${sec} in
+				no-exist)
+					echo "No source code found"
+					errorCode "HINT" "command"
+					echo "create ${ecd} new"
+					;;
+				exist)
+					echo "Template source code already found"
+					errorCode "HINT" "command"
+					echo "create ${ecd} update"
+					;;
+				update)
+					echo "[Template created]"
+					echo "To edit and compile, pleae execute the following"
+					errorCode "HINT" "command"
+					echo "create ${ecd} update"
+					;;
+				*)
+					;;
+			esac
 			;;
 		runCode)
 			echo "${sec} can only handle ONE file"
@@ -76,7 +102,8 @@ errorCode()
 				completeNotFound)
 					echo "${Head} did not find, or is not configured to find, your program"
 					echo "Please select your code"
-					echo "[to select code]: set <name>"
+					errorCode "HINT" "command"
+					echo "set <name>"
 					;;
 				notemp)
 					echo "No ${thr} Template Found"
@@ -96,14 +123,16 @@ errorCode()
 			local thr=$1
 			case ${sec} in
 				set)
-					echo "[HINT]: set <source>"
+					errorCode "HINT" "command"
+					echo "set <source>"
 					;;
 				nothing)
 					echo "There is nothing to add"
 					;;
 				exists)
 					echo "Source Code has already been selected"
-					echo "[HINT]: add <source>"
+					errorCode "HINT" "command"
+					echo "add <source>"
 					;;
 				already)
 					echo "No need to add it again"
@@ -117,7 +146,18 @@ errorCode()
 			echo "For your safety, I am not allowed to edit myself"
 			;;
 		readNull)
-			echo "hint: ${ReadBy}|read <file>"
+			errorCode "HINT" "command"
+			echo "${ReadBy}"
+			echo "or"
+			errorCode "HINT" "command"
+			echo "read"
+			echo "or"
+			errorCode "HINT" "command"
+			echo "read <file>"
+			echo "or"
+			errorCode "HINT" "command"
+			echo "${ReadBy} <file>"
+
 			;;
 		readNot)
 			echo "code is not found in project"
@@ -128,9 +168,11 @@ errorCode()
 			case ${sec} in
 				none)
 					echo "Your session MUST be a ${thr} Project"
-					echo "[HINT]: Please create or load a project"
-					echo "$ project new <project>"
-					echo "$ project load <project>"
+					echo "Please create or load a project"
+					errorCode "HINT" "command"
+					echo "project new <project>"
+					errorCode "HINT" "command"
+					echo "project load <project>"
 					;;
 				type)
 					echo "Could not create project type: \"${thr}\""
@@ -153,11 +195,13 @@ errorCode()
 							;;
 						no-name)
 							echo "no project name given"
-							echo "[HINT]: project <name> <path>"
+							errorCode "HINT" "command"
+							echo "project <name> <path>"
 							;;
 						name-in-path)
 							echo "\"${four}\" must be in the directory of \"${five}\""
-							echo "[HINT]: /path/to/${four}/src"
+							errorCode "HINT"
+							echo "/path/to/${four}/src"
 							;;
 						exists)
 							echo "You Already have a project named \"${four}\""
@@ -207,7 +251,8 @@ errorCode()
 					echo -e "\e[1;31m${ERROR}\e[0m"
 					;;
 				choose)
-					echo "hint: please choose a program name"
+					errorCode "HINT"
+					echo "please choose a program name"
 					;;
 				already)
 					shift
@@ -221,15 +266,18 @@ errorCode()
 					shift
 					local thr=$1
 					echo "${thr} is not compiled"
-					echo "[HINT] \$ cpl"
+					errorCode "HINT" "command"
+					echo "cpl"
 					;;
 				none)
 					echo "no code to run"
-					echo "[hint] set <code>"
+					errorCode "HINT" "command"
+					echo "set <code>"
 					;;
 				*)
 					echo "Nothing to Compile"
-					echo "[to set code]: set <name>"
+					errorCode "HINT" "command"
+					echo "set <name>"
 					;;
 			esac
 			;;
@@ -283,7 +331,8 @@ errorCode()
 					case ${thr} in
 						no-lang)
 							echo "Please provide a new language"
-							echo "[Hint] create <lang>"
+							errorCode "HINT" "command"
+							echo "create <lang>"
 							;;
 						not-supported)
 							echo "\"${four}\" is not a supported language"
@@ -303,6 +352,16 @@ errorCode()
 		no-support)
 			echo "The following feature is not yet supported"
 			echo "Feature: ${sec}"
+			;;
+		HINT)
+			case ${sec} in
+				command)
+					echo -n "[HINT]: \$ "
+					;;
+				*)
+					echo -n "[HINT]: "
+					;;
+			esac
 			;;
 		*)
 			;;

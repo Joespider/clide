@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.47"
+SupportV="0.1.48"
 Lang=Bash
 LangExt=".sh"
 ColorNum=2
@@ -56,6 +56,8 @@ UseBash()
 	local TemplateCode=${NewBash}
 	TemplateCode=${LangBin}/${TemplateCode%${LangExt}}${LangExt}
 
+	local TemplateCodeSrc=${NewBash%${LangExt}}${LangExt}
+
 	local EnvVars=( ${LangRun} ${LangHome} ${LangSrc} ${LangBin} ${LangExt} )
 	local Type=$1
 	shift
@@ -81,6 +83,12 @@ UseBash()
 			;;
 		SupportVersion)
 			echo ${SupportV}
+			;;
+		getNewCode)
+			echo ${TemplateCodeSrc}
+			;;
+		getSrcDir)
+			echo ${LangSrc}
 			;;
 		getExt)
 			echo ${LangExt}

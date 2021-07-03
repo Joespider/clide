@@ -101,6 +101,7 @@ CreateHelp()
 			echo "----------------[(${Head}) \"Create\" Help]----------------"
 			echo -e "args\t\t\t: create custom args"
 			echo -e "cpl, cpl-args\t\t: create compiler args"
+			echo -e "newCodeTemp\t\t: make your own source code ($ new <code>)"
 			ManageLangs ${Lang} "CreateHelp"
 			echo -e "reset\t\t\t: clear all"
 			echo "---------------------------------------------------------"

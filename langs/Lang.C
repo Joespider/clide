@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.14"
+SupportV="0.1.15"
 Lang=C
 LangExt=".c"
 ColorNum=3
@@ -56,6 +56,8 @@ UseC()
 	local TemplateCode=${NewC}
 	TemplateCode=${LangBin}/${TemplateCode%${LangExt}}
 
+	local TemplateCodeSrc=${NewC%${LangExt}}${LangExt}
+
 
 	local EnvVars=( ${LangRun} ${LangHome} ${LangSrc} ${LangBin} ${LangExt} )
 	local Type=$1
@@ -79,6 +81,12 @@ UseC()
 			;;
 		ProjectColor)
 			echo -e "\e[1;4${ColorNum}m${CodeProject}\e[0m"
+			;;
+		getNewCode)
+			echo ${TemplateCodeSrc}
+			;;
+		getSrcDir)
+			echo ${LangSrc}
 			;;
 		getExt)
 			echo ${LangExt}

@@ -1510,6 +1510,51 @@ Actions()
 							echo -n "${cLang}\$ "
 							read -a RunTimeArgs
 							;;
+						#Create new Template
+						newCodeTemp)
+							local NewCode=$(ManageLangs ${Lang} "getNewCode")
+							local LangSrcDir=$(ManageLangs ${Lang} "getSrcDir")
+
+							#Create new souce code in newCode/
+							if [ ! -f ${NewCodeDir}/${NewCode} ]; then
+								if [ ! -f ${LangSrcDir}/${NewCode} ]; then
+									ManageLangs ${Lang} "newCode" ${NewCode}
+								fi
+								mv ${LangSrcDir}/${NewCode} ${NewCodeDir}/
+							fi
+
+							#Copy and set source code to src/
+							cd ${LangSrcDir}/
+							if [ ! -f ${LangSrcDir}/${NewCode} ]; then
+								case ${Lang} in
+									Java)
+										cp ${NewCodeDir}/${NewCode} .
+										;;
+									*)
+										ln -s ${NewCodeDir}/${NewCode}
+										;;
+								esac
+							else
+								case ${Lang} in
+									Java)
+										local choice
+										echo -n "Are you sure you want to overwrite \"${NewCode}\"? (Y/N): "
+										read choice
+										case ${choice^^} in
+											Y|YES)
+												cp ${NewCode} ${NewCodeDir}/
+												;;
+											*)
+												;;
+										esac
+										;;
+									*)
+										;;
+								esac
+							fi
+							Code=$(selectCode ${Lang} "set" ${NewCode})
+							refresh="yes"
+							;;
 						#Clear all
 						reset)
 							#Default values
@@ -1918,7 +1963,7 @@ loadAuto()
 	comp_list "add"
 	comp_list "${ReadBy} read"
 	comp_list "search"
-	comp_list "create" "make version args cpl cpl-args reset"
+	comp_list "create" "make version args cpl cpl-args reset newCodeTemp"
 	comp_list "compile cpl car car-a"
 	comp_list "execute exe run" "-a --args"
 	comp_list "version"

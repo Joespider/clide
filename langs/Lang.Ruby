@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.43"
+SupportV="0.1.44"
 Lang=Ruby
 LangExt=".rb"
 ColorNum=1
@@ -57,6 +57,8 @@ UseRuby()
 	local TemplateCode=${NewRuby}
 	TemplateCode=${LangBin}/${TemplateCode%${LangExt}}${LangExt}
 
+	local TemplateCodeSrc=${NewRuby%${LangExt}}${LangExt}
+
 	local EnvVars=( ${LangRun} ${LangHome} ${LangSrc} ${LangBin} ${LangExt} )
 	local Type=$1
 	shift
@@ -81,6 +83,12 @@ UseRuby()
 			;;
 		ProjectColor)
 			echo -e "\e[1;4${ColorNum}m${CodeProject}\e[0m"
+			;;
+		getNewCode)
+			echo ${TemplateCodeSrc}
+			;;
+		getSrcDir)
+			echo ${LangSrc}
 			;;
 		getExt)
 			echo ${LangExt}
