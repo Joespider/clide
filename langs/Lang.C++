@@ -2,15 +2,7 @@ Shell=$(which bash)
 #!${Shell}
 
 #https://www3.ntu.edu.sg/home/ehchua/programming/cpp/gcc_make.html
-
-#These are ALL the g++ versions
-#-std=c++98
-#-std=c++11
-#-std=c++14
-#-std=c++17
-#-std=c++2a
-
-SupportV="0.1.66"
+SupportV="0.1.67"
 Lang=C++
 LangExt=".cpp"
 ColorNum=4
@@ -65,6 +57,7 @@ UseC++()
 	local TemplateCode=${NewCpp}
 	TemplateCode=${LangBin}/${TemplateCode%${LangExt}}
 
+	local TemplateCodeSrc=${NewCpp%${LangExt}}${LangExt}
 
 	local EnvVars=( ${LangRun} ${LangHome} ${LangSrc} ${LangBin} ${LangExt} )
 	local Type=$1
@@ -88,6 +81,12 @@ UseC++()
 			;;
 		ProjectColor)
 			echo -e "\e[1;4${ColorNum}m${CodeProject}\e[0m"
+			;;
+		getNewCode)
+			echo ${TemplateCodeSrc}
+			;;
+		getSrcDir)
+			echo ${LangSrc}
 			;;
 		getExt)
 			echo ${LangExt}
@@ -625,6 +624,20 @@ UseC++()
 		setCplArgs-help)
 			echo -e "--warnings\t\t: \"Show ALL warnings (-Wall -g)\""
 			echo -e "--std=<version>\t\t: \"Set C++ version\""
+			case ${LangCpl} in
+				g++)
+					echo "These are ALL the ${LangCpl} versions"
+					echo "\tc++98"
+					echo "\tc++11"
+					echo "\tc++14"
+					echo "\tc++17"
+					echo "\tc++2a"
+					;;
+				clangg++)
+					;;
+				*)
+					;;
+			esac
 			;;
 		compileCode)
 			local src=$1

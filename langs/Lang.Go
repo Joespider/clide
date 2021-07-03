@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.22"
+SupportV="0.1.23"
 Lang=Go
 LangExt=".go"
 #Color Green
@@ -56,6 +56,8 @@ UseGo()
 	local TemplateCode=${NewGo}
 	TemplateCode=${LangBin}/${TemplateCode%${LangExt}}
 
+	local TemplateCodeSrc=${NewGo%${LangExt}}${LangExt}
+
 	local EnvVars=( ${LangRun} ${LangHome} ${LangSrc} ${LangBin} ${LangExt} )
 	local Type=$1
 	shift
@@ -78,6 +80,12 @@ UseGo()
 			;;
 		ProjectColor)
 			echo -e "\e[1;4${ColorNum}m${CodeProject}\e[0m"
+			;;
+		getNewCode)
+			echo ${TemplateCodeSrc}
+			;;
+		getSrcDir)
+			echo ${LangSrc}
 			;;
 		getExt)
 			echo ${LangExt}

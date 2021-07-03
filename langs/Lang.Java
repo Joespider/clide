@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.65"
+SupportV="0.1.66"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -60,6 +60,8 @@ UseJava()
 	TemplateCode=${TemplateCode%.jar}
 	TemplateCode=${TemplateCode%${LangExt}}
 
+	local TemplateCodeSrc=${TemplateCode}${LangExt}
+
 	local TemplateCodeClass=${LangBin}/${TemplateCode}.class
 	local TemplateCodeJar=${LangBin}/${TemplateCode}.jar
 
@@ -86,6 +88,12 @@ UseJava()
 			;;
 		ProjectColor)
 			echo -e "\e[1;4${ColorNum}m${CodeProject}\e[0m"
+			;;
+		getNewCode)
+			echo ${TemplateCodeSrc}
+			;;
+		getSrcDir)
+			echo ${LangSrc}
 			;;
 		getExt)
 			echo ${LangExt}
