@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.12"
+SupportV="0.1.14"
 Lang=C
 LangExt=".c"
 ColorNum=3
@@ -501,6 +501,55 @@ UseC()
 					;;
 			esac
 			 ;;
+		setCplArgs)
+			shift
+			shift
+			Vals="none"
+			Item=""
+			str=$@
+			# space is set as delimiter
+			IFS=' '
+			read -ra arg <<< "${str}"
+			for TheItem in "${arg[@]}"; do
+				if [ ! -z "${TheItem}" ]; then
+					case ${TheItem} in
+						--warnings)
+                                                        Item="-Wall -g"
+							;;
+						--std=*)
+							local stdVal=${TheItem}
+							case ${stdVal} in
+								--std=)
+									;;
+								*)
+									Item=${stdVal}
+									;;
+							esac
+							;;
+						*)
+							;;
+					esac
+				fi
+				if [ ! -z "${Item}" ]; then
+					case ${Vals} in
+						none)
+							Vals=${Item}
+							;;
+						*${Item}*)
+							;;
+						*)
+							Vals="${Vals} ${Item}"
+							;;
+					esac
+				fi
+				Item=""
+			done
+			echo ${Vals// /,}
+			;;
+		setCplArgs-help)
+			echo -e "--warnings\t\t: \"Show ALL warnings (-Wall -g)\""
+			echo -e "--std=<version>\t\t: \"Set C version\""
+			;;
 		compileCode)
 			local src=$1
 			local name=$2

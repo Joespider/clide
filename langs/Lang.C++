@@ -1,7 +1,16 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.62"
+#https://www3.ntu.edu.sg/home/ehchua/programming/cpp/gcc_make.html
+
+#These are ALL the g++ versions
+#-std=c++98
+#-std=c++11
+#-std=c++14
+#-std=c++17
+#-std=c++2a
+
+SupportV="0.1.66"
 Lang=C++
 LangExt=".cpp"
 ColorNum=4
@@ -569,10 +578,59 @@ UseC++()
 					;;
 			esac
 			;;
+		setCplArgs)
+			shift
+			shift
+			Vals="none"
+			Item=""
+			str=$@
+			IFS=' '         # space is set as delimiter
+			read -ra arg <<< "${str}"
+			for TheItem in "${arg[@]}"; do
+				if [ ! -z "${TheItem}" ]; then
+					case ${TheItem} in
+						--warnings)
+							Item="-Wall -g"
+							;;
+						--std=*)
+							local stdVal=${TheItem}
+							case ${stdVal} in
+								--std=)
+									;;
+								*)
+									Item=${stdVal}
+									;;
+							esac
+							;;
+						*)
+							;;
+					esac
+				fi
+				if [ ! -z "${Item}" ]; then
+					case ${Vals} in
+						none)
+							Vals=${Item}
+							;;
+						*${Item}*)
+							;;
+						*)
+							Vals="${Vals} ${Item}"
+							;;
+					esac
+				fi
+				Item=""
+			done
+			echo ${Vals// /,}
+			;;
+		setCplArgs-help)
+			echo -e "--warnings\t\t: \"Show ALL warnings (-Wall -g)\""
+			echo -e "--std=<version>\t\t: \"Set C++ version\""
+			;;
 		compileCode)
 			local src=$1
 			local name=$2
-			local cplArgs=$3
+#			local cplArgs=$3
+			local cplArgs=${CplArgs//,/ }
 			local project=${CodeProject}
 			local NeedThreads
 			local HasXlib
@@ -592,7 +650,7 @@ UseC++()
 				else
 					name=${src%.*}
 				fi
-				cplArgs=$2
+#				cplArgs=$2
 			fi
 
 			#Handle Project Dir
@@ -620,7 +678,14 @@ UseC++()
 			#Compile ONLY if source code is selected OR makefile is present
 			if [[ "$src" == *"${LangExt}"* ]] || [ -f ${LangProject}/${project}makefile ]; then
 				cd ${TheSrcDir}
-				cplArgs=${LangCplVersion}
+				case ${cplArgs} in
+					none)
+						cplArgs=${LangCplVersion}
+						;;
+					*)
+						cplArgs="${cplArgs} ${LangCplVersion}"
+						;;
+				esac
 				#Compile with makefile
 				if [ -f ${LangProject}/${project}makefile ]; then
 					cd ${LangProject}/${project}

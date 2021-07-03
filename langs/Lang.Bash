@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.46"
+SupportV="0.1.47"
 Lang=Bash
 LangExt=".sh"
 ColorNum=2
@@ -320,6 +320,10 @@ UseBash()
 				*)
 					;;
 			esac
+			;;
+		setCplArgs)
+			;;
+		setCplArgs-help)
 			;;
 		compileCode)
 			local src=$1

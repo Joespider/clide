@@ -14,15 +14,20 @@ Name="cl[${IDE}]"
 declare -A Commands
 #}
 
+theHelp()
+{
+	${LibDir}/help.sh ${Head} ${LangsDir} ${RunCplArgs} $@
+}
+
 errorCode()
 {
-        ${LibDir}/errorCode.sh $@
+	${LibDir}/errorCode.sh $@
 }
 
 #Handle Aliases
 AddAlias()
 {
-        ${LibDir}/AddAlias.sh $@
+	${LibDir}/AddAlias.sh $@
 }
 
 Art()
@@ -54,305 +59,6 @@ Art()
 		echo -e "               | |__                         __| |"
 		echo -e "               |____|                       |____|"
 	fi
-}
-
-#Clide menu help page
-MenuHelp()
-{
-	local Lang=$1
-	local project=${CodeProject}
-	case ${Lang} in
-		no-lang)
-			echo ""
-			echo "----------------[(${Lang}) Menu]----------------"
-			echo -e "use <language> <code>\t\t: \"choose language\""
-			echo ""
-			;;
-		*)
-			echo ""
-			echo "----------------[(${Head}) Menu]----------------"
-			echo -e "ls\t\t\t\t: \"list progams\""
-			echo -e "lscpl\t\t\t\t: \"list compiled progams\""
-			echo -e "using\t\t\t\t: \"get the language being used\""
-			echo -e "unset\t\t\t\t: \"deselect source code\""
-			echo -e "use <language> <code>\t\t: \"choose language\""
-			echo -e "using\t\t\t\t:\"Display what language is being used\""
-			echo -e "save\t\t\t\t: \"Save session\""
-			echo -e "create <arg>\t\t\t: \"create compile and runtime arguments"
-			ManageLangs ${Lang} "MenuHelp"
-			echo -e "car, car-a\t\t\t: \"compile and run; compile and run with arguments\""
-			echo -e "rm, remove, delete\t\t: \"delete src file\""
-			echo -e "set <file>\t\t\t: \"select source code\""
-			echo -e "add <file>\t\t\t: \"add new file to project\""
-			echo -e "notes <action>\t\t\t: \"make notes for the ${Lang} language\""
-			echo -e "${editor}, edit, ed\t\t\t: \"edit source code\""
-			echo -e "${ReadBy}, read\t\t\t: \"Read source code\""
-			echo -e "search <find>\t\t\t: \"search for code in project\""
-			case ${project} in
-				none)
-					echo -e "project {new|list|load}\t\t: \"handle projects\""
-					;;
-				*)
-					echo -e "project {new|type|update|list|load|discover}\t: \"handle projects\""
-					echo -e "${repoTool}, repo\t: \"handle repos\""
-					;;
-			esac
-			echo -e "search\t\t\t\t: \"search project src files for line of code\""
-			echo -e "execute, exe, run {-a|--args}\t: \"run active program\""
-			echo -e "bkup, backup\t\t\t: \"make backup of existing source code\""
-			echo -e "restore\t\t\t\t: \"make backup of existing source code\""
-			echo -e "rename <new>\t\t\t: \"rename the existing source code\""
-			echo -e "src, source\t\t\t: \"list source code\""
-			echo -e "copy <new>\t\t\t: \"copy the existing source code\""
-			echo -e "last, load\t\t\t: \"Load last session\""
-			echo -e "exit, close\t\t\t: \"close ide\""
-			echo "------------------------------------------------"
-			echo ""
-			;;
-	esac
-}
-
-CreateHelp()
-{
-	local Lang=$1
-	echo ""
-	echo "----------------[(${Head}) \"Create\" Help]----------------"
-	echo -e "args\t\t\t: create custom args"
-	ManageLangs ${Lang} "CreateHelp"
-	echo -e "reset\t\t\t: clear all"
-	echo "---------------------------------------------------------"
-	echo ""
-}
-
-ProjectHelp()
-{
-	echo ""
-	echo "----------------[(${Head}) \"Project\" Help]----------------"
-	echo -e "Purpose: \"handle projects\""
-	echo -e "new <project>\t\t\t: \"Create a new project\""
-	echo -e "import <project> <path>\t\t: \"Import projects\""
-	echo -e "update\t\t\t\t: \"Update the active project\""
-	echo -e "load <project>\t\t\t: \"Choose a project to make active\""
-	echo -e "type\t\t\t\t: \"display the type of project\""
-	echo -e "\tlist\t\t: \"Show list of possible project types\""
-	echo -e "list\t\t\t\t: \"List ALL projects\""
-	echo -e "active\t\t\t\t: \"Display the name of the current project\""
-	echo -e "types\t\t\t\t: \"Display the types of projects under ${Lang}\""
-	echo -e "discover\t\t\t\t: \"Discover project on system (creates project profile)"
-	ManageLangs ${Lang} "ProjectHelp"
-	echo "----------------------------------------------------------"
-	echo ""
-}
-
-NotesHelp()
-{
-	local Lang=$1
-	echo ""
-	echo "----------------[(${Head}) \"Notes\" Help]----------------"
-	echo -e "edit, add\t: \"edit notes\""
-	echo -e "read\t\t: \"read notes\""
-	echo "----------------------------------------------------------"
-	echo ""
-
-}
-
-newCodeHelp()
-{
-	local Lang=$1
-	echo ""
-	echo "----------------[(${Head}) \"new\" Help]----------------"
-	echo -e "-v, --version\t\t\t: \"Get Version for each code template\""
-	echo -e "-h, --help\t\t\t: \"This page\""
-	ManageLangs ${Lang} "newCodeHelp"
-	echo -e "<code>\t\t\t\t: \"provide code name; default settings\""
-	echo "----------------------------------------------------------"
-	echo ""
-}
-
-#Clide cli help page
-CliHelp()
-{
-	local calledBy=$1
-	local cmd="clide ${calledBy}"
-	local option=$2
-	case ${option} in
-		info)
-			echo ""
-			echo "----------------[(${Head}) Info]----------------"
-			echo ""
-			echo "\"If you have a quick question for me, just ask.\""
-			echo "\"What do you want to know about me?\""
-			echo ""
-			echo -e "-v, --version\t\t\t: \"My Version\""
-			echo -e "-sv, --support-version\t\t: \"My Support Version for each langauge\""
-			echo -e "-cv, --code-version\t\t: \"The Compile/Interpreter Version\""
-			echo -e "-tv, --temp-version\t\t: \"The Code Template Version\""
-			echo -e "-rv, --repo-version\t\t: \"The ${repoTool} Version\""
-			echo -e "-c, --config\t\t\t: \"Read my configuration\""
-			echo -e "-ll, --languages\t\t: \"List the languages I know\""
-			echo -e "-h, --help\t\t\t: \"Get to know me better\""
-			echo -e "-l, --last, --load\t\t: \"Lets start back where we left; that is if you saved it\""
-			echo ""
-			echo "\"I hope this helps\""
-			echo "-----------------------------------------------"
-			echo ""
-			;;
-		function)
-			echo ""
-			echo "----------------[(${Head}) Functions]----------------"
-			echo ""
-			echo "\"Don't want to chat long? Want me to perform a simple task?\""
-			echo "\"I can perform normal tasks quickly.\""
-			echo "\"Here is how I can help\""
-			echo ""
-			echo -e "--edit\t\t\t\t: \"Edit source code\""
-			echo -e "--edit --config\t\t\t: \"Edit ${Head} config\""
-			echo -e "--cpl, --compile\t\t: \"Compile source code\""
-			echo -e "--install\t\t\t: \"install program (.bash_aliases)\""
-			echo -e "--run\t\t\t\t: \"Run compiled code\""
-			echo -e "--read\t\t\t\t: \"Read out (cat) source code\""
-			echo -e "--list\t\t\t\t: \"List source code\""
-			echo -e "--list-cpl\t\t\t: \"List compiled code\""
-			echo -e "-p, --project <act> <project>\t: \"List or Load Clide Projects\""
-			echo ""
-			echo "-----------------------------------------------"
-			echo ""
-			;;
-		usage)
-			echo ""
-			echo "----------------[(${Head}) Usage]----------------"
-			echo ""
-			echo "\"Ready to work? Lets get started!\""
-			echo ""
-			echo "\"Lets start with a language; just tell me what we are using.\""
-			echo "\"Say you're using Java\""
-			echo "$ clide Java"
-			echo ""
-			echo "\"If you want to save time, you can pre-select the code\""
-			echo "$ clide Java MyCode"
-			echo ""
-			echo "\"I can determine the langauge by providing the extention of your source code\""
-			echo "$ clide MyCode.java"
-			echo ""
-			echo "\"You want something done quickly?\""
-			echo "\"Provide me with the action as well as the language and/or source code\""
-			echo "[\"Learn more by asking or help regarding my 'function'\"]"
-			echo "$ clide <Action> <Language> <Code> <Args>"
-			echo "or"
-			echo "$ clide <Action> <Code> <Args>"
-			echo ""
-			echo "\"Don't have anything in mind? Give me a call.\""
-			echo "$ clide"
-			echo ""
-			echo "\"Happy Programming!\""
-			echo "-----------------------------------------------"
-			echo ""
-			;;
-		*)
-			echo ""
-			echo "----------------[(${Head}) Help]----------------"
-			echo "\"Hello ${USER}!\""
-			echo ""
-			echo "\"My name is clide; I am here to help with all your programming needs.\""
-			echo "\"Lets get to know each other:\""
-			echo "\"To start, ask me the following:\""
-			echo ""
-			echo -e "${cmd} info\t\t: \"Get to know some information about me\""
-			echo -e "${cmd} function\t\t: \"Ask me to perform a quick task\""
-			echo -e "${cmd} usage\t\t: \"How we can start programming\""
-			echo "-----------------------------------------------"
-			echo ""
-			;;
-	esac
-}
-
-RunHelp()
-{
-	local cli="--run"
-	local cmd="\$ clide ${cli}"
-	echo ""
-	echo "----------------[(${Head}) cli {${cli}}]----------------"
-	echo -e "Run your compiled code without having a ${Head} session"
-	echo ""
-	echo -e "${cmd} <language> <code> {arguments}\t:\"Run compiled code\""
-	echo -e "${cmd} <code> {arguments}\t\t:\"Run compiled code\""
-	echo -e "${cmd} -h, --help\t\t\t: \"help page\""
-	echo "-----------------------------------------------"
-	echo ""
-}
-
-
-cplHelp()
-{
-	local cli="--cpl"
-	local cmd="\$ clide ${cli}"
-	echo ""
-	echo "----------------[(${Head}) cli {${cli}}]----------------"
-	echo -e "\"Compile your code without having a session\""
-	echo ""
-	echo -e "${cmd} <language> <code>\t: \"compiled code by identifying language and source code\""
-	echo -e "${cmd} <code>\t\t\t: \"compiled code by providing source code and extension\""
-	echo -e "${cmd} -h, --help\t\t: \"help page\""
-	echo "-----------------------------------------------"
-	echo ""
-}
-
-EditHelp()
-{
-	local cli="--edit"
-	local cmd="\$ clide ${cli}"
-	echo ""
-	echo "----------------[(${Head}) cli {${cli}}]----------------"
-	echo -e "\"Edit your code without having a session\""
-	echo ""
-	echo -e "${cmd} --config\t\t\t: \"Edit the ${Head} config file\""
-	echo -e "${cmd} <language> <code>\t: \"Edit the source code by identifying langauge and source code\""
-	echo -e "${cmd} <code>\t\t\t: \"Edit source code by providing source code and extension\""
-	echo -e "${cmd} -h, --help\t\t: \"help page\""
-	echo "-----------------------------------------------"
-	echo ""
-}
-
-ProjectCliHelp()
-{
-	local cli="$1"
-	local cmd="\$ clide ${cli}"
-	echo ""
-	echo "----------------[(${Head}) cli {${cli}}]----------------"
-	echo -e "\"Handle loading Projects\""
-	echo ""
-	echo -e "${cmd} <project>\t: \"Select and Load\""
-	echo -e "${cmd} --list\t: \"List ${Head} Projects\""
-	echo -e "${cmd} --build\t: \"Build a ${Head} Project\""
-	echo -e "${cmd} --discover\t: \"Discover ${Head} Projects\""
-	echo -e "${cmd} -h, --help\t: \"help page\""
-	echo "-----------------------------------------------"
-	echo ""
-}
-
-BuildHelp()
-{
-	local cli="$1 --build"
-	local cmd="\$ clide ${cli}"
-	echo ""
-	echo "----------------[(${Head}) cli {${cli}}]----------------"
-	echo -e "\"Compile your project without having a session\""
-	echo ""
-	echo -e "${cmd} <project>\t\t: \"Select and Build your Project\""
-	echo -e "${cmd} -h, --help\t\t: \"help page\""
-	echo "-----------------------------------------------"
-	echo ""
-}
-
-ModesHelp()
-{
-	echo ""
-	echo "----------------[(${Head}) Modes]----------------"
-	echo -e "${repoTool}, repo\t\t: repo management"
-	echo -e "add <component>\t\t: install/add component management"
-	echo -e "-h, --help\t\t: \"Modes help page\""
-	echo "-----------------------------------------------"
-	echo ""
 }
 
 #Language not yet supported
@@ -433,10 +139,10 @@ ModeHandler()
 
 			;;
 		-h|--help)
-			ModesHelp
+			theHelp ModesHelp
 			;;
 		*)
-			ModesHelp
+			theHelp ModesHelp
 			;;
 	esac
 }
@@ -976,7 +682,7 @@ ManageCreate()
 		ManageLangs ${Lang} "${Choice}" ${Code} ${UserIn[@]}
 	else
 		#Show help page
-		CreateHelp ${Lang}
+		theHelp CreateHelp ${Lang}
 	fi
 }
 
@@ -1054,14 +760,54 @@ ColorCodes()
 #No-Lang IDE
 Actions-NoLang()
 {
+	history -c
+	local NoLang=cl[$(echo -e "\e[1;41mide\e[0m")]
 	local UserIn
-	local prompt="${Name}(no-lang):$ "
+#	local prompt="${NoLang}($(echo -e "\e[1;41mno-lang\e[0m")):$ "
+#	local prompt="${NoLang}($(echo -e "\e[1;31mno-lang\e[0m")):$ "
+	local prompt="${NoLang}():$ "
+#	local prompt="${NoLang}:$ "
 	while true
 	do
 		read -e -p "${prompt}" -a UserIn
+		if [ ! -z "${UserIn[0]}" ]; then
+			history -s "${UserIn[@]}"
+		fi
+
 		case ${UserIn[0],,} in
+			clear)
+				clear
+				;;
+			edit)
+				case ${UserIn[1],,} in
+					config)
+						main "--edit" "--config"
+						;;
+					*)
+						;;
+				esac
+				;;
 			exit)
 				break
+				;;
+			version)
+				main "--version"
+				;;
+			#Get compile/interpreter version from cli
+			cv|code-version)
+				main "--code-version"
+				;;
+			#Get compile/interpreter version from cli
+			sv|support-version)
+				main "--support-version"
+				;;
+			#Get version of template
+			tv|temp-version)
+				main "--temp-version"
+				;;
+			#Get version control version from cli
+			rv|repo-version)
+				main "--repo-version"
 				;;
 			use|bash|c|c++|go|java|python|perl|ruby)
 				local Lang
@@ -1091,14 +837,13 @@ Actions-NoLang()
 				;;
 			#Display help page
 			help)
-				MenuHelp "no-lang"
+				theHelp MenuHelp "no-lang"
 				;;
 			*)
 				;;
 		esac
 	done
 }
-
 
 #IDE
 Actions()
@@ -1431,7 +1176,7 @@ Actions()
 							;;
 						#Show Project help page
 						*)
-							ProjectHelp
+							theHelp ProjectHelp
 							;;
 					esac
 					refresh="yes"
@@ -1579,7 +1324,7 @@ Actions()
 							;;
 						#Get Help Page for new code
 						--help|-h)
-							newCodeHelp ${Lang}
+							theHelp newCodeHelp ${Lang}
 							;;
 						--custom|-c)
 							local BeforeFiles=""
@@ -1616,7 +1361,7 @@ Actions()
 								fi
 								refresh="yes"
 							else
-								newCodeHelp ${Lang}
+								theHelp newCodeHelp ${Lang}
 							fi
 							;;
 					esac
@@ -1671,6 +1416,7 @@ Actions()
 					if [ -z "${passcCode}" ]; then
 						passcCode="none"
 					fi
+					#Swap cl[ide] to a given mode
 					ModeHandler ${UserIn[1]} ${Lang} ${cLang} ${passCode} ${passcCode} ${UserIn[2]}
 					;;
 				#search for element in project
@@ -1679,13 +1425,18 @@ Actions()
 					;;
 				#Write notes for code
 				notes)
+					#Handle language notes
 					case ${UserIn[1]} in
+						#create or edit notes for a given language
 						edit|add)
+							#Notes file does not exist...creating new
 							if [ ! -f "${NotesDir}/${Lang}.notes" ]; then
 								echo "[${Lang} Notes]" > ${NotesDir}/${Lang}.notes
 							fi
-								${editor} ${NotesDir}/${Lang}.notes
+							#Edit notes file
+							${editor} ${NotesDir}/${Lang}.notes
 							;;
+						#If the file exists...read your notes
 						read)
 							if [ -f "${NotesDir}/${Lang}.notes" ]; then
 								${ReadBy} ${NotesDir}/${Lang}.notes
@@ -1694,14 +1445,66 @@ Actions()
 							fi
 							;;
 						*)
-							NotesHelp ${Lang}
+							theHelp NotesHelp ${Lang}
 							;;
 					esac
 					;;
 				#create various files/vars for running/compiling code
 				create)
+					local NewVal
+					local OldVal=${RunCplArgs}
 					#what to create
 					case ${UserIn[1]} in
+						cpl|cpl-args)
+							case ${UserIn[2]} in
+								#User asks for help page
+								help)
+									#Get help page from language support file
+									ManageLangs ${Lang} "setCplArgs-help"
+									;;
+								*)
+									#No value was given...yet
+									if [ -z "${UserIn[2]}" ]; then
+										#Show compile arguments options
+										ManageLangs ${Lang} "setCplArgs-help"
+										#User input
+										echo -n "${cLang}\$ "
+										read -a NewVal
+
+										#User provided a value
+										if [ ! -z "${NewVal}" ]; then
+											NewVal=( ${UserIn[0]} ${UserIn[1]} ${UserIn[2]} ${NewVal[@]} )
+										fi
+									#User gave pre-set argument
+									else
+										NewVal=${UserIn[@]}
+									fi
+
+									#User Value was given
+									if [ ! -z "${NewVal}" ]; then
+										#Checking and getting compile arguments
+										local newCplArgs=$(ManageLangs ${Lang} "setCplArgs" ${Code} ${NewVal[@]})
+										#compile argument was given
+										if [ ! -z "${newCplArgs}" ]; then
+											#Checks of returned values
+											case ${RunCplArgs} in
+												#Nothing previously given or was reset
+												none)
+													RunCplArgs="${newCplArgs}"
+													;;
+												#Value was already given
+												*${newCplArgs}*)
+													;;
+												#Append new value to existing compile arguments
+												*)
+													RunCplArgs="${RunCplArgs},${newCplArgs}"
+													;;
+											esac
+										fi
+									fi
+									;;
+							esac
+							;;
 						#Args for run time
 						args)
 							echo -n "${cLang}\$ "
@@ -1716,7 +1519,15 @@ Actions()
 							;;
 						#Compile arguments
 						${UserIn[1]}-${UserIn[2]})
-							RunCplArgs=$(ManageLangs ${Lang} "${UserIn[1]}-${UserIn[2]}" ${Code} ${UserIn[@]})
+							case ${OldVal} in
+								none)
+									RunCplArgs=$(ManageLangs ${Lang} "${UserIn[1]}-${UserIn[2]}" ${Code} ${UserIn[@]})
+									;;
+								*)
+									RunCplArgs=$(ManageLangs ${Lang} "${UserIn[1]}-${UserIn[2]}" ${Code} ${UserIn[@]})
+									RunCplArgs="${RunCplArgs} ${OldVal}"
+									;;
+							esac
 							;;
 						#Manage Create
 						*)
@@ -1782,7 +1593,7 @@ Actions()
 					;;
 				#Display help page
 				help)
-					MenuHelp ${Lang}
+					theHelp MenuHelp ${Lang}
 					;;
 				#load last session
 				last|load)
@@ -2107,7 +1918,7 @@ loadAuto()
 	comp_list "add"
 	comp_list "${ReadBy} read"
 	comp_list "search"
-	comp_list "create" "make version -std= jar manifest args prop properties -D reset"
+	comp_list "create" "make version args cpl cpl-args reset"
 	comp_list "compile cpl car car-a"
 	comp_list "execute exe run" "-a --args"
 	comp_list "version"
@@ -2139,7 +1950,7 @@ main()
 		if [ ! -z "${pg}" ]; then
 			#CliHelp
 			Banner "main"
-			echo "enter \"no-lang\" to enter into a ${Head} shell"
+			echo "enter \"no-lang\" or \"nl\" to enter into a ${Head} shell"
 			echo ""
 			echo "~Choose a language~"
 			#Force user to select language
@@ -2151,8 +1962,8 @@ main()
 					exit)
 						break
 						;;
-					no-lang)
-						Lang="${getLang}"
+					no-lang|nl)
+						Lang="no-lang"
 						break
 						;;
 					*)
@@ -2165,7 +1976,7 @@ main()
 			clear
 			if [ ! -z "${Lang}" ]; then
 				case ${Lang} in
-					no-lang)
+					no-lang|nl)
 						#Start IDE
 						Actions-NoLang
 						;;
@@ -2219,12 +2030,12 @@ main()
 							local Lang
 							local GetProject=$1
 							if [ -z "${GetProject}" ]; then
-								BuildHelp ${UserArg}
+								theHelp BuildHelp ${UserArg}
 							else
 								case ${GetProject} in
 									#Provide the help page
 									-h|--help)
-										BuildHelp ${UserArg}
+										theHelp BuildHelp ${UserArg}
 										;;
 									*)
 										TheProject=$(loadProject ${GetProject})
@@ -2250,7 +2061,7 @@ main()
 							listProjects
 							;;
 						-h|--help)
-							ProjectCliHelp ${UserArg}
+							theHelp ProjectCliHelp ${UserArg}
 							;;
 						*)
 							TheProject=$(loadProject ${GetProject})
@@ -2262,12 +2073,12 @@ main()
 							;;
 					esac
 				else
-					ProjectCliHelp ${UserArg}
+					theHelp ProjectCliHelp ${UserArg}
 				fi
 				;;
 			#Get cli help page
 			-h|--help)
-				CliHelp ${UserArg} $2
+				theHelp CliHelp ${UserArg} $2
 				;;
 			#Load last saved session
 			-l|--load|--last)
@@ -2304,11 +2115,11 @@ main()
 						;;
 					*)
 						if [ -z "${Action}" ]; then
-							EditHelp
+							theHelp EditHelp
 						else
 							case ${Action} in
 								-h|--help)
-									EditHelp
+									theHelp EditHelp
 									;;
 								*)
 									local Lang=$(pgLang $1)
@@ -2355,7 +2166,7 @@ main()
 						local Args=$@
 						main --cpl "${Lang}" "${Code}" ${Args[@]}
 					else
-						cplHelp
+						theHelp cplHelp
 					fi
 				else
 					case ${Code} in
@@ -2426,13 +2237,13 @@ main()
 				local Lang=$1
 				#Provide the help page
 				if [ -z "${Lang}" ]; then
-					RunHelp
+					theHelp RunHelp
 				else
 					local Lang=$(pgLang ${Lang})
 					case ${Lang} in
 						#Provide the help page
 						-h|--help)
-							RunHelp
+							theHelp RunHelp
 							;;
 						*)
 							local Code=$2
@@ -2549,7 +2360,7 @@ main()
 				#Verify Language
 				local Lang=$1
 				case ${Lang} in
-					no-lang)
+					no-lang|nl)
 						#Start IDE
 						Actions-NoLang ${Args[@]}
 						;;

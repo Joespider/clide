@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.20"
+SupportV="0.1.22"
 Lang=Go
 LangExt=".go"
 #Color Green
@@ -162,8 +162,6 @@ UseGo()
 			echo ${LangSrc}
 			;;
 		CreateHelp)
-			echo -e "make\t\t\t: create makefile"
-			echo -e "version, -std=<go#>\t: create makefile"
 			;;
 		shell)
 			;;
@@ -202,7 +200,7 @@ UseGo()
 			;;
 		CplVersion)
 			echo "[${Lang} Compiler]"
-			${LangCpl} --version | head -n 1
+			${LangCpl} version 2> /dev/null | head -n 1
 			echo ""
 			;;
 		selectCode)
@@ -439,6 +437,10 @@ UseGo()
 					;;
 			esac
 			 ;;
+		setCplArgs)
+			;;
+		setCplArgs-help)
+			;;
 		compileCode)
 			local src=$1
 			local name=$2
