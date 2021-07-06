@@ -1515,45 +1515,59 @@ Actions()
 							local NewCode=$(ManageLangs ${Lang} "getNewCode")
 							local LangSrcDir=$(ManageLangs ${Lang} "getSrcDir")
 
-							#Create new souce code in newCode/
-							if [ ! -f ${NewCodeDir}/${NewCode} ]; then
-								if [ ! -f ${LangSrcDir}/${NewCode} ]; then
-									ManageLangs ${Lang} "newCode" ${NewCode}
-								fi
-								mv ${LangSrcDir}/${NewCode} ${NewCodeDir}/
-							fi
+							case ${UserIn[2]} in
+								custom)
+									if [ ! -f ${LangSrcDir}/${NewCode} ]; then
+										ManageLangs ${Lang} "newCode" ${NewCode}
+									fi
+									Code=$(selectCode ${Lang} "set" ${NewCode})
+									refresh="yes"
+									;;
+								default)
+									#Create new souce code in newCode/
+									if [ ! -f ${NewCodeDir}/${NewCode} ]; then
+										if [ ! -f ${LangSrcDir}/${NewCode} ]; then
+											ManageLangs ${Lang} "newCode" ${NewCode}
+										fi
+										mv ${LangSrcDir}/${NewCode} ${NewCodeDir}/
+									fi
 
-							#Copy and set source code to src/
-							cd ${LangSrcDir}/
-							if [ ! -f ${LangSrcDir}/${NewCode} ]; then
-								case ${Lang} in
-									Java)
-										cp ${NewCodeDir}/${NewCode} .
-										;;
-									*)
-										ln -s ${NewCodeDir}/${NewCode}
-										;;
-								esac
-							else
-								case ${Lang} in
-									Java)
-										local choice
-										echo -n "Are you sure you want to overwrite \"${NewCode}\"? (Y/N): "
-										read choice
-										case ${choice^^} in
-											Y|YES)
-												cp ${NewCode} ${NewCodeDir}/
+									#Copy and set source code to src/
+									cd ${LangSrcDir}/
+									if [ ! -f ${LangSrcDir}/${NewCode} ]; then
+										case ${Lang} in
+											Java)
+												cp ${NewCodeDir}/${NewCode} .
+												;;
+											*)
+												ln -s ${NewCodeDir}/${NewCode}
+												;;
+										esac
+									else
+										case ${Lang} in
+											Java)
+												local choice
+												echo -n "Are you sure you want to overwrite \"${NewCode}\"? (Y/N): "
+												read choice
+												case ${choice^^} in
+													Y|YES)
+														cp ${NewCode} ${NewCodeDir}/
+														;;
+													*)
+														;;
+												esac
 												;;
 											*)
 												;;
 										esac
-										;;
-									*)
-										;;
-								esac
-							fi
-							Code=$(selectCode ${Lang} "set" ${NewCode})
-							refresh="yes"
+									fi
+									Code=$(selectCode ${Lang} "set" ${NewCode})
+									refresh="yes"
+									;;
+								help|*)
+									theHelp CreateHelp ${Lang}
+									;;
+							esac
 							;;
 						#Clear all
 						reset)
