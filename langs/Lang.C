@@ -2,7 +2,7 @@ Shell=$(which bash)
 #!${Shell}
 
 #https://www3.ntu.edu.sg/home/ehchua/programming/cpp/gcc_make.html
-SupportV="0.1.18"
+SupportV="0.1.19"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
@@ -1023,6 +1023,7 @@ UseC()
 							#Program Name Given
 							if [ ! -z "${name}" ];then
 								touch "${name}${LangOtherExt}"
+								echo "#pragma once" > "${name}${LangOtherExt}"
 							else
 								errorCode "newCode"
 							fi
