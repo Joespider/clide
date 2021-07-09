@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.23"
+SupportV="0.1.24"
 Lang=Go
 LangExt=".go"
 #Color Green
@@ -296,6 +296,25 @@ UseGo()
 				*)
 					;;
 			esac
+			;;
+		rmBin|rmSrc)
+			local name=$1
+			local ThePath
+			case ${Type} in
+				rmBin)
+					ThePath=${LangBin}
+					name=${name%${LangExt}}
+					;;
+				rmSrc)
+					ThePath=${LangSrc}
+					name=${name%${LangExt}}${LangExt}
+					;;
+				*)
+					;;
+			esac
+			if [ -f ${ThePath}/${name} ]; then
+				echo ${ThePath}/${name}
+			fi
 			;;
 		editCode|readCode)
 			local src=$1

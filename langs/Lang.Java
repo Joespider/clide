@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.66"
+SupportV="0.1.67"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -364,6 +364,29 @@ UseJava()
 						esac
 					;;
 				esac
+			fi
+			;;
+		rmBin|rmSrc)
+			local name=$1
+			local ThePath
+			case ${Type} in
+				rmBin)
+					ThePath=${LangBin}
+					;;
+				rmSrc)
+					ThePath=${LangSrc}
+					;;
+				*)
+					;;
+			esac
+			if [ -f ${ThePath}/${name%${LangExt}}.class ]; then
+				echo ${ThePath}/${name%${LangExt}}.class
+			fi
+			if [ -f ${ThePath}/${name%${LangExt}}.jar ]; then
+				echo ${ThePath}/${name%${LangExt}}.jar
+			fi
+			if [ -f ${ThePath}/${name%${LangExt}}${LangExt} ]; then
+				echo ${ThePath}/${name%${LangExt}}${LangExt}
 			fi
 			;;
 		editCode|readCode)

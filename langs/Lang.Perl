@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.45"
+SupportV="0.1.46"
 Lang=Perl
 LangExt=".pl"
 #Color Purple
@@ -248,6 +248,24 @@ UsePerl()
 				*)
 					;;
 			esac
+			;;
+		rmBin|rmSrc)
+			local name=$1
+			local ThePath
+			name=${name%${LangExt}}${LangExt}
+			case ${Type} in
+				rmBin)
+					ThePath=${LangBin}
+					;;
+				rmSrc)
+					ThePath=${LangSrc}
+					;;
+				*)
+					;;
+			esac
+			if [ -f ${ThePath}/${name} ]; then
+				echo ${ThePath}/${name}
+			fi
 			;;
 		editCode|readCode)
 			local src=$1

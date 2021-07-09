@@ -8,6 +8,7 @@ errorCode()
 	local sec=$1
 	case ${ecd} in
 		alias)
+			errorCode "ERROR"
 			echo "\"${sec}\" already installed"
 			;;
 		install)
@@ -17,11 +18,13 @@ errorCode()
 					echo "please choose script"
 					;;
 				*.java|*.class)
+					errorCode "ERROR"
 					echo "\"${sec}\" needs to be an java jar"
 					errorCode "HINT" "command"
 					echo "cpl --jar"
 					;;
 				*)
+					errorCode "ERROR"
 					echo "\"${sec}\" needs to be an executable"
 					errorCode "HINT" "command"
 					echo "cpl"
@@ -31,6 +34,8 @@ errorCode()
 		lookFor)
 			case ${sec} in
 				none)
+					errorCode "ERROR"
+					echo ""
 					echo "Nothing to search for"
 					echo "Please provide a value"
 					;;
@@ -43,8 +48,10 @@ errorCode()
 			local thr=$1
 			case ${sec} in
 				sure)
-					echo "WARNING: YOU ARE TRYING TO DELETE A FILE"
-					echo "WARNING: You will NOT recover this file"
+					errorCode "WARNING"
+					echo "YOU ARE TRYING TO DELETE A FILE"
+					errorCode "WARNING"
+					echo "You will NOT recover this file"
 					echo ""
 					echo "\"yes\" is NOT \"YES\""
 					;;
@@ -61,23 +68,37 @@ errorCode()
 			esac
 			;;
 		noCode)
+			errorCode "ERROR"
 			echo "No Code Found"
 			errorCode "HINT" "command"
 			echo "set <name>"
 			;;
 		newCode)
-			echo "Please Provide The Name Of Your New Code"
-			errorCode "HINT" "command"
-			echo "new <name>"
+			case ${sec} in
+				already)
+					errorCode "ERROR"
+					echo "source code already made"
+					errorCode "HINT" "command"
+					echo "set <name>"
+					;;
+				*)
+					errorCode "ERROR"
+					echo "Please Provide The Name Of Your New Code"
+					errorCode "HINT" "command"
+					echo "new <name>"
+					;;
+			esac
 			;;
 		newCodeTemp)
 			case ${sec} in
 				no-exist)
+					errorCode "ERROR"
 					echo "No source code found"
 					errorCode "HINT" "command"
 					echo "create ${ecd} new"
 					;;
 				exist)
+					errorCode "ERROR"
 					echo "Template source code already found"
 					errorCode "HINT" "command"
 					echo "create ${ecd} update"
@@ -93,6 +114,7 @@ errorCode()
 			esac
 			;;
 		runCode)
+			errorCode "ERROR"
 			echo "${sec} can only handle ONE file"
 			;;
 		customCode)
@@ -106,6 +128,7 @@ errorCode()
 					echo "set <name>"
 					;;
 				notemp)
+					errorCode "ERROR"
 					echo "No ${thr} Template Found"
 					;;
 				*)
@@ -113,9 +136,11 @@ errorCode()
 			esac
 			;;
 		editNull)
-			echo "hint: ${editor}|edit|ed <file>"
+			errorCode "HINT" "command"
+			echo "${editor}|edit|ed <file>"
 			;;
 		editNot)
+			errorCode "ERROR"
 			echo "code is not found in project"
 			;;
 		selectCode)
@@ -127,22 +152,27 @@ errorCode()
 					echo "set <source>"
 					;;
 				nothing)
+					errorCode "ERROR"
 					echo "There is nothing to add"
 					;;
 				exists)
+					errorCode "ERROR"
 					echo "Source Code has already been selected"
 					errorCode "HINT" "command"
 					echo "add <source>"
 					;;
 				already)
+					errorCode "ERROR"
 					echo "No need to add it again"
 					;;
 				*)
+					errorCode "ERROR"
 					echo "Please select a file to edit"
 					;;
 			esac
 			;;
 		editMe)
+			errorCode "WARNING"
 			echo "For your safety, I am not allowed to edit myself"
 			;;
 		readNull)
@@ -160,6 +190,7 @@ errorCode()
 
 			;;
 		readNot)
+			errorCode "ERROR"
 			echo "code is not found in project"
 			;;
 		project)
@@ -362,6 +393,12 @@ errorCode()
 					echo -n "[HINT]: "
 					;;
 			esac
+			;;
+		ERROR)
+			echo -n "[ERROR]: "
+			;;
+		WARNING)
+			echo -n "[WARNING]: "
 			;;
 		*)
 			;;

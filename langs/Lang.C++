@@ -2,7 +2,7 @@ Shell=$(which bash)
 #!${Shell}
 
 #https://www3.ntu.edu.sg/home/ehchua/programming/cpp/gcc_make.html
-SupportV="0.1.67"
+SupportV="0.1.69"
 Lang=C++
 LangExt=".cpp"
 ColorNum=4
@@ -131,6 +131,7 @@ UseC++()
 			local name=$1
 			name=${name%${LangExt}}
 			name=${name%.h}
+			local oldCode=$2
                         local project=${CodeProject}
                         local newName
                         local DirPath
@@ -167,14 +168,27 @@ UseC++()
 					;;
 			esac
 
-			if [ -f ${TheSrcDir}/${name}${LangExt} ]; then
-				echo ${name}${LangExt}
-			elif [ -f ${TheSrcDir}/${name}.h ]; then
-				echo ${name}.h
-			elif [ -f ${TheSrcDir}/${name} ]; then
-				echo ${name}
-			fi
-
+			case ${oldCode} in
+				*"${name}${LangExt}"*)
+					if [ -f ${TheSrcDir}/${name}.h ]; then
+						echo ${name}.h
+					fi
+					;;
+				*"${name}.h"*)
+					if [ -f ${TheSrcDir}/${name}${LangExt} ]; then
+						echo ${name}${LangExt}
+					fi
+					;;
+				*)
+					if [ -f ${TheSrcDir}/${name}${LangExt} ]; then
+						echo ${name}${LangExt}
+					elif [ -f ${TheSrcDir}/${name}.h ]; then
+						echo ${name}.h
+					elif [ -f ${TheSrcDir}/${name} ]; then
+						echo ${name}
+					fi
+					;;
+			esac
 			;;
 		pgLang)
 			local HasLang=$(which ${LangCpl} 2> /dev/null)
@@ -365,6 +379,30 @@ UseC++()
 						esac
 						;;
 				esac
+			fi
+			;;
+		rmBin|rmSrc)
+			local name=$1
+			local ThePath
+			case ${Type} in
+				rmBin)
+					ThePath=${LangBin}
+					name=${name%${LangExt}}
+					;;
+				rmSrc)
+					local theHeader=${name%${LangExt}}.h
+					ThePath=${LangSrc}
+					name=${name%${LangExt}}${LangExt}
+					#secretly take care of the header file
+					if [ -f ${ThePath}/${theHeader} ]; then
+						rm ${ThePath}/${theHeader}
+					fi
+					;;
+				*)
+					;;
+			esac
+			if [ -f ${ThePath}/${name} ]; then
+				echo ${ThePath}/${name}
 			fi
 			;;
 		editCode|readCode)
@@ -948,6 +986,17 @@ UseC++()
                         local oldCode=$3
 			local project=${CodeProject}
 
+			#Sometimes "oldCode" gets passed as "Type"
+			if [ -z "${oldCode}" ]; then
+				case ${Type} in
+					*.h|*${LangExt})
+						oldCode=${Type}
+						;;
+					*)
+						;;
+				esac
+			fi
+
 			Type=${Type,,}
 			case ${name} in
 				*.h)
@@ -1015,19 +1064,46 @@ UseC++()
 						;;
 					#cl[ide] knows best
 					*)
-						#Is not a project
+						#Because projects are walled off from the rest of your source code,while non-project code is shared,
+						#Source code creation must be handled differently.
+						#(non-project) accounts for what is "set"
+						#(project) accounts for source code living in the directories
 						case ${project} in
+							#Is not a project
 							none)
-								UseC++ "newCode" ${name}  "main" ${oldCode}
+								#Looks like you have source code already set
+								if [ ! -z "${oldCode}" ]; then
+									case ${name%${LangExt}}${LangExt} in
+										#In the event you have a name.cpp file, also make a name.h file
+										*"${oldCode}"*)
+											#echo "header"
+											UseC++ "newCode" ${name%${LangExt}}.h "header" ${oldCode}
+											;;
+										#In the event you already have a main file, create a component
+										*)
+											#echo "component"
+											UseC++ "newCode" ${name} "component" ${oldCode}
+											;;
+									esac
+								#No source code has been made, create a main file
+								else
+									#echo "main"
+									UseC++ "newCode" ${name} "main"
+								fi
 								;;
 							#Is a project
 							*)
+								#Because a project can have source code scattered in different directories,
+								#make sure you have one main component
+								#Figure out how to account for headers
 								local TheSrcDir="${LangProject}/${project}/src/"
 								local NumFound=$(find ${TheSrcDir} -name ${name} 2> /dev/null | wc -l)
 								case ${NumFound} in
+									#No other source code was found...make your main file
 									0)
 										UseC++ "newCode" ${name} "main" ${oldCode}
 										;;
+									#Source code was found...make a component
 									1)
 										UseC++ "newCode" ${name} "component" ${oldCode}
 										;;

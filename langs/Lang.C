@@ -1,10 +1,11 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.15"
+#https://www3.ntu.edu.sg/home/ehchua/programming/cpp/gcc_make.html
+SupportV="0.1.17"
 Lang=C
 LangExt=".c"
-ColorNum=3
+ColorNum=4
 
 CplArgs=$1
 shift
@@ -46,18 +47,17 @@ ProjectTemplateHandler()
 
 UseC()
 {
-	local LangCpl=${UseC}
+	local LangCpl=${UseCpp}
 
 	local LangHome=${ProgDir}/${Lang}
 	local LangSrc=${LangHome}/src
 	local LangBin=${LangHome}/bin
 	local LangProject=${LangHome}/projects
 
-	local TemplateCode=${NewC}
+	local TemplateCode=${NewCpp}
 	TemplateCode=${LangBin}/${TemplateCode%${LangExt}}
 
-	local TemplateCodeSrc=${NewC%${LangExt}}${LangExt}
-
+	local TemplateCodeSrc=${NewCpp%${LangExt}}${LangExt}
 
 	local EnvVars=( ${LangRun} ${LangHome} ${LangSrc} ${LangBin} ${LangExt} )
 	local Type=$1
@@ -68,11 +68,11 @@ UseC()
 			local end="\e[0m"
 			echo -e "  ${srt}.oooooo.${end}"
 			echo -e " ${srt}d8P'${end}  ${srt}\`Y8b${end}"
-			echo -e "${srt}888${end}"
-			echo -e "${srt}888${end}"
-			echo -e "${srt}888${end}"
-			echo -e "${srt}\`88b${end}    ${srt}ooo${end}"
-			echo -e " ${srt}\`Y8bood8P'${end}"
+			echo -e "${srt}888${end}              ${srt}88${end}         ${srt}88${end}"
+			echo -e "${srt}888${end}              ${srt}88${end}         ${srt}88${end}"
+			echo -e "${srt}888${end}          ${srt}8888888888${end} ${srt}8888888888${end}"
+			echo -e "${srt}\`88b${end}    ${srt}ooo${end}      ${srt}88${end}         ${srt}88${end}"
+			echo -e " ${srt}\`Y8bood8P'${end}      ${srt}88${end}         ${srt}88${end}"
 			echo ""
 			;;
 		color)
@@ -131,6 +131,7 @@ UseC()
 			local name=$1
 			name=${name%${LangExt}}
 			name=${name%.h}
+			local oldCode=$2
                         local project=${CodeProject}
                         local newName
                         local DirPath
@@ -167,14 +168,27 @@ UseC()
 					;;
 			esac
 
-			if [ -f ${TheSrcDir}/${name}${LangExt} ]; then
-				echo ${name}${LangExt}
-			elif [ -f ${TheSrcDir}/${name}.h ]; then
-				echo ${name}.h
-			elif [ -f ${TheSrcDir}/${name} ]; then
-				echo ${name}
-			fi
-
+			case ${oldCode} in
+				*"${name}${LangExt}"*)
+					if [ -f ${TheSrcDir}/${name}.h ]; then
+						echo ${name}.h
+					fi
+					;;
+				*"${name}.h"*)
+					if [ -f ${TheSrcDir}/${name}${LangExt} ]; then
+						echo ${name}${LangExt}
+					fi
+					;;
+				*)
+					if [ -f ${TheSrcDir}/${name}${LangExt} ]; then
+						echo ${name}${LangExt}
+					elif [ -f ${TheSrcDir}/${name}.h ]; then
+						echo ${name}.h
+					elif [ -f ${TheSrcDir}/${name} ]; then
+						echo ${name}
+					fi
+					;;
+			esac
 			;;
 		pgLang)
 			local HasLang=$(which ${LangCpl} 2> /dev/null)
@@ -195,7 +209,7 @@ UseC()
 			;;
 		CreateHelp)
 			echo -e "make\t\t\t: create makefile"
-			echo -e "version, -std=<c++#>\t: create makefile"
+			echo -e "version, -std=<c++#>\t: compile with a specific version"
 			;;
 		shell)
 			;;
@@ -367,6 +381,30 @@ UseC()
 				esac
 			fi
 			;;
+		rmBin|rmSrc)
+			local name=$1
+			local ThePath
+			case ${Type} in
+				rmBin)
+					ThePath=${LangBin}
+					name=${name%${LangExt}}
+					;;
+				rmSrc)
+					local theHeader=${name%${LangExt}}.h
+					ThePath=${LangSrc}
+					name=${name%${LangExt}}${LangExt}
+					#secretly take care of the header file
+					if [ -f ${ThePath}/${theHeader} ]; then
+						rm ${ThePath}/${theHeader}
+					fi
+					;;
+				*)
+					;;
+			esac
+			if [ -f ${ThePath}/${name} ]; then
+				echo ${ThePath}/${name}
+			fi
+			;;
 		editCode|readCode)
 			local src=$1
 			local num=$2
@@ -509,20 +547,87 @@ UseC()
 					;;
 			esac
 			 ;;
+		make)
+			local src=$1
+			src=$(echo ${src} | tr ',' ' ')
+			local cplArgs=${CplArgs}
+			local project=${CodeProject}
+			local NeedThreads
+			local HasXlib
+			local HasXutil
+			local HasXos
+			local TheBin=${project}
+			local TheSrcDir="${LangProject}/${project}/src"
+			local TheBinDir="${LangProject}/${project}/bin"
+
+			case ${project} in
+				none)
+					;;
+				*)
+
+					#[Threads] Compile for Threads
+					#{
+					NeedThreads=$(grep "#include <thread>" ${src})
+					if [ ! -z "${NeedThreads}" ]; then
+						cplArgs="${cplArgs} -lpthread"
+					fi
+					#}
+
+					#[X11] Compile with X11 code
+					#{
+					HasXlib=$(grep "#include <X11/Xlib.h>" ${src})
+					HasXutil=$(grep "#include <X11/Xutil.h>" ${src})
+					HasXos=$(grep "#include <X11/Xos.h>" ${src})
+					if [ ! -z "${HasXlib}" ] || [ ! -z "${HasXutil}" ] || [ ! -z "${HasXos}" ]; then
+						cplArgs="${cplArgs} -I /usr/X11/include -L /usr/X11/lib -lX11"
+					fi
+					#}
+
+					#The Make file
+					#{
+					echo "#The Compiler for ${Lang}"
+					echo "cpl = ${LangCpl}"
+					case ${cplArgs} in
+						none)
+							;;
+						*)
+							echo ""
+							echo "#Compile arguments"
+							echo "cplArgs = ${cplArgs}"
+							;;
+					esac
+					echo ""
+					echo "The build target"
+					echo "TheBin = ${TheBin}"
+					echo ""
+					echo "all: \$(TheBin)"
+					echo ""
+					echo "\$(TheBin): ${src}"
+					case ${cplArgs} in
+						none)
+							echo -e "\t\$(cpl) ${src} -o ${TheBinDir}/\$(TheBin)"
+							;;
+						*)
+							echo -e "\t\$(cpl) ${src} -o ${TheBinDir}/\$(TheBin) \$(cplArgs)"
+							;;
+					esac
+					#}
+					;;
+			esac
+			;;
 		setCplArgs)
 			shift
 			shift
 			Vals="none"
 			Item=""
 			str=$@
-			# space is set as delimiter
-			IFS=' '
+			IFS=' '         # space is set as delimiter
 			read -ra arg <<< "${str}"
 			for TheItem in "${arg[@]}"; do
 				if [ ! -z "${TheItem}" ]; then
 					case ${TheItem} in
 						--warnings)
-                                                        Item="-Wall -g"
+							Item="-Wall -g"
 							;;
 						--std=*)
 							local stdVal=${TheItem}
@@ -556,12 +661,27 @@ UseC()
 			;;
 		setCplArgs-help)
 			echo -e "--warnings\t\t: \"Show ALL warnings (-Wall -g)\""
-			echo -e "--std=<version>\t\t: \"Set C version\""
+			echo -e "--std=<version>\t\t: \"Set C++ version\""
+			case ${LangCpl} in
+				g++)
+					echo "These are ALL the ${LangCpl} versions"
+					echo "\tc++98"
+					echo "\tc++11"
+					echo "\tc++14"
+					echo "\tc++17"
+					echo "\tc++2a"
+					;;
+				clangg++)
+					;;
+				*)
+					;;
+			esac
 			;;
 		compileCode)
 			local src=$1
 			local name=$2
-			local cplArgs=$3
+#			local cplArgs=$3
+			local cplArgs=${CplArgs//,/ }
 			local project=${CodeProject}
 			local NeedThreads
 			local HasXlib
@@ -581,7 +701,7 @@ UseC()
 				else
 					name=${src%.*}
 				fi
-				cplArgs=$2
+#				cplArgs=$2
 			fi
 
 			#Handle Project Dir
@@ -609,7 +729,14 @@ UseC()
 			#Compile ONLY if source code is selected OR makefile is present
 			if [[ "$src" == *"${LangExt}"* ]] || [ -f ${LangProject}/${project}makefile ]; then
 				cd ${TheSrcDir}
-				cplArgs=${LangCplVersion}
+				case ${cplArgs} in
+					none)
+						cplArgs=${LangCplVersion}
+						;;
+					*)
+						cplArgs="${cplArgs} ${LangCplVersion}"
+						;;
+				esac
 				#Compile with makefile
 				if [ -f ${LangProject}/${project}makefile ]; then
 					cd ${LangProject}/${project}
@@ -712,7 +839,7 @@ UseC()
 			fi
 			;;
 		newProject)
-			ProjectType=$1
+			local ProjectType=$1
 			local project=$2
 			local path=${LangProject}/${project}
 			#create and cd to project dir
@@ -859,6 +986,17 @@ UseC()
                         local oldCode=$3
 			local project=${CodeProject}
 
+			#Sometimes "oldCode" gets passed as "Type"
+			if [ -z "${oldCode}" ]; then
+				case ${Type} in
+					*.h|*${LangExt})
+						oldCode=${Type}
+						;;
+					*)
+						;;
+				esac
+			fi
+
 			Type=${Type,,}
 			case ${name} in
 				*.h)
@@ -926,19 +1064,46 @@ UseC()
 						;;
 					#cl[ide] knows best
 					*)
-						#Is not a project
+						#Because projects are walled off from the rest of your source code,while non-project code is shared,
+						#Source code creation must be handled differently.
+						#(non-project) accounts for what is "set"
+						#(project) accounts for source code living in the directories
 						case ${project} in
+							#Is not a project
 							none)
-								UseC "newCode" ${name}  "main" ${oldCode}
+								#Looks like you have source code already set
+								if [ ! -z "${oldCode}" ]; then
+									case ${name%${LangExt}}${LangExt} in
+										#In the event you have a name.cpp file, also make a name.h file
+										*"${oldCode}"*)
+											#echo "header"
+											UseC "newCode" ${name%${LangExt}}.h "header" ${oldCode}
+											;;
+										#In the event you already have a main file, create a component
+										*)
+											#echo "component"
+											UseC "newCode" ${name} "component" ${oldCode}
+											;;
+									esac
+								#No source code has been made, create a main file
+								else
+									#echo "main"
+									UseC "newCode" ${name} "main"
+								fi
 								;;
 							#Is a project
 							*)
+								#Because a project can have source code scattered in different directories,
+								#make sure you have one main component
+								#Figure out how to account for headers
 								local TheSrcDir="${LangProject}/${project}/src/"
 								local NumFound=$(find ${TheSrcDir} -name ${name} 2> /dev/null | wc -l)
 								case ${NumFound} in
+									#No other source code was found...make your main file
 									0)
 										UseC "newCode" ${name} "main" ${oldCode}
 										;;
+									#Source code was found...make a component
 									1)
 										UseC "newCode" ${name} "component" ${oldCode}
 										;;

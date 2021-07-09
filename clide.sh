@@ -579,6 +579,7 @@ Remove()
 	local active=$1
 	local src=$2
 	local option=$3
+	local TheFile
 	if [ ! -z "${src}" ]; then
 		case  ${src} in
 			--force)
@@ -588,10 +589,18 @@ Remove()
 			*)
 				;;
 		esac
-		if [ *"${src}"* == "${active}" ]; then
-			if [ -f ${src} ]; then
+
+		case ${active} in
+			*"${src}"*)
 				if [ "${option}" == "--force" ]; then
-					rm ${src}
+					TheFile=$(ManageLangs ${Lang} "rmSrc" ${src})
+					if [ ! -z "${TheFile}" ]; then
+						rm ${TheFile}
+					fi
+					TheFile=$(ManageLangs ${Lang} "rmBin" ${src})
+					if [ ! -z "${TheFile}" ]; then
+						rm ${TheFile}
+					fi
 					echo "\"${src}\" is REMOVED"
 				else
 					clear
@@ -601,22 +610,30 @@ Remove()
 					case ${User} in
 						YES)
 							clear
-							rm ${src}
+							TheFile=$(ManageLangs ${Lang} "rmSrc" ${src})
+							if [ ! -z "${TheFile}" ]; then
+								rm ${TheFile}
+							fi
+							TheFile=$(ManageLangs ${Lang} "rmBin" ${src})
+							if [ ! -z "${TheFile}" ]; then
+								rm ${TheFile}
+							fi
 							echo "\"${src}\" is REMOVED"
 							;;
 						*)
 							clear
 							echo "\"${src}\" is NOT removed"
 							;;
-		 			esac
+	 				esac
 					errorCode "remove" "hint"
 				fi
-			else
+				;;
+			*)
 				errorCode "remove" "not-file" "${src}"
-			fi
-		else
-			errorCode "remove" "not-file" "${src}"
-		fi
+				;;
+		esac
+	else
+		errorCode "remove" "hint"
 	fi
 }
 
@@ -1326,7 +1343,7 @@ Actions()
 						--help|-h)
 							theHelp newCodeHelp ${Lang}
 							;;
-						--custom|-c)
+						--custom|-c)getSrcDir
 							local BeforeFiles=""
 							local AfterFiles=""
 							local Type=""
@@ -1350,16 +1367,30 @@ Actions()
 						*)
 							#Ensure filename is given
 							if [ ! -z "${UserIn[1]}" ]; then
-								#Return the name of source code
-								ManageLangs ${Lang} "newCode" ${UserIn[1]} ${UserIn[2]} ${Code}
-								if [ ! -z "${Code}" ]; then
-									local OldCode=${Code}
-									Code=$(ManageLangs ${Lang} "getCode" ${UserIn[1]})
-									Code=$(ManageLangs ${Lang} "addCode" ${OldCode} ${UserIn[1]})
+								local TheFile="${UserIn[1]}"
+								local ThePath=$(ManageLangs ${Lang} "getSrcDir")
+								local TheExt=$(ManageLangs ${Lang} "getExt")
+								if [ ! -f ${ThePath}/${TheFile%${TheExt}}${TheExt} ]; then
+									#Return the name of source code
+									ManageLangs ${Lang} "newCode" ${UserIn[1]} ${UserIn[2]} ${Code}
+									if [ ! -z "${Code}" ]; then
+										local OldCode=${Code}
+										local NewCode=$(ManageLangs ${Lang} "getCode" ${UserIn[1]} ${OldCode})
+										case ${OldCode} in
+											*"${NewCode}"*)
+												errorCode "selectCode" "already"
+												;;
+											*)
+												Code=$(ManageLangs ${Lang} "addCode" ${OldCode} ${NewCode})
+												;;
+										esac
+									else
+										Code=$(ManageLangs ${Lang} "getCode" ${UserIn[1]} ${OldCode})
+									fi
+									refresh="yes"
 								else
-									Code=$(ManageLangs ${Lang} "getCode" ${UserIn[1]})
+									errorCode "newCode" "already"
 								fi
-								refresh="yes"
 							else
 								theHelp newCodeHelp ${Lang}
 							fi
