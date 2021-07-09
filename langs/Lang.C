@@ -2,10 +2,11 @@ Shell=$(which bash)
 #!${Shell}
 
 #https://www3.ntu.edu.sg/home/ehchua/programming/cpp/gcc_make.html
-SupportV="0.1.17"
+SupportV="0.1.18"
 Lang=C
 LangExt=".c"
-ColorNum=4
+LangOtherExt=".h"
+ColorNum=3
 
 CplArgs=$1
 shift
@@ -67,12 +68,12 @@ UseC()
 			local srt="\e[1;3${ColorNum}m"
 			local end="\e[0m"
 			echo -e "  ${srt}.oooooo.${end}"
-			echo -e " ${srt}d8P'${end}  ${srt}\`Y8b${end}"
-			echo -e "${srt}888${end}              ${srt}88${end}         ${srt}88${end}"
-			echo -e "${srt}888${end}              ${srt}88${end}         ${srt}88${end}"
-			echo -e "${srt}888${end}          ${srt}8888888888${end} ${srt}8888888888${end}"
-			echo -e "${srt}\`88b${end}    ${srt}ooo${end}      ${srt}88${end}         ${srt}88${end}"
-			echo -e " ${srt}\`Y8bood8P'${end}      ${srt}88${end}         ${srt}88${end}"
+			echo -e " ${srt}d8P'${end}"
+			echo -e "${srt}888${end}"
+			echo -e "${srt}888${end}"
+			echo -e "${srt}888${end}"
+			echo -e "${srt}\`88b${end}"
+			echo -e " ${srt}\`Y8bood8P'${end}"
 			echo ""
 			;;
 		color)
@@ -91,11 +92,18 @@ UseC()
 		getExt)
 			echo ${LangExt}
 			;;
+		getOtherExt)
+			echo ${LangOtherExt}
+			;;
 		SupportVersion)
 			echo ${SupportV}
 			;;
 		MenuHelp)
-			echo -e "new <file> {main|header|component} : \"create new ${Lang} source file\""
+			echo -e "new <file> <type>\t\t: \"create new ${Lang} source file\""
+			echo -e "\t<file> main\t\t: \"create 'main' source file\""
+			echo -e "\t<file> component\t: \"create 'component' source file\""
+			echo -e "\t<file> header\t\t: \"create 'header' source file\""
+			echo -e "\t\t\t\t: \"if no type is provide, cl[ide] will assume for you\""
 			echo -e "cpl, compile\t\t\t: \"make code executable\""
 			;;
 		ProjectHelp)
@@ -130,7 +138,7 @@ UseC()
 		getCode)
 			local name=$1
 			name=${name%${LangExt}}
-			name=${name%.h}
+			name=${name%${LangOtherExt}}
 			local oldCode=$2
                         local project=${CodeProject}
                         local newName
@@ -170,11 +178,11 @@ UseC()
 
 			case ${oldCode} in
 				*"${name}${LangExt}"*)
-					if [ -f ${TheSrcDir}/${name}.h ]; then
-						echo ${name}.h
+					if [ -f ${TheSrcDir}/${name}${LangOtherExt} ]; then
+						echo ${name}${LangOtherExt}
 					fi
 					;;
-				*"${name}.h"*)
+				*"${name}${LangOtherExt}"*)
 					if [ -f ${TheSrcDir}/${name}${LangExt} ]; then
 						echo ${name}${LangExt}
 					fi
@@ -182,8 +190,8 @@ UseC()
 				*)
 					if [ -f ${TheSrcDir}/${name}${LangExt} ]; then
 						echo ${name}${LangExt}
-					elif [ -f ${TheSrcDir}/${name}.h ]; then
-						echo ${name}.h
+					elif [ -f ${TheSrcDir}/${name}${LangOtherExt} ]; then
+						echo ${name}${LangOtherExt}
 					elif [ -f ${TheSrcDir}/${name} ]; then
 						echo ${name}
 					fi
@@ -193,7 +201,7 @@ UseC()
 		pgLang)
 			local HasLang=$(which ${LangCpl} 2> /dev/null)
 			if [ ! -z "${HasLang}" ]; then
-				#Return C++ tag
+				#Return C tag
 				echo "${Lang}"
 			else
 				#Return rejection
@@ -201,15 +209,15 @@ UseC()
 			fi
 			;;
 		BeforeFiles|AfterFiles)
-			ls *${LangExt} *.h 2> /dev/null
+			ls *${LangExt} *${LangOtherExt} 2> /dev/null
 			;;
 		pgDir)
-			#Return C++ src Dir
+			#Return C src Dir
 			echo ${LangSrc}
 			;;
 		CreateHelp)
 			echo -e "make\t\t\t: create makefile"
-			echo -e "version, -std=<c++#>\t: compile with a specific version"
+			echo -e "version, -std=<c#>\t: compile with a specific version"
 			;;
 		shell)
 			;;
@@ -270,8 +278,8 @@ UseC()
 								#Correct filename
 								if [[ ! "${name}" == *"${LangExt}" ]] && [ -f "${name}${LangExt}" ]; then
 									name="${name}${LangExt}"
-								elif [[ ! "${name}" == *".h" ]] && [ -f "${name}.h" ]; then
-									name="${name}.h"
+								elif [[ ! "${name}" == *"${LangOtherExt}" ]] && [ -f "${name}${LangOtherExt}" ]; then
+									name="${name}${LangOtherExt}"
 								fi
 
 								#Return source file if exists
@@ -281,10 +289,10 @@ UseC()
 								;;
 							addCode)
 								case ${name} in
-									*${LangExt}|*.h)
+									*${LangExt}|*${LangOtherExt})
 										#Add cpp or header files with file extensions
 										case ${new} in
-											*${LangExt}|*.h)
+											*${LangExt}|*${LangOtherExt})
 												#Append file
 												if [ -f "${new}" ]; then
 													echo "${name},${new}"
@@ -298,8 +306,8 @@ UseC()
 												if [ -f "${new}${LangExt}" ]; then
 													echo "${name},${new}${LangExt}"
 												#Append header files
-												elif [ -f "${new}.h" ]; then
-													echo "${name},${new}.h"
+												elif [ -f "${new}${LangOtherExt}" ]; then
+													echo "${name},${new}${LangOtherExt}"
 												else
 													echo "${name}"
 												fi
@@ -323,8 +331,8 @@ UseC()
 								#Correct filename
 								if [[ ! "${new}" == *"${LangExt}" ]]; then
 									new="${new}${LangExt}"
-								elif [[ ! "${new}" == *".h" ]]; then
-									new="${new}.h"
+								elif [[ ! "${new}" == *"${LangOtherExt}" ]]; then
+									new="${new}${LangOtherExt}"
 								fi
 								LookFor=${new}
 								;;
@@ -332,8 +340,8 @@ UseC()
 								#Correct filename
 								if [[ ! "${name}" == *"${LangExt}" ]]; then
 									name="${name}${LangExt}"
-								elif [[ ! "${name}" == *".h" ]]; then
-									name="${name}.h"
+								elif [[ ! "${name}" == *"${LangOtherExt}" ]]; then
+									name="${name}${LangOtherExt}"
 								fi
 								LookFor=${name}
 								;;
@@ -390,7 +398,7 @@ UseC()
 					name=${name%${LangExt}}
 					;;
 				rmSrc)
-					local theHeader=${name%${LangExt}}.h
+					local theHeader=${name%${LangExt}}${LangOtherExt}
 					ThePath=${LangSrc}
 					name=${name%${LangExt}}${LangExt}
 					#secretly take care of the header file
@@ -429,7 +437,7 @@ UseC()
 			#}
 
 			case ${src} in
-				*${LangExt}|*.h)
+				*${LangExt}|*${LangOtherExt})
 					case ${project} in
 						none)
 							if [[ "${src}" == *","* ]]; then
@@ -484,7 +492,7 @@ UseC()
 									NumFound=0
 								else
 									if [[ "${src}" == *"${num}"* ]]; then
-										if [[ "${num}" == *"${LangExt}" ]] || [[ "${num}" == *".h" ]]; then
+										if [[ "${num}" == *"${LangExt}" ]] || [[ "${num}" == *"${LangOtherExt}" ]]; then
 											src=${num}
 										else
 											src=${num}${LangExt}
@@ -661,17 +669,17 @@ UseC()
 			;;
 		setCplArgs-help)
 			echo -e "--warnings\t\t: \"Show ALL warnings (-Wall -g)\""
-			echo -e "--std=<version>\t\t: \"Set C++ version\""
+			echo -e "--std=<version>\t\t: \"Set C version\""
 			case ${LangCpl} in
-				g++)
-					echo "These are ALL the ${LangCpl} versions"
-					echo "\tc++98"
-					echo "\tc++11"
-					echo "\tc++14"
-					echo "\tc++17"
-					echo "\tc++2a"
+				gcc)
+#					echo "These are ALL the ${LangCpl} versions"
+#					echo "\tc++98"
+#					echo "\tc++11"
+#					echo "\tc++14"
+#					echo "\tc++17"
+#					echo "\tc++2a"
 					;;
-				clangg++)
+				clang)
 					;;
 				*)
 					;;
@@ -989,7 +997,7 @@ UseC()
 			#Sometimes "oldCode" gets passed as "Type"
 			if [ -z "${oldCode}" ]; then
 				case ${Type} in
-					*.h|*${LangExt})
+					*${LangOtherExt}|*${LangExt})
 						oldCode=${Type}
 						;;
 					*)
@@ -999,66 +1007,71 @@ UseC()
 
 			Type=${Type,,}
 			case ${name} in
-				*.h)
-					name=${name%.h}
+				*${LangOtherExt})
+					name=${name%${LangOtherExt}}
 					Type="header"
 					;;
 				*)
 					name=${name%${LangExt}}
 					;;
 			esac
-
-			if [ ! -f ${name}${LangExt} ] || [ ! -f ${name}.h ]; then
+			if [ ! -f ${name}${LangExt} ] || [ ! -f ${name}${LangOtherExt} ]; then
 				case ${Type} in
 					#create header file
 					header)
-						#Program Name Given
-						if [ ! -z "${name}" ];then
-							touch "${name}.h"
-						else
-							errorCode "newCode"
+						if [ ! -f ${name}${LangOtherExt} ]; then
+							#Program Name Given
+							if [ ! -z "${name}" ];then
+								touch "${name}${LangOtherExt}"
+							else
+								errorCode "newCode"
+							fi
 						fi
 						;;
 					#create main file
 					main)
-						#Check for Custom Code Template
-						if [ -f ${TemplateCode} ]; then
-							#Program Name Given
-							if [ ! -z "${name}" ];then
-								${TemplateCode} --random --write-file --read-file --cli --main --is-in --user-input --name ${name}
-							#No Program Name Given
+						if [ ! -f ${name}${LangExt} ]; then
+							#Check for Custom Code Template
+							if [ -f ${TemplateCode} ]; then
+								#Program Name Given
+								if [ ! -z "${name}" ];then
+									${TemplateCode} --random --write-file --read-file --cli --main --is-in --user-input --name ${name}
+								#No Program Name Given
+								else
+									#Help Page
+									${TemplateCode} --help
+								fi
 							else
-								#Help Page
-								${TemplateCode} --help
-							fi
-						else
-							#Program Name Given
-							if [ ! -z "${name}" ];then
-								local Content="#include <stdio.h>\n\n//${Lang} Main\nint main()\n{\n\n\treturn 0;\n}"
-								touch ${name}${LangExt}
-								echo -e "${Content}" > ${name}${LangExt}
-							else
-								errorCode "newCode"
+								#Program Name Given
+								if [ ! -z "${name}" ];then
+									local Content="#include <stdio.h>\n\n//${Lang} Main\nint main()\n{\n\n\treturn 0;\n}"
+									touch ${name}${LangExt}
+									echo -e "${Content}" > ${name}${LangExt}
+								else
+									errorCode "newCode"
+								fi
 							fi
 						fi
 						;;
 					#create component file
 					component)
-						if [ -f ${TemplateCode} ]; then
-							#Program Name Given
-							if [ ! -z "${name}" ];then
-								${TemplateCode} -n "${name}"
-							#No Program Name Given
+						if [ ! -f ${name}${LangExt} ]; then
+							if [ -f ${TemplateCode} ]; then
+								#Program Name Given
+								if [ ! -z "${name}" ];then
+									${TemplateCode} -n "${name}"
+								#No Program Name Given
+								else
+									#Help Page
+									${TemplateCode} --help
+								fi
 							else
-								#Help Page
-								${TemplateCode} --help
-							fi
-						else
-							#Program Name Given
-							if [ ! -z "${name}" ];then
-								touch ${name}${LangExt}
-							else
-								errorCode "newCode"
+								#Program Name Given
+								if [ ! -z "${name}" ];then
+									touch ${name}${LangExt}
+								else
+									errorCode "newCode"
+								fi
 							fi
 						fi
 						;;
@@ -1077,7 +1090,7 @@ UseC()
 										#In the event you have a name.cpp file, also make a name.h file
 										*"${oldCode}"*)
 											#echo "header"
-											UseC "newCode" ${name%${LangExt}}.h "header" ${oldCode}
+											UseC "newCode" ${name%${LangExt}}${LangOtherExt} "header" ${oldCode}
 											;;
 										#In the event you already have a main file, create a component
 										*)

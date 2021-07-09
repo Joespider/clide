@@ -1366,31 +1366,56 @@ Actions()
 						#Create new src file
 						*)
 							#Ensure filename is given
-							if [ ! -z "${UserIn[1]}" ]; then
+							if [ ! -z "${UserIn[1]}" ]; then\
+								local IsOk
 								local TheFile="${UserIn[1]}"
 								local ThePath=$(ManageLangs ${Lang} "getSrcDir")
 								local TheExt=$(ManageLangs ${Lang} "getExt")
-								if [ ! -f ${ThePath}/${TheFile%${TheExt}}${TheExt} ]; then
-									#Return the name of source code
-									ManageLangs ${Lang} "newCode" ${UserIn[1]} ${UserIn[2]} ${Code}
-									if [ ! -z "${Code}" ]; then
-										local OldCode=${Code}
-										local NewCode=$(ManageLangs ${Lang} "getCode" ${UserIn[1]} ${OldCode})
-										case ${OldCode} in
-											*"${NewCode}"*)
-												errorCode "selectCode" "already"
-												;;
-											*)
-												Code=$(ManageLangs ${Lang} "addCode" ${OldCode} ${NewCode})
-												;;
-										esac
+								local TheOtherExt=$(ManageLangs ${Lang} "getOtherExt")
+
+								if [ ! -z "${TheOtherExt}" ]; then
+									TheFile=${TheFile%${TheExt}}
+									TheFile=${TheFile%${TheOtherExt}}
+									if [ ! -f ${ThePath}/${TheFile}${TheExt} ] || [ ! -f ${ThePath}/${TheFile}${TheOtherExt} ]; then
+										IsOk="yes"
 									else
-										Code=$(ManageLangs ${Lang} "getCode" ${UserIn[1]} ${OldCode})
+										IsOk="no"
 									fi
-									refresh="yes"
 								else
-									errorCode "newCode" "already"
+									TheFile=${TheFile%${TheExt}}
+									if [ ! -f ${ThePath}/${TheFile}${TheExt} ]; then
+										IsOk="yes"
+									else
+										IsOk="no"
+									fi
 								fi
+
+								case ${IsOk} in
+									yes)
+										#Return the name of source code
+										ManageLangs ${Lang} "newCode" ${UserIn[1]} ${UserIn[2]} ${Code}
+										if [ ! -z "${Code}" ]; then
+											local OldCode=${Code}
+											local NewCode=$(ManageLangs ${Lang} "getCode" ${UserIn[1]} ${OldCode})
+											case ${OldCode} in
+												*"${NewCode}"*)
+													errorCode "selectCode" "already"
+													;;
+												*)
+													Code=$(ManageLangs ${Lang} "addCode" ${OldCode} ${NewCode})
+													;;
+											esac
+										else
+											Code=$(ManageLangs ${Lang} "getCode" ${UserIn[1]} ${OldCode})
+										fi
+										refresh="yes"
+										;;
+									no)
+										errorCode "newCode" "already"
+										;;
+									*)
+										;;
+								esac
 							else
 								theHelp newCodeHelp ${Lang}
 							fi
