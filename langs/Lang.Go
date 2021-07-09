@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.24"
+SupportV="0.1.25"
 Lang=Go
 LangExt=".go"
 #Color Green
@@ -300,14 +300,13 @@ UseGo()
 		rmBin|rmSrc)
 			local name=$1
 			local ThePath
+			name=${name%${LangExt}}${LangExt}
 			case ${Type} in
 				rmBin)
 					ThePath=${LangBin}
-					name=${name%${LangExt}}
 					;;
 				rmSrc)
 					ThePath=${LangSrc}
-					name=${name%${LangExt}}${LangExt}
 					;;
 				*)
 					;;

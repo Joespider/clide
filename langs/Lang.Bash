@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.49"
+SupportV="0.1.50"
 Lang=Bash
 LangExt=".sh"
 ColorNum=2
@@ -257,6 +257,7 @@ UseBash()
 		rmBin|rmSrc)
 			local name=$1
 			local ThePath
+			name=${name%${LangExt}}${LangExt}
 			case ${Type} in
 				rmBin)
 					ThePath=${LangBin}

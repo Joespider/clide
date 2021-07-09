@@ -593,11 +593,11 @@ Remove()
 		case ${active} in
 			*"${src}"*)
 				if [ "${option}" == "--force" ]; then
-					TheFile=$(ManageLangs ${Lang} "rmSrc" ${src})
+					TheFile=$(ManageLangs ${Lang} "rmBin" ${src})
 					if [ ! -z "${TheFile}" ]; then
 						rm ${TheFile}
 					fi
-					TheFile=$(ManageLangs ${Lang} "rmBin" ${src})
+					TheFile=$(ManageLangs ${Lang} "rmSrc" ${src})
 					if [ ! -z "${TheFile}" ]; then
 						rm ${TheFile}
 					fi
@@ -610,11 +610,11 @@ Remove()
 					case ${User} in
 						YES)
 							clear
-							TheFile=$(ManageLangs ${Lang} "rmSrc" ${src})
+							TheFile=$(ManageLangs ${Lang} "rmBin" ${src})
 							if [ ! -z "${TheFile}" ]; then
 								rm ${TheFile}
 							fi
-							TheFile=$(ManageLangs ${Lang} "rmBin" ${src})
+							TheFile=$(ManageLangs ${Lang} "rmSrc" ${src})
 							if [ ! -z "${TheFile}" ]; then
 								rm ${TheFile}
 							fi
