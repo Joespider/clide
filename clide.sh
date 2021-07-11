@@ -1594,11 +1594,21 @@ Actions()
 					;;
 				#Add code to Source Code
 				add)
+					local theExt
+					local theOtherExt
+					local newCode
 					if [ ! -z ${Code} ]; then
 						if [ ! -z "${UserIn[1]}" ]; then
+							theExt=$(ManageLangs ${Lang} "getExt")
+							theOtherExt=$(ManageLangs ${Lang} "getOtherExt")
+							newCode=${UserIn[1]}
+							newCode=${newCode%${theExt}}
+							if [ ! -z "${theOtherExt}" ]; then
+								newCode=${newCode%${theOtherExt}}
+							fi
 							#Ensure Code is not added twice
-							if [[ ! "${Code}" == *"${UserIn[1]}"* ]]; then
-								Code=$(ManageLangs ${Lang} "addCode" ${Code} ${UserIn[1]})
+							if [[ ! "${Code}" == *"${newCode}${theExt}"* ]] || [[ ! "${Code}" == *"${newCode}${theOtherExt}"* ]]; then
+								Code=$(ManageLangs ${Lang} "addCode" ${Code} ${newCode})
 								refresh="yes"
 							#Code is trying to be added twice
 							else
