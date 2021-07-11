@@ -256,6 +256,37 @@ errorCode()
 							;;
 					esac
 					;;
+				link)
+					shift
+					local four=$1
+					case ${thr} in
+						unable-link)
+							if [ ! -z "${four}" ]; then
+								echo "Unable to link \"${four}\""
+								echo "May have already been linked"
+							else
+								echo "Please provide language"
+								errorCode "HINT" "command"
+								echo "project link <lang>"
+							fi
+							;;
+						not-link)
+							if [ ! -z "${four}" ]; then
+								echo "Unable to swap to \"${four}\""
+								echo ""
+								echo "Please link ${four}"
+								errorCode "HINT" "command"
+								echo "project link ${four}"
+							else
+								echo "Please provide language"
+								errorCode "HINT" "command"
+								echo "project swap <lang>"
+							fi
+							;;
+						*)
+							;;
+					esac
+					;;
 				not-exist)
 					echo "Unable to create your project \"${thr}\""
 					;;

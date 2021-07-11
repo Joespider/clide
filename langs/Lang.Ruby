@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.45"
+SupportV="0.1.46"
 Lang=Ruby
 LangExt=".rb"
 ColorNum=1
@@ -89,6 +89,9 @@ UseRuby()
 			;;
 		getSrcDir)
 			echo ${LangSrc}
+			;;
+		getProjDir)
+			echo ${LangProject}
 			;;
 		getExt)
 			echo ${LangExt}

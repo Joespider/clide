@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.25"
+SupportV="0.1.26"
 Lang=Go
 LangExt=".go"
 #Color Green
@@ -86,6 +86,9 @@ UseGo()
 			;;
 		getSrcDir)
 			echo ${LangSrc}
+			;;
+		getProjDir)
+			echo ${LangProject}
 			;;
 		getExt)
 			echo ${LangExt}

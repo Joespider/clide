@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.50"
+SupportV="0.1.51"
 Lang=Bash
 LangExt=".sh"
 ColorNum=2
@@ -89,6 +89,9 @@ UseBash()
 			;;
 		getSrcDir)
 			echo ${LangSrc}
+			;;
+		getProjDir)
+			echo ${LangProject}
 			;;
 		getExt)
 			echo ${LangExt}

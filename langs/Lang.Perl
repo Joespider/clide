@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.46"
+SupportV="0.1.47"
 Lang=Perl
 LangExt=".pl"
 #Color Purple
@@ -87,6 +87,9 @@ UsePerl()
 			;;
 		getSrcDir)
 			echo ${LangSrc}
+			;;
+		getProjDir)
+			echo ${LangProject}
 			;;
 		getExt)
 			echo ${LangExt}

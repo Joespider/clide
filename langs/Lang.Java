@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.67"
+SupportV="0.1.69"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -94,6 +94,9 @@ UseJava()
 			;;
 		getSrcDir)
 			echo ${LangSrc}
+			;;
+		getProjDir)
+			echo ${LangProject}
 			;;
 		getExt)
 			echo ${LangExt}
@@ -325,14 +328,16 @@ UseJava()
 								;;
 						esac
 
-						local NumFound=$(find ${TheSrcDir} -name ${LookFor} 2> /dev/null | grep "${ProjectMode}" | wc -l)
+						#local NumFound=$(find ${TheSrcDir} -name ${LookFor} 2> /dev/null | grep "${ProjectMode}" | wc -l)
+						local NumFound=$(find ${TheSrcDir} -name ${LookFor} 2> /dev/null | wc -l)
 						case ${NumFound} in
 							0)
 								;;
 							1)
 								case ${Type} in
 									addCode)
-										new=$(find ${TheSrcDir} -name ${new} 2> /dev/null | grep "${ProjectMode}")
+										#new=$(find ${TheSrcDir} -name ${new} 2> /dev/null | grep "${ProjectMode}")
+										new=$(find ${TheSrcDir} -name ${new} 2> /dev/null)
 										if [ -f ${new} ]; then
 											new=${new%${LangExt}}
 											newName=${new##*/}
@@ -342,7 +347,8 @@ UseJava()
 										fi
 										;;
 									selectCode)
-										name=$(find ${TheSrcDir} -name ${name} 2> /dev/null | grep "${ProjectMode}")
+										#name=$(find ${TheSrcDir} -name ${name} 2> /dev/null | grep "${ProjectMode}")
+										name=$(find ${TheSrcDir} -name ${name} 2> /dev/null)
 										if [ -f ${name} ]; then
 											name=${name%${LangExt}}
 											newName=${name##*/}
@@ -471,15 +477,18 @@ UseJava()
 						#Is a project
 						*)
 							if [[ "${src}" == *","* ]]; then
-								echo "Please Add support for handling ${src}"
+								echo "Please Add support for handling multiple source code"
 							else
 								TheSrcDir="${LangProject}/${project}/src/"
-								local NumFound=$(find ${TheSrcDir} -name ${src} 2> /dev/null | grep "${ProjectMode}" | wc -l)
+
+								#local NumFound=$(find ${TheSrcDir} -name ${src} 2> /dev/null | grep "${ProjectMode}" | wc -l)
+								local NumFound=$(find ${TheSrcDir} -name ${src} 2> /dev/null | wc -l)
 								case ${NumFound} in
 									0)
 										;;
 									1)
-										src=$(find ${TheSrcDir} -name ${src} 2> /dev/null | grep "${ProjectMode}")
+										src=$(find ${TheSrcDir} -name ${src} 2> /dev/null)
+										#src=$(find ${TheSrcDir} -name ${src} 2> /dev/null | grep "${ProjectMode}")
 										if [ -f ${src} ]; then
 											#Read or Write Code
 											#{
@@ -489,13 +498,15 @@ UseJava()
 										;;
 									*)
 										local Select
-										find ${TheSrcDir} -name ${src} 2> /dev/null | grep "${ProjectMode}" | sed "s/\/${project}\/src\//|/1" | cut -d '|' -f 2 | nl
+										#find ${TheSrcDir} -name ${src} 2> /dev/null | grep "${ProjectMode}" | sed "s/\/${project}\/src\//|/1" | cut -d '|' -f 2 | nl
+										find ${TheSrcDir} -name ${src} 2> /dev/null | sed "s/\/${project}\/src\//|/1" | cut -d '|' -f 2 | nl
 										echo -n "> "
 										read Select
 										Select=$(echo ${Select} | grep "^-\?[0-9]*$")
 										if [ ! -z "${Select}" ]; then
 											if [ ${Select} -le ${NumFound} ] && [ ${Select} -gt 0 ]; then
-												src=$(find ${TheSrcDir} -name ${src} 2> /dev/null | grep "${ProjectMode}" | tr '\n' '|' | cut -d '|' -f ${Select})
+												#src=$(find ${TheSrcDir} -name ${src} 2> /dev/null | grep "${ProjectMode}" | tr '\n' '|' | cut -d '|' -f ${Select})
+												src=$(find ${TheSrcDir} -name ${src} 2> /dev/null | tr '\n' '|' | cut -d '|' -f ${Select})
 												#Read or Write Code
 												#{
 												${ReadOrEdit} ${src}

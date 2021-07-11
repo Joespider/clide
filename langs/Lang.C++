@@ -2,7 +2,7 @@ Shell=$(which bash)
 #!${Shell}
 
 #https://www3.ntu.edu.sg/home/ehchua/programming/cpp/gcc_make.html
-SupportV="0.1.71"
+SupportV="0.1.72"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -88,6 +88,9 @@ UseC++()
 			;;
 		getSrcDir)
 			echo ${LangSrc}
+			;;
+		getProjDir)
+			echo ${LangProject}
 			;;
 		getExt)
 			echo ${LangExt}

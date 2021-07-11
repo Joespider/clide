@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.53"
+SupportV="0.1.54"
 Lang=Python
 LangExt=".py"
 #Color Yellow
@@ -88,6 +88,9 @@ UsePython()
 			;;
 		getSrcDir)
 			echo ${LangSrc}
+			;;
+		getProjDir)
+			echo ${LangProject}
 			;;
 		getExt)
 			echo ${LangExt}

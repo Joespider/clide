@@ -487,6 +487,95 @@ updateProject()
 	fi
 }
 
+linkProjects()
+{
+	local Lang=$1
+	local LinkLang=$2
+	local ThePath
+	local LinkPath
+	local project
+	if [ ! -z "${3}" ]; then
+		project=$3
+	else
+		project=${CodeProject}
+	fi
+	local ProjectFile=${ActiveProjectDir}/${project}.clide
+	LinkLang="${LinkLang,,}"
+	LinkLang="${LinkLang^}"
+
+	if [ ! -z "${LinkLang}" ]; then
+		local Already=$(grep "link=" ${ProjectFile})
+		local Langs=$(ls ${LangsDir}/ | sed "s/Lang./|/g")
+		ThePath=$(ManageLangs ${LinkLang} "getProjDir")
+		LinkPath=$(ManageLangs ${Lang} "getProjDir")
+		Langs=$(echo ${Langs} | tr -d ' ')
+		Langs="${Langs}|"
+		case ${Langs} in
+			*"|${LinkLang}|"*)
+				if [ -z "${Already}" ]; then
+					echo "link=${Lang},${LinkLang}," >> ${ProjectFile}
+					if [ -f ${LinkPath}/${project} ]; then
+						cd ${ThePath}
+						ln -s ${LinkPath}/${project}
+						cd - > /dev/null
+					fi
+					echo ${LinkLang}
+				else
+					case ${Already} in
+						*"${LinkLang},"*)
+							;;
+						*)
+							sed -i "s/${Already}/${Already}${LinkLang},/g" ${ProjectFile}
+							if [ -f ${LinkPath}/${project} ]; then
+								cd ${ThePath}
+								ln -s ${LinkPath}/${project} 2> /dev/null
+								cd - > /dev/null
+							fi
+							echo ${LinkLang}
+							;;
+					esac
+				fi
+				;;
+			*)
+				;;
+		esac
+	fi
+}
+
+swapProjects()
+{
+	local Lang=$1
+	local LinkLang=$2
+	local ThePath
+	local LinkPath
+	LinkLang="${LinkLang,,}"
+	LinkLang="${LinkLang^}"
+	local project=${CodeProject}
+	local ProjectFile=${ActiveProjectDir}/${project}.clide
+	local Already=$(grep "link=" ${ProjectFile})
+
+	if [ ! -z "${LinkLang}" ]; then
+		local Langs=$(ls ${LangsDir}/ | sed "s/Lang./|/g")
+		Langs=$(echo ${Langs} | tr -d ' ')
+		Langs="${Langs}|"
+		case ${Langs} in
+			*"|${LinkLang}|"*)
+				if [ ! -z "${Already}" ]; then
+					case ${Already} in
+						*"${LinkLang},"*)
+							echo ${LinkLang}
+							;;
+						*)
+							;;
+					esac
+				fi
+				;;
+			*)
+				;;
+		esac
+	fi
+}
+
 #list active projects
 listProjects()
 {
@@ -497,6 +586,9 @@ listProjects()
 #Discover Project in clide
 discoverProject()
 {
+	local Action=$1
+	local LinkLang=$2
+	local TheProjName=$3
 	local TheLang
 	local Langs=$(ls ${LangsDir}/ | sed "s/Lang.//g" | tr '\n' '|' | rev | sed "s/|//1" | rev)
 	local NumOfLangs=$(ls ${LangsDir}/ | wc -l)
@@ -519,7 +611,27 @@ discoverProject()
 			while [ ${For} -le ${NumOfProject} ];
 			do
 				Name=$(echo ${text} | cut -d '|' -f ${For})
-				importProject ${TheLang} ${Name} ${Path}${Name} > /dev/null
+				case ${Action} in
+					relink)
+						#Ignore anything that isn't a symbolic link
+						if [ -L ${Path}${Name} ]; then
+							case ${TheProjName} in
+								${Name})
+									linkProjects ${LinkLang} ${TheLang} ${Name}
+									;;
+								*)
+									;;
+							esac
+						fi
+						;;
+					*)
+						#Ignore anything that isn't a symbolic link
+						if [ ! -L ${Path}${Name} ]; then
+							importProject ${TheLang} ${Name} ${Path}${Name} #> /dev/null
+							discoverProject "relink" ${TheLang} ${Name} > /dev/null
+						fi
+						;;
+				esac
 				For=$((${For}+1))
 			done
 
@@ -1109,6 +1221,44 @@ Actions()
 							updateProject ${Code}
 							echo "\"${CodeProject}\" updated"
 							;;
+						#Link a project with another language
+						link)
+							local project=${CodeProject}
+						        local ProjectFile=${ActiveProjectDir}/${project}.clide
+						        local Already=$(grep "link=" ${ProjectFile})
+						        case ${UserIn[2]} in
+					        	        --list|list)
+				                        		echo ${Already} | sed "s/link=//g" | tr ',' '\n'
+									;;
+								*)
+									local IsLinked=$(linkProjects ${Lang} ${UserIn[2]})
+									if [ ! -z "${IsLinked}" ]; then
+										Lang=${IsLinked}
+									else
+										errorCode "project" "link" "unable-link" ${UserIn[2]}
+									fi
+									;;
+							esac
+							;;
+						swap)
+							local project=${CodeProject}
+						        local ProjectFile=${ActiveProjectDir}/${project}.clide
+						        local Already=$(grep "link=" ${ProjectFile})
+						        case ${UserIn[2]} in
+					        	        --list|list)
+				                        		echo ${Already} | sed "s/link=//g" | tr ',' '\n'
+									;;
+								*)
+									local IsLinked=$(swapProjects ${Lang} ${UserIn[2]})
+									if [ ! -z "${IsLinked}" ]; then
+										Lang=${IsLinked}
+										Code=""
+									else
+										errorCode "project" "link" "not-link" ${UserIn[2]}
+									fi
+									;;
+							esac
+							;;
 						#Load an existing project
 						load)
 							project=$(loadProject ${UserIn[2]})
@@ -1343,7 +1493,7 @@ Actions()
 						--help|-h)
 							theHelp newCodeHelp ${Lang}
 							;;
-						--custom|-c)getSrcDir
+						--custom|-c)
 							local BeforeFiles=""
 							local AfterFiles=""
 							local Type=""
@@ -1803,7 +1953,7 @@ Actions()
 											;;
 										*)
 											ThePWD=${PWD}
-											ProjectDir=$(echo ${${PWD}#*${CodeProject}})
+											ProjectDir=$(echo ${ThePWD#*${CodeProject}})
 											ProjectDir=${ProjectDir/\//:}
 											#Menu with no code
 											cCodeProject=$(ManageLangs ${Lang} "ProjectColor")
@@ -2025,7 +2175,7 @@ loadAuto()
 	comp_list "pwd"
 	comp_list "mkdir"
 	comp_list "use" "${pg}"
-	comp_list "project" "load import new list update type mode discover"
+	comp_list "project" "discover import load list link mode new swap update type"
 	comp_list "package" "new"
 	comp_list "shell"
 	comp_list "new" "--version -v --help -h --custom -c"
@@ -2033,7 +2183,7 @@ loadAuto()
 	comp_list "add"
 	comp_list "${ReadBy} read"
 	comp_list "search"
-	comp_list "create" "make version args cpl cpl-args reset newCodeTemp"
+	comp_list "create" "args cpl cpl-args make newCodeTemp reset version"
 	comp_list "compile cpl car car-a"
 	comp_list "execute exe run" "-a --args"
 	comp_list "version"

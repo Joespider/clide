@@ -19,8 +19,8 @@ ManageLangs()
 	local Manage=$@
 	if [ -f ${Langs} ]; then
 		${Langs} ${PassedVars[@]} ${Manage[@]}
-	else
-		UseOther ${TheLang} ${Manage[@]}
+#	else
+#		UseOther ${TheLang} ${Manage[@]}
 	fi
 }
 
@@ -78,6 +78,10 @@ MenuHelp()
 					echo -e "\tupdate\t\t\t: \"update your existing project\""
 					echo -e "\tlist\t\t\t: \"list all your projects\""
 					echo -e "\tload\t\t\t: \"load and existing projects\""
+					echo -e "\tlink <lang>\t\t: \"Link a language to an active project\""
+					echo -e "\t\t--list, list\t: \"list the linked languages in an active project\""
+					echo -e "\tswap <lang>\t\t: \"swap to a language in an active project\""
+					echo -e "\t\t--list, list\t: \"list the linked languages in an active project\""
 					echo -e "\tdiscover\t\t: \"update the list of projects\""
 					echo -e "${repoTool}, repo\t\t\t: \"handle repos\""
 					;;
@@ -132,11 +136,15 @@ ProjectHelp()
 	echo -e "update\t\t\t\t: \"Update the active project\""
 	echo -e "load <project>\t\t\t: \"Choose a project to make active\""
 	echo -e "type\t\t\t\t: \"display the type of project\""
-	echo -e "\tlist\t\t: \"Show list of possible project types\""
+	echo -e "\tlist\t\t\t: \"Show list of possible project types\""
 	echo -e "list\t\t\t\t: \"List ALL projects\""
+	echo -e "link <lang>\t\t\t: \"Link a language to an active project\""
+	echo -e "\t--list, list\t\t: \"list the linked languages in an active project\""
+	echo -e "swap <lang>\t\t\t: \"swap to a language in an active project\""
+	echo -e "\t--list, list\t\t: \"list the linked languages in an active project\""
 	echo -e "active\t\t\t\t: \"Display the name of the current project\""
 	echo -e "types\t\t\t\t: \"Display the types of projects under ${Lang}\""
-	echo -e "discover\t\t\t\t: \"Discover project on system (creates project profile)"
+	echo -e "discover\t\t\t: \"Discover project on system (creates project profile)"
 	ManageLangs ${Lang} "ProjectHelp"
 	echo "----------------------------------------------------------"
 	echo ""
