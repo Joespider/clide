@@ -514,7 +514,7 @@ linkProjects()
 			*"|${LinkLang}|"*)
 				if [ -z "${Already}" ]; then
 					echo "link=${Lang},${LinkLang}," >> ${ProjectFile}
-					if [ -f ${LinkPath}/${project} ]; then
+					if [ ! -f ${LinkPath}/${project} ]; then
 						cd ${ThePath}
 						ln -s ${LinkPath}/${project}
 						cd - > /dev/null
@@ -526,7 +526,7 @@ linkProjects()
 							;;
 						*)
 							sed -i "s/${Already}/${Already}${LinkLang},/g" ${ProjectFile}
-							if [ -f ${LinkPath}/${project} ]; then
+							if [ ! -f ${LinkPath}/${project} ]; then
 								cd ${ThePath}
 								ln -s ${LinkPath}/${project} 2> /dev/null
 								cd - > /dev/null
@@ -1236,6 +1236,7 @@ Actions()
 									local IsLinked=$(linkProjects ${Lang} ${UserIn[2]})
 									if [ ! -z "${IsLinked}" ]; then
 										Lang=${IsLinked}
+										Code=""
 									else
 										errorCode "project" "link" "unable-link" ${UserIn[2]}
 									fi
