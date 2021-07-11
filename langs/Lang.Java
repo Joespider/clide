@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.69"
+SupportV="0.1.70"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -328,16 +328,14 @@ UseJava()
 								;;
 						esac
 
-						#local NumFound=$(find ${TheSrcDir} -name ${LookFor} 2> /dev/null | grep "${ProjectMode}" | wc -l)
-						local NumFound=$(find ${TheSrcDir} -name ${LookFor} 2> /dev/null | wc -l)
+						local NumFound=$(find ${TheSrcDir} -name ${LookFor} 2> /dev/null | grep "${ProjectMode}" | wc -l)
 						case ${NumFound} in
 							0)
 								;;
 							1)
 								case ${Type} in
 									addCode)
-										#new=$(find ${TheSrcDir} -name ${new} 2> /dev/null | grep "${ProjectMode}")
-										new=$(find ${TheSrcDir} -name ${new} 2> /dev/null)
+										new=$(find ${TheSrcDir} -name ${new} 2> /dev/null | grep "${ProjectMode}")
 										if [ -f ${new} ]; then
 											new=${new%${LangExt}}
 											newName=${new##*/}
@@ -347,8 +345,7 @@ UseJava()
 										fi
 										;;
 									selectCode)
-										#name=$(find ${TheSrcDir} -name ${name} 2> /dev/null | grep "${ProjectMode}")
-										name=$(find ${TheSrcDir} -name ${name} 2> /dev/null)
+										name=$(find ${TheSrcDir} -name ${name} 2> /dev/null | grep "${ProjectMode}")
 										if [ -f ${name} ]; then
 											name=${name%${LangExt}}
 											newName=${name##*/}
@@ -481,14 +478,12 @@ UseJava()
 							else
 								TheSrcDir="${LangProject}/${project}/src/"
 
-								#local NumFound=$(find ${TheSrcDir} -name ${src} 2> /dev/null | grep "${ProjectMode}" | wc -l)
-								local NumFound=$(find ${TheSrcDir} -name ${src} 2> /dev/null | wc -l)
+								local NumFound=$(find ${TheSrcDir} -name ${src} 2> /dev/null | grep "${ProjectMode}" | wc -l)
 								case ${NumFound} in
 									0)
 										;;
 									1)
-										src=$(find ${TheSrcDir} -name ${src} 2> /dev/null)
-										#src=$(find ${TheSrcDir} -name ${src} 2> /dev/null | grep "${ProjectMode}")
+										src=$(find ${TheSrcDir} -name ${src} 2> /dev/null | grep "${ProjectMode}")
 										if [ -f ${src} ]; then
 											#Read or Write Code
 											#{
@@ -498,15 +493,13 @@ UseJava()
 										;;
 									*)
 										local Select
-										#find ${TheSrcDir} -name ${src} 2> /dev/null | grep "${ProjectMode}" | sed "s/\/${project}\/src\//|/1" | cut -d '|' -f 2 | nl
-										find ${TheSrcDir} -name ${src} 2> /dev/null | sed "s/\/${project}\/src\//|/1" | cut -d '|' -f 2 | nl
+										find ${TheSrcDir} -name ${src} 2> /dev/null | grep "${ProjectMode}" | sed "s/\/${project}\/src\//|/1" | cut -d '|' -f 2 | nl
 										echo -n "> "
 										read Select
 										Select=$(echo ${Select} | grep "^-\?[0-9]*$")
 										if [ ! -z "${Select}" ]; then
 											if [ ${Select} -le ${NumFound} ] && [ ${Select} -gt 0 ]; then
-												#src=$(find ${TheSrcDir} -name ${src} 2> /dev/null | grep "${ProjectMode}" | tr '\n' '|' | cut -d '|' -f ${Select})
-												src=$(find ${TheSrcDir} -name ${src} 2> /dev/null | tr '\n' '|' | cut -d '|' -f ${Select})
+												src=$(find ${TheSrcDir} -name ${src} 2> /dev/null | grep "${ProjectMode}" | tr '\n' '|' | cut -d '|' -f ${Select})
 												#Read or Write Code
 												#{
 												${ReadOrEdit} ${src}
@@ -953,6 +946,17 @@ UseJava()
 			local TemplateC=${TemplateCodeClass##*/}
 			TemplateC=${TemplateC%.*}
 
+			#Sometimes "oldCode" gets passed as "Type"
+			if [ -z "${oldCode}" ]; then
+				case ${Type} in
+					*${LangOtherExt}|*${LangExt})
+						oldCode=${Type}
+						;;
+					*)
+						;;
+				esac
+			fi
+
 			Type=${Type,,}
 			name=${name%${LangExt}}
 			local TheSrcDir
@@ -968,8 +972,9 @@ UseJava()
 							;;
 						#Handle Project Specific code
 						*)
-							PackageName=$(pwd | sed "s/${project}\/src/|/g" | cut -d '|' -f 2 | sed "s/\/main\/java\///1" | sed "s/\/test\/java\///1" | tr '/' '.')
+							PackageName=$(echo ${PWD}/ | sed "s/${project}\/src/|/g" | cut -d '|' -f 2 | sed "s/\/main\/java\///1" | sed "s/\/test\/java\///1" | tr '/' '.')
 							if [ ! -z "${PackageName}" ]; then
+								PackageName=${PackageName%%.*}
 								PackageNameJava="--package ${PackageName}"
 							fi
 							;;
@@ -979,6 +984,7 @@ UseJava()
 							case ${Type} in
 								#create main file
 								main)
+									#echo "main"
 									cd ${LangBin}
 									${LangRun} ${TemplateC} --user $USER --main --shell --write-file --read-file --user-input --append-array ${PackageNameJava} --name ${name}
 									cd - > /dev/null
@@ -986,6 +992,7 @@ UseJava()
 									;;
 								#create component file
 								component)
+									#echo "component"
 									cd ${LangBin}
 									${LangRun} ${TemplateC} --user $USER --write-file --read-file --user-input --append-array ${PackageNameJava} --name ${name}
 									cd - > /dev/null
@@ -993,14 +1000,52 @@ UseJava()
 									;;
 								#cl[ide] knows best
 								*)
-									#main class already created
-									if [[ "${oldCode}" == *"${LangExt}" ]]; then
-										#Create libary class
-										UseJava "newCode" ${name} "component" ${oldCode}
-									else
-										#Create new main code
-										UseJava "newCode" ${name} "main" ${oldCode}
-									fi
+									#Because projects are walled off from the rest of your source code,while non-project code is shared,
+									#Source code creation must be handled differently.
+									#(non-project) accounts for what is "set"
+									#(project) accounts for source code living in the directories
+									case ${project} in
+										#Is not a project
+										none)
+											#Looks like you have source code already set
+											case ${oldCode} in
+												#main class already created
+												*"${LangExt}")
+													#Create libary class
+													UseJava "newCode" ${name} "component" ${oldCode}
+													;;
+												*)
+													#Create new main code
+													UseJava "newCode" ${name} "main" ${oldCode}
+													;;
+											esac
+											;;
+										#Is a project
+										*)
+											case ${PWD} in
+												*"/main/java"*|*"/test/java"*)
+													#Because a project can have source code scattered in different directories,
+													#make sure you have one main component
+													local TheSrcDir="${LangProject}/${project}/src/"
+													local NumFound=$(find ${TheSrcDir} -type f -name "*${LangExt}" 2> /dev/null | wc -l)
+													case ${NumFound} in
+														#No other source code was found...make your main file
+														0)
+															#Create new main code
+															UseJava "newCode" ${name} "main" ${oldCode}
+															;;
+														#Source code was found...make a component
+														*)
+															#Create libary class
+															UseJava "newCode" ${name} "component" ${oldCode}
+															;;
+													esac
+													;;
+												*)
+													;;
+											esac
+											;;
+									esac
 									;;
 							esac
 						#Check for Custom Code Template...is jar
@@ -1008,33 +1053,91 @@ UseJava()
 							case ${Type} in
 								#create main file
 								main)
+									#echo "main"
 									${LangRun} -jar ${TemplateCodeJar} --user $USER --main --shell --write-file --read-file --user-input --append-array ${PackageNameJava} --name ${name}
 									;;
 								#create component file
 								component)
+									#echo "component"
 									${LangRun} -jar ${TemplateCodeJar} --user $USER --write-file --read-file ${PackageNameJava} --name ${name}
 									;;
 								#cl[ide] knows best
 								*)
-									if [[ "${oldCode}" == *"${LangExt}" ]]; then
-										#Create libary class
-										UseJava "newCode" ${name} "component" ${oldCode}
-									else
-										#Create new main code
-										UseJava "newCode" ${name} "main" ${oldCode}
-									fi
+									#Because projects are walled off from the rest of your source code,while non-project code is shared,
+									#Source code creation must be handled differently.
+									#(non-project) accounts for what is "set"
+									#(project) accounts for source code living in the directories
+									case ${project} in
+										#Is not a project
+										none)
+											#Looks like you have source code already set
+											case ${oldCode} in
+												#main class already created
+												*"${LangExt}")
+													#Create libary class
+													UseJava "newCode" ${name} "component" ${oldCode}
+													;;
+												*)
+													#Create new main code
+													UseJava "newCode" ${name} "main" ${oldCode}
+													;;
+											esac
+											;;
+										#Is a project
+										*)
+											case ${PWD} in
+												*"/main/java"*|*"/test/java"*)
+													#Because a project can have source code scattered in different directories,
+													#make sure you have one main component
+													local TheSrcDir="${LangProject}/${project}/src/"
+													local NumFound=$(find ${TheSrcDir} -type f -name "*${LangExt}" 2> /dev/null | wc -l)
+													case ${NumFound} in
+														#No other source code was found...make your main file
+														0)
+															#Create new main code
+															UseJava "newCode" ${name} "main" ${oldCode}
+															;;
+														#Source code was found...make a component
+														*)
+															#Create libary class
+															UseJava "newCode" ${name} "component" ${oldCode}
+															;;
+													esac
+													;;
+												*)
+													;;
+											esac
+											;;
+									esac
 									;;
 							esac
 						#No Template Program
 						else
-							echo ${TheSrcDir}${name}${LangExt}
-							if [ ! -z "${PackageName}" ]; then
-								Content="package ${PackageName};\n\n/**\n *\n * @author $USER\n */\n\n//class name\npublic class ${name} {\n\n\t/**\n\t* @param args the command line arguments\n\t*/\n\tpublic static void main(String[] args) {\n\n\t}\n}"
-							else
-								Content="//class path goes here\n\n/**\n *\n * @author $USER\n */\n\n//class name\npublic class ${name} {\n\n\t/**\n\t* @param args the command line arguments\n\t*/\n\tpublic static void main(String[] args) {\n\n\t}\n}"
-							fi
-							touch ${name}${LangExt}
-							echo -e "${Content}" > ${name}${LangExt}
+							#Determine if project
+							case ${project} in
+								#not a project
+								none)
+									Content="//class path goes here\n\n/**\n *\n * @author $USER\n */\n\n//class name\npublic class ${name} {\n\n\t/**\n\t* @param args the command line arguments\n\t*/\n\tpublic static void main(String[] args) {\n\n\t}\n}"
+									touch ${name}${LangExt}
+									echo -e "${Content}" > ${name}${LangExt}
+									;;
+								#Handle Project Specific code
+								*)
+									case ${PWD} in
+										*"/main/java"*|*"/test/java"*)
+											if [ ! -z "${PackageName}" ]; then
+												Content="package ${PackageName};\n\n/**\n *\n * @author $USER\n */\n\n//class name\npublic class ${name} {\n\n\t/**\n\t* @param args the command line arguments\n\t*/\n\tpublic static void main(String[] args) {\n\n\t}\n}"
+											else
+												Content="//class path goes here\n\n/**\n *\n * @author $USER\n */\n\n//class name\npublic class ${name} {\n\n\t/**\n\t* @param args the command line arguments\n\t*/\n\tpublic static void main(String[] args) {\n\n\t}\n}"
+											fi
+											touch ${name}${LangExt}
+											echo -e "${Content}" > ${name}${LangExt}
+											;;
+										*)
+											;;
+									esac
+									;;
+							esac
 						fi
 				fi
 			#No Program Name Given

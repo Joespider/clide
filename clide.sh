@@ -1013,8 +1013,9 @@ Actions()
 					;;
 				*)
 					ThePWD=${PWD}
-					ProjectDir=$(echo ${ThePWD#*${CodeProject}})
-					ProjectDir=${ProjectDir/\//:}
+					#ProjectDir=${ThePWD#*${CodeProject}}
+					ProjectDir=${ThePWD##*/}
+					#ProjectDir=${ProjectDir/\//:}
 					cCodeProject=$(ManageLangs ${Lang} "ProjectColor")
 					#Menu with no code
 					prompt="${Name}(${cCodeProject}[${ProjectType:0:1}${ProjectDir}]):$ "
@@ -1046,11 +1047,12 @@ Actions()
 					;;
 				*)
 					ThePWD=${PWD}
-					ProjectDir=$(echo ${ThePWD#*${CodeProject}})
-					ProjectDir=${ProjectDir/\//:}
+					#ProjectDir=${ThePWD#*${CodeProject}}
+					ProjectDir=${ThePWD##*/}
+					#ProjectDir=${ProjectDir/\//:}
 					#Menu with no code
 					cCodeProject=$(ManageLangs ${Lang} "ProjectColor")
-					prompt="${Name}(${cCodeProject}[${ProjectType:0:1}${ProjectDir}]{${listSrc}}):$ "
+					prompt="${Name}(${cCodeProject}[${ProjectType:0:1}:${ProjectDir}]{${listSrc}}):$ "
 					;;
 			esac
 		fi
@@ -1920,11 +1922,12 @@ Actions()
 											;;
 										*)
 											ThePWD=$(pwd)
-											ProjectDir=$(echo ${ThePWD#*${CodeProject}})
-											ProjectDir=${ProjectDir/\//:}
+											#ProjectDir=${ThePWD#*${CodeProject}}
+											ProjectDir=${ThePWD##*/}
+											#ProjectDir=${ProjectDir/\//:}
 											cCodeProject=$(ManageLangs ${Lang} "ProjectColor")
 											#Menu with no code
-											prompt="${Name}(${cCodeProject}[${ProjectType:0:1}${ProjectDir}]):$ "
+											prompt="${Name}(${cCodeProject}[${ProjectType:0:1}:${ProjectDir}]):$ "
 											;;
 									esac
 								else
@@ -1953,11 +1956,12 @@ Actions()
 											;;
 										*)
 											ThePWD=${PWD}
-											ProjectDir=$(echo ${ThePWD#*${CodeProject}})
-											ProjectDir=${ProjectDir/\//:}
+											#ProjectDir=${ThePWD#*${CodeProject}}
+											ProjectDir=${ThePWD##*/}
+											#ProjectDir=${ProjectDir/\//:}
 											#Menu with no code
 											cCodeProject=$(ManageLangs ${Lang} "ProjectColor")
-											prompt="${Name}(${cCodeProject}[${ProjectType:0:1}${ProjectDir}]{${listSrc}}):$ "
+											prompt="${Name}(${cCodeProject}[${ProjectType:0:1}:${ProjectDir}]{${listSrc}}):$ "
 											;;
 									esac
 								fi
