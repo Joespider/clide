@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.44"
+SupportV="0.1.46"
 Lang=Ruby
 LangExt=".rb"
 ColorNum=1
@@ -89,6 +89,9 @@ UseRuby()
 			;;
 		getSrcDir)
 			echo ${LangSrc}
+			;;
+		getProjDir)
+			echo ${LangProject}
 			;;
 		getExt)
 			echo ${LangExt}
@@ -251,6 +254,24 @@ UseRuby()
 				*)
 					;;
 			esac
+			;;
+		rmBin|rmSrc)
+			local name=$1
+			local ThePath
+			name=${name%${LangExt}}${LangExt}
+			case ${Type} in
+				rmBin)
+					ThePath=${LangBin}
+					;;
+				rmSrc)
+					ThePath=${LangSrc}
+					;;
+				*)
+					;;
+			esac
+			if [ -f ${ThePath}/${name} ]; then
+				echo ${ThePath}/${name}
+			fi
 			;;
 		editCode|readCode)
 			local src=$1

@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.23"
+SupportV="0.1.26"
 Lang=Go
 LangExt=".go"
 #Color Green
@@ -86,6 +86,9 @@ UseGo()
 			;;
 		getSrcDir)
 			echo ${LangSrc}
+			;;
+		getProjDir)
+			echo ${LangProject}
 			;;
 		getExt)
 			echo ${LangExt}
@@ -296,6 +299,24 @@ UseGo()
 				*)
 					;;
 			esac
+			;;
+		rmBin|rmSrc)
+			local name=$1
+			local ThePath
+			name=${name%${LangExt}}${LangExt}
+			case ${Type} in
+				rmBin)
+					ThePath=${LangBin}
+					;;
+				rmSrc)
+					ThePath=${LangSrc}
+					;;
+				*)
+					;;
+			esac
+			if [ -f ${ThePath}/${name} ]; then
+				echo ${ThePath}/${name}
+			fi
 			;;
 		editCode|readCode)
 			local src=$1

@@ -487,6 +487,95 @@ updateProject()
 	fi
 }
 
+linkProjects()
+{
+	local Lang=$1
+	local LinkLang=$2
+	local ThePath
+	local LinkPath
+	local project
+	if [ ! -z "${3}" ]; then
+		project=$3
+	else
+		project=${CodeProject}
+	fi
+	local ProjectFile=${ActiveProjectDir}/${project}.clide
+	LinkLang="${LinkLang,,}"
+	LinkLang="${LinkLang^}"
+
+	if [ ! -z "${LinkLang}" ]; then
+		local Already=$(grep "link=" ${ProjectFile})
+		local Langs=$(ls ${LangsDir}/ | sed "s/Lang./|/g")
+		ThePath=$(ManageLangs ${LinkLang} "getProjDir")
+		LinkPath=$(ManageLangs ${Lang} "getProjDir")
+		Langs=$(echo ${Langs} | tr -d ' ')
+		Langs="${Langs}|"
+		case ${Langs} in
+			*"|${LinkLang}|"*)
+				if [ -z "${Already}" ]; then
+					echo "link=${Lang},${LinkLang}," >> ${ProjectFile}
+					if [ ! -f ${LinkPath}/${project} ]; then
+						cd ${ThePath}
+						ln -s ${LinkPath}/${project}
+						cd - > /dev/null
+					fi
+					echo ${LinkLang}
+				else
+					case ${Already} in
+						*"${LinkLang},"*)
+							;;
+						*)
+							sed -i "s/${Already}/${Already}${LinkLang},/g" ${ProjectFile}
+							if [ ! -f ${LinkPath}/${project} ]; then
+								cd ${ThePath}
+								ln -s ${LinkPath}/${project} 2> /dev/null
+								cd - > /dev/null
+							fi
+							echo ${LinkLang}
+							;;
+					esac
+				fi
+				;;
+			*)
+				;;
+		esac
+	fi
+}
+
+swapProjects()
+{
+	local Lang=$1
+	local LinkLang=$2
+	local ThePath
+	local LinkPath
+	LinkLang="${LinkLang,,}"
+	LinkLang="${LinkLang^}"
+	local project=${CodeProject}
+	local ProjectFile=${ActiveProjectDir}/${project}.clide
+	local Already=$(grep "link=" ${ProjectFile})
+
+	if [ ! -z "${LinkLang}" ]; then
+		local Langs=$(ls ${LangsDir}/ | sed "s/Lang./|/g")
+		Langs=$(echo ${Langs} | tr -d ' ')
+		Langs="${Langs}|"
+		case ${Langs} in
+			*"|${LinkLang}|"*)
+				if [ ! -z "${Already}" ]; then
+					case ${Already} in
+						*"${LinkLang},"*)
+							echo ${LinkLang}
+							;;
+						*)
+							;;
+					esac
+				fi
+				;;
+			*)
+				;;
+		esac
+	fi
+}
+
 #list active projects
 listProjects()
 {
@@ -497,6 +586,9 @@ listProjects()
 #Discover Project in clide
 discoverProject()
 {
+	local Action=$1
+	local LinkLang=$2
+	local TheProjName=$3
 	local TheLang
 	local Langs=$(ls ${LangsDir}/ | sed "s/Lang.//g" | tr '\n' '|' | rev | sed "s/|//1" | rev)
 	local NumOfLangs=$(ls ${LangsDir}/ | wc -l)
@@ -519,7 +611,27 @@ discoverProject()
 			while [ ${For} -le ${NumOfProject} ];
 			do
 				Name=$(echo ${text} | cut -d '|' -f ${For})
-				importProject ${TheLang} ${Name} ${Path}${Name} > /dev/null
+				case ${Action} in
+					relink)
+						#Ignore anything that isn't a symbolic link
+						if [ -L ${Path}${Name} ]; then
+							case ${TheProjName} in
+								${Name})
+									linkProjects ${LinkLang} ${TheLang} ${Name}
+									;;
+								*)
+									;;
+							esac
+						fi
+						;;
+					*)
+						#Ignore anything that isn't a symbolic link
+						if [ ! -L ${Path}${Name} ]; then
+							importProject ${TheLang} ${Name} ${Path}${Name} #> /dev/null
+							discoverProject "relink" ${TheLang} ${Name} > /dev/null
+						fi
+						;;
+				esac
 				For=$((${For}+1))
 			done
 
@@ -579,6 +691,7 @@ Remove()
 	local active=$1
 	local src=$2
 	local option=$3
+	local TheFile
 	if [ ! -z "${src}" ]; then
 		case  ${src} in
 			--force)
@@ -588,10 +701,18 @@ Remove()
 			*)
 				;;
 		esac
-		if [ *"${src}"* == "${active}" ]; then
-			if [ -f ${src} ]; then
+
+		case ${active} in
+			*"${src}"*)
 				if [ "${option}" == "--force" ]; then
-					rm ${src}
+					TheFile=$(ManageLangs ${Lang} "rmBin" ${src})
+					if [ ! -z "${TheFile}" ]; then
+						rm ${TheFile}
+					fi
+					TheFile=$(ManageLangs ${Lang} "rmSrc" ${src})
+					if [ ! -z "${TheFile}" ]; then
+						rm ${TheFile}
+					fi
 					echo "\"${src}\" is REMOVED"
 				else
 					clear
@@ -601,22 +722,30 @@ Remove()
 					case ${User} in
 						YES)
 							clear
-							rm ${src}
+							TheFile=$(ManageLangs ${Lang} "rmBin" ${src})
+							if [ ! -z "${TheFile}" ]; then
+								rm ${TheFile}
+							fi
+							TheFile=$(ManageLangs ${Lang} "rmSrc" ${src})
+							if [ ! -z "${TheFile}" ]; then
+								rm ${TheFile}
+							fi
 							echo "\"${src}\" is REMOVED"
 							;;
 						*)
 							clear
 							echo "\"${src}\" is NOT removed"
 							;;
-		 			esac
+	 				esac
 					errorCode "remove" "hint"
 				fi
-			else
+				;;
+			*)
 				errorCode "remove" "not-file" "${src}"
-			fi
-		else
-			errorCode "remove" "not-file" "${src}"
-		fi
+				;;
+		esac
+	else
+		errorCode "remove" "hint"
 	fi
 }
 
@@ -884,8 +1013,9 @@ Actions()
 					;;
 				*)
 					ThePWD=${PWD}
-					ProjectDir=$(echo ${ThePWD#*${CodeProject}})
-					ProjectDir=${ProjectDir/\//:}
+					#ProjectDir=${ThePWD#*${CodeProject}}
+					ProjectDir=${ThePWD##*/}
+					#ProjectDir=${ProjectDir/\//:}
 					cCodeProject=$(ManageLangs ${Lang} "ProjectColor")
 					#Menu with no code
 					prompt="${Name}(${cCodeProject}[${ProjectType:0:1}${ProjectDir}]):$ "
@@ -917,11 +1047,12 @@ Actions()
 					;;
 				*)
 					ThePWD=${PWD}
-					ProjectDir=$(echo ${ThePWD#*${CodeProject}})
-					ProjectDir=${ProjectDir/\//:}
+					#ProjectDir=${ThePWD#*${CodeProject}}
+					ProjectDir=${ThePWD##*/}
+					#ProjectDir=${ProjectDir/\//:}
 					#Menu with no code
 					cCodeProject=$(ManageLangs ${Lang} "ProjectColor")
-					prompt="${Name}(${cCodeProject}[${ProjectType:0:1}${ProjectDir}]{${listSrc}}):$ "
+					prompt="${Name}(${cCodeProject}[${ProjectType:0:1}:${ProjectDir}]{${listSrc}}):$ "
 					;;
 			esac
 		fi
@@ -1091,6 +1222,45 @@ Actions()
 						update)
 							updateProject ${Code}
 							echo "\"${CodeProject}\" updated"
+							;;
+						#Link a project with another language
+						link)
+							local project=${CodeProject}
+						        local ProjectFile=${ActiveProjectDir}/${project}.clide
+						        local Already=$(grep "link=" ${ProjectFile})
+						        case ${UserIn[2]} in
+					        	        --list|list)
+				                        		echo ${Already} | sed "s/link=//g" | tr ',' '\n'
+									;;
+								*)
+									local IsLinked=$(linkProjects ${Lang} ${UserIn[2]})
+									if [ ! -z "${IsLinked}" ]; then
+										Lang=${IsLinked}
+										Code=""
+									else
+										errorCode "project" "link" "unable-link" ${UserIn[2]}
+									fi
+									;;
+							esac
+							;;
+						swap)
+							local project=${CodeProject}
+						        local ProjectFile=${ActiveProjectDir}/${project}.clide
+						        local Already=$(grep "link=" ${ProjectFile})
+						        case ${UserIn[2]} in
+					        	        --list|list)
+				                        		echo ${Already} | sed "s/link=//g" | tr ',' '\n'
+									;;
+								*)
+									local IsLinked=$(swapProjects ${Lang} ${UserIn[2]})
+									if [ ! -z "${IsLinked}" ]; then
+										Lang=${IsLinked}
+										Code=""
+									else
+										errorCode "project" "link" "not-link" ${UserIn[2]}
+									fi
+									;;
+							esac
 							;;
 						#Load an existing project
 						load)
@@ -1349,17 +1519,56 @@ Actions()
 						#Create new src file
 						*)
 							#Ensure filename is given
-							if [ ! -z "${UserIn[1]}" ]; then
-								#Return the name of source code
-								ManageLangs ${Lang} "newCode" ${UserIn[1]} ${UserIn[2]} ${Code}
-								if [ ! -z "${Code}" ]; then
-									local OldCode=${Code}
-									Code=$(ManageLangs ${Lang} "getCode" ${UserIn[1]})
-									Code=$(ManageLangs ${Lang} "addCode" ${OldCode} ${UserIn[1]})
+							if [ ! -z "${UserIn[1]}" ]; then\
+								local IsOk
+								local TheFile="${UserIn[1]}"
+								local ThePath=$(ManageLangs ${Lang} "getSrcDir")
+								local TheExt=$(ManageLangs ${Lang} "getExt")
+								local TheOtherExt=$(ManageLangs ${Lang} "getOtherExt")
+
+								if [ ! -z "${TheOtherExt}" ]; then
+									TheFile=${TheFile%${TheExt}}
+									TheFile=${TheFile%${TheOtherExt}}
+									if [ ! -f ${ThePath}/${TheFile}${TheExt} ] || [ ! -f ${ThePath}/${TheFile}${TheOtherExt} ]; then
+										IsOk="yes"
+									else
+										IsOk="no"
+									fi
 								else
-									Code=$(ManageLangs ${Lang} "getCode" ${UserIn[1]})
+									TheFile=${TheFile%${TheExt}}
+									if [ ! -f ${ThePath}/${TheFile}${TheExt} ]; then
+										IsOk="yes"
+									else
+										IsOk="no"
+									fi
 								fi
-								refresh="yes"
+
+								case ${IsOk} in
+									yes)
+										#Return the name of source code
+										ManageLangs ${Lang} "newCode" ${UserIn[1]} ${UserIn[2]} ${Code}
+										if [ ! -z "${Code}" ]; then
+											local OldCode=${Code}
+											local NewCode=$(ManageLangs ${Lang} "getCode" ${UserIn[1]} ${OldCode})
+											case ${OldCode} in
+												*"${NewCode}"*)
+													errorCode "selectCode" "already"
+													;;
+												*)
+													Code=$(ManageLangs ${Lang} "addCode" ${OldCode} ${NewCode})
+													;;
+											esac
+										else
+											Code=$(ManageLangs ${Lang} "getCode" ${UserIn[1]} ${OldCode})
+										fi
+										refresh="yes"
+										;;
+									no)
+										errorCode "newCode" "already"
+										;;
+									*)
+										;;
+								esac
 							else
 								theHelp newCodeHelp ${Lang}
 							fi
@@ -1385,11 +1594,21 @@ Actions()
 					;;
 				#Add code to Source Code
 				add)
+					local theExt
+					local theOtherExt
+					local newCode
 					if [ ! -z ${Code} ]; then
 						if [ ! -z "${UserIn[1]}" ]; then
+							theExt=$(ManageLangs ${Lang} "getExt")
+							theOtherExt=$(ManageLangs ${Lang} "getOtherExt")
+							newCode=${UserIn[1]}
+							newCode=${newCode%${theExt}}
+							if [ ! -z "${theOtherExt}" ]; then
+								newCode=${newCode%${theOtherExt}}
+							fi
 							#Ensure Code is not added twice
-							if [[ ! "${Code}" == *"${UserIn[1]}"* ]]; then
-								Code=$(ManageLangs ${Lang} "addCode" ${Code} ${UserIn[1]})
+							if [[ ! "${Code}" == *"${newCode}${theExt}"* ]] || [[ ! "${Code}" == *"${newCode}${theOtherExt}"* ]]; then
+								Code=$(ManageLangs ${Lang} "addCode" ${Code} ${newCode})
 								refresh="yes"
 							#Code is trying to be added twice
 							else
@@ -1515,45 +1734,59 @@ Actions()
 							local NewCode=$(ManageLangs ${Lang} "getNewCode")
 							local LangSrcDir=$(ManageLangs ${Lang} "getSrcDir")
 
-							#Create new souce code in newCode/
-							if [ ! -f ${NewCodeDir}/${NewCode} ]; then
-								if [ ! -f ${LangSrcDir}/${NewCode} ]; then
-									ManageLangs ${Lang} "newCode" ${NewCode}
-								fi
-								mv ${LangSrcDir}/${NewCode} ${NewCodeDir}/
-							fi
+							case ${UserIn[2]} in
+								custom)
+									if [ ! -f ${LangSrcDir}/${NewCode} ]; then
+										ManageLangs ${Lang} "newCode" ${NewCode}
+									fi
+									Code=$(selectCode ${Lang} "set" ${NewCode})
+									refresh="yes"
+									;;
+								default)
+									#Create new souce code in newCode/
+									if [ ! -f ${NewCodeDir}/${NewCode} ]; then
+										if [ ! -f ${LangSrcDir}/${NewCode} ]; then
+											ManageLangs ${Lang} "newCode" ${NewCode}
+										fi
+										mv ${LangSrcDir}/${NewCode} ${NewCodeDir}/
+									fi
 
-							#Copy and set source code to src/
-							cd ${LangSrcDir}/
-							if [ ! -f ${LangSrcDir}/${NewCode} ]; then
-								case ${Lang} in
-									Java)
-										cp ${NewCodeDir}/${NewCode} .
-										;;
-									*)
-										ln -s ${NewCodeDir}/${NewCode}
-										;;
-								esac
-							else
-								case ${Lang} in
-									Java)
-										local choice
-										echo -n "Are you sure you want to overwrite \"${NewCode}\"? (Y/N): "
-										read choice
-										case ${choice^^} in
-											Y|YES)
-												cp ${NewCode} ${NewCodeDir}/
+									#Copy and set source code to src/
+									cd ${LangSrcDir}/
+									if [ ! -f ${LangSrcDir}/${NewCode} ]; then
+										case ${Lang} in
+											Java)
+												cp ${NewCodeDir}/${NewCode} .
+												;;
+											*)
+												ln -s ${NewCodeDir}/${NewCode}
+												;;
+										esac
+									else
+										case ${Lang} in
+											Java)
+												local choice
+												echo -n "Are you sure you want to overwrite \"${NewCode}\"? (Y/N): "
+												read choice
+												case ${choice^^} in
+													Y|YES)
+														cp ${NewCode} ${NewCodeDir}/
+														;;
+													*)
+														;;
+												esac
 												;;
 											*)
 												;;
 										esac
-										;;
-									*)
-										;;
-								esac
-							fi
-							Code=$(selectCode ${Lang} "set" ${NewCode})
-							refresh="yes"
+									fi
+									Code=$(selectCode ${Lang} "set" ${NewCode})
+									refresh="yes"
+									;;
+								help|*)
+									theHelp CreateHelp ${Lang}
+									;;
+							esac
 							;;
 						#Clear all
 						reset)
@@ -1700,11 +1933,12 @@ Actions()
 											;;
 										*)
 											ThePWD=$(pwd)
-											ProjectDir=$(echo ${ThePWD#*${CodeProject}})
-											ProjectDir=${ProjectDir/\//:}
+											#ProjectDir=${ThePWD#*${CodeProject}}
+											ProjectDir=${ThePWD##*/}
+											#ProjectDir=${ProjectDir/\//:}
 											cCodeProject=$(ManageLangs ${Lang} "ProjectColor")
 											#Menu with no code
-											prompt="${Name}(${cCodeProject}[${ProjectType:0:1}${ProjectDir}]):$ "
+											prompt="${Name}(${cCodeProject}[${ProjectType:0:1}:${ProjectDir}]):$ "
 											;;
 									esac
 								else
@@ -1733,11 +1967,12 @@ Actions()
 											;;
 										*)
 											ThePWD=${PWD}
-											ProjectDir=$(echo ${${PWD}#*${CodeProject}})
-											ProjectDir=${ProjectDir/\//:}
+											#ProjectDir=${ThePWD#*${CodeProject}}
+											ProjectDir=${ThePWD##*/}
+											#ProjectDir=${ProjectDir/\//:}
 											#Menu with no code
 											cCodeProject=$(ManageLangs ${Lang} "ProjectColor")
-											prompt="${Name}(${cCodeProject}[${ProjectType:0:1}${ProjectDir}]{${listSrc}}):$ "
+											prompt="${Name}(${cCodeProject}[${ProjectType:0:1}:${ProjectDir}]{${listSrc}}):$ "
 											;;
 									esac
 								fi
@@ -1955,7 +2190,7 @@ loadAuto()
 	comp_list "pwd"
 	comp_list "mkdir"
 	comp_list "use" "${pg}"
-	comp_list "project" "load import new list update type mode discover"
+	comp_list "project" "discover import load list link mode new swap update type"
 	comp_list "package" "new"
 	comp_list "shell"
 	comp_list "new" "--version -v --help -h --custom -c"
@@ -1963,7 +2198,7 @@ loadAuto()
 	comp_list "add"
 	comp_list "${ReadBy} read"
 	comp_list "search"
-	comp_list "create" "make version args cpl cpl-args reset newCodeTemp"
+	comp_list "create" "args cpl cpl-args make newCodeTemp reset version"
 	comp_list "compile cpl car car-a"
 	comp_list "execute exe run" "-a --args"
 	comp_list "version"

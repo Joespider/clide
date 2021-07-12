@@ -92,7 +92,7 @@ public class newJava {
 	private static void Help()
 	{
 		String program = "newJava.jar";
-		String version = "0.1.07";
+		String version = "0.1.08";
 		print("Author: Dan (DJ) Coffman");
 		print("Program: \""+program+"\"");
 		print("Version: "+version);
@@ -349,11 +349,18 @@ public class newJava {
 			}
 			JavaImports = GetImports();
 			JavaMethods = GetMethods();
-			JavaMain = "\tpublic static void main(String[] args) {\n\n\t}\n}\n";
 			Comments[0] ="/**\n *\n * @author "+user+"\n */";
 			Comments[1] ="//class name";
-			Comments[2] ="/**\n\t* @param args the command line arguments\n\t*/";
-			Java = JavaPackage+JavaImports+"\n\n"+Comments[0]+"\n\n"+Comments[1]+"\npublic class "+Class+" {\n\n"+JavaMethods+"\n\t"+Comments[2]+"\n"+JavaMain;
+			if (IsMain == true)
+			{
+				Comments[2] ="/**\n\t* @param args the command line arguments\n\t*/";
+				JavaMain = "\tpublic static void main(String[] args) {\n\n\t}";
+				Java = JavaPackage+JavaImports+"\n\n"+Comments[0]+"\n\n"+Comments[1]+"\npublic class "+Class+" {\n\n"+JavaMethods+"\n\t"+Comments[2]+"\n"+JavaMain+"\n}\n";
+			}
+			else
+			{
+				Java = JavaPackage+JavaImports+"\n\n"+Comments[0]+"\n\n"+Comments[1]+"\npublic class "+Class+" {\n\n"+JavaMethods+"\n\n}\n";
+			}
 			WriteFile(Class+".java",Java);
 		}
 		else

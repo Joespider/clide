@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.48"
+SupportV="0.1.51"
 Lang=Bash
 LangExt=".sh"
 ColorNum=2
@@ -89,6 +89,9 @@ UseBash()
 			;;
 		getSrcDir)
 			echo ${LangSrc}
+			;;
+		getProjDir)
+			echo ${LangProject}
 			;;
 		getExt)
 			echo ${LangExt}
@@ -253,6 +256,26 @@ UseBash()
 				*)
 					;;
 			esac
+			;;
+		rmBin|rmSrc)
+			local name=$1
+			local ThePath
+			name=${name%${LangExt}}${LangExt}
+			case ${Type} in
+				rmBin)
+					ThePath=${LangBin}
+					name=${name%${LangExt}}
+					;;
+				rmSrc)
+					ThePath=${LangSrc}
+					name=${name%${LangExt}}${LangExt}
+					;;
+				*)
+					;;
+			esac
+			if [ -f ${ThePath}/${name} ]; then
+				echo ${ThePath}/${name}
+			fi
 			;;
 		editCode|readCode)
 			local src=$1

@@ -19,8 +19,8 @@ ManageLangs()
 	local Manage=$@
 	if [ -f ${Langs} ]; then
 		${Langs} ${PassedVars[@]} ${Manage[@]}
-	else
-		UseOther ${TheLang} ${Manage[@]}
+#	else
+#		UseOther ${TheLang} ${Manage[@]}
 	fi
 }
 
@@ -52,7 +52,7 @@ MenuHelp()
 			echo -e "using\t\t\t\t: \"get the language being used\""
 			echo -e "unset\t\t\t\t: \"deselect source code\""
 			echo -e "use <language> <code>\t\t: \"choose language\""
-			echo -e "using\t\t\t\t:\"Display what language is being used\""
+			echo -e "using\t\t\t\t: \"Display what language is being used\""
 			echo -e "save\t\t\t\t: \"Save session\""
 			echo -e "create <arg>\t\t\t: \"create compile and runtime arguments"
 			ManageLangs ${Lang} "MenuHelp"
@@ -66,15 +66,29 @@ MenuHelp()
 			echo -e "search <find>\t\t\t: \"search for code in project\""
 			case ${project} in
 				none)
-					echo -e "project {new|list|load}\t\t: \"handle projects\""
+					echo -e "project <action> \t\t: \"handle projects\""
+					echo -e "\tnew\t\t\t: \"create a new project\""
+					echo -e "\tlist\t\t\t: \"list all your projects\""
+					echo -e "\tload\t\t\t: \"load and existing projects\""
 					;;
 				*)
-					echo -e "project {new|type|update|list|load|discover}\t: \"handle projects\""
-					echo -e "${repoTool}, repo\t: \"handle repos\""
+					echo -e "project <action> \t\t: \"handle projects\""
+					echo -e "\tnew\t\t\t: \"create a new project\""
+					echo -e "\ttype\t\t\t: \"display the type of project\""
+					echo -e "\tupdate\t\t\t: \"update your existing project\""
+					echo -e "\tlist\t\t\t: \"list all your projects\""
+					echo -e "\tload\t\t\t: \"load and existing projects\""
+					echo -e "\tlink <lang>\t\t: \"Link a language to an active project\""
+					echo -e "\t\t--list, list\t: \"list the linked languages in an active project\""
+					echo -e "\tswap <lang>\t\t: \"swap to a language in an active project\""
+					echo -e "\t\t--list, list\t: \"list the linked languages in an active project\""
+					echo -e "\tdiscover\t\t: \"update the list of projects\""
+					echo -e "${repoTool}, repo\t\t\t: \"handle repos\""
 					;;
 			esac
 			echo -e "search\t\t\t\t: \"search project src files for line of code\""
-			echo -e "execute, exe, run {-a|--args}\t: \"run active program\""
+			echo -e "execute, exe, run <option>\t: \"run active program\""
+			echo -e "\t\t-a, --args\t: \"run program with cli arguments\""
 			echo -e "bkup, backup\t\t\t: \"make backup of existing source code\""
 			echo -e "restore\t\t\t\t: \"make backup of existing source code\""
 			echo -e "rename <new>\t\t\t: \"rename the existing source code\""
@@ -101,7 +115,9 @@ CreateHelp()
 			echo "----------------[(${Head}) \"Create\" Help]----------------"
 			echo -e "args\t\t\t: create custom args"
 			echo -e "cpl, cpl-args\t\t: create compiler args"
-			echo -e "newCodeTemp\t\t: make your own source code ($ new <code>)"
+			echo -e "newCodeTemp <type>\t: make your own source code ($ new <code>)"
+			echo -e "\tcustom\t\t: Create template"
+			echo -e "\tdefault\t\t: Use the tempalte from ${Head}"
 			ManageLangs ${Lang} "CreateHelp"
 			echo -e "reset\t\t\t: clear all"
 			echo "---------------------------------------------------------"
@@ -120,11 +136,15 @@ ProjectHelp()
 	echo -e "update\t\t\t\t: \"Update the active project\""
 	echo -e "load <project>\t\t\t: \"Choose a project to make active\""
 	echo -e "type\t\t\t\t: \"display the type of project\""
-	echo -e "\tlist\t\t: \"Show list of possible project types\""
+	echo -e "\tlist\t\t\t: \"Show list of possible project types\""
 	echo -e "list\t\t\t\t: \"List ALL projects\""
+	echo -e "link <lang>\t\t\t: \"Link a language to an active project\""
+	echo -e "\t--list, list\t\t: \"list the linked languages in an active project\""
+	echo -e "swap <lang>\t\t\t: \"swap to a language in an active project\""
+	echo -e "\t--list, list\t\t: \"list the linked languages in an active project\""
 	echo -e "active\t\t\t\t: \"Display the name of the current project\""
 	echo -e "types\t\t\t\t: \"Display the types of projects under ${Lang}\""
-	echo -e "discover\t\t\t\t: \"Discover project on system (creates project profile)"
+	echo -e "discover\t\t\t: \"Discover project on system (creates project profile)"
 	ManageLangs ${Lang} "ProjectHelp"
 	echo "----------------------------------------------------------"
 	echo ""
