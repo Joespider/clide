@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.54"
+SupportV="0.1.55"
 Lang=Python
 LangExt=".py"
 #Color Yellow
@@ -47,7 +47,7 @@ ProjectTemplateHandler()
 
 UsePython()
 {
-	local LangRun=${UsePython}
+	local LangRun=${cplPython}
 	local LangHome=${ProgDir}/${Lang}
 	local LangSrc=${LangHome}/src
 	local LangBin=${LangHome}/bin

@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.46"
+SupportV="0.1.47"
 Lang=Ruby
 LangExt=".rb"
 ColorNum=1
@@ -46,7 +46,7 @@ ProjectTemplateHandler()
 
 UseRuby()
 {
-	local LangConfig=${UseRuby}
+	local LangConfig=${cplRuby}
 	local LangRun=${LangConfig}
 
 	local LangHome=${ProgDir}/${Lang}

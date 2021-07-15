@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.51"
+SupportV="0.1.52"
 Lang=Bash
 LangExt=".sh"
 ColorNum=2
@@ -46,7 +46,7 @@ ProjectTemplateHandler()
 
 UseBash()
 {
-	local LangRun=${UseBash}
+	local LangRun=${cplBash}
 
 	local LangHome=${ProgDir}/${Lang}
 	local LangSrc=${LangHome}/src

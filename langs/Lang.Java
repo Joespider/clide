@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.70"
+SupportV="0.1.71"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -46,7 +46,7 @@ ProjectTemplateHandler()
 
 UseJava()
 {
-	local LangConfig=${UseJava}
+	local LangConfig=${cplJava}
 	local LangCpl=$(echo ${LangConfig} | cut -d ',' -f 1)
 	local LangRun=$(echo ${LangConfig} | cut -d ',' -f 2)
 
