@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.47"
+SupportV="0.1.48"
 Lang=Perl
 LangExt=".pl"
 #Color Purple
@@ -47,7 +47,7 @@ ProjectTemplateHandler()
 
 UsePerl()
 {
-	local LangRun=${UsePerl}
+	local LangRun=${cplPerl}
 
 	local LangHome=${ProgDir}/${Lang}
 	local LangSrc=${LangHome}/src

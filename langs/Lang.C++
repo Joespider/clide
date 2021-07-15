@@ -2,7 +2,7 @@ Shell=$(which bash)
 #!${Shell}
 
 #https://www3.ntu.edu.sg/home/ehchua/programming/cpp/gcc_make.html
-SupportV="0.1.75"
+SupportV="0.1.76"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -50,7 +50,7 @@ UseC++()
 {
 	#Get the enviornment variables for C++
 	#{
-	local LangCpl=${UseCpp}
+	local LangCpl=${cplCpp}
 
 	local LangHome=${ProgDir}/${Lang}
 	local LangSrc=${LangHome}/src
