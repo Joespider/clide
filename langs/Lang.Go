@@ -841,7 +841,7 @@ UseGo()
 			if [ -z "${name}" ]; then
 				if [[ "${src}" == *","* ]]; then
 					src=$(echo ${src} | tr ',' ' ')
-					name=$(grep -l "int main(" ${src} 2> /dev/null)
+					name=$(grep -l "func main() {" ${src} 2> /dev/null)
 					name=${name%.*}
 				else
 					name=${src%.*}
@@ -913,10 +913,11 @@ UseGo()
 						#}
 
 						#Compile and check for errors
-						ERROR=$(${LangCpl} ${src} -o ${TheBinDir}/${name} ${cplArgs} 2>&1 | tr '\n' '|')
+						ERROR=$(${LangCpl} build ${src} 2>&1 | tr '\n' '|')
 
 						#Code compiled successfully
 						if [ -z "${ERROR}" ]; then
+							mv ${name} ${TheBinDir}/
 							echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
 						else
 							errorCode "cpl" "ERROR" "${ERROR}"
