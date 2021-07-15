@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.27"
+SupportV="0.1.28"
 Lang=Go
 LangExt=".go"
 LangOtherExt=".h"
@@ -57,10 +57,10 @@ UseGo()
 	local LangBin=${LangHome}/bin
 	local LangProject=${LangHome}/projects
 
-	local TemplateCode=${NewCpp}
+	local TemplateCode=${NewGo}
 	TemplateCode=${LangBin}/${TemplateCode%${LangExt}}
 
-	local TemplateCodeSrc=${NewCpp%${LangExt}}${LangExt}
+	local TemplateCodeSrc=${NewGo%${LangExt}}${LangExt}
 
 	local EnvVars=( ${LangRun} ${LangHome} ${LangSrc} ${LangBin} ${LangExt} )
 	#}
@@ -73,13 +73,12 @@ UseGo()
 		Art)
 			local srt="\e[1;3${ColorNum}m"
 			local end="\e[0m"
-			echo -e "  ${srt}.oooooo.${end}"
-			echo -e " ${srt}d8P'${end}  ${srt}\`Y8b${end}"
-			echo -e "${srt}888${end}              ${srt}88${end}         ${srt}88${end}"
-			echo -e "${srt}888${end}              ${srt}88${end}         ${srt}88${end}"
-			echo -e "${srt}888${end}          ${srt}8888888888${end} ${srt}8888888888${end}"
-			echo -e "${srt}\`88b${end}    ${srt}ooo${end}      ${srt}88${end}         ${srt}88${end}"
-			echo -e " ${srt}\`Y8bood8P'${end}      ${srt}88${end}         ${srt}88${end}"
+			echo -e " ${srt}d888b${end}   ${srt}.d88b.${end}"
+			echo -e "${srt}88'${end} ${srt}Y8b${end} ${srt}.8P${end}  ${srt}Y8.${end}"
+			echo -e "${srt}88${end}      ${srt}88${end}    ${srt}88${end}"
+			echo -e "${srt}88${end}  ${srt}ooo${end} ${srt}88${end}    ${srt}88${end}"
+			echo -e "${srt}88.${end} ${srt}~8~${end} ${srt}\`8b${end}  ${srt}d8'${end}"
+			echo -e " ${srt}Y888P${end}   ${srt}\`Y88P'${end}"
 			echo ""
 			;;
 		color)
@@ -807,20 +806,6 @@ UseGo()
 		setCplArgs-help)
 			echo -e "--warnings\t\t: \"Show ALL warnings (-Wall -g)\""
 			echo -e "--std=<version>\t\t: \"Set Go version\""
-			case ${LangCpl} in
-				g++)
-					echo "These are ALL the ${LangCpl} versions"
-					echo "\tGo98"
-					echo "\tGo11"
-					echo "\tGo14"
-					echo "\tGo17"
-					echo "\tGo2a"
-					;;
-				clang++)
-					;;
-				*)
-					;;
-			esac
 			;;
 		compileCode)
 			local src=$1
@@ -1183,7 +1168,7 @@ UseGo()
 							else
 								#Program Name Given
 								if [ ! -z "${name}" ];then
-									local Content="package main\n\nimport (\n\t"fmt"\n\t"os"\n)\n\nfunc main() {\n\targs := os.Args[1:]\n\n\tfor arg := range args {\n\tfmt.Println(arg,args[arg])\n\t}\n\tfmt.Println("And thats it!")\n}"
+									local Content="package main\n\nimport (\n\t"fmt"\n\t"os"\n)\n\nfunc main() {\n\targs := os.Args[1:]\n\n\tfor arg := range args {\n\tfmt.Println(arg,args[arg])\n\t}\n\tfmt.Println(\"And thats it!\")\n}"
 									touch ${name}${LangExt}
 									echo -e "${Content}" > ${name}${LangExt}
 								else
