@@ -197,6 +197,14 @@ errorCode()
 			shift
 			local thr=$1
 			case ${sec} in
+				already-title)
+					errorCode "ERROR"
+					echo "The \"${thr}\" project already has a title"
+					;;
+				no-title)
+					errorCode "ERROR"
+					echo "project title not given"
+					;;
 				none)
 					echo "Your session MUST be a ${thr} Project"
 					echo "Please create or load a project"

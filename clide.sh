@@ -362,7 +362,7 @@ SaveSession()
 	local Language=$1
 	local SrcCode=$2
 	#Source Needs to be present
-	if [ ! -z ${SrcCode} ]; then
+	if [ ! -z "${SrcCode}" ]; then
 		touch ${Session}
 		echo "${Project};${Language};${SrcCode}" > ${Session}
 	fi
@@ -475,7 +475,7 @@ updateProject()
 	local project=${CodeProject}
 	local ProjectFile=${ActiveProjectDir}/${project}.clide
 	#No Project is found
-	if [ ! -z ${src} ]; then
+	if [ ! -z "${src}" ]; then
 		#Locate Project Directory
 		if [ ! -f ${ProjectFile} ]; then
 			errorCode "project" "NotAProject" ${project}
@@ -580,7 +580,7 @@ swapProjects()
 listProjects()
 {
 	#Get list of active prijects from .clide files
-	ls ${ActiveProjectDir}/ | sed "s/.clide//g"
+	ls ${ActiveProjectDir}/*.clide 2> /dev/null | sed "s/.clide//g"
 }
 
 #Discover Project in clide
@@ -653,7 +653,7 @@ loadProject()
 		errorCode "project"
 	else
 		#Is not a project
-		if [ -z ${project} ]; then
+		if [ -z "${project}" ]; then
 			echo "no"
 		else
 			#Locate Project Directory
@@ -807,7 +807,7 @@ ManageCreate()
 	local Choice=$1
 	shift
 	local CreateArgs=( $@ )
-	if [ ! -z ${Choice} ]; then
+	if [ ! -z "${Choice}" ]; then
 		ManageLangs ${Lang} "${Choice}" ${Code} ${UserIn[@]}
 	else
 		#Show help page
@@ -1218,6 +1218,39 @@ Actions()
 							fi
 							refresh="yes"
 							;;
+						#Add a title to the project
+						title)
+							#Ensure this is a project
+							case ${CodeProject} in
+								#Is not a project
+								none)
+									errorCode "project" "none" "${Head}"
+									;;
+								#Is a project
+								*)
+									local TheFile=${ActiveProjectDir}/${CodeProject}.clide
+									if [ -f ${TheFile} ]; then
+										local HasTitle=$(grep "title=" ${TheFile})
+										if [ -z "${HasTitle}" ]; then
+											local Args
+											echo -n "Title: "
+											read -a Args
+											if [ ! -z "${Args[0]}" ]; then
+												echo "title=${Args[@]}" >> ${TheFile}
+												echo "Title added"
+											else
+												errorCode "project" "no-title"
+											fi
+										else
+											errorCode "project" "already-title" "${CodeProject}"
+											HasTitle=$(echo ${HasTitle} | sed "s/title=//g")
+											echo ""
+											echo "Title: \"${HasTitle}\""
+										fi
+									fi
+									;;
+							esac
+							;;
 						#Update live project
 						update)
 							updateProject ${Code}
@@ -1245,17 +1278,23 @@ Actions()
 							;;
 						swap)
 							local project=${CodeProject}
-						        local ProjectFile=${ActiveProjectDir}/${project}.clide
-						        local Already=$(grep "link=" ${ProjectFile})
-						        case ${UserIn[2]} in
+							local ProjectFile=${ActiveProjectDir}/${project}.clide
+							local Already=$(grep "link=" ${ProjectFile})
+							case ${UserIn[2]} in
+								#list the active projects
 					        	        --list|list)
 				                        		echo ${Already} | sed "s/link=//g" | tr ',' '\n'
 									;;
+								#swap new language and code
 								*)
 									local IsLinked=$(swapProjects ${Lang} ${UserIn[2]})
 									if [ ! -z "${IsLinked}" ]; then
 										Lang=${IsLinked}
-										Code=""
+										if [ ! -z "${UserIn[3]}" ]; then
+											Code=$(selectCode ${Lang} ${UserIn[3]})
+										else
+											Code=""
+										fi
 									else
 										errorCode "project" "link" "not-link" ${UserIn[2]}
 									fi
@@ -1274,7 +1313,19 @@ Actions()
 									ProjectType=$(echo ${project} | cut -d ";" -f 4)
 									CodeProject=${UserIn[2]}
 									cd ${CodeDir}/src 2> /dev/null
-									echo "Project \"${CodeProject}\" loaded"
+									#Read title or project
+									local TheFile=${ActiveProjectDir}/${CodeProject}.clide
+									if [ -f ${TheFile} ]; then
+										echo ""
+										local HasTitle=$(grep "title=" ${TheFile})
+										if [ ! -z "${HasTitle}" ]; then
+											HasTitle=$(echo ${HasTitle} | sed "s/title=//g")
+											echo "${CodeProject}: \"${HasTitle}\""
+										else
+											echo "Project \"${CodeProject}\" loaded"
+										fi
+										echo ""
+									fi
 								else
 									errorCode "project" "load" "no-path" "${UserIn[2]}"
 								fi
@@ -1518,31 +1569,38 @@ Actions()
 							;;
 						#Create new src file
 						*)
+							local project=${CodeProject}
 							#Ensure filename is given
-							if [ ! -z "${UserIn[1]}" ]; then\
+							if [ ! -z "${UserIn[1]}" ]; then
 								local IsOk
 								local TheFile="${UserIn[1]}"
-								local ThePath=$(ManageLangs ${Lang} "getSrcDir")
 								local TheExt=$(ManageLangs ${Lang} "getExt")
 								local TheOtherExt=$(ManageLangs ${Lang} "getOtherExt")
 
+								#Language has more than one extension
 								if [ ! -z "${TheOtherExt}" ]; then
+									#Remove the extensions
 									TheFile=${TheFile%${TheExt}}
 									TheFile=${TheFile%${TheOtherExt}}
-									if [ ! -f ${ThePath}/${TheFile}${TheExt} ] || [ ! -f ${ThePath}/${TheFile}${TheOtherExt} ]; then
+									#make sure file does not exist
+									if [ ! -f ${TheFile}${TheExt} ] || [ ! -f ${TheFile}${TheOtherExt} ]; then
 										IsOk="yes"
 									else
 										IsOk="no"
 									fi
+								#Language has one extension
 								else
+									#Remove the extensions
 									TheFile=${TheFile%${TheExt}}
-									if [ ! -f ${ThePath}/${TheFile}${TheExt} ]; then
+									#make sure file does not exist
+									if [ ! -f ${TheFile}${TheExt} ]; then
 										IsOk="yes"
 									else
 										IsOk="no"
 									fi
 								fi
 
+								#Make sure it is ok to create the source code
 								case ${IsOk} in
 									yes)
 										#Return the name of source code
@@ -1587,6 +1645,7 @@ Actions()
 								errorCode "selectCode"
 							fi
 							;;
+						#edit language source code
 						*)
 							ManageLangs ${Lang} "editCode" ${Code} ${UserIn[1]}
 							;;
@@ -1597,7 +1656,7 @@ Actions()
 					local theExt
 					local theOtherExt
 					local newCode
-					if [ ! -z ${Code} ]; then
+					if [ ! -z "${Code}" ]; then
 						if [ ! -z "${UserIn[1]}" ]; then
 							theExt=$(ManageLangs ${Lang} "getExt")
 							theOtherExt=$(ManageLangs ${Lang} "getOtherExt")
@@ -2190,7 +2249,7 @@ loadAuto()
 	comp_list "pwd"
 	comp_list "mkdir"
 	comp_list "use" "${pg}"
-	comp_list "project" "discover import load list link mode new swap update type"
+	comp_list "project" "discover import load list link mode new swap update title type"
 	comp_list "package" "new"
 	comp_list "shell"
 	comp_list "new" "--version -v --help -h --custom -c"

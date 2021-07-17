@@ -75,6 +75,7 @@ MenuHelp()
 					echo -e "project <action> \t\t: \"handle projects\""
 					echo -e "\tnew\t\t\t: \"create a new project\""
 					echo -e "\ttype\t\t\t: \"display the type of project\""
+					echo -e "\ttitle\t\t\t: \"give your project a title\""
 					echo -e "\tupdate\t\t\t: \"update your existing project\""
 					echo -e "\tlist\t\t\t: \"list all your projects\""
 					echo -e "\tload\t\t\t: \"load and existing projects\""
