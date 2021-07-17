@@ -1,10 +1,9 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.28"
+SupportV="0.1.29"
 Lang=Go
 LangExt=".go"
-LangOtherExt=".h"
 #Color Green
 ColorNum=2
 
@@ -112,7 +111,6 @@ UseGo()
 			echo ${LangExt}
 			;;
 		getOtherExt)
-			echo ${LangOtherExt}
 			;;
 		SupportVersion)
 			echo ${SupportV}
@@ -140,7 +138,7 @@ UseGo()
 			#if no code is set
 			if [ ! -z "${setCode}" ]; then
 				#Remove the extension
-				local srcCode=$(echo ${setCode} | sed "s/${LangExt}//g" | sed "s/${LangOtherExt}//g")
+				local srcCode=$(echo ${setCode} | sed "s/${LangExt}//g")
 				local TheCpl
 				local TheItem
 				#Get list of compiled code
@@ -165,7 +163,6 @@ UseGo()
 		getCode)
 			local name=$1
 			name=${name%${LangExt}}
-			name=${name%${LangOtherExt}}
 			local oldCode=$2
                         local project=${CodeProject}
                         local newName
@@ -213,16 +210,6 @@ UseGo()
 			case ${oldCode} in
 				#set code has source code with default extension
 				*"${name}${LangExt}"*)
-					#header file exists
-					#
-					#if [ -f ${TheSrcDir}/${name}${LangOtherExt} ]; then
-					if [ -f ${name}${LangOtherExt} ]; then
-						#return header file
-						echo ${name}${LangOtherExt}
-					fi
-					;;
-				#set code if source file is a header
-				*"${name}${LangOtherExt}"*)
 					#normal source file exists
 					#
 					#if [ -f ${TheSrcDir}/${name}${LangExt} ]; then
@@ -238,11 +225,6 @@ UseGo()
 					#if [ -f ${TheSrcDir}/${name}${LangExt} ]; then
 					if [ -f ${name}${LangExt} ]; then
 						echo ${name}${LangExt}
-					#header file exists
-					#
-					#elif [ -f ${TheSrcDir}/${name}${LangOtherExt} ]; then
-					elif [ -f ${name}${LangOtherExt} ]; then
-						echo ${name}${LangOtherExt}
 					#Extension is accounted for and is a file
 					#
 					#elif [ -f ${TheSrcDir}/${name} ]; then
@@ -265,15 +247,13 @@ UseGo()
 			;;
 		#Look for source code before and after new source code created
 		BeforeFiles|AfterFiles)
-			ls *${LangExt} *${LangOtherExt} 2> /dev/null
+			ls *${LangExt} 2> /dev/null
 			;;
 		pgDir)
 			#Return Go src Dir
 			echo ${LangSrc}
 			;;
 		CreateHelp)
-			echo -e "make\t\t\t: create makefile"
-			echo -e "version, -std=<Go#>\t: compile with a specific version"
 			;;
 		shell)
 			;;
@@ -338,14 +318,12 @@ UseGo()
 								#Add default or header files with file extensions
 								case ${name} in
 									#file contains extension
-									*${LangExt}|*${LangOtherExt})
+									*${LangExt})
 										;;
 									*)
 										#Correct filename
 										if [[ ! "${name}" == *"${LangExt}" ]] && [[ -f "${name}${LangExt}" ]]; then
 											name="${name}${LangExt}"
-										elif [[ ! "${name}" == *"${LangOtherExt}" ]] && [[ -f "${name}${LangOtherExt}" ]]; then
-											name="${name}${LangOtherExt}"
 										fi
 										;;
 								esac
@@ -359,10 +337,10 @@ UseGo()
 								#Evaluate set code
 								case ${name} in
 									#set code contains source code
-									*${LangExt}|*${LangOtherExt})
+									*${LangExt})
 										#Add default or header files with file extensions
 										case ${new} in
-											*${LangExt}|*${LangOtherExt})
+											*${LangExt})
 												#Append file
 												if [ -f "${new}" ]; then
 													echo "${name},${new}"
@@ -375,19 +353,15 @@ UseGo()
 												case ${name} in
 													#source code contains default code
 													*"${new}${LangExt}"*)
-														#Append header files
-														if [ -f "${new}${LangOtherExt}" ]; then
-															echo "${name},${new}${LangOtherExt}"
-														fi
-														;;
-													#source code contains header file
-													*"${new}${LangOtherExt}"*)
-														#Append cpp files
 														if [ -f "${new}${LangExt}" ]; then
 															echo "${name},${new}${LangExt}"
 														fi
 														;;
 													*)
+														#Append file
+														if [ -f "${new}${LangExt}" ]; then
+															echo "${name},${new}${LangExt}"
+														fi
 														;;
 												esac
 												;;
@@ -414,15 +388,13 @@ UseGo()
 								#Add default or header files with file extensions
 								case ${name} in
 									#file contains extension
-									*${LangExt}|*${LangOtherExt})
+									*${LangExt})
 										#echo "${name}"
 										;;
 									*)
 										#Correct filename
 										if [[ ! "${name}" == *"${LangExt}" ]]; then
 											name="${name}${LangExt}"
-										elif [[ ! "${name}" == *"${LangOtherExt}" ]]; then
-											name="${name}${LangOtherExt}"
 										fi
 										;;
 								esac
@@ -434,20 +406,16 @@ UseGo()
 								#Evaluate set code
 								case ${name} in
 									#set code contains source code
-									*${LangExt}|*${LangOtherExt})
+									*${LangExt})
 										#Add default or header files with file extensions
 										case ${new} in
-											*${LangExt}|*${LangOtherExt})
+											*${LangExt})
 												;;
 											#Add cpp or header files without file extensions
 											*)
 												case ${name} in
 													#source code contains default code
 													*"${new}${LangExt}"*)
-														new=${new}${LangOtherExt}
-														;;
-													#source code contains header file
-													*"${new}${LangOtherExt}"*)
 														new=${new}${LangExt}
 														;;
 													*)
@@ -510,7 +478,6 @@ UseGo()
 		rmBin|rmSrc)
 			local name=$1
 			name=${name%${LangExt}}
-			name=${name%${LangOtherExt}}
 			local ThePath
 			local project=${CodeProject}
 			case ${Type} in
@@ -526,7 +493,6 @@ UseGo()
 					esac
 					;;
 				rmSrc)
-					local theHeader=${name%${LangExt}}${LangOtherExt}
 					case ${project} in
 						#not a project
 						none)
@@ -537,10 +503,6 @@ UseGo()
 							;;
 					esac
 					name=${name}${LangExt}
-					#secretly take care of the header file
-					if [ -f ${ThePath}/${theHeader} ]; then
-						rm ${ThePath}/${theHeader}
-					fi
 					;;
 				*)
 					;;
@@ -573,7 +535,7 @@ UseGo()
 			#}
 
 			case ${src} in
-				*${LangExt}|*${LangOtherExt})
+				*${LangExt})
 					case ${project} in
 						none)
 							if [[ "${src}" == *","* ]]; then
@@ -628,7 +590,7 @@ UseGo()
 									NumFound=0
 								else
 									if [[ "${src}" == *"${num}"* ]]; then
-										if [[ "${num}" == *"${LangExt}" ]] || [[ "${num}" == *"${LangOtherExt}" ]]; then
+										if [[ "${num}" == *"${LangExt}" ]]; then
 											src=${num}
 										else
 											src=${num}${LangExt}
@@ -879,24 +841,6 @@ UseGo()
 					if [ -z ${name} ]; then
 						errorCode "cpl" "choose"
 					else
-						#[Threads] Compile for Threads
-						#{
-						NeedThreads=$(grep "#include <thread>" ${src})
-						if [ ! -z "${NeedThreads}" ]; then
-							cplArgs="${cplArgs} -lpthread"
-						fi
-						#}
-
-						#[X11] Compile with X11 code
-						#{
-						HasXlib=$(grep "#include <X11/Xlib.h>" ${src})
-						HasXutil=$(grep "#include <X11/Xutil.h>" ${src})
-						HasXos=$(grep "#include <X11/Xos.h>" ${src})
-						if [ ! -z "${HasXlib}" ] || [ ! -z "${HasXutil}" ] || [ ! -z "${HasXos}" ]; then
-							cplArgs="${cplArgs} -I /usr/X11/include -L /usr/X11/lib -lX11"
-						fi
-						#}
-
 						#Compile and check for errors
 						ERROR=$(${LangCpl} build ${src} 2>&1 | tr '\n' '|')
 
@@ -1120,7 +1064,7 @@ UseGo()
 			#Sometimes "oldCode" gets passed as "Type"
 			if [ -z "${oldCode}" ]; then
 				case ${Type} in
-					*${LangOtherExt}|*${LangExt})
+					*${LangExt})
 						oldCode=${Type}
 						;;
 					*)
@@ -1129,29 +1073,10 @@ UseGo()
 			fi
 
 			Type=${Type,,}
-			case ${name} in
-				*${LangOtherExt})
-					name=${name%${LangOtherExt}}
-					Type="header"
-					;;
-				*)
-					name=${name%${LangExt}}
-					;;
-			esac
-			if [ ! -f ${name}${LangExt} ] || [ ! -f ${name}${LangOtherExt} ]; then
+			name=${name%${LangExt}}
+
+			if [ ! -f ${name}${LangExt} ]; then
 				case ${Type} in
-					#create header file
-					header)
-						if [ ! -f ${name}${LangOtherExt} ]; then
-							#Program Name Given
-							if [ ! -z "${name}" ];then
-								touch "${name}${LangOtherExt}"
-								echo "#pragma once" > "${name}${LangOtherExt}"
-							else
-								errorCode "newCode"
-							fi
-						fi
-						;;
 					#create main file
 					main)
 						if [ ! -f ${name}${LangExt} ]; then
@@ -1192,7 +1117,9 @@ UseGo()
 							else
 								#Program Name Given
 								if [ ! -z "${name}" ];then
+									local Content="package main\n\nimport (\n\t"fmt"\n\t"os"\n)\n\nfunc main() {\n\targs := os.Args[1:]\n\n\tfor arg := range args {\n\tfmt.Println(arg,args[arg])\n\t}\n\tfmt.Println(\"And thats it!\")\n}"
 									touch ${name}${LangExt}
+									echo -e "${Content}" > ${name}${LangExt}
 								else
 									errorCode "newCode"
 								fi
@@ -1211,10 +1138,7 @@ UseGo()
 								#Looks like you have source code already set
 								if [ ! -z "${oldCode}" ]; then
 									case ${name%${LangExt}}${LangExt} in
-										#In the event you have a name.cpp file, also make a name.h file
 										*"${oldCode}"*)
-											#echo "header"
-											UseGo "newCode" ${name%${LangExt}}${LangOtherExt} "header" ${oldCode}
 											;;
 										#In the event you already have a main file, create a component
 										*)

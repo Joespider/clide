@@ -2,7 +2,7 @@ Shell=$(which bash)
 #!${Shell}
 
 #https://www3.ntu.edu.sg/home/ehchua/programming/cpp/gcc_make.html
-SupportV="0.1.76"
+SupportV="0.1.77"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -389,6 +389,13 @@ UseC++()
 														fi
 														;;
 													*)
+														#Append header files
+														if [ -f "${new}${LangOtherExt}" ]; then
+															echo "${name},${new}${LangOtherExt}"
+														#Append cpp files
+														elif [ -f "${new}${LangExt}" ]; then
+															echo "${name},${new}${LangExt}"
+														fi
 														;;
 												esac
 												;;

@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.48"
+SupportV="0.1.50"
 Lang=Perl
 LangExt=".pl"
 #Color Purple
@@ -212,7 +212,7 @@ UsePerl()
 			;;
 		CplVersion)
 			echo "[${Lang} Shell]"
-			${LangRun} --version 2> /dev/null | grep Version
+			${LangRun} -v 2> /dev/null | grep "This is perl" | sed "s/This is perl/perl/g"
 			echo ""
 			;;
 		selectCode)

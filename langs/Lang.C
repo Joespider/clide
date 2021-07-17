@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.23"
+SupportV="0.1.24"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
@@ -73,12 +73,12 @@ UseC()
 			local srt="\e[1;3${ColorNum}m"
 			local end="\e[0m"
 			echo -e "  ${srt}.oooooo.${end}"
-			echo -e " ${srt}d8P'${end}  ${srt}\`Y8b${end}"
-			echo -e "${srt}888${end}              ${srt}88${end}         ${srt}88${end}"
-			echo -e "${srt}888${end}              ${srt}88${end}         ${srt}88${end}"
-			echo -e "${srt}888${end}          ${srt}8888888888${end} ${srt}8888888888${end}"
-			echo -e "${srt}\`88b${end}    ${srt}ooo${end}      ${srt}88${end}         ${srt}88${end}"
-			echo -e " ${srt}\`Y8bood8P'${end}      ${srt}88${end}         ${srt}88${end}"
+			echo -e " ${srt}d8P'${end}"
+			echo -e "${srt}888${end}"
+			echo -e "${srt}888${end}"
+			echo -e "${srt}888${end}"
+			echo -e "${srt}\`88b${end}"
+			echo -e " ${srt}\`Y8bood8P'${end}"
 			echo ""
 			;;
 		color)
@@ -388,6 +388,13 @@ UseC()
 														fi
 														;;
 													*)
+														#Append header files
+														if [ -f "${new}${LangOtherExt}" ]; then
+															echo "${name},${new}${LangOtherExt}"
+														#Append cpp files
+														elif [ -f "${new}${LangExt}" ]; then
+															echo "${name},${new}${LangExt}"
+														fi
 														;;
 												esac
 												;;

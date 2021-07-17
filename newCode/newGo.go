@@ -8,8 +8,11 @@ import (
 )
 
 func help() {
-	var ProgName = "newGo"
-	var Version = "0.0.1"
+	var ProgName string
+	ProgName = "newGo"
+
+	var Version string
+	Version = "0.0.1"
 	fmt.Println("Author: Dan (DJ) Coffman")
 	fmt.Println("Program: \""+ProgName+"\"")
 	fmt.Println("Version: "+Version)
@@ -26,16 +29,28 @@ func help() {
 	fmt.Println("\t--user-input : enable \"Raw_Input\" file method")
 }
 
+func Print(content string) {
+	fmt.Printf(content)
+}
+
 //create import listing
-func getImports(write, read, random bool) {
-	var Imports = ""
-	var standard = "#include <iostream>\n#include <string>\n"
-	var readWrite = ""
-	var ForRandom = ""
-	if ((read == true) || (write == true)) {
+func getImports(write bool, read bool, random bool) {
+	var Imports string
+	Imports = ""
+
+	var standard string
+	standard = "#include <iostream>\n#include <string>\n"
+
+	var readWrite string
+	readWrite = ""
+
+	var ForRandom string
+	ForRandom = ""
+
+	if read == true || write == true {
 		readWrite = "#include <fstream>\n"
 	}
-	if (random == true) {
+	if random == true {
 		ForRandom = "#include <stdlib.h>\n#include <time.h>\n"
 	}
 
@@ -46,8 +61,11 @@ func getImports(write, read, random bool) {
 
 //build main function
 func getMain(Args, getRandom bool) {
-	var Main = ""
-	var StartRandom = ""
+	var Main string
+	Main = ""
+
+	var StartRandom string
+	StartRandom = ""
 
 	if getRandom == true {
 		StartRandom = ""
@@ -55,34 +73,71 @@ func getMain(Args, getRandom bool) {
 
 	if Args == true {
 		Main = "//main\nfunc main(){\n\targs := os.Args[1:]\n\tfor arg := range args {\n\t\tfmt.Println(args[arg])\n}"
-	}
-	else {
-		Main = "//main\nfunc main(){\n\tfmt.Printf("hellow world")\n}"
+	} else {
+		Main = "//main\nfunc main(){\n\tfmt.Printf(\"hellow world\")\n}"
 	}
 	return Main
 }
 
 //create new Go program
-func CreateNew(filename, content var) {
+func CreateNew(filename string, content string) {
 	filename = filename+".go"
+	Print(content)
+/*
 	std::ofstream myfile
 	myfile.open(filename.c_str())
 	myfile << content
 	myfile.close()
+*/
 }
 
 //Go main
 func main() {
-	bool NameIsNotOk = true
-	bool getName = false
-	bool getArgs = false
-	bool IsMain = false
-	var UserIn = ""
-	var CName = ""
-	var Imports = ""
-	var Methods = ""
-	var Main = ""
-	var Content = ""
+	var NameIsNotOk bool
+	NameIsNotOk = true
+
+	var getName bool
+	getName = false
+
+	var getArgs bool
+	getArgs = false
+
+	var getWrite bool
+	getWrite = false
+
+	var getRead bool
+	getRead = false
+
+	var getIsIn bool
+	getIsIn = false
+
+	var getRawIn bool
+	getRawIn = false
+
+	var getRand bool
+	getRand = false
+
+	var IsMain bool
+	IsMain = false
+
+	var UserIn string
+	UserIn = ""
+
+	var CName string
+	CName = ""
+
+	var Imports string
+	Imports = ""
+
+	var Methods string
+	Methods = ""
+
+	var Main string
+	Main = ""
+
+	var Content string
+	Content = ""
+
 	//Get User CLI Args
 	args := os.Args[1:]
 
@@ -92,39 +147,32 @@ func main() {
 		//Get name of program
 		if UserIn == "-n" || UserIn == "--name" {
 			getName = true
-		}
 		//Get cli arg in main method
-		else if UserIn == "--cli" {
+		} else if UserIn == "--cli" {
 			getName = false
 			getArgs = true
-		}
 		//Is a main
-		else if UserIn == "--main" {
+		} else if UserIn == "--main" {
 			getName = false
 			IsMain = true
-		}
 		//Get Random method
-		else if UserIn == "--random" {
+		} else if UserIn == "--random" {
 			getName = false
 			getRand = true
-		}
 		//Get Write file method
-		else if UserIn == "--write-file" {
+		} else if UserIn == "--write-file" {
 			getName = false
 			getWrite = true
-		}
 		//Get Read file method
-		else if UserIn == "--read-file" {
+		} else if UserIn == "--read-file" {
 			getName = false
 			getRead = true
-		}
 		//Get IsIn method
-		else if UserIn == "--is-in" {
+		} else if UserIn == "--is-in" {
 			getName = false
 			getIsIn = true
-		}
 		//Get raw_input method
-		else if UserIn == "--user-input" {
+		} else if UserIn == "--user-input" {
 			getName = false
 			getRawIn = true
 		}
@@ -134,24 +182,17 @@ func main() {
 		getName = false
 	}
 	//Ensure program name is given
-	if (CName != "") {
+	if CName != "" {
 		Imports = getImports(getWrite,getRead,getRand)
 		Methods =  getMethods(getRawIn,getRand,getWrite,getRead,getIsIn)
-		if (IsMain == true) {
-				Main = getMain(getArgs,getRand)
-			}
-			else {
-				Main = ""
-			}
-			Content = Imports+Marcos+Methods+Main
-			CreateNew(CName,Content)
+		if IsMain == true {
+			Main = getMain(getArgs,getRand)
+		} else {
+			Main = ""
 		}
-		//No Program name...show help page
-		else {
-			help()
-		}
-	}
-	else {
+		Content = Imports+Marcos+Methods+Main
+		CreateNew(CName,Content)
+	} else {
 		help()
 	}
 }
