@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.55"
+SupportV="0.1.56"
 Lang=Python
 LangExt=".py"
 #Color Yellow
@@ -404,7 +404,7 @@ UsePython()
 					case ${project} in
 						none)
 							if [[ "${src}" == *","* ]]; then
-								if [ -z ${num} ]; then
+								if [ -z "${num}" ]; then
 									#Error
 									#{
 									case ${Type} in
@@ -450,7 +450,7 @@ UsePython()
 							TheSrcDir="${LangProject}/${project}/src/"
 							local NumFound
 							if [[ "${src}" == *","* ]]; then
-								if [ -z ${num} ]; then
+								if [ -z "${num}" ]; then
 									errorCode "editNull"
 									NumFound=0
 								else
@@ -749,7 +749,17 @@ UsePython()
 				else
 					#Program Name Given
 					if [ ! -z "${name}" ];then
-						local Content="import sys\n\n#${Lang} main\ndef main():\n\tArgs = sys.argv\n\nmain()"
+						local Content
+						case ${LangRun,,} in
+							python)
+								Content="import sys\n\n#${Lang} main\ndef main():\n\tArgs = sys.argv\n\tArgs.pop(0)\n\tprint len(Args)\n\tprint Args\nmain()"
+								;;
+							python3)
+								Content="import sys\n\n#${Lang}3 main\ndef main():\n\tArgs = sys.argv\n\tArgs.pop(0)\n\tprint(len(Args))\n\tprint(Args)\nmain()"
+								;;
+							*)
+								;;
+						esac
 						touch ${name}${LangExt}
 						echo -e "${Content}" > ${name}${LangExt}
 					else

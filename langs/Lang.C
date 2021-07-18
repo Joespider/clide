@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.24"
+SupportV="0.1.27"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
@@ -584,7 +584,7 @@ UseC()
 					case ${project} in
 						none)
 							if [[ "${src}" == *","* ]]; then
-								if [ -z ${num} ]; then
+								if [ -z "${num}" ]; then
 									#Error
 									#{
 									case ${Type} in
@@ -630,7 +630,7 @@ UseC()
 							TheSrcDir="${LangProject}/${project}/src/"
 							local NumFound
 							if [[ "${src}" == *","* ]]; then
-								if [ -z ${num} ]; then
+								if [ -z "${num}" ]; then
 									errorCode "editNull"
 									NumFound=0
 								else
@@ -769,15 +769,35 @@ UseC()
 		setCplArgs)
 			shift
 			shift
-			Vals="none"
-			Item=""
-			str=$@
-			IFS=' '         # space is set as delimiter
+			local Vals="none"
+			local Item=""
+			local str=$@
+			local IFS=' '         # space is set as delimiter
 			read -ra arg <<< "${str}"
 			for TheItem in "${arg[@]}"; do
 				if [ ! -z "${TheItem}" ]; then
 					case ${TheItem} in
-						--warnings)
+						-Ofast|--speed)
+							Item="-Ofast"
+							;;
+						-Og|--opt-debug)
+							Item="-Og"
+							;;
+						-Os|--opt-space)
+							Item="-Os"
+							;;
+						--opt=*)
+							#Get Number
+							local optVal=${TheItem/--opt=/}
+							optVal=$(echo ${optVal} | grep -o '[0-9]*')
+							if [ ! -z "${optVal}" ]; then
+								Item="-O${optVal}"
+							fi
+							;;
+						-v|--verboses)
+							Item="-v"
+							;;
+						-w|--warnings)
 							Item="-Wall -g"
 							;;
 						--std=*)
@@ -811,7 +831,12 @@ UseC()
 			echo ${Vals// /,}
 			;;
 		setCplArgs-help)
-			echo -e "--warnings\t\t: \"Show ALL warnings (-Wall -g)\""
+			echo -e "--speed\t\t: \"Optomize speed over standards (-Ofast)\""
+			echo -e "--opt=<num>\t\t: \"Set optimization level to <num> (-O<num>)\""
+			echo -e "--opt-debug\t\t: \"Optimize debugging over speed or size (-Og)\""
+			echo -e "--opt-space\t\t: \"Optimize space over speed (-Os)\""
+			echo -e "-v, --verboses\t\t: \"Verbose (-v)\""
+			echo -e "-w. --warnings\t\t: \"Show ALL warnings (-Wall -g)\""
 			echo -e "--std=<version>\t\t: \"Set C version\""
 			case ${LangCpl} in
 				gcc)
@@ -831,8 +856,8 @@ UseC()
 		compileCode)
 			local src=$1
 			local name=$2
-#			local cplArgs=$3
 			local cplArgs=${CplArgs//,/ }
+			local IsVerbose
 			local project=${CodeProject}
 			local NeedThreads
 			local HasXlib
@@ -897,12 +922,12 @@ UseC()
 				#Compile without makefile
 				else
 					#source file is empty
-					if [ -z ${name} ]; then
+					if [ -z "${name}" ]; then
 						errorCode "cpl" "choose"
 					else
 						#[Threads] Compile for Threads
 						#{
-						NeedThreads=$(grep "#include <thread>" ${src})
+						NeedThreads=$(grep "#include <pthread.h>" ${src})
 						if [ ! -z "${NeedThreads}" ]; then
 							cplArgs="${cplArgs} -lpthread"
 						fi
@@ -918,14 +943,34 @@ UseC()
 						fi
 						#}
 
-						#Compile and check for errors
-						ERROR=$(${LangCpl} ${src} -o ${TheBinDir}/${name} ${cplArgs} 2>&1 | tr '\n' '|')
+						IsVerbose=$(echo ${cplArgs} |grep -w "\-v" 2> /dev/null)
+						if [ -z "${IsVerbose}" ]; then
+							#Compile and check for errors...and put into binary directory
+							ERROR=$(${LangCpl} ${src} -o ${TheBinDir}/${name} ${cplArgs} 2>&1 | tr '\n' '|')
 
-						#Code compiled successfully
-						if [ -z "${ERROR}" ]; then
-							echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
+							#Code compiled successfully
+							if [ -z "${ERROR}" ]; then
+								echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
+							else
+								#display the ERROR message
+								errorCode "cpl" "ERROR" "${ERROR}"
+							fi
 						else
-							errorCode "cpl" "ERROR" "${ERROR}"
+							#compile code and get verbose output
+							ERROR=$(${LangCpl} ${src} -o ${name} ${cplArgs} 2>&1 | tr '\n' '|')
+							#Code compiled successfully because binary exists
+							if [ -f ${name} ]; then
+								#display the verbose GOOD output
+								errorCode "cpl" "Verbose" "${ERROR}"
+								#move binary to bin directory
+								mv ${name} ${TheBinDir}/
+								echo ""
+								echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
+							#Code compiled did NOT compile
+							else
+								#display the ERROR message
+								errorCode "cpl" "ERROR" "${ERROR}"
+							fi
 						fi
 					fi
 				cd - > /dev/null

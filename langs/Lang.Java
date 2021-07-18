@@ -421,7 +421,7 @@ UseJava()
 						#Is NOT a project
 						none)
 							if [[ "${src}" == *","* ]]; then
-								if [ -z ${num} ]; then
+								if [ -z "${num}" ]; then
 									#Error
 									#{
 									case ${Type} in

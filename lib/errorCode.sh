@@ -9,25 +9,31 @@ errorCode()
 	case ${ecd} in
 		alias)
 			errorCode "ERROR"
-			echo "\"${sec}\" already installed"
+			errorCode "ERROR" "\"${sec}\" already installed"
 			;;
 		install)
+			shift
+			local thr=$1
 			case ${sec} in
+				cli-not-supported)
+					errorCode "ERROR"
+					errorCode "ERROR" "\"${thr}\" is not a supported language"
+					;;
 				choose)
 					errorCode "HINT" "command"
-					echo "please choose script"
+					errorCode "HINT" "please choose script"
 					;;
 				*.java|*.class)
 					errorCode "ERROR"
-					echo "\"${sec}\" needs to be an java jar"
+					errorCode "ERROR" "\"${sec}\" needs to be an java jar"
 					errorCode "HINT" "command"
-					echo "cpl --jar"
+					errorCode "HINT" "cpl --jar"
 					;;
 				*)
 					errorCode "ERROR"
-					echo "\"${sec}\" needs to be an executable"
+					errorCode "ERROR" "\"${sec}\" needs to be an executable"
 					errorCode "HINT" "command"
-					echo "cpl"
+					errorCode "HINT" "cpl"
 					;;
 			esac
 			;;
@@ -36,8 +42,8 @@ errorCode()
 				none)
 					errorCode "ERROR"
 					echo ""
-					echo "Nothing to search for"
-					echo "Please provide a value"
+					errorCode "ERROR" "Nothing to search for"
+					errorCode "ERROR" "Please provide a value"
 					;;
 				*)
 					;;
@@ -49,19 +55,19 @@ errorCode()
 			case ${sec} in
 				sure)
 					errorCode "WARNING"
-					echo "YOU ARE TRYING TO DELETE A FILE"
-					errorCode "WARNING"
-					echo "You will NOT recover this file"
+					errorCode "WARNING" "YOU ARE TRYING TO DELETE A FILE"
+					errorCode "WARNING" "You will NOT recover this file"
 					echo ""
-					echo "\"yes\" is NOT \"YES\""
+					errorCode "WARNING" "\"yes\" is NOT \"YES\""
 					;;
 				hint)
 					echo ""
 					errorCode "HINT"
-					echo "To force removal, provide a \"--force\""
+					errorCode "HINT" "To force removal, provide a \"--force\""
 					;;
 				not-file)
-					echo "\"${thr}\" not a file"
+					errorCode "ERROR"
+					errorCode "ERROR" "\"${thr}\" not a file"
 					;;
 				*)
 					;;
@@ -69,23 +75,27 @@ errorCode()
 			;;
 		noCode)
 			errorCode "ERROR"
-			echo "No Code Found"
+			errorCode "ERROR" "No Code Found"
 			errorCode "HINT" "command"
-			echo "set <name>"
+			errorCode "HINT" "set <name>"
 			;;
 		newCode)
 			case ${sec} in
 				already)
 					errorCode "ERROR"
-					echo "source code already made"
+					errorCode "ERROR" "source code already made"
 					errorCode "HINT" "command"
-					echo "set <name>"
+					errorCode "HINT" "set <name>"
+					;;
+				cli-already)
+					errorCode "ERROR"
+					errorCode "ERROR" "source code already made"
 					;;
 				*)
 					errorCode "ERROR"
-					echo "Please Provide The Name Of Your New Code"
+					errorCode "ERROR" "Please Provide The Name Of Your New Code"
 					errorCode "HINT" "command"
-					echo "new <name>"
+					errorCode "HINT" "new <name>"
 					;;
 			esac
 			;;
@@ -93,21 +103,21 @@ errorCode()
 			case ${sec} in
 				no-exist)
 					errorCode "ERROR"
-					echo "No source code found"
+					errorCode "ERROR" "No source code found"
 					errorCode "HINT" "command"
-					echo "create ${ecd} new"
+					errorCode "HINT" "create ${ecd} new"
 					;;
 				exist)
 					errorCode "ERROR"
-					echo "Template source code already found"
+					errorCode "ERROR" "Template source code already found"
 					errorCode "HINT" "command"
-					echo "create ${ecd} update"
+					errorCode "HINT" "create ${ecd} update"
 					;;
 				update)
-					echo "[Template created]"
-					echo "To edit and compile, pleae execute the following"
+					errorCode "WARNING" "[Template created]"
+					errorCode "WARNING" "To edit and compile, pleae execute the following"
 					errorCode "HINT" "command"
-					echo "create ${ecd} update"
+					errorCode "HINT" "create ${ecd} update"
 					;;
 				*)
 					;;
@@ -115,21 +125,21 @@ errorCode()
 			;;
 		runCode)
 			errorCode "ERROR"
-			echo "${sec} can only handle ONE file"
+			errorCode "ERROR" "${sec} can only handle ONE file"
 			;;
 		customCode)
 			shift
 			local thr=$1
 			case ${sec} in
 				completeNotFound)
-					echo "${Head} did not find, or is not configured to find, your program"
-					echo "Please select your code"
+					errorCode "WARNING" "${Head} did not find, or is not configured to find, your program"
+					errorCode "WARNING" "Please select your code"
 					errorCode "HINT" "command"
-					echo "set <name>"
+					errorCode "HINT" "set <name>"
 					;;
 				notemp)
 					errorCode "ERROR"
-					echo "No ${thr} Template Found"
+					errorCode "ERROR" "No ${thr} Template Found"
 					;;
 				*)
 					;;
@@ -137,11 +147,11 @@ errorCode()
 			;;
 		editNull)
 			errorCode "HINT" "command"
-			echo "${editor}|edit|ed <file>"
+			errorCode "HINT" "${editor}|edit|ed <file>"
 			;;
 		editNot)
 			errorCode "ERROR"
-			echo "code is not found in project"
+			errorCode "ERROR" "code is not found in project"
 			;;
 		selectCode)
 			shift
@@ -149,49 +159,49 @@ errorCode()
 			case ${sec} in
 				set)
 					errorCode "HINT" "command"
-					echo "set <source>"
+					errorCode "HINT" "set <source>"
 					;;
 				nothing)
 					errorCode "ERROR"
-					echo "There is nothing to add"
+					errorCode "ERROR" "There is nothing to add"
 					;;
 				exists)
 					errorCode "ERROR"
-					echo "Source Code has already been selected"
+					errorCode "ERROR" "Source Code has already been selected"
 					errorCode "HINT" "command"
-					echo "add <source>"
+					errorCode "HINT" "add <source>"
 					;;
 				already)
 					errorCode "ERROR"
-					echo "No need to add it again"
+					errorCode "ERROR" "No need to add it again"
 					;;
 				*)
 					errorCode "ERROR"
-					echo "Please select a file to edit"
+					errorCode "ERROR" "Please select a file to edit"
 					;;
 			esac
 			;;
 		editMe)
 			errorCode "WARNING"
-			echo "For your safety, I am not allowed to edit myself"
+			errorCode "WARNING" "For your safety, I am not allowed to edit myself"
 			;;
 		readNull)
 			errorCode "HINT" "command"
-			echo "${ReadBy}"
-			echo "or"
+			errorCode "HINT" "${ReadBy}"
+			errorCode "HINT" "or"
 			errorCode "HINT" "command"
-			echo "read"
-			echo "or"
+			errorCode "HINT" "read"
+			errorCode "HINT" "or"
 			errorCode "HINT" "command"
-			echo "read <file>"
-			echo "or"
+			errorCode "HINT" "read <file>"
+			errorCode "HINT" "or"
 			errorCode "HINT" "command"
-			echo "${ReadBy} <file>"
+			errorCode "HINT" "${ReadBy} <file>"
 
 			;;
 		readNot)
 			errorCode "ERROR"
-			echo "code is not found in project"
+			errorCode "ERROR" "code is not found in project"
 			;;
 		project)
 			shift
@@ -199,51 +209,60 @@ errorCode()
 			case ${sec} in
 				already-title)
 					errorCode "ERROR"
-					echo "The \"${thr}\" project already has a title"
+					errorCode "ERROR" "The \"${thr}\" project already has a title"
 					;;
 				no-title)
 					errorCode "ERROR"
-					echo "project title not given"
+					errorCode "ERROR" "project title not given"
 					;;
 				none)
-					echo "Your session MUST be a ${thr} Project"
-					echo "Please create or load a project"
+					errorCode "ERROR"
+					errorCode "ERROR" "Your session MUST be a ${thr} Project"
+					errorCode "ERROR" "Please create or load a project"
 					errorCode "HINT" "command"
-					echo "project new <project>"
+					errorCode "HINT" "project new <project>"
 					errorCode "HINT" "command"
-					echo "project load <project>"
+					errorCode "HINT" "project load <project>"
 					;;
 				type)
-					echo "Could not create project type: \"${thr}\""
+					errorCode "ERROR"
+					errorCode "ERROR" "Could not create project type: \"${thr}\""
 					;;
 				active)
-					echo "There are no active projects"
+					errorCode "ERROR"
+					errorCode "ERROR" "There are no active projects"
 					;;
 				can-not-leave)
-					echo "Leaving your project is not allowed"
+					errorCode "ERROR"
+					errorCode "ERROR" "Leaving your project is not allowed"
 					;;
 				import)
 					shift
 					local four=$1
 					case ${thr} in
 						link-nothing)
-							echo "\"${four}\" is not a working directory"
+							errorCode "ERROR"
+							errorCode "ERROR" "\"${four}\" is not a working directory"
 							;;
 						no-path)
-							echo "no path Given"
+							errorCode "ERROR"
+							errorCode "ERROR" "no path Given"
 							;;
 						no-name)
-							echo "no project name given"
+							errorCode "ERROR"
+							errorCode "ERROR" "no project name given"
 							errorCode "HINT" "command"
-							echo "project <name> <path>"
+							errorCode "HINT" "project <name> <path>"
 							;;
 						name-in-path)
-							echo "\"${four}\" must be in the directory of \"${five}\""
+							errorCode "ERROR"
+							errorCode "ERROR" "\"${four}\" must be in the directory of \"${five}\""
 							errorCode "HINT"
-							echo "/path/to/${four}/src"
+							errorCode "HINT" "/path/to/${four}/src"
 							;;
 						exists)
-							echo "You Already have a project named \"${four}\""
+							errorCode "ERROR"
+							errorCode "ERROR" "You Already have a project named \"${four}\""
 							;;
 						*)
 							echo "import Methods"
@@ -255,10 +274,12 @@ errorCode()
 					local four=$1
 					case ${thr} in
 						no-path)
-							echo "Project \"${four}\" Directory not Found"
+							errorCode "ERROR"
+							errorCode "ERROR" "Project \"${four}\" Directory not Found"
 							;;
 						no-project)
-							echo "Not \"${four}\" a valid project"
+							errorCode "ERROR"
+							errorCode "ERROR" "Not \"${four}\" a valid project"
 							;;
 						*)
 							;;
@@ -270,25 +291,29 @@ errorCode()
 					case ${thr} in
 						unable-link)
 							if [ ! -z "${four}" ]; then
-								echo "Unable to link \"${four}\""
-								echo "May have already been linked"
+								errorCode "ERROR"
+								errorCode "ERROR" "Unable to link \"${four}\""
+								errorCode "ERROR" "May have already been linked"
 							else
-								echo "Please provide language"
+								errorCode "ERROR"
+								errorCode "ERROR" "Please provide language"
 								errorCode "HINT" "command"
-								echo "project link <lang>"
+								errorCode "HINT" "project link <lang>"
 							fi
 							;;
 						not-link)
 							if [ ! -z "${four}" ]; then
-								echo "Unable to swap to \"${four}\""
-								echo ""
-								echo "Please link ${four}"
+								errorCode "ERROR"
+								errorCode "ERROR" "Unable to swap to \"${four}\""
+ 								echo ""
+								errorCode "ERROR"  "Please link ${four}"
 								errorCode "HINT" "command"
 								echo "project link ${four}"
 							else
-								echo "Please provide language"
+								errorCode "ERROR"
+								errorCode "ERROR" "Please provide language"
 								errorCode "HINT" "command"
-								echo "project swap <lang>"
+								errorCode "HINT" "project swap <lang>"
 							fi
 							;;
 						*)
@@ -296,16 +321,20 @@ errorCode()
 					esac
 					;;
 				not-exist)
-					echo "Unable to create your project \"${thr}\""
+					errorCode "ERROR"
+					errorCode "ERROR" "Unable to create your project \"${thr}\""
 					;;
 				exists)
-					echo "\"${thr}\" is already a project"
+					errorCode "ERROR"
+					errorCode "ERROR" "\"${thr}\" is already a project"
 					;;
 				NotAProject)
-					echo "No \"${thr}\" project found"
+					errorCode "ERROR"
+					errorCode "ERROR" "No \"${thr}\" project found"
 					;;
 				*)
-					echo "Project error"
+					errorCode "ERROR"
+					errorCode "ERROR" "Project error"
 					;;
 			esac
 			;;
@@ -320,50 +349,84 @@ errorCode()
 					echo -e "\e[1;31m]\e[0m"
 					echo -e "\e[1;31m${ERROR}\e[0m"
 					;;
+				Verbose)
+					shift
+					local thr=$@
+					local Verbose=$(echo ${thr} | tr '|' '\n')
+					echo -en "\e[1;32m[\e[0m"
+					echo -en "\e[1;42mVerbose\e[0m"
+					echo -e "\e[1;32m]\e[0m"
+					echo -e "\e[1;32m${Verbose}\e[0m"
+					;;
 				choose)
-					errorCode "HINT"
-					echo "please choose a program name"
+					errorCode "ERROR"
+					errorCode "ERROR" "please choose a program name"
+					errorCode "HINT" "command"
+					errorCode "HINT" "set <code>"
+					;;
+				cpl-args)
+					errorCode "WARNING"
+					errorCode "WARNING" "No compile/interpeter flags at this moment"
 					;;
 				already)
 					shift
 					local thr=$1
-					echo "\"${thr}\" already compiled"
+					errorCode "ERROR"
+					errorCode "ERROR" "\"${thr}\" already compiled"
 					;;
 				not)
-					echo "code not found"
+					errorCode "ERROR"
+					errorCode "ERROR" "code not found"
 					;;
 				need)
 					shift
 					local thr=$1
-					echo "${thr} is not compiled"
+					errorCode "ERROR"
+					errorCode "ERROR" "${thr} is not compiled"
 					errorCode "HINT" "command"
-					echo "cpl"
+					errorCode "HINT" "cpl"
 					;;
 				none)
-					echo "no code to run"
+					errorCode "ERROR"
+					errorCode "ERROR" "no code to run"
 					errorCode "HINT" "command"
-					echo "set <code>"
+					errorCode "HINT" "set <code>"
 					;;
 				*)
-					echo "Nothing to Compile"
+					errorCode "ERROR"
+					errorCode "ERROR" "Nothing to Compile"
 					errorCode "HINT" "command"
-					echo "set <name>"
+					errorCode "HINT" "set <name>"
+					;;
+			esac
+			;;
+		cli-cpl)
+			case ${sec} in
+				none)
+					errorCode "ERROR"
+					errorCode "ERROR" "Source code not found"
+					;;
+				*)
 					;;
 			esac
 			;;
 		loadSession)
-			echo "No Session to load"
+			errorCode "ERROR"
+			errorCode "ERROR" "No Session to load"
 			;;
 		backup)
 			case ${sec} in
 				null)
-					echo "No source code given"
+					errorCode "ERROR"
+					errorCode "ERROR" "No source code given"
 					;;
 				exists)
-					echo "Back-up file already exists"
+					errorCode "ERROR"
+					errorCode "ERROR" "Back-up file already exists"
 					;;
 				wrong)
-					echo "Please choose the correct source file"
+					errorCode "ERROR"
+					errorCode "ERROR" "Please choose the correct source file"
 					;;
 				*)
 					;;
@@ -372,24 +435,29 @@ errorCode()
 		restore)
 			case ${sec} in
 				null)
-					echo "No source code given"
+					errorCode "ERROR"
+					errorCode "ERROR" "No source code given"
 					;;
 				exists)
-					echo "No back-up file found"
+					errorCode "ERROR"
+					errorCode "ERROR" "No back-up file found"
 					;;
 				wrong)
-					echo "Please choose the correct source file"
+					errorCode "ERROR"
+					errorCode "ERROR" "Please choose the correct source file"
 					;;
 				*)
 					;;
 			esac
 			;;
 		no-langs)
-			echo "No Languages installed"
-			echo "Please Lang.<language> in \"${LangsDir}/\""
+			errorCode "ERROR"
+			errorCode "ERROR" "No Languages installed"
+			errorCode "ERROR" "Please Lang.<language> in \"${LangsDir}/\""
 			;;
 		not-a-lang)
-			echo "Language is not found"
+			errorCode "ERROR"
+			errorCode "ERROR" "Language is not found"
 			;;
 		add)
 			shift
@@ -400,18 +468,22 @@ errorCode()
 				support)
 					case ${thr} in
 						no-lang)
-							echo "Please provide a new language"
+							errorCode "ERROR"
+							errorCode "ERROR" "Please provide a new language"
 							errorCode "HINT" "command"
-							echo "create <lang>"
+							errorCode "HINT" "create <lang>"
 							;;
 						not-supported)
-							echo "\"${four}\" is not a supported language"
+							errorCode "ERROR"
+							errorCode "ERROR" "\"${four}\" is not a supported language"
 							;;
 						already-supported)
-							echo "\"${four}\" is already supported language"
+							errorCode "ERROR"
+							errorCode "ERROR" "\"${four}\" is already supported language"
 							;;
 						*)
-							echo "Adding Language Support error"
+							errorCode "ERROR"
+							errorCode "ERROR" "Adding Language Support error"
 							;;
 					esac
 					;;
@@ -420,24 +492,45 @@ errorCode()
 			esac
 			;;
 		no-support)
-			echo "The following feature is not yet supported"
-			echo "Feature: ${sec}"
+			errorCode "ERROR"
+			errorCode "ERROR" "The following feature is not yet supported"
+			errorCode "ERROR" "Feature: ${sec}"
 			;;
 		HINT)
 			case ${sec} in
 				command)
-					echo -n "[HINT]: \$ "
+					echo -en "\e[1;32m[\e[0m"
+					echo -en "\e[1;42mHINT\e[0m"
+					echo -en "\e[1;32m]:\e[0m \$ "
 					;;
 				*)
-					echo -n "[HINT]: "
+					if [ -z "${sec}" ]; then
+						echo -en "\e[1;32m[\e[0m"
+						echo -en "\e[1;42mHINT\e[0m"
+						echo -en "\e[1;32m]:\e[0m "
+					else
+						echo -e "\e[1;32m${sec}\e[0m"
+					fi
 					;;
 			esac
 			;;
 		ERROR)
-			echo -n "[ERROR]: "
+			if [ -z "${sec}" ]; then
+				echo -en "\e[1;31m[\e[0m"
+				echo -en "\e[1;41mERROR\e[0m"
+				echo -en "\e[1;31m]:\e[0m "
+			else
+				echo -e "\e[1;31m${sec}\e[0m"
+			fi
 			;;
 		WARNING)
-			echo -n "[WARNING]: "
+			if [ -z "${sec}" ]; then
+				echo -en "\e[1;33m[\e[0m"
+				echo -en "\e[1;43mWARNING\e[0m"
+				echo -en "\e[1;33m]:\e[0m "
+			else
+				echo -e "\e[1;33m${sec}\e[0m"
+			fi
 			;;
 		*)
 			;;

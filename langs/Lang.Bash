@@ -299,7 +299,7 @@ UseBash()
 			case ${src} in
 				*${LangExt})
 					if [[ "${src}" == *","* ]]; then
-						if [ -z ${num} ]; then
+						if [ -z "${num}" ]; then
 							#ERROR
 							#{
 							case ${Type} in
@@ -381,7 +381,7 @@ UseBash()
 					#Multiple code selected
 					if [[ "${src}" == *","* ]]; then
 						#varable is empty
-						if [ -z ${name} ]; then
+						if [ -z "${name}" ]; then
 							errorCode "cpl" "choose"
 						else
 							#chosen file is in the list of files

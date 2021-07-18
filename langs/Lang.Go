@@ -539,7 +539,7 @@ UseGo()
 					case ${project} in
 						none)
 							if [[ "${src}" == *","* ]]; then
-								if [ -z ${num} ]; then
+								if [ -z "${num}" ]; then
 									#Error
 									#{
 									case ${Type} in
@@ -585,7 +585,7 @@ UseGo()
 							TheSrcDir="${LangProject}/${project}/src/"
 							local NumFound
 							if [[ "${src}" == *","* ]]; then
-								if [ -z ${num} ]; then
+								if [ -z "${num}" ]; then
 									errorCode "editNull"
 									NumFound=0
 								else
@@ -838,7 +838,7 @@ UseGo()
 				#Compile without makefile
 				else
 					#source file is empty
-					if [ -z ${name} ]; then
+					if [ -z "${name}" ]; then
 						errorCode "cpl" "choose"
 					else
 						#Compile and check for errors
