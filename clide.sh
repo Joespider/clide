@@ -5,6 +5,8 @@ root=$(dirname ${ShellPath})
 source ${root}/var/clide.conf
 source ${root}/var/version
 
+InAndOut="no"
+
 Head="cl[ide]"
 IDE=$(echo -e "\e[1;40mide\e[0m")
 Name="cl[${IDE}]"
@@ -1057,7 +1059,13 @@ Actions()
 			esac
 		fi
 		#}
-		Banner ${Lang}
+		case ${InAndOut} in
+			yes)
+				;;
+			*)
+				Banner ${Lang}
+				;;
+		esac
 		while true
 		do
 			#User's first action
@@ -1622,7 +1630,15 @@ Actions()
 										refresh="yes"
 										;;
 									no)
-										errorCode "newCode" "already"
+										#Jump-in and Jump-out
+										case ${InAndOut} in
+											yes)
+												errorCode "newCode" "cli-already"
+												;;
+											*)
+												errorCode "newCode" "already"
+												;;
+										esac
 										;;
 									*)
 										;;
@@ -1633,6 +1649,15 @@ Actions()
 							;;
 					esac
 					refresh="yes"
+
+					#Jump-in and Jump-out
+					case ${InAndOut} in
+						yes)
+							break
+							;;
+						*)
+							;;
+					esac
 					;;
 				#Edit new source code
 				${editor}|edit|ed)
@@ -1734,24 +1759,35 @@ Actions()
 					#what to create
 					case ${UserIn[1]} in
 						cpl|cpl-args)
+							local options
 							case ${UserIn[2]} in
 								#User asks for help page
 								help)
 									#Get help page from language support file
-									ManageLangs ${Lang} "setCplArgs-help"
+									options=$(ManageLangs ${Lang} "setCplArgs-help" | tr '\n' '|')
+									if [ -z "${options}" ]; then
+										errorCode "cpl" "cpl-args"
+									else
+										echo ${options} | tr '|' '\n'
+									fi
 									;;
 								*)
 									#No value was given...yet
 									if [ -z "${UserIn[2]}" ]; then
 										#Show compile arguments options
-										ManageLangs ${Lang} "setCplArgs-help"
-										#User input
-										echo -n "${cLang}\$ "
-										read -a NewVal
+										options=$(ManageLangs ${Lang} "setCplArgs-help" | tr '\n' '|')
+										if [ -z "${options}" ]; then
+											errorCode "cpl" "cpl-args"
+										else
+											echo ${options} | tr '|' '\n'
+											#User input
+											echo -n "${cLang}\$ "
+											read -a NewVal
 
-										#User provided a value
-										if [ ! -z "${NewVal}" ]; then
-											NewVal=( ${UserIn[0]} ${UserIn[1]} ${UserIn[2]} ${NewVal[@]} )
+											#User provided a value
+											if [ ! -z "${NewVal}" ]; then
+												NewVal=( ${UserIn[0]} ${UserIn[1]} ${UserIn[2]} ${NewVal[@]} )
+											fi
 										fi
 									#User gave pre-set argument
 									else
@@ -1893,6 +1929,14 @@ Actions()
 				#Compile code
 				compile|cpl)
 					ManageLangs ${Lang} "compileCode" ${Code} ${UserIn[1]} ${UserIn[2]}
+					#Jump-in and Jump-out
+					case ${InAndOut} in
+						yes)
+							break
+							;;
+						*)
+							;;
+					esac
 					;;
 				#Install compiled code into aliases
 				install)
@@ -2387,7 +2431,7 @@ main()
 												cd ${CodeDir}
 												ManageLangs ${Lang} "compileCode" ${GetProject} ${Args[@]}
 											else
-												echo "Source code not found"
+												errorCode "cli-cpl" "none"
 											fi
 										else
 											echo "\"${GetProject}\" is Not a valid project"
@@ -2408,7 +2452,7 @@ main()
 								Lang=$(echo ${TheProject} | cut -d ";" -f 1)
 								Lang=$(pgLang ${Lang})
 								Actions ${Lang} "code" "project" "load" "${GetProject}"
-							fi
+								fi
 							;;
 					esac
 				else
@@ -2417,7 +2461,7 @@ main()
 				;;
 			#Get cli help page
 			-h|--help)
-				theHelp CliHelp ${UserArg} $2
+				theHelp CliHelp ${UserArg} $2 $3
 				;;
 			#Load last saved session
 			-l|--load|--last)
@@ -2427,6 +2471,61 @@ main()
 				CodeProject=$(echo ${session} | cut -d ";" -f 2)
 				#Start IDE
 				Actions ${Lang} ${Code} ${CodeProject}
+				;;
+			--new)
+				shift
+				local Lang
+				local Code=$2
+				local Args
+				if [ -z "${Code}" ]; then
+					Lang=$(SelectLangByCode $1)
+					if [ ! -z "${Lang}" ]; then
+						Code=$1
+						shift
+						local Args=$@
+						case ${Code} in
+							-h|--help)
+#								theHelp installHelp
+								;;
+							*)
+								if [ ! -z "${Code}" ]; then
+									main --new "${Lang}" "${Code}" ${Args[@]}
+								fi
+								;;
+						esac
+#					else
+#						theHelp cplHelp
+					fi
+				else
+					case ${Code} in
+						--*)
+							Lang=$(SelectLangByCode $1)
+							Code=$1
+							shift
+							Args=$@
+							;;
+						*)
+							Lang=$(pgLang $1)
+							shift
+							shift
+							Args=$@
+							;;
+					esac
+					case ${Lang} in
+						no)
+							echo "\"$1\" is not a supported language"
+							;;
+						*)
+							local CodeDir=$(pgDir ${Lang})
+							if [ ! -z "${CodeDir}" ]; then
+								cd ${CodeDir}
+								InAndOut="yes"
+								Actions ${Lang} "code" "new" ${Code} ${Args[@]}
+#							else
+#								errorCode "cli-cpl" "none"
+							fi
+					esac
+				fi
 				;;
 			--edit)
 				shift
@@ -2503,7 +2602,16 @@ main()
 						Code=$1
 						shift
 						local Args=$@
-						main --cpl "${Lang}" "${Code}" ${Args[@]}
+						case ${Code} in
+							-h|--help)
+								theHelp cplHelp
+								;;
+							*)
+								if [ ! -z "${Code}" ]; then
+									main --cpl "${Lang}" "${Code}" ${Args[@]}
+								fi
+								;;
+						esac
 					else
 						theHelp cplHelp
 					fi
@@ -2531,9 +2639,14 @@ main()
 							if [ ! -z "${CodeDir}" ]; then
 								cd ${CodeDir}
 								Code=$(selectCode ${Lang} ${Code})
-								ManageLangs ${Lang} "compileCode" ${Code} ${Args[@]}
+								if [ ! -z "${Code}" ]; then
+									InAndOut="yes"
+									Actions ${Lang} "code" "cpl" ${Code} ${Args[@]}
+								else
+									errorCode "cli-cpl" "none"
+								fi
 							else
-								echo "Source code not found"
+								errorCode "cli-cpl" "none"
 							fi
 					esac
 				fi
@@ -2548,15 +2661,24 @@ main()
 					Code=$1
 					shift
 					local Args=$@
-					main --install "${Lang}" "${Code}" ${Args[@]}
-
+					case ${Code} in
+						-h|--help)
+							theHelp installHelp
+							;;
+						*)
+							if [ ! -z "${Code}" ]; then
+								main --install "${Lang}" "${Code}" ${Args[@]}
+							fi
+							;;
+					esac
 				else
 					shift
 					shift
 					local Args=$@
 					case ${Lang} in
 						no)
-							echo "\"$1\" is not a supported language"
+							errorCode "install" "cli-not-supported" "$1"
+							theHelp installHelp
 							;;
 						*)
 							local CodeDir=$(pgDir ${Lang})
@@ -2623,7 +2745,9 @@ main()
 					Code=$1
 					shift
 					local Args=$@
-					main --read "${Lang}" "${Code}" ${Args[@]}
+					if [ ! -z "${Lang}" ] && [ ! -z "${Code}" ]; then
+						main --read "${Lang}" "${Code}" ${Args[@]}
+					fi
 				else
 					case ${Lang} in
 						no)

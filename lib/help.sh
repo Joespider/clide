@@ -55,6 +55,8 @@ MenuHelp()
 			echo -e "using\t\t\t\t: \"Display what language is being used\""
 			echo -e "save\t\t\t\t: \"Save session\""
 			echo -e "create <arg>\t\t\t: \"create compile and runtime arguments"
+			echo -e "\thelp\t\t\t: \"create help page"
+			echo ""
 			ManageLangs ${Lang} "MenuHelp"
 			echo -e "car, car-a\t\t\t: \"compile and run; compile and run with arguments\""
 			echo -e "rm, remove, delete\t\t: \"delete src file\""
@@ -182,6 +184,7 @@ CliHelp()
 	local calledBy=$1
 	local cmd="clide ${calledBy}"
 	local option=$2
+	local example=$3
 	case ${option} in
 		info)
 			echo ""
@@ -205,25 +208,61 @@ CliHelp()
 			echo ""
 			;;
 		function)
-			echo ""
-			echo "----------------[(${Head}) Functions]----------------"
-			echo ""
-			echo "\"Don't want to chat long? Want me to perform a simple task?\""
-			echo "\"I can perform normal tasks quickly.\""
-			echo "\"Here is how I can help\""
-			echo ""
-			echo -e "--edit\t\t\t\t: \"Edit source code\""
-			echo -e "--edit --config\t\t\t: \"Edit ${Head} config\""
-			echo -e "--cpl, --compile\t\t: \"Compile source code\""
-			echo -e "--install\t\t\t: \"install program (.bash_aliases)\""
-			echo -e "--run\t\t\t\t: \"Run compiled code\""
-			echo -e "--read\t\t\t\t: \"Read out (cat) source code\""
-			echo -e "--list\t\t\t\t: \"List source code\""
-			echo -e "--list-cpl\t\t\t: \"List compiled code\""
-			echo -e "-p, --project <act> <project>\t: \"List or Load Clide Projects\""
-			echo ""
-			echo "-----------------------------------------------"
-			echo ""
+			case ${example} in
+				--new)
+					NewHelp
+					;;
+				--edit)
+					EditHelp
+					;;
+				--cpl|--compile)
+					cplHelp
+					;;
+				--run)
+					RunHelp
+					;;
+				--install)
+					installHelp
+					;;
+				--read)
+					RunHelp
+					;;
+				--list|--list-cpl)
+					listHelp ${example}
+					;;
+				-p|--project)
+					ProjectCliHelp ${example}
+					;;
+				*)
+					echo ""
+					echo "----------------[(${Head}) Functions]----------------"
+					echo ""
+					echo "\"Don't want to chat long? Want me to perform a simple task?\""
+					echo "\"Want to include me in a shell script?\""
+					echo "\"I can perform normal tasks quickly.\""
+					echo "\"Here is how I can help\""
+					echo ""
+					echo -e "--new <args>\t\t\t: \"New source code\""
+					echo -e "--edit <args>\t\t\t: \"Edit source code\""
+					echo -e "--edit --config\t\t\t: \"Edit ${Head} config\""
+					echo -e "--cpl, --compile <args>\t\t: \"Compile source code\""
+					echo -e "--install <args>\t\t: \"install program (.bash_aliases)\""
+					echo -e "--run <args>\t\t\t: \"Run compiled code\""
+					echo -e "--read <args>\t\t\t: \"Read out (cat) source code\""
+					echo -e "--list <lang>\t\t\t: \"List source code\""
+					echo -e "--list-cpl <lang>\t\t: \"List compiled code\""
+					echo -e "-p, --project <args>\t\t\t: \"List or Load Clide Projects\""
+					echo ""
+					echo -e "\"Need more information? Just ask!\""
+					echo ""
+					cmd="clide ${calledBy} ${example}"
+					echo -e "${cmd}--edit\t\t: \"Get more information about editing files\""
+					echo -e "${cmd}--cpl\t\t: \"Learn how to do quick compiles\""
+					echo ""
+					echo "-----------------------------------------------"
+					echo ""
+					;;
+			esac
 			;;
 		usage)
 			echo ""
@@ -261,7 +300,7 @@ CliHelp()
 			echo "\"Hello ${USER}!\""
 			echo ""
 			echo "\"My name is clide; I am here to help with all your programming needs.\""
-			echo "\"Lets get to know each other:\""
+			echo "\"Lets get to know each other.\""
 			echo "\"To start, ask me the following:\""
 			echo ""
 			echo -e "${cmd} info\t\t: \"Get to know some information about me\""
@@ -273,6 +312,21 @@ CliHelp()
 	esac
 }
 
+NewHelp()
+{
+	local cli="--new"
+	local cmd="\$ clide ${cli}"
+	echo ""
+	echo "----------------[(${Head}) cli {${cli}}]----------------"
+	echo -e "Run your compiled code without having a ${Head} session"
+	echo ""
+	echo -e "${cmd} <language> <code> {arguments}"
+	echo -e "${cmd} <code> {arguments}"
+	echo -e "${cmd} -h, --help\t\t\t: \"help page\""
+	echo "-----------------------------------------------"
+	echo ""
+}
+
 RunHelp()
 {
 	local cli="--run"
@@ -281,8 +335,23 @@ RunHelp()
 	echo "----------------[(${Head}) cli {${cli}}]----------------"
 	echo -e "Run your compiled code without having a ${Head} session"
 	echo ""
-	echo -e "${cmd} <language> <code> {arguments}\t:\"Run compiled code\""
-	echo -e "${cmd} <code> {arguments}\t\t:\"Run compiled code\""
+	echo -e "${cmd} <language> <code> {arguments}"
+	echo -e "${cmd} <code> {arguments}"
+	echo -e "${cmd} -h, --help\t\t\t: \"help page\""
+	echo "-----------------------------------------------"
+	echo ""
+}
+
+ReadHelp()
+{
+	local cli="--run"
+	local cmd="\$ clide ${cli}"
+	echo ""
+	echo "----------------[(${Head}) cli {${cli}}]----------------"
+	echo -e "Read your compiled code without having a ${Head} session"
+	echo ""
+	echo -e "${cmd} <language> <code>"
+	echo -e "${cmd} <code> {arguments}"
 	echo -e "${cmd} -h, --help\t\t\t: \"help page\""
 	echo "-----------------------------------------------"
 	echo ""
@@ -296,9 +365,25 @@ cplHelp()
 	echo "----------------[(${Head}) cli {${cli}}]----------------"
 	echo -e "\"Compile your code without having a session\""
 	echo ""
-	echo -e "${cmd} <language> <code>\t: \"compiled code by identifying language and source code\""
-	echo -e "${cmd} <code>\t\t\t: \"compiled code by providing source code and extension\""
-	echo -e "${cmd} -h, --help\t\t: \"help page\""
+	echo -e "${cmd} <language> <code>"
+	echo -e "${cmd} <code>"
+	echo -e "${cmd} -h, --help\t\t: \"help p2age\""
+	echo "-----------------------------------------------"
+	echo ""
+}
+
+installHelp()
+{
+	local cli="--install"
+	local cmd="\$ clide ${cli}"
+	echo ""
+	echo "----------------[(${Head}) cli {${cli}}]----------------"
+	echo -e "\"Add your code to your ~/.bash_aliases without having a session\""
+	echo -e "\"code MUST be compiled\""
+	echo ""
+	echo -e "${cmd} <language> <code>"
+	echo -e "${cmd} <code>"
+	echo -e "${cmd} -h, --help\t\t: \"help p2age\""
 	echo "-----------------------------------------------"
 	echo ""
 }
@@ -317,6 +402,34 @@ EditHelp()
 	echo -e "${cmd} -h, --help\t\t: \"help page\""
 	echo "-----------------------------------------------"
 	echo ""
+}
+
+listHelp()
+{
+	local cli="$1"
+	local cmd="\$ clide ${cli}"
+	echo ""
+	echo "----------------[(${Head}) cli {${cli}}]----------------"
+	case ${cli} in
+		--list)
+			echo -e "\"List your source code without having a session\""
+			echo ""
+			echo -e "${cmd} <language>"
+			echo -e "${cmd} -h, --help\t\t: \"help page\""
+			echo "-----------------------------------------------"
+			echo ""
+			;;
+		--list-cpl)
+			echo -e "\"List your compiled code without having a session\""
+			echo ""
+			echo -e "${cmd} <language>"
+			echo -e "${cmd} -h, --help\t\t: \"help page\""
+			echo "-----------------------------------------------"
+			echo ""
+			;;
+		*)
+			;;
+	esac
 }
 
 ProjectCliHelp()
@@ -411,6 +524,9 @@ main()
 			;;
 		newCodeHelp)
 			newCodeHelp $@
+			;;
+		installHelp)
+			installHelp $@
 			;;
 		CliHelp)
 			CliHelp $@

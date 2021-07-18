@@ -295,7 +295,7 @@ UseRuby()
 			case ${src} in
 				*${LangExt})
 					if [[ "${src}" == *","* ]]; then
-						if [ -z ${num} ]; then
+						if [ -z "${num}" ]; then
 							#ERROR
 							#{
 							case ${Type} in
@@ -368,7 +368,7 @@ UseRuby()
 					#Multiple code selected
 					if [[ "${src}" == *","* ]]; then
 						#variable is empty
-						if [ -z ${name} ]; then
+						if [ -z "${name}" ]; then
 							errorCode "cpl" "choose"
 						#variable found
 						else

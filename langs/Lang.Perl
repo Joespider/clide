@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.50"
+SupportV="0.1.51"
 Lang=Perl
 LangExt=".pl"
 #Color Purple
@@ -174,6 +174,7 @@ UsePerl()
 			echo ${LangSrc}
 			;;
 		CreateHelp)
+			
 			;;
 		shell)
 			;;
@@ -292,7 +293,7 @@ UsePerl()
 			case ${src} in
 				*${LangExt})
 					if [[ "${src}" == *","* ]]; then
-						if [ -z ${num} ]; then
+						if [ -z "${num}" ]; then
 							#ERROR
 							#{
 							case ${Type} in
@@ -338,8 +339,51 @@ UsePerl()
 			esac
 			;;
 		setCplArgs)
+			shift
+			shift
+			local Vals="none"
+			local Item=""
+			local str=$@
+			local IFS=' '         # space is set as delimiter
+			read -ra arg <<< "${str}"
+			for TheItem in "${arg[@]}"; do
+				if [ ! -z "${TheItem}" ]; then
+					case ${TheItem} in
+						--warnings)
+							Item="-Wall -g"
+							;;
+						--std=*)
+							local stdVal=${TheItem}
+							case ${stdVal} in
+								--std=)
+									;;
+								*)
+									Item=${stdVal}
+									;;
+							esac
+							;;
+						*)
+							;;
+					esac
+				fi
+				if [ ! -z "${Item}" ]; then
+					case ${Vals} in
+						none)
+							Vals=${Item}
+							;;
+						*${Item}*)
+							;;
+						*)
+							Vals="${Vals} ${Item}"
+							;;
+					esac
+				fi
+				Item=""
+			done
+			echo ${Vals// /,}
 			;;
 		setCplArgs-help)
+			echo -e "--warnings\t\t: \"Show ALL warnings (-W)\""
 			;;
 		compileCode)
 			local src=$1
@@ -365,7 +409,7 @@ UsePerl()
 					#Multiple code selected
 					if [[ "${src}" == *","* ]]; then
 						#variable is empty
-						if [ -z ${name} ]; then
+						if [ -z "${name}" ]; then
 							errorCode "cpl" "choose"
 						#variable found
 						else
@@ -587,6 +631,7 @@ UsePerl()
 		runCode)
 			local name=$1
 			local TheBin="${name}"
+			local cplArgs=${CplArgs//,/ }
 			local project=${CodeProject}
                         local TheBinDir
                         shift
@@ -605,7 +650,11 @@ UsePerl()
                         esac
 			#Check if Perl Bin exists
 			if [ -f ${TheBinDir}/${TheBin} ]; then
-				${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+				if [ ! -z "${cplArgs}" ]; then
+					${LangRun} ${cplArgs}${TheBinDir}/${TheBin} ${Args[@]}
+				else
+					${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+				fi
 			else
 				errorCode "cpl" "need" "${name}"
 			fi
