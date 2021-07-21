@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.71"
+SupportV="0.1.72"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -1241,6 +1241,7 @@ UseJava()
 			local TheClassDir
 			local TheJarDir
 			local JavaProp=$2
+			shift
 			shift
 			local Args=$@
 

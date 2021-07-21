@@ -42,10 +42,10 @@ Art()
 		echo -e "                ____                         ____ "
 		echo -e "               ${BKT}|  __|${end}                       ${BKT}|__  |${end}"
 		echo -e "   ___   _     ${BKT}| |${end}  _______    _____     ____  ${BKT}| |${end}"
-		echo -e "  ${CL}/ __|${end} ${CL}| |${end}    ${BKT}| |${end} ${IDE}|__   __|${end}  ${IDE}|  __ \ ${end}  ${IDE}|  __|${end} ${BKT}| |${end}"
-		echo -e " ${CL}/ /${end}    ${CL}| |${end}    ${BKT}| |${end}    ${IDE}| |${end}     ${IDE}| |${end}  ${IDE}\ \ ${end} ${IDE}| |${end}_   ${BKT}| |${end}"
+		echo -e "  ${CL}/ __|${end} ${CL}| |${end}    ${BKT}| |${end} ${IDE}|__   __|${end}  ${IDE}|  __ \\\\${end}   ${IDE}|  __|${end} ${BKT}| |${end}"
+		echo -e " ${CL}/ /${end}    ${CL}| |${end}    ${BKT}| |${end}    ${IDE}| |${end}     ${IDE}| |${end}  ${IDE}\ \\\\${end}  ${IDE}| |${end}_   ${BKT}| |${end}"
 		echo -e "${CL}| |${end}     ${CL}| |${end}    ${BKT}| |${end}    ${IDE}| |${end}     ${IDE}| |${end}  ${IDE}| |${end}  ${IDE}|  _|${end}  ${BKT}| |${end}"
-		echo -e " ${CL}\ \_${end}_  ${CL}| |${end}__  ${BKT}| |${end}  __${IDE}| |${end}__   ${IDE}| |${end}__${IDE}/ /${end}  ${IDE}| |${end}__  ${BKT}| |${end}"
+		echo -e " ${CL}\ \\\\${end}__  ${CL}| |${end}__  ${BKT}| |${end}  __${IDE}| |${end}__   ${IDE}| |${end}__${IDE}/ /${end}  ${IDE}| |${end}__  ${BKT}| |${end}"
 		echo -e "  ${CL}\___|${end} ${CL}|____|${end} ${BKT}| |${end} ${IDE}|_______|${end}  ${IDE}|_____/${end}   ${IDE}|____|${end} ${BKT}| |${end}"
 		echo -e "               ${BKT}| |${end}__                         __${BKT}| |${end}"
 		echo -e "               ${BKT}|____|${end}                       ${BKT}|____|${end}"
@@ -1578,71 +1578,79 @@ Actions()
 						#Create new src file
 						*)
 							local project=${CodeProject}
-							#Ensure filename is given
+								#Ensure filename is given
 							if [ ! -z "${UserIn[1]}" ]; then
-								local IsOk
-								local TheFile="${UserIn[1]}"
-								local TheExt=$(ManageLangs ${Lang} "getExt")
-								local TheOtherExt=$(ManageLangs ${Lang} "getOtherExt")
-
-								#Language has more than one extension
-								if [ ! -z "${TheOtherExt}" ]; then
-									#Remove the extensions
-									TheFile=${TheFile%${TheExt}}
-									TheFile=${TheFile%${TheOtherExt}}
-									#make sure file does not exist
-									if [ ! -f ${TheFile}${TheExt} ] || [ ! -f ${TheFile}${TheOtherExt} ]; then
-										IsOk="yes"
-									else
-										IsOk="no"
-									fi
-								#Language has one extension
+								if [[ "${UserIn[1]}" == *","* ]]; then
+									errorCode "newCode" "one-at-a-time"
+									IsOk="no"
+								elif [[ "${UserIn[1]}" == *";"* ]]; then
+									errorCode "newCode" "one-at-a-time"
+									IsOk="no"
 								else
-									#Remove the extensions
-									TheFile=${TheFile%${TheExt}}
-									#make sure file does not exist
-									if [ ! -f ${TheFile}${TheExt} ]; then
-										IsOk="yes"
-									else
-										IsOk="no"
-									fi
-								fi
+									local IsOk
+									local TheFile="${UserIn[1]}"
+									local TheExt=$(ManageLangs ${Lang} "getExt")
+									local TheOtherExt=$(ManageLangs ${Lang} "getOtherExt")
 
-								#Make sure it is ok to create the source code
-								case ${IsOk} in
-									yes)
-										#Return the name of source code
-										ManageLangs ${Lang} "newCode" ${UserIn[1]} ${UserIn[2]} ${Code}
-										if [ ! -z "${Code}" ]; then
-											local OldCode=${Code}
-											local NewCode=$(ManageLangs ${Lang} "getCode" ${UserIn[1]} ${OldCode})
-											case ${OldCode} in
-												*"${NewCode}"*)
-													errorCode "selectCode" "already"
+									#Language has more than one extension
+									if [ ! -z "${TheOtherExt}" ]; then
+										#Remove the extensions
+										TheFile=${TheFile%${TheExt}}
+										TheFile=${TheFile%${TheOtherExt}}
+										#make sure file does not exist
+											if [ ! -f ${TheFile}${TheExt} ] || [ ! -f ${TheFile}${TheOtherExt} ]; then
+											IsOk="yes"
+										else
+											IsOk="no"
+										fi
+									#Language has one extension
+									else
+										#Remove the extensions
+										TheFile=${TheFile%${TheExt}}
+										#make sure file does not exist
+										if [ ! -f ${TheFile}${TheExt} ]; then
+											IsOk="yes"
+										else
+											IsOk="no"
+										fi
+									fi
+
+									#Make sure it is ok to create the source code
+									case ${IsOk} in
+										yes)
+											#Return the name of source code
+											ManageLangs ${Lang} "newCode" ${UserIn[1]} ${UserIn[2]} ${Code}
+											if [ ! -z "${Code}" ]; then
+												local OldCode=${Code}
+												local NewCode=$(ManageLangs ${Lang} "getCode" ${UserIn[1]} ${OldCode})
+												case ${OldCode} in
+													*"${NewCode}"*)
+														errorCode "selectCode" "already"
+														;;
+													*)
+														Code=$(ManageLangs ${Lang} "addCode" ${OldCode} ${NewCode})
+														;;
+												esac
+											else
+												Code=$(ManageLangs ${Lang} "getCode" ${UserIn[1]} ${OldCode})
+											fi
+											refresh="yes"
+											;;
+											no)
+											#Jump-in and Jump-out
+											case ${InAndOut} in
+												yes)
+													errorCode "newCode" "cli-already"
 													;;
 												*)
-													Code=$(ManageLangs ${Lang} "addCode" ${OldCode} ${NewCode})
+													errorCode "newCode" "already"
 													;;
 											esac
-										else
-											Code=$(ManageLangs ${Lang} "getCode" ${UserIn[1]} ${OldCode})
-										fi
-										refresh="yes"
-										;;
-									no)
-										#Jump-in and Jump-out
-										case ${InAndOut} in
-											yes)
-												errorCode "newCode" "cli-already"
-												;;
-											*)
-												errorCode "newCode" "already"
-												;;
-										esac
-										;;
-									*)
-										;;
-								esac
+											;;
+										*)
+											;;
+									esac
+								fi
 							else
 								theHelp newCodeHelp ${Lang}
 							fi
