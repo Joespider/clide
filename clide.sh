@@ -582,7 +582,9 @@ swapProjects()
 listProjects()
 {
 	#Get list of active prijects from .clide files
-	ls ${ActiveProjectDir}/*.clide 2> /dev/null | sed "s/.clide//g"
+	cd ${ActiveProjectDir}/
+	ls *.clide 2> /dev/null | sed "s/.clide//g"
+	cd - > /dev/null
 }
 
 #Discover Project in clide

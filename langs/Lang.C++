@@ -2,7 +2,7 @@ Shell=$(which bash)
 #!${Shell}
 
 #https://www3.ntu.edu.sg/home/ehchua/programming/cpp/gcc_make.html
-SupportV="0.1.79"
+SupportV="0.1.80"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -134,6 +134,14 @@ UseC++()
 		getProjectDir)
 			local project=${CodeProject}
 			echo ${LangProject}/${project}
+			;;
+		getProjSrc)
+			local name=$1
+			local project=${CodeProject}
+			local TheSrcDir=${LangProject}/${project}/src
+			if [ ! -z "${name}" ]; then
+				find ${TheSrcDir} -name "${name}" 2> /dev/null
+			fi
 			;;
 		#Look for binary from set code
 		getBin)
@@ -413,7 +421,6 @@ UseC++()
 						;;
 					#is a project
 					*)
-						TheSrcDir="${LangProject}/${project}/src/"
 						local LookFor
 
 						#"set" or "add"
@@ -459,6 +466,17 @@ UseC++()
 														new=${new}${LangExt}
 														;;
 													*)
+														new=${new%${LangExt}}
+														new=${new%${LangOtherExt}}
+														local CheckForCpp=$(UseC++ "getProjSrc" ${new}${LangExt} 2> /dev/null)
+														local CheckForHeader=$(UseC++ "getProjSrc" ${new}${LangOtherExt} 2> /dev/null)
+														#Append cpp files
+														if [ ! -z "${CheckForCpp}" ]; then
+															new="${new}${LangExt}"
+														#Append header files
+														elif [ ! -z "${CheckForHeader}" ]; then
+															new="${new}${LangOtherExt}"
+														fi
 														;;
 												esac
 												;;
@@ -474,35 +492,36 @@ UseC++()
 							*)
 								;;
 						esac
-
-						local NumFound=$(find ${TheSrcDir} -name ${LookFor} 2> /dev/null | wc -l)
+						#Check if exists and get number
+						local NumFound=$(UseC++ "getProjSrc" ${LookFor} 2> /dev/null | wc -l)
 						case ${NumFound} in
+							#No files exist
 							0)
+								case ${Type} in
+									#Return the old
+									addCode)
+										echo ${name}
+										;;
+									*)
+										;;
+								esac
 								;;
+							#One file exists
 							1)
 								case ${Type} in
 									addCode)
-										new=$(find ${TheSrcDir} -name ${LookFor} 2> /dev/null)
 										#Append file
-										if [ -f "${new}" ]; then
-											new=${new##*/}
-											echo "${name},${new}"
-										else
-											echo "${LookFor}"
-										fi
+										echo "${name},${LookFor}"
 										;;
 									selectCode)
-										name=$(find ${TheSrcDir} -name ${LookFor} 2> /dev/null)
-										if [ -f ${name} ]; then
-											newName=${name##*/}
-											echo ${newName}
-										fi
+										echo ${LookFor}
 										;;
 									*)
 										;;
 								esac
 								;;
 							*)
+								echo ${name}
 #								find ${TheSrcDir} -name ${name} 2> /dev/null | nl
 #								if [ -f ${name} ]; then
 #									name=${name%${LangExt}}
@@ -1408,57 +1427,177 @@ UseC++()
 				esac
 			fi
 			;;
-		backup)
+		backup|restore)
 			local name=$1
-			if [ ! -z "${name}" ]; then
-				#Backup file does NOT exist
-				if [ ! -f "${LangSrc}/${name}.bak" ]; then
-					#Make backup
-					cp ${LangSrc}/${name} ${LangSrc}/${name}.bak
-					echo "\"${name}\" backed-up"
-				#Backup file exists
-				else
-					errorCode "backup" "exists"
-				fi
-			else
-				errorCode "backup" "null"
-			fi
+			local project=${CodeProject}
+			local TheDir
+			local TheCount
+			local TheFound
+
+			case ${project} in
+				none)
+					if [ ! -z "${name}" ]; then
+						case ${Type} in
+							restore)
+								if [ -f "${LangSrc}/${name}.bak" ]; then
+									mv ${LangSrc}/${name}.bak ${LangSrc}/${name}
+									echo "\"${name}\" restored"
+								else
+									errorCode "restore" "exists"
+								fi
+								;;
+							backup)
+								if [ ! -f "${LangSrc}/${name}.bak" ]; then
+									cp ${LangSrc}/${name} ${LangSrc}/${name}.bak
+									echo "\"${name}\" backed-up"
+								else
+									errorCode "backup" "exists"
+								fi
+								;;
+							*)
+								;;
+						esac
+					else
+						case ${Type} in
+							restore)
+								errorCode "restore" "null"
+								;;
+							backup)
+								errorCode "backup" "null"
+								;;
+							*)
+								;;
+						esac
+					fi
+					;;
+				*)
+					case ${Type} in
+						restore)
+							if [ -f "${name}.bak" ]; then
+								mv ${name}.bak ${name}
+								echo "\"${name}\" restored"
+							else
+								TheCount=$(UseC++ "getProjSrc" "${name}.bak" | wc -l)
+								case ${TheCount} in
+									0)
+										errorCode "restore" "null"
+										;;
+									1)
+										TheFound=$(UseC++ "getProjSrc" "${name}.bak")
+										mv ${TheFound} ${TheFound%.bak}
+										echo "\"${name}\" restored"
+										;;
+									*)
+										;;
+								esac
+							fi
+							;;
+						backup)
+							if [ -f "${name}" ] && [ ! -f "${name}.bak" ]; then
+								cp ${name} ${name}.bak
+								echo "\"${name}\" backed-up"
+							else
+								TheCount=$(UseC++ "getProjSrc" "${name}" | wc -l)
+								case ${TheCount} in
+									0)
+										errorCode "backup" "null"
+										;;
+									1)
+										TheFound=$(UseC++ "getProjSrc" "${name}")
+										mv ${TheFound} ${TheFound}.bak
+										echo "\"${name}\" backed-up"
+										;;
+									*)
+										;;
+								esac
+							fi
+							;;
+						*)
+							;;
+					esac
+					;;
+			esac
 			;;
-		restore)
-			local name=$1
-			if [ ! -z "${name}" ]; then
-				#Backup file exists
-				if [ -f "${LangSrc}/${name}.bak" ]; then
-					#Restore from backup
-					mv ${LangSrc}/${name}.bak ${LangSrc}/${name}
-					echo "\"${name}\" restored"
-				#Backup file does NOT exist
-				else
-					errorCode "restore" "exists"
-				fi
-                        else
-				errorCode "restore" "null"
-			fi
-			;;
-		rename)
+		#create a copy of set code
+		copy|rename)
 			local TheOld=$1
 			local TheNew=$2
-			if [ ! -z "${TheNew}" ]; then
-				TheOld="${TheOld%${LangExt}}" 
-				TheNew="${TheNew%${LangExt}}"
-				mv ${LangSrc}/${TheOld}${LangExt} ${LangSrc}/${TheNew}${LangExt}
-				echo ${TheNew}${LangExt}
-			fi
-			;;
-		copy)
-			local TheOld=$1
-			local TheNew=$2
-			if [ ! -z "${TheNew}" ]; then
-				TheOld="${TheOld%${LangExt}}"
-				TheNew="${TheNew%${LangExt}}"
-				cp ${LangSrc}/${TheOld}${LangExt} ${LangSrc}/${TheNew}${LangExt}
-				echo ${TheNew}${LangExt}
-			fi
+			TheOld="${TheOld%${LangExt}}${LangExt}"
+			TheNew="${TheNew%${LangExt}}${LangExt}"
+			local project=${CodeProject}
+			case ${project} in
+				none)
+					if [ ! -z "${TheNew}" ]; then
+						TheOld="${TheOld%${LangExt}}"
+						TheNew="${TheNew%${LangExt}}"
+						sed "s/${TheOld}/${TheNew}/g" ${LangSrc}/${TheOld}${LangExt} > ${LangSrc}/${TheNew}${LangExt}
+
+						#Remove old file for "rename"
+						case ${Type} in
+							rename)
+								rm ${LangSrc}/${TheOld}${LangExt}
+								;;
+							*)
+								;;
+						esac
+
+						#return new file
+						echo ${TheNew}${LangExt}
+					fi
+					;;
+				*)
+					if [ ! -z "${TheNew}" ]; then
+						#File is in current dir
+						if [ -f ${TheNew} ]; then
+							#Remove the extention
+							TheOld="${TheOld%${LangExt}}"
+							TheNew="${TheNew%${LangExt}}"
+							sed "s/${TheOld}/${TheNew}/g" ${TheOld}${LangExt} > ${TheNew}${LangExt}
+
+							#Remove old file for "rename"
+							case ${Type} in
+								rename)
+									rm ${LangSrc}/${TheOld}${LangExt}
+									;;
+								*)
+									;;
+							esac
+
+							echo ${TheNew}${LangExt}
+						else
+							local TheDir
+							local TheCount=$(UseC++ "getProjSrc" "${TheOld}" | wc -l)
+							case ${TheCount} in
+								1)
+									local TheFound=$(UseC++ "getProjSrc" "${TheOld}")
+									#Get the dir
+									TheDir=${TheFound%/*}
+									#Get the file
+									TheFound=${TheFound##*/}
+									#Remove the extention
+									TheOld="${TheOld%${LangExt}}"
+									TheNew="${TheNew%${LangExt}}"
+									sed "s/${TheOld}/${TheNew}/g" ${TheDir}/${TheOld}${LangExt} > ${TheDir}/${TheNew}${LangExt}
+
+									#Remove old file for "rename"
+									case ${Type} in
+										rename)
+											rm ${LangSrc}/${TheOld}${LangExt}
+											;;
+										*)
+											;;
+									esac
+
+									#return new file
+									echo ${TheNew}${LangExt}
+									;;
+								*)
+									;;
+							esac
+						fi
+					fi
+					;;
+			esac
 			;;
 		*)
 			;;
