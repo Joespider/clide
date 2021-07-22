@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.52"
+SupportV="0.1.56"
 Lang=Bash
 LangExt=".sh"
 ColorNum=2
@@ -93,6 +93,14 @@ UseBash()
 		getProjDir)
 			echo ${LangProject}
 			;;
+		getProjSrc)
+			local name=$1
+			local project=${CodeProject}
+			local TheSrcDir=${LangProject}/${project}/src
+			if [ ! -z "${name}" ]; then
+				find ${TheSrcDir} -name "${name}" 2> /dev/null
+			fi
+			;;
 		getExt)
 			echo ${LangExt}
 			;;
@@ -108,6 +116,14 @@ UseBash()
 		getProjectDir)
 			local project=${CodeProject}
 			echo ${LangProject}/${project}
+			;;
+		getProjSrc)
+			local name=$1
+			local project=${CodeProject}
+			local TheSrcDir=${LangProject}/${project}/src
+			if [ ! -z "${name}" ]; then
+				find ${TheSrcDir} -name "${name}" 2> /dev/null
+			fi
 			;;
 		pgLang)
 			HasLang=$(which ${LangRun} 2> /dev/null)
@@ -141,33 +157,49 @@ UseBash()
 			;;
 		getCode)
 			local name=$1
+			name=${name%${LangExt}}
 			local project=${CodeProject}
+			local newName
 			local DirPath
-			#Get code
-                        case ${project} in
-                                none)
-					if [ -f ${LangSrc}/${name}${LangExt} ]; then
-						echo ${name}${LangExt}
-					elif [ -f ${LangSrc}/${name} ]; then
-						echo ${name}
-					fi
+			local TheSrcDir
+			case ${project} in
+				none)
+					TheSrcDir=${LangSrc}
 					;;
 				*)
 					case ${ProjectType} in
 						Generic)
-							if [ -f ${LangProject}/${project}/src/${DirPath}${name}${LangExt} ]; then
-								echo ${name}${LangExt}
-							elif [ -f ${LangProject}/${project}/src/${DirPath}${name} ]; then
-								echo ${name}
-							fi
+							case ${name} in
+								*.*)
+									newName=${name##*.}
+									DirPath=$(echo ${name%${newName}} | tr '.' '/')
+									TheSrcDir="${LangProject}/${project}/src/${DirPath}"
+									name=${newName}
+									;;
+								*/*)
+									newName=${name##*/}
+									DirPath=${name%${newName}}
+									TheSrcDir="${LangProject}/${project}/src/${DirPath}"
+									name=${newName}
+									;;
+								*)
+									TheSrcDir="$(pwd)/"
+									;;
+							esac
 							;;
 						*)
-							ProjectTemplateHandler ${EnvVars[@]} ${Type} ${mode}
+							TheSrcDir=$(ProjectTemplateHandler ${EnvVars[@]} ${Type} ${mode})
 							;;
-						esac
+					esac
 					;;
 			esac
-                        ;;
+
+			if [ -f ${TheSrcDir}/${name}${LangExt} ]; then
+				echo ${name}${LangExt}
+			elif [ -f ${TheSrcDir}/${name} ]; then
+				echo ${name}
+			fi
+			;;
 		BeforeFiles|AfterFiles)
 				ls *${LangExt} 2> /dev/null
 			;;
@@ -219,43 +251,126 @@ UseBash()
 			${LangRun} --version | head -n 1
 			echo ""
 			;;
-		selectCode)
+		selectCode|addCode)
 			local name=$1
-			#Correct filename
-			if [[ ! "${name}" == *"${LangExt}" ]]; then
-				name="${name}${LangExt}"
-			fi
-			#Return source file if exists
-			if [ -f "${name}" ]; then
-				echo "${name}"
-			fi
-			;;
-			#Add code to active session
-		addCode)
-			local src=$1
 			local new=$2
-			case ${src} in
-				*${LangExt})
-					case ${new} in
-						*${LangExt})
-							if [ -f "${new}" ]; then
-							echo "${src},${new}"
-						else
-							echo "${src}"
-						fi
+			local project=${CodeProject}
+			local newName
+			local DirPath
+			local TheSrcDir
+
+			#Correct filename
+			if [ ! -z "${name}" ]; then
+
+				case ${project} in
+					#not a project
+					none)
+						case ${Type} in
+							selectCode)
+								#Correct filename
+								if [[ ! "${name}" == *"${LangExt}" ]] && [ -f "${name}${LangExt}" ]; then
+									name="${name}${LangExt}"
+								fi
+
+								#Return source file if exists
+								if [ -f "${name}" ]; then
+									echo "${name}"
+								fi
+								;;
+							addCode)
+								case ${name} in
+									*${LangExt}|*.h)
+										#Add cpp or header files with file extensions
+										case ${new} in
+											*${LangExt})
+												#Append file
+												if [ -f "${new}" ]; then
+													echo "${name},${new}"
+												else
+													echo "${name}"
+												fi
+												;;
+											#Add cpp or header files without file extensions
+											*)
+												#Append cpp files
+												if [ -f "${new}${LangExt}" ]; then
+													echo "${name},${new}${LangExt}"
+												else
+													echo "${name}"
+												fi
+												;;
+										esac
+										;;
+									*)
+										;;
+								esac
+								;;
+							*)
+								;;
+						esac
 						;;
+					#is a project
 					*)
-						if [ -f "${new}${LangExt}" ]; then
-							echo "${src},${new}${LangExt}"
-						else
-							echo "${src}"
-						fi
+						TheSrcDir="${LangProject}/${project}/src/"
+						local LookFor
+						case ${Type} in
+							addCode)
+								#Correct filename
+								if [[ ! "${new}" == *"${LangExt}" ]]; then
+									new="${new}${LangExt}"
+								fi
+								LookFor=${new}
+								;;
+							selectCode)
+								#Correct filename
+								if [[ ! "${name}" == *"${LangExt}" ]]; then
+									name="${name}${LangExt}"
+								fi
+								LookFor=${name}
+								;;
+							*)
+								;;
+						esac
+
+						local NumFound=$(find ${TheSrcDir} -name ${LookFor} 2> /dev/null | wc -l)
+						case ${NumFound} in
+							0)
+								;;
+							1)
+								case ${Type} in
+									addCode)
+										new=$(find ${TheSrcDir} -name ${new} 2> /dev/null)
+										#Append file
+										if [ -f "${new}" ]; then
+											new=${new##*/}
+											echo "${name},${new}"
+										else
+											echo "${name}"
+										fi
+										;;
+									selectCode)
+										name=$(find ${TheSrcDir} -name ${name} 2> /dev/null)
+										if [ -f ${name} ]; then
+											newName=${name##*/}
+											echo ${newName}
+										fi
+										;;
+									*)
+										;;
+								esac
+								;;
+							*)
+#								find ${TheSrcDir} -name ${name} 2> /dev/null | nl
+#								if [ -f ${name} ]; then
+#									name=${name%${LangExt}}
+#									newName=${name##*/}
+#									echo ${newName}${LangExt}
+#								fi
+								;;
+						esac
 						;;
-					esac
-					;;
-				*)
-					;;
-			esac
+				esac
+			fi
 			;;
 		rmBin|rmSrc)
 			local name=$1
@@ -277,9 +392,15 @@ UseBash()
 				echo ${ThePath}/${name}
 			fi
 			;;
+
+
 		editCode|readCode)
 			local src=$1
 			local num=$2
+			local project=${CodeProject}
+			local newName
+			local DirPath
+			local TheSrcDir
 			local ReadOrEdit
 
 			#Select the tool
@@ -298,69 +419,135 @@ UseBash()
 
 			case ${src} in
 				*${LangExt})
-					if [[ "${src}" == *","* ]]; then
-						if [ -z "${num}" ]; then
-							#ERROR
-							#{
-							case ${Type} in
-								readCode)
-									errorCode "readNull"
-									;;
-								editCode)
-									errorCode "editNull"
-									;;
-								*)
-									;;
-							esac
-							#}
-						else
-							if [[ "${src}" == *"${num}"* ]]; then
-								if [[ "${num}" == *"${LangExt}" ]]; then
-									${ReadOrEdit} ${num}
+					case ${project} in
+						none)
+							if [[ "${src}" == *","* ]]; then
+								if [ -z "${num}" ]; then
+									#Error
+									#{
+									case ${Type} in
+										readCode)
+											errorCode "readNull"
+											;;
+										editCode)
+											errorCode "editNull"
+											;;
+										*)
+											;;
+									esac
+									#}
 								else
-									${ReadOrEdit} "${num}${LangExt}"
+									if [[ "${src}" == *"${num}"* ]]; then
+										#Choose file from list of choices
+										num=$(echo ${src} | tr ',' '\n' | grep ${num})
+										${ReadOrEdit} ${num}
+									else
+										#Error
+										#{
+										case ${Type} in
+											readCode)
+												errorCode "readNot"
+												;;
+											editCode)
+												errorCode "editNot"
+												;;
+											*)
+												;;
+										esac
+										#}
+									fi
 								fi
 							else
-								errorCode "editNot"
-							fi
-						fi
-					else
-						case ${src} in
-							#Anything but clide
-							clide${LangExt})
-								#ERROR
+								#Read or Write Code
 								#{
-								case ${Type} in
-									readCode)
-										errorCode "readNot"
-										;;
-									editCode)
-										errorCode "editMe"
-										;;
-									*)
-										;;
-								esac
-								#}
-								;;
-							*)
 								${ReadOrEdit} ${src}
-								;;
-						esac
-					fi
+								#}
+							fi
+							;;
+						*)
+							TheSrcDir="${LangProject}/${project}/src/"
+							local NumFound
+							if [[ "${src}" == *","* ]]; then
+								if [ -z "${num}" ]; then
+									errorCode "editNull"
+									NumFound=0
+								else
+									if [[ "${src}" == *"${num}"* ]]; then
+										case ${num} in
+											*${LangExt})
+												src=${num}
+												;;
+											*)
+												src=${num}${LangExt}
+												;;
+										esac
+										NumFound=$(find ${TheSrcDir} -name ${src} 2> /dev/null | wc -l)
+									else
+										#Error
+										#{
+										case ${Type} in
+											readCode)
+												errorCode "readNot"
+												;;
+											editCode)
+												errorCode "editNot"
+												;;
+											*)
+												;;
+										esac
+										NumFound=0
+										#}
+									fi
+								fi
+							else
+								NumFound=$(find ${TheSrcDir} -name ${src} 2> /dev/null | wc -l)
+							fi
+
+							case ${NumFound} in
+								0)
+									;;
+								1)
+									src=$(find ${TheSrcDir} -name ${src} 2> /dev/null)
+									if [ -f ${src} ]; then
+										#Read or Write Code
+										#{
+										${ReadOrEdit} ${src}
+										#}
+									fi
+									;;
+								*)
+									local Select
+									find ${TheSrcDir} -name ${src} 2> /dev/null | sed "s/\/${project}\/src\//|/1" | cut -d '|' -f 2 | nl
+									echo -n "> "
+									read Select
+									Select=$(echo ${Select} | grep "^-\?[0-9]*$")
+									if [ ! -z "${Select}" ]; then
+										if [ ${Select} -le ${NumFound} ] && [ ${Select} -gt 0 ]; then
+											src=$(find ${TheSrcDir} -name ${src} 2> /dev/null | tr '\n' '|' | cut -d '|' -f ${Select})
+											#Read or Write Code
+											#{
+											${ReadOrEdit} ${src}
+											#}
+										fi
+									fi
+									;;
+							esac
+							;;
+					esac
 					;;
 				*)
 					;;
 			esac
-			;;
+			 ;;
 		setCplArgs)
 			;;
 		setCplArgs-help)
 			;;
 		compileCode)
 			local src=$1
-			local project=${CodeProject}
 			local name=$2
 			local keep=$3
+			local project=${CodeProject}
 			local cplArgs=""
 			local TheBinDir
 			local ERROR
@@ -376,66 +563,86 @@ UseBash()
 					;;
 			esac
 
+			#Handle multiple files
+			if [[ "${src}" == *","* ]]; then
+				if [ -z "${name}" ]; then
+					src=""
+					if [ -z "${name}" ]; then
+						echo "Unable to find the \"main\" file"
+						echo -n "Please choose: "
+						read name
+						case ${CodeProject} in
+							none)
+								if [ ! -f ${LangSrc}/${name%.*}${LangExt} ]; then
+									name=""
+								fi
+								;;
+							*)
+								GetCount=$(UseBash "getProjSrc" ${src} | wc -l)
+								case ${GetCount} in
+									0)
+										;;
+									1)
+										src=$(UseBash "getProjSrc" ${src})
+										src="..${src##*${CodeProject}}"
+										ERROR=$(ln -s ${src} 2>&1 | tr '\n' '|')
+										;;
+									*)
+										;;
+								esac
+								;;
+						esac
+					fi
+
+					if [ ! -z "${name}" ]; then
+						src="${name%.*}${LangExt}"
+					fi
+				fi
+			fi
+
+			#Set Code to executable
 			case ${src} in
 				*${LangExt})
-					#Multiple code selected
-					if [[ "${src}" == *","* ]]; then
-						#varable is empty
-						if [ -z "${name}" ]; then
-							errorCode "cpl" "choose"
+					#Check if Bash Script does NOT exist
+					if [ ! -f "${TheBinDir}/${src}" ]; then
+						#Change to Bash Binary dir
+						cd ${TheBinDir}
+						case ${CodeProject} in
+							none)
+								#Create Symbolic Link to Bash Script
+								chmod +x ../src/${src} 2> /dev/null
+								ERROR=$(ln -s ../src/${src} 2>&1 | tr '\n' '|')
+								;;
+							*)
+								local GetCount=$(UseBash "getProjSrc" ${src} | wc -l)
+								case ${GetCount} in
+									0)
+										;;
+									1)
+										src=$(UseBash "getProjSrc" ${src})
+										src="..${src##*${CodeProject}}"
+										chmod +x ${src} 2> /dev/null
+										ERROR=$(ln -s ${src} 2>&1 | tr '\n' '|')
+										;;
+									*)
+										;;
+								esac
+								;;
+						esac
+						#Change to Bash Source dir
+						cd - > /dev/null
+						if [ -f "${TheBinDir}/${src}" ]; then
+							echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
 						else
-							#chosen file is in the list of files
-							if [[ "${src}" == *"${name}"* ]]; then
-								#only name is given
-								if [[ "${name}" != *"${LangExt}" ]]; then
-									#full filename given
-									num=${name}${LangExt}
-								fi
-								#Make Bash Script executable
-								chmod +x ${name}
-								#Check if Bash Script does NOT exist
-								if [ ! -f "${TheBinDir}/${name}" ]; then
-									#Change to Bash Binary dir
-									cd ${TheBinLan}
-									#Create Symbolic Link to Bash Script
-									ERROR=$(ln -s ../src/${name} 2>&1 | tr '\n' '|')
-									#Change to Bash Source dir
-									cd - > /dev/null
-									if [ -f "${TheBinDir}/${name}" ]; then
-										echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
-									else
-										errorCode "cpl" "ERROR" "${ERROR}"
-									fi
-								else
-									errorCode "cpl" "already" ${name}
-								fi
-							else
-								errorCode "cpl" "not"
-							fi
+							errorCode "cpl" "ERROR" "${ERROR}"
 						fi
-					#single code selected
+						#Code is already found
 					else
-						#Make Bash Script executable
-						chmod +x ${src}
-						#Check if Bash Script does NOT exist
-						if [ ! -f "${TheBinDir}/${src}" ]; then
-							#Change to Bash Binary dir
-							cd ${TheBinDir}
-							#Create Symbolic Link to Bash Script
-							ERROR=$(ln -s ../src/${src} 2>&1 | tr '\n' '|')
-							#Change to Bash Source dir
-							cd - > /dev/null
-							if [ -f "${TheBinDir}/${src}" ]; then
-								echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
-							else
-								errorCode "cpl" "ERROR" "${ERROR}"
-							fi
-						else
-							errorCode "cpl" "already" ${src}
-						fi
+						errorCode "cpl" "already" ${src}
 					fi
 					;;
 				*)
+					errorCode "cpl" "choose"
 					;;
 			esac
 			;;
@@ -499,28 +706,6 @@ UseBash()
 			if [ -d ${path} ]; then
 				ls ${path}
 			fi
-			;;
-		SwapToSrc)
-			local src=$1
-			echo "${src}"
-			;;
-		SwapToBin)
-			local bin=$1
-			case ${bin} in
-				*${LangExt})
-					#Check if Bash Binary exists
-					if [ -f "${LangBin}/${bin}" ]; then
-						#Return Bash Binary Name
-						#cd "${LangBin}"
-						echo "${bin}"
-					else
-						echo "${bin}"
-					fi
-					;;
-				*)
-					echo ${bin}
-					;;
-			esac
 			;;
 		Install)
 			local bin=$1
@@ -624,58 +809,185 @@ UseBash()
 					;;
 			esac
 
-			#Check if Python Bin exists
+			#Check if Bash Bin exists
 			if [ -f ${TheBinDir}/${TheBin} ]; then
 				${TheBinDir}/${TheBin} ${Args[@]}
 			else
 				errorCode "cpl" "need" "${name}"
 			fi
 			;;
-		backup)
+		backup|restore)
 			local name=$1
-			if [ ! -z "${name}" ]; then
-				if [ ! -f "${LangSrc}/${name}.bak" ]; then
-					cp ${LangSrc}/${name} ${LangSrc}/${name}.bak
-					echo "\"${name}\" backed-up"
-				else
-					errorCode "backup" "exists"
-				fi
-			else
-				errorCode "backup" "null"
-			fi
+			name="${name%${LangExt}}${LangExt}"
+			local project=${CodeProject}
+			local TheDir
+			local TheCount
+			local TheFound
+
+			case ${project} in
+				none)
+					if [ ! -z "${name}" ]; then
+						case ${Type} in
+							restore)
+								if [ -f "${LangSrc}/${name}.bak" ]; then
+									mv ${LangSrc}/${name}.bak ${LangSrc}/${name}
+									echo "\"${name}\" restored"
+								else
+									errorCode "restore" "exists"
+								fi
+								;;
+							backup)
+								if [ ! -f "${LangSrc}/${name}.bak" ]; then
+									cp ${LangSrc}/${name} ${LangSrc}/${name}.bak
+									echo "\"${name}\" backed-up"
+								else
+									errorCode "backup" "exists"
+								fi
+								;;
+							*)
+								;;
+						esac
+					else
+						case ${Type} in
+							restore)
+								errorCode "restore" "null"
+								;;
+							backup)
+								errorCode "backup" "null"
+								;;
+							*)
+								;;
+						esac
+					fi
+					;;
+				*)
+					case ${Type} in
+						restore)
+							if [ -f "${name}.bak" ]; then
+								mv ${name}.bak ${name}
+								echo "\"${name}\" restored"
+							else
+								TheCount=$(UseBash "getProjSrc" "${name}.bak" | wc -l)
+								case ${TheCount} in
+									0)
+										errorCode "restore" "null"
+										;;
+									1)
+										TheFound=$(UseBash "getProjSrc" "${name}.bak")
+										mv ${TheFound} ${TheFound%.bak}
+										echo "\"${name}\" restored"
+										;;
+									*)
+										;;
+								esac
+							fi
+							;;
+						backup)
+							if [ -f "${name}" ] && [ ! -f "${name}.bak" ]; then
+								cp ${name} ${name}.bak
+								echo "\"${name}\" backed-up"
+							else
+								TheCount=$(UseBash "getProjSrc" "${name}" | wc -l)
+								case ${TheCount} in
+									0)
+										errorCode "backup" "null"
+										;;
+									1)
+										TheFound=$(UseBash "getProjSrc" "${name}")
+										mv ${TheFound} ${TheFound}.bak
+										echo "\"${name}\" backed-up"
+										;;
+									*)
+										;;
+								esac
+							fi
+							;;
+						*)
+							;;
+					esac
+					;;
+			esac
 			;;
-		restore)
-			local name=$1
-			if [ ! -z "${name}" ]; then
-				if [ -f "${LangSrc}/${name}.bak" ]; then
-					mv ${LangSrc}/${name}.bak ${LangSrc}/${name}
-					echo "\"${name}\" restored"
-				else
-					errorCode "restore" "exists"
-				fi
-			else
-				errorCode "restore" "null"
-			fi
-			;;
-		rename)
+		#create a copy of set code
+		copy|rename)
 			local TheOld=$1
 			local TheNew=$2
-			if [ ! -z "${TheNew}" ]; then
-				TheOld="${TheOld%${LangExt}}"
-				TheNew="${TheNew%${LangExt}}"
-				mv ${LangSrc}/${TheOld}${LangExt} ${LangSrc}/${TheNew}${LangExt}
-				echo ${TheNew}${LangExt}
-			fi
-			;;
-		copy)
-			local TheOld=$1
-			local TheNew=$2
-			if [ ! -z "${TheNew}" ]; then
-				TheOld="${TheOld%${LangExt}}"
-				TheNew="${TheNew%${LangExt}}"
-				cp ${LangSrc}/${TheOld}${LangExt} ${LangSrc}/${TheNew}${LangExt}
-				echo ${TheNew}${LangExt}
-			fi
+			TheOld="${TheOld%${LangExt}}${LangExt}"
+			TheNew="${TheNew%${LangExt}}${LangExt}"
+			local project=${CodeProject}
+			case ${project} in
+				none)
+					if [ ! -z "${TheNew}" ]; then
+						TheOld="${TheOld%${LangExt}}"
+						TheNew="${TheNew%${LangExt}}"
+						sed "s/${TheOld}/${TheNew}/g" ${LangSrc}/${TheOld}${LangExt} > ${LangSrc}/${TheNew}${LangExt}
+
+						#Remove old file for "rename"
+						case ${Type} in
+							rename)
+								rm ${LangSrc}/${TheOld}${LangExt}
+								;;
+							*)
+								;;
+						esac
+
+						#return new file
+						echo ${TheNew}${LangExt}
+					fi
+					;;
+				*)
+					if [ ! -z "${TheNew}" ]; then
+						#File is in current dir
+						if [ -f ${TheNew} ]; then
+							#Remove the extention
+							TheOld="${TheOld%${LangExt}}"
+							TheNew="${TheNew%${LangExt}}"
+							sed "s/${TheOld}/${TheNew}/g" ${TheOld}${LangExt} > ${TheNew}${LangExt}
+
+							#Remove old file for "rename"
+							case ${Type} in
+								rename)
+									rm ${LangSrc}/${TheOld}${LangExt}
+									;;
+								*)
+									;;
+							esac
+
+							echo ${TheNew}${LangExt}
+						else
+							local TheDir
+							local TheCount=$(UseBash "getProjSrc" "${TheOld}" | wc -l)
+							case ${TheCount} in
+								1)
+									local TheFound=$(UseBash "getProjSrc" "${TheOld}")
+									#Get the dir
+									TheDir=${TheFound%/*}
+									#Get the file
+									TheFound=${TheFound##*/}
+									#Remove the extention
+									TheOld="${TheOld%${LangExt}}"
+									TheNew="${TheNew%${LangExt}}"
+									sed "s/${TheOld}/${TheNew}/g" ${TheDir}/${TheOld}${LangExt} > ${TheDir}/${TheNew}${LangExt}
+
+									#Remove old file for "rename"
+									case ${Type} in
+										rename)
+											rm ${LangSrc}/${TheOld}${LangExt}
+											;;
+										*)
+											;;
+									esac
+
+									#return new file
+									echo ${TheNew}${LangExt}
+									;;
+								*)
+									;;
+							esac
+						fi
+					fi
+					;;
+			esac
 			;;
 		*)
 			;;

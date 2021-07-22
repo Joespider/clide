@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.71"
+SupportV="0.1.74"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -97,6 +97,14 @@ UseJava()
 			;;
 		getProjDir)
 			echo ${LangProject}
+			;;
+		getProjSrc)
+			local name=$1
+			local project=${CodeProject}
+			local TheSrcDir=${LangProject}/${project}/src
+			if [ ! -z "${name}" ]; then
+				find ${TheSrcDir} -name "${name}" 2> /dev/null | grep "${ProjectMode}"
+			fi
 			;;
 		getExt)
 			echo ${LangExt}
@@ -541,69 +549,57 @@ UseJava()
 					#Compile source code
 					case ${src} in
 						*${LangExt})
-							if [[ "${project}" == *"/" ]]; then
-								#Compile Java prgram
-								ERROR=$(${LangCpl} *${LangExt} 2>&1 | tr '\n' '|')
-								#move Java Class to Binary dir
-								if [ -f *.class ]; then
-									mv *.class ${TheBinDir}/
-								else
-									errorCode "cpl" "ERROR" "${ERROR}"
-								fi
-							#non-project code selected
-							else
-								src=$(echo ${src} | tr ',' ' ')
-								#Compile Java prgram
-								ERROR=$(${LangCpl} ${src} 2>&1 | tr '\n' '|')
-								des=$(grep -l "public static void main" ${src})
-								#get Java Class/compiled file name
-								des=${des%.*}.class
-								if [ -f ${des} ]; then
-									#Compile as jar or class
-									case ${name} in
-										#Compile as Jar
-										--jar)
-											if [ ! -f manifest.mf ]; then
-												echo "Manifest-Version: 1.1" > manifest.mf
-												echo "Created-By: $USER" >> manifest.mf
-												echo "Main-Class: ${des%.class}" >> manifest.mf
-												echo "Sealed: true" >> manifest.mf
-											fi
-											jar -cmf manifest.mf ${des%.class}.jar *.class
-											#remove class file
-											if [ -f  ${TheBinDir}/${des} ]; then
-												rm  ${TheBinDir}/${des}
-											fi
-											#Keep Generated Manafest file
-											case ${keep} in
-												--keep-manifest)
-													#rm ${des}
-													rm *.class
-													;;
-												*)
-													#rm manifest.mf ${des}
-													rm manifest.mf *.class
+							src=$(echo ${src} | tr ',' ' ')
+							#Looks for Main class
+							des=$(grep -l "public static void main" ${src})
+							#get Java Class/compiled file name
+							des=${des%${LangExt}}.class
+							ERROR=$(${LangCpl} ${src} 2>&1 | tr '\n' '|')
+							if [ -f ${des} ]; then
+								#Compile as jar or class
+								case ${name} in
+									#Compile as Jar
+									--jar)
+										if [ ! -f manifest.mf ]; then
+											echo "Manifest-Version: 1.1" > manifest.mf
+											echo "Created-By: $USER" >> manifest.mf
+											echo "Main-Class: ${des%.class}" >> manifest.mf
+											echo "Sealed: true" >> manifest.mf
+										fi
+										jar -cmf manifest.mf ${des%.class}.jar *.class
+										#remove class file
+										if [ -f  ${TheBinDir}/${des} ]; then
+											rm  ${TheBinDir}/${des}
+										fi
+										#Keep Generated Manafest file
+										case ${keep} in
+											--keep-manifest)
+												#rm ${des}
+												rm *.class
 												;;
-											esac
-											#move Java Jar to Binary dir
-											mv ${des%.class}.jar ${TheBinDir}/
-											echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled (JAR)]\e[0m"
+											*)
+												#rm manifest.mf ${des}
+												rm manifest.mf *.class
 											;;
-										#Do nothing...keep class
-										*|--class)
-											#move Java Class to Binary dir
-											mv *.class ${TheBinDir}/
-											#remove old jar
-											if [ -f ${TheBinDir}/${des%.class}.jar ]; then
-												rm ${TheBinDir}/${des%.class}.jar
-											fi
-											echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled (CLASS)]\e[0m"
-											;;
-									esac
-								else
-									#Display Error from compiler
-									errorCode "cpl" "ERROR" "${ERROR}"
-								fi
+										esac
+										#move Java Jar to Binary dir
+										mv ${des%.class}.jar ${TheBinDir}/
+										echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled (JAR)]\e[0m"
+										;;
+									#Do nothing...keep class
+									*|--class)
+										#move Java Class to Binary dir
+										mv *.class ${TheBinDir}/
+										#remove old jar
+										if [ -f ${TheBinDir}/${des%.class}.jar ]; then
+											rm ${TheBinDir}/${des%.class}.jar
+										fi
+										echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled (CLASS)]\e[0m"
+										;;
+								esac
+							else
+								#Display Error from compiler
+								errorCode "cpl" "ERROR" "${ERROR}"
 							fi
 							;;
 						*)
@@ -1242,6 +1238,7 @@ UseJava()
 			local TheJarDir
 			local JavaProp=$2
 			shift
+			shift
 			local Args=$@
 
 			#Handle multiple files
@@ -1302,52 +1299,178 @@ UseJava()
 				echo "Unable to locate executable"
 			fi
 			;;
-		backup)
+		backup|restore)
 			local name=$1
-			if [ ! -z "${name}" ]; then
-				if [ ! -f "${LangSrc}/${name}.bak" ]; then
-					cp ${LangSrc}/${name} ${LangSrc}/${name}.bak
-					echo "\"${name}\" backed-up"
-				else
-					errorCode "backup" "exists"
-				fi
-			else
-				errorCode "backup" "null"
-			fi
+			name="${name%${LangExt}}${LangExt}"
+			local project=${CodeProject}
+			local TheDir
+			local TheCount
+			local TheFound
+
+			case ${project} in
+				none)
+					if [ ! -z "${name}" ]; then
+						case ${Type} in
+							restore)
+								if [ -f "${LangSrc}/${name}.bak" ]; then
+									mv ${LangSrc}/${name}.bak ${LangSrc}/${name}
+									echo "\"${name}\" restored"
+								else
+									errorCode "restore" "exists"
+								fi
+								;;
+							backup)
+								if [ ! -f "${LangSrc}/${name}.bak" ]; then
+									cp ${LangSrc}/${name} ${LangSrc}/${name}.bak
+									echo "\"${name}\" backed-up"
+								else
+									errorCode "backup" "exists"
+								fi
+								;;
+							*)
+								;;
+						esac
+					else
+						case ${Type} in
+							restore)
+								errorCode "restore" "null"
+								;;
+							backup)
+								errorCode "backup" "null"
+								;;
+							*)
+								;;
+						esac
+					fi
+					;;
+				*)
+					case ${Type} in
+						restore)
+							if [ -f "${name}.bak" ]; then
+								mv ${name}.bak ${name}
+								echo "\"${name}\" restored"
+							else
+								TheCount=$(UseJava "getProjSrc" "${name}.bak" | wc -l)
+								case ${TheCount} in
+									0)
+										errorCode "restore" "null"
+										;;
+									1)
+										TheFound=$(UseJava "getProjSrc" "${name}.bak")
+										mv ${TheFound} ${TheFound%.bak}
+										echo "\"${name}\" restored"
+										;;
+									*)
+										;;
+								esac
+							fi
+							;;
+						backup)
+							if [ -f "${name}" ] && [ ! -f "${name}.bak" ]; then
+								cp ${name} ${name}.bak
+								echo "\"${name}\" backed-up"
+							else
+								TheCount=$(UseJava "getProjSrc" "${name}" | wc -l)
+								case ${TheCount} in
+									0)
+										errorCode "backup" "null"
+										;;
+									1)
+										TheFound=$(UseJava "getProjSrc" "${name}")
+										mv ${TheFound} ${TheFound}.bak
+										echo "\"${name}\" backed-up"
+										;;
+									*)
+										;;
+								esac
+							fi
+							;;
+						*)
+							;;
+					esac
+					;;
+			esac
 			;;
-		restore)
-			local name=$1
-			if [ ! -z "${name}" ]; then
-				if [ -f "${LangSrc}/${name}.bak" ]; then
-					mv ${LangSrc}/${name}.bak ${LangSrc}/${name}
-					echo "\"${name}\" restored"
-				else
-					errorCode "restore" "exists"
-				fi
-			else
-				errorCode "restore" "null"
-			fi
-			;;
-		rename)
+		#create a copy of set code
+		copy|rename)
 			local TheOld=$1
 			local TheNew=$2
-			if [ ! -z "${TheNew}" ]; then
-				TheOld="${TheOld%${LangExt}}"
-				TheNew="${TheNew%${LangExt}}"
-				sed "s/${TheOld}/${TheNew}/g" ${LangSrc}/${TheOld}${LangExt} > ${LangSrc}/${TheNew}${LangExt}
-				rm ${LangSrc}/${TheOld}${LangExt}
-				echo ${TheNew}${LangExt}
-			fi
-			;;
-		copy)
-			local TheOld=$1
-			local TheNew=$2
-			if [ ! -z "${TheNew}" ]; then
-				TheOld="${TheOld%${LangExt}}"
-				TheNew="${TheNew%${LangExt}}"
-				sed "s/${TheOld}/${TheNew}/g" ${LangSrc}/${TheOld}${LangExt} > ${LangSrc}/${TheNew}${LangExt}
-				echo ${TheNew}${LangExt}
-			fi
+			TheOld="${TheOld%${LangExt}}${LangExt}"
+			TheNew="${TheNew%${LangExt}}${LangExt}"
+			local project=${CodeProject}
+			case ${project} in
+				none)
+					if [ ! -z "${TheNew}" ]; then
+						TheOld="${TheOld%${LangExt}}"
+						TheNew="${TheNew%${LangExt}}"
+						sed "s/${TheOld}/${TheNew}/g" ${LangSrc}/${TheOld}${LangExt} > ${LangSrc}/${TheNew}${LangExt}
+
+						#Remove old file for "rename"
+						case ${Type} in
+							rename)
+								rm ${LangSrc}/${TheOld}${LangExt}
+								;;
+							*)
+								;;
+						esac
+
+						#return new file
+						echo ${TheNew}${LangExt}
+					fi
+					;;
+				*)
+					if [ ! -z "${TheNew}" ]; then
+						#File is in current dir
+						if [ -f ${TheNew} ]; then
+							#Remove the extention
+							TheOld="${TheOld%${LangExt}}"
+							TheNew="${TheNew%${LangExt}}"
+							sed "s/${TheOld}/${TheNew}/g" ${TheOld}${LangExt} > ${TheNew}${LangExt}
+
+							#Remove old file for "rename"
+							case ${Type} in
+								rename)
+									rm ${LangSrc}/${TheOld}${LangExt}
+									;;
+								*)
+									;;
+							esac
+
+							echo ${TheNew}${LangExt}
+						else
+							local TheDir
+							local TheCount=$(UseJava "getProjSrc" "${TheOld}" | wc -l)
+							case ${TheCount} in
+								1)
+									local TheFound=$(UseJava "getProjSrc" "${TheOld}")
+									#Get the dir
+									TheDir=${TheFound%/*}
+									#Get the file
+									TheFound=${TheFound##*/}
+									#Remove the extention
+									TheOld="${TheOld%${LangExt}}"
+									TheNew="${TheNew%${LangExt}}"
+									sed "s/${TheOld}/${TheNew}/g" ${TheDir}/${TheOld}${LangExt} > ${TheDir}/${TheNew}${LangExt}
+
+									#Remove old file for "rename"
+									case ${Type} in
+										rename)
+											rm ${LangSrc}/${TheOld}${LangExt}
+											;;
+										*)
+											;;
+									esac
+
+									#return new file
+									echo ${TheNew}${LangExt}
+									;;
+								*)
+									;;
+							esac
+						fi
+					fi
+					;;
+			esac
 			;;
 		*)
 			;;

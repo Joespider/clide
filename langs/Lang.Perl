@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.51"
+SupportV="0.1.53"
 Lang=Perl
 LangExt=".pl"
 #Color Purple
@@ -91,6 +91,14 @@ UsePerl()
 		getProjDir)
 			echo ${LangProject}
 			;;
+		getProjSrc)
+			local name=$1
+			local project=${CodeProject}
+			local TheSrcDir=${LangProject}/${project}/src
+			if [ ! -z "${name}" ]; then
+				find ${TheSrcDir} -name "${name}" 2> /dev/null
+			fi
+			;;
 		getExt)
 			echo ${LangExt}
 			;;
@@ -132,29 +140,48 @@ UsePerl()
 			;;
 		getCode)
 			local name=$1
-			case ${CodeProject} in
+			name=${name%${LangExt}}
+			local project=${CodeProject}
+			local newName
+			local DirPath
+			local TheSrcDir
+			case ${project} in
 				none)
-					if [ -f ${LangSrc}/${name}${LangExt} ]; then
-						echo ${name}${LangExt}
-					elif [ -f ${LangSrc}/${name} ]; then
-						echo ${name}
-					fi
+					TheSrcDir=${LangSrc}
 					;;
 				*)
 					case ${ProjectType} in
 						Generic)
-							if [ -f ${LangSrc}/${CodeProject}/src/${name}${LangExt} ]; then
-								echo ${name}${LangExt}
-							elif [ -f ${LangSrc}/${CodeProject}/src/${name} ]; then
-								echo ${name}
-							fi
+							case ${name} in
+								*.*)
+									newName=${name##*.}
+									DirPath=$(echo ${name%${newName}} | tr '.' '/')
+									TheSrcDir="${LangProject}/${project}/src/${DirPath}"
+									name=${newName}
+									;;
+								*/*)
+									newName=${name##*/}
+									DirPath=${name%${newName}}
+									TheSrcDir="${LangProject}/${project}/src/${DirPath}"
+									name=${newName}
+									;;
+								*)
+									TheSrcDir="$(pwd)/"
+									;;
+							esac
 							;;
 						*)
-							ProjectTemplateHandler ${EnvVars[@]} ${Type} ${mode}
+							TheSrcDir=$(ProjectTemplateHandler ${EnvVars[@]} ${Type} ${mode})
 							;;
 					esac
 					;;
 			esac
+
+			if [ -f ${TheSrcDir}/${name}${LangExt} ]; then
+				echo ${name}${LangExt}
+			elif [ -f ${TheSrcDir}/${name} ]; then
+				echo ${name}
+			fi
 			;;
 		BeforeFiles|AfterFiles)
 			ls *${LangExt} 2> /dev/null
@@ -216,42 +243,105 @@ UsePerl()
 			${LangRun} -v 2> /dev/null | grep "This is perl" | sed "s/This is perl/perl/g"
 			echo ""
 			;;
-		selectCode)
+		selectCode|addCode)
 			local name=$1
-			#Correct filename
-			if [[ ! "${name}" == *"${LangExt}" ]]; then
-				name="${name}${LangExt}"
-			fi
-			#Return source file if exists
-			if [ -f "${name}" ]; then
-				echo "${name}"
-			fi
-			;;
-		addCode)
-			local src=$1
 			local new=$2
-			case ${src} in
-				*${LangExt})
-					case ${new} in
-						*${LangExt})
-							if [ -f "${new}" ]; then
-								echo "${src},${new}"
-							else
-								echo "${src}"
-							fi
-							;;
-						*)
-							if [ -f "${new}${LangExt}" ]; then
-								echo "${src},${new}${LangExt}"
-							else
-								echo "${src}"
-							fi
-							;;
-					esac
+			local project=${CodeProject}
+			local newName
+			local DirPath
+			local TheSrcDir
+			#Correct filename
+			if [ ! -z "${name}" ]; then
+				name=${name%${LangExt}}${LangExt}
+				case ${project} in
+					#not a project
+					none)
+						case ${Type} in
+							addCode)
+								case ${new} in
+									*${LangExt})
+										if [ -f "${new}" ]; then
+											echo "${name},${new}"
+										else
+											echo "${name}"
+										fi
+										;;
+									*)
+										if [ -f "${new}${LangExt}" ]; then
+											echo "${name},${new}${LangExt}"
+										else
+											echo "${name}"
+										fi
+										;;
+								esac
+								;;
+							selectCode)
+									#Return source file if exists
+									if [ -f "${name}" ]; then
+										echo "${name}"
+									fi
+									;;
+							*)
+									;;
+						esac
+						;;
+					#is a project
+					*)
+						local LookFor
+						TheSrcDir="${LangProject}/${project}/src/"
+						case ${Type} in
+							addCode)
+								new=${new%${LangExt}}${LangExt}
+								LookFor=${new}
+								;;
+							selectCode)
+								name=${name%${LangExt}}${LangExt}
+								LookFor=${name}
+								;;
+							*)
+								;;
+						esac
+
+						local NumFound=$(find ${TheSrcDir} -name ${LookFor} 2> /dev/null | wc -l)
+						case ${NumFound} in
+							0)
+								;;
+							1)
+								case ${Type} in
+									addCode)
+										new=$(find ${TheSrcDir} -name ${new} 2> /dev/null)
+										if [ -f ${new} ]; then
+											new=${new%${LangExt}}
+											newName=${new##*/}
+											echo "${name},${newName}${LangExt}"
+										else
+											echo "${name}"
+										fi
+										;;
+									selectCode)
+										name=$(find ${TheSrcDir} -name ${name} 2> /dev/null)
+										if [ -f ${name} ]; then
+											name=${name%${LangExt}}
+											newName=${name##*/}
+											echo ${newName}${LangExt}
+										fi
+										;;
+									*)
+										;;
+								esac
+								;;
+							*)
+#								find ${TheSrcDir} -name ${name} 2> /dev/null | nl
+#								if [ -f ${name} ]; then
+#									name=${name%${LangExt}}
+#									newName=${name##*/}
+#									echo ${newName}${LangExt}
+#								fi
+								;;
+						esac
 					;;
-				*)
-					;;
-			esac
+				esac
+			fi
 			;;
 		rmBin|rmSrc)
 			local name=$1
@@ -392,6 +482,7 @@ UsePerl()
 			local project=${CodeProject}
 			local cplArgs=""
 			local TheBinDir
+			local GetCount
 			local ERROR
 			#Handle Project Dir
 			case ${project} in
@@ -402,67 +493,87 @@ UsePerl()
 				*)
 					project="${project}/"
 					TheBinDir="${LangProject}/${project}bin"
-				;;
-                        esac
+					;;
+			esac
+
+			#Handle multiple files
+			if [[ "${src}" == *","* ]]; then
+				if [ -z "${name}" ]; then
+					src=""
+					if [ -z "${name}" ]; then
+						echo "Unable to find the \"main\" file"
+						echo -n "Please choose: "
+						read name
+						case ${CodeProject} in
+							none)
+								if [ ! -f ${LangSrc}/${name%.*}${LangExt} ]; then
+									name=""
+								fi
+								;;
+							*)
+								GetCount=$(UsePerl "getProjSrc" ${src} | wc -l)
+								case ${GetCount} in
+									0)
+										;;
+									1)
+										src=$(UsePerl "getProjSrc" ${src})
+										src="..${src##*${CodeProject}}"
+										ERROR=$(ln -s ${src} 2>&1 | tr '\n' '|')
+										;;
+									*)
+										;;
+								esac
+								;;
+						esac
+					fi
+
+					if [ ! -z "${name}" ]; then
+						src="${name%.*}${LangExt}"
+					fi
+				fi
+			fi
+
+			#Set Code to executable
 			case ${src} in
 				*${LangExt})
-					#Multiple code selected
-					if [[ "${src}" == *","* ]]; then
-						#variable is empty
-						if [ -z "${name}" ]; then
-							errorCode "cpl" "choose"
-						#variable found
+					#Check if Perl Script does NOT exist
+					if [ ! -f "${TheBinDir}/${src}" ]; then
+						#Change to Perl Binary dir
+						cd ${TheBinDir}
+						case ${CodeProject} in
+							none)
+								#Create Symbolic Link to Perl Script
+								ERROR=$(ln -s ../src/${src} 2>&1 | tr '\n' '|')
+								;;
+							*)
+								GetCount=$(UsePerl "getProjSrc" ${src} | wc -l)
+								case ${GetCount} in
+									0)
+										;;
+									1)
+										src=$(UsePerl "getProjSrc" ${src})
+										src="..${src##*${CodeProject}}"
+										ERROR=$(ln -s ${src} 2>&1 | tr '\n' '|')
+										;;
+									*)
+										;;
+								esac
+								;;
+						esac
+						#Change to Bash Source dir
+						cd - > /dev/null
+						if [ -f "${TheBinDir}/${src}" ]; then
+							echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
 						else
-							#chosen file is in the list of files
-							if [[ "${src}" == *"${name}"* ]]; then
-								#only name is given
-								if [[ "${name}" != *"${LangExt}" ]]; then
-									#full filename given
-									num=${name}${LangExt}
-								fi
-								#Make Perl Script executable
-								chmod +x ${name}
-								#Check if Perl Script does NOT exist
-								if [ ! -f "${TheBinDir}/${name}" ]; then
-									#Change to Perl Binary dir
-									cd ${TheBinDir}
-									#Create Symbolic Link to Perl Script
-									ERROR=$(ln -s ../src/${name} 2>&1 | tr '\n' '|')
-									#Change to Perl Source dir
-									cd - > /dev/null
-									if [ -f "${TheBinDir}/${name}" ]; then
-										echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
-									else
-										errorCode "cpl" "ERROR" "${ERROR}"
-									fi
-								else
-									errorCode "cpl" "already" ${name}
-								fi
-							else
-								echo "code not found"
-							fi
+							errorCode "cpl" "ERROR" "${ERROR}"
 						fi
-					#single code selected
+					#Code is already found
 					else
-						#Check if Perl Script does NOT exist
-						if [ ! -f "${TheBinDir}/${src}" ]; then
-							#Change to Perl Binary dir
-							cd ${TheBinDir}
-							#Create Symbolic Link to Perl Script
-							ERROR=$(ln -s ../src/${src} 2>&1 | tr '\n' '|')
-							#Change to Perl Source dir
-							cd - > /dev/null
-							if [ -f "${TheBinDir}/${src}" ]; then
-								echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
-							else
-								errorCode "cpl" "ERROR" "${ERROR}"
-							fi
-						else
-							errorCode "cpl" "already" ${src}
-						fi
+						errorCode "cpl" "already" ${src}
 					fi
 					;;
 				*)
+					errorCode "cpl" "choose"
 					;;
 			esac
 			;;
@@ -659,51 +770,178 @@ UsePerl()
 				errorCode "cpl" "need" "${name}"
 			fi
 			;;
-		backup)
+		backup|restore)
 			local name=$1
-			if [ ! -z "${name}" ]; then
-				if [ ! -f "${LangSrc}/${name}.bak" ]; then
-					cp ${LangSrc}/${name} ${LangSrc}/${name}.bak
-					echo "\"${name}\" backed-up"
-				else
-					errorCode "backup" "exists"
-				fi
-			else
-				errorCode "backup" "null"
-			fi
+			name="${name%${LangExt}}${LangExt}"
+			local project=${CodeProject}
+			local TheDir
+			local TheCount
+			local TheFound
+
+			case ${project} in
+				none)
+					if [ ! -z "${name}" ]; then
+						case ${Type} in
+							restore)
+								if [ -f "${LangSrc}/${name}.bak" ]; then
+									mv ${LangSrc}/${name}.bak ${LangSrc}/${name}
+									echo "\"${name}\" restored"
+								else
+									errorCode "restore" "exists"
+								fi
+								;;
+							backup)
+								if [ ! -f "${LangSrc}/${name}.bak" ]; then
+									cp ${LangSrc}/${name} ${LangSrc}/${name}.bak
+									echo "\"${name}\" backed-up"
+								else
+									errorCode "backup" "exists"
+								fi
+								;;
+							*)
+								;;
+						esac
+					else
+						case ${Type} in
+							restore)
+								errorCode "restore" "null"
+								;;
+							backup)
+								errorCode "backup" "null"
+								;;
+							*)
+								;;
+						esac
+					fi
+					;;
+				*)
+					case ${Type} in
+						restore)
+							if [ -f "${name}.bak" ]; then
+								mv ${name}.bak ${name}
+								echo "\"${name}\" restored"
+							else
+								TheCount=$(UsePerl "getProjSrc" "${name}.bak" | wc -l)
+								case ${TheCount} in
+									0)
+										errorCode "restore" "null"
+										;;
+									1)
+										TheFound=$(UsePerl "getProjSrc" "${name}.bak")
+										mv ${TheFound} ${TheFound%.bak}
+										echo "\"${name}\" restored"
+										;;
+									*)
+										;;
+								esac
+							fi
+							;;
+						backup)
+							if [ -f "${name}" ] && [ ! -f "${name}.bak" ]; then
+								cp ${name} ${name}.bak
+								echo "\"${name}\" backed-up"
+							else
+								TheCount=$(UsePerl "getProjSrc" "${name}" | wc -l)
+								case ${TheCount} in
+									0)
+										errorCode "backup" "null"
+										;;
+									1)
+										TheFound=$(UsePerl "getProjSrc" "${name}")
+										mv ${TheFound} ${TheFound}.bak
+										echo "\"${name}\" backed-up"
+										;;
+									*)
+										;;
+								esac
+							fi
+							;;
+						*)
+							;;
+					esac
+					;;
+			esac
 			;;
-		restore)
-			local name=$1
-			if [ ! -z "${name}" ]; then
-				if [ -f "${LangSrc}/${name}.bak" ]; then
-					mv ${LangSrc}/${name}.bak ${LangSrc}/${name}
-					echo "\"${name}\" restored"
-				else
-					errorCode "restore" "exists"
-				fi
-			else
-				errorCode "restore" "null"
-			fi
-			;;
-		rename)
+		#create a copy of set code
+		copy|rename)
 			local TheOld=$1
 			local TheNew=$2
-			if [ ! -z "${TheNew}" ]; then
-				TheOld="${TheOld%${LangExt}}" 
-				TheNew="${TheNew%${LangExt}}"
-				mv ${LangSrc}/${TheOld}${LangExt} ${LangSrc}/${TheNew}${LangExt}
-				echo ${TheNew}${LangExt}
-			fi
-			;;
-		copy)
-			local TheOld=$1
-			local TheNew=$2
-			if [ ! -z "${TheNew}" ]; then
-				TheOld="${TheOld%${LangExt}}" 
-				TheNew="${TheNew%${LangExt}}"
-				cp ${LangSrc}/${TheOld}${LangExt} ${LangSrc}/${TheNew}${LangExt}
-				echo ${TheNew}${LangExt}
-			fi
+			TheOld="${TheOld%${LangExt}}${LangExt}"
+			TheNew="${TheNew%${LangExt}}${LangExt}"
+			local project=${CodeProject}
+			case ${project} in
+				none)
+					if [ ! -z "${TheNew}" ]; then
+						TheOld="${TheOld%${LangExt}}"
+						TheNew="${TheNew%${LangExt}}"
+						sed "s/${TheOld}/${TheNew}/g" ${LangSrc}/${TheOld}${LangExt} > ${LangSrc}/${TheNew}${LangExt}
+
+						#Remove old file for "rename"
+						case ${Type} in
+							rename)
+								rm ${LangSrc}/${TheOld}${LangExt}
+								;;
+							*)
+								;;
+						esac
+
+						#return new file
+						echo ${TheNew}${LangExt}
+					fi
+					;;
+				*)
+					if [ ! -z "${TheNew}" ]; then
+						#File is in current dir
+						if [ -f ${TheNew} ]; then
+							#Remove the extention
+							TheOld="${TheOld%${LangExt}}"
+							TheNew="${TheNew%${LangExt}}"
+							sed "s/${TheOld}/${TheNew}/g" ${TheOld}${LangExt} > ${TheNew}${LangExt}
+
+							#Remove old file for "rename"
+							case ${Type} in
+								rename)
+									rm ${LangSrc}/${TheOld}${LangExt}
+									;;
+								*)
+									;;
+							esac
+
+							echo ${TheNew}${LangExt}
+						else
+							local TheDir
+							local TheCount=$(UsePerl "getProjSrc" "${TheOld}" | wc -l)
+							case ${TheCount} in
+								1)
+									local TheFound=$(UsePerl "getProjSrc" "${TheOld}")
+									#Get the dir
+									TheDir=${TheFound%/*}
+									#Get the file
+									TheFound=${TheFound##*/}
+									#Remove the extention
+									TheOld="${TheOld%${LangExt}}"
+									TheNew="${TheNew%${LangExt}}"
+									sed "s/${TheOld}/${TheNew}/g" ${TheDir}/${TheOld}${LangExt} > ${TheDir}/${TheNew}${LangExt}
+
+									#Remove old file for "rename"
+									case ${Type} in
+										rename)
+											rm ${LangSrc}/${TheOld}${LangExt}
+											;;
+										*)
+											;;
+									esac
+
+									#return new file
+									echo ${TheNew}${LangExt}
+									;;
+								*)
+									;;
+							esac
+						fi
+					fi
+					;;
+			esac
 			;;
 		*)
 			;;

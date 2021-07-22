@@ -81,6 +81,10 @@ errorCode()
 			;;
 		newCode)
 			case ${sec} in
+				one-at-a-time)
+					errorCode "ERROR"
+					errorCode "ERROR" "Can create only one filename at a time"
+					;;
 				already)
 					errorCode "ERROR"
 					errorCode "ERROR" "source code already made"
