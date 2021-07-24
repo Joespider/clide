@@ -413,7 +413,7 @@ importProject()
 						echo "type=${projectType}" >> ${ProjectFile}
 						echo "path=${Path}" >> ${ProjectFile}
 						echo "src=" >> ${ProjectFile}
-						echo "Project \"${Name}\" Imported"
+						echo "[Project \"${Name}\" Imported"
 						;;
 					*)
 						errorCode "project" "import" "name-in-path" "${Name}" "${Path}"
@@ -518,7 +518,7 @@ linkProjects()
 					echo "link=${Lang},${LinkLang}," >> ${ProjectFile}
 					if [ ! -f ${LinkPath}/${project} ]; then
 						cd ${ThePath}
-						ln -s ${LinkPath}/${project}
+						ln -s ${LinkPath}/${project} 2> /dev/null
 						cd - > /dev/null
 					fi
 					echo ${LinkLang}
@@ -592,8 +592,11 @@ discoverProject()
 {
 	local Action=$1
 	local LinkLang=$2
+	local cLinkLang
 	local TheProjName=$3
+	local NotDone=$4
 	local TheLang
+	local cTheLang
 	local Langs=$(ls ${LangsDir}/ | sed "s/Lang.//g" | tr '\n' '|' | rev | sed "s/|//1" | rev)
 	local NumOfLangs=$(ls ${LangsDir}/ | wc -l)
 	local NumOfProject
@@ -601,6 +604,7 @@ discoverProject()
 	local For
 	local text
 	local Name
+	local cName
 	local Path
 	local ChosenLangs=""
 	while [ ${look} -le ${NumOfLangs} ];
@@ -621,7 +625,10 @@ discoverProject()
 						if [ -L ${Path}${Name} ]; then
 							case ${TheProjName} in
 								${Name})
-									linkProjects ${LinkLang} ${TheLang} ${Name}
+									cTheLang=$(color "${TheLang}")
+									cLinkLang=$(color "${LinkLang}")
+									echo -e "\tLinking ${cLinkLang} ---> ${cTheLang}"
+									linkProjects ${LinkLang} ${TheLang} ${Name} > /dev/null
 									;;
 								*)
 									;;
@@ -631,8 +638,15 @@ discoverProject()
 					*)
 						#Ignore anything that isn't a symbolic link
 						if [ ! -L ${Path}${Name} ]; then
-							importProject ${TheLang} ${Name} ${Path}${Name} #> /dev/null
-							discoverProject "relink" ${TheLang} ${Name} > /dev/null
+							if [ ! -f ${ActiveProjectDir}/${Name}.clide ]; then
+								cName=$(color "${Name}")
+								cTheLang=$(color "${TheLang}")
+								cLinkLang=$(color "${LinkLang}")
+								echo "[${cTheLang} Project: ${cName}]"
+								importProject ${TheLang} ${Name} ${Path}${Name} > /dev/null
+								echo -e "\tProject Imported"
+								discoverProject "relink" ${TheLang} ${Name} "Not Done"
+							fi
 						fi
 						;;
 				esac
@@ -642,7 +656,10 @@ discoverProject()
 		fi
 		look=$((${look}+1))
 	done
-	echo "${Head} is all caught up"
+	if [ -z "${NotDone}" ]; then
+		echo ""
+		echo "${Head} is all caught up"
+	fi
 }
 
 #Load active projects
@@ -751,6 +768,11 @@ Remove()
 	else
 		errorCode "remove" "hint"
 	fi
+}
+
+debugCode()
+{
+	echo ${Debugger}
 }
 
 runCode()
@@ -1952,24 +1974,35 @@ Actions()
 				install)
 					ManageLangs ${Lang} "Install" ${Code} ${UserIn[1]}
 					;;
+				#Add debugging functionality
+				${Debugger}|Debugger|debug)
+					debugCode
+					;;
 				#run compiled code
 				execute|exe|run)
-					case ${CodeProject} in
-						none)
-							if [ ! -z "${Code}" ]; then
-								runCode ${Lang} ${Code} ${UserIn[@]}
-							else
-								errorCode "cpl" "none"
-							fi
+					case ${UserIn[1]} in
+						-d|--debug)
+							debugCode
 							;;
-						#It is assumed that the project name is the binary
 						*)
-							if [ ! -z "${Code}" ]; then
-								runCode ${Lang} ${Code} ${UserIn[@]}
-							else
-								#May Cause Prolems
-								runCode ${Lang} ${CodeProject} ${UserIn[@]}
-							fi
+							case ${CodeProject} in
+								none)
+									if [ ! -z "${Code}" ]; then
+										runCode ${Lang} ${Code} ${UserIn[@]}
+									else
+										errorCode "cpl" "none"
+									fi
+									;;
+								#It is assumed that the project name is the binary
+								*)
+									if [ ! -z "${Code}" ]; then
+										runCode ${Lang} ${Code} ${UserIn[@]}
+									else
+										#May Cause Prolems
+										runCode ${Lang} ${CodeProject} ${UserIn[@]}
+									fi
+									;;
+							esac
 							;;
 					esac
 					;;
@@ -2702,7 +2735,11 @@ main()
 					esac
 				fi
 				;;
-			#run compiled code
+			#debug your compiled code
+			--debug)
+				debugCode
+				;;
+			#run your compiled code
 			--run)
 				shift
 				local Lang=$1
