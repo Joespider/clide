@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.74"
+SupportV="0.1.77"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -47,6 +47,8 @@ ProjectTemplateHandler()
 UseJava()
 {
 	local LangConfig=${cplJava}
+	local UseDebugger=${debugJava}
+
 	local LangCpl=$(echo ${LangConfig} | cut -d ',' -f 1)
 	local LangRun=$(echo ${LangConfig} | cut -d ',' -f 2)
 
@@ -104,6 +106,46 @@ UseJava()
 			local TheSrcDir=${LangProject}/${project}/src
 			if [ ! -z "${name}" ]; then
 				find ${TheSrcDir} -name "${name}" 2> /dev/null | grep "${ProjectMode}"
+			fi
+			;;
+		IsDebugEnabled)
+			local TheCode=$1
+			local TheBinDir
+			local project=${CodeProject}
+			#Handle Project Dir
+			case ${project} in
+				none)
+					TheBinDir=${LangBin}
+					;;
+				*)
+					TheBinDir="${LangProject}/${project}bin"
+					;;
+			esac
+			if [ -d ${TheBinDir} ]; then
+				cd "${TheBinDir}"
+				local IsClassNotJar=$(UseJava "getBin" "${TheCode}")
+				if [ ! -z "${IsClassNotJar}" ]; then
+					case ${IsClassNotJar} in
+						*.class)
+							echo "yes"
+							;;
+						*)
+							echo ${IsClassNotJar}
+							;;
+					esac
+				fi
+				cd - > /dev/null
+			fi
+			;;
+		getDebugger)
+			echo "${UseDebugger}"
+			;;
+		getDebugVersion)
+			local debugV=$(${UseDebugger} -version 2> /dev/null | head -n 1)
+			if [ ! -z "${debugV}" ]; then
+				echo "[${Lang} Debugger]"
+				echo "${debugV}"
+				echo ""
 			fi
 			;;
 		getExt)
@@ -1228,7 +1270,7 @@ UseJava()
 				fi
 			fi
 			;;
-		runCode)
+		runCode|debug)
 			local name=$1
 			local TheBin="${name%.*}.class"
 			local TheJar="${name%.*}.jar"
@@ -1281,11 +1323,30 @@ UseJava()
 					#If no JavaProp found
 					case ${JavaProp} in
 						none)
-							#Execute without
-							${LangRun} ${package}${TheBin} ${Args[@]}
+							case ${Type} in
+								debug)
+									echo "${UseDebugger} ${package}${TheBin} ${Args[@]}"
+									;;
+								runCode)
+									#Execute without
+									${LangRun} ${package}${TheBin} ${Args[@]}
+									;;
+								*)
+									;;
+							esac
 							;;
 						*)
-							${LangRun} "${JavaProp}" ${package}${TheBin} ${Args[@]}
+							case ${Type} in
+								debug)
+									${UseDebugger} "${JavaProp}" ${package}${TheBin} ${Args[@]}
+									;;
+								runCode)
+									#Execute without
+									${LangRun} "${JavaProp}" ${package}${TheBin} ${Args[@]}
+									;;
+								*)
+									;;
+							esac
 							;;
 					esac
 					cd - > /dev/null

@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.28"
+SupportV="0.1.30"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
@@ -50,6 +50,7 @@ UseC()
 	#Get the enviornment variables for C
 	#{
 	local LangCpl=${cplC}
+	local UseDebugger=${debugCandCpp}
 
 	local LangHome=${ProgDir}/${Lang}
 	local LangSrc=${LangHome}/src
@@ -140,6 +141,23 @@ UseC()
 			local TheSrcDir=${LangProject}/${project}/src
 			if [ ! -z "${name}" ]; then
 				find ${TheSrcDir} -name "${name}" 2> /dev/null
+			fi
+			;;
+		IsDebugEnabled)
+			local DebugFlag=$(echo ${CplArgs} | tr ',' ' ' | grep -w "\-g")
+			if [ ! -z "${DebugFlag}" ]; then
+				echo "yes"
+			fi
+			;;
+		getDebugger)
+			echo "${UseDebugger}"
+			;;
+		getDebugVersion)
+			local debugV=$(${UseDebugger} --version 2> /dev/null | head -n 1)
+			if [ ! -z "${debugV}" ]; then
+				echo "[${Lang} Debugger]"
+				echo "${debugV}"
+				echo ""
 			fi
 			;;
 		#Look for binary from set code
@@ -816,8 +834,11 @@ UseC()
 						-v|--verboses)
 							Item="-v"
 							;;
+						-d|--debug)
+							Item="-g"
+							;;
 						-w|--warnings)
-							Item="-Wall -g"
+							Item="-g"
 							;;
 						--std=*)
 							local stdVal=${TheItem}
@@ -855,7 +876,8 @@ UseC()
 			echo -e "--opt-debug\t\t: \"Optimize debugging over speed or size (-Og)\""
 			echo -e "--opt-space\t\t: \"Optimize space over speed (-Os)\""
 			echo -e "-v, --verboses\t\t: \"Verbose (-v)\""
-			echo -e "-w. --warnings\t\t: \"Show ALL warnings (-Wall -g)\""
+			echo -e "-d, --debug\t\t: \"Set Debugging (-g)\""
+			echo -e "-w, --warnings\t\t: \"Show ALL warnings (-Wall)\""
 			echo -e "--std=<version>\t\t: \"Set C version\""
 			case ${LangCpl} in
 				gcc)
@@ -1360,7 +1382,7 @@ UseC()
 			esac
 			;;
 		#Run the compiled code
-		runCode)
+		runCode|debug)
 			local name=$1
 
 			#Handle Extension
@@ -1414,7 +1436,16 @@ UseC()
 
 			#Find Executable
 			if [ -f ${TheBinDir}/${TheBin} ]; then
-				${TheBinDir}/${TheBin} ${Args[@]}
+				case ${Type} in
+					debug)
+						cd ${TheBinDir}
+						${UseDebugger} ${TheBin}
+						cd - > /dev/null
+						;;
+					runCode)
+						${TheBinDir}/${TheBin} ${Args[@]}
+						;;
+				esac
 			else
 				case ${project} in
 					none)

@@ -56,7 +56,7 @@ MenuHelp()
 			echo -e "save\t\t\t\t: \"Save session\""
 			echo -e "create <arg>\t\t\t: \"create compile and runtime arguments"
 			echo -e "\thelp\t\t\t: \"create help page"
-			echo -e "${Debugger}, Debugger, debug\t\t: \"debug your program\""
+			echo -e "debug\t\t\t: \"debug your program\""
 			echo ""
 			ManageLangs ${Lang} "MenuHelp"
 			echo -e "car, car-a\t\t\t: \"compile and run; compile and run with arguments\""
@@ -167,6 +167,34 @@ NotesHelp()
 
 }
 
+debuggerHelp()
+{
+	case ${Debugger} in
+		gdb)
+			echo "GDB is best suited for C, C++, and Java code"
+			echo ""
+			echo -e "Command\t\tDescription"
+			echo -e "r\t\tStart running program until a breakpoint or end of program"
+			echo -e "b fun\t\tSet a breakpoint at the begining of function \"fun\""
+			echo -e "b N\t\tSet a breakpoint at line number N of source file currently executing"
+			echo -e "b file.c:N\tSet a breakpoint at line number N of file \"file.c\""
+			echo -e "d N\t\tRemove breakpoint number N"
+			echo -e "info break\tList all breakpoints"
+			echo -e "c\t\tContinues/Resumes running the program until the next breakpoint or end of program"
+			echo -e "f\t\tRuns until the current function is finished"
+			echo -e "s\t\tRuns the next line of the program"
+			echo -e "s N\t\tRuns the next N lines of program"
+			echo -e "n\t\tLike s, but it does not step into functions"
+			echo -e "p var\t\tPrints the current value of the variable \"var\""
+			echo -e "set var=val\tAssign \"val\" value to the variable \"var\""
+			echo -e "bt\t\tPrints a stack trace"
+			echo -e "q\t\tQuit from gdb"
+			;;
+		*)
+			;;
+	esac
+}
+
 newCodeHelp()
 {
 	local Lang=$1
@@ -180,7 +208,7 @@ newCodeHelp()
 	echo ""
 }
 
-#Clide cli help page
+#Clide cli help page2
 CliHelp()
 {
 	local calledBy=$1
@@ -226,6 +254,9 @@ CliHelp()
 				--install)
 					installHelp
 					;;
+				--debug)
+					debuggerHelp
+					;;
 				--read)
 					RunHelp
 					;;
@@ -254,7 +285,7 @@ CliHelp()
 					echo -e "--read <args>\t\t\t: \"Read out (cat) source code\""
 					echo -e "--list <lang>\t\t\t: \"List source code\""
 					echo -e "--list-cpl <lang>\t\t: \"List compiled code\""
-					echo -e "-p, --project <args>\t\t\t: \"List or Load Clide Projects\""
+					echo -e "-p, --project <args>\t\t: \"List or Load Clide Projects\""
 					echo ""
 					echo -e "\"Need more information? Just ask!\""
 					echo ""
@@ -524,6 +555,9 @@ main()
 			;;
 		NotesHelp)
 			NotesHelp $@
+			;;
+		debuggerHelp)
+			debuggerHelp $@
 			;;
 		newCodeHelp)
 			newCodeHelp $@

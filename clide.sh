@@ -305,6 +305,33 @@ CodeVersion()
 	fi
 }
 
+DebugVersion()
+{
+	local TheLang=$1
+	local Langs=""
+	if [ ! -z "${TheLang}" ]; then
+		ManageLangs ${TheLang} "getDebugVersion"
+	else
+		Langs=$(ls ${LangsDir}/ | sed "s/Lang.//g" | tr '\n' '|' | rev | sed "s/|//1" | rev)
+		local NumOfLangs=$(ls | wc -l)
+		local look=1
+		local text
+		while [ ${look} -le ${NumOfLangs} ];
+		do
+			text=$(echo ${Langs} | cut -d '|' -f ${look})
+			text=$(ManageLangs ${text} "pgLang")
+			case ${text} in
+				no)
+					;;
+				*)
+					ManageLangs "${text}" "getDebugVersion" | sed "s/Version:/${text}:/g"
+					;;
+			esac
+			look=$((${look}+1))
+		done
+	fi
+}
+
 Banner()
 {
 	local Type=$1
@@ -770,11 +797,6 @@ Remove()
 	fi
 }
 
-debugCode()
-{
-	echo ${Debugger}
-}
-
 runCode()
 {
 	local Lang=$1
@@ -951,6 +973,10 @@ Actions-NoLang()
 			#Get compile/interpreter version from cli
 			cv|code-version)
 				main "--code-version"
+				;;
+			#Get compile/interpreter version from cli
+			dv|debug-version)
+				main "--debug-version"
 				;;
 			#Get compile/interpreter version from cli
 			sv|support-version)
@@ -1975,14 +2001,38 @@ Actions()
 					ManageLangs ${Lang} "Install" ${Code} ${UserIn[1]}
 					;;
 				#Add debugging functionality
-				${Debugger}|Debugger|debug)
-					debugCode
+				debug)
+					if [ ! -z "${Code}" ]; then
+						local DebugEnabled
+						local IsInstalled
+						local HasDebugger=$(ManageLangs ${Lang} "getDebugger")
+						if [ ! -z "${HasDebugger}" ]; then
+							IsInstalled=$(which ${HasDebugger})
+							if [ ! -z "${IsInstalled}" ]; then
+								DebugEnabled=$(ManageLangs ${Lang} "IsDebugEnabled" "${Code}")
+								case ${DebugEnabled} in
+									yes)
+										ManageLangs ${Lang} "debug" ${Code}
+										;;
+									none|*)
+										errorCode "debug" "need-enable" "${Lang}" "${HasDebugger}"
+										;;
+								esac
+							else
+								errorCode "debug" "not-installed"
+							fi
+						else
+							errorCode "debug" "not-set" "${Lang}"
+						fi
+					else
+						errorCode "noCode"
+					fi
 					;;
 				#run compiled code
 				execute|exe|run)
 					case ${UserIn[1]} in
 						-d|--debug)
-							debugCode
+							ManageLangs ${Lang} "debug" ${Code} ${UserIn[1]}
 							;;
 						*)
 							case ${CodeProject} in
@@ -2014,6 +2064,8 @@ Actions()
 					CodeTemplateVersion ${Lang}
 					echo ""
 					CodeVersion ${Lang}
+					echo ""
+					DebugVersion ${Lang}
 					;;
 				#Display help page
 				help)
@@ -2329,6 +2381,7 @@ loadAuto()
 	comp_list "using"
 	comp_list "ll"
 	comp_list "clear"
+	comp_list "debug"
 	comp_list "set"
 	comp_list "unset"
 	comp_list "rm remove delete" "--force"
@@ -2424,6 +2477,10 @@ main()
 			#Get compile/interpreter version from cli
 			-cv|--code-version)
 				CodeVersion
+				;;
+			#Get compile/interpreter version from cli
+			-dv|--debug-version)
+				DebugVersion
 				;;
 			#Get compile/interpreter version from cli
 			-sv|--support-version)
@@ -2737,7 +2794,6 @@ main()
 				;;
 			#debug your compiled code
 			--debug)
-				debugCode
 				;;
 			#run your compiled code
 			--run)
