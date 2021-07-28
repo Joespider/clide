@@ -1,16 +1,4 @@
-1: Have cl[ide] figure out language via file extension
-Status: Finished
-	bash: .sh
-	c++: .cpp, .h
-	python: .py
-	java: .java
-	ruby: .rb
-	perl: .pl
-
-	Example: $ clide MyProgram.java
-		cl[ide](Java{MyProgram.java}):$
-
-2: Project Templates
+1: Project Templates
 Status: Implimented
 	Just like Language support, (ie lang/Langs.<language>) have project template scripts
 	Standard/Default Project Tempaltes are built into the Lang.<language>
@@ -73,7 +61,7 @@ Status: Implimented
 
 		if default project is given, clide passed "default" to Lang.<language>
 
-3: Project Tests
+2: Project Tests
 Status: Implimented
 	Allow for written test cases, like is done in java
 	Have a "test" function

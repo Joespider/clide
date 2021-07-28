@@ -2511,7 +2511,7 @@ main()
 						--build)
 							shift
 							local Lang
-							local GetProject=$1
+							GetProject=$1
 							if [ -z "${GetProject}" ]; then
 								theHelp BuildHelp ${UserArg}
 							else
@@ -2541,7 +2541,29 @@ main()
 							fi
 							;;
 						--list)
-							listProjects
+							shift
+							local Lang
+							GetProject=$1
+							#Just list the projects
+							if [ -z "${GetProject}" ]; then
+								listProjects
+							#list the entire project
+							else
+								TheProject=$(loadProject ${GetProject})
+								if [ "${TheProject}" != "no" ]; then
+									Lang=$(echo ${TheProject} | cut -d ";" -f 1)
+									Lang=$(pgLang ${Lang})
+									local CodeDir=$(echo ${TheProject} | cut -d ";" -f 3)
+									if [ ! -z "${CodeDir}" ]; then
+										local RemoveDirs=${CodeDir//\//|}
+										find ${CodeDir} -print | tr '/' '|' | sed "s/${RemoveDirs}//g" | tr '|' '/'
+									else
+										errorCode "cli-cpl" "none"
+									fi
+								else
+									echo "\"${GetProject}\" is Not a valid project"
+								fi
+							fi
 							;;
 						-h|--help)
 							theHelp ProjectCliHelp ${UserArg}
