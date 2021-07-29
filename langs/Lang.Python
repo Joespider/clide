@@ -893,7 +893,7 @@ UsePython()
 					debug)
 						${LangRun} -m ${UseDebugger} ${TheBinDir}/${TheBin} ${Args[@]}
 						;;
-                                      runCode)
+					runCode)
 						${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
 						;;
 				esac

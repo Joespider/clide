@@ -91,7 +91,7 @@ public class newJava {
 
 	private static void Help()
 	{
-		String program = "newJava.jar";
+		String program = "newJava";
 		String version = "0.1.08";
 		print("Author: Joespider");
 		print("Program: \""+program+"\"");

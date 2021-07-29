@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.30"
+SupportV="0.1.31"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
@@ -57,10 +57,10 @@ UseC()
 	local LangBin=${LangHome}/bin
 	local LangProject=${LangHome}/projects
 
-	local TemplateCode=${NewCpp}
+	local TemplateCode=${NewC}
 	TemplateCode=${LangBin}/${TemplateCode%${LangExt}}
 
-	local TemplateCodeSrc=${NewCpp%${LangExt}}${LangExt}
+	local TemplateCodeSrc=${NewC%${LangExt}}${LangExt}
 
 	local EnvVars=( ${LangRun} ${LangHome} ${LangSrc} ${LangBin} ${LangExt} )
 	#}
