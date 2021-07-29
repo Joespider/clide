@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.77"
+SupportV="0.1.78"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -299,9 +299,19 @@ UseJava()
 			fi
 			;;
 		TemplateVersion)
+			#Code is compiled as a jar
 			if [ -f ${TemplateCodeJar} ]; then
-                                echo -n "${TemplateCodeJar##*/} : "
+				echo -n "${TemplateCodeJar##*/} : "
 				java -jar ${TemplateCodeJar} 2> /dev/null | grep Version | sed "s/Version: //g"
+			#Code is compiled as a class
+			elif [ -f ${TemplateCodeClass} ]; then
+				local TempBin=${TemplateCodeClass##*/}
+				TempBin=${TempBin%.class}
+				echo -n "${TemplateCodeClass##*/} : "
+				cd ${LangBin}/
+				java ${TempBin} 2> /dev/null | grep Version | sed "s/Version: //g"
+				cd - > /dev/null
+			#Code is not compiled
 			else
 				echo "no ${TemplateCodeJar##*/} found"
 			fi
