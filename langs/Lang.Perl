@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.53"
+SupportV="0.1.55"
 Lang=Perl
 LangExt=".pl"
 #Color Purple
@@ -475,6 +475,9 @@ UsePerl()
 		setCplArgs-help)
 			echo -e "--warnings\t\t: \"Show ALL warnings (-W)\""
 			;;
+		compileCode-message)
+			echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
+			;;
 		compileCode)
 			local src=$1
 			local name=$2
@@ -563,7 +566,7 @@ UsePerl()
 						#Change to Bash Source dir
 						cd - > /dev/null
 						if [ -f "${TheBinDir}/${src}" ]; then
-							echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
+							UsePerl compileCode-message
 						else
 							errorCode "cpl" "ERROR" "${ERROR}"
 						fi

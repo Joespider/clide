@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.31"
+SupportV="0.1.32"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
@@ -894,6 +894,9 @@ UseC()
 					;;
 			esac
 			;;
+		compileCode-message)
+			echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
+			;;
 		compileCode)
 			local src=$1
 			local name=$2
@@ -959,7 +962,7 @@ UseC()
 					cd ${LangProject}/${project}
 					echo "make"
 					cd - > /dev/null
-					echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
+					UseC compileCode-message
 				#Compile without makefile
 				else
 					#source file is empty
@@ -991,7 +994,7 @@ UseC()
 
 							#Code compiled successfully
 							if [ -z "${ERROR}" ]; then
-								echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
+								UseC compileCode-message
 							else
 								#display the ERROR message
 								errorCode "cpl" "ERROR" "${ERROR}"
@@ -1006,7 +1009,7 @@ UseC()
 								#move binary to bin directory
 								mv ${name} ${TheBinDir}/
 								echo ""
-								echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
+								UseC compileCode-message
 							#Code compiled did NOT compile
 							else
 								#display the ERROR message

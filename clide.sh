@@ -733,12 +733,13 @@ loadProject()
 	fi
 }
 
-#remove source code
+#remove source code and bin
 Remove()
 {
-	local active=$1
-	local src=$2
-	local option=$3
+	local BinOnly=$1
+	local active=$2
+	local src=$3
+	local option=$4
 	local TheFile
 	if [ ! -z "${src}" ]; then
 		case  ${src} in
@@ -752,41 +753,64 @@ Remove()
 
 		case ${active} in
 			*"${src}"*)
-				if [ "${option}" == "--force" ]; then
-					TheFile=$(ManageLangs ${Lang} "rmBin" ${src})
-					if [ ! -z "${TheFile}" ]; then
-						rm ${TheFile}
-					fi
-					TheFile=$(ManageLangs ${Lang} "rmSrc" ${src})
-					if [ ! -z "${TheFile}" ]; then
-						rm ${TheFile}
-					fi
-					echo "\"${src}\" is REMOVED"
-				else
-					clear
-					errorCode "remove" "sure"
-					echo -n "Are you Sure you want to remove \"${src}\" (YES/NO)? "
-					read User
-					case ${User} in
-						YES)
-							clear
-							TheFile=$(ManageLangs ${Lang} "rmBin" ${src})
-							if [ ! -z "${TheFile}" ]; then
-								rm ${TheFile}
-							fi
-							TheFile=$(ManageLangs ${Lang} "rmSrc" ${src})
-							if [ ! -z "${TheFile}" ]; then
-								rm ${TheFile}
-							fi
-							echo "\"${src}\" is REMOVED"
-							;;
-						*)
-							clear
-							echo "\"${src}\" is NOT removed"
-							;;
-	 				esac
-					errorCode "remove" "hint"
-				fi
+				case ${option} in
+					--force)
+						case ${BinOnly} in
+							--bin)
+								TheFile=$(ManageLangs ${Lang} "rmBin" ${src})
+								if [ ! -z "${TheFile}" ]; then
+									rm ${TheFile}
+								fi
+								;;
+							*)
+								TheFile=$(ManageLangs ${Lang} "rmBin" ${src})
+								if [ ! -z "${TheFile}" ]; then
+									rm ${TheFile}
+								fi
+								TheFile=$(ManageLangs ${Lang} "rmSrc" ${src})
+								if [ ! -z "${TheFile}" ]; then
+									rm ${TheFile}
+								fi
+								;;
+						esac
+						echo "\"${src}\" is REMOVED"
+						;;
+					*)
+						clear
+						errorCode "remove" "sure"
+						echo -n "Are you Sure you want to remove \"${src}\" (YES/NO)? "
+						read User
+						case ${User} in
+							YES)
+								clear
+								case ${BinOnly} in
+									--bin)
+										TheFile=$(ManageLangs ${Lang} "rmBin" ${src})
+										if [ ! -z "${TheFile}" ]; then
+											rm ${TheFile}
+										fi
+										;;
+									*)
+										TheFile=$(ManageLangs ${Lang} "rmBin" ${src})
+										if [ ! -z "${TheFile}" ]; then
+											rm ${TheFile}
+										fi
+										TheFile=$(ManageLangs ${Lang} "rmSrc" ${src})
+										if [ ! -z "${TheFile}" ]; then
+											rm ${TheFile}
+										fi
+										;;
+								esac
+								echo "\"${src}\" is REMOVED"
+								;;
+							*)
+								clear
+								echo "\"${src}\" is NOT removed"
+								;;
+	 					esac
+						errorCode "remove" "hint"
+						;;
+				esac
 				;;
 			*)
 				errorCode "remove" "not-file" "${src}"
@@ -1194,9 +1218,13 @@ Actions()
 					;;
 				#Delete source code
 				rm|remove|delete)
-					Remove ${Code} ${UserIn[1]} ${UserIn[2]}
+					Remove "--all" ${Code} ${UserIn[1]} ${UserIn[2]}
 					Code=""
 					refresh="yes"
+					;;
+				#Delete source code
+				rmbin|remove-bin|delete-bin)
+					Remove "--bin" ${Code} ${UserIn[1]} ${UserIn[2]}
 					;;
 				#Display the language being used
 				using)
@@ -1941,31 +1969,7 @@ Actions()
 									#Copy and set source code to src/
 									cd ${LangSrcDir}/
 									if [ ! -f ${LangSrcDir}/${NewCode} ]; then
-										case ${Lang} in
-											Java)
-												cp ${NewCodeDir}/${NewCode} .
-												;;
-											*)
-												ln -s ${NewCodeDir}/${NewCode}
-												;;
-										esac
-									else
-										case ${Lang} in
-											Java)
-												local choice
-												echo -n "Are you sure you want to overwrite \"${NewCode}\"? (Y/N): "
-												read choice
-												case ${choice^^} in
-													Y|YES)
-														cp ${NewCode} ${NewCodeDir}/
-														;;
-													*)
-														;;
-												esac
-												;;
-											*)
-												;;
-										esac
+										ln -s ${NewCodeDir}/${NewCode}
 									fi
 									Code=$(selectCode ${Lang} "set" ${NewCode})
 									refresh="yes"
@@ -2418,7 +2422,7 @@ loadAuto()
 	comp_list "debug"
 	comp_list "set"
 	comp_list "unset"
-	comp_list "rm remove delete" "--force"
+	comp_list "rm remove delete rmbin remove-bin delete-bin" "--force"
 	comp_list "cd"
 	comp_list "pwd"
 	comp_list "mkdir"
