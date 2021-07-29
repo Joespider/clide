@@ -13,7 +13,7 @@ func help() {
 
 	var Version string
 	Version = "0.0.1"
-	fmt.Println("Author: Dan (DJ) Coffman")
+	fmt.Println("Author: Joespider")
 	fmt.Println("Program: \""+ProgName+"\"")
 	fmt.Println("Version: "+Version)
 	fmt.Println("Purpose: make new Go programs")

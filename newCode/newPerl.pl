@@ -8,7 +8,7 @@ my $Version = "0.0.02";
 
 sub Help
 {
-	print "Author: Dan (DJ) Coffman\n";
+	print "Author: Joespider\n";
 	print "Program: newPerl\n";
 	print "Version: $Version\n";
 	print "Purpose: make new Perl Scripts\n";

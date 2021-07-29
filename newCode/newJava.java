@@ -93,7 +93,7 @@ public class newJava {
 	{
 		String program = "newJava.jar";
 		String version = "0.1.08";
-		print("Author: Dan (DJ) Coffman");
+		print("Author: Joespider");
 		print("Program: \""+program+"\"");
 		print("Version: "+version);
 		print("Purpose: make new Java programs");
