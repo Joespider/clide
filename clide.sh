@@ -1052,7 +1052,41 @@ Actions()
 	#Language Chosen
 	if [[ ! "${CodeDir}" == "no" ]]; then
 		cd ${CodeDir}/${Dir}
-		Code=$(selectCode ${Lang} ${Code})
+		case ${Code} in
+			#Handle adding multiple files to initial session
+			*,*)
+				local TheCode
+				local newCode
+				#Keep track of initial request
+				local WantedCode=${Code}
+				#Clean source codd
+				Code=""
+				#Get the number of requested source files
+				local NumOfSrc=$(echo ${WantedCode} | tr ',' '\n' | wc -l)
+				local look=1
+				while [ ${look} -le ${NumOfSrc} ];
+				do
+					#Get the next file
+					newCode=$(echo ${WantedCode} | cut -d ',' -f ${look})
+					#Set the first file
+					if [ -z "${Code}" ]; then
+						Code=$(selectCode ${Lang} ${newCode})
+					#Add files
+					else
+						TheCode=$(ManageLangs ${Lang} "addCode" ${Code} ${newCode})
+						if [ ! -z "${TheCode}" ]; then
+							Code=${TheCode}
+						fi
+					fi
+
+					look=$((${look}+1))
+				done
+
+				;;
+			*)
+				Code=$(selectCode ${Lang} ${Code})
+				;;
+		esac
 		#Change Color for Language
 		cLang=$(color ${Lang})
 		#Handle the CLI User Interface
@@ -2924,22 +2958,65 @@ main()
 				;;
 			#Get by file extension
 			*.*)
+				local CodeDir
 				local Code=$1
-				local Lang=$(SelectLangByCode $1)
-				local CodeDir=$(pgDir ${Lang})
-				case ${CodeDir} in
-					no)
-						errorCode "not-a-lang"
-						;;
-					*)
-						if [ ! -z "${CodeDir}" ]; then
-							cd ${CodeDir}
-							Code=$(selectCode ${Lang} ${Code})
-							if [ ! -z "${Code}" ]; then
-								#Start IDE
-								Actions ${Lang} ${Code}
+				local Lang
+				case ${Code} in
+					#Discover langauge with multiple source code
+					*,*)
+						local WantedCode=${Code}
+						Code=""
+						local newCode
+						local NumOfSrc=$(echo ${Code} | tr ',' '\n' | wc -l)
+						local look=1
+						while [ ${look} -le ${NumOfSrc} ];
+						do
+							#Get the next file
+							newCode=$(echo ${WantedCode} | cut -d ',' -f ${look})
+							#Get language by extension from source file
+							Lang=$(SelectLangByCode ${newCode})
+							if [ ! -z "${Lang}" ]; then
+								Code=${WantedCode}
+								break
 							fi
-						fi
+							look=$((${look}+1))
+						done
+						CodeDir=$(pgDir ${Lang})
+						case ${CodeDir} in
+							no)
+								errorCode "not-a-lang" "${Lang}"
+								;;
+							*)
+								if [ ! -z "${CodeDir}" ]; then
+									cd ${CodeDir}
+									if [ ! -z "${Code}" ]; then
+										#Start IDE
+										Actions ${Lang} ${Code}
+									fi
+								fi
+								;;
+						esac
+						;;
+					#Discover language with single source code
+					*)
+						#Get language by extension from source file
+						Lang=$(SelectLangByCode ${Code})
+						CodeDir=$(pgDir ${Lang})
+						case ${CodeDir} in
+							no)
+								errorCode "not-a-lang" "${Lang}"
+								;;
+							*)
+								if [ ! -z "${CodeDir}" ]; then
+									cd ${CodeDir}
+									Code=$(selectCode ${Lang} ${Code})
+									if [ ! -z "${Code}" ]; then
+										#Start IDE
+										Actions ${Lang} ${Code}
+									fi
+								fi
+								;;
+						esac
 						;;
 				esac
 				;;
