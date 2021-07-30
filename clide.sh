@@ -958,6 +958,49 @@ ColorCodes()
 	echo ${ChosenLangs}
 }
 
+preSelectSrc()
+{
+	local Lang=$1
+	local Code=$2
+	if [ -z "${Code}" ]; then
+		Code=${Lang}
+	fi
+	case ${Code} in
+		#Handle adding multiple files to initial session
+		*,*)
+			local TheCode
+			local newCode
+			#Keep track of initial request
+			local WantedCode=${Code}
+			#Clean source codd
+			Code=""
+			#Get the number of requested source files
+			local NumOfSrc=$(echo ${WantedCode} | tr ',' '\n' | wc -l)
+			local look=1
+			while [ ${look} -le ${NumOfSrc} ];
+			do
+				#Get the next file
+				newCode=$(echo ${WantedCode} | cut -d ',' -f ${look})
+				#Set the first file
+				if [ -z "${Code}" ]; then
+					Code=$(selectCode ${Lang} ${newCode})
+				#Add files
+				else
+					TheCode=$(ManageLangs ${Lang} "addCode" ${Code} ${newCode})
+					if [ ! -z "${TheCode}" ]; then
+						Code=${TheCode}
+					fi
+				fi
+				look=$((${look}+1))
+			done
+			;;
+		*)
+			Code=$(selectCode ${Lang} ${Code})
+			;;
+	esac
+	echo ${Code}
+}
+
 #No-Lang IDE
 Actions-NoLang()
 {
@@ -1076,41 +1119,7 @@ Actions()
 	#Language Chosen
 	if [[ ! "${CodeDir}" == "no" ]]; then
 		cd ${CodeDir}/${Dir}
-		case ${Code} in
-			#Handle adding multiple files to initial session
-			*,*)
-				local TheCode
-				local newCode
-				#Keep track of initial request
-				local WantedCode=${Code}
-				#Clean source codd
-				Code=""
-				#Get the number of requested source files
-				local NumOfSrc=$(echo ${WantedCode} | tr ',' '\n' | wc -l)
-				local look=1
-				while [ ${look} -le ${NumOfSrc} ];
-				do
-					#Get the next file
-					newCode=$(echo ${WantedCode} | cut -d ',' -f ${look})
-					#Set the first file
-					if [ -z "${Code}" ]; then
-						Code=$(selectCode ${Lang} ${newCode})
-					#Add files
-					else
-						TheCode=$(ManageLangs ${Lang} "addCode" ${Code} ${newCode})
-						if [ ! -z "${TheCode}" ]; then
-							Code=${TheCode}
-						fi
-					fi
-
-					look=$((${look}+1))
-				done
-
-				;;
-			*)
-				Code=$(selectCode ${Lang} ${Code})
-				;;
-		esac
+		Code=$(preSelectSrc ${Lang} ${Code})
 		#Change Color for Language
 		cLang=$(color ${Lang})
 		#Handle the CLI User Interface
@@ -1546,7 +1555,8 @@ Actions()
 						cd ${CodeDir}
 						#Rest
 						#{
-						Code=$(selectCode ${Lang} ${Code} "")
+#						Code=$(selectCode ${Lang} ${Code} "")
+						Code=$(preSelectSrc ${Lang} ${Code})
 						CodeProject="none"
 						ProjectType="Generic"
 						RunTimeArgs=""
@@ -2237,32 +2247,54 @@ SelectLangByCode()
 	local LangExt
 	local ChosenLangs
 	if [ ! -z "${GetExt}" ]; then
-#		GetExt=".${GetExt##*.}"
-#		echo ${GetExt}
-		Langs=$(ls ${LangsDir}/ | sed "s/Lang.//g" | tr '\n' '|' | rev | sed "s/|//1" | rev)
-		NumOfLangs=$(ls ${LangsDir}/ | wc -l)
-		look=1
-		while [ ${look} -le ${NumOfLangs} ];
-		do
-			text=$(echo ${Langs} | cut -d '|' -f ${look})
-			text=$(ManageLangs ${text} "pgLang")
-			case ${text} in
-				no)
-					;;
-				*)
-					LangExt=$(ManageLangs ${text} "getExt")
-					case ${GetExt} in
-						*${LangExt})
-							pgLang ${text}
-							break
+		case ${GetExt} in
+			*,*)
+				local CodeDir
+				local Lang
+				local WantedCode=${GetExt}
+				local newCode
+				local NumOfSrc=$(echo ${GetExt} | tr ',' '\n' | wc -l)
+				local look=1
+				while [ ${look} -le ${NumOfSrc} ];
+				do
+					#Get the next file
+					newCode=$(echo ${WantedCode} | cut -d ',' -f ${look})
+					#Get language by extension from source file
+					Lang=$(SelectLangByCode ${newCode})
+					if [ ! -z "${Lang}" ]; then
+						echo ${Lang}
+						break
+					fi
+					look=$((${look}+1))
+				done
+				;;
+			*)
+				Langs=$(ls ${LangsDir}/ | sed "s/Lang.//g" | tr '\n' '|' | rev | sed "s/|//1" | rev)
+				NumOfLangs=$(ls ${LangsDir}/ | wc -l)
+				look=1
+				while [ ${look} -le ${NumOfLangs} ];
+				do
+					text=$(echo ${Langs} | cut -d '|' -f ${look})
+					text=$(ManageLangs ${text} "pgLang")
+					case ${text} in
+						no)
 							;;
 						*)
+							LangExt=$(ManageLangs ${text} "getExt")
+							case ${GetExt} in
+								*${LangExt})
+									pgLang ${text}
+									break
+									;;
+								*)
+									;;
+							esac
 							;;
 					esac
-					;;
-			esac
-			look=$((${look}+1))
-		done
+					look=$((${look}+1))
+				done
+				;;
+		esac
 	fi
 }
 
@@ -2961,66 +2993,25 @@ main()
 				esac
 				;;
 			#Get by file extension
-			*.*)
+                        *.*)
 				local CodeDir
 				local Code=$1
-				local Lang
-				case ${Code} in
-					#Discover langauge with multiple source code
-					*,*)
-						local WantedCode=${Code}
-						Code=""
-						local newCode
-						local NumOfSrc=$(echo ${Code} | tr ',' '\n' | wc -l)
-						local look=1
-						while [ ${look} -le ${NumOfSrc} ];
-						do
-							#Get the next file
-							newCode=$(echo ${WantedCode} | cut -d ',' -f ${look})
-							#Get language by extension from source file
-							Lang=$(SelectLangByCode ${newCode})
-							if [ ! -z "${Lang}" ]; then
-								Code=${WantedCode}
-								break
-							fi
-							look=$((${look}+1))
-						done
-						CodeDir=$(pgDir ${Lang})
-						case ${CodeDir} in
-							no)
-								errorCode "not-a-lang" "${Lang}"
-								;;
-							*)
-								if [ ! -z "${CodeDir}" ]; then
-									cd ${CodeDir}
-									if [ ! -z "${Code}" ]; then
-										#Start IDE
-										Actions ${Lang} ${Code}
-									fi
-								fi
-								;;
-						esac
+				#Get language by extension from source file
+				local Lang=$(SelectLangByCode ${Code})
+				CodeDir=$(pgDir ${Lang})
+				case ${CodeDir} in
+					no)
+						errorCode "not-a-lang" "${Lang}"
 						;;
-					#Discover language with single source code
 					*)
-						#Get language by extension from source file
-						Lang=$(SelectLangByCode ${Code})
-						CodeDir=$(pgDir ${Lang})
-						case ${CodeDir} in
-							no)
-								errorCode "not-a-lang" "${Lang}"
-								;;
-							*)
-								if [ ! -z "${CodeDir}" ]; then
-									cd ${CodeDir}
-									Code=$(selectCode ${Lang} ${Code})
-									if [ ! -z "${Code}" ]; then
-										#Start IDE
-										Actions ${Lang} ${Code}
-									fi
-								fi
-								;;
-						esac
+						if [ ! -z "${CodeDir}" ]; then
+							cd ${CodeDir}
+							Code=$(selectCode ${Lang} ${Code})
+							if [ ! -z "${Code}" ]; then
+								#Start IDE
+								Actions ${Lang} ${Code}
+							fi
+						fi
 						;;
 				esac
 				;;
