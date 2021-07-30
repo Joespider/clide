@@ -3,6 +3,11 @@ Shell=$(which bash)
 
 Aliases=~/.bash_aliases
 
+errorCode()
+{
+        ${LibDir}/errorCode.sh $@
+}
+
 #Handle Aliases
 AddAlias()
 {

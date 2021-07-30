@@ -1549,13 +1549,13 @@ Actions()
 							Code=${UserIn[1]}
 							;;
 					esac
+
 					if [[ ! "${Lang}" == "no" ]]; then
 						cLang=$(color ${Lang})
 						CodeDir=$(pgDir ${Lang})
 						cd ${CodeDir}
 						#Rest
 						#{
-#						Code=$(selectCode ${Lang} ${Code} "")
 						Code=$(preSelectSrc ${Lang} ${Code})
 						CodeProject="none"
 						ProjectType="Generic"
@@ -3006,7 +3006,7 @@ main()
 					*)
 						if [ ! -z "${CodeDir}" ]; then
 							cd ${CodeDir}
-							Code=$(selectCode ${Lang} ${Code})
+							Code=$(preSelectSrc ${Lang} ${Code})
 							if [ ! -z "${Code}" ]; then
 								#Start IDE
 								Actions ${Lang} ${Code}

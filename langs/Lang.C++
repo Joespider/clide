@@ -2,7 +2,7 @@ Shell=$(which bash)
 #!${Shell}
 
 #https://www3.ntu.edu.sg/home/ehchua/programming/cpp/gcc_make.html
-SupportV="0.1.84"
+SupportV="0.1.85"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -912,17 +912,35 @@ UseC++()
 			local TheSrcDir
 			local TheBinDir
 			local ERROR
+			local FoundMain="yes"
+			local NumOfMain
 
 			#Handle multiple files
 			if [ -z "${name}" ]; then
-				if [[ "${src}" == *","* ]]; then
-					src=$(echo ${src} | tr ',' ' ')
-					name=$(grep -l "int main(" ${src} 2> /dev/null)
-					name=${name%.*}
-				else
-					name=${src%.*}
-				fi
-#				cplArgs=$2
+				case ${src} in
+					*,*)
+						src=$(echo ${src} | tr ',' ' ')
+						name=$(grep -l "int main(" ${src} 2> /dev/null)
+						if [ -z "${name}" ]; then
+							FoundMain="no"
+						else
+							NumOfMain=$(echo ${name} | tr ' ' '\n' | wc -l)
+							case ${NumOfMain} in
+								1)
+									name=${name%${LangExt}}
+									name=${name%${LangOtherExt}}
+									;;
+								*)
+									FoundMain="no"
+									errorCode "cpl" "ERROR" "More than one \"main\" files were found"
+									;;
+							esac
+						fi
+						;;
+					*)
+						name=${src%}
+						;;
+				esac
 			fi
 
 			#Handle Project Dir
@@ -939,8 +957,8 @@ UseC++()
 					#if NO code is selected, then select ALL
 					#{
 					#if [ -z "${src}" ]; then
-						ReplaceTheSrcDir=$(echo "${LangProject}/${project}src/" | tr '/' '|')
-						src=$(find ${TheSrcDir} -type f -name "*${LangExt}" | tr '/' '|' | sed "s/${ReplaceTheSrcDir}//g" | tr '|' '/')
+					ReplaceTheSrcDir=$(echo "${LangProject}/${project}src/" | tr '/' '|')
+					src=$(find ${TheSrcDir} -type f -name "*${LangExt}" | tr '/' '|' | sed "s/${ReplaceTheSrcDir}//g" | tr '|' '/')
 					#fi
 					#}
 					TheBinDir="${LangProject}/${project}bin"
@@ -970,55 +988,61 @@ UseC++()
 					if [ -z "${name}" ]; then
 						errorCode "cpl" "choose"
 					else
-						#[Threads] Compile for Threads
-						#{
-						NeedThreads=$(grep "#include <thread>" ${src})
-						if [ ! -z "${NeedThreads}" ]; then
-							cplArgs="${cplArgs} -lpthread"
-						fi
-						#}
+						case ${FoundMain} in
+							yes)
+								#[Threads] Compile for Threads
+								#{
+								NeedThreads=$(grep "#include <thread>" ${src})
+								if [ ! -z "${NeedThreads}" ]; then
+									cplArgs="${cplArgs} -lpthread"
+								fi
+								#}
 
-						#[X11] Compile with X11 code
-						#{
-						HasXlib=$(grep "#include <X11/Xlib.h>" ${src})
-						HasXutil=$(grep "#include <X11/Xutil.h>" ${src})
-						HasXos=$(grep "#include <X11/Xos.h>" ${src})
-						if [ ! -z "${HasXlib}" ] || [ ! -z "${HasXutil}" ] || [ ! -z "${HasXos}" ]; then
-							cplArgs="${cplArgs} -I /usr/X11/include -L /usr/X11/lib -lX11"
-						fi
-						#}
+								#[X11] Compile with X11 code
+								#{
+								HasXlib=$(grep "#include <X11/Xlib.h>" ${src})
+								HasXutil=$(grep "#include <X11/Xutil.h>" ${src})
+								HasXos=$(grep "#include <X11/Xos.h>" ${src})
+								if [ ! -z "${HasXlib}" ] || [ ! -z "${HasXutil}" ] || [ ! -z "${HasXos}" ]; then
+									cplArgs="${cplArgs} -I /usr/X11/include -L /usr/X11/lib -lX11"
+								fi
+								#}
 
-						IsVerbose=$(echo ${cplArgs} |grep -w "\-v" 2> /dev/null)
-						if [ -z "${IsVerbose}" ]; then
-							#Compile and check for errors...and put into binary directory
-							ERROR=$(${LangCpl} ${src} -o ${TheBinDir}/${name} ${cplArgs} 2>&1 | tr '\n' '|')
+								IsVerbose=$(echo ${cplArgs} |grep -w "\-v" 2> /dev/null)
+								if [ -z "${IsVerbose}" ]; then
+									#Compile and check for errors...and put into binary directory
+									ERROR=$(${LangCpl} ${src} -o ${TheBinDir}/${name} ${cplArgs} 2>&1 | tr '\n' '|')
 
-							#Code compiled successfully
-							if [ -z "${ERROR}" ]; then
-								UseC++ compileCode-message
-							else
-								#display the ERROR message
-								errorCode "cpl" "ERROR" "${ERROR}"
-							fi
-						else
-							#compile code and get verbose output
-							ERROR=$(${LangCpl} ${src} -o ${name} ${cplArgs} 2>&1 | tr '\n' '|')
-							#Code compiled successfully because binary exists
-							if [ -f ${name} ]; then
-								#display the verbose GOOD output
-								errorCode "cpl" "Verbose" "${ERROR}"
-								#move binary to bin directory
-								mv ${name} ${TheBinDir}/
-								echo ""
-								UseC++ compileCode-message
-							#Code compiled did NOT compile
-							else
-								#display the ERROR message
-								errorCode "cpl" "ERROR" "${ERROR}"
-							fi
-						fi
+									#Code compiled successfully
+									if [ -z "${ERROR}" ]; then
+										UseC++ compileCode-message
+									else
+										#display the ERROR message
+										errorCode "cpl" "ERROR" "${ERROR}"
+									fi
+								else
+									#compile code and get verbose output
+									ERROR=$(${LangCpl} ${src} -o ${name} ${cplArgs} 2>&1 | tr '\n' '|')
+									#Code compiled successfully because binary exists
+									if [ -f ${name} ]; then
+										#display the verbose GOOD output
+										errorCode "cpl" "Verbose" "${ERROR}"
+										#move binary to bin directory
+										mv ${name} ${TheBinDir}/
+										echo ""
+										UseC++ compileCode-message
+									#Code compiled did NOT compile
+									else
+										#display the ERROR message
+										errorCode "cpl" "ERROR" "${ERROR}"
+									fi
+								fi
+								;;
+							*)
+								;;
+						esac
 					fi
-				cd - > /dev/null
+					cd - > /dev/null
 				fi
 			fi
 			;;

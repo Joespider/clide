@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.32"
+SupportV="0.1.33"
 Lang=Go
 LangExt=".go"
 #Color Green
@@ -700,17 +700,35 @@ UseGo()
 			local TheSrcDir
 			local TheBinDir
 			local ERROR
+			local FoundMain="yes"
+			local NumOfMain
 
 			#Handle multiple files
 			if [ -z "${name}" ]; then
-				if [[ "${src}" == *","* ]]; then
-					src=$(echo ${src} | tr ',' ' ')
-					name=$(grep -l "func main() {" ${src} 2> /dev/null)
-					name=${name%.*}
-				else
-					name=${src%.*}
-				fi
-#				cplArgs=$2
+				case ${src} in
+					*,*)
+						src=$(echo ${src} | tr ',' ' ')
+						name=$(grep -l "func main(" ${src} 2> /dev/null)
+						if [ -z "${name}" ]; then
+							FoundMain="no"
+						else
+							NumOfMain=$(echo ${name} | tr ' ' '\n' | wc -l)
+							case ${NumOfMain} in
+								1)
+									name=${name%${LangExt}}
+									name=${name%${LangOtherExt}}
+									;;
+								*)
+									FoundMain="no"
+									errorCode "cpl" "ERROR" "More than one \"main\" files were found"
+									;;
+							esac
+						fi
+						;;
+					*)
+						name=${src%}
+						;;
+				esac
 			fi
 
 			#Handle Project Dir
@@ -758,18 +776,24 @@ UseGo()
 					if [ -z "${name}" ]; then
 						errorCode "cpl" "choose"
 					else
-						#Compile and check for errors
-						ERROR=$(${LangCpl} build ${src} 2>&1 | tr '\n' '|')
+						case ${FoundMain} in
+							yes)
+								#Compile and check for errors
+								ERROR=$(${LangCpl} build ${src} 2>&1 | tr '\n' '|')
 
-						#Code compiled successfully
-						if [ -z "${ERROR}" ]; then
-							mv ${name} ${TheBinDir}/
-							UseGo compileCode-message
-						else
-							errorCode "cpl" "ERROR" "${ERROR}"
-						fi
+								#Code compiled successfully
+								if [ -z "${ERROR}" ]; then
+									mv ${name} ${TheBinDir}/
+									UseGo compileCode-message
+								else
+									errorCode "cpl" "ERROR" "${ERROR}"
+								fi
+								;;
+							*)
+								;;
+						esac
 					fi
-				cd - > /dev/null
+					cd - > /dev/null
 				fi
 			fi
 			;;
