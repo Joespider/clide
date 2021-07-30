@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.53"
+SupportV="0.1.55"
 Lang=Perl
 LangExt=".pl"
 #Color Purple
@@ -475,6 +475,9 @@ UsePerl()
 		setCplArgs-help)
 			echo -e "--warnings\t\t: \"Show ALL warnings (-W)\""
 			;;
+		compileCode-message)
+			echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
+			;;
 		compileCode)
 			local src=$1
 			local name=$2
@@ -563,7 +566,7 @@ UsePerl()
 						#Change to Bash Source dir
 						cd - > /dev/null
 						if [ -f "${TheBinDir}/${src}" ]; then
-							echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
+							UsePerl compileCode-message
 						else
 							errorCode "cpl" "ERROR" "${ERROR}"
 						fi
@@ -739,33 +742,50 @@ UsePerl()
 			local TheName=$(OtherColor $2)
 			echo "${LangRun} ${TheName}"
 			;;
-		runCode)
+		runCode|debug)
 			local name=$1
-			local TheBin="${name}"
-			local cplArgs=${CplArgs//,/ }
+			local TheBin="${name%.*}${LangExt}"
 			local project=${CodeProject}
-                        local TheBinDir
-                        shift
-                        shift
-                        local Args=$@
-                        #Handle Project Dir
-                        case ${project} in
-                                none)
-                                        project=""
-                                        TheBinDir=${LangBin}
-                                        ;;
-                                *)
-                                        project="${project}/"
-                                        TheBinDir="${LangProject}/${project}bin"
+			local TheBinDir
+			shift
+			shift
+			local Args=$@
+			#Handle Project Dir
+			case ${project} in
+				none)
+					project=""
+					TheBinDir=${LangBin}
+					cd ${LangSrc}/
 					;;
-                        esac
-			#Check if Perl Bin exists
-			if [ -f ${TheBinDir}/${TheBin} ]; then
-				if [ ! -z "${cplArgs}" ]; then
-					${LangRun} ${cplArgs}${TheBinDir}/${TheBin} ${Args[@]}
-				else
-					${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+				*)
+					project="${project}/"
+					TheBinDir="${LangProject}/${project}bin"
+					cd ${LangProject}/${project}/src
+					;;
+			esac
+
+			#Handle multiple files
+			if [[ "${name}" == *","* ]]; then
+				#name=$(echo ${name} | tr ',' ' ')
+				if [ -z "${name}" ]; then
+					echo "Unable to find the \"main\" file"
+					echo -n "Please choose: "
+					read name
 				fi
+				TheBin="${name}"
+			fi
+
+			#Check if Python Bin exists
+			if [ -f ${TheBinDir}/${TheBin} ]; then
+				case ${Type} in
+					debug)
+						echo "no debugger for Perl"
+						#${LangRun} -m ${UseDebugger} ${TheBinDir}/${TheBin} ${Args[@]}
+						;;
+					runCode)
+						${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+						;;
+				esac
 			else
 				errorCode "cpl" "need" "${name}"
 			fi

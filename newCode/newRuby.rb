@@ -1,7 +1,7 @@
 #!/usr/bin/ruby
 #
 #Program Details
-User = "Dan (DJ) Coffman"
+User = "Joespider"
 ProgramName = "newRuby"
 VersionName = "0.1.02"
 Purpose = "Purpose: make new Ruby Scripts"

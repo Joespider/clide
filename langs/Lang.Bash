@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.56"
+SupportV="0.1.57"
 Lang=Bash
 LangExt=".sh"
 ColorNum=2
@@ -543,6 +543,9 @@ UseBash()
 			;;
 		setCplArgs-help)
 			;;
+		compileCode-message)
+			echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
+			;;
 		compileCode)
 			local src=$1
 			local name=$2
@@ -632,7 +635,7 @@ UseBash()
 						#Change to Bash Source dir
 						cd - > /dev/null
 						if [ -f "${TheBinDir}/${src}" ]; then
-							echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
+							UseBash compileCode-message
 						else
 							errorCode "cpl" "ERROR" "${ERROR}"
 						fi

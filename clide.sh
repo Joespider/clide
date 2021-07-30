@@ -305,6 +305,33 @@ CodeVersion()
 	fi
 }
 
+DebugVersion()
+{
+	local TheLang=$1
+	local Langs=""
+	if [ ! -z "${TheLang}" ]; then
+		ManageLangs ${TheLang} "getDebugVersion"
+	else
+		Langs=$(ls ${LangsDir}/ | sed "s/Lang.//g" | tr '\n' '|' | rev | sed "s/|//1" | rev)
+		local NumOfLangs=$(ls | wc -l)
+		local look=1
+		local text
+		while [ ${look} -le ${NumOfLangs} ];
+		do
+			text=$(echo ${Langs} | cut -d '|' -f ${look})
+			text=$(ManageLangs ${text} "pgLang")
+			case ${text} in
+				no)
+					;;
+				*)
+					ManageLangs "${text}" "getDebugVersion" | sed "s/Version:/${text}:/g"
+					;;
+			esac
+			look=$((${look}+1))
+		done
+	fi
+}
+
 Banner()
 {
 	local Type=$1
@@ -413,7 +440,7 @@ importProject()
 						echo "type=${projectType}" >> ${ProjectFile}
 						echo "path=${Path}" >> ${ProjectFile}
 						echo "src=" >> ${ProjectFile}
-						echo "Project \"${Name}\" Imported"
+						echo "[Project \"${Name}\" Imported"
 						;;
 					*)
 						errorCode "project" "import" "name-in-path" "${Name}" "${Path}"
@@ -518,7 +545,7 @@ linkProjects()
 					echo "link=${Lang},${LinkLang}," >> ${ProjectFile}
 					if [ ! -f ${LinkPath}/${project} ]; then
 						cd ${ThePath}
-						ln -s ${LinkPath}/${project}
+						ln -s ${LinkPath}/${project} 2> /dev/null
 						cd - > /dev/null
 					fi
 					echo ${LinkLang}
@@ -592,8 +619,11 @@ discoverProject()
 {
 	local Action=$1
 	local LinkLang=$2
+	local cLinkLang
 	local TheProjName=$3
+	local NotDone=$4
 	local TheLang
+	local cTheLang
 	local Langs=$(ls ${LangsDir}/ | sed "s/Lang.//g" | tr '\n' '|' | rev | sed "s/|//1" | rev)
 	local NumOfLangs=$(ls ${LangsDir}/ | wc -l)
 	local NumOfProject
@@ -601,6 +631,7 @@ discoverProject()
 	local For
 	local text
 	local Name
+	local cName
 	local Path
 	local ChosenLangs=""
 	while [ ${look} -le ${NumOfLangs} ];
@@ -621,7 +652,10 @@ discoverProject()
 						if [ -L ${Path}${Name} ]; then
 							case ${TheProjName} in
 								${Name})
-									linkProjects ${LinkLang} ${TheLang} ${Name}
+									cTheLang=$(color "${TheLang}")
+									cLinkLang=$(color "${LinkLang}")
+									echo -e "\tLinking ${cLinkLang} ---> ${cTheLang}"
+									linkProjects ${LinkLang} ${TheLang} ${Name} > /dev/null
 									;;
 								*)
 									;;
@@ -631,8 +665,15 @@ discoverProject()
 					*)
 						#Ignore anything that isn't a symbolic link
 						if [ ! -L ${Path}${Name} ]; then
-							importProject ${TheLang} ${Name} ${Path}${Name} #> /dev/null
-							discoverProject "relink" ${TheLang} ${Name} > /dev/null
+							if [ ! -f ${ActiveProjectDir}/${Name}.clide ]; then
+								cName=$(color "${Name}")
+								cTheLang=$(color "${TheLang}")
+								cLinkLang=$(color "${LinkLang}")
+								echo "[${cTheLang} Project: ${cName}]"
+								importProject ${TheLang} ${Name} ${Path}${Name} > /dev/null
+								echo -e "\tProject Imported"
+								discoverProject "relink" ${TheLang} ${Name} "Not Done"
+							fi
 						fi
 						;;
 				esac
@@ -642,7 +683,10 @@ discoverProject()
 		fi
 		look=$((${look}+1))
 	done
-	echo "${Head} is all caught up"
+	if [ -z "${NotDone}" ]; then
+		echo ""
+		echo "${Head} is all caught up"
+	fi
 }
 
 #Load active projects
@@ -689,12 +733,13 @@ loadProject()
 	fi
 }
 
-#remove source code
+#remove source code and bin
 Remove()
 {
-	local active=$1
-	local src=$2
-	local option=$3
+	local BinOnly=$1
+	local active=$2
+	local src=$3
+	local option=$4
 	local TheFile
 	if [ ! -z "${src}" ]; then
 		case  ${src} in
@@ -708,41 +753,64 @@ Remove()
 
 		case ${active} in
 			*"${src}"*)
-				if [ "${option}" == "--force" ]; then
-					TheFile=$(ManageLangs ${Lang} "rmBin" ${src})
-					if [ ! -z "${TheFile}" ]; then
-						rm ${TheFile}
-					fi
-					TheFile=$(ManageLangs ${Lang} "rmSrc" ${src})
-					if [ ! -z "${TheFile}" ]; then
-						rm ${TheFile}
-					fi
-					echo "\"${src}\" is REMOVED"
-				else
-					clear
-					errorCode "remove" "sure"
-					echo -n "Are you Sure you want to remove \"${src}\" (YES/NO)? "
-					read User
-					case ${User} in
-						YES)
-							clear
-							TheFile=$(ManageLangs ${Lang} "rmBin" ${src})
-							if [ ! -z "${TheFile}" ]; then
-								rm ${TheFile}
-							fi
-							TheFile=$(ManageLangs ${Lang} "rmSrc" ${src})
-							if [ ! -z "${TheFile}" ]; then
-								rm ${TheFile}
-							fi
-							echo "\"${src}\" is REMOVED"
-							;;
-						*)
-							clear
-							echo "\"${src}\" is NOT removed"
-							;;
-	 				esac
-					errorCode "remove" "hint"
-				fi
+				case ${option} in
+					--force)
+						case ${BinOnly} in
+							--bin)
+								TheFile=$(ManageLangs ${Lang} "rmBin" ${src})
+								if [ ! -z "${TheFile}" ]; then
+									rm ${TheFile}
+								fi
+								;;
+							*)
+								TheFile=$(ManageLangs ${Lang} "rmBin" ${src})
+								if [ ! -z "${TheFile}" ]; then
+									rm ${TheFile}
+								fi
+								TheFile=$(ManageLangs ${Lang} "rmSrc" ${src})
+								if [ ! -z "${TheFile}" ]; then
+									rm ${TheFile}
+								fi
+								;;
+						esac
+						echo "\"${src}\" is REMOVED"
+						;;
+					*)
+						clear
+						errorCode "remove" "sure"
+						echo -n "Are you Sure you want to remove \"${src}\" (YES/NO)? "
+						read User
+						case ${User} in
+							YES)
+								clear
+								case ${BinOnly} in
+									--bin)
+										TheFile=$(ManageLangs ${Lang} "rmBin" ${src})
+										if [ ! -z "${TheFile}" ]; then
+											rm ${TheFile}
+										fi
+										;;
+									*)
+										TheFile=$(ManageLangs ${Lang} "rmBin" ${src})
+										if [ ! -z "${TheFile}" ]; then
+											rm ${TheFile}
+										fi
+										TheFile=$(ManageLangs ${Lang} "rmSrc" ${src})
+										if [ ! -z "${TheFile}" ]; then
+											rm ${TheFile}
+										fi
+										;;
+								esac
+								echo "\"${src}\" is REMOVED"
+								;;
+							*)
+								clear
+								echo "\"${src}\" is NOT removed"
+								;;
+	 					esac
+						errorCode "remove" "hint"
+						;;
+				esac
 				;;
 			*)
 				errorCode "remove" "not-file" "${src}"
@@ -890,6 +958,49 @@ ColorCodes()
 	echo ${ChosenLangs}
 }
 
+preSelectSrc()
+{
+	local Lang=$1
+	local Code=$2
+	if [ -z "${Code}" ]; then
+		Code=${Lang}
+	fi
+	case ${Code} in
+		#Handle adding multiple files to initial session
+		*,*)
+			local TheCode
+			local newCode
+			#Keep track of initial request
+			local WantedCode=${Code}
+			#Clean source codd
+			Code=""
+			#Get the number of requested source files
+			local NumOfSrc=$(echo ${WantedCode} | tr ',' '\n' | wc -l)
+			local look=1
+			while [ ${look} -le ${NumOfSrc} ];
+			do
+				#Get the next file
+				newCode=$(echo ${WantedCode} | cut -d ',' -f ${look})
+				#Set the first file
+				if [ -z "${Code}" ]; then
+					Code=$(selectCode ${Lang} ${newCode})
+				#Add files
+				else
+					TheCode=$(ManageLangs ${Lang} "addCode" ${Code} ${newCode})
+					if [ ! -z "${TheCode}" ]; then
+						Code=${TheCode}
+					fi
+				fi
+				look=$((${look}+1))
+			done
+			;;
+		*)
+			Code=$(selectCode ${Lang} ${Code})
+			;;
+	esac
+	echo ${Code}
+}
+
 #No-Lang IDE
 Actions-NoLang()
 {
@@ -929,6 +1040,10 @@ Actions-NoLang()
 			#Get compile/interpreter version from cli
 			cv|code-version)
 				main "--code-version"
+				;;
+			#Get compile/interpreter version from cli
+			dv|debug-version)
+				main "--debug-version"
 				;;
 			#Get compile/interpreter version from cli
 			sv|support-version)
@@ -1004,7 +1119,7 @@ Actions()
 	#Language Chosen
 	if [[ ! "${CodeDir}" == "no" ]]; then
 		cd ${CodeDir}/${Dir}
-		Code=$(selectCode ${Lang} ${Code})
+		Code=$(preSelectSrc ${Lang} ${Code})
 		#Change Color for Language
 		cLang=$(color ${Lang})
 		#Handle the CLI User Interface
@@ -1112,9 +1227,13 @@ Actions()
 					;;
 				#Delete source code
 				rm|remove|delete)
-					Remove ${Code} ${UserIn[1]} ${UserIn[2]}
+					Remove "--all" ${Code} ${UserIn[1]} ${UserIn[2]}
 					Code=""
 					refresh="yes"
+					;;
+				#Delete source code
+				rmbin|remove-bin|delete-bin)
+					Remove "--bin" ${Code} ${UserIn[1]} ${UserIn[2]}
 					;;
 				#Display the language being used
 				using)
@@ -1436,7 +1555,8 @@ Actions()
 						cd ${CodeDir}
 						#Rest
 						#{
-						Code=$(selectCode ${Lang} ${Code} "")
+#						Code=$(selectCode ${Lang} ${Code} "")
+						Code=$(preSelectSrc ${Lang} ${Code})
 						CodeProject="none"
 						ProjectType="Generic"
 						RunTimeArgs=""
@@ -1859,31 +1979,7 @@ Actions()
 									#Copy and set source code to src/
 									cd ${LangSrcDir}/
 									if [ ! -f ${LangSrcDir}/${NewCode} ]; then
-										case ${Lang} in
-											Java)
-												cp ${NewCodeDir}/${NewCode} .
-												;;
-											*)
-												ln -s ${NewCodeDir}/${NewCode}
-												;;
-										esac
-									else
-										case ${Lang} in
-											Java)
-												local choice
-												echo -n "Are you sure you want to overwrite \"${NewCode}\"? (Y/N): "
-												read choice
-												case ${choice^^} in
-													Y|YES)
-														cp ${NewCode} ${NewCodeDir}/
-														;;
-													*)
-														;;
-												esac
-												;;
-											*)
-												;;
-										esac
+										ln -s ${NewCodeDir}/${NewCode}
 									fi
 									Code=$(selectCode ${Lang} "set" ${NewCode})
 									refresh="yes"
@@ -1952,24 +2048,59 @@ Actions()
 				install)
 					ManageLangs ${Lang} "Install" ${Code} ${UserIn[1]}
 					;;
+				#Add debugging functionality
+				debug)
+					if [ ! -z "${Code}" ]; then
+						local DebugEnabled
+						local IsInstalled
+						local HasDebugger=$(ManageLangs ${Lang} "getDebugger")
+						if [ ! -z "${HasDebugger}" ]; then
+							IsInstalled=$(which ${HasDebugger})
+							if [ ! -z "${IsInstalled}" ]; then
+								DebugEnabled=$(ManageLangs ${Lang} "IsDebugEnabled" "${Code}")
+								case ${DebugEnabled} in
+									yes)
+										ManageLangs ${Lang} "debug" ${Code}
+										;;
+									none|*)
+										errorCode "debug" "need-enable" "${Lang}" "${HasDebugger}"
+										;;
+								esac
+							else
+								errorCode "debug" "not-installed"
+							fi
+						else
+							errorCode "debug" "not-set" "${Lang}"
+						fi
+					else
+						errorCode "noCode"
+					fi
+					;;
 				#run compiled code
 				execute|exe|run)
-					case ${CodeProject} in
-						none)
-							if [ ! -z "${Code}" ]; then
-								runCode ${Lang} ${Code} ${UserIn[@]}
-							else
-								errorCode "cpl" "none"
-							fi
+					case ${UserIn[1]} in
+						-d|--debug)
+							ManageLangs ${Lang} "debug" ${Code} ${UserIn[1]}
 							;;
-						#It is assumed that the project name is the binary
 						*)
-							if [ ! -z "${Code}" ]; then
-								runCode ${Lang} ${Code} ${UserIn[@]}
-							else
-								#May Cause Prolems
-								runCode ${Lang} ${CodeProject} ${UserIn[@]}
-							fi
+							case ${CodeProject} in
+								none)
+									if [ ! -z "${Code}" ]; then
+										runCode ${Lang} ${Code} ${UserIn[@]}
+									else
+										errorCode "cpl" "none"
+									fi
+									;;
+								#It is assumed that the project name is the binary
+								*)
+									if [ ! -z "${Code}" ]; then
+										runCode ${Lang} ${Code} ${UserIn[@]}
+									else
+										#May Cause Prolems
+										runCode ${Lang} ${CodeProject} ${UserIn[@]}
+									fi
+									;;
+							esac
 							;;
 					esac
 					;;
@@ -1981,6 +2112,8 @@ Actions()
 					CodeTemplateVersion ${Lang}
 					echo ""
 					CodeVersion ${Lang}
+					echo ""
+					DebugVersion ${Lang}
 					;;
 				#Display help page
 				help)
@@ -2114,32 +2247,54 @@ SelectLangByCode()
 	local LangExt
 	local ChosenLangs
 	if [ ! -z "${GetExt}" ]; then
-#		GetExt=".${GetExt##*.}"
-#		echo ${GetExt}
-		Langs=$(ls ${LangsDir}/ | sed "s/Lang.//g" | tr '\n' '|' | rev | sed "s/|//1" | rev)
-		NumOfLangs=$(ls ${LangsDir}/ | wc -l)
-		look=1
-		while [ ${look} -le ${NumOfLangs} ];
-		do
-			text=$(echo ${Langs} | cut -d '|' -f ${look})
-			text=$(ManageLangs ${text} "pgLang")
-			case ${text} in
-				no)
-					;;
-				*)
-					LangExt=$(ManageLangs ${text} "getExt")
-					case ${GetExt} in
-						*${LangExt})
-							pgLang ${text}
-							break
+		case ${GetExt} in
+			*,*)
+				local CodeDir
+				local Lang
+				local WantedCode=${GetExt}
+				local newCode
+				local NumOfSrc=$(echo ${GetExt} | tr ',' '\n' | wc -l)
+				local look=1
+				while [ ${look} -le ${NumOfSrc} ];
+				do
+					#Get the next file
+					newCode=$(echo ${WantedCode} | cut -d ',' -f ${look})
+					#Get language by extension from source file
+					Lang=$(SelectLangByCode ${newCode})
+					if [ ! -z "${Lang}" ]; then
+						echo ${Lang}
+						break
+					fi
+					look=$((${look}+1))
+				done
+				;;
+			*)
+				Langs=$(ls ${LangsDir}/ | sed "s/Lang.//g" | tr '\n' '|' | rev | sed "s/|//1" | rev)
+				NumOfLangs=$(ls ${LangsDir}/ | wc -l)
+				look=1
+				while [ ${look} -le ${NumOfLangs} ];
+				do
+					text=$(echo ${Langs} | cut -d '|' -f ${look})
+					text=$(ManageLangs ${text} "pgLang")
+					case ${text} in
+						no)
 							;;
 						*)
+							LangExt=$(ManageLangs ${text} "getExt")
+							case ${GetExt} in
+								*${LangExt})
+									pgLang ${text}
+									break
+									;;
+								*)
+									;;
+							esac
 							;;
 					esac
-					;;
-			esac
-			look=$((${look}+1))
-		done
+					look=$((${look}+1))
+				done
+				;;
+		esac
 	fi
 }
 
@@ -2296,9 +2451,10 @@ loadAuto()
 	comp_list "using"
 	comp_list "ll"
 	comp_list "clear"
+	comp_list "debug"
 	comp_list "set"
 	comp_list "unset"
-	comp_list "rm remove delete" "--force"
+	comp_list "rm remove delete rmbin remove-bin delete-bin" "--force"
 	comp_list "cd"
 	comp_list "pwd"
 	comp_list "mkdir"
@@ -2393,6 +2549,10 @@ main()
 				CodeVersion
 				;;
 			#Get compile/interpreter version from cli
+			-dv|--debug-version)
+				DebugVersion
+				;;
+			#Get compile/interpreter version from cli
 			-sv|--support-version)
 				CodeSupportVersion
 				;;
@@ -2421,7 +2581,7 @@ main()
 						--build)
 							shift
 							local Lang
-							local GetProject=$1
+							GetProject=$1
 							if [ -z "${GetProject}" ]; then
 								theHelp BuildHelp ${UserArg}
 							else
@@ -2451,7 +2611,29 @@ main()
 							fi
 							;;
 						--list)
-							listProjects
+							shift
+							local Lang
+							GetProject=$1
+							#Just list the projects
+							if [ -z "${GetProject}" ]; then
+								listProjects
+							#list the entire project
+							else
+								TheProject=$(loadProject ${GetProject})
+								if [ "${TheProject}" != "no" ]; then
+									Lang=$(echo ${TheProject} | cut -d ";" -f 1)
+									Lang=$(pgLang ${Lang})
+									local CodeDir=$(echo ${TheProject} | cut -d ";" -f 3)
+									if [ ! -z "${CodeDir}" ]; then
+										local RemoveDirs=${CodeDir//\//|}
+										find ${CodeDir} -print | tr '/' '|' | sed "s/${RemoveDirs}//g" | tr '|' '/'
+									else
+										errorCode "cli-cpl" "none"
+									fi
+								else
+									echo "\"${GetProject}\" is Not a valid project"
+								fi
+							fi
 							;;
 						-h|--help)
 							theHelp ProjectCliHelp ${UserArg}
@@ -2702,7 +2884,10 @@ main()
 					esac
 				fi
 				;;
-			#run compiled code
+			#debug your compiled code
+			--debug)
+				;;
+			#run your compiled code
 			--run)
 				shift
 				local Lang=$1
@@ -2808,13 +2993,15 @@ main()
 				esac
 				;;
 			#Get by file extension
-			*.*)
+                        *.*)
+				local CodeDir
 				local Code=$1
-				local Lang=$(SelectLangByCode $1)
-				local CodeDir=$(pgDir ${Lang})
+				#Get language by extension from source file
+				local Lang=$(SelectLangByCode ${Code})
+				CodeDir=$(pgDir ${Lang})
 				case ${CodeDir} in
 					no)
-						errorCode "not-a-lang"
+						errorCode "not-a-lang" "${Lang}"
 						;;
 					*)
 						if [ ! -z "${CodeDir}" ]; then

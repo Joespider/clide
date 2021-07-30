@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.51"
+SupportV="0.1.52"
 Lang=Ruby
 LangExt=".rb"
 ColorNum=1
@@ -434,6 +434,9 @@ UseRuby()
 			;;
 		setCplArgs-help)
 			;;
+		compileCode-message)
+			echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
+			;;
 		compileCode)
 			local src=$1
 			local name=$2
@@ -521,7 +524,7 @@ UseRuby()
 						#Change to Bash Source dir
 						cd - > /dev/null
 						if [ -f "${TheBinDir}/${src}" ]; then
-							echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
+							UseRuby compileCode-message
 						else
 							errorCode "cpl" "ERROR" "${ERROR}"
 						fi

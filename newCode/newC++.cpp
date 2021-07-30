@@ -9,7 +9,7 @@ static void help()
 {
 	std::string ProgName = "newC++";
 	std::string Version = "0.1.08";
-	print("Author: Dan (DJ) Coffman");
+	print("Author: Joespider");
 	print("Program: \"" << ProgName << "\"");
 	print("Version: " << Version);
 	print("Purpose: make new C++ programs");

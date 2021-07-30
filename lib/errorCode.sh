@@ -7,6 +7,51 @@ errorCode()
 	shift
 	local sec=$1
 	case ${ecd} in
+		debug)
+			shift
+			local thr=$1
+			case ${sec} in
+				not-installed)
+					errorCode "ERROR"
+					errorCode "ERROR" "\"${thr}\" is not installed"
+					;;
+				not-set)
+					errorCode "ERROR"
+					errorCode "ERROR" "No debugger is set for ${thr}"
+					errorCode "HINT"
+					errorCode "HINT" "please exit cl[ide] and set the config file"
+					errorCode "HINT" "command"
+					errorCode "HINT" "clide --edit --config"
+					;;
+				need-enable)
+					shift
+					local four=$1
+					errorCode "ERROR"
+					errorCode "ERROR" "Program is not ready for debugging"
+					echo ""
+					errorCode "HINT"
+					errorCode "HINT" "please enable debugging"
+					case ${thr,,} in
+						java)
+							echo -en "\t"
+							errorCode "HINT" "Compile as a class file"
+							errorCode "HINT" "command"
+							errorCode "HINT" "cpl"
+							;;
+						python)
+							echo -en "\t"
+							errorCode "HINT" "Add \"import ${four}\" into your code"
+							;;
+						*)
+							errorCode "HINT" "command"
+							errorCode "HINT" "create cpl"
+							;;
+					esac
+					;;
+				*)
+					;;
+			esac
+			;;
 		alias)
 			errorCode "ERROR"
 			errorCode "ERROR" "\"${sec}\" already installed"

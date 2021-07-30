@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.58"
+SupportV="0.1.63"
 Lang=Python
 LangExt=".py"
 #Color Yellow
@@ -48,6 +48,8 @@ ProjectTemplateHandler()
 UsePython()
 {
 	local LangRun=${cplPython}
+	local UseDebugger=${debugPython}
+
 	local LangHome=${ProgDir}/${Lang}
 	local LangSrc=${LangHome}/src
 	local LangBin=${LangHome}/bin
@@ -99,6 +101,40 @@ UsePython()
 			if [ ! -z "${name}" ]; then
 				find ${TheSrcDir} -name "${name}" 2> /dev/null
 			fi
+			;;
+		IsDebugEnabled)
+			local TheCode=$1
+			local TheBinDir
+			local project=${CodeProject}
+			#Handle Project Dir
+			case ${project} in
+				none)
+					TheBinDir=${LangBin}
+					;;
+				*)
+					TheBinDir="${LangProject}/${project}bin"
+					;;
+			esac
+			if [ -d ${TheBinDir} ]; then
+				cd "${TheBinDir}"
+				TheCode=${TheCode//,/ }
+				local DebugFlag=$(grep "import ${UseDebugger}" ${TheCode} | grep -v "#")
+				if [ ! -z "${DebugFlag}" ]; then
+					echo "yes"
+				fi
+				cd - > /dev/null
+			fi
+			;;
+		getDebugger)
+			echo ${UseDebugger}
+			;;
+		getDebugVersion)
+#			local debugV=$(${UseDebugger} -version 2> /dev/null | head -n 1)
+#			if [ ! -z "${debugV}" ]; then
+#				echo "[${Lang} Debugger]"
+#				echo "${debugV}"
+#				echo ""
+#			fi
 			;;
 		getExt)
 			echo ${LangExt}
@@ -533,6 +569,9 @@ UsePython()
 			;;
 		setCplArgs-help)
 			;;
+		compileCode-message)
+			echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
+			;;
 		compileCode)
 			local src=$1
 			local name=$2
@@ -623,7 +662,7 @@ UsePython()
 						#Change to Bash Source dir
 						cd - > /dev/null
 						if [ -f "${TheBinDir}/${src}" ]; then
-							echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
+							UsePython compileCode-message
 						else
 							errorCode "cpl" "ERROR" "${ERROR}"
 						fi
@@ -817,7 +856,7 @@ UsePython()
 			local TheName=$(OtherColor $1)
 			echo "${LangRun} ${TheName}"
 			;;
-		runCode)
+		runCode|debug)
 			local name=$1
 			local TheBin="${name%.*}${LangExt}"
 			local project=${CodeProject}
@@ -853,7 +892,14 @@ UsePython()
 
 			#Check if Python Bin exists
 			if [ -f ${TheBinDir}/${TheBin} ]; then
-				${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+				case ${Type} in
+					debug)
+						${LangRun} -m ${UseDebugger} ${TheBinDir}/${TheBin} ${Args[@]}
+						;;
+					runCode)
+						${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+						;;
+				esac
 			else
 				errorCode "cpl" "need" "${name}"
 			fi

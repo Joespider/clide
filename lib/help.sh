@@ -56,10 +56,12 @@ MenuHelp()
 			echo -e "save\t\t\t\t: \"Save session\""
 			echo -e "create <arg>\t\t\t: \"create compile and runtime arguments"
 			echo -e "\thelp\t\t\t: \"create help page"
+			echo -e "debug\t\t\t: \"debug your program\""
 			echo ""
 			ManageLangs ${Lang} "MenuHelp"
 			echo -e "car, car-a\t\t\t: \"compile and run; compile and run with arguments\""
-			echo -e "rm, remove, delete\t\t: \"delete src file\""
+			echo -e "rm, remove, delete\t\t: \"delete source AND binary file\""
+			echo -e "rmbin, remove-bin, delete-bin\t\t: \"delete ONLY binary file\""
 			echo -e "set <file>\t\t\t: \"select source code\""
 			echo -e "add <file>\t\t\t: \"add new file to project\""
 			echo -e "notes <action>\t\t\t: \"make notes for the ${Lang} language\""
@@ -92,6 +94,7 @@ MenuHelp()
 			echo -e "search\t\t\t\t: \"search project src files for line of code\""
 			echo -e "execute, exe, run <option>\t: \"run active program\""
 			echo -e "\t\t-a, --args\t: \"run program with cli arguments\""
+			echo -e "\t\t-d, --debug\t: \"run program in debug mode\""
 			echo -e "bkup, backup\t\t\t: \"make backup of existing source code\""
 			echo -e "restore\t\t\t\t: \"make backup of existing source code\""
 			echo -e "rename <new>\t\t\t: \"rename the existing source code\""
@@ -165,6 +168,34 @@ NotesHelp()
 
 }
 
+debuggerHelp()
+{
+	case ${Debugger} in
+		gdb)
+			echo "GDB is best suited for C, C++, and Java code"
+			echo ""
+			echo -e "Command\t\tDescription"
+			echo -e "r\t\tStart running program until a breakpoint or end of program"
+			echo -e "b fun\t\tSet a breakpoint at the begining of function \"fun\""
+			echo -e "b N\t\tSet a breakpoint at line number N of source file currently executing"
+			echo -e "b file.c:N\tSet a breakpoint at line number N of file \"file.c\""
+			echo -e "d N\t\tRemove breakpoint number N"
+			echo -e "info break\tList all breakpoints"
+			echo -e "c\t\tContinues/Resumes running the program until the next breakpoint or end of program"
+			echo -e "f\t\tRuns until the current function is finished"
+			echo -e "s\t\tRuns the next line of the program"
+			echo -e "s N\t\tRuns the next N lines of program"
+			echo -e "n\t\tLike s, but it does not step into functions"
+			echo -e "p var\t\tPrints the current value of the variable \"var\""
+			echo -e "set var=val\tAssign \"val\" value to the variable \"var\""
+			echo -e "bt\t\tPrints a stack trace"
+			echo -e "q\t\tQuit from gdb"
+			;;
+		*)
+			;;
+	esac
+}
+
 newCodeHelp()
 {
 	local Lang=$1
@@ -178,7 +209,7 @@ newCodeHelp()
 	echo ""
 }
 
-#Clide cli help page
+#Clide cli help page2
 CliHelp()
 {
 	local calledBy=$1
@@ -224,6 +255,9 @@ CliHelp()
 				--install)
 					installHelp
 					;;
+				--debug)
+					debuggerHelp
+					;;
 				--read)
 					RunHelp
 					;;
@@ -247,11 +281,12 @@ CliHelp()
 					echo -e "--edit --config\t\t\t: \"Edit ${Head} config\""
 					echo -e "--cpl, --compile <args>\t\t: \"Compile source code\""
 					echo -e "--install <args>\t\t: \"install program (.bash_aliases)\""
+					echo -e "--debug <args>\t\t\t: \"Debug compiled code\""
 					echo -e "--run <args>\t\t\t: \"Run compiled code\""
 					echo -e "--read <args>\t\t\t: \"Read out (cat) source code\""
 					echo -e "--list <lang>\t\t\t: \"List source code\""
 					echo -e "--list-cpl <lang>\t\t: \"List compiled code\""
-					echo -e "-p, --project <args>\t\t\t: \"List or Load Clide Projects\""
+					echo -e "-p, --project <args>\t\t: \"List or Load Clide Projects\""
 					echo ""
 					echo -e "\"Need more information? Just ask!\""
 					echo ""
@@ -277,8 +312,12 @@ CliHelp()
 			echo "\"If you want to save time, you can pre-select the code\""
 			echo "$ clide Java MyCode"
 			echo ""
+			echo "$ clide Java MyCode,MyOtherCode"
+			echo ""
 			echo "\"I can determine the langauge by providing the extention of your source code\""
 			echo "$ clide MyCode.java"
+			echo ""
+			echo "$ clide MyCode.java,MyOtherCode.java"
 			echo ""
 			echo "\"You want something done quickly?\""
 			echo "\"Provide me with the action as well as the language and/or source code\""
@@ -440,11 +479,12 @@ ProjectCliHelp()
 	echo "----------------[(${Head}) cli {${cli}}]----------------"
 	echo -e "\"Handle loading Projects\""
 	echo ""
-	echo -e "${cmd} <project>\t: \"Select and Load\""
-	echo -e "${cmd} --list\t: \"List ${Head} Projects\""
-	echo -e "${cmd} --build\t: \"Build a ${Head} Project\""
-	echo -e "${cmd} --discover\t: \"Discover ${Head} Projects\""
-	echo -e "${cmd} -h, --help\t: \"help page\""
+	echo -e "${cmd} <project>\t\t: \"Select and Load\""
+	echo -e "${cmd} --list\t\t: \"List ${Head} Projects\""
+	echo -e "${cmd} --list <project>\t: \"List the contents of a given project\""
+	echo -e "${cmd} --build\t\t: \"Build a ${Head} Project\""
+	echo -e "${cmd} --discover\t\t: \"Discover ${Head} Projects\""
+	echo -e "${cmd} -h, --help\t\t: \"help page\""
 	echo "-----------------------------------------------"
 	echo ""
 }
@@ -521,6 +561,9 @@ main()
 			;;
 		NotesHelp)
 			NotesHelp $@
+			;;
+		debuggerHelp)
+			debuggerHelp $@
 			;;
 		newCodeHelp)
 			newCodeHelp $@

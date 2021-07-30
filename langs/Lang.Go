@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.30"
+SupportV="0.1.32"
 Lang=Go
 LangExt=".go"
 #Color Green
@@ -683,6 +683,9 @@ UseGo()
 			echo -e "--warnings\t\t: \"Show ALL warnings (-Wall -g)\""
 			echo -e "--std=<version>\t\t: \"Set Go version\""
 			;;
+		compileCode-message)
+			echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
+			;;
 		compileCode)
 			local src=$1
 			local name=$2
@@ -748,7 +751,7 @@ UseGo()
 					cd ${LangProject}/${project}
 					echo "make"
 					cd - > /dev/null
-					echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
+					UseGo compileCode-message
 				#Compile without makefile
 				else
 					#source file is empty
@@ -761,7 +764,7 @@ UseGo()
 						#Code compiled successfully
 						if [ -z "${ERROR}" ]; then
 							mv ${name} ${TheBinDir}/
-							echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
+							UseGo compileCode-message
 						else
 							errorCode "cpl" "ERROR" "${ERROR}"
 						fi

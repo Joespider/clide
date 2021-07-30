@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.74"
+SupportV="0.1.80"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -47,6 +47,8 @@ ProjectTemplateHandler()
 UseJava()
 {
 	local LangConfig=${cplJava}
+	local UseDebugger=${debugJava}
+
 	local LangCpl=$(echo ${LangConfig} | cut -d ',' -f 1)
 	local LangRun=$(echo ${LangConfig} | cut -d ',' -f 2)
 
@@ -104,6 +106,46 @@ UseJava()
 			local TheSrcDir=${LangProject}/${project}/src
 			if [ ! -z "${name}" ]; then
 				find ${TheSrcDir} -name "${name}" 2> /dev/null | grep "${ProjectMode}"
+			fi
+			;;
+		IsDebugEnabled)
+			local TheCode=$1
+			local TheBinDir
+			local project=${CodeProject}
+			#Handle Project Dir
+			case ${project} in
+				none)
+					TheBinDir=${LangBin}
+					;;
+				*)
+					TheBinDir="${LangProject}/${project}bin"
+					;;
+			esac
+			if [ -d ${TheBinDir} ]; then
+				cd "${TheBinDir}"
+				local IsClassNotJar=$(UseJava "getBin" "${TheCode}")
+				if [ ! -z "${IsClassNotJar}" ]; then
+					case ${IsClassNotJar} in
+						*.class)
+							echo "yes"
+							;;
+						*)
+							echo ${IsClassNotJar}
+							;;
+					esac
+				fi
+				cd - > /dev/null
+			fi
+			;;
+		getDebugger)
+			echo "${UseDebugger}"
+			;;
+		getDebugVersion)
+			local debugV=$(${UseDebugger} -version 2> /dev/null | head -n 1)
+			if [ ! -z "${debugV}" ]; then
+				echo "[${Lang} Debugger]"
+				echo "${debugV}"
+				echo ""
 			fi
 			;;
 		getExt)
@@ -257,9 +299,19 @@ UseJava()
 			fi
 			;;
 		TemplateVersion)
+			#Code is compiled as a jar
 			if [ -f ${TemplateCodeJar} ]; then
-                                echo -n "${TemplateCodeJar##*/} : "
+				echo -n "${TemplateCodeJar##*/} : "
 				java -jar ${TemplateCodeJar} 2> /dev/null | grep Version | sed "s/Version: //g"
+			#Code is compiled as a class
+			elif [ -f ${TemplateCodeClass} ]; then
+				local TempBin=${TemplateCodeClass##*/}
+				TempBin=${TempBin%.class}
+				echo -n "${TemplateCodeClass##*/} : "
+				cd ${LangBin}/
+				java ${TempBin} 2> /dev/null | grep Version | sed "s/Version: //g"
+				cd - > /dev/null
+			#Code is not compiled
 			else
 				echo "no ${TemplateCodeJar##*/} found"
 			fi
@@ -529,6 +581,29 @@ UseJava()
 			;;
 		setCplArgs-help)
 			;;
+		compileCode-message)
+			local cplType=$1
+			case ${cplType} in
+				class)
+					echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled (CLASS)]\e[0m"
+					;;
+				jar)
+					echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled (JAR)]\e[0m"
+					;;
+				project-jar)
+					shift
+					local TheProjName=$1
+					echo -e "\e[1;4${ColorNum}m[Project \"${TheProjName}\" Compiled (JAR)]\e[0m"
+					;;
+				project-class)
+					shift
+					local TheProjName=$1
+					echo -e "\e[1;4${ColorNum}m[Project \"${TheProjName}\" Compiled (CLASS)]\e[0m"
+					;;
+				*)
+					;;
+			esac
+			;;
 		compileCode)
 			local src=$1
 			local name=$2
@@ -537,8 +612,11 @@ UseJava()
 			local cplArgs=""
 			local TheSrcDir
 			local TheBinDir
-			local des
+			local TheMainClass
+			local NumOfMain
+			local TheItem
 			local ERROR
+			local look=1
 
 			#Handle Project Dir
 			case ${project} in
@@ -546,58 +624,96 @@ UseJava()
 				none)
 					project=""
 					TheBinDir=${LangBin}
+					TheSrcDir=${LangSrc}
 					#Compile source code
 					case ${src} in
 						*${LangExt})
 							src=$(echo ${src} | tr ',' ' ')
 							#Looks for Main class
-							des=$(grep -l "public static void main" ${src})
+							TheMainClass=$(grep -l "public static void main" ${src})
 							#get Java Class/compiled file name
-							des=${des%${LangExt}}.class
-							ERROR=$(${LangCpl} ${src} 2>&1 | tr '\n' '|')
-							if [ -f ${des} ]; then
+							TheMainClass=$(echo ${TheMainClass} | sed "s/${LangExt}/.class/g")
+							ERROR=$(${LangCpl} -d ${TheSrcDir}/ ${src} 2>&1 | tr '\n' '|')
+							if [ -z "${ERROR}" ]; then
 								#Compile as jar or class
 								case ${name} in
 									#Compile as Jar
 									--jar)
-										if [ ! -f manifest.mf ]; then
-											echo "Manifest-Version: 1.1" > manifest.mf
-											echo "Created-By: $USER" >> manifest.mf
-											echo "Main-Class: ${des%.class}" >> manifest.mf
-											echo "Sealed: true" >> manifest.mf
-										fi
-										jar -cmf manifest.mf ${des%.class}.jar *.class
-										#remove class file
-										if [ -f  ${TheBinDir}/${des} ]; then
-											rm  ${TheBinDir}/${des}
-										fi
-										#Keep Generated Manafest file
-										case ${keep} in
-											--keep-manifest)
-												#rm ${des}
-												rm *.class
+										NumOfMain=$(echo ${TheMainClass} | tr ' ' '\n' | wc -l)
+										case ${NumOfMain} in
+											#only ONE "main" class was found
+											1)
+												if [ ! -f manifest.mf ]; then
+													echo "Manifest-Version: 1.1" > manifest.mf
+													echo "Created-By: $USER" >> manifest.mf
+													echo "Main-Class: ${TheMainClass%.class}" >> manifest.mf
+													echo "Sealed: true" >> manifest.mf
+												fi
+												jar -cmf manifest.mf ${TheMainClass%.class}.jar *.class
+												#remove class file
+												if [ -f  "${TheBinDir}/${TheMainClass}" ]; then
+													rm  ${TheBinDir}/${TheMainClass}
+												fi
+												#Keep Generated Manafest file
+												case ${keep} in
+													--keep-manifest)
+														rm *.class
+														;;
+													*)
+														rm manifest.mf *.class
+													;;
+												esac
+												#move Java Jar to Binary dir
+												mv ${TheMainClass%.class}.jar ${TheBinDir}/ 2> /dev/null
+												if [ -f "${TheBinDir}/${TheMainClass%.class}.jar" ]; then
+													UseJava compileCode-message jar
+												else
+													errorCode "cpl" "ERROR" "No Jar Found"
+												fi
 												;;
+											#more than ONE "main" class found
 											*)
-												#rm manifest.mf ${des}
-												rm manifest.mf *.class
-											;;
+												rm *.class 2> /dev/null
+												#Display Error from compiler
+												errorCode "cpl" "ERROR" "More than one \"main\" classes were found"
+												;;
 										esac
-										#move Java Jar to Binary dir
-										mv ${des%.class}.jar ${TheBinDir}/
-										echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled (JAR)]\e[0m"
 										;;
 									#Do nothing...keep class
 									*|--class)
 										#move Java Class to Binary dir
 										mv *.class ${TheBinDir}/
-										#remove old jar
-										if [ -f ${TheBinDir}/${des%.class}.jar ]; then
-											rm ${TheBinDir}/${des%.class}.jar
-										fi
-										echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled (CLASS)]\e[0m"
+										NumOfMain=$(echo ${TheMainClass} | tr ' ' '\n' | wc -l)
+										case ${NumOfMain} in
+											#only ONE "main" class was found
+											1)
+												#remove old jar
+												if [ -f ${TheBinDir}/${TheMainClass%.class}.jar ]; then
+													rm ${TheBinDir}/${TheMainClass%.class}.jar
+												fi
+												;;
+											#many "main" class were found
+											*)
+												#remove ALL jar
+												while [ ${look} -le ${NumOfMain} ];
+												do
+													TheItem=$(echo ${TheMainClass} | cut -d ' ' -f ${look})
+													TheItem=${TheItem%.class}.jar
+
+													#remove ALL jar that exist
+													if [ -f ${TheBinDir}/${TheItem} ]; then
+														rm ${TheBinDir}/${TheItem}
+													fi
+
+													look=$((${look}+1))
+												done
+												;;
+										esac
+										UseJava compileCode-message class
 										;;
 								esac
 							else
+								rm *.class 2> /dev/null
 								#Display Error from compiler
 								errorCode "cpl" "ERROR" "${ERROR}"
 							fi
@@ -674,7 +790,7 @@ UseJava()
 									if [ -z "${ERROR}" ]; then
 										mv ${project}.jar ${TheBinDir}/ 2> /dev/null
 										rm -rf ${TheClassDir}* 2> /dev/null
-										echo -e "\e[1;4${ColorNum}m[Project \"${project}\" Compiled (JAR)]\e[0m"
+										UseJava compileCode-message project-jar ${project}
 									else
 										#Display Error from compiler
 										errorCode "cpl" "ERROR" "${ERROR}"
@@ -719,7 +835,7 @@ UseJava()
 								if [ -f ${TheBinDir}/${project}.jar ]; then
 									rm ${TheBinDir}/${project}.jar
 								fi
-								echo -e "\e[1;4${ColorNum}m[Project \"${project}\" Compiled (CLASS)]\e[0m"
+								UseJava compileCode-message project-class ${project}
 							else
 								if [ -z "${IsClass}" ]; then
 									errorCode "cpl" "ERROR" "Class did not compile"
@@ -1228,7 +1344,7 @@ UseJava()
 				fi
 			fi
 			;;
-		runCode)
+		runCode|debug)
 			local name=$1
 			local TheBin="${name%.*}.class"
 			local TheJar="${name%.*}.jar"
@@ -1281,11 +1397,30 @@ UseJava()
 					#If no JavaProp found
 					case ${JavaProp} in
 						none)
-							#Execute without
-							${LangRun} ${package}${TheBin} ${Args[@]}
+							case ${Type} in
+								debug)
+									echo "${UseDebugger} ${package}${TheBin} ${Args[@]}"
+									;;
+								runCode)
+									#Execute without
+									${LangRun} ${package}${TheBin} ${Args[@]}
+									;;
+								*)
+									;;
+							esac
 							;;
 						*)
-							${LangRun} "${JavaProp}" ${package}${TheBin} ${Args[@]}
+							case ${Type} in
+								debug)
+									${UseDebugger} "${JavaProp}" ${package}${TheBin} ${Args[@]}
+									;;
+								runCode)
+									#Execute without
+									${LangRun} "${JavaProp}" ${package}${TheBin} ${Args[@]}
+									;;
+								*)
+									;;
+							esac
 							;;
 					esac
 					cd - > /dev/null

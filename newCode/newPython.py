@@ -4,7 +4,7 @@ ProgramName = "newPython"
 VersionName = "0.1.03"
 
 def Help():
-	print "Author: Dan (DJ) Coffman"
+	print "Author: Joespider"
 	print "Program: \""+ProgramName+"\""
 	print "Version: "+VersionName
 	print "Purpose: make new Python Scripts"

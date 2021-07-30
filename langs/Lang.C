@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.28"
+SupportV="0.1.32"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
@@ -50,16 +50,17 @@ UseC()
 	#Get the enviornment variables for C
 	#{
 	local LangCpl=${cplC}
+	local UseDebugger=${debugCandCpp}
 
 	local LangHome=${ProgDir}/${Lang}
 	local LangSrc=${LangHome}/src
 	local LangBin=${LangHome}/bin
 	local LangProject=${LangHome}/projects
 
-	local TemplateCode=${NewCpp}
+	local TemplateCode=${NewC}
 	TemplateCode=${LangBin}/${TemplateCode%${LangExt}}
 
-	local TemplateCodeSrc=${NewCpp%${LangExt}}${LangExt}
+	local TemplateCodeSrc=${NewC%${LangExt}}${LangExt}
 
 	local EnvVars=( ${LangRun} ${LangHome} ${LangSrc} ${LangBin} ${LangExt} )
 	#}
@@ -140,6 +141,23 @@ UseC()
 			local TheSrcDir=${LangProject}/${project}/src
 			if [ ! -z "${name}" ]; then
 				find ${TheSrcDir} -name "${name}" 2> /dev/null
+			fi
+			;;
+		IsDebugEnabled)
+			local DebugFlag=$(echo ${CplArgs} | tr ',' ' ' | grep -w "\-g")
+			if [ ! -z "${DebugFlag}" ]; then
+				echo "yes"
+			fi
+			;;
+		getDebugger)
+			echo "${UseDebugger}"
+			;;
+		getDebugVersion)
+			local debugV=$(${UseDebugger} --version 2> /dev/null | head -n 1)
+			if [ ! -z "${debugV}" ]; then
+				echo "[${Lang} Debugger]"
+				echo "${debugV}"
+				echo ""
 			fi
 			;;
 		#Look for binary from set code
@@ -816,8 +834,11 @@ UseC()
 						-v|--verboses)
 							Item="-v"
 							;;
+						-d|--debug)
+							Item="-g"
+							;;
 						-w|--warnings)
-							Item="-Wall -g"
+							Item="-g"
 							;;
 						--std=*)
 							local stdVal=${TheItem}
@@ -855,7 +876,8 @@ UseC()
 			echo -e "--opt-debug\t\t: \"Optimize debugging over speed or size (-Og)\""
 			echo -e "--opt-space\t\t: \"Optimize space over speed (-Os)\""
 			echo -e "-v, --verboses\t\t: \"Verbose (-v)\""
-			echo -e "-w. --warnings\t\t: \"Show ALL warnings (-Wall -g)\""
+			echo -e "-d, --debug\t\t: \"Set Debugging (-g)\""
+			echo -e "-w, --warnings\t\t: \"Show ALL warnings (-Wall)\""
 			echo -e "--std=<version>\t\t: \"Set C version\""
 			case ${LangCpl} in
 				gcc)
@@ -871,6 +893,9 @@ UseC()
 				*)
 					;;
 			esac
+			;;
+		compileCode-message)
+			echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
 			;;
 		compileCode)
 			local src=$1
@@ -937,7 +962,7 @@ UseC()
 					cd ${LangProject}/${project}
 					echo "make"
 					cd - > /dev/null
-					echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
+					UseC compileCode-message
 				#Compile without makefile
 				else
 					#source file is empty
@@ -969,7 +994,7 @@ UseC()
 
 							#Code compiled successfully
 							if [ -z "${ERROR}" ]; then
-								echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
+								UseC compileCode-message
 							else
 								#display the ERROR message
 								errorCode "cpl" "ERROR" "${ERROR}"
@@ -984,7 +1009,7 @@ UseC()
 								#move binary to bin directory
 								mv ${name} ${TheBinDir}/
 								echo ""
-								echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
+								UseC compileCode-message
 							#Code compiled did NOT compile
 							else
 								#display the ERROR message
@@ -1360,7 +1385,7 @@ UseC()
 			esac
 			;;
 		#Run the compiled code
-		runCode)
+		runCode|debug)
 			local name=$1
 
 			#Handle Extension
@@ -1414,7 +1439,16 @@ UseC()
 
 			#Find Executable
 			if [ -f ${TheBinDir}/${TheBin} ]; then
-				${TheBinDir}/${TheBin} ${Args[@]}
+				case ${Type} in
+					debug)
+						cd ${TheBinDir}
+						${UseDebugger} ${TheBin}
+						cd - > /dev/null
+						;;
+					runCode)
+						${TheBinDir}/${TheBin} ${Args[@]}
+						;;
+				esac
 			else
 				case ${project} in
 					none)
