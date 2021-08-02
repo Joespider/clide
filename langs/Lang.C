@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.33"
+SupportV="0.1.34"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
@@ -937,7 +937,8 @@ UseC()
 						fi
 						;;
 					*)
-						name=${src%}
+						name=${src%${LangExt}}
+						name=${name%${LangOtherExt}}
 						;;
 				esac
 			fi
@@ -1162,39 +1163,6 @@ UseC()
 			if [ -d ${path} ]; then
 				ls ${path}
 			fi
-			;;
-		SwapToSrc)
-			local src=$1
-			#cd "${LangSrc}"
-			#Get C Name
-			src="${src}${LangExt}"
-			#Check if C source exists
-			if [ -f "${LangSrc}/${src}" ]; then
-				#Return C Source Name
-				echo "${src}"
-			fi
-			;;
-		SwapToBin)
-			local bin=$1
-			case ${bin} in
-				*${LangExt})
-					#cd "${LangBin}"
-					#Keep Src Name
-					local OldBin="${bin}"
-					#Get C Name
-					bin="${bin%.*}"
-					#Check if C Binary exists
-					if [ -f "${LangBin}/${bin}" ]; then
-						#Return C Binary Name
-						echo "${bin}"
-					else
-						echo "${OldBin}"
-					fi
-					;;
-				*)
-					echo ${bin}
-					;;
-			esac
 			;;
 		Install)
 			local bin=$1

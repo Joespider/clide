@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.80"
+SupportV="0.1.81"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -940,39 +940,6 @@ UseJava()
 			if [ -d ${path} ]; then
 				ls ${path}
 			fi
-			;;
-		SwapToSrc)
-			local src=$1
-			#cd "${LangSrc}"
-			#Get Java Name
-			src="${src%.*}${LangExt}"
-			#Check if Java source exists
-			if [ -f "${LangSrc}/${src}" ]; then
-				#Return Java Source Name
-				echo "${src}"
-			fi
-			;;
-		SwapToBin)
-			local bin=$1
-			case ${bin} in
-				*${LangExt})
-					#cd "${LangBin}"
-					#Keep SrcName
-					OldBin="${bin}"
-					#Get Java Name
-					bin="${bin%.*}.class"
-					#Check Java Binary exists
-					if [ -f "${LangBin}/${bin}" ]; then
-						#Return Java Binary Name
-						echo "${bin}"
-					else
-						echo "${OldBin}"
-					fi
-					;;
-				*)
-					echo ${bin}
-					;;
-			esac
 			;;
 		Install)
 			local bin=$1

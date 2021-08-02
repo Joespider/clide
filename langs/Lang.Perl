@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.55"
+SupportV="0.1.56"
 Lang=Perl
 LangExt=".pl"
 #Color Purple
@@ -640,31 +640,6 @@ UsePerl()
 			if [ -d ${path} ]; then
 				ls ${path}
 			fi
-			;;
-		SwapToSrc)
-			src=$1
-			#Get Perl Name
-			echo "${src}"
-			;;
-		SwapToBin)
-			bin=$1
-			case ${bin} in
-				*${LangExt})
-					#Get Perl Name
-					#	bin="${bin%.*}"
-					#Check if Perl Binary exists
-					if [[ -f "${LangBin}/${bin}" ]]; then
-						#cd "${LangBin}"
-						#Return Perl Binary Name
-						echo "${bin}"
-					else
-						echo "${bin}"
-					fi
-					;;
-				*)
-					echo ${bin}
-					;;
-			esac
 			;;
 		Install)
 			bin=$1

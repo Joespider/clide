@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.63"
+SupportV="0.1.64"
 Lang=Python
 LangExt=".py"
 #Color Yellow
@@ -736,36 +736,6 @@ UsePython()
 			if [ -d ${path} ]; then
 				ls ${path}
 			fi
-			;;
-		SwapToSrc)
-			local src=$1
-			#Get Python Name
-		#	src="${src}${LangExt}"
-		#	#Check if Python source exists
-		#	if [[ -f "${LangSrc}/${src}" ]]; then
-		#		#Return Python Source Name
-				echo "${src}"
-		#	fi
-			;;
-		SwapToBin)
-			local bin=$1
-			case ${bin} in
-				*${LangExt})
-					#Get Python Name
-				#	bin="${bin%.*}"
-					#Check if Python Binary exists
-					if [[ -f "${LangBin}/${bin}" ]]; then
-						#cd "${LangBin}"
-						#Return Python Binary Name
-						echo "${bin}"
-					else
-					echo "${bin}"
-					fi
-					;;
-				*)
-					echo ${bin}
-					;;
-			esac
 			;;
 		Install)
 			local bin=$1

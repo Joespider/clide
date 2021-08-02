@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.52"
+SupportV="0.1.53"
 Lang=Ruby
 LangExt=".rb"
 ColorNum=1
@@ -599,31 +599,6 @@ UseRuby()
                                 ls ${path}
                         fi
                         ;;
-		SwapToSrc)
-			local src=$1
-			#Get Ruby Name
-			echo "${src}"
-			;;
-		SwapToBin)
-			local bin=$1
-			case ${bin} in
-				*${LangExt})
-				#Get Ruby Name
-				#	bin="${bin%.*}"
-				#Check if Perl Binary exists
-					if [[ -f "${LangBin}/${bin}" ]]; then
-					#cd "${LangBin}"
-					#Return Ruby Binary Name
-						echo "${bin}"
-					else
-						echo "${bin}"
-					fi
-					;;
-				*)
-					echo ${bin}
-					;;
-			esac
-			;;
 		Install)
 			local bin=$1
 			local BinFile="${bin%.*}"
