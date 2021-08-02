@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.33"
+SupportV="0.1.34"
 Lang=Go
 LangExt=".go"
 #Color Green
@@ -716,7 +716,6 @@ UseGo()
 							case ${NumOfMain} in
 								1)
 									name=${name%${LangExt}}
-									name=${name%${LangOtherExt}}
 									;;
 								*)
 									FoundMain="no"
@@ -726,7 +725,7 @@ UseGo()
 						fi
 						;;
 					*)
-						name=${src%}
+						name=${src%${LangExt}}
 						;;
 				esac
 			fi
@@ -914,39 +913,6 @@ UseGo()
 			if [ -d ${path} ]; then
 				ls ${path}
 			fi
-			;;
-		SwapToSrc)
-			local src=$1
-			#cd "${LangSrc}"
-			#Get Go Name
-			src="${src}${LangExt}"
-			#Check if Go source exists
-			if [ -f "${LangSrc}/${src}" ]; then
-				#Return Go Source Name
-				echo "${src}"
-			fi
-			;;
-		SwapToBin)
-			local bin=$1
-			case ${bin} in
-				*${LangExt})
-					#cd "${LangBin}"
-					#Keep Src Name
-					local OldBin="${bin}"
-					#Get Go Name
-					bin="${bin%.*}"
-					#Check if Go Binary exists
-					if [ -f "${LangBin}/${bin}" ]; then
-						#Return Go Binary Name
-						echo "${bin}"
-					else
-						echo "${OldBin}"
-					fi
-					;;
-				*)
-					echo ${bin}
-					;;
-			esac
 			;;
 		Install)
 			local bin=$1
