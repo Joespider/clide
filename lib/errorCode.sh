@@ -7,6 +7,51 @@ errorCode()
 	shift
 	local sec=$1
 	case ${ecd} in
+		repo)
+			shift
+			local thr=$1
+			case ${sec} in
+				not-installed)
+					errorCode "ERROR"
+					errorCode "ERROR" "\"${thr}\" is not installed"
+					;;
+				*)
+					;;
+			esac
+			;;
+		readCode)
+			errorCode "ERROR"
+			errorCode "ERROR" "No code to read"
+			;;
+		lang)
+			shift
+			local thr=$1
+			case ${sec} in
+				already-supported)
+					errorCode "ERROR"
+					errorCode "ERROR" "\"${thr}\" is already supported language"
+					;;
+				cli-not-supported)
+					errorCode "ERROR"
+					errorCode "ERROR" "\"${thr}\" is not a supported language"
+					;;
+				not-a-lang)
+					errorCode "ERROR"
+					errorCode "ERROR" "Language is not found"
+					;;
+				no-lang)
+					errorCode "ERROR"
+					errorCode "ERROR" "Cannot find the language"
+					;;
+				no-langs)
+					errorCode "ERROR"
+					errorCode "ERROR" "No Languages installed"
+					errorCode "ERROR" "Please Lang.<language> in \"${LangsDir}/\""
+					;;
+				*)
+					;;
+			esac
+			;;
 		debug)
 			shift
 			local thr=$1
@@ -61,8 +106,7 @@ errorCode()
 			local thr=$1
 			case ${sec} in
 				cli-not-supported)
-					errorCode "ERROR"
-					errorCode "ERROR" "\"${thr}\" is not a supported language"
+					errorCode "lang" "cli-not-supported" "${thr}"
 					;;
 				choose)
 					errorCode "HINT" "command"
@@ -124,6 +168,18 @@ errorCode()
 			errorCode "HINT" "command"
 			errorCode "HINT" "set <name>"
 			;;
+		notes)
+			shift
+			local thr=$1
+			case ${sec} in
+				none)
+					errorCode "ERROR"
+					errorCode "ERROR" "No notes for ${thr} found"
+					;;
+				*)
+					;;
+			esac
+			;;
 		newCode)
 			case ${sec} in
 				one-at-a-time)
@@ -173,8 +229,17 @@ errorCode()
 			esac
 			;;
 		runCode)
-			errorCode "ERROR"
-			errorCode "ERROR" "${sec} can only handle ONE file"
+			shift
+			local thr=$1
+			case ${sec} in
+				no-lang)
+					errorCode "lang" "no-langs"
+					;;
+				*)
+					errorCode "ERROR"
+					errorCode "ERROR" "${sec} can only handle ONE file"
+					;;
+			esac
 			;;
 		customCode)
 			shift
@@ -206,6 +271,15 @@ errorCode()
 			shift
 			local thr=$1
 			case ${sec} in
+				not-found)
+					if [ -z "${thr}" ]; then
+						errorCode "ERROR"
+						errorCode "ERROR" "no source code found"
+					else
+						errorCode "ERROR"
+						errorCode "ERROR" "${thr} not found"
+					fi
+					;;
 				set)
 					errorCode "HINT" "command"
 					errorCode "HINT" "set <source>"
@@ -256,6 +330,10 @@ errorCode()
 			shift
 			local thr=$1
 			case ${sec} in
+				must-be-active)
+					errorCode "ERROR"
+					errorCode "ERROR" "Must have an active project"
+					;;
 				already-title)
 					errorCode "ERROR"
 					errorCode "ERROR" "The \"${thr}\" project already has a title"
@@ -381,6 +459,10 @@ errorCode()
 					errorCode "ERROR"
 					errorCode "ERROR" "No \"${thr}\" project found"
 					;;
+				not-valid)
+					errorCode "ERROR"
+					errorCode "ERROR" "\"${thr}\" is Not a valid project"
+					;;
 				*)
 					errorCode "ERROR"
 					errorCode "ERROR" "Project error"
@@ -426,6 +508,12 @@ errorCode()
 				not)
 					errorCode "ERROR"
 					errorCode "ERROR" "code not found"
+					;;
+				cli-need)
+					shift
+					local thr=$1
+					errorCode "ERROR"
+					errorCode "ERROR" "${thr} is not compiled"
 					;;
 				need)
 					shift
@@ -500,13 +588,10 @@ errorCode()
 			esac
 			;;
 		no-langs)
-			errorCode "ERROR"
-			errorCode "ERROR" "No Languages installed"
-			errorCode "ERROR" "Please Lang.<language> in \"${LangsDir}/\""
+			errorCode "lang" "no-langs"
 			;;
 		not-a-lang)
-			errorCode "ERROR"
-			errorCode "ERROR" "Language is not found"
+			errorCode "lang" "not-a-lang"
 			;;
 		add)
 			shift
@@ -523,12 +608,10 @@ errorCode()
 							errorCode "HINT" "create <lang>"
 							;;
 						not-supported)
-							errorCode "ERROR"
-							errorCode "ERROR" "\"${four}\" is not a supported language"
+							errorCode "lang" "cli-not-supported" "${four}"
 							;;
 						already-supported)
-							errorCode "ERROR"
-							errorCode "ERROR" "\"${four}\" is already supported language"
+							errorCode "lang" "already-supported" "${four}"
 							;;
 						*)
 							errorCode "ERROR"
@@ -546,6 +629,7 @@ errorCode()
 			errorCode "ERROR" "Feature: ${sec}"
 			;;
 		HINT)
+			local message=$@
 			case ${sec} in
 				command)
 					echo -en "\e[1;32m[\e[0m"
@@ -558,27 +642,29 @@ errorCode()
 						echo -en "\e[1;42mHINT\e[0m"
 						echo -en "\e[1;32m]:\e[0m "
 					else
-						echo -e "\e[1;32m${sec}\e[0m"
+						echo -e "\e[1;32m${message[@]}\e[0m"
 					fi
 					;;
 			esac
 			;;
 		ERROR)
+			local message=$@
 			if [ -z "${sec}" ]; then
 				echo -en "\e[1;31m[\e[0m"
 				echo -en "\e[1;41mERROR\e[0m"
 				echo -en "\e[1;31m]:\e[0m "
 			else
-				echo -e "\e[1;31m${sec}\e[0m"
+				echo -e "\e[1;31m${message[@]}\e[0m"
 			fi
 			;;
 		WARNING)
+			local message=$@
 			if [ -z "${sec}" ]; then
 				echo -en "\e[1;33m[\e[0m"
 				echo -en "\e[1;43mWARNING\e[0m"
 				echo -en "\e[1;33m]:\e[0m "
 			else
-				echo -e "\e[1;33m${sec}\e[0m"
+				echo -e "\e[1;33m${message[@]}\e[0m"
 			fi
 			;;
 		*)
