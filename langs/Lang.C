@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.34"
+SupportV="0.1.35"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
@@ -166,7 +166,7 @@ UseC()
 			#if no code is set
 			if [ ! -z "${setCode}" ]; then
 				#Remove the extension
-				local srcCode=$(echo ${setCode} | sed "s/${LangExt}//g" | sed "s/${LangOtherExt}//g")
+				local srcCode=${setCode}
 				local TheCpl
 				local TheItem
 				#Get list of compiled code
@@ -178,6 +178,9 @@ UseC()
 				do
 					#Choose one item
 					TheItem=$(echo ${srcCode} | cut -d ',' -f ${look})
+					TheItem=${TheItem%${LangExt}}
+					TheItem=${TheItem%${LangOtherExt}}
+
 					#Look for binary from list of compiled
 					TheCpl=$(echo ${CplList} | tr '|' '\n' | grep -w ${TheItem})
 					if [ ! -z "${TheCpl}" ]; then

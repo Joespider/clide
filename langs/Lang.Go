@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.34"
+SupportV="0.1.35"
 Lang=Go
 LangExt=".go"
 #Color Green
@@ -146,7 +146,7 @@ UseGo()
 			#if no code is set
 			if [ ! -z "${setCode}" ]; then
 				#Remove the extension
-				local srcCode=$(echo ${setCode} | sed "s/${LangExt}//g")
+				local srcCode=${setCode}
 				local TheCpl
 				local TheItem
 				#Get list of compiled code
@@ -158,6 +158,7 @@ UseGo()
 				do
 					#Choose one item
 					TheItem=$(echo ${srcCode} | cut -d ',' -f ${look})
+					TheItem=${TheItem%${LangExt}}
 					#Look for binary from list of compiled
 					TheCpl=$(echo ${CplList} | tr '|' '\n' | grep -w ${TheItem})
 					if [ ! -z "${TheCpl}" ]; then
@@ -689,7 +690,6 @@ UseGo()
 		compileCode)
 			local src=$1
 			local name=$2
-#			local cplArgs=$3
 			local cplArgs=${CplArgs//,/ }
 			local project=${CodeProject}
 			local NeedThreads

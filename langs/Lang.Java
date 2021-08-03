@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.81"
+SupportV="0.1.82"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -173,7 +173,7 @@ UseJava()
 			echo ${LangProject}/${project}
 			;;
 		getBin)
-			local srcCode=$(echo $1 | sed "s/${LangExt}//g")
+			local srcCode=$1
 			if [ ! -z "${srcCode}" ]; then
 				local TheCpl
 				local IsJar
@@ -185,6 +185,7 @@ UseJava()
 				while [ ${look} -le ${NumOfCpls} ];
 				do
 					TheItem=$(echo ${srcCode} | cut -d ',' -f ${look})
+					TheItem=${TheItem%${LangExt}}
 					IsJar=$(echo ${CplList} | tr '|' '\n' | grep -w ${TheItem}.jar)
 					IsClass=$(echo ${CplList} | tr '|' '\n' | grep -w ${TheItem}.class)
 					if [ ! -z "${IsJar}" ] || [ ! -z "${IsClass}" ] ; then
