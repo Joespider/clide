@@ -1879,10 +1879,7 @@ Actions()
 							theExt=$(ManageLangs ${Lang} "getExt")
 							theOtherExt=$(ManageLangs ${Lang} "getOtherExt")
 							newCode=${UserIn[1]}
-							newCode=${newCode%${theExt}}
-							if [ ! -z "${theOtherExt}" ]; then
-								newCode=${newCode%${theOtherExt}}
-							fi
+							newCode=$(ManageLangs ${Lang} "removeExt" ${newCode})
 							#Ensure Code is not added twice
 							if [[ ! "${Code}" == *"${newCode}${theExt}"* ]] || [[ ! "${Code}" == *"${newCode}${theOtherExt}"* ]]; then
 								Code=$(ManageLangs ${Lang} "addCode" ${Code} ${newCode})
