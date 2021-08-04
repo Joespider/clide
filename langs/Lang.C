@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.35"
+SupportV="0.1.36"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
@@ -160,6 +160,22 @@ UseC()
 				echo ""
 			fi
 			;;
+		removeExt)
+			local SourceFile=$1
+			if [ ! -z "${SourceFile}" ]; then
+				case ${SourceFile} in
+					*${LangExt})
+						echo ${SourceFile%${LangExt}}
+						;;
+					*${LangOtherExt})
+						echo ${SourceFile%${LangOtherExt}}
+						;;
+					*)
+						echo ${SourceFile}
+						;;
+				esac
+			fi
+			;;
 		#Look for binary from set code
 		getBin)
 			local setCode=$1
@@ -178,8 +194,7 @@ UseC()
 				do
 					#Choose one item
 					TheItem=$(echo ${srcCode} | cut -d ',' -f ${look})
-					TheItem=${TheItem%${LangExt}}
-					TheItem=${TheItem%${LangOtherExt}}
+					TheItem=$(UseC "removeExt" ${TheItem})
 
 					#Look for binary from list of compiled
 					TheCpl=$(echo ${CplList} | tr '|' '\n' | grep -w ${TheItem})
@@ -193,8 +208,7 @@ UseC()
 			;;
 		getCode)
 			local name=$1
-			name=${name%${LangExt}}
-			name=${name%${LangOtherExt}}
+			name=$(UseC "removeExt" ${name})
 			local oldCode=$2
                         local project=${CodeProject}
                         local newName
@@ -486,8 +500,7 @@ UseC()
 														new=${new}${LangExt}
 														;;
 													*)
-														new=${new%${LangExt}}
-														new=${new%${LangOtherExt}}
+														new=$(UseC "removeExt" ${new})
 														local CheckForC=$(UseC "getProjSrc" ${new}${LangExt} 2> /dev/null)
 														local CheckForHeader=$(UseC "getProjSrc" ${new}${LangOtherExt} 2> /dev/null)
 														#Append cpp files
@@ -544,7 +557,7 @@ UseC()
 								echo ${name}
 #								find ${TheSrcDir} -name ${name} 2> /dev/null | nl
 #								if [ -f ${name} ]; then
-#									name=${name%${LangExt}}
+#									name=$(UseC "removeExt" ${name})
 #									newName=${name##*/}
 #									echo ${newName}${LangExt}
 #								fi
@@ -556,8 +569,7 @@ UseC()
 			;;
 		rmBin|rmSrc)
 			local name=$1
-			name=${name%${LangExt}}
-			name=${name%${LangOtherExt}}
+			name=$(UseC "removeExt" ${name})
 			local ThePath
 			local project=${CodeProject}
 			case ${Type} in
@@ -573,7 +585,7 @@ UseC()
 					esac
 					;;
 				rmSrc)
-					local theHeader=${name%${LangExt}}${LangOtherExt}
+					local theHeader=${name}${LangOtherExt}
 					case ${project} in
 						#not a project
 						none)
@@ -929,8 +941,7 @@ UseC()
 							NumOfMain=$(echo ${name} | tr ' ' '\n' | wc -l)
 							case ${NumOfMain} in
 								1)
-									name=${name%${LangExt}}
-									name=${name%${LangOtherExt}}
+									name=$(UseC "removeExt" ${name})
 									;;
 								*)
 									FoundMain="no"
@@ -940,8 +951,7 @@ UseC()
 						fi
 						;;
 					*)
-						name=${src%${LangExt}}
-						name=${name%${LangOtherExt}}
+						name=$(UseC "removeExt" ${src})
 						;;
 				esac
 			fi
@@ -1219,6 +1229,7 @@ UseC()
 			local name=$1
 			local Type=$2
                         local oldCode=$3
+			local TheName
 			local project=${CodeProject}
 
 			#Sometimes "oldCode" gets passed as "Type"
@@ -1235,11 +1246,11 @@ UseC()
 			Type=${Type,,}
 			case ${name} in
 				*${LangOtherExt})
-					name=${name%${LangOtherExt}}
+					name=$(UseC "removeExt" ${name})
 					Type="header"
 					;;
 				*)
-					name=${name%${LangExt}}
+					name=$(UseC "removeExt" ${name})
 					;;
 			esac
 			if [ ! -f ${name}${LangExt} ] || [ ! -f ${name}${LangOtherExt} ]; then
@@ -1314,11 +1325,12 @@ UseC()
 							none)
 								#Looks like you have source code already set
 								if [ ! -z "${oldCode}" ]; then
-									case ${name%${LangExt}}${LangExt} in
+									TheName=$(UseC "removeExt" ${name})
+									case ${TheName}${LangExt} in
 										#In the event you have a name.cpp file, also make a name.h file
 										*"${oldCode}"*)
 											#echo "header"
-											UseC "newCode" ${name%${LangExt}}${LangOtherExt} "header" ${oldCode}
+											UseC "newCode" ${TheName}${LangOtherExt} "header" ${oldCode}
 											;;
 										#In the event you already have a main file, create a component
 										*)
@@ -1341,7 +1353,8 @@ UseC()
 								local HasSrcCode=$(find ${TheSrcDir} -type f -name "*${LangExt}")
 								#Has Source Code
 								if [ ! -z "${HasSrcCode}" ]; then
-									local NumFound=$(find ${TheSrcDir} -name ${name%${LangExt}}${LangExt} 2> /dev/null | wc -l)
+									TheName=$(UseC "removeExt" ${name})
+									local NumFound=$(find ${TheSrcDir} -name ${TheName}}${LangExt} 2> /dev/null | wc -l)
 									case ${NumFound} in
 										#No other source code was found...make your main file
 										0)
@@ -1548,16 +1561,16 @@ UseC()
 			;;
 		#create a copy of set code
 		copy|rename)
-			local TheOld=$1
-			local TheNew=$2
-			TheOld="${TheOld%${LangExt}}${LangExt}"
-			TheNew="${TheNew%${LangExt}}${LangExt}"
+			local TheOld=$(UseC "removeExt" $1)
+			local TheNew=$(UseC "removeExt" $2)
+			TheOld="${TheOld}${LangExt}"
+			TheNew="${TheNew}${LangExt}"
 			local project=${CodeProject}
 			case ${project} in
 				none)
 					if [ ! -z "${TheNew}" ]; then
-						TheOld="${TheOld%${LangExt}}"
-						TheNew="${TheNew%${LangExt}}"
+						TheOld=$(UseC "removeExt" ${TheOld})
+						TheNew=$(UseC "removeExt" ${TheNew})
 						sed "s/${TheOld}/${TheNew}/g" ${LangSrc}/${TheOld}${LangExt} > ${LangSrc}/${TheNew}${LangExt}
 
 						#Remove old file for "rename"
@@ -1578,8 +1591,8 @@ UseC()
 						#File is in current dir
 						if [ -f ${TheNew} ]; then
 							#Remove the extention
-							TheOld="${TheOld%${LangExt}}"
-							TheNew="${TheNew%${LangExt}}"
+							TheOld=$(UseC "removeExt" ${TheOld})
+							TheNew=$(UseC "removeExt" ${TheNew})
 							sed "s/${TheOld}/${TheNew}/g" ${TheOld}${LangExt} > ${TheNew}${LangExt}
 
 							#Remove old file for "rename"
@@ -1603,8 +1616,8 @@ UseC()
 									#Get the file
 									TheFound=${TheFound##*/}
 									#Remove the extention
-									TheOld="${TheOld%${LangExt}}"
-									TheNew="${TheNew%${LangExt}}"
+									TheOld=$(UseC "removeExt" ${TheOld})
+									TheNew=$(UseC "removeExt" ${TheNew})
 									sed "s/${TheOld}/${TheNew}/g" ${TheDir}/${TheOld}${LangExt} > ${TheDir}/${TheNew}${LangExt}
 
 									#Remove old file for "rename"

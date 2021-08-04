@@ -1283,14 +1283,18 @@ Actions()
 					Code=""
 					refresh="yes"
 					;;
-				#Delete source code
+				#Delete source code and binary
 				rm|remove|delete)
 					Remove "--all" ${Code} ${UserIn[1]} ${UserIn[2]}
 					Code=""
 					refresh="yes"
 					;;
 				#Delete source code
-				rmbin|remove-bin|delete-bin)
+				rmsrc)
+					Remove "--src" ${Code} ${UserIn[1]} ${UserIn[2]}
+					;;
+				#Delete binary
+				rmbin)
 					Remove "--bin" ${Code} ${UserIn[1]} ${UserIn[2]}
 					;;
 				#Display the language being used
@@ -1773,14 +1777,13 @@ Actions()
 								else
 									local IsOk
 									local TheFile="${UserIn[1]}"
+									#Remove the extensions
+									TheFile=$(ManageLangs ${Lang} "removeExt" ${TheFile})
 									local TheExt=$(ManageLangs ${Lang} "getExt")
 									local TheOtherExt=$(ManageLangs ${Lang} "getOtherExt")
 
 									#Language has more than one extension
 									if [ ! -z "${TheOtherExt}" ]; then
-										#Remove the extensions
-										TheFile=${TheFile%${TheExt}}
-										TheFile=${TheFile%${TheOtherExt}}
 										#make sure file does not exist
 											if [ ! -f ${TheFile}${TheExt} ] || [ ! -f ${TheFile}${TheOtherExt} ]; then
 											IsOk="yes"
@@ -1789,8 +1792,6 @@ Actions()
 										fi
 									#Language has one extension
 									else
-										#Remove the extensions
-										TheFile=${TheFile%${TheExt}}
 										#make sure file does not exist
 										if [ ! -f ${TheFile}${TheExt} ]; then
 											IsOk="yes"
@@ -2529,7 +2530,7 @@ loadAuto()
 	comp_list "debug"
 	comp_list "set"
 	comp_list "unset"
-	comp_list "rm remove delete rmbin remove-bin delete-bin" "--force"
+	comp_list "rm remove delete rmbin rmsrc" "--force"
 	comp_list "cd"
 	comp_list "pwd"
 	comp_list "mkdir"

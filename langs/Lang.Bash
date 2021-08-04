@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.57"
+SupportV="0.1.58"
 Lang=Bash
 LangExt=".sh"
 ColorNum=2
@@ -135,6 +135,19 @@ UseBash()
 				echo "no"
 			fi
 			;;
+		removeExt)
+			local SourceFile=$1
+			if [ ! -z "${SourceFile}" ]; then
+				case ${SourceFile} in
+					*${LangExt})
+						echo ${SourceFile%${LangExt}}
+						;;
+					*)
+						echo ${SourceFile}
+						;;
+				esac
+			fi
+			;;
 		getBin)
 			local srcCode=$1
 			if [ ! -z "${srcCode}" ]; then
@@ -157,7 +170,7 @@ UseBash()
 			;;
 		getCode)
 			local name=$1
-			name=${name%${LangExt}}
+			name=$(UseBash "removeExt" ${name})
 			local project=${CodeProject}
 			local newName
 			local DirPath
@@ -375,15 +388,17 @@ UseBash()
 		rmBin|rmSrc)
 			local name=$1
 			local ThePath
-			name=${name%${LangExt}}${LangExt}
+			name=$(UseBash "removeExt" ${name})
+			name=${name}${LangExt}
 			case ${Type} in
 				rmBin)
 					ThePath=${LangBin}
-					name=${name%${LangExt}}
+					name=$(UseBash "removeExt" ${name})
 					;;
 				rmSrc)
 					ThePath=${LangSrc}
-					name=${name%${LangExt}}${LangExt}
+					name=$(UseBash "removeExt" ${name})
+					name=${name}${LangExt}
 					;;
 				*)
 					;;
@@ -764,7 +779,7 @@ UseBash()
 			local project=${CodeProject}
 
 			Type=${Type,,}
-			name=${name%${LangExt}}
+			name=$(UseBash "removeExt" ${name})
 			if [ ! -f ${name}${LangExt} ]; then
 				#Check for Custom Code Template
 				if [ -f ${TemplateCode} ]; then
@@ -821,7 +836,8 @@ UseBash()
 			;;
 		backup|restore)
 			local name=$1
-			name="${name%${LangExt}}${LangExt}"
+			name=$(UseBash "removeExt" ${name})
+			name="${name}${LangExt}"
 			local project=${CodeProject}
 			local TheDir
 			local TheCount
@@ -915,14 +931,16 @@ UseBash()
 		copy|rename)
 			local TheOld=$1
 			local TheNew=$2
-			TheOld="${TheOld%${LangExt}}${LangExt}"
-			TheNew="${TheNew%${LangExt}}${LangExt}"
+			TheOld=$(UseBash "removeExt" ${TheOld})
+			TheOld="${TheOld}${LangExt}"
+			TheNew=$(UseBash "removeExt" ${TheNew})
+			TheNew="${TheNew}${LangExt}"
 			local project=${CodeProject}
 			case ${project} in
 				none)
 					if [ ! -z "${TheNew}" ]; then
-						TheOld="${TheOld%${LangExt}}"
-						TheNew="${TheNew%${LangExt}}"
+						TheOld=$(UseBash "removeExt" ${TheOld})
+						TheNew=$(UseBash "removeExt" ${TheNew})
 						sed "s/${TheOld}/${TheNew}/g" ${LangSrc}/${TheOld}${LangExt} > ${LangSrc}/${TheNew}${LangExt}
 
 						#Remove old file for "rename"
@@ -943,8 +961,8 @@ UseBash()
 						#File is in current dir
 						if [ -f ${TheNew} ]; then
 							#Remove the extention
-							TheOld="${TheOld%${LangExt}}"
-							TheNew="${TheNew%${LangExt}}"
+							TheOld=$(UseBash "removeExt" ${TheOld})
+							TheNew=$(UseBash "removeExt" ${TheNew})
 							sed "s/${TheOld}/${TheNew}/g" ${TheOld}${LangExt} > ${TheNew}${LangExt}
 
 							#Remove old file for "rename"
@@ -968,8 +986,8 @@ UseBash()
 									#Get the file
 									TheFound=${TheFound##*/}
 									#Remove the extention
-									TheOld="${TheOld%${LangExt}}"
-									TheNew="${TheNew%${LangExt}}"
+									TheOld=$(UseBash "removeExt" ${TheOld})
+									TheNew=$(UseBash "removeExt" ${TheNew})
 									sed "s/${TheOld}/${TheNew}/g" ${TheDir}/${TheOld}${LangExt} > ${TheDir}/${TheNew}${LangExt}
 
 									#Remove old file for "rename"

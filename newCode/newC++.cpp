@@ -8,7 +8,7 @@
 static void help()
 {
 	std::string ProgName = "newC++";
-	std::string Version = "0.1.08";
+	std::string Version = "0.1.09";
 	print("Author: Joespider");
 	print("Program: \"" << ProgName << "\"");
 	print("Version: " << Version);
@@ -16,6 +16,7 @@ static void help()
 	print("Usage: " << ProgName << " <args>");
 	print("\t-n <name> : program name");
 	print("\t--name <name> : program name");
+	print("\t--ext <extension> : choose an extension (.cpp is default)");
 	print("\t--cli : enable command line (Main file ONLY)");
 	print("\t--main : main file");
 	print("\t--random : enable \"random\" int method");
@@ -105,9 +106,9 @@ static std::string getMain(bool Args, bool getRandom)
 }
 
 //create new c++ program
-static void CreateNew(std::string filename, std::string content)
+static void CreateNew(std::string filename, std::string content, std::string ext)
 {
-	filename = filename+".cpp";
+	filename = filename+ext;
 	std::ofstream myfile;
 	myfile.open(filename.c_str());
 	myfile << content;
@@ -129,6 +130,7 @@ int main(int argc, char** argv)
 {
 	bool NameIsNotOk = true;
 	bool getName = false;
+	bool getExt = false;
 	bool getArgs = false;
 	bool getRand = false;
 	bool getWrite = false;
@@ -137,6 +139,7 @@ int main(int argc, char** argv)
 	bool getRawIn = false;
 	bool IsMain = false;
 	std::string UserIn = "";
+	std::string TheExt = ".cpp";
 	std::string CName = "";
 	std::string Imports = "";
 	std::string MarcoPrint = "";
@@ -156,6 +159,11 @@ int main(int argc, char** argv)
 			if ((UserIn == "-n") || (UserIn == "--name"))
 			{
 				getName = true;
+			}
+			//Get source code extension
+			else if (UserIn == "--ext")
+			{
+				getExt = true;
 			}
 			//Get cli arg in main method
 			else if (UserIn == "--cli")
@@ -207,7 +215,19 @@ int main(int argc, char** argv)
 				{
 					CName = UserIn;
 				}
+				NameIsNotOk == true;
 				getName = false;
+			}
+			//capture source code extension
+			else if (getExt == true)
+			{
+				NameIsNotOk = IsIn(UserIn,"--");
+				if (NameIsNotOk == false)
+				{
+					TheExt = UserIn;
+				}
+				NameIsNotOk == true;
+				getExt = false;
 			}
 		}
 		//Ensure program name is given
@@ -227,7 +247,7 @@ int main(int argc, char** argv)
 				Main = "";
 			}
 			Content = Imports+Marcos+Methods+Main;
-			CreateNew(CName,Content);
+			CreateNew(CName,Content,TheExt);
 		}
 		//No Program name...show help page
 		else

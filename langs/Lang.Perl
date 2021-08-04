@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.56"
+SupportV="0.1.57"
 Lang=Perl
 LangExt=".pl"
 #Color Purple
@@ -118,6 +118,19 @@ UsePerl()
 			local project=${CodeProject}
 			echo ${LangProject}/${project}
 			;;
+		removeExt)
+			local SourceFile=$1
+			if [ ! -z "${SourceFile}" ]; then
+				case ${SourceFile} in
+					*${LangExt})
+						echo ${SourceFile%${LangExt}}
+						;;
+					*)
+						echo ${SourceFile}
+						;;
+				esac
+			fi
+			;;
 		getBin)
 			local srcCode=$(echo $1 | sed "s/${LangExt}//g")
 			if [ ! -z "${srcCode}" ]; then
@@ -140,7 +153,7 @@ UsePerl()
 			;;
 		getCode)
 			local name=$1
-			name=${name%${LangExt}}
+			name=$(UsePerl "removeExt" ${name})
 			local project=${CodeProject}
 			local newName
 			local DirPath
@@ -252,7 +265,8 @@ UsePerl()
 			local TheSrcDir
 			#Correct filename
 			if [ ! -z "${name}" ]; then
-				name=${name%${LangExt}}${LangExt}
+				name=$(UsePerl "removeExt" ${name})
+				name=${name}${LangExt}
 				case ${project} in
 					#not a project
 					none)
@@ -291,11 +305,13 @@ UsePerl()
 						TheSrcDir="${LangProject}/${project}/src/"
 						case ${Type} in
 							addCode)
-								new=${new%${LangExt}}${LangExt}
+								new=$(UsePerl "removeExt" ${new})
+								new=${new}${LangExt}
 								LookFor=${new}
 								;;
 							selectCode)
-								name=${name%${LangExt}}${LangExt}
+								name=$(UsePerl "removeExt" ${name})
+								name=${name}${LangExt}
 								LookFor=${name}
 								;;
 							*)
@@ -311,7 +327,7 @@ UsePerl()
 									addCode)
 										new=$(find ${TheSrcDir} -name ${new} 2> /dev/null)
 										if [ -f ${new} ]; then
-											new=${new%${LangExt}}
+											new=$(UsePerl "removeExt" ${new})
 											newName=${new##*/}
 											echo "${name},${newName}${LangExt}"
 										else
@@ -321,7 +337,7 @@ UsePerl()
 									selectCode)
 										name=$(find ${TheSrcDir} -name ${name} 2> /dev/null)
 										if [ -f ${name} ]; then
-											name=${name%${LangExt}}
+											name=$(UsePerl "removeExt" ${name})
 											newName=${name##*/}
 											echo ${newName}${LangExt}
 										fi
@@ -346,7 +362,8 @@ UsePerl()
 		rmBin|rmSrc)
 			local name=$1
 			local ThePath
-			name=${name%${LangExt}}${LangExt}
+			name=$(UsePerl "removeExt" ${name})
+			name=${name}${LangExt}
 			case ${Type} in
 				rmBin)
 					ThePath=${LangBin}
@@ -692,7 +709,7 @@ UsePerl()
 			local project=${CodeProject}
 
 			Type=${Type,,}
-			name=${name%${LangExt}}
+			name=$(UsePerl "removeExt" ${name})
 			if [ ! -f ${name}${LangExt} ]; then
 				#Check for Custom Code Template
 				if [ -f ${TemplateCode} ]; then
@@ -767,7 +784,8 @@ UsePerl()
 			;;
 		backup|restore)
 			local name=$1
-			name="${name%${LangExt}}${LangExt}"
+			name=$(UsePerl "removeExt" ${name})
+			name="${name}${LangExt}"
 			local project=${CodeProject}
 			local TheDir
 			local TheCount
@@ -859,16 +877,16 @@ UsePerl()
 			;;
 		#create a copy of set code
 		copy|rename)
-			local TheOld=$1
-			local TheNew=$2
-			TheOld="${TheOld%${LangExt}}${LangExt}"
-			TheNew="${TheNew%${LangExt}}${LangExt}"
+			local TheOld=$(UsePerl "removeExt" $1)
+			local TheNew=$(UsePerl "removeExt" $2)
+			TheOld="${TheOld}${LangExt}"
+			TheNew="${TheNew}${LangExt}"
 			local project=${CodeProject}
 			case ${project} in
 				none)
 					if [ ! -z "${TheNew}" ]; then
-						TheOld="${TheOld%${LangExt}}"
-						TheNew="${TheNew%${LangExt}}"
+						TheOld=$(UsePerl "removeExt" ${TheOld})
+						TheNew=$(UsePerl "removeExt" ${TheNew})
 						sed "s/${TheOld}/${TheNew}/g" ${LangSrc}/${TheOld}${LangExt} > ${LangSrc}/${TheNew}${LangExt}
 
 						#Remove old file for "rename"
@@ -889,8 +907,8 @@ UsePerl()
 						#File is in current dir
 						if [ -f ${TheNew} ]; then
 							#Remove the extention
-							TheOld="${TheOld%${LangExt}}"
-							TheNew="${TheNew%${LangExt}}"
+							TheOld=$(UsePerl "removeExt" ${TheOld})
+							TheNew=$(UsePerl "removeExt" ${TheNew})
 							sed "s/${TheOld}/${TheNew}/g" ${TheOld}${LangExt} > ${TheNew}${LangExt}
 
 							#Remove old file for "rename"
@@ -914,8 +932,8 @@ UsePerl()
 									#Get the file
 									TheFound=${TheFound##*/}
 									#Remove the extention
-									TheOld="${TheOld%${LangExt}}"
-									TheNew="${TheNew%${LangExt}}"
+									TheOld=$(UsePerl "removeExt" ${TheOld})
+									TheNew=$(UsePerl "removeExt" ${TheNew})
 									sed "s/${TheOld}/${TheNew}/g" ${TheDir}/${TheOld}${LangExt} > ${TheDir}/${TheNew}${LangExt}
 
 									#Remove old file for "rename"
