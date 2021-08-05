@@ -187,12 +187,27 @@ UseC++()
 				echo ""
 			fi
 			;;
+		hasExt)
+			local SourceFile=$1
+			if [ ! -z "${SourceFile}" ]; then
+				case ${SourceFile,,} in
+					*.cpp|*.cc|*.cxx|*.c++)
+						echo ${Lang}
+						;;
+					*)
+						;;
+				esac
+			fi
+			;;
 		removeExt)
 			local SourceFile=$1
 			if [ ! -z "${SourceFile}" ]; then
 				case ${SourceFile} in
 					*.cpp)
 						echo ${SourceFile%.cpp}
+						;;
+					*.CPP)
+						echo ${SourceFile%.CPP}
 						;;
 					*.cc)
 						echo ${SourceFile%.cc}

@@ -140,6 +140,18 @@ UseGo()
 			local project=${CodeProject}
 			echo ${LangProject}/${project}
 			;;
+		hasExt)
+			local SourceFile=$1
+			if [ ! -z "${SourceFile}" ]; then
+				case ${SourceFile,,} in
+					*${LangExt})
+						echo ${Lang}
+						;;
+					*)
+						;;
+				esac
+			fi
+			;;
 		removeExt)
 			local SourceFile=$1
 			if [ ! -z "${SourceFile}" ]; then

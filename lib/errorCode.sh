@@ -46,7 +46,7 @@ errorCode()
 				no-langs)
 					errorCode "ERROR"
 					errorCode "ERROR" "No Languages installed"
-					errorCode "ERROR" "Please Lang.<language> in \"${LangsDir}/\""
+					errorCode "ERROR" "Please ensure Lang.<language> is in \"${LangsDir}/\" and given permission to execute"
 					;;
 				*)
 					;;

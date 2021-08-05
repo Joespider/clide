@@ -261,7 +261,7 @@ CliHelp()
 				--read)
 					RunHelp
 					;;
-				--list|--list-cpl)
+				--list|--list-cpl|--lscpl)
 					listHelp ${example}
 					;;
 				-p|--project)
@@ -286,6 +286,7 @@ CliHelp()
 					echo -e "--read <args>\t\t\t: \"Read out (cat) source code\""
 					echo -e "--list <lang>\t\t\t: \"List source code\""
 					echo -e "--list-cpl <lang>\t\t: \"List compiled code\""
+					echo -e "--lscpl <lang>\t\t: \"List compiled code\""
 					echo -e "-p, --project <args>\t\t: \"List or Load Clide Projects\""
 					echo ""
 					echo -e "\"Need more information? Just ask!\""

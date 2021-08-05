@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.83"
+SupportV="0.1.84"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -172,11 +172,23 @@ UseJava()
 			local project=${CodeProject}
 			echo ${LangProject}/${project}
 			;;
+		hasExt)
+			local SourceFile=$1
+			if [ ! -z "${SourceFile}" ]; then
+				case ${SourceFile,,} in
+					*${LangExt}|*.class|*.jar)
+						echo ${Lang}
+						;;
+					*)
+						;;
+				esac
+			fi
+			;;
 		removeExt)
 			local SourceFile=$1
 			if [ ! -z "${SourceFile}" ]; then
 				case ${SourceFile} in
-					*${LangExt})
+					*${LangExt}|*.class|*.jar)
 						echo ${SourceFile%${LangExt}}
 						;;
 					*)
@@ -200,8 +212,19 @@ UseJava()
 					TheItem=$(echo ${srcCode} | cut -d ',' -f ${look})
 					TheItem=$(UseJava "removeExt" "${TheItem}")
 
-					IsJar=$(echo ${CplList} | tr '|' '\n' | grep -w ${TheItem}.jar)
-					IsClass=$(echo ${CplList} | tr '|' '\n' | grep -w ${TheItem}.class)
+					case ${TheItem} in
+						*.jar)
+							IsJar=$(echo ${CplList} | tr '|' '\n' | grep -w ${TheItem})
+							;;
+						*.class)
+							IsClass=$(echo ${CplList} | tr '|' '\n' | grep -w ${TheItem})
+							;;
+						*)
+							IsJar=$(echo ${CplList} | tr '|' '\n' | grep -w ${TheItem}.jar)
+							IsClass=$(echo ${CplList} | tr '|' '\n' | grep -w ${TheItem}.class)
+							;;
+					esac
+
 					if [ ! -z "${IsJar}" ] || [ ! -z "${IsClass}" ] ; then
 						if [ ! -z "${IsJar}" ]; then
 							TheCpl=${IsJar}

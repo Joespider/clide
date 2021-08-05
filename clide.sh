@@ -885,15 +885,7 @@ runCode()
 	local Args=( $@ )
 	local First="${Args[0]}"
 	local JavaProp="none"
-	local TheBin=""
-	case ${name} in
-		*,*)
-			TheBin=$(ManageLangs ${Lang} "getBin" "${name}")
-			;;
-		*)
-			TheBin=${name}
-			;;
-	esac
+	local TheBin=$(ManageLangs ${Lang} "getBin" "${name}")
 	#Come up with a way to know if arguments are needed
 	TheLang=$(color "${Lang}")
 	#User Wishes to provide arments for program
@@ -2318,6 +2310,7 @@ SelectLangByCode()
 	local look
 	local text
 	local LangExt
+	local LangByExt
 	local ChosenLangs
 	if [ ! -z "${GetExt}" ]; then
 		case ${GetExt} in
@@ -2353,15 +2346,10 @@ SelectLangByCode()
 						no)
 							;;
 						*)
-							LangExt=$(ManageLangs ${text} "getExt")
-							case ${GetExt} in
-								*${LangExt})
-									pgLang ${text}
-									break
-									;;
-								*)
-									;;
-							esac
+							LangByExt=$(ManageLangs ${text} "hasExt" "${GetExt}")
+							if [ ! -z "${LangByExt}" ]; then
+								pgLang ${text}
+							fi
 							;;
 					esac
 					look=$((${look}+1))
@@ -2994,14 +2982,6 @@ main()
 									fi
 									;;
 								*)
-									shift
-									shift
-									CodeDir=$(pgDir ${Lang})
-									if [ ! -z "${CodeDir}" ]; then
-										cd ${CodeDir}
-										Code=$(selectCode ${Lang} ${Code})
-										cd - > /dev/null
-									fi
 									;;
 							esac
 
@@ -3071,7 +3051,7 @@ main()
 						;;
 				esac
 				;;
-			--list-cpl)
+			--list-cpl|--lscpl)
 				shift
 				local Lang=$(pgLang $1)
 				case ${Lang} in
