@@ -254,7 +254,7 @@ UseC++()
 						;;
 					*)
 						local ext=${LangExt}
-						local ThePosSrcs=".cpp .cc .cxx .c++"
+						local ThePosSrcs=".cpp,.cc,.cxx,.c++"
 						CheckForCpp=$(UseC++ "getProjSrc" ${name}${ext} 2> /dev/null)
 						if [ -z "${CheckForCpp}" ]; then
 							local look=1
@@ -301,7 +301,7 @@ UseC++()
 						;;
 					*)
 						local ext=${LangOtherExt}
-						local ThePosHeaders=".h .hh .hpp .hxx .h++"
+						local ThePosHeaders=".h,.hh,.hpp,.hxx,.h++"
 						CheckForHeader=$(UseC++ "getProjSrc" ${name}${ext} 2> /dev/null)
 						if [ -z "${CheckForHeader}" ]; then
 							local look=1
