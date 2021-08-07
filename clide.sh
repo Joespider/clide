@@ -1261,13 +1261,53 @@ Actions()
 				clear)
 					clear
 					;;
-				#Set for session
-				set)
-					if [ -z "${Code}" ]; then
-						Code=$(selectCode ${Lang} ${UserIn[1]} ${Code})
-						refresh="yes"
+				#Set for session or add code to session
+				set|add)
+					local theExt
+					local theOtherExt
+					local newCode
+					local OldCode
+					if [ ! -z "${Code}" ]; then
+						if [ ! -z "${UserIn[1]}" ]; then
+							theExt=$(ManageLangs ${Lang} "getExt")
+							theOtherExt=$(ManageLangs ${Lang} "getOtherExt")
+							newCode=${UserIn[1]}
+							newCode=$(ManageLangs ${Lang} "removeExt" ${newCode})
+							#Ensure Code is not added twice
+							if [[ ! "${Code}" == *"${newCode}${theExt}"* ]] || [[ ! "${Code}" == *"${newCode}${theOtherExt}"* ]]; then
+								OldCode=${Code}
+								Code=$(ManageLangs ${Lang} "addCode" ${Code} ${UserIn[1]})
+								#make sure code has changed
+								case ${Code} in
+									#Code has not changed...do nothing
+									${OldCode})
+										errorCode "selectCode" "already"
+										;;
+									#Code has changed
+									*)
+										#refresh
+										refresh="yes"
+										;;
+								esac
+							#Code is trying to be added twice
+							else
+								errorCode "selectCode" "already"
+							fi
+						else
+							errorCode "selectCode" "nothing"
+						fi
 					else
-						errorCode "selectCode" "exists"
+						case ${UserArg} in
+							set)
+								Code=$(selectCode ${Lang} ${UserIn[1]} ${Code})
+								refresh="yes"
+								;;
+							add)
+								errorCode "selectCode" "set"
+								;;
+							*)
+								;;
+						esac
 					fi
 					;;
 				#Unset code for session
@@ -1284,10 +1324,14 @@ Actions()
 				#Delete source code
 				rmsrc)
 					Remove "--src" ${Code} ${UserIn[1]} ${UserIn[2]}
+					Code=""
+					refresh="yes"
 					;;
 				#Delete binary
 				rmbin)
 					Remove "--bin" ${Code} ${UserIn[1]} ${UserIn[2]}
+					Code=""
+					refresh="yes"
 					;;
 				#Display the language being used
 				using)
@@ -1739,6 +1783,7 @@ Actions()
 							local BeforeFiles=""
 							local AfterFiles=""
 							local Type=""
+							local NewCode
 							BeforeFiles=$(ManageLangs ${Lang} "BeforeFiles")
 							#Create new code
 							ManageLangs ${Lang} "customCode" ${Lang} ${cLang}
@@ -1757,77 +1802,78 @@ Actions()
 							;;
 						#Create new src file
 						*)
+							local IsOk
 							local project=${CodeProject}
-								#Ensure filename is given
+							#Ensure filename is given
 							if [ ! -z "${UserIn[1]}" ]; then
-								if [[ "${UserIn[1]}" == *","* ]]; then
-									errorCode "newCode" "one-at-a-time"
-									IsOk="no"
-								elif [[ "${UserIn[1]}" == *";"* ]]; then
-									errorCode "newCode" "one-at-a-time"
-									IsOk="no"
-								else
-									local IsOk
-									local TheFile="${UserIn[1]}"
-									#Remove the extensions
-									TheFile=$(ManageLangs ${Lang} "removeExt" ${TheFile})
-									local TheExt=$(ManageLangs ${Lang} "getExt")
-									local TheOtherExt=$(ManageLangs ${Lang} "getOtherExt")
+								case ${UserIn[1]} in
+									*","*|*";"*)
+										errorCode "newCode" "one-at-a-time"
+										IsOk="no"
+										;;
+									*)
+										local TheFile="${UserIn[1]}"
+										#Remove the extensions
+										TheFile=$(ManageLangs ${Lang} "removeExt" ${TheFile})
+										local TheExt=$(ManageLangs ${Lang} "getExt")
+										local TheOtherExt=$(ManageLangs ${Lang} "getOtherExt")
 
-									#Language has more than one extension
-									if [ ! -z "${TheOtherExt}" ]; then
-										#make sure file does not exist
+										#Language has more than one extension
+										if [ ! -z "${TheOtherExt}" ]; then
+											#make sure file does not exist
 											if [ ! -f ${TheFile}${TheExt} ] || [ ! -f ${TheFile}${TheOtherExt} ]; then
-											IsOk="yes"
+												IsOk="yes"
+											else
+												IsOk="no"
+											fi
+										#Language has one extension
 										else
-											IsOk="no"
+											#make sure file does not exist
+											if [ ! -f ${TheFile}${TheExt} ]; then
+												IsOk="yes"
+											else
+												IsOk="no"
+											fi
 										fi
-									#Language has one extension
-									else
-										#make sure file does not exist
-										if [ ! -f ${TheFile}${TheExt} ]; then
-											IsOk="yes"
-										else
-											IsOk="no"
-										fi
-									fi
-
-									#Make sure it is ok to create the source code
-									case ${IsOk} in
-										yes)
-											#Return the name of source code
-											ManageLangs ${Lang} "newCode" ${UserIn[1]} ${UserIn[2]} ${Code}
-											if [ ! -z "${Code}" ]; then
-												local OldCode=${Code}
-												local NewCode=$(ManageLangs ${Lang} "getCode" ${UserIn[1]} ${OldCode})
-												case ${OldCode} in
-													*"${NewCode}"*)
-														errorCode "selectCode" "already"
+										#Make sure it is ok to create the source code
+										case ${IsOk} in
+											yes)
+												#Return the name of source code
+												ManageLangs ${Lang} "newCode" ${UserIn[1]} ${UserIn[2]} ${Code}
+												if [ ! -z "${Code}" ]; then
+													local OldCode=${Code}
+													local NewCode=$(ManageLangs ${Lang} "getCode" ${UserIn[1]} ${OldCode})
+													if [ ! -z "${NewCode}" ]; then
+														case ${OldCode} in
+															*"${NewCode}"*)
+																errorCode "selectCode" "already"
+																;;
+															*)
+																Code=$(ManageLangs ${Lang} "addCode" ${OldCode} ${NewCode})
+																;;
+														esac
+													fi
+												else
+													Code=$(ManageLangs ${Lang} "getCode" ${UserIn[1]} ${OldCode})
+												fi
+												refresh="yes"
+												;;
+											no)
+												#Jump-in and Jump-out
+												case ${InAndOut} in
+													yes)
+														errorCode "newCode" "cli-already"
 														;;
 													*)
-														Code=$(ManageLangs ${Lang} "addCode" ${OldCode} ${NewCode})
+														errorCode "newCode" "already"
 														;;
 												esac
-											else
-												Code=$(ManageLangs ${Lang} "getCode" ${UserIn[1]} ${OldCode})
-											fi
-											refresh="yes"
-											;;
-											no)
-											#Jump-in and Jump-out
-											case ${InAndOut} in
-												yes)
-													errorCode "newCode" "cli-already"
-													;;
-												*)
-													errorCode "newCode" "already"
-													;;
-											esac
-											;;
-										*)
-											;;
-									esac
-								fi
+												;;
+											*)
+												;;
+										esac
+										;;
+								esac
 							else
 								theHelp newCodeHelp ${Lang}
 							fi
@@ -1860,32 +1906,6 @@ Actions()
 							ManageLangs ${Lang} "editCode" ${Code} ${UserIn[1]}
 							;;
 					esac
-					;;
-				#Add code to Source Code
-				add)
-					local theExt
-					local theOtherExt
-					local newCode
-					if [ ! -z "${Code}" ]; then
-						if [ ! -z "${UserIn[1]}" ]; then
-							theExt=$(ManageLangs ${Lang} "getExt")
-							theOtherExt=$(ManageLangs ${Lang} "getOtherExt")
-							newCode=${UserIn[1]}
-							newCode=$(ManageLangs ${Lang} "removeExt" ${newCode})
-							#Ensure Code is not added twice
-							if [[ ! "${Code}" == *"${newCode}${theExt}"* ]] || [[ ! "${Code}" == *"${newCode}${theOtherExt}"* ]]; then
-								Code=$(ManageLangs ${Lang} "addCode" ${Code} ${newCode})
-								refresh="yes"
-							#Code is trying to be added twice
-							else
-								errorCode "selectCode" "already"
-							fi
-						else
-							errorCode "selectCode" "nothing"
-						fi
-					else
-						errorCode "selectCode" "set"
-					fi
 					;;
 				#Read code without editing
 				${ReadBy}|read)

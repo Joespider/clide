@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.36"
+SupportV="0.1.37"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
@@ -166,6 +166,18 @@ UseC()
 				case ${SourceFile,,} in
 					*${LangExt})
 						echo ${Lang}
+						;;
+					*)
+						;;
+				esac
+			fi
+			;;
+		hasExtForCpl)
+			local SourceFile=$1
+			if [ ! -z "${SourceFile}" ]; then
+				case ${SourceFile,,} in
+					*${LangExt}*)
+						echo "yes"
 						;;
 					*)
 						;;
@@ -420,7 +432,14 @@ UseC()
 											*${LangExt}|*${LangOtherExt})
 												#Append file
 												if [ -f "${new}" ]; then
-													echo "${name},${new}"
+													case ${name} in
+														*${new}*)
+															echo "${name}"
+															;;
+														*)
+															echo "${name},${new}"
+															;;
+													esac
 												else
 													echo "${name}"
 												fi
@@ -432,14 +451,28 @@ UseC()
 													*"${new}${LangExt}"*)
 														#Append header files
 														if [ -f "${new}${LangOtherExt}" ]; then
-															echo "${name},${new}${LangOtherExt}"
+															case ${name} in
+																*${new}${LangOtherExt}*)
+																	echo "${name}"
+																	;;
+																*)
+																	echo "${name},${new}${LangOtherExt}"
+																	;;
+															esac
 														fi
 														;;
 													#source code contains header file
 													*"${new}${LangOtherExt}"*)
 														#Append cpp files
 														if [ -f "${new}${LangExt}" ]; then
-															echo "${name},${new}${LangExt}"
+															case ${name} in
+																*${new}${LangExt}*)
+																	echo "${name}"
+																	;;
+																*)
+																	echo "${name},${new}${LangExt}"
+																	;;
+															esac
 														fi
 														;;
 													*)
@@ -467,6 +500,8 @@ UseC()
 						;;
 					#is a project
 					*)
+						local CheckForSrc
+						local CheckForHeader
 						local LookFor
 
 						#"set" or "add"
@@ -480,9 +515,12 @@ UseC()
 										;;
 									*)
 										#Correct filename
-										if [[ ! "${name}" == *"${LangExt}" ]]; then
+										name=$(UseC "removeExt" ${name})
+										CheckForSrc=$(UseC "getProjSrc" ${name}${LangExt} 2> /dev/null)
+										CheckForHeader=$(UseC "getProjSrc" ${name}${LangOtherExt} 2> /dev/null)
+										if [ ! -z "${CheckForSrc}" ]; then
 											name="${name}${LangExt}"
-										elif [[ ! "${name}" == *"${LangOtherExt}" ]]; then
+										elif [ ! -z "${CheckForHeader}" ]]; then
 											name="${name}${LangOtherExt}"
 										fi
 										;;
@@ -513,10 +551,10 @@ UseC()
 														;;
 													*)
 														new=$(UseC "removeExt" ${new})
-														local CheckForC=$(UseC "getProjSrc" ${new}${LangExt} 2> /dev/null)
-														local CheckForHeader=$(UseC "getProjSrc" ${new}${LangOtherExt} 2> /dev/null)
+														CheckForSrc=$(UseC "getProjSrc" ${new}${LangExt} 2> /dev/null)
+														CheckForHeader=$(UseC "getProjSrc" ${new}${LangOtherExt} 2> /dev/null)
 														#Append cpp files
-														if [ ! -z "${CheckForC}" ]; then
+														if [ ! -z "${CheckForSrc}" ]; then
 															new="${new}${LangExt}"
 														#Append header files
 														elif [ ! -z "${CheckForHeader}" ]; then
@@ -930,6 +968,7 @@ UseC()
 			local cplArgs=${CplArgs//,/ }
 			local IsVerbose
 			local project=${CodeProject}
+			local HasAnExt
 			local NeedThreads
 			local HasXlib
 			local HasXutil
@@ -990,8 +1029,10 @@ UseC()
 					;;
 			esac
 
+			HasAnExt=$(UseC++ "hasExt" ${src})
+
 			#Compile ONLY if source code is selected OR makefile is present
-			if [[ "$src" == *"${LangExt}"* ]] || [ -f ${LangProject}/${project}makefile ]; then
+			if [ ! -z "${HasAnExt}" ] || [ -f ${LangProject}/${project}makefile ]; then
 				cd ${TheSrcDir}
 				case ${cplArgs} in
 					none)
@@ -1336,24 +1377,24 @@ UseC()
 							#Is not a project
 							none)
 								#Looks like you have source code already set
+								TheName=$(UseC "removeExt" ${name})
 								if [ ! -z "${oldCode}" ]; then
-									TheName=$(UseC "removeExt" ${name})
-									case ${TheName}${LangExt} in
-										#In the event you have a name.cpp file, also make a name.h file
-										*"${oldCode}"*)
-											#echo "header"
-											UseC "newCode" ${TheName}${LangOtherExt} "header" ${oldCode}
-											;;
-										#In the event you already have a main file, create a component
-										*)
-											#echo "component"
-											UseC "newCode" ${name} "component" ${oldCode}
-											;;
-									esac
+									if [ -f ${TheName}${LangExt} ]; then
+										#echo "header"
+										UseC "newCode" ${TheName}${LangOtherExt} "header" ${oldCode}
+									else
+										#echo "component"
+										UseC "newCode" ${name} "component" ${oldCode}
+									fi
 								#No source code has been made, create a main file
 								else
-									#echo "main"
-									UseC "newCode" ${name} "main"
+									if [ ! -f ${TheName}${LangExt} ]; then
+										#echo "main"
+										UseC "newCode" ${name} "main"
+									else
+										#echo "header"
+										UseC "newCode" ${TheName}${LangOtherExt} "header"
+									fi
 								fi
 								;;
 							#Is a project

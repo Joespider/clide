@@ -1057,7 +1057,7 @@ UseJava()
 		#Create new code
 		newCode)
 			local name=$1
-			local Type=$2
+			local TheOfType=$2
 			local oldCode=$3
 			local project=${CodeProject}
 			local newName
@@ -1068,18 +1068,18 @@ UseJava()
 			local TemplateC=${TemplateCodeClass##*/}
 			TemplateC=${TemplateC%.*}
 
-			#Sometimes "oldCode" gets passed as "Type"
+			#Sometimes "oldCode" gets passed as "TheOfType"
 			if [ -z "${oldCode}" ]; then
-				case ${Type} in
+				case ${TheOfType} in
 					*${LangOtherExt}|*${LangExt})
-						oldCode=${Type}
+						oldCode=${TheOfType}
 						;;
 					*)
 						;;
 				esac
 			fi
 
-			Type=${Type,,}
+			TheOfType=${TheOfType,,}
 			name=$(UseJava "removeExt" "${name}")
 			local TheSrcDir
 
@@ -1103,7 +1103,7 @@ UseJava()
 					esac
 						#Check for Custom Code Template...is class
 						if [ -f ${TemplateCodeClass} ]; then
-							case ${Type} in
+							case ${TheOfType} in
 								#create main file
 								main)
 									#echo "main"
@@ -1172,7 +1172,7 @@ UseJava()
 							esac
 						#Check for Custom Code Template...is jar
 						elif [ -f ${TemplateCodeJar} ]; then
-							case ${Type} in
+							case ${TheOfType} in
 								#create main file
 								main)
 									#echo "main"
