@@ -2,7 +2,7 @@ Shell=$(which bash)
 #!${Shell}
 
 #https://www3.ntu.edu.sg/home/ehchua/programming/cpp/gcc_make.html
-SupportV="0.1.90"
+SupportV="0.1.91"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -235,92 +235,77 @@ UseC++()
 				esac
 			fi
 			;;
-		FindTheSrc)
+		FindTheSrc|FindTheHeader)
 			local name=$1
 			local project=${CodeProject}
-			local CheckForCpp
+			local CheckForFile
+			local ThePossible
+			local ext
 			if [ ! -z "${name}" ]; then
 				case ${project} in
 					none)
-						if [ -f "${name}.cpp" ]; then
-							echo "${name}.cpp"
-						elif [ -f "${name}.cc" ]; then
-							echo "${name}.cc"
-						elif [ -f "${name}.cxx" ]; then
-							echo "${name}.cxx"
-						elif [ -f "${name}.c++" ]; then
-							echo "${name}.c++"
-						fi
+						case ${Type} in
+							FindTheSrc)
+								if [ -f "${name}.cpp" ]; then
+									echo "${name}.cpp"
+								elif [ -f "${name}.cc" ]; then
+									echo "${name}.cc"
+								elif [ -f "${name}.cxx" ]; then
+									echo "${name}.cxx"
+								elif [ -f "${name}.c++" ]; then
+									echo "${name}.c++"
+								fi
+								;;
+							FindTheHeader)
+								if [ -f "${name}.h" ]; then
+									echo "${name}.h"
+								elif [ -f "${name}.hh" ]; then
+									echo "${name}.hh"
+								elif [ -f "${name}.hpp" ]; then
+									echo "${name}.hpp"
+								elif [ -f "${name}.hxx" ]; then
+									echo "${name}.hxx"
+								elif [ -f "${name}.h++" ]; then
+									echo "${name}.h++"
+								fi
+								;;
+							*)
+								;;
+						esac
+
 						;;
 					*)
-						local ext=${LangExt}
-						local ThePosSrcs=".cpp,.cc,.cxx,.c++"
-						CheckForCpp=$(UseC++ "getProjSrc" ${name}${ext} 2> /dev/null)
-						if [ -z "${CheckForCpp}" ]; then
+						case ${Type} in
+							FindTheSrc)
+								ext=${LangExt}
+								ThePossible=".cpp,.cc,.cxx,.c++"
+								;;
+							FindTheHeader)
+								ext=${LangOtherExt}
+								ThePossible=".h,.hh,.hpp,.hxx,.h++"
+								;;
+							*)
+								;;
+						esac
+						CheckForFile=$(UseC++ "getProjSrc" ${name}${ext} 2> /dev/null)
+						if [ -z "${CheckForFile}" ]; then
 							local look=1
 							#Get the number of set source code
-							local NumOfSrcs=$(echo ${ThePosSrs} | tr ',' '\n' | wc -l)
+							local NumOfSrcs=$(echo ${ThePossible} | tr ',' '\n' | wc -l)
 							while [ ${look} -le ${NumOfSrcs} ];
 							do
 								#Choose one item
-								ext=$(echo ${ThePosSrs} | cut -d ',' -f ${look})
+								ext=$(echo ${ThePossible} | cut -d ',' -f ${look})
 
-								CheckForCpp=$(UseC++ "getProjSrc" ${name}${ext} 2> /dev/null)
-								if [ ! -z "${CheckForCpp}" ]; then
-									echo ${CheckForCpp}
+								CheckForFile=$(UseC++ "getProjSrc" ${name}${ext} 2> /dev/null)
+								if [ ! -z "${CheckForFile}" ]; then
+									echo ${CheckForFile}
 									break
 								fi
 								look=$((${look}+1))
 							done
 						else
-							echo ${CheckForCpp}
-						fi
-						;;
-				esac
-			fi
-			;;
-		FindTheHeader)
-			local name=$1
-			local project=${CodeProject}
-			local CheckForHeader
-
-			if [ ! -z "${name}" ]; then
-				case ${project} in
-					none)
-						if [ -f "${name}.h" ]; then
-							echo "${name}.h"
-						elif [ -f "${name}.hh" ]; then
-							echo "${name}.hh"
-						elif [ -f "${name}.hpp" ]; then
-							echo "${name}.hpp"
-						elif [ -f "${name}.hxx" ]; then
-							echo "${name}.hxx"
-						elif [ -f "${name}.h++" ]; then
-							echo "${name}.h++"
-						fi
-						;;
-					*)
-						local ext=${LangOtherExt}
-						local ThePosHeaders=".h,.hh,.hpp,.hxx,.h++"
-						CheckForHeader=$(UseC++ "getProjSrc" ${name}${ext} 2> /dev/null)
-						if [ -z "${CheckForHeader}" ]; then
-							local look=1
-							#Get the number of set source code
-							local NumOfHs=$(echo ${ThePosHeaders} | tr ',' '\n' | wc -l)
-							while [ ${look} -le ${NumOfHs} ];
-							do
-								#Choose one item
-								ext=$(echo ${ThePosHeaders} | cut -d ',' -f ${look})
-
-								CheckForHeader=$(UseC++ "getProjSrc" ${name}${ext} 2> /dev/null)
-								if [ ! -z "${CheckForHeader}" ]; then
-									echo ${CheckForHeader}
-									break
-								fi
-								look=$((${look}+1))
-							done
-						else
-							echo ${CheckForHeader}
+							echo ${CheckForFile}
 						fi
 						;;
 				esac
@@ -795,14 +780,14 @@ UseC++()
 														;;
 													*)
 														new=$(UseC++ "removeExt" ${new})
-														CheckForCpp=$(UseC++ "getProjSrc" ${new}${LangExt} 2> /dev/null)
-														CheckForHeader=$(UseC++ "getProjSrc" ${new}${LangOtherExt} 2> /dev/null)
+														CheckForCpp=$(UseC++ "FindTheSrc" ${new})
+														CheckForHeader=$(UseC++ "FindTheHeader" ${new})
 														#Append cpp files
 														if [ ! -z "${CheckForCpp}" ]; then
-															new="${new}${LangExt}"
+															new=${CheckForCpp##*/}
 														#Append header files
 														elif [ ! -z "${CheckForHeader}" ]; then
-															new="${new}${LangOtherExt}"
+															new=${CheckForHeader##*/}
 														fi
 														;;
 												esac

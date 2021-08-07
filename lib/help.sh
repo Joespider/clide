@@ -132,15 +132,25 @@ CreateHelp()
 	esac
 }
 
-ProjectHelp()
+ProjectDelete()
 {
 	echo ""
 	echo "----------------[(${Head}) \"Project\" Help]----------------"
 	echo -e "Purpose: \"handle projects\""
+	echo "----------------------------------------------------------"
+	echo ""
+}
+
+ProjectHelp()
+{
+	echo ""8
+	echo "----------------[(${Head}) \"Project\" Help]----------------"
+	echo -e "Purpose: \"handle projects\""
 	echo -e "new <project>\t\t\t: \"Create a new project\""
 	echo -e "import <project> <path>\t\t: \"Import projects\""
-	echo -e "update\t\t\t\t: \"Update the active project\""
+	echo -e "update, save\t\t\t: \"Update the active project\""
 	echo -e "load <project>\t\t\t: \"Choose a project to make active\""
+	echo -e "remove, delete <project>\t\t: \"Choose a project to make active\""
 	echo -e "type\t\t\t\t: \"display the type of project\""
 	echo -e "\tlist\t\t\t: \"Show list of possible project types\""
 	echo -e "list\t\t\t\t: \"List ALL projects\""

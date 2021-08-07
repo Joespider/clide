@@ -1479,14 +1479,69 @@ Actions()
 							esac
 							;;
 						#Update live project
-						update)
+						update|save)
 							updateProject ${Code}
 							echo "\"${CodeProject}\" updated"
+							;;
+						#Delete proejct
+						remove|delete)
+							local project=${UserIn[2]}
+							case ${project} in
+								all)
+									case ${UserArg} in
+										#remove project ONLY from record
+										remove)
+											rm ${ActiveProjectDir}/*.clide
+											echo "ALL projects removed from record"
+											;;
+										#remove project files AND record
+										delete)
+											rm ${ActiveProjectDir}/*.clide
+											echo "Delete ALL projects"
+											;;
+										*)
+											;;
+									esac
+									;;
+								*)
+									if [ ! -z "${project}" ]; then
+										case ${project} in
+											--help)
+												listProjects
+												theHelp ProjectDelete
+												;;
+											*)
+												case ${UserArg} in
+													#remove project ONLY from record
+													remove)
+														if [ -f "${ActiveProjectDir}/${project}.clide" ]; then
+															rm ${ActiveProjectDir}/${project}.clide
+															echo "Project \"${project}\" Removed"
+														fi
+														;;
+													#remove project files AND record
+													delete)
+														if [ -f "${ActiveProjectDir}/${project}.clide" ]; then
+															rm ${ActiveProjectDir}/${project}.clide
+															echo "Project \"${project}\" Deleted"
+														fi
+														;;
+													*)
+														;;
+												esac
+												;;
+										esac
+									else
+										listProjects
+										theHelp ProjectDelete
+									fi
+									;;
+							esac
 							;;
 						#Link a project with another language
 						link)
 							local project=${CodeProject}
-						        local ProjectFile=${ActiveProjectDir}/${project}.clide
+						        local ProjectFile=${ActiveProjectDir}/${project}.clide8
 						        local Already=$(grep "link=" ${ProjectFile})
 						        case ${UserIn[2]} in
 					        	        --list|list)
@@ -2540,7 +2595,7 @@ loadAuto()
 	comp_list "pwd"
 	comp_list "mkdir"
 	comp_list "use" "${pg}"
-	comp_list "project" "discover import load list link mode new swap update title type"
+	comp_list "project" "discover import load list link mode new swap save title type update"
 	comp_list "package" "new"
 	comp_list "shell"
 	comp_list "new" "--version -v --help -h --custom -c"

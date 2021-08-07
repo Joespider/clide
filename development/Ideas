@@ -65,3 +65,11 @@ Status: Implimented
 Status: Implimented
 	Allow for written test cases, like is done in java
 	Have a "test" function
+
+3: Remove existing projects
+Status: New
+	Allow for users to remove their
+	#To remove a specific project
+	ie: projects remove <project>
+	#To remove ALL projects
+	ie: projects remove all
