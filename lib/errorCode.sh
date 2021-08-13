@@ -152,7 +152,7 @@ errorCode()
 				hint)
 					echo ""
 					errorCode "HINT"
-					errorCode "HINT" "To force removal, provide a \"--force\""
+					errorCode "HINT" "To force removal, provide a \"-f\""
 					;;
 				not-file)
 					errorCode "ERROR"
@@ -344,10 +344,11 @@ errorCode()
 					;;
 				none)
 					errorCode "ERROR"
-					errorCode "ERROR" "Your session MUST be a ${thr} Project"
-					errorCode "ERROR" "Please create or load a project"
+					errorCode "ERROR" "Your session MUST be a Project"
+					errorCode "ERROR" "\tPlease create or load a project"
 					errorCode "HINT" "command"
 					errorCode "HINT" "project new <project>"
+					errorCode "HINT" "\tor"
 					errorCode "HINT" "command"
 					errorCode "HINT" "project load <project>"
 					;;

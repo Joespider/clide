@@ -2,7 +2,7 @@ Shell=$(which bash)
 #!${Shell}
 
 #https://www3.ntu.edu.sg/home/ehchua/programming/cpp/gcc_make.html
-SupportV="0.1.91"
+SupportV="0.1.92"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -765,10 +765,12 @@ UseC++()
 									*${LangExt}|*${LangOtherExt})
 										#Add default or header files with file extensions
 										case ${new} in
+											#selected source code has defailt extensions
 											*${LangExt}|*${LangOtherExt})
 												;;
 											#Add cpp or header files without file extensions
 											*)
+												#evaluate selected source code so as to know to add headers or not
 												case ${name} in
 													#source code contains default code
 													*"${new}${LangExt}"*)
@@ -779,15 +781,20 @@ UseC++()
 														new=${new}${LangExt}
 														;;
 													*)
-														new=$(UseC++ "removeExt" ${new})
-														CheckForCpp=$(UseC++ "FindTheSrc" ${new})
-														CheckForHeader=$(UseC++ "FindTheHeader" ${new})
-														#Append cpp files
-														if [ ! -z "${CheckForCpp}" ]; then
-															new=${CheckForCpp##*/}
-														#Append header files
-														elif [ ! -z "${CheckForHeader}" ]; then
-															new=${CheckForHeader##*/}
+														#Evaluate if file exists by extension
+														HasAnExtSrc=$(UseC++ "hasExtForSrc" ${new})
+														HasAnExtHeader=$(UseC++ "hasExtForHeader" ${new})
+														if [ -z "${HasAnExtSrc}" ] || [ -z "${HasAnExtHeader}" ]; then
+															new=$(UseC++ "removeExt" ${new})
+															CheckForCpp=$(UseC++ "FindTheSrc" ${new})
+															CheckForHeader=$(UseC++ "FindTheHeader" ${new})
+															#Append cpp files
+															if [ ! -z "${CheckForCpp}" ]; then
+																new=${CheckForCpp##*/}
+															#Append header files
+															elif [ ! -z "${CheckForHeader}" ]; then
+																new=${CheckForHeader##*/}
+															fi
 														fi
 														;;
 												esac

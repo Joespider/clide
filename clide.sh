@@ -581,7 +581,7 @@ linkProjects()
 		local Langs=$(ls ${LangsDir}/ | sed "s/Lang./|/g")
 		ThePath=$(ManageLangs ${LinkLang} "getProjDir")
 		LinkPath=$(ManageLangs ${Lang} "getProjDir")
-		Langs=${Langs// /}
+		Langs=$(echo ${Langs} | tr -d ' ')
 		Langs="${Langs}|"
 		case ${Langs} in
 			*"|${LinkLang}|"*)
@@ -790,9 +790,9 @@ Remove()
 	local TheFile
 	if [ ! -z "${src}" ]; then
 		case  ${src} in
-			--force)
+			-f)
 				src=${option}
-				option="--force"
+				option="-f"
 				;;
 			*)
 				;;
@@ -801,7 +801,7 @@ Remove()
 		case ${active} in
 			*"${src}"*)
 				case ${option} in
-					--force)
+					-f)
 						case ${BinOnly} in
 							#Remove the binary ONLY
 							--bin)
@@ -822,8 +822,8 @@ Remove()
 								;;
 							#remove ALL
 							--all)
-								Remove --src ${active} ${src} ${option} > /dev/null
-								Remove --bin ${active} ${src} ${option} > /dev/null
+								Remove --bin ${active} ${src} ${option} #> /dev/null
+								Remove --src ${active} ${src} ${option} #> /dev/null
 								;;
 							*)
 								;;
@@ -837,7 +837,7 @@ Remove()
 						read User
 						case ${User} in
 							YES)
-								option="--force"
+								option="-f"
 								clear
 								case ${BinOnly} in
 									--bin)
@@ -847,8 +847,8 @@ Remove()
 										Remove --src ${active} ${src} ${option} > /dev/null
 										;;
 									--all)
-										Remove --src ${active} ${src} ${option} > /dev/null
 										Remove --bin ${active} ${src} ${option} > /dev/null
+										Remove --src ${active} ${src} ${option} > /dev/null
 										;;
 									*)
 										;;
@@ -1483,12 +1483,17 @@ Actions()
 							updateProject ${Code}
 							echo "\"${CodeProject}\" updated"
 							;;
+						#list the project files
+						files)
+							local RemoveDirs=${CodeDir//\//|}
+							find ${CodeDir} -print | tr '/' '|' | sed "s/${RemoveDirs}//g" | tr '|' '/'
+							;;
 						#Delete proejct
 						remove|delete)
 							local project=${UserIn[2]}
 							case ${project} in
 								all)
-									case ${UserArg} in
+									case ${UserIn[1]} in
 										#remove project ONLY from record
 										remove)
 											rm ${ActiveProjectDir}/*.clide
@@ -1541,7 +1546,7 @@ Actions()
 						#Link a project with another language
 						link)
 							local project=${CodeProject}
-						        local ProjectFile=${ActiveProjectDir}/${project}.clide8
+						        local ProjectFile=${ActiveProjectDir}/${project}.clide
 						        local Already=$(grep "link=" ${ProjectFile})
 						        case ${UserIn[2]} in
 					        	        --list|list)
@@ -1565,7 +1570,7 @@ Actions()
 							case ${UserIn[2]} in
 								#list the active projects
 					        	        --list|list)
-				                        		echo ${Already} | sed "s/link=//g" | tr ',' '\n'
+									echo ${Already} | sed "s/link=//g" | tr ',' '\n'
 									;;
 								#swap new language and code
 								*)
@@ -1578,6 +1583,8 @@ Actions()
 											Code=""
 										fi
 									else
+										echo "Linked Languages:"
+										echo ${Already} | sed "s/link=//g" | tr ',' '\n' | nl
 										errorCode "project" "link" "not-link" ${UserIn[2]}
 									fi
 									;;
@@ -2590,12 +2597,12 @@ loadAuto()
 	comp_list "debug"
 	comp_list "set"
 	comp_list "unset"
-	comp_list "rm remove delete rmbin rmsrc" "--force"
+	comp_list "rm remove delete rmbin rmsrc" "-f"
 	comp_list "cd"
 	comp_list "pwd"
 	comp_list "mkdir"
 	comp_list "use" "${pg}"
-	comp_list "project" "discover import load list link mode new swap save title type update"
+	comp_list "project" "delete discover files import load list link mode new remove swap save title type update"
 	comp_list "package" "new"
 	comp_list "shell"
 	comp_list "new" "--version -v --help -h --custom -c"
@@ -2747,6 +2754,52 @@ main()
 										;;
 								esac
 							fi
+							;;
+						--remove|--delete)
+								shift
+								local TheProjectName=$1
+								if [ ! -z "${TheProjectName}" ]; then
+									case ${TheProjectName} in
+										all)
+											case ${GetProject} in
+												#remove project ONLY from record
+												--remove)
+													rm ${ActiveProjectDir}/*.clide 2> /dev/null
+													echo "ALL projects removed from record"
+													;;
+												#remove project files AND record
+												--delete)
+													#rm ${ActiveProjectDir}/*.clide
+													echo "Delete ALL projects"
+													;;
+												*)
+													;;
+											esac
+											;;
+										*)
+											if [ -f "${ActiveProjectDir}/${TheProjectName}.clide" ]; then
+												case ${GetProject} in
+													#remove project ONLY from record
+													--remove)
+														rm ${ActiveProjectDir}/${TheProjectName}.clide 2> /dev/null
+														echo "The project \"${TheProjectName}\" removed from record"
+														;;
+													#remove project files AND record
+													--delete)
+														#rm ${ActiveProjectDir}/*.clide
+														echo "Delete ALL projects"
+														;;
+													*)
+														;;
+												esac
+											else
+												theHelp ProjectCliHelp ${UserArg}
+											fi
+											;;
+									esac
+								else
+									theHelp ProjectCliHelp ${UserArg}
+								fi
 							;;
 						--list)
 							shift
