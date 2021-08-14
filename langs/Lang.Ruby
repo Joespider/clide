@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.53"
+SupportV="0.1.54"
 Lang=Ruby
 LangExt=".rb"
 ColorNum=1
@@ -11,7 +11,7 @@ shift
 
 errorCode()
 {
-        ${LibDir}/errorCode.sh $@
+	${LibDir}/errorCode.sh $@
 }
 
 #Handle Aliases
@@ -98,7 +98,6 @@ UseRuby()
 			;;
 		SupportVersion)
 			echo ${SupportV}
-
 			;;
 		MenuHelp)
 			echo -e "new <file>\t\t\t: \"create new ${Lang} script\""
@@ -131,8 +130,33 @@ UseRuby()
 				echo "no"
 			fi
 			;;
+		hasExt)
+			local SourceFile=$1
+			if [ ! -z "${SourceFile}" ]; then
+				case ${SourceFile,,} in
+					*${LangExt})
+						echo ${Lang}
+						;;
+					*)
+						;;
+				esac
+			fi
+			;;
+		removeExt)
+			local SourceFile=$1
+			if [ ! -z "${SourceFile}" ]; then
+				case ${SourceFile} in
+					*${LangExt})
+						echo ${SourceFile%${LangExt}}
+						;;
+					*)
+						echo ${SourceFile}
+						;;
+				esac
+			fi
+			;;
 		getBin)
-			local srcCode=$(echo $1 | sed "s/${LangExt}//g")
+			local srcCode=$1
 			if [ ! -z "${srcCode}" ]; then
 				local TheCpl
 				local TheItem
@@ -142,6 +166,8 @@ UseRuby()
 				while [ ${look} -le ${NumOfCpls} ];
 				do
 					TheItem=$(echo ${srcCode} | cut -d ',' -f ${look})
+					TheItem=$(UseRuby "removeExt" ${TheItem})
+					TheItem=${TheItem}${LangExt}
 					TheCpl=$(echo ${CplList} | tr '|' '\n' | grep -w ${TheItem})
 					if [ ! -z "${TheCpl}" ]; then
 						break
@@ -153,7 +179,7 @@ UseRuby()
 			;;
 		getCode)
 			local name=$1
-			name=${name%${LangExt}}
+			name=$(UseRuby "removeExt" ${name})
 			local project=${CodeProject}
 			local newName
 			local DirPath
@@ -254,7 +280,8 @@ UseRuby()
 			local TheSrcDir
 			#Correct filename
 			if [ ! -z "${name}" ]; then
-				name=${name%${LangExt}}${LangExt}
+				name=$(UseRuby "removeExt" ${name})
+				name=${name}${LangExt}
 				case ${project} in
 					#not a project
 					none)
@@ -293,11 +320,13 @@ UseRuby()
 						TheSrcDir="${LangProject}/${project}/src/"
 						case ${Type} in
 							addCode)
-								new=${new%${LangExt}}${LangExt}
+								new=$(UseRuby "removeExt" ${new})
+								new=${new}${LangExt}
 								LookFor=${new}
 								;;
 							selectCode)
-								name=${name%${LangExt}}${LangExt}
+								name=$(UseRuby "removeExt" ${name})
+								name=${name}${LangExt}
 								LookFor=${name}
 								;;
 							*)
@@ -313,7 +342,7 @@ UseRuby()
 									addCode)
 										new=$(find ${TheSrcDir} -name ${new} 2> /dev/null)
 										if [ -f ${new} ]; then
-											new=${new%${LangExt}}
+											new=$(UseRuby "removeExt" ${new})
 											newName=${new##*/}
 											echo "${name},${newName}${LangExt}"
 										else
@@ -323,7 +352,7 @@ UseRuby()
 									selectCode)
 										name=$(find ${TheSrcDir} -name ${name} 2> /dev/null)
 										if [ -f ${name} ]; then
-											name=${name%${LangExt}}
+											name=$(UseRuby "removeExt" ${name})
 											newName=${name##*/}
 											echo ${newName}${LangExt}
 										fi
@@ -348,7 +377,8 @@ UseRuby()
 		rmBin|rmSrc)
 			local name=$1
 			local ThePath
-			name=${name%${LangExt}}${LangExt}
+			name=$(UseRuby "removeExt" ${name})
+			name=${name}${LangExt}
 			case ${Type} in
 				rmBin)
 					ThePath=${LangBin}
@@ -584,21 +614,21 @@ UseRuby()
 			esac
 			;;
 		lscpl)
-                        local project
-                        local path
-                        case ${CodeProject} in
-                                none)
-                                        path=${LangBin}/
-                                        ;;
-                                *)
-                                        project=${CodeProject}
-                                        path=${LangProject}/${project}/bin
-                                        ;;
-                        esac
-                        if [ -d ${path} ]; then
-                                ls ${path}
-                        fi
-                        ;;
+			local project
+			local path
+			case ${CodeProject} in
+				none)
+					path=${LangBin}/
+					;;
+				*)
+					project=${CodeProject}
+					path=${LangProject}/${project}/bin
+					;;
+			esac
+			if [ -d ${path} ]; then
+				ls ${path}
+			fi
+			;;
 		Install)
 			local bin=$1
 			local BinFile="${bin%.*}"
@@ -651,7 +681,7 @@ UseRuby()
 			local project=${CodeProject}
 
 			Type=${Type,,}
-			name=${name%${LangExt}}
+			name=$(UseRuby "removeExt" ${name})
 			if [ ! -f ${name}${LangExt} ]; then
 				#Check for Custom Code Template
 				if [ -f ${TemplateCode} ]; then
@@ -677,21 +707,21 @@ UseRuby()
 			echo "${LangRun} ${TheName}"
 			;;
 		runCode)
-                        local name=$1
-                        local TheBin="${name}"
-                        local project=${CodeProject}
-                        local TheBinDir
-                        shift
-                        shift
-                        local Args=$@
-                        #Handle Project Dir
-                        case ${project} in
-                                none)
-                                        project=""
-                                        TheBinDir=${LangBin}
-                                        ;;
-                                *)
-                                        project="${project}/"
+			local name=$1
+			local TheBin="${name}"
+			local project=${CodeProject}
+			local TheBinDir
+			shift
+			shift
+			local Args=$@
+			#Handle Project Dir
+			case ${project} in
+				none)
+					project=""
+					TheBinDir=${LangBin}
+					;;
+				*)
+					project="${project}/"
 					TheBinDir="${LangProject}/${project}bin"
 				;;
 			esac
@@ -704,7 +734,8 @@ UseRuby()
 			;;
 		backup|restore)
 			local name=$1
-			name="${name%${LangExt}}${LangExt}"
+			name=$(UseRuby "removeExt" ${name})
+			name="${name}${LangExt}"
 			local project=${CodeProject}
 			local TheDir
 			local TheCount
@@ -796,16 +827,16 @@ UseRuby()
 			;;
 		#create a copy of set code
 		copy|rename)
-			local TheOld=$1
-			local TheNew=$2
-			TheOld="${TheOld%${LangExt}}${LangExt}"
-			TheNew="${TheNew%${LangExt}}${LangExt}"
+			local TheOld=$(UseRuby "removeExt" $1)
+			local TheNew=$(UseRuby "removeExt" $2)
+			TheOld="${TheOld}${LangExt}"
+			TheNew="${TheNew}${LangExt}"
 			local project=${CodeProject}
 			case ${project} in
 				none)
 					if [ ! -z "${TheNew}" ]; then
-						TheOld="${TheOld%${LangExt}}"
-						TheNew="${TheNew%${LangExt}}"
+						TheOld=$(UseRuby "removeExt" ${TheOld})
+						TheNew=$(UseRuby "removeExt" ${TheNew})
 						sed "s/${TheOld}/${TheNew}/g" ${LangSrc}/${TheOld}${LangExt} > ${LangSrc}/${TheNew}${LangExt}
 
 						#Remove old file for "rename"
@@ -826,8 +857,9 @@ UseRuby()
 						#File is in current dir
 						if [ -f ${TheNew} ]; then
 							#Remove the extention
-							TheOld="${TheOld%${LangExt}}"
-							TheNew="${TheNew%${LangExt}}"
+							TheOld=$(UseRuby "removeExt" ${TheOld})
+							TheNew=$(UseRuby "removeExt" ${TheNew})
+
 							sed "s/${TheOld}/${TheNew}/g" ${TheOld}${LangExt} > ${TheNew}${LangExt}
 
 							#Remove old file for "rename"
@@ -851,8 +883,8 @@ UseRuby()
 									#Get the file
 									TheFound=${TheFound##*/}
 									#Remove the extention
-									TheOld="${TheOld%${LangExt}}"
-									TheNew="${TheNew%${LangExt}}"
+									TheOld=$(UseRuby "removeExt" ${TheOld})
+									TheNew=$(UseRuby "removeExt" ${TheNew})
 									sed "s/${TheOld}/${TheNew}/g" ${TheDir}/${TheOld}${LangExt} > ${TheDir}/${TheNew}${LangExt}
 
 									#Remove old file for "rename"

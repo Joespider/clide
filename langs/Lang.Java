@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.82"
+SupportV="0.1.84"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -11,7 +11,7 @@ shift
 
 errorCode()
 {
-        ${LibDir}/errorCode.sh $@
+	${LibDir}/errorCode.sh $@
 }
 
 #Handle Aliases
@@ -172,6 +172,31 @@ UseJava()
 			local project=${CodeProject}
 			echo ${LangProject}/${project}
 			;;
+		hasExt)
+			local SourceFile=$1
+			if [ ! -z "${SourceFile}" ]; then
+				case ${SourceFile,,} in
+					*${LangExt}|*.class|*.jar)
+						echo ${Lang}
+						;;
+					*)
+						;;
+				esac
+			fi
+			;;
+		removeExt)
+			local SourceFile=$1
+			if [ ! -z "${SourceFile}" ]; then
+				case ${SourceFile} in
+					*${LangExt}|*.class|*.jar)
+						echo ${SourceFile%${LangExt}}
+						;;
+					*)
+						echo ${SourceFile}
+						;;
+				esac
+			fi
+			;;
 		getBin)
 			local srcCode=$1
 			if [ ! -z "${srcCode}" ]; then
@@ -185,9 +210,21 @@ UseJava()
 				while [ ${look} -le ${NumOfCpls} ];
 				do
 					TheItem=$(echo ${srcCode} | cut -d ',' -f ${look})
-					TheItem=${TheItem%${LangExt}}
-					IsJar=$(echo ${CplList} | tr '|' '\n' | grep -w ${TheItem}.jar)
-					IsClass=$(echo ${CplList} | tr '|' '\n' | grep -w ${TheItem}.class)
+					TheItem=$(UseJava "removeExt" "${TheItem}")
+
+					case ${TheItem} in
+						*.jar)
+							IsJar=$(echo ${CplList} | tr '|' '\n' | grep -w ${TheItem})
+							;;
+						*.class)
+							IsClass=$(echo ${CplList} | tr '|' '\n' | grep -w ${TheItem})
+							;;
+						*)
+							IsJar=$(echo ${CplList} | tr '|' '\n' | grep -w ${TheItem}.jar)
+							IsClass=$(echo ${CplList} | tr '|' '\n' | grep -w ${TheItem}.class)
+							;;
+					esac
+
 					if [ ! -z "${IsJar}" ] || [ ! -z "${IsClass}" ] ; then
 						if [ ! -z "${IsJar}" ]; then
 							TheCpl=${IsJar}
@@ -203,7 +240,7 @@ UseJava()
 			;;
 		getCode)
 			local name=$1
-			name=${name%${LangExt}}
+			name=$(UseJava "removeExt" "${name}")
 			local project=${CodeProject}
 			local newName
 			local DirPath
@@ -316,7 +353,7 @@ UseJava()
 			else
 				echo "no ${TemplateCodeJar##*/} found"
 			fi
-                        ;;
+			;;
 		CplVersion)
 			echo "[${Lang} JDK/JRE]"
 			local LangRunVersion=$(${LangRun} --version 2> /dev/null | head -n 1)
@@ -339,7 +376,8 @@ UseJava()
 			local TheSrcDir
 			#Correct filename
 			if [ ! -z "${name}" ]; then
-				name=${name%${LangExt}}${LangExt}
+				name=$(UseJava "removeExt" "${name}")
+				name=${name}${LangExt}
 				case ${project} in
 					#not a project
 					none)
@@ -378,11 +416,13 @@ UseJava()
 						TheSrcDir="${LangProject}/${project}/src/"
 						case ${Type} in
 							addCode)
-								new=${new%${LangExt}}${LangExt}
+								new=$(UseJava "removeExt" "${new}")
+								new=${new}${LangExt}
 								LookFor=${new}
 								;;
 							selectCode)
-								name=${name%${LangExt}}${LangExt}
+								name=$(UseJava "removeExt" "${name}")
+								name=${name}${LangExt}
 								LookFor=${name}
 								;;
 							*)
@@ -398,7 +438,7 @@ UseJava()
 									addCode)
 										new=$(find ${TheSrcDir} -name ${new} 2> /dev/null | grep "${ProjectMode}")
 										if [ -f ${new} ]; then
-											new=${new%${LangExt}}
+											new=$(UseJava "removeExt" "${new}")
 											newName=${new##*/}
 											echo "${name},${newName}${LangExt}"
 										else
@@ -408,7 +448,7 @@ UseJava()
 									selectCode)
 										name=$(find ${TheSrcDir} -name ${name} 2> /dev/null | grep "${ProjectMode}")
 										if [ -f ${name} ]; then
-											name=${name%${LangExt}}
+											name=$(UseJava "removeExt" "${name}")
 											newName=${name##*/}
 											echo ${newName}${LangExt}
 										fi
@@ -432,6 +472,7 @@ UseJava()
 			;;
 		rmBin|rmSrc)
 			local name=$1
+			local TheName
 			local ThePath
 			case ${Type} in
 				rmBin)
@@ -443,14 +484,15 @@ UseJava()
 				*)
 					;;
 			esac
-			if [ -f ${ThePath}/${name%${LangExt}}.class ]; then
-				echo ${ThePath}/${name%${LangExt}}.class
+			TheName=$(UseJava "removeExt" "${name}")
+			if [ -f ${ThePath}/${TheName}.class ]; then
+				echo ${ThePath}/${TheName}.class
 			fi
-			if [ -f ${ThePath}/${name%${LangExt}}.jar ]; then
-				echo ${ThePath}/${name%${LangExt}}.jar
+			if [ -f ${ThePath}/${TheName}.jar ]; then
+				echo ${ThePath}/${TheName}.jar
 			fi
-			if [ -f ${ThePath}/${name%${LangExt}}${LangExt} ]; then
-				echo ${ThePath}/${name%${LangExt}}${LangExt}
+			if [ -f ${ThePath}/${TheName}${LangExt} ]; then
+				echo ${ThePath}/${TheName}${LangExt}
 			fi
 			;;
 		editCode|readCode)
@@ -1015,7 +1057,7 @@ UseJava()
 		#Create new code
 		newCode)
 			local name=$1
-			local Type=$2
+			local TheOfType=$2
 			local oldCode=$3
 			local project=${CodeProject}
 			local newName
@@ -1026,19 +1068,19 @@ UseJava()
 			local TemplateC=${TemplateCodeClass##*/}
 			TemplateC=${TemplateC%.*}
 
-			#Sometimes "oldCode" gets passed as "Type"
+			#Sometimes "oldCode" gets passed as "TheOfType"
 			if [ -z "${oldCode}" ]; then
-				case ${Type} in
+				case ${TheOfType} in
 					*${LangOtherExt}|*${LangExt})
-						oldCode=${Type}
+						oldCode=${TheOfType}
 						;;
 					*)
 						;;
 				esac
 			fi
 
-			Type=${Type,,}
-			name=${name%${LangExt}}
+			TheOfType=${TheOfType,,}
+			name=$(UseJava "removeExt" "${name}")
 			local TheSrcDir
 
 			#Program Name Given
@@ -1061,7 +1103,7 @@ UseJava()
 					esac
 						#Check for Custom Code Template...is class
 						if [ -f ${TemplateCodeClass} ]; then
-							case ${Type} in
+							case ${TheOfType} in
 								#create main file
 								main)
 									#echo "main"
@@ -1130,7 +1172,7 @@ UseJava()
 							esac
 						#Check for Custom Code Template...is jar
 						elif [ -f ${TemplateCodeJar} ]; then
-							case ${Type} in
+							case ${TheOfType} in
 								#create main file
 								main)
 									#echo "main"
@@ -1404,7 +1446,8 @@ UseJava()
 			;;
 		backup|restore)
 			local name=$1
-			name="${name%${LangExt}}${LangExt}"
+			name=$(UseJava "removeExt" "${name}")
+			name="${name}${LangExt}"
 			local project=${CodeProject}
 			local TheDir
 			local TheCount
@@ -1496,16 +1539,17 @@ UseJava()
 			;;
 		#create a copy of set code
 		copy|rename)
-			local TheOld=$1
-			local TheNew=$2
-			TheOld="${TheOld%${LangExt}}${LangExt}"
-			TheNew="${TheNew%${LangExt}}${LangExt}"
+			local TheOld=$(UseJava "removeExt" $1)
+			local TheNew=$(UseJava "removeExt" $2)
+			TheOld="${TheOld}${LangExt}"
+			TheNew="${TheNew}${LangExt}"
 			local project=${CodeProject}
 			case ${project} in
 				none)
 					if [ ! -z "${TheNew}" ]; then
-						TheOld="${TheOld%${LangExt}}"
-						TheNew="${TheNew%${LangExt}}"
+						TheOld=$(UseJava "removeExt" "${TheOld}")
+						TheNew=$(UseJava "removeExt" "${TheNew}")
+
 						sed "s/${TheOld}/${TheNew}/g" ${LangSrc}/${TheOld}${LangExt} > ${LangSrc}/${TheNew}${LangExt}
 
 						#Remove old file for "rename"
@@ -1526,8 +1570,8 @@ UseJava()
 						#File is in current dir
 						if [ -f ${TheNew} ]; then
 							#Remove the extention
-							TheOld="${TheOld%${LangExt}}"
-							TheNew="${TheNew%${LangExt}}"
+							TheOld=$(UseJava "removeExt" "${TheOld}")
+							TheNew=$(UseJava "removeExt" "${TheNew}")
 							sed "s/${TheOld}/${TheNew}/g" ${TheOld}${LangExt} > ${TheNew}${LangExt}
 
 							#Remove old file for "rename"
@@ -1551,8 +1595,8 @@ UseJava()
 									#Get the file
 									TheFound=${TheFound##*/}
 									#Remove the extention
-									TheOld="${TheOld%${LangExt}}"
-									TheNew="${TheNew%${LangExt}}"
+									TheOld=$(UseJava "removeExt" "${TheOld}")
+									TheNew=$(UseJava "removeExt" "${TheNew}")
 									sed "s/${TheOld}/${TheNew}/g" ${TheDir}/${TheOld}${LangExt} > ${TheDir}/${TheNew}${LangExt}
 
 									#Remove old file for "rename"

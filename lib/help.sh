@@ -132,6 +132,17 @@ CreateHelp()
 	esac
 }
 
+ProjectDelete()
+{
+	echo ""
+	echo "----------------[(${Head}) \"Project\" Help]----------------"
+	echo -e "Purpose: \"handle projects\""
+	echo -e "remove <project>\t\t\t: \"Remove a project entry in ${Head}\""
+	echo -e "remove all\t\t\t: \"Remove ALL project entry in ${Head}\""
+	echo "----------------------------------------------------------"
+	echo ""
+}
+
 ProjectHelp()
 {
 	echo ""
@@ -139,8 +150,9 @@ ProjectHelp()
 	echo -e "Purpose: \"handle projects\""
 	echo -e "new <project>\t\t\t: \"Create a new project\""
 	echo -e "import <project> <path>\t\t: \"Import projects\""
-	echo -e "update\t\t\t\t: \"Update the active project\""
+	echo -e "update, save\t\t\t: \"Update the active project\""
 	echo -e "load <project>\t\t\t: \"Choose a project to make active\""
+	echo -e "remove, delete <project>\t: \"Choose a project to remove or delete\""
 	echo -e "type\t\t\t\t: \"display the type of project\""
 	echo -e "\tlist\t\t\t: \"Show list of possible project types\""
 	echo -e "list\t\t\t\t: \"List ALL projects\""
@@ -149,6 +161,7 @@ ProjectHelp()
 	echo -e "swap <lang>\t\t\t: \"swap to a language in an active project\""
 	echo -e "\t--list, list\t\t: \"list the linked languages in an active project\""
 	echo -e "active\t\t\t\t: \"Display the name of the current project\""
+	echo -e "files\t\t\t\t: \"List the files under the active project\""
 	echo -e "types\t\t\t\t: \"Display the types of projects under ${Lang}\""
 	echo -e "discover\t\t\t: \"Discover project on system (creates project profile)"
 	ManageLangs ${Lang} "ProjectHelp"
@@ -261,7 +274,7 @@ CliHelp()
 				--read)
 					RunHelp
 					;;
-				--list|--list-cpl)
+				--list|--list-cpl|--lscpl)
 					listHelp ${example}
 					;;
 				-p|--project)
@@ -286,6 +299,7 @@ CliHelp()
 					echo -e "--read <args>\t\t\t: \"Read out (cat) source code\""
 					echo -e "--list <lang>\t\t\t: \"List source code\""
 					echo -e "--list-cpl <lang>\t\t: \"List compiled code\""
+					echo -e "--lscpl <lang>\t\t: \"List compiled code\""
 					echo -e "-p, --project <args>\t\t: \"List or Load Clide Projects\""
 					echo ""
 					echo -e "\"Need more information? Just ask!\""

@@ -46,7 +46,7 @@ errorCode()
 				no-langs)
 					errorCode "ERROR"
 					errorCode "ERROR" "No Languages installed"
-					errorCode "ERROR" "Please Lang.<language> in \"${LangsDir}/\""
+					errorCode "ERROR" "Please ensure Lang.<language> is in \"${LangsDir}/\" and given permission to execute"
 					;;
 				*)
 					;;
@@ -152,7 +152,7 @@ errorCode()
 				hint)
 					echo ""
 					errorCode "HINT"
-					errorCode "HINT" "To force removal, provide a \"--force\""
+					errorCode "HINT" "To force removal, provide a \"-f\""
 					;;
 				not-file)
 					errorCode "ERROR"
@@ -344,10 +344,11 @@ errorCode()
 					;;
 				none)
 					errorCode "ERROR"
-					errorCode "ERROR" "Your session MUST be a ${thr} Project"
-					errorCode "ERROR" "Please create or load a project"
+					errorCode "ERROR" "Your session MUST be a Project"
+					errorCode "ERROR" "\tPlease create or load a project"
 					errorCode "HINT" "command"
 					errorCode "HINT" "project new <project>"
+					errorCode "HINT" "\tor"
 					errorCode "HINT" "command"
 					errorCode "HINT" "project load <project>"
 					;;
@@ -432,8 +433,8 @@ errorCode()
 							if [ ! -z "${four}" ]; then
 								errorCode "ERROR"
 								errorCode "ERROR" "Unable to swap to \"${four}\""
- 								echo ""
-								errorCode "ERROR"  "Please link ${four}"
+								echo ""
+								errorCode "ERROR" "Please link ${four}"
 								errorCode "HINT" "command"
 								echo "project link ${four}"
 							else

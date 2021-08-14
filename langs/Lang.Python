@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.64"
+SupportV="0.1.65"
 Lang=Python
 LangExt=".py"
 #Color Yellow
@@ -12,7 +12,7 @@ shift
 
 errorCode()
 {
-        ${LibDir}/errorCode.sh $@
+	${LibDir}/errorCode.sh $@
 }
 
 #Handle Aliases
@@ -156,8 +156,33 @@ UsePython()
 			local project=${CodeProject}
 			echo ${LangProject}/${project}
 			;;
+		hasExt)
+			local SourceFile=$1
+			if [ ! -z "${SourceFile}" ]; then
+				case ${SourceFile,,} in
+					*${LangExt})
+						echo ${Lang}
+						;;
+					*)
+						;;
+				esac
+			fi
+			;;
+		removeExt)
+			local SourceFile=$1
+			if [ ! -z "${SourceFile}" ]; then
+				case ${SourceFile} in
+					*${LangExt})
+						echo ${SourceFile%${LangExt}}
+						;;
+					*)
+						echo ${SourceFile}
+						;;
+				esac
+			fi
+			;;
 		getBin)
-			local srcCode=$(echo $1 | sed "s/${LangExt}//g")
+			local srcCode=$1
 			if [ ! -z "${srcCode}" ]; then
 				local TheCpl
 				local TheItem
@@ -167,6 +192,8 @@ UsePython()
 				while [ ${look} -le ${NumOfCpls} ];
 				do
 					TheItem=$(echo ${srcCode} | cut -d ',' -f ${look})
+					TheItem=$(UsePython "removeExt" ${TheItem})
+					TheItem=${TheItem}${LangExt}
 					TheCpl=$(echo ${CplList} | tr '|' '\n' | grep -w ${TheItem})
 					if [ ! -z "${TheCpl}" ]; then
 						break
@@ -178,7 +205,7 @@ UsePython()
 			;;
 		getCode)
 			local name=$1
-			name=${name%${LangExt}}
+			name=$(UsePython "removeExt" ${name})
 			local project=${CodeProject}
 			local newName
 			local DirPath
@@ -405,7 +432,8 @@ UsePython()
 		rmBin|rmSrc)
 			local name=$1
 			local ThePath
-			name=${name%${LangExt}}${LangExt}
+			name=$(UsePython "removeExt" ${name})
+			name=${name}${LangExt}
 			case ${Type} in
 				rmBin)
 					ThePath=${LangBin}
@@ -771,7 +799,7 @@ UsePython()
 				echo -n "${cLang}\$ ${LangRun} ${cTemplate} "
 				read -a Args
 				#Program Args Given
-				if [ ! -z "${Args}" ];then
+				if [ ! -z "${Args}" ]; then
 					${LangRun} ${TemplateCode} ${Args[@]}
 				#No Program Name Given
 				else
@@ -789,12 +817,13 @@ UsePython()
 			local project=${CodeProject}
 
 			Type=${Type,,}
-			local name=${name%${LangExt}}
+			name=$(UsePython "removeExt" ${name})
+
 			if [ ! -f ${name}${LangExt} ]; then
 				#Check for Custom Code Template
 				if [ -f ${TemplateCode} ]; then
 					#Program Name Given
-					if [ ! -z "${name}" ];then
+					if [ ! -z "${name}" ]; then
 						${LangRun} ${TemplateCode} -n ${name} --cli --main --shell --write-file --read-file --os --random
 					#No Program Name Given
 					else
@@ -802,7 +831,7 @@ UsePython()
 					fi
 				else
 					#Program Name Given
-					if [ ! -z "${name}" ];then
+					if [ ! -z "${name}" ]; then
 						local Content
 						case ${LangRun,,} in
 							python)
@@ -876,7 +905,8 @@ UsePython()
 			;;
 		backup|restore)
 			local name=$1
-			name="${name%${LangExt}}${LangExt}"
+			name=$(UsePython "removeExt" ${name})
+			name="${name}${LangExt}"
 			local project=${CodeProject}
 			local TheDir
 			local TheCount
@@ -968,16 +998,16 @@ UsePython()
 			;;
 		#create a copy of set code
 		copy|rename)
-			local TheOld=$1
-			local TheNew=$2
-			TheOld="${TheOld%${LangExt}}${LangExt}"
-			TheNew="${TheNew%${LangExt}}${LangExt}"
+			local TheOld=$(UsePython "removeExt" $1)
+			local TheNew=$(UsePython "removeExt" $2)
+			TheOld="${TheOld}${LangExt}"
+			TheNew="${TheNew}${LangExt}"
 			local project=${CodeProject}
 			case ${project} in
 				none)
 					if [ ! -z "${TheNew}" ]; then
-						TheOld="${TheOld%${LangExt}}"
-						TheNew="${TheNew%${LangExt}}"
+						TheOld=$(UsePython "removeExt" ${TheOld})
+						TheNew=$(UsePython "removeExt" ${TheNew})
 						sed "s/${TheOld}/${TheNew}/g" ${LangSrc}/${TheOld}${LangExt} > ${LangSrc}/${TheNew}${LangExt}
 
 						#Remove old file for "rename"
@@ -998,8 +1028,8 @@ UsePython()
 						#File is in current dir
 						if [ -f ${TheNew} ]; then
 							#Remove the extention
-							TheOld="${TheOld%${LangExt}}"
-							TheNew="${TheNew%${LangExt}}"
+							TheOld=$(UsePython "removeExt" ${TheOld})
+							TheNew=$(UsePython "removeExt" ${TheNew})
 							sed "s/${TheOld}/${TheNew}/g" ${TheOld}${LangExt} > ${TheNew}${LangExt}
 
 							#Remove old file for "rename"
@@ -1023,8 +1053,8 @@ UsePython()
 									#Get the file
 									TheFound=${TheFound##*/}
 									#Remove the extention
-									TheOld="${TheOld%${LangExt}}"
-									TheNew="${TheNew%${LangExt}}"
+									TheOld=$(UsePython "removeExt" ${TheOld})
+									TheNew=$(UsePython "removeExt" ${TheNew})
 									sed "s/${TheOld}/${TheNew}/g" ${TheDir}/${TheOld}${LangExt} > ${TheDir}/${TheNew}${LangExt}
 
 									#Remove old file for "rename"

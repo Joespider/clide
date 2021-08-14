@@ -581,7 +581,7 @@ linkProjects()
 		local Langs=$(ls ${LangsDir}/ | sed "s/Lang./|/g")
 		ThePath=$(ManageLangs ${LinkLang} "getProjDir")
 		LinkPath=$(ManageLangs ${Lang} "getProjDir")
-		Langs=${Langs// /}
+		Langs=$(echo ${Langs} | tr -d ' ')
 		Langs="${Langs}|"
 		case ${Langs} in
 			*"|${LinkLang}|"*)
@@ -789,10 +789,10 @@ Remove()
 	local option=$4
 	local TheFile
 	if [ ! -z "${src}" ]; then
-		case  ${src} in
-			--force)
+		case ${src} in
+			-f)
 				src=${option}
-				option="--force"
+				option="-f"
 				;;
 			*)
 				;;
@@ -801,7 +801,7 @@ Remove()
 		case ${active} in
 			*"${src}"*)
 				case ${option} in
-					--force)
+					-f)
 						case ${BinOnly} in
 							#Remove the binary ONLY
 							--bin)
@@ -822,8 +822,8 @@ Remove()
 								;;
 							#remove ALL
 							--all)
-								Remove --src ${active} ${src} ${option} > /dev/null
-								Remove --bin ${active} ${src} ${option} > /dev/null
+								Remove --bin ${active} ${src} ${option} #> /dev/null
+								Remove --src ${active} ${src} ${option} #> /dev/null
 								;;
 							*)
 								;;
@@ -837,7 +837,7 @@ Remove()
 						read User
 						case ${User} in
 							YES)
-								option="--force"
+								option="-f"
 								clear
 								case ${BinOnly} in
 									--bin)
@@ -847,8 +847,8 @@ Remove()
 										Remove --src ${active} ${src} ${option} > /dev/null
 										;;
 									--all)
-										Remove --src ${active} ${src} ${option} > /dev/null
 										Remove --bin ${active} ${src} ${option} > /dev/null
+										Remove --src ${active} ${src} ${option} > /dev/null
 										;;
 									*)
 										;;
@@ -885,15 +885,7 @@ runCode()
 	local Args=( $@ )
 	local First="${Args[0]}"
 	local JavaProp="none"
-	local TheBin=""
-	case ${name} in
-		*,*)
-			TheBin=$(ManageLangs ${Lang} "getBin" "${name}")
-			;;
-		*)
-			TheBin=${name}
-			;;
-	esac
+	local TheBin=$(ManageLangs ${Lang} "getBin" "${name}")
 	#Come up with a way to know if arguments are needed
 	TheLang=$(color "${Lang}")
 	#User Wishes to provide arments for program
@@ -1025,7 +1017,7 @@ preSelectSrc()
 			local newCode
 			#Keep track of initial request
 			local WantedCode=${Code}
-			#Clean source codd
+			#Clean source code
 			Code=""
 			#Get the number of requested source files
 			local NumOfSrc=$(echo ${WantedCode} | tr ',' '\n' | wc -l)
@@ -1269,13 +1261,53 @@ Actions()
 				clear)
 					clear
 					;;
-				#Set for session
-				set)
-					if [ -z "${Code}" ]; then
-						Code=$(selectCode ${Lang} ${UserIn[1]} ${Code})
-						refresh="yes"
+				#Set for session or add code to session
+				set|add)
+					local theExt
+					local theOtherExt
+					local newCode
+					local OldCode
+					if [ ! -z "${Code}" ]; then
+						if [ ! -z "${UserIn[1]}" ]; then
+							theExt=$(ManageLangs ${Lang} "getExt")
+							theOtherExt=$(ManageLangs ${Lang} "getOtherExt")
+							newCode=${UserIn[1]}
+							newCode=$(ManageLangs ${Lang} "removeExt" ${newCode})
+							#Ensure Code is not added twice
+							if [[ ! "${Code}" == *"${newCode}${theExt}"* ]] || [[ ! "${Code}" == *"${newCode}${theOtherExt}"* ]]; then
+								OldCode=${Code}
+								Code=$(ManageLangs ${Lang} "addCode" ${Code} ${UserIn[1]})
+								#make sure code has changed
+								case ${Code} in
+									#Code has not changed...do nothing
+									${OldCode})
+										errorCode "selectCode" "already"
+										;;
+									#Code has changed
+									*)
+										#refresh
+										refresh="yes"
+										;;
+								esac
+							#Code is trying to be added twice
+							else
+								errorCode "selectCode" "already"
+							fi
+						else
+							errorCode "selectCode" "nothing"
+						fi
 					else
-						errorCode "selectCode" "exists"
+						case ${UserArg} in
+							set)
+								Code=$(selectCode ${Lang} ${UserIn[1]} ${Code})
+								refresh="yes"
+								;;
+							add)
+								errorCode "selectCode" "set"
+								;;
+							*)
+								;;
+						esac
 					fi
 					;;
 				#Unset code for session
@@ -1283,15 +1315,23 @@ Actions()
 					Code=""
 					refresh="yes"
 					;;
-				#Delete source code
+				#Delete source code and binary
 				rm|remove|delete)
 					Remove "--all" ${Code} ${UserIn[1]} ${UserIn[2]}
 					Code=""
 					refresh="yes"
 					;;
 				#Delete source code
-				rmbin|remove-bin|delete-bin)
+				rmsrc)
+					Remove "--src" ${Code} ${UserIn[1]} ${UserIn[2]}
+					Code=""
+					refresh="yes"
+					;;
+				#Delete binary
+				rmbin)
 					Remove "--bin" ${Code} ${UserIn[1]} ${UserIn[2]}
+					Code=""
+					refresh="yes"
 					;;
 				#Display the language being used
 				using)
@@ -1439,18 +1479,78 @@ Actions()
 							esac
 							;;
 						#Update live project
-						update)
+						update|save)
 							updateProject ${Code}
 							echo "\"${CodeProject}\" updated"
+							;;
+						#list the project files
+						files)
+							local RemoveDirs=${CodeDir//\//|}
+							find ${CodeDir} -print | tr '/' '|' | sed "s/${RemoveDirs}//g" | tr '|' '/'
+							;;
+						#Delete proejct
+						remove|delete)
+							local project=${UserIn[2]}
+							case ${project} in
+								all)
+									case ${UserIn[1]} in
+										#remove project ONLY from record
+										remove)
+											rm ${ActiveProjectDir}/*.clide
+											echo "ALL projects removed from record"
+											;;
+										#remove project files AND record
+										delete)
+											rm ${ActiveProjectDir}/*.clide
+											echo "Delete ALL projects"
+											;;
+										*)
+											;;
+									esac
+									;;
+								*)
+									if [ ! -z "${project}" ]; then
+										case ${project} in
+											--help)
+												listProjects
+												theHelp ProjectDelete
+												;;
+											*)
+												case ${UserArg} in
+													#remove project ONLY from record
+													remove)
+														if [ -f "${ActiveProjectDir}/${project}.clide" ]; then
+															rm ${ActiveProjectDir}/${project}.clide
+															echo "Project \"${project}\" Removed"
+														fi
+														;;
+													#remove project files AND record
+													delete)
+														if [ -f "${ActiveProjectDir}/${project}.clide" ]; then
+															rm ${ActiveProjectDir}/${project}.clide
+															echo "Project \"${project}\" Deleted"
+														fi
+														;;
+													*)
+														;;
+												esac
+												;;
+										esac
+									else
+										listProjects
+										theHelp ProjectDelete
+									fi
+									;;
+							esac
 							;;
 						#Link a project with another language
 						link)
 							local project=${CodeProject}
-						        local ProjectFile=${ActiveProjectDir}/${project}.clide
-						        local Already=$(grep "link=" ${ProjectFile})
-						        case ${UserIn[2]} in
-					        	        --list|list)
-				                        		echo ${Already} | sed "s/link=//g" | tr ',' '\n'
+							local ProjectFile=${ActiveProjectDir}/${project}.clide
+							local Already=$(grep "link=" ${ProjectFile})
+							case ${UserIn[2]} in
+								--list|list)
+									echo ${Already} | sed "s/link=//g" | tr ',' '\n'
 									;;
 								*)
 									local IsLinked=$(linkProjects ${Lang} ${UserIn[2]})
@@ -1469,8 +1569,8 @@ Actions()
 							local Already=$(grep "link=" ${ProjectFile})
 							case ${UserIn[2]} in
 								#list the active projects
-					        	        --list|list)
-				                        		echo ${Already} | sed "s/link=//g" | tr ',' '\n'
+								--list|list)
+									echo ${Already} | sed "s/link=//g" | tr ',' '\n'
 									;;
 								#swap new language and code
 								*)
@@ -1483,6 +1583,8 @@ Actions()
 											Code=""
 										fi
 									else
+										echo "Linked Languages:"
+										echo ${Already} | sed "s/link=//g" | tr ',' '\n' | nl
 										errorCode "project" "link" "not-link" ${UserIn[2]}
 									fi
 									;;
@@ -1743,6 +1845,7 @@ Actions()
 							local BeforeFiles=""
 							local AfterFiles=""
 							local Type=""
+							local NewCode
 							BeforeFiles=$(ManageLangs ${Lang} "BeforeFiles")
 							#Create new code
 							ManageLangs ${Lang} "customCode" ${Lang} ${cLang}
@@ -1761,80 +1864,78 @@ Actions()
 							;;
 						#Create new src file
 						*)
+							local IsOk
 							local project=${CodeProject}
-								#Ensure filename is given
+							#Ensure filename is given
 							if [ ! -z "${UserIn[1]}" ]; then
-								if [[ "${UserIn[1]}" == *","* ]]; then
-									errorCode "newCode" "one-at-a-time"
-									IsOk="no"
-								elif [[ "${UserIn[1]}" == *";"* ]]; then
-									errorCode "newCode" "one-at-a-time"
-									IsOk="no"
-								else
-									local IsOk
-									local TheFile="${UserIn[1]}"
-									local TheExt=$(ManageLangs ${Lang} "getExt")
-									local TheOtherExt=$(ManageLangs ${Lang} "getOtherExt")
-
-									#Language has more than one extension
-									if [ ! -z "${TheOtherExt}" ]; then
+								case ${UserIn[1]} in
+									*","*|*";"*)
+										errorCode "newCode" "one-at-a-time"
+										IsOk="no"
+										;;
+									*)
+										local TheFile="${UserIn[1]}"
 										#Remove the extensions
-										TheFile=${TheFile%${TheExt}}
-										TheFile=${TheFile%${TheOtherExt}}
-										#make sure file does not exist
+										TheFile=$(ManageLangs ${Lang} "removeExt" ${TheFile})
+										local TheExt=$(ManageLangs ${Lang} "getExt")
+										local TheOtherExt=$(ManageLangs ${Lang} "getOtherExt")
+
+										#Language has more than one extension
+										if [ ! -z "${TheOtherExt}" ]; then
+											#make sure file does not exist
 											if [ ! -f ${TheFile}${TheExt} ] || [ ! -f ${TheFile}${TheOtherExt} ]; then
-											IsOk="yes"
+												IsOk="yes"
+											else
+												IsOk="no"
+											fi
+										#Language has one extension
 										else
-											IsOk="no"
+											#make sure file does not exist
+											if [ ! -f ${TheFile}${TheExt} ]; then
+												IsOk="yes"
+											else
+												IsOk="no"
+											fi
 										fi
-									#Language has one extension
-									else
-										#Remove the extensions
-										TheFile=${TheFile%${TheExt}}
-										#make sure file does not exist
-										if [ ! -f ${TheFile}${TheExt} ]; then
-											IsOk="yes"
-										else
-											IsOk="no"
-										fi
-									fi
-
-									#Make sure it is ok to create the source code
-									case ${IsOk} in
-										yes)
-											#Return the name of source code
-											ManageLangs ${Lang} "newCode" ${UserIn[1]} ${UserIn[2]} ${Code}
-											if [ ! -z "${Code}" ]; then
-												local OldCode=${Code}
-												local NewCode=$(ManageLangs ${Lang} "getCode" ${UserIn[1]} ${OldCode})
-												case ${OldCode} in
-													*"${NewCode}"*)
-														errorCode "selectCode" "already"
+										#Make sure it is ok to create the source code
+										case ${IsOk} in
+											yes)
+												#Return the name of source code
+												ManageLangs ${Lang} "newCode" ${UserIn[1]} ${UserIn[2]} ${Code}
+												if [ ! -z "${Code}" ]; then
+													local OldCode=${Code}
+													local NewCode=$(ManageLangs ${Lang} "getCode" ${UserIn[1]} ${OldCode})
+													if [ ! -z "${NewCode}" ]; then
+														case ${OldCode} in
+															*"${NewCode}"*)
+																errorCode "selectCode" "already"
+																;;
+															*)
+																Code=$(ManageLangs ${Lang} "addCode" ${OldCode} ${NewCode})
+																;;
+														esac
+													fi
+												else
+													Code=$(ManageLangs ${Lang} "getCode" ${UserIn[1]} ${OldCode})
+												fi
+												refresh="yes"
+												;;
+											no)
+												#Jump-in and Jump-out
+												case ${InAndOut} in
+													yes)
+														errorCode "newCode" "cli-already"
 														;;
 													*)
-														Code=$(ManageLangs ${Lang} "addCode" ${OldCode} ${NewCode})
+														errorCode "newCode" "already"
 														;;
 												esac
-											else
-												Code=$(ManageLangs ${Lang} "getCode" ${UserIn[1]} ${OldCode})
-											fi
-											refresh="yes"
-											;;
-											no)
-											#Jump-in and Jump-out
-											case ${InAndOut} in
-												yes)
-													errorCode "newCode" "cli-already"
-													;;
-												*)
-													errorCode "newCode" "already"
-													;;
-											esac
-											;;
-										*)
-											;;
-									esac
-								fi
+												;;
+											*)
+												;;
+										esac
+										;;
+								esac
 							else
 								theHelp newCodeHelp ${Lang}
 							fi
@@ -1867,35 +1968,6 @@ Actions()
 							ManageLangs ${Lang} "editCode" ${Code} ${UserIn[1]}
 							;;
 					esac
-					;;
-				#Add code to Source Code
-				add)
-					local theExt
-					local theOtherExt
-					local newCode
-					if [ ! -z "${Code}" ]; then
-						if [ ! -z "${UserIn[1]}" ]; then
-							theExt=$(ManageLangs ${Lang} "getExt")
-							theOtherExt=$(ManageLangs ${Lang} "getOtherExt")
-							newCode=${UserIn[1]}
-							newCode=${newCode%${theExt}}
-							if [ ! -z "${theOtherExt}" ]; then
-								newCode=${newCode%${theOtherExt}}
-							fi
-							#Ensure Code is not added twice
-							if [[ ! "${Code}" == *"${newCode}${theExt}"* ]] || [[ ! "${Code}" == *"${newCode}${theOtherExt}"* ]]; then
-								Code=$(ManageLangs ${Lang} "addCode" ${Code} ${newCode})
-								refresh="yes"
-							#Code is trying to be added twice
-							else
-								errorCode "selectCode" "already"
-							fi
-						else
-							errorCode "selectCode" "nothing"
-						fi
-					else
-						errorCode "selectCode" "set"
-					fi
 					;;
 				#Read code without editing
 				${ReadBy}|read)
@@ -2320,6 +2392,7 @@ SelectLangByCode()
 	local look
 	local text
 	local LangExt
+	local LangByExt
 	local ChosenLangs
 	if [ ! -z "${GetExt}" ]; then
 		case ${GetExt} in
@@ -2355,15 +2428,10 @@ SelectLangByCode()
 						no)
 							;;
 						*)
-							LangExt=$(ManageLangs ${text} "getExt")
-							case ${GetExt} in
-								*${LangExt})
-									pgLang ${text}
-									break
-									;;
-								*)
-									;;
-							esac
+							LangByExt=$(ManageLangs ${text} "hasExt" "${GetExt}")
+							if [ ! -z "${LangByExt}" ]; then
+								pgLang ${text}
+							fi
 							;;
 					esac
 					look=$((${look}+1))
@@ -2529,12 +2597,12 @@ loadAuto()
 	comp_list "debug"
 	comp_list "set"
 	comp_list "unset"
-	comp_list "rm remove delete rmbin remove-bin delete-bin" "--force"
+	comp_list "rm remove delete rmbin rmsrc" "-f"
 	comp_list "cd"
 	comp_list "pwd"
 	comp_list "mkdir"
 	comp_list "use" "${pg}"
-	comp_list "project" "discover import load list link mode new swap update title type"
+	comp_list "project" "delete discover files import load list link mode new remove swap save title type update"
 	comp_list "package" "new"
 	comp_list "shell"
 	comp_list "new" "--version -v --help -h --custom -c"
@@ -2686,6 +2754,52 @@ main()
 										;;
 								esac
 							fi
+							;;
+						--remove|--delete)
+								shift
+								local TheProjectName=$1
+								if [ ! -z "${TheProjectName}" ]; then
+									case ${TheProjectName} in
+										all)
+											case ${GetProject} in
+												#remove project ONLY from record
+												--remove)
+													rm ${ActiveProjectDir}/*.clide 2> /dev/null
+													echo "ALL projects removed from record"
+													;;
+												#remove project files AND record
+												--delete)
+													#rm ${ActiveProjectDir}/*.clide
+													echo "Delete ALL projects"
+													;;
+												*)
+													;;
+											esac
+											;;
+										*)
+											if [ -f "${ActiveProjectDir}/${TheProjectName}.clide" ]; then
+												case ${GetProject} in
+													#remove project ONLY from record
+													--remove)
+														rm ${ActiveProjectDir}/${TheProjectName}.clide 2> /dev/null
+														echo "The project \"${TheProjectName}\" removed from record"
+														;;
+													#remove project files AND record
+													--delete)
+														#rm ${ActiveProjectDir}/*.clide
+														echo "Delete ALL projects"
+														;;
+													*)
+														;;
+												esac
+											else
+												theHelp ProjectCliHelp ${UserArg}
+											fi
+											;;
+									esac
+								else
+									theHelp ProjectCliHelp ${UserArg}
+								fi
 							;;
 						--list)
 							shift
@@ -2996,14 +3110,6 @@ main()
 									fi
 									;;
 								*)
-									shift
-									shift
-									CodeDir=$(pgDir ${Lang})
-									if [ ! -z "${CodeDir}" ]; then
-										cd ${CodeDir}
-										Code=$(selectCode ${Lang} ${Code})
-										cd - > /dev/null
-									fi
 									;;
 							esac
 
@@ -3073,7 +3179,7 @@ main()
 						;;
 				esac
 				;;
-			--list-cpl)
+			--list-cpl|--lscpl)
 				shift
 				local Lang=$(pgLang $1)
 				case ${Lang} in
@@ -3086,7 +3192,7 @@ main()
 				esac
 				;;
 			#Get by file extension
-                        *.*)
+			*.*)
 				local CodeDir
 				local Code=$1
 				#Get language by extension from source file

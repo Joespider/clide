@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.35"
+SupportV="0.1.36"
 Lang=Go
 LangExt=".go"
 #Color Green
@@ -12,7 +12,7 @@ shift
 
 errorCode()
 {
-        ${LibDir}/errorCode.sh $@
+	${LibDir}/errorCode.sh $@
 }
 
 #Handle Aliases
@@ -140,6 +140,31 @@ UseGo()
 			local project=${CodeProject}
 			echo ${LangProject}/${project}
 			;;
+		hasExt)
+			local SourceFile=$1
+			if [ ! -z "${SourceFile}" ]; then
+				case ${SourceFile,,} in
+					*${LangExt})
+						echo ${Lang}
+						;;
+					*)
+						;;
+				esac
+			fi
+			;;
+		removeExt)
+			local SourceFile=$1
+			if [ ! -z "${SourceFile}" ]; then
+				case ${SourceFile} in
+					*${LangExt})
+						echo ${SourceFile%${LangExt}}
+						;;
+					*)
+						echo ${SourceFile}
+						;;
+				esac
+			fi
+			;;
 		#Look for binary from set code
 		getBin)
 			local setCode=$1
@@ -158,7 +183,7 @@ UseGo()
 				do
 					#Choose one item
 					TheItem=$(echo ${srcCode} | cut -d ',' -f ${look})
-					TheItem=${TheItem%${LangExt}}
+					TheItem=$(UseGo "removeExt" ${TheItem})
 					#Look for binary from list of compiled
 					TheCpl=$(echo ${CplList} | tr '|' '\n' | grep -w ${TheItem})
 					if [ ! -z "${TheCpl}" ]; then
@@ -171,12 +196,12 @@ UseGo()
 			;;
 		getCode)
 			local name=$1
-			name=${name%${LangExt}}
+			name=$(UseGo "removeExt" ${name})
 			local oldCode=$2
-                        local project=${CodeProject}
-                        local newName
-                        local DirPath
-                        local TheSrcDir
+			local project=${CodeProject}
+			local newName
+			local DirPath
+			local TheSrcDir
 			case ${project} in
 				#Is not a project
 				none)
@@ -316,7 +341,8 @@ UseGo()
 			local TheSrcDir
 			#Correct filename
 			if [ ! -z "${name}" ]; then
-				name=${name%${LangExt}}${LangExt}
+				name=$(UseGo "removeExt" ${name})
+				name=${name}${LangExt}
 				case ${project} in
 					#not a project
 					none)
@@ -355,11 +381,13 @@ UseGo()
 						TheSrcDir="${LangProject}/${project}/src/"
 						case ${Type} in
 							addCode)
-								new=${new%${LangExt}}${LangExt}
+								new=$(UseGo "removeExt" ${new})
+								new=${new}${LangExt}
 								LookFor=${new}
 								;;
 							selectCode)
-								name=${name%${LangExt}}${LangExt}
+								name=$(UseGo "removeExt" ${name})
+								name=${name}${LangExt}
 								LookFor=${name}
 								;;
 							*)
@@ -375,7 +403,7 @@ UseGo()
 									addCode)
 										new=$(find ${TheSrcDir} -name ${new} 2> /dev/null | grep "${ProjectMode}")
 										if [ -f ${new} ]; then
-											new=${new%${LangExt}}
+											new=$(UseGo "removeExt" ${new})
 											newName=${new##*/}
 											echo "${name},${newName}${LangExt}"
 										else
@@ -385,7 +413,7 @@ UseGo()
 									selectCode)
 										name=$(find ${TheSrcDir} -name ${name} 2> /dev/null | grep "${ProjectMode}")
 										if [ -f ${name} ]; then
-											name=${name%${LangExt}}
+											name=$(UseGo "removeExt" ${name})
 											newName=${name##*/}
 											echo ${newName}${LangExt}
 										fi
@@ -409,7 +437,7 @@ UseGo()
 			;;
 		rmBin|rmSrc)
 			local name=$1
-			name=${name%${LangExt}}
+			name=$(UseGo "removeExt" ${name})
 			local ThePath
 			local project=${CodeProject}
 			case ${Type} in
@@ -715,7 +743,7 @@ UseGo()
 							NumOfMain=$(echo ${name} | tr ' ' '\n' | wc -l)
 							case ${NumOfMain} in
 								1)
-									name=${name%${LangExt}}
+									name=$(UseGo "removeExt" ${name})
 									;;
 								*)
 									FoundMain="no"
@@ -725,7 +753,7 @@ UseGo()
 						fi
 						;;
 					*)
-						name=${src%${LangExt}}
+						name=$(UseGo "removeExt" ${src})
 						;;
 				esac
 			fi
@@ -949,7 +977,7 @@ UseGo()
 				echo -n "${cLang}\$ ./${cTemplate} "
 				read -a Args
 				#Program Args Given
-				if [ ! -z "${Args}" ];then
+				if [ ! -z "${Args}" ]; then
 					${TemplateCode} ${Args[@]}
 				#No Program Name Given
 				else
@@ -965,7 +993,8 @@ UseGo()
 		newCode)
 			local name=$1
 			local Type=$2
-                        local oldCode=$3
+			local oldCode=$3
+			local TheName
 			local project=${CodeProject}
 
 			#Sometimes "oldCode" gets passed as "Type"
@@ -980,7 +1009,7 @@ UseGo()
 			fi
 
 			Type=${Type,,}
-			name=${name%${LangExt}}
+			name=$(UseGo "removeExt" ${name})
 
 			if [ ! -f ${name}${LangExt} ]; then
 				case ${Type} in
@@ -990,7 +1019,7 @@ UseGo()
 							#Check for Custom Code Template
 							if [ -f ${TemplateCode} ]; then
 								#Program Name Given
-								if [ ! -z "${name}" ];then
+								if [ ! -z "${name}" ]; then
 									${TemplateCode} --random --write-file --read-file --cli --main --is-in --user-input --name ${name}
 								#No Program Name Given
 								else
@@ -999,7 +1028,7 @@ UseGo()
 								fi
 							else
 								#Program Name Given
-								if [ ! -z "${name}" ];then
+								if [ ! -z "${name}" ]; then
 									local Content="package main\n\nimport (\n\t"fmt"\n\t"os"\n)\n\nfunc main() {\n\targs := os.Args[1:]\n\n\tfor arg := range args {\n\tfmt.Println(arg,args[arg])\n\t}\n\tfmt.Println(\"And thats it!\")\n}"
 									touch ${name}${LangExt}
 									echo -e "${Content}" > ${name}${LangExt}
@@ -1014,7 +1043,7 @@ UseGo()
 						if [ ! -f ${name}${LangExt} ]; then
 							if [ -f ${TemplateCode} ]; then
 								#Program Name Given
-								if [ ! -z "${name}" ];then
+								if [ ! -z "${name}" ]; then
 									${TemplateCode} -n "${name}"
 								#No Program Name Given
 								else
@@ -1023,7 +1052,7 @@ UseGo()
 								fi
 							else
 								#Program Name Given
-								if [ ! -z "${name}" ];then
+								if [ ! -z "${name}" ]; then
 									local Content="package main\n\nimport (\n\t"fmt"\n\t"os"\n)\n\nfunc main() {\n\targs := os.Args[1:]\n\n\tfor arg := range args {\n\tfmt.Println(arg,args[arg])\n\t}\n\tfmt.Println(\"And thats it!\")\n}"
 									touch ${name}${LangExt}
 									echo -e "${Content}" > ${name}${LangExt}
@@ -1044,7 +1073,8 @@ UseGo()
 							none)
 								#Looks like you have source code already set
 								if [ ! -z "${oldCode}" ]; then
-									case ${name%${LangExt}}${LangExt} in
+									TheName=$(UseGo "removeExt" ${name})
+									case ${TheName}${LangExt} in
 										*"${oldCode}"*)
 											;;
 										#In the event you already have a main file, create a component
@@ -1068,7 +1098,8 @@ UseGo()
 								local HasSrcCode=$(find ${TheSrcDir} -type f -name "*${LangExt}")
 								#Has Source Code
 								if [ ! -z "${HasSrcCode}" ]; then
-									local NumFound=$(find ${TheSrcDir} -name ${name%${LangExt}}${LangExt} 2> /dev/null | wc -l)
+									TheName=$(UseGo "removeExt" ${name})
+									local NumFound=$(find ${TheSrcDir} -name ${TheName}${LangExt} 2> /dev/null | wc -l)
 									case ${NumFound} in
 										#No other source code was found...make your main file
 										0)
@@ -1175,7 +1206,8 @@ UseGo()
 			;;
 		backup|restore)
 			local name=$1
-			name="${name%${LangExt}}${LangExt}"
+			name=$(UseGo "removeExt" ${name})
+			name="${name}${LangExt}"
 			local project=${CodeProject}
 			local TheDir
 			local TheCount
@@ -1269,14 +1301,16 @@ UseGo()
 		copy|rename)
 			local TheOld=$1
 			local TheNew=$2
-			TheOld="${TheOld%${LangExt}}${LangExt}"
-			TheNew="${TheNew%${LangExt}}${LangExt}"
+			TheOld=$(UseGo "removeExt" ${TheOld})
+			TheOld="${TheOld}${LangExt}"
+			TheNew=$(UseGo "removeExt" ${TheNew})
+			TheNew="${TheNew}${LangExt}"
 			local project=${CodeProject}
 			case ${project} in
 				none)
 					if [ ! -z "${TheNew}" ]; then
-						TheOld="${TheOld%${LangExt}}"
-						TheNew="${TheNew%${LangExt}}"
+						TheOld=$(UseGo "removeExt" ${TheOld})
+						TheNew=$(UseGo "removeExt" ${TheNew})
 						sed "s/${TheOld}/${TheNew}/g" ${LangSrc}/${TheOld}${LangExt} > ${LangSrc}/${TheNew}${LangExt}
 
 						#Remove old file for "rename"
@@ -1297,8 +1331,8 @@ UseGo()
 						#File is in current dir
 						if [ -f ${TheNew} ]; then
 							#Remove the extention
-							TheOld="${TheOld%${LangExt}}"
-							TheNew="${TheNew%${LangExt}}"
+							TheOld=$(UseGo "removeExt" ${TheOld})
+							TheNew=$(UseGo "removeExt" ${TheNew})
 							sed "s/${TheOld}/${TheNew}/g" ${TheOld}${LangExt} > ${TheNew}${LangExt}
 
 							#Remove old file for "rename"
@@ -1322,8 +1356,8 @@ UseGo()
 									#Get the file
 									TheFound=${TheFound##*/}
 									#Remove the extention
-									TheOld="${TheOld%${LangExt}}"
-									TheNew="${TheNew%${LangExt}}"
+									TheOld=$(UseGo "removeExt" ${TheOld})
+									TheNew=$(UseGo "removeExt" ${TheNew})
 									sed "s/${TheOld}/${TheNew}/g" ${TheDir}/${TheOld}${LangExt} > ${TheDir}/${TheNew}${LangExt}
 
 									#Remove old file for "rename"

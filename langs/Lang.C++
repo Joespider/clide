@@ -2,10 +2,35 @@ Shell=$(which bash)
 #!${Shell}
 
 #https://www3.ntu.edu.sg/home/ehchua/programming/cpp/gcc_make.html
-SupportV="0.1.87"
+SupportV="0.1.92"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
+
+#Checking user's desired extension for source files
+case ${CppSrcExt,,} in
+	.cc|.cxx|.c++)
+		LangExt=${CppSrcExt,,}
+		;;
+	cc|cxx|c++)
+		LangExt=".${CppSrcExt,,}"
+		;;
+	*)
+		;;
+esac
+
+#Checking user's desired extension for header files
+case ${CppHeadExt,,} in
+	.hh|.hpp|.hxx|.h++)
+		LangOtherExt=${CppHeadExt,,}
+		;;
+	hh|hpp|hxx|h++)
+		LangOtherExt=".${CppHeadExt,,}"
+		;;
+	*)
+		;;
+esac
+
 ColorNum=4
 
 CplArgs=$1
@@ -13,7 +38,7 @@ shift
 
 errorCode()
 {
-        ${LibDir}/errorCode.sh $@
+	${LibDir}/errorCode.sh $@
 }
 
 #Handle Aliases
@@ -50,6 +75,7 @@ UseC++()
 {
 	#Get the enviornment variables for C++
 	#{
+	
 	local LangCpl=${cplCpp}
 	local UseDebugger=${debugCandCpp}
 
@@ -161,6 +187,167 @@ UseC++()
 				echo ""
 			fi
 			;;
+		hasExt)
+			local SourceFile=$1
+			if [ ! -z "${SourceFile}" ]; then
+				case ${SourceFile,,} in
+					*.cpp|*.cc|*.cxx|*.c++)
+						echo ${Lang}
+						;;
+					*)
+						;;
+				esac
+			fi
+			;;
+		hasExtForCpl|hasExtForSrc)
+			local SourceFile=$1
+			if [ ! -z "${SourceFile}" ]; then
+				case ${SourceFile,,} in
+					*.cpp*|*.cc*|*.cxx*|*.c++*)
+						echo "yes"
+						;;
+					*)
+						;;
+				esac
+			fi
+			;;
+		hasExtForHeader)
+			local SourceFile=$1
+			if [ ! -z "${SourceFile}" ]; then
+				case ${SourceFile,,} in
+					*.h|*.hh|*.hpp|*.hxx|*.h++)
+						echo "yes"
+						;;
+					*)
+						;;
+				esac
+			fi
+			;;
+		hasExtForAll)
+			local SourceFile=$1
+			if [ ! -z "${SourceFile}" ]; then
+				case ${SourceFile,,} in
+					*.cpp*|*.cc*|*.cxx*|*.c++*|*.h*)
+						echo "yes"
+						;;
+					*)
+						;;
+				esac
+			fi
+			;;
+		FindTheSrc|FindTheHeader)
+			local name=$1
+			local project=${CodeProject}
+			local CheckForFile
+			local ThePossible
+			local ext
+			if [ ! -z "${name}" ]; then
+				case ${project} in
+					none)
+						case ${Type} in
+							FindTheSrc)
+								if [ -f "${name}.cpp" ]; then
+									echo "${name}.cpp"
+								elif [ -f "${name}.cc" ]; then
+									echo "${name}.cc"
+								elif [ -f "${name}.cxx" ]; then
+									echo "${name}.cxx"
+								elif [ -f "${name}.c++" ]; then
+									echo "${name}.c++"
+								fi
+								;;
+							FindTheHeader)
+								if [ -f "${name}.h" ]; then
+									echo "${name}.h"
+								elif [ -f "${name}.hh" ]; then
+									echo "${name}.hh"
+								elif [ -f "${name}.hpp" ]; then
+									echo "${name}.hpp"
+								elif [ -f "${name}.hxx" ]; then
+									echo "${name}.hxx"
+								elif [ -f "${name}.h++" ]; then
+									echo "${name}.h++"
+								fi
+								;;
+							*)
+								;;
+						esac
+
+						;;
+					*)
+						case ${Type} in
+							FindTheSrc)
+								ext=${LangExt}
+								ThePossible=".cpp,.cc,.cxx,.c++"
+								;;
+							FindTheHeader)
+								ext=${LangOtherExt}
+								ThePossible=".h,.hh,.hpp,.hxx,.h++"
+								;;
+							*)
+								;;
+						esac
+						CheckForFile=$(UseC++ "getProjSrc" ${name}${ext} 2> /dev/null)
+						if [ -z "${CheckForFile}" ]; then
+							local look=1
+							#Get the number of set source code
+							local NumOfSrcs=$(echo ${ThePossible} | tr ',' '\n' | wc -l)
+							while [ ${look} -le ${NumOfSrcs} ];
+							do
+								#Choose one item
+								ext=$(echo ${ThePossible} | cut -d ',' -f ${look})
+
+								CheckForFile=$(UseC++ "getProjSrc" ${name}${ext} 2> /dev/null)
+								if [ ! -z "${CheckForFile}" ]; then
+									echo ${CheckForFile}
+									break
+								fi
+								look=$((${look}+1))
+							done
+						else
+							echo ${CheckForFile}
+						fi
+						;;
+				esac
+			fi
+			;;
+		removeExt)
+			local SourceFile=$1
+			if [ ! -z "${SourceFile}" ]; then
+				case ${SourceFile} in
+					*.cpp)
+						echo ${SourceFile%.cpp}
+						;;
+					*.cc)
+						echo ${SourceFile%.cc}
+						;;
+					*.cxx)
+						echo ${SourceFile%.cxx}
+						;;
+					*.c++)
+						echo ${SourceFile%.c++}
+						;;
+					*.h)
+						echo ${SourceFile%.h}
+						;;
+					*.hh)
+						echo ${SourceFile%.hh}
+						;;
+					*.hpp)
+						echo ${SourceFile%.hpp}
+						;;
+					*.hxx)
+						echo ${SourceFile%.hxx}
+						;;
+					*.h++)
+						echo ${SourceFile%.h++}
+						;;
+					*)
+						echo ${SourceFile}
+						;;
+				esac
+			fi
+			;;
 		#Look for binary from set code
 		getBin)
 			local setCode=$1
@@ -179,8 +366,7 @@ UseC++()
 				do
 					#Choose one item
 					TheItem=$(echo ${srcCode} | cut -d ',' -f ${look})
-					TheItem=${TheItem%${LangExt}}
-					TheItem=${TheItem%${LangOtherExt}}
+					TheItem=$(UseC++ "removeExt" ${TheItem})
 
 					#Look for binary from list of compiled
 					TheCpl=$(echo ${CplList} | tr '|' '\n' | grep -w ${TheItem})
@@ -194,13 +380,12 @@ UseC++()
 			;;
 		getCode)
 			local name=$1
-			name=${name%${LangExt}}
-			name=${name%${LangOtherExt}}
+			name=$(UseC++ "removeExt" ${name})
 			local oldCode=$2
-                        local project=${CodeProject}
-                        local newName
-                        local DirPath
-                        local TheSrcDir
+			local project=${CodeProject}
+			local newName
+			local DirPath
+			local TheSrcDir
 			case ${project} in
 				#Is not a project
 				none)
@@ -355,6 +540,9 @@ UseC++()
 			local newName
 			local DirPath
 			local TheSrcDir
+			local HasAnExt
+			local HasAnExtSrc
+			local HasAnExtHeader
 
 			#Correct filename
 			if [ ! -z "${name}" ]; then
@@ -365,20 +553,33 @@ UseC++()
 						case ${Type} in
 							#Used with "set"
 							selectCode)
-								#Add default or header files with file extensions
-								case ${name} in
-									#file contains extension
-									*${LangExt}|*${LangOtherExt})
-										;;
-									*)
-										#Correct filename
-										if [[ ! "${name}" == *"${LangExt}" ]] && [[ -f "${name}${LangExt}" ]]; then
+								#Check if extenion is given
+								HasAnExt=$(UseC++ "hasExtForAll" ${name})
+								#Extension is NOT given
+								if [ -z "${HasAnExt}" ]; then
+									#Evaluate if file exists by extension
+									HasAnExtSrc=$(UseC++ "hasExtForSrc" ${name})
+									HasAnExtHeader=$(UseC++ "hasExtForHeader" ${name})
+									#selected in priority...default src
+									if [ -z "${HasAnExtSrc}" ]; then
+										#Using default src
+										if [ -f "${name}${LangExt}" ]; then
 											name="${name}${LangExt}"
-										elif [[ ! "${name}" == *"${LangOtherExt}" ]] && [[ -f "${name}${LangOtherExt}" ]]; then
-											name="${name}${LangOtherExt}"
+										#Look for other src types
+										else
+											name=$(UseC++ "FindTheSrc" ${name})
 										fi
-										;;
-								esac
+									#default header
+									elif [ -z "${HasAnExtHeader}" ]; then
+										#Using default header
+										if [ -f "${name}${LangOtherExt}" ]; then
+											name="${name}${LangOtherExt}"
+										#Look for other header types
+										else
+											name=$(UseC++ "FindTheHeader" ${name})
+										fi
+									fi
+								fi
 								#Return source file if exists
 								if [ -f "${name}" ]; then
 									echo "${name}"
@@ -386,55 +587,128 @@ UseC++()
 								;;
 							#Used with "add"
 							addCode)
-								#Evaluate set code
-								case ${name} in
-									#set code contains source code
-									*${LangExt}|*${LangOtherExt})
-										#Add default or header files with file extensions
-										case ${new} in
-											*${LangExt}|*${LangOtherExt})
-												#Append file
-												if [ -f "${new}" ]; then
-													echo "${name},${new}"
-												else
+								HasAnExt=$(UseC++ "hasExtForAll" ${name})
+								#source file has an extenion
+								if [ ! -z "${HasAnExt}" ]; then
+									#Evaluate added code...src or header
+									HasAnExt=$(UseC++ "hasExtForAll" ${new})
+									#Added code has an extension
+									if [ ! -z "${HasAnExt}" ]; then
+										#Check if file exists
+										if [ -f "${new}" ]; then
+											#check if is already selected
+											case ${name} in
+												*${new}*)
 													echo "${name}"
-												fi
-												;;
-											#Add cpp or header files without file extensions
-											*)
+													;;
+												*)
+													echo "${name},${new}"
+													;;
+											esac
+										#File does not exist
+										else
+											echo "${name}"
+										fi
+									#Has NO extension
+									else
+										#src and NOT header
+										if [ -f "${new}${LangExt}" ] && [ ! -f "${new}${LangOtherExt}" ]; then
+											#Re-evaluate
+											case ${name} in
+												#Contains only src
+												*${new}${LangExt}*)
+													HasAnExtHeader=$(UseC++ "FindTheHeader" ${new})
+													UseC++ ${Type} ${name} ${HasAnExtHeader}
+													;;
+												#Add src
+												*)
+													UseC++ ${Type} ${name} ${new}${LangExt}
+													;;
+											esac
+										#Header and NOT src
+										elif [ ! -f "${new}${LangExt}" ] && [ -f "${new}${LangOtherExt}" ]; then
+											#Re-evaluate
+											case ${name} in
+												#Contains only Header
+												*${new}${LangOtherExt}*)
+													#Add src
+													HasAnExtSrc=$(UseC++ "FindTheSrc" ${new})
+													UseC++ ${Type} ${name} ${HasAnExtSrc}
+													;;
+												#Add header
+												*)
+													UseC++ ${Type} ${name} ${new}${LangOtherExt}
+													;;
+											esac
+										#BOTH Header and src
+										elif [ -f "${new}${LangExt}" ] && [ -f "${new}${LangOtherExt}" ]; then
+											#evaluate set code
+											case ${name} in
+												#Both are already in selected code
+												*${new}${LangExt}*${new}${LangOtherExt}*|*${new}${LangOtherExt}*${new}${LangExt})
+													#Do nothing
+													echo ${name}
+													;;
+												#One is in and one is not ins selected code
+												*)
+													#Re-evaluate
+													case ${name} in
+														#Contains only src
+														*${new}${LangExt}*)
+															#Add header
+															UseC++ ${Type} ${name} ${new}${LangOtherExt}
+															;;
+														#Contains only header
+														*${new}${LangOtherExt}*|*)
+															#Add src
+															UseC++ ${Type} ${name} ${new}${LangExt}
+															;;
+													esac
+													;;
+											esac
+										#NONE of the above
+										else
+											HasAnExtSrc=$(UseC++ "FindTheSrc" ${new})
+											HasAnExtHeader=$(UseC++ "FindTheHeader" ${new})
+											#src and NOT header
+											if [ ! -z "${HasAnExtSrc}" ] && [ -z "${HasAnExtHeader}" ]; then
+												#Add src
+												UseC++ ${Type} ${name} ${HasAnExtSrc}
+											#Header and NOT src
+											elif [ -z "${HasAnExtSrc}" ] && [ ! -z "${HasAnExtHeader}" ]; then
+												#Add header
+												UseC++ ${Type} ${name} ${HasAnExtHeader}
+											#BOTH Header and src
+											elif [ ! -z "${HasAnExtSrc}" ] && [ ! -z "${HasAnExtHeader}" ]; then
 												case ${name} in
-													#source code contains default code
-													*"${new}${LangExt}"*)
-														#Append header files
-														if [ -f "${new}${LangOtherExt}" ]; then
-															echo "${name},${new}${LangOtherExt}"
-														fi
+													#Both are already in selected code
+													*${HasAnExtSrc}*${HasAnExtHeader}*|*${HasAnExtHeader}*${HasAnExtSrc})
+														#Do nothing
+														echo ${name}
 														;;
-													#source code contains header file
-													*"${new}${LangOtherExt}"*)
-														#Append cpp files
-														if [ -f "${new}${LangExt}" ]; then
-															echo "${name},${new}${LangExt}"
-														fi
-														;;
+													#One is in and one is not ins selected code
 													*)
-														#Append header files
-														if [ -f "${new}${LangOtherExt}" ]; then
-															echo "${name},${new}${LangOtherExt}"
-														#Append cpp files
-														elif [ -f "${new}${LangExt}" ]; then
-															echo "${name},${new}${LangExt}"
-														fi
+														#Re-evaluate
+														case ${name} in
+															#Contains only src
+															*${HasAnExtSrc}*)
+																#Add header
+																UseC++ ${Type} ${name} ${HasAnExtHeader}
+																;;
+															#Contains only header
+															*${HasAnExtHeader}*|*)
+																#Add src
+																UseC++ ${Type} ${name} ${HasAnExtSrc}
+																;;
+														esac
 														;;
 												esac
-												;;
-										esac
-										;;
-									#Nothing has been set yet
-									*)
-										#do nothing
-										;;
-								esac
+											else
+												echo ${name}
+											fi
+										fi
+									fi
+								fi
 								;;
 							*)
 								;;
@@ -442,26 +716,44 @@ UseC++()
 						;;
 					#is a project
 					*)
+						local CheckForCpp
+						local CheckForHeader
 						local LookFor
 
 						#"set" or "add"
 						case ${Type} in
+							#Used with "set"
 							selectCode)
-								#Add default or header files with file extensions
-								case ${name} in
-									#file contains extension
-									*${LangExt}|*${LangOtherExt})
-										#echo "${name}"
-										;;
-									*)
-										#Correct filename
-										if [[ ! "${name}" == *"${LangExt}" ]]; then
+								#Check if extenion is given
+								HasAnExt=$(UseC++ "hasExtForAll" ${name})
+								#Extension is NOT given
+								if [ -z "${HasAnExt}" ]; then
+									#Evaluate if file exists by extension
+									HasAnExtSrc=$(UseC++ "hasExtForSrc" ${name})
+									HasAnExtHeader=$(UseC++ "hasExtForHeader" ${name})
+									#selected in priority...default src
+									if [ -z "${HasAnExtSrc}" ]; then
+										name=$(UseC++ "removeExt" ${name})
+										CheckForCpp=$(UseC++ "getProjSrc" ${name}${LangExt} 2> /dev/null)
+										#Using default src
+										if [ ! -z "${CheckForCpp}" ]; then
 											name="${name}${LangExt}"
-										elif [[ ! "${name}" == *"${LangOtherExt}" ]]; then
-											name="${name}${LangOtherExt}"
+										#Look for other src types
+										else
+											name=$(UseC++ "FindTheSrc" ${name})
 										fi
-										;;
-								esac
+									#default header
+									elif [ -z "${HasAnExtHeader}" ]; then
+										CheckForHeader=$(UseC++ "getProjSrc" ${new}${LangOtherExt} 2> /dev/null)
+										#Using default header
+										if [ ! -z "${CheckForHeader}" ]; then
+											name="${name}${LangOtherExt}"
+										#Look for other header types
+										else
+											name=$(UseC++ "FindTheHeader" ${name})
+										fi
+									fi
+								fi
 
 								LookFor=${name}
 								;;
@@ -473,10 +765,12 @@ UseC++()
 									*${LangExt}|*${LangOtherExt})
 										#Add default or header files with file extensions
 										case ${new} in
+											#selected source code has defailt extensions
 											*${LangExt}|*${LangOtherExt})
 												;;
 											#Add cpp or header files without file extensions
 											*)
+												#evaluate selected source code so as to know to add headers or not
 												case ${name} in
 													#source code contains default code
 													*"${new}${LangExt}"*)
@@ -487,16 +781,20 @@ UseC++()
 														new=${new}${LangExt}
 														;;
 													*)
-														new=${new%${LangExt}}
-														new=${new%${LangOtherExt}}
-														local CheckForCpp=$(UseC++ "getProjSrc" ${new}${LangExt} 2> /dev/null)
-														local CheckForHeader=$(UseC++ "getProjSrc" ${new}${LangOtherExt} 2> /dev/null)
-														#Append cpp files
-														if [ ! -z "${CheckForCpp}" ]; then
-															new="${new}${LangExt}"
-														#Append header files
-														elif [ ! -z "${CheckForHeader}" ]; then
-															new="${new}${LangOtherExt}"
+														#Evaluate if file exists by extension
+														HasAnExtSrc=$(UseC++ "hasExtForSrc" ${new})
+														HasAnExtHeader=$(UseC++ "hasExtForHeader" ${new})
+														if [ -z "${HasAnExtSrc}" ] || [ -z "${HasAnExtHeader}" ]; then
+															new=$(UseC++ "removeExt" ${new})
+															CheckForCpp=$(UseC++ "FindTheSrc" ${new})
+															CheckForHeader=$(UseC++ "FindTheHeader" ${new})
+															#Append cpp files
+															if [ ! -z "${CheckForCpp}" ]; then
+																new=${CheckForCpp##*/}
+															#Append header files
+															elif [ ! -z "${CheckForHeader}" ]; then
+																new=${CheckForHeader##*/}
+															fi
 														fi
 														;;
 												esac
@@ -557,9 +855,10 @@ UseC++()
 			;;
 		rmBin|rmSrc)
 			local name=$1
-			name=${name%${LangExt}}
-			name=${name%${LangOtherExt}}
+			name=$(UseC++ "removeExt" ${name})
 			local ThePath
+			local theHeader
+			local theSrc
 			local project=${CodeProject}
 			case ${Type} in
 				rmBin)
@@ -574,7 +873,6 @@ UseC++()
 					esac
 					;;
 				rmSrc)
-					local theHeader=${name%${LangExt}}${LangOtherExt}
 					case ${project} in
 						#not a project
 						none)
@@ -584,17 +882,31 @@ UseC++()
 							ThePath="${LangProject}/${project}/src"
 							;;
 					esac
-					name=${name}${LangExt}
+					theHeader=${name}${LangOtherExt}
 					#secretly take care of the header file
 					if [ -f ${ThePath}/${theHeader} ]; then
 						rm ${ThePath}/${theHeader}
+					else
+						cd ${ThePath}/
+						theHeader=$(UseC++ "FindTheHeader" ${name})
+						cd -> /dev/null
+						if [ ! -z "${theHeader}" ]; then
+							rm ${ThePath}/${theHeader}
+						fi
 					fi
 					;;
 				*)
 					;;
 			esac
-			if [ -f ${ThePath}/${name} ]; then
-				echo ${ThePath}/${name}
+			if [ -f ${ThePath}/${name}${LangExt} ]; then
+				echo ${ThePath}/${name}${LangExt}
+			else
+				cd ${ThePath}/
+				theSrc=$(UseC++ "FindTheSrc" ${name})
+				cd -> /dev/null
+				if [ ! -z "${theSrc}" ]; then
+					echo ${ThePath}/${theSrc}
+				fi
 			fi
 			;;
 		editCode|readCode)
@@ -605,6 +917,7 @@ UseC++()
 			local DirPath
 			local TheSrcDir
 			local ReadOrEdit
+			local HasAnExt
 
 			#Select the tool
 			#{
@@ -620,8 +933,9 @@ UseC++()
 			esac
 			#}
 
-			case ${src} in
-				*${LangExt}|*${LangOtherExt})
+			HasAnExt=$(UseC++ "hasExtForAll" ${src})
+
+			if [ ! -z "${HasAnExt}" ]; then
 					case ${project} in
 						none)
 							if [[ "${src}" == *","* ]]; then
@@ -734,11 +1048,8 @@ UseC++()
 							esac
 							;;
 					esac
-					;;
-				*)
-					;;
-			esac
-			 ;;
+			fi
+			;;
 		make)
 			local src=$1
 			src=$(echo ${src} | tr ',' ' ')
@@ -907,6 +1218,7 @@ UseC++()
 			local cplArgs=${CplArgs//,/ }
 			local IsVerbose
 			local project=${CodeProject}
+			local HasAnExt
 			local NeedThreads
 			local HasXlib
 			local HasXutil
@@ -930,8 +1242,7 @@ UseC++()
 							NumOfMain=$(echo ${name} | tr ' ' '\n' | wc -l)
 							case ${NumOfMain} in
 								1)
-									name=${name%${LangExt}}
-									name=${name%${LangOtherExt}}
+									name=$(UseC++ "removeExt" ${name})
 									;;
 								*)
 									FoundMain="no"
@@ -941,8 +1252,7 @@ UseC++()
 						fi
 						;;
 					*)
-						name=${src%${LangExt}}
-						name=${name%${LangOtherExt}}
+						name=$(UseC++ "removeExt" ${src})
 						;;
 				esac
 			fi
@@ -969,8 +1279,9 @@ UseC++()
 					;;
 			esac
 
+			HasAnExt=$(UseC++ "hasExtForCpl" ${src})
 			#Compile ONLY if source code is selected OR makefile is present
-			if [[ "$src" == *"${LangExt}"* ]] || [ -f ${LangProject}/${project}makefile ]; then
+			if [ ! -z "${HasAnExt}" ] || [ -f ${LangProject}/${project}makefile ]; then
 				cd ${TheSrcDir}
 				case ${cplArgs} in
 					none)
@@ -1218,33 +1529,42 @@ UseC++()
 		#Create new src files
 		newCode)
 			local name=$1
-			local Type=$2
-                        local oldCode=$3
+			local TheOfType=$2
+			local TheName
+			local oldCode=$3
 			local project=${CodeProject}
+			local HasAHeaderExt
+			local IsNotAType
 
-			#Sometimes "oldCode" gets passed as "Type"
+			#Sometimes "oldCode" gets passed as "TheOfType"
 			if [ -z "${oldCode}" ]; then
-				case ${Type} in
-					*${LangOtherExt}|*${LangExt})
-						oldCode=${Type}
+				IsNotAType=$(UseC++ "hasExtForAll" ${TheOfType})
+				case ${IsNotAType} in
+					yes)
+						oldCode=${TheOfType}
+						TheOfType=""
+	
 						;;
 					*)
 						;;
 				esac
 			fi
 
-			Type=${Type,,}
-			case ${name} in
-				*${LangOtherExt})
-					name=${name%${LangOtherExt}}
-					Type="header"
+			TheOfType=${TheOfType,,}
+
+			HasAHeaderExt=$(UseC++ "hasExtForHeader" ${name})
+			case ${HasAHeaderExt} in
+				yes)
+					name=$(UseC++ "removeExt" ${name})
+					TheOfType="header"
 					;;
 				*)
-					name=${name%${LangExt}}
+					name=$(UseC++ "removeExt" ${name})
 					;;
 			esac
+
 			if [ ! -f ${name}${LangExt} ] || [ ! -f ${name}${LangOtherExt} ]; then
-				case ${Type} in
+				case ${TheOfType} in
 					#create header file
 					header)
 						if [ ! -f ${name}${LangOtherExt} ]; then
@@ -1264,7 +1584,7 @@ UseC++()
 							if [ -f ${TemplateCode} ]; then
 								#Program Name Given
 								if [ ! -z "${name}" ];then
-									${TemplateCode} --random --write-file --read-file --cli --main --is-in --user-input --name ${name}
+									${TemplateCode} --random --write-file --read-file --cli --main --is-in --user-input --name "${name}" --ext "${LangExt}"
 								#No Program Name Given
 								else
 									#Help Page
@@ -1288,7 +1608,7 @@ UseC++()
 							if [ -f ${TemplateCode} ]; then
 								#Program Name Given
 								if [ ! -z "${name}" ];then
-									${TemplateCode} -n "${name}"
+									${TemplateCode} -n "${name}" --ext "${LangExt}"
 								#No Program Name Given
 								else
 									#Help Page
@@ -1314,23 +1634,24 @@ UseC++()
 							#Is not a project
 							none)
 								#Looks like you have source code already set
+								TheName=$(UseC++ "removeExt" ${name})
 								if [ ! -z "${oldCode}" ]; then
-									case ${name%${LangExt}}${LangExt} in
-										#In the event you have a name.cpp file, also make a name.h file
-										*"${oldCode}"*)
-											#echo "header"
-											UseC++ "newCode" ${name%${LangExt}}${LangOtherExt} "header" ${oldCode}
-											;;
-										#In the event you already have a main file, create a component
-										*)
-											#echo "component"
-											UseC++ "newCode" ${name} "component" ${oldCode}
-											;;
-									esac
+									if [ -f ${TheName}${LangExt} ]; then
+										#echo "header"
+										UseC++ "newCode" ${TheName}${LangOtherExt} "header" ${oldCode}
+									else
+										#echo "component"
+										UseC++ "newCode" ${name} "component" ${oldCode}
+									fi
 								#No source code has been made, create a main file
 								else
-									#echo "main"
-									UseC++ "newCode" ${name} "main"
+									if [ ! -f ${TheName}${LangExt} ]; then
+										#echo "main"
+										UseC++ "newCode" ${name} "main"
+									else
+										#echo "header"
+										UseC++ "newCode" ${TheName}${LangOtherExt} "header"
+									fi
 								fi
 								;;
 							#Is a project
@@ -1342,7 +1663,8 @@ UseC++()
 								local HasSrcCode=$(find ${TheSrcDir} -type f -name "*${LangExt}")
 								#Has Source Code
 								if [ ! -z "${HasSrcCode}" ]; then
-									local NumFound=$(find ${TheSrcDir} -name ${name%${LangExt}}${LangExt} 2> /dev/null | wc -l)
+									TheName=$(UseC++ "removeExt" ${name})
+									local NumFound=$(find ${TheSrcDir} -name ${TheName}${LangExt} 2> /dev/null | wc -l)
 									case ${NumFound} in
 										#No other source code was found...make your main file
 										0)
@@ -1549,16 +1871,17 @@ UseC++()
 			;;
 		#create a copy of set code
 		copy|rename)
-			local TheOld=$1
-			local TheNew=$2
-			TheOld="${TheOld%${LangExt}}${LangExt}"
-			TheNew="${TheNew%${LangExt}}${LangExt}"
+			local TheOld=$(UseC++ "removeExt" $1)
+			local TheNew=$(UseC++ "removeExt" $2)
+			TheOld="${TheOld}${LangExt}"
+			TheNew="${TheNew}${LangExt}"
 			local project=${CodeProject}
 			case ${project} in
 				none)
 					if [ ! -z "${TheNew}" ]; then
-						TheOld="${TheOld%${LangExt}}"
-						TheNew="${TheNew%${LangExt}}"
+						TheOld=$(UseC++ "removeExt" ${TheOld})
+						TheNew=$(UseC++ "removeExt" ${TheNew})
+
 						sed "s/${TheOld}/${TheNew}/g" ${LangSrc}/${TheOld}${LangExt} > ${LangSrc}/${TheNew}${LangExt}
 
 						#Remove old file for "rename"
@@ -1579,8 +1902,8 @@ UseC++()
 						#File is in current dir
 						if [ -f ${TheNew} ]; then
 							#Remove the extention
-							TheOld="${TheOld%${LangExt}}"
-							TheNew="${TheNew%${LangExt}}"
+							TheOld=$(UseC++ "removeExt" ${TheOld})
+							TheNew=$(UseC++ "removeExt" ${TheNew})
 							sed "s/${TheOld}/${TheNew}/g" ${TheOld}${LangExt} > ${TheNew}${LangExt}
 
 							#Remove old file for "rename"
@@ -1604,8 +1927,8 @@ UseC++()
 									#Get the file
 									TheFound=${TheFound##*/}
 									#Remove the extention
-									TheOld="${TheOld%${LangExt}}"
-									TheNew="${TheNew%${LangExt}}"
+									TheOld=$(UseC++ "removeExt" ${TheOld})"
+									TheNew=$(UseC++ "removeExt" ${TheNew})"
 									sed "s/${TheOld}/${TheNew}/g" ${TheDir}/${TheOld}${LangExt} > ${TheDir}/${TheNew}${LangExt}
 
 									#Remove old file for "rename"
