@@ -12,7 +12,7 @@ shift
 
 errorCode()
 {
-        ${LibDir}/errorCode.sh $@
+	${LibDir}/errorCode.sh $@
 }
 
 #Handle Aliases
@@ -198,10 +198,10 @@ UseGo()
 			local name=$1
 			name=$(UseGo "removeExt" ${name})
 			local oldCode=$2
-                        local project=${CodeProject}
-                        local newName
-                        local DirPath
-                        local TheSrcDir
+			local project=${CodeProject}
+			local newName
+			local DirPath
+			local TheSrcDir
 			case ${project} in
 				#Is not a project
 				none)
@@ -977,7 +977,7 @@ UseGo()
 				echo -n "${cLang}\$ ./${cTemplate} "
 				read -a Args
 				#Program Args Given
-				if [ ! -z "${Args}" ];then
+				if [ ! -z "${Args}" ]; then
 					${TemplateCode} ${Args[@]}
 				#No Program Name Given
 				else
@@ -993,7 +993,7 @@ UseGo()
 		newCode)
 			local name=$1
 			local Type=$2
-                        local oldCode=$3
+			local oldCode=$3
 			local TheName
 			local project=${CodeProject}
 
@@ -1019,7 +1019,7 @@ UseGo()
 							#Check for Custom Code Template
 							if [ -f ${TemplateCode} ]; then
 								#Program Name Given
-								if [ ! -z "${name}" ];then
+								if [ ! -z "${name}" ]; then
 									${TemplateCode} --random --write-file --read-file --cli --main --is-in --user-input --name ${name}
 								#No Program Name Given
 								else
@@ -1028,7 +1028,7 @@ UseGo()
 								fi
 							else
 								#Program Name Given
-								if [ ! -z "${name}" ];then
+								if [ ! -z "${name}" ]; then
 									local Content="package main\n\nimport (\n\t"fmt"\n\t"os"\n)\n\nfunc main() {\n\targs := os.Args[1:]\n\n\tfor arg := range args {\n\tfmt.Println(arg,args[arg])\n\t}\n\tfmt.Println(\"And thats it!\")\n}"
 									touch ${name}${LangExt}
 									echo -e "${Content}" > ${name}${LangExt}
@@ -1043,7 +1043,7 @@ UseGo()
 						if [ ! -f ${name}${LangExt} ]; then
 							if [ -f ${TemplateCode} ]; then
 								#Program Name Given
-								if [ ! -z "${name}" ];then
+								if [ ! -z "${name}" ]; then
 									${TemplateCode} -n "${name}"
 								#No Program Name Given
 								else
@@ -1052,7 +1052,7 @@ UseGo()
 								fi
 							else
 								#Program Name Given
-								if [ ! -z "${name}" ];then
+								if [ ! -z "${name}" ]; then
 									local Content="package main\n\nimport (\n\t"fmt"\n\t"os"\n)\n\nfunc main() {\n\targs := os.Args[1:]\n\n\tfor arg := range args {\n\tfmt.Println(arg,args[arg])\n\t}\n\tfmt.Println(\"And thats it!\")\n}"
 									touch ${name}${LangExt}
 									echo -e "${Content}" > ${name}${LangExt}

@@ -12,7 +12,7 @@ shift
 
 errorCode()
 {
-        ${LibDir}/errorCode.sh $@
+	${LibDir}/errorCode.sh $@
 }
 
 #Handle Aliases
@@ -799,7 +799,7 @@ UsePython()
 				echo -n "${cLang}\$ ${LangRun} ${cTemplate} "
 				read -a Args
 				#Program Args Given
-				if [ ! -z "${Args}" ];then
+				if [ ! -z "${Args}" ]; then
 					${LangRun} ${TemplateCode} ${Args[@]}
 				#No Program Name Given
 				else
@@ -823,7 +823,7 @@ UsePython()
 				#Check for Custom Code Template
 				if [ -f ${TemplateCode} ]; then
 					#Program Name Given
-					if [ ! -z "${name}" ];then
+					if [ ! -z "${name}" ]; then
 						${LangRun} ${TemplateCode} -n ${name} --cli --main --shell --write-file --read-file --os --random
 					#No Program Name Given
 					else
@@ -831,7 +831,7 @@ UsePython()
 					fi
 				else
 					#Program Name Given
-					if [ ! -z "${name}" ];then
+					if [ ! -z "${name}" ]; then
 						local Content
 						case ${LangRun,,} in
 							python)

@@ -38,7 +38,7 @@ shift
 
 errorCode()
 {
-        ${LibDir}/errorCode.sh $@
+	${LibDir}/errorCode.sh $@
 }
 
 #Handle Aliases
@@ -382,10 +382,10 @@ UseC++()
 			local name=$1
 			name=$(UseC++ "removeExt" ${name})
 			local oldCode=$2
-                        local project=${CodeProject}
-                        local newName
-                        local DirPath
-                        local TheSrcDir
+			local project=${CodeProject}
+			local newName
+			local DirPath
+			local TheSrcDir
 			case ${project} in
 				#Is not a project
 				none)
@@ -1531,7 +1531,7 @@ UseC++()
 			local name=$1
 			local TheOfType=$2
 			local TheName
-                        local oldCode=$3
+			local oldCode=$3
 			local project=${CodeProject}
 			local HasAHeaderExt
 			local IsNotAType

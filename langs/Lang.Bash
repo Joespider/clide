@@ -11,13 +11,13 @@ shift
 
 errorCode()
 {
-        ${LibDir}/errorCode.sh $@
+	${LibDir}/errorCode.sh $@
 }
 
 #Handle Aliases
 AddAlias()
 {
-        ${LibDir}/AddAlias.sh $@
+	${LibDir}/AddAlias.sh $@
 }
 
 OtherColor()

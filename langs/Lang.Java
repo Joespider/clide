@@ -11,7 +11,7 @@ shift
 
 errorCode()
 {
-        ${LibDir}/errorCode.sh $@
+	${LibDir}/errorCode.sh $@
 }
 
 #Handle Aliases
@@ -353,7 +353,7 @@ UseJava()
 			else
 				echo "no ${TemplateCodeJar##*/} found"
 			fi
-                        ;;
+			;;
 		CplVersion)
 			echo "[${Lang} JDK/JRE]"
 			local LangRunVersion=$(${LangRun} --version 2> /dev/null | head -n 1)

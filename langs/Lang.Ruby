@@ -11,7 +11,7 @@ shift
 
 errorCode()
 {
-        ${LibDir}/errorCode.sh $@
+	${LibDir}/errorCode.sh $@
 }
 
 #Handle Aliases
@@ -98,7 +98,6 @@ UseRuby()
 			;;
 		SupportVersion)
 			echo ${SupportV}
-
 			;;
 		MenuHelp)
 			echo -e "new <file>\t\t\t: \"create new ${Lang} script\""
@@ -615,21 +614,21 @@ UseRuby()
 			esac
 			;;
 		lscpl)
-                        local project
-                        local path
-                        case ${CodeProject} in
-                                none)
-                                        path=${LangBin}/
-                                        ;;
-                                *)
-                                        project=${CodeProject}
-                                        path=${LangProject}/${project}/bin
-                                        ;;
-                        esac
-                        if [ -d ${path} ]; then
-                                ls ${path}
-                        fi
-                        ;;
+			local project
+			local path
+			case ${CodeProject} in
+				none)
+					path=${LangBin}/
+					;;
+				*)
+					project=${CodeProject}
+					path=${LangProject}/${project}/bin
+					;;
+			esac
+			if [ -d ${path} ]; then
+				ls ${path}
+			fi
+			;;
 		Install)
 			local bin=$1
 			local BinFile="${bin%.*}"
@@ -708,21 +707,21 @@ UseRuby()
 			echo "${LangRun} ${TheName}"
 			;;
 		runCode)
-                        local name=$1
-                        local TheBin="${name}"
-                        local project=${CodeProject}
-                        local TheBinDir
-                        shift
-                        shift
-                        local Args=$@
-                        #Handle Project Dir
-                        case ${project} in
-                                none)
-                                        project=""
-                                        TheBinDir=${LangBin}
-                                        ;;
-                                *)
-                                        project="${project}/"
+			local name=$1
+			local TheBin="${name}"
+			local project=${CodeProject}
+			local TheBinDir
+			shift
+			shift
+			local Args=$@
+			#Handle Project Dir
+			case ${project} in
+				none)
+					project=""
+					TheBinDir=${LangBin}
+					;;
+				*)
+					project="${project}/"
 					TheBinDir="${LangProject}/${project}bin"
 				;;
 			esac

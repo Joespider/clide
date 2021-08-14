@@ -12,7 +12,7 @@ shift
 
 errorCode()
 {
-        ${LibDir}/errorCode.sh $@
+	${LibDir}/errorCode.sh $@
 }
 
 #Handle Aliases
@@ -234,10 +234,10 @@ UseC()
 			local name=$1
 			name=$(UseC "removeExt" ${name})
 			local oldCode=$2
-                        local project=${CodeProject}
-                        local newName
-                        local DirPath
-                        local TheSrcDir
+			local project=${CodeProject}
+			local newName
+			local DirPath
+			local TheSrcDir
 			case ${project} in
 				#Is not a project
 				none)
@@ -799,7 +799,7 @@ UseC()
 				*)
 					;;
 			esac
-			 ;;
+			;;
 		make)
 			local src=$1
 			src=$(echo ${src} | tr ',' ' ')
@@ -1029,7 +1029,7 @@ UseC()
 					;;
 			esac
 
-			HasAnExt=$(UseC++ "hasExt" ${src})
+			HasAnExt=$(UseC "hasExt" ${src})
 
 			#Compile ONLY if source code is selected OR makefile is present
 			if [ ! -z "${HasAnExt}" ] || [ -f ${LangProject}/${project}makefile ]; then
@@ -1281,7 +1281,7 @@ UseC()
 		newCode)
 			local name=$1
 			local Type=$2
-                        local oldCode=$3
+			local oldCode=$3
 			local TheName
 			local project=${CodeProject}
 

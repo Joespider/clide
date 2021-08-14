@@ -789,7 +789,7 @@ Remove()
 	local option=$4
 	local TheFile
 	if [ ! -z "${src}" ]; then
-		case  ${src} in
+		case ${src} in
 			-f)
 				src=${option}
 				option="-f"
@@ -1017,7 +1017,7 @@ preSelectSrc()
 			local newCode
 			#Keep track of initial request
 			local WantedCode=${Code}
-			#Clean source codd
+			#Clean source code
 			Code=""
 			#Get the number of requested source files
 			local NumOfSrc=$(echo ${WantedCode} | tr ',' '\n' | wc -l)
@@ -1546,11 +1546,11 @@ Actions()
 						#Link a project with another language
 						link)
 							local project=${CodeProject}
-						        local ProjectFile=${ActiveProjectDir}/${project}.clide
-						        local Already=$(grep "link=" ${ProjectFile})
-						        case ${UserIn[2]} in
-					        	        --list|list)
-				                        		echo ${Already} | sed "s/link=//g" | tr ',' '\n'
+							local ProjectFile=${ActiveProjectDir}/${project}.clide
+							local Already=$(grep "link=" ${ProjectFile})
+							case ${UserIn[2]} in
+								--list|list)
+									echo ${Already} | sed "s/link=//g" | tr ',' '\n'
 									;;
 								*)
 									local IsLinked=$(linkProjects ${Lang} ${UserIn[2]})
@@ -1569,7 +1569,7 @@ Actions()
 							local Already=$(grep "link=" ${ProjectFile})
 							case ${UserIn[2]} in
 								#list the active projects
-					        	        --list|list)
+								--list|list)
 									echo ${Already} | sed "s/link=//g" | tr ',' '\n'
 									;;
 								#swap new language and code
@@ -3192,7 +3192,7 @@ main()
 				esac
 				;;
 			#Get by file extension
-                        *.*)
+			*.*)
 				local CodeDir
 				local Code=$1
 				#Get language by extension from source file

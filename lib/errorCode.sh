@@ -433,8 +433,8 @@ errorCode()
 							if [ ! -z "${four}" ]; then
 								errorCode "ERROR"
 								errorCode "ERROR" "Unable to swap to \"${four}\""
- 								echo ""
-								errorCode "ERROR"  "Please link ${four}"
+								echo ""
+								errorCode "ERROR" "Please link ${four}"
 								errorCode "HINT" "command"
 								echo "project link ${four}"
 							else

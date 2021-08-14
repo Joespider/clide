@@ -12,7 +12,7 @@ shift
 
 errorCode()
 {
-        ${LibDir}/errorCode.sh $@
+	${LibDir}/errorCode.sh $@
 }
 
 #Handle Aliases
@@ -685,7 +685,7 @@ UsePerl()
 					project="${project}/"
 					TheBinDir="${LangProject}/${project}bin"
 					;;
-                        esac
+			esac
 			#Make sure Binary exists
 			if [ -f "${TheBinDir}/${bin}" ]; then
 				#Add command to Aliases
