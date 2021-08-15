@@ -2,7 +2,7 @@ Shell=$(which bash)
 #!${Shell}
 
 #https://www3.ntu.edu.sg/home/ehchua/programming/cpp/gcc_make.html
-SupportV="0.1.92"
+SupportV="0.1.93"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -144,6 +144,9 @@ UseC++()
 			;;
 		SupportVersion)
 			echo ${SupportV}
+			;;
+		makeHelp)
+			echo -e "make help page"
 			;;
 		MenuHelp)
 			echo -e "new <file> <type>\t\t: \"create new ${Lang} source file\""
@@ -1050,73 +1053,30 @@ UseC++()
 					esac
 			fi
 			;;
-		make)
-			local src=$1
-			src=$(echo ${src} | tr ',' ' ')
-			local cplArgs=${CplArgs}
-			local project=${CodeProject}
+		handleCplArgs)
 			local NeedThreads
 			local HasXlib
 			local HasXutil
 			local HasXos
-			local TheBin=${project}
-			local TheSrcDir="${LangProject}/${project}/src"
-			local TheBinDir="${LangProject}/${project}/bin"
-
-			case ${project} in
-				none)
-					;;
-				*)
-
-					#[Threads] Compile for Threads
-					#{
-					NeedThreads=$(grep "#include <thread>" ${src})
-					if [ ! -z "${NeedThreads}" ]; then
-						cplArgs="${cplArgs} -lpthread"
-					fi
-					#}
-
-					#[X11] Compile with X11 code
-					#{
-					HasXlib=$(grep "#include <X11/Xlib.h>" ${src})
-					HasXutil=$(grep "#include <X11/Xutil.h>" ${src})
-					HasXos=$(grep "#include <X11/Xos.h>" ${src})
-					if [ ! -z "${HasXlib}" ] || [ ! -z "${HasXutil}" ] || [ ! -z "${HasXos}" ]; then
-						cplArgs="${cplArgs} -I /usr/X11/include -L /usr/X11/lib -lX11"
-					fi
-					#}
-
-					#The Make file
-					#{
-					echo "#The Compiler for ${Lang}"
-					echo "cpl = ${LangCpl}"
-					case ${cplArgs} in
-						none)
-							;;
-						*)
-							echo ""
-							echo "#Compile arguments"
-							echo "cplArgs = ${cplArgs}"
-							;;
-					esac
-					echo ""
-					echo "The build target"
-					echo "TheBin = ${TheBin}"
-					echo ""
-					echo "all: \$(TheBin)"
-					echo ""
-					echo "\$(TheBin): ${src}"
-					case ${cplArgs} in
-						none)
-							echo -e "\t\$(cpl) ${src} -o ${TheBinDir}/\$(TheBin)"
-							;;
-						*)
-							echo -e "\t\$(cpl) ${src} -o ${TheBinDir}/\$(TheBin) \$(cplArgs)"
-							;;
-					esac
-					#}
-					;;
-			esac
+			local src=$1
+			local cplArgs=$2
+			#[Threads] Compile for Threads
+			#{
+			NeedThreads=$(grep "#include <thread>" ${src})
+			if [ ! -z "${NeedThreads}" ]; then
+				cplArgs="${cplArgs} -lpthread"
+			fi
+			#}
+			#[X11] Compile with X11 code
+			#{
+			HasXlib=$(grep "#include <X11/Xlib.h>" ${src})
+			HasXutil=$(grep "#include <X11/Xutil.h>" ${src})
+			HasXos=$(grep "#include <X11/Xos.h>" ${src})
+			if [ ! -z "${HasXlib}" ] || [ ! -z "${HasXutil}" ] || [ ! -z "${HasXos}" ]; then
+				cplArgs="${cplArgs} -I /usr/X11/include -L /usr/X11/lib -lX11"
+			fi
+			#}
+			echo ${cplArgs// /,}
 			;;
 		setCplArgs)
 			shift
@@ -1212,6 +1172,9 @@ UseC++()
 		compileCode-message)
 			echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
 			;;
+		compileCodeMake-message)
+			echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled (MAKE)]\e[0m"
+			;;
 		compileCode)
 			local src=$1
 			local name=$2
@@ -1219,10 +1182,6 @@ UseC++()
 			local IsVerbose
 			local project=${CodeProject}
 			local HasAnExt
-			local NeedThreads
-			local HasXlib
-			local HasXutil
-			local HasXos
 			local ReplaceTheSrcDir
 			local TheSrcDir
 			local TheBinDir
@@ -1294,9 +1253,16 @@ UseC++()
 				#Compile with makefile
 				if [ -f ${LangProject}/${project}makefile ]; then
 					cd ${LangProject}/${project}
-					echo "make"
+					ERROR=$(make 1> /dev/null 2>&1 | tr '\n' '|')
 					cd - > /dev/null
-					UseC++ compileCode-message
+					#Code compiled did compile
+					if [ -z "${ERROR}" ]; then
+						UseC++ compileCodeMake-message
+					#Code compiled did NOT compile
+					else
+						#display the ERROR message
+						errorCode "cpl" "ERROR" "${ERROR}"
+					fi
 				#Compile without makefile
 				else
 					#source file is empty
@@ -1305,25 +1271,14 @@ UseC++()
 					else
 						case ${FoundMain} in
 							yes)
-								#[Threads] Compile for Threads
-								#{
-								NeedThreads=$(grep "#include <thread>" ${src})
-								if [ ! -z "${NeedThreads}" ]; then
-									cplArgs="${cplArgs} -lpthread"
-								fi
-								#}
+								cplArgs=${cplArgs// /,}
+								cplArgs=$(UseC++ "handleCplArgs" ${src} ${cplArgs})
+								cplArgs=${cplArgs//,/ }
 
-								#[X11] Compile with X11 code
+								#Handle Verbose
 								#{
-								HasXlib=$(grep "#include <X11/Xlib.h>" ${src})
-								HasXutil=$(grep "#include <X11/Xutil.h>" ${src})
-								HasXos=$(grep "#include <X11/Xos.h>" ${src})
-								if [ ! -z "${HasXlib}" ] || [ ! -z "${HasXutil}" ] || [ ! -z "${HasXos}" ]; then
-									cplArgs="${cplArgs} -I /usr/X11/include -L /usr/X11/lib -lX11"
-								fi
+								IsVerbose=$(echo ${cplArgs} | grep -w "\-v" 2> /dev/null)
 								#}
-
-								IsVerbose=$(echo ${cplArgs} |grep -w "\-v" 2> /dev/null)
 								if [ -z "${IsVerbose}" ]; then
 									#Compile and check for errors...and put into binary directory
 									ERROR=$(${LangCpl} ${src} -o ${TheBinDir}/${name} ${cplArgs} 2>&1 | tr '\n' '|')
@@ -1362,20 +1317,89 @@ UseC++()
 			fi
 			;;
 		create-make)
+			local src=$1
+			src="${src//,/ /}"
 			case ${CodeProject} in
 				#No Project
 				none)
-					echo "Project ${Lang} ONLY"
+					errorCode "make" "need-to-be-project" ${Lang}
 					;;
 				#Is a project
 				*)
 					#makefile already exists
-					if [ -f ${LangSrc}/${CodeProject}/makefile ]; then
-						echo "makefile Already made for \"${CodeProject}\""
-						#makefile already made
+					if [ -f ${LangProject}/${CodeProject}/makefile ]; then
+						errorCode "make" "already"
 					else
-						touch ${LangSrc}/${CodeProject}/makefile
-						echo "makefile Created"
+						local TheMakeArgs
+						local cplArgs
+						case ${CplArgs} in
+							none)
+								if [ ! -z "${src}" ]; then
+									TheMakeArgs="CC = ${LangCpl}\n\nVPATH=src\n\nall: ${CodeProject}\n\n${CodeProject}: ${src}\n\t\$(CC) -o bin/\$@ \$<"
+								else
+									TheMakeArgs="CC = ${LangCpl}\n\nall: ${CodeProject}\n\n${CodeProject}:\n\t\$(CC) -o bin/${CodeProject} src/"
+								fi
+								;;
+							*)
+								cplArgs="${CplArgs//,/ }"
+								if [ ! -z "${src}" ]; then
+									TheMakeArgs="CC = ${LangCpl}\nCFLAGS = ${cplArgs}\n\nVPATH=src\n\nall: ${CodeProject}\n\n${CodeProject}: ${src}\n\t\$(CC) -o bin/\$@ \$< \$(CFLAGS)"
+								else
+									TheMakeArgs="CC = ${LangCpl}\nCFLAGS = ${cplArgs}\n\nall: ${CodeProject}\n\n${CodeProject}:\n\t\$(CC) -o bin/${CodeProject} src/ \$(CFLAGS)"
+								fi
+								;;
+						esac
+						touch ${LangProject}/${CodeProject}/makefile
+						echo -e "${TheMakeArgs}" > ${LangProject}/${CodeProject}/makefile
+						errorCode "HINT" "makefile Created"
+					fi
+					;;
+			esac
+			;;
+		edit-make)
+			case ${CodeProject} in
+				#No Project
+				none)
+					;;
+				#Is a project
+				*)
+					#makefile already exists
+					if [ -f ${LangProject}/${CodeProject}/makefile ]; then
+						${editor} ${LangProject}/${CodeProject}/makefile
+					else
+						errorCode "make" "edit-make"
+					fi
+					;;
+			esac
+			;;
+		disable-make)
+			case ${CodeProject} in
+				#No Project
+				none)
+					errorCode "make" "need-to-be-project" ${Lang}
+					;;
+				#Is a project
+				*)
+					#makefile already exists
+					if [ -f ${LangProject}/${CodeProject}/makefile ]; then
+						mv ${LangProject}/${CodeProject}/makefile ${LangProject}/${CodeProject}/makeDisabled
+						errorCode "HINT" "makefile disabled"
+					fi
+					;;
+			esac
+			;;
+		enable-make)
+			case ${CodeProject} in
+				#No Project
+				none)
+					errorCode "make" "need-to-be-project" ${Lang}
+					;;
+				#Is a project
+				*)
+					#makefile already exists
+					if [ -f ${LangProject}/${CodeProject}/makeDisabled ]; then
+						mv ${LangProject}/${CodeProject}/makeDisabled ${LangProject}/${CodeProject}/makefile
+						errorCode "HINT" "makefile enabled"
 					fi
 					;;
 			esac

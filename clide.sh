@@ -1416,6 +1416,42 @@ Actions()
 				src|source)
 					echo ${Code} | tr ',' '\n'
 					;;
+				make)
+					case ${CodeProject} in
+						#Is not a project
+						none)
+							errorCode "project" "none" "${Head}"
+							;;
+						#Is a project
+						*)
+							case ${Lang} in
+								#only C and C++ uses make
+								C*)
+									case ${UserIn[1]} in
+										disable)
+											ManageLangs ${Lang} "disable-make"
+											;;
+										enable)
+											ManageLangs ${Lang} "enable-make"
+											;;
+										create)
+											ManageLangs ${Lang} "create-make" "${Code}"
+											;;
+										edit)
+											ManageLangs ${Lang} "edit-make"
+											;;
+										*|help)
+											theHelp makeHelp ${Lang}
+											;;
+									esac
+									;;
+								*)
+									errorCode "make" "not-for-lang" ${Lang}
+									;;
+							esac
+							;;
+					esac
+					;;
 				#Handle Projects
 				project)
 					#Project commands
