@@ -1,6 +1,10 @@
 Shell=$(which bash)
 #!${Shell}
 
+#Start="\e[1;45m"
+Start="\e[1;35m"
+End="\e[0m"
+
 Head=$1
 LangsDir=$2
 RunCplArgs=$3
@@ -130,6 +134,23 @@ CreateHelp()
 			echo ""
 			;;
 	esac
+}
+
+makeHelp()
+{
+	local Lang=$1
+	echo ""
+	echo "----------------[(${Head}) \"Make\" Help]----------------"
+	echo -e "Purpose: \"create and handle makefiles\""
+	echo -e "create\t\t\t\t: \"Create a makefile in a ${Lang} Project\""
+	echo -e "edit\t\t\t\t: \"Edit an existing makefile in a ${Lang} Project\""
+	echo -e "enable\t\t\t\t: \"Enable previously disabled makefile in a ${Lang} Project\""
+	echo -e "disable\t\t\t\t: \"Disable makefile in a ${Lang} Project\""
+	echo -e "\t\t\t\t\t(Can be used to create a new makefile)"
+	echo -e "(To run make, just tell ${Head} to compile)"
+#	ManageLangs ${Lang} "makeHelp"
+	echo "---------------------------------------------------------"
+	echo ""
 }
 
 ProjectDelete()
@@ -573,6 +594,9 @@ main()
 		ProjectHelp)
 			ProjectHelp $@
 			;;
+		makeHelp)
+			makeHelp $@
+			;;
 		NotesHelp)
 			NotesHelp $@
 			;;
@@ -614,4 +638,6 @@ main()
 	esac
 }
 
+echo -en "${Start}"
 main $@
+echo -e "${End}"

@@ -7,9 +7,36 @@ errorCode()
 	shift
 	local sec=$1
 	case ${ecd} in
-		repo)
+		make)
 			shift
 			local thr=$1
+			case ${sec} in
+				not-for-lang)
+					errorCode "ERROR"
+					errorCode "ERROR" "${thr} does not support make"
+					;;
+				edit-make)
+					errorCode "ERROR"
+					errorCode "ERROR" "No Make file created"
+					errorCode "HINT" "command"
+					ErrorCode "HINT" "make create"
+					errorCode "HINT" "\tor"
+					errorCode "HINT" "command"
+					ErrorCode "HINT" "create make"
+					;;
+				already)
+					errorCode "ERROR"
+					errorCode "ERROR" "make file already created"
+					;;
+				need-to-be-project)
+					errorCode "ERROR"
+					errorCode "ERROR" "Project ${thr} ONLY"
+					;;
+				*)
+					;;
+			esac
+			;;
+		repo)
 			case ${sec} in
 				not-installed)
 					errorCode "ERROR"
