@@ -144,13 +144,13 @@ ModeHandler()
 		${repoTool}|repo)
 			#Use ONLY for Projects
 			if [[ ! "${CodeProject}" == "none" ]]; then
-				${ModesDir}/repo.sh ${repoTool} ${CodeProject} ${repoAssist}
+				${ModesDir}/repo.sh
 			else
 				errorCode "project" "must-be-active"
 			fi
 			;;
 		add)
-			${ModesDir}/add.sh "${LibDir}" "${LangsDir}" "${ClideProjectDir}" ${Lang} ${cLang} ${Code} ${cCode} ${Arg}
+			${ModesDir}/add.sh ${Head} "${LibDir}" "${LangsDir}" "${ClideProjectDir}" ${Lang} ${cLang} ${Code} ${cCode} ${Arg}
 
 			;;
 		#Provide help page when asked
@@ -233,7 +233,7 @@ RepoVersion()
 	if [ ! -z "${IsInstalled}" ]; then
 		${repoTool} --version
 	else
-		errorCode "repo" "not-installed"
+		errorCode "mode-repo" "not-installed" ${repoTool}
 	fi
 }
 
@@ -280,6 +280,7 @@ CodeSupportVersion()
 CodeTemplateVersion()
 {
 	local TheLang=$1
+	local TempNum
 	local Langs=""
 	if [ ! -z "${TheLang}" ]; then
 		TempNum=$(ManageLangs ${TheLang} "TemplateVersion" | sed "s/Version/${text}/g" | grep -v found)
@@ -288,6 +289,7 @@ CodeTemplateVersion()
 			echo "${TempNum}"
 		fi
 	else
+		local CharCount
 		local GetLangs=$(ls ${LangsDir}/ | sed "s/Lang.//g" | tr '\n' '|' | rev | sed "s/|//1" | rev)
 		local NumOfLangs=$(ls | wc -l)
 		local look=1
@@ -298,9 +300,19 @@ CodeTemplateVersion()
 			text=$(ManageLangs ${text} "pgLang")
 			case ${text} in
 				no)
+					#do nothing
 					;;
 				*)
-					ManageLangs "${text}" "TemplateVersion" | sed "s/Version/${text}/g" | grep -v found
+					TempNum=$(ManageLangs "${text}" "TemplateVersion" | sed "s/Version/${text}/g" | grep -v found)
+					if [ ! -z "${TempNum}" ]; then
+						#Tab based on size of chars in lable
+						CharCount=$(echo ${text} | wc -m)
+						if [ ${CharCount} -lt 6 ]; then
+							echo -e "(${text})\t\t{${TempNum}}"
+						else
+							echo -e "(${text})\t{${TempNum}}"
+						fi
+					fi
 					;;
 				esac
 			look=$((${look}+1))
@@ -1052,10 +1064,7 @@ Actions-NoLang()
 	history -c
 	local NoLang=cl[$(echo -e "\e[1;41mide\e[0m")]
 	local UserIn
-#	local prompt="${NoLang}($(echo -e "\e[1;41mno-lang\e[0m")):$ "
-#	local prompt="${NoLang}($(echo -e "\e[1;31mno-lang\e[0m")):$ "
-	local prompt="${NoLang}():$ "
-#	local prompt="${NoLang}:$ "
+	local prompt="${NoLang}($(echo -e "\e[1;31mno-lang\e[0m")):$ "
 	while true
 	do
 		read -e -p "${prompt}" -a UserIn

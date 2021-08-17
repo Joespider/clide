@@ -83,7 +83,7 @@ UseC()
 			echo ""
 			;;
 		color)
-			#Return Blue
+			#Return Yellow
 			echo -e "\e[1;3${ColorNum}m${Lang}\e[0m"
 			;;
 		ProjectColor)

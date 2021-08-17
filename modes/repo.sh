@@ -9,11 +9,6 @@ Head="cl[ide]"
 IDE=$(echo -e "\e[1;43mrepo\e[0m")
 Name="cl[${IDE}]"
 
-repoTool=$1
-shift
-CodeProject=$1
-shift
-repoAssist=$1
 shift
 Branch=""
 
@@ -26,42 +21,16 @@ GitTool=$(which git)
 #check if svn is installed
 SvnTool=$(which svn)
 
-Help()
+#call help shell script
+theHelp()
 {
-	local Selection=$1
-	case ${repoTool} in
-		git)
-			case ${Selection} in
-				branch|branches)
-					echo "help"
-					echo "new"
-					echo "remove, delete"
-					echo "select, checkout"
-					;;
-				*)
-					echo "GIT Help"
-					echo ""
-					echo "ActiveBranch"
-					echo "use, init"
-					echo "setup, clone"
-					echo "add"
-					echo "message, commit"
-					echo "branch, branches"
-					echo "upload, push"
-					echo "download, pull"
-					echo "state, status"
-					echo "slamdunk"
-					echo "help, options"
-					echo "version"
-					;;
-			esac
-			;;
-		svn)
-			echo "SVN Help"
-			;;
-		*)
-			;;
-	esac
+	${LibDir}/help.sh ${Head} ${LangsDir} ${RunCplArgs} RepoHelp $@
+}
+
+#call errorcode shell script
+errorCode()
+{
+	${LibDir}/errorCode.sh $@
 }
 
 #Adjust colors
@@ -93,7 +62,7 @@ RepoVersion()
 	if [ ! -z "${IsInstalled}" ]; then
 		${repoTool} --version
 	else
-		echo "\"${repoTool}\" is not installed"
+		errorCode "mode-repo" "${repoTool}" "not-installed"
 	fi
 }
 
@@ -130,7 +99,7 @@ gitHandler()
 					#Again...nothing
 					else
 						#Nothing to do
-						echo "Nothing to clone"
+						errorCode "mode-repo" "${repoTool}" "clone-nothing"
 					fi
 				fi
 				;;
@@ -173,7 +142,7 @@ gitHandler()
 							if [ ! -z "${name}" ]; then
 								gitHandler "${repoAct}" "${branchAct}" "${name}"
 							else
-								echo "No branch has been created"
+								errorCode "mode-repo" "${repoTool}" "create-no-branch"
 							fi
 						fi
 						;;
@@ -196,7 +165,7 @@ gitHandler()
 								gitHandler "${repoAct}" "${branchAct}" "${name}"
 							#no branch name given
 							else
-								echo "No Branch has been deleted"
+								errorCode "mode-repo" "${repoTool}" "delete-no-branch"
 							fi
 						fi
 						;;
@@ -220,12 +189,12 @@ gitHandler()
 								gitHandler "${repoAct}" "${branchAct}" "${name}"
 							#no branch name given
 							else
-								echo "No Branch has been selected"
+								errorCode "mode-repo" "${repoTool}" "select-no-branch"
 							fi
 						fi
 						;;
 					help)
-						Help "${repoAct}"
+						theHelp "${repoAct}"
 						;;
 					#list all branches
 					*)
@@ -241,7 +210,7 @@ gitHandler()
 					if [ ! -z "${Branch}" ]; then
 						gitHandler "${repoAct}" "${Branch}"
 					else
-						echo "Code not pushed; no branch found"
+						errorCode "mode-repo" "${repoTool}" "push-no-branch"
 					fi
 				fi
 				;;
@@ -271,8 +240,11 @@ gitHandler()
 						message=$@
 						while true
 						do
-							echo "Are you sure? There is no stopping what is being done"
-							echo -n "(yes/no)> "
+							errorCode "mode-repo" "${repoTool}" "not-install"
+							errorCode "WARNING"
+							errorCode "WARNING" "Are you sure? There is no stopping what is being done"
+							errorCode "WARNING" "(yes/no)"
+							echo -n " >"
 							read sure
 							sure=${sure,,}
 							case ${sure} in
@@ -287,8 +259,8 @@ gitHandler()
 						;;
 				esac
 				;;
-			help|options)
-				Help
+			help)
+				theHelp
 				;;
 			version)
 				RepoVersion
@@ -298,7 +270,7 @@ gitHandler()
 		esac
 	#git is not installed
 	else
-		echo "Please Install git"
+		errorCode "mode-repo" "${repoTool}" "please-install"
 	fi
 }
 
@@ -311,7 +283,7 @@ svnHandler()
 		echo "svn is installed"
 	#svn is not installed
 	else
-		echo "Please Install svn"
+		errorCode "mode-repo" "${repoTool}" "please-install"
 	fi
 }
 
@@ -322,7 +294,7 @@ repoHandler()
 			if [ ! -z "${IsInstalled}" ]; then
 				$@
 			else
-				echo "\"${repoTool}\" is not installed"
+				errorCode "mode-repo" "${repoTool}" "not-install"
 			fi
 			;;
 		True)
@@ -340,7 +312,7 @@ repoHandler()
 			esac
 			;;
 		*)
-			echo "repo version control has been disabled"
+			errorCode "mode-repo" "${repoTool}" "disabled"
 			;;
 	esac
 }
@@ -371,12 +343,16 @@ Repo()
 		#Handle CLI
 		read -e -p "${prompt}" -a UserIn
 		case ${UserIn[0]} in
+			clear)
+				clear
+				;;
 			exit|close)
 				break
 				;;
 			*)
 				if [ ! -z "${UserIn[0]}" ]; then
 					repoHandler ${UserIn[@]}
+		                        history -s "${UserIn[@]}"
 				fi
 				;;
 		esac

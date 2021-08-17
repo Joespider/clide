@@ -36,11 +36,101 @@ errorCode()
 					;;
 			esac
 			;;
-		repo)
+		mode-add)
+			shift
+			local thr=$1
+			local four=$2
 			case ${sec} in
-				not-installed)
-					errorCode "ERROR"
-					errorCode "ERROR" "\"${thr}\" is not installed"
+				shortcut)
+					case ${thr} in
+						create)
+							case ${four} in
+								clide)
+									errorCode "ERROR"
+									errorCode "ERROR" "unable to create clide.desktop"
+									;;
+								*)
+									;;
+							esac
+							;;
+						app)
+							case ${four} in
+								none)
+									errorCode "ERROR"
+									errorCode "ERROR" "No source code found"
+									;;
+								*)
+									;;
+							esac
+							;;
+						correct)
+							errorCode "ERROR"
+							errorCode "ERROR" "\"${Name}.desktop\" is not installed"
+							;;
+						*)
+							;;
+					esac
+					;;
+				*)
+					;;
+			esac
+			;;
+		mode-repo)
+			shift
+			local thr=$1
+			local four=$2
+			case ${sec} in
+				git)
+					case ${thr} in
+						not-installed)
+							errorCode "ERROR"
+							errorCode "ERROR" "\"${sec}\" is not installed"
+							;;
+						clone-nothing)
+							errorCode "ERROR"
+							errorCode "ERROR" "Nothing to clone"
+							;;
+						create-no-branch)
+							errorCode "ERROR"
+							errorCode "ERROR" "No branch has been created"
+							;;
+						delete-no-branch)
+							errorCode "ERROR"
+							errorCode "ERROR" "No branch to delete"
+							;;
+						select-no-branch)
+							errorCode "ERROR"
+							errorCode "ERROR" "No branch has been selected"
+							;;
+						push-no-branch)
+							errorCode "ERROR"
+							errorCode "ERROR" "Code not pushed; no branch found"
+							;;
+						please-install)
+							errorCode "ERROR"
+							errorCode "ERROR" "Please Install ${sec}"
+							;;
+						*)
+							;;
+					esac
+					;;
+				svn)
+					case ${thr} in
+						not-installed)
+							errorCode "ERROR"
+							errorCode "ERROR" "\"${sec}\" is not installed"
+							;;
+						please-install)
+							errorCode "ERROR"
+							errorCode "ERROR" "Please Install ${sec}"
+							;;
+						disabled)
+							errorCode "ERROR"
+							errorCode "ERROR" "repo version control has been disabled"
+							;;
+						*)
+							;;
+					esac
 					;;
 				*)
 					;;

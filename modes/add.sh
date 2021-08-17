@@ -5,6 +5,8 @@ ShellPath=$(realpath $0)
 root=$(dirname ${ShellPath})
 root=${root%/modes}
 
+Head=$1
+shift
 LibDir=$1
 shift
 LangsDir=$1
@@ -13,13 +15,19 @@ ClideProjectDir=$1
 ClideProjectDir=${ClideProjectDir}/Templates
 shift
 
-Version="0.1.02"
+Version="0.1.03"
 IDE=$(echo -e "\e[1;43madd\e[0m")
 Name="cl[${IDE}]"
 
 errorCode()
 {
 	${LibDir}/errorCode.sh $@
+}
+
+#call help shell script
+theHelp()
+{
+	${LibDir}/help.sh ${Head} ${LangsDir} ${RunCplArgs} ModesHelp add.sh $@
 }
 
 #Select Languge
@@ -53,63 +61,6 @@ ListLanguages()
 	ls ${LangsDir} | sed "s/Lang.//g"
 }
 
-Help()
-{
-	local Lang=$1
-	shift
-	local component=( $@ )
-	case ${component[0],,} in
-		shortcut)
-			case ${component[1],,} in
-				create)
-					echo -e "clide\t\t\t\t:\"Create a clide.desktop\""
-					echo -e "project, app\t\t\t:\"Create an <application>.desktop\""
-					;;
-				*)
-					echo "Component: shortcut"
-					echo -e "create <shortcut>\t\t:\"Create an application shortcut\""
-					echo -e "\tclide\t\t\t:\"Create a clide.desktop\""
-					echo -e "\tapp <app> \t\t:\"Create an <app>.desktop\""
-					echo -e "correct <app>\t\t\t:\"Adjust existing application shortcut\""
-					;;
-			esac
-			echo ""
-			echo -e "done\t\t\t\t: \"done with adding component\""
-			echo -e "exit, close\t\t\t: \"close mode\""
-			;;
-		project)
-			echo "Component: Project"
-			echo -e "create <project>\t\t:\"Create a brand new project template\""
-			echo -e "import\t\t\t\t:\"import a new project type (Lang.${Lang}.<type> FILE MUST EXIST)\""
-			echo -e "correct\t\t\t\t:\"Adjust existing project tempalte\""
-			echo ""
-			echo -e "done\t\t\t\t: \"done with adding component\""
-			echo -e "exit, close\t\t\t: \"close mode\""
-			;;
-		language)
-			echo "Component: Language Support"
-			echo -e "create <new language>\t\t:\"Create support for another language\""
-			echo -e "import\t\t\t\t:\"import new language to support (Lang.<type> FILE MUST EXIST)\""
-#			echo -e "change <lang> {run|cpl} <val>\t\t:\"Change the compiler/interpretor\""
-#			echo -e "change {run|cpl} <val>\t\t\t:\"Change the compiler/interpretor\""
-			echo -e "correct\t\t\t\t:\"Adjust existing support for Langauge\""
-			echo ""
-			echo -e "done\t\t\t\t: \"done with adding component\""
-			echo -e "exit, close\t\t\t: \"close mode\""
-			;;
-		*)
-			echo "Help options"
-			echo -e "set <cmp>\t\t\t: \"select component to add\""
-			echo -e "\tshortcut\t\t: \"Create shortcut for cl[ide]\""
-			echo -e "\tproject\t\t\t: \"select the 'project' component\""
-			echo -e "\tsupport, language\t: \"select the 'language' component\""
-			echo -e "using\t\t\t\t: \"List the content used in cl[ide]\""
-			echo ""
-			echo -e "exit, close\t\t\t: \"close mode\""
-			;;
-	esac
-}
-
 AddLangSupport()
 {
 	local Lang=$1
@@ -134,6 +85,7 @@ AddLangSupport()
 
 AddShortcut()
 {
+	local DebainAppDir=/usr/share/applications
 	local Lang=$1
 	local Code=$2
 	local Project=$3
@@ -145,25 +97,30 @@ AddShortcut()
 		create)
 			case ${Choice[1],,} in
 				clide)
-					echo -e "[Desktop Entry]\nName=cl[ide]\nEncoding=UTF-8\nExec=bash -c \"${root}/clide.sh\"\nIcon=${root}/icons/clide.png\nStartupNotify=false\nTerminal=true\nType=Application\nCategories=Programming;Development;IDE;" > clide.desktop
-					if [ -f clide.desktop ]; then
+					local ClideDesktop="clide.desktop"
+					echo -e "[Desktop Entry]\nName=cl[ide]\nEncoding=UTF-8\nExec=bash -c \"${root}/clide.sh\"\nIcon=${root}/icons/clide.png\nStartupNotify=false\nTerminal=true\nType=Application\nCategories=Programming;Development;IDE;" > ${ClideDesktop}
+					if [ -f ${ClideDesktop} ]; then
 						case $USER in
 							root)
-								mv clide.desktop /usr/share/applications/
+								mv ${ClideDesktop} ${DebainAppDir}/
 								;;
 							*)
-								sudo mv clide.desktop /usr/share/applications/
+								sudo mv ${ClideDesktop} ${DebainAppDir}/
 								;;
 						esac
+
+						if [ -f ${DebainAppDir}/${ClideDesktop} ]; then
+							echo -e "\e[1;42m${Head} App Installed\e[0m"
+						fi
 					else
-						echo "unable to create clide.desktop"
+						errorCode "mode-add" "shortcut" "create" "clide"
 					fi
 					;;
 				app)
 					local Name=${Choice[2]}
 					case ${Code} in
 						none)
-							echo "No code found"
+							errorCode "mode-add" "shortcut" "app" "none"
 							;;
 						*)
 							case ${Project} in
@@ -181,13 +138,13 @@ AddShortcut()
 								echo -e "[Desktop Entry]\nName=${Name}\nEncoding=UTF-8\nExec=bash -c \"\"\nStartupNotify=false\nType=Application"
 								echo "}"
 							else
-								Help "${Lang}" "shortcut" "${Choice[0],,}"
+								theHelp "${Lang}" "shortcut" "${Choice[0],,}"
 							fi
 							;;
 					esac
 					;;
 				*)
-					Help "${Lang}" "shortcut" "${Choice[0],,}"
+					theHelp "${Lang}" "shortcut" "${Choice[0],,}"
 					;;
 			esac
 			;;
@@ -206,10 +163,10 @@ AddShortcut()
 							;;
 					esac
 				else
-					echo "\"${Name}.desktop\" is not installed"
+					errorCode "mode-add" "shortcut" "correct"
 				fi
 			else
-				Help "${Lang}" "shortcut" "${Choice[0],,}"
+				theHelp "${Lang}" "shortcut" "${Choice[0],,}"
 			fi
 			;;
 		*)
@@ -335,7 +292,7 @@ Add()
 				clear
 				;;
 			help)
-				Help "${Lang}" "${component}"
+				theHelp "${Lang}" "${component}"
 				;;
 			exit|close)
 				break
