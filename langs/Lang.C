@@ -994,7 +994,7 @@ UseC()
 					none)
 						cplArgs=${LangCplVersion}
 						;;
-					*)8
+					*)
 						cplArgs="${cplArgs} ${LangCplVersion}"
 						;;
 				esac
