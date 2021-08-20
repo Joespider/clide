@@ -190,6 +190,18 @@ ProjectHelp()
 	echo ""
 }
 
+PackageHelp()
+{
+	echo ""
+	echo "----------------[(${Head}) \"Package\" Help]----------------"
+	echo -e "Purpose: \"Handle Java Packages\""
+	echo -e "new <package>\t\t\t: \"Create a new package name (this.is.a.package)\""
+	echo -e "set <package>\t\t\t: \"Enter the package name (this.is.a.package)\""
+	echo -e "list\t\t\t\t: \"List all the packages\""
+	echo "----------------------------------------------------------"
+	echo ""
+}
+
 NotesHelp()
 {
 	local Lang=$1
@@ -524,6 +536,50 @@ ProjectCliHelp()
 	echo ""
 }
 
+RepoHelp()
+{
+	local Selection=$1
+	case ${repoTool} in
+		git)
+			case ${Selection} in
+				branch|branches)
+					echo "help"
+					echo "new"
+					echo "remove, delete"
+					echo "select, checkout"
+					;;
+				*)
+					echo ""
+					echo "------------------[GIT Help]------------------"
+					echo ""
+					echo -e "ActiveBranch\t\t\t: \"get active branch\""
+					echo -e "new, init\t\t\t: \"create a new repo\""
+					echo -e "setup, clone <url>\t\t: \"clone a local copy from an existing repo\""
+					echo -e "add <files>\t\t\t: \"add files to active branch\""
+					echo -e "message, commit <message>\t: \"get active branch\""
+					echo -e "branch, branches <args>\t\t: \"Handle branches\""
+					echo -e "\tnew <branch>\t\t: \"Create a new branch\""
+					echo -e "\tremove, delete <branch>\t: \"Delete a local branch\""
+					echo -e "\tselect, checkout <branch>\t: \"Select a branch to become active\""
+					echo -e "upload, push\t\t\t: \"push your committed code to repo\""
+					echo -e "download, pull\t\t\t: \"pull and update your active branch\""
+					echo -e "state, status\t\t\t: \"check for the list of changed files\""
+					echo -e "slamdunk yes <message>\t\t: \"perform an 'add', 'commit', and 'push' in one keystroke\""
+					echo -e "help\t\t\t\t: \"get active branch\""
+					echo -e "version\t\t\t\t: \"get active branch\""
+					echo "--------------------------------------------"
+					echo ""
+					;;
+			esac
+			;;
+		svn)
+			echo "SVN Help"
+			;;
+		*)
+			;;
+	esac
+}
+
 BuildHelp()
 {
 	local cli="$1 --build"
@@ -540,15 +596,75 @@ BuildHelp()
 
 ModesHelp()
 {
-	echo ""
-	echo "----------------[(${Head}) Modes]----------------"
-	echo -e "${repoTool}, repo\t\t: repo management"
-	echo -e "add <component>\t\t: install/add component management"
-	echo -e "-h, --help\t\t: \"Modes help page\""
-	echo "-----------------------------------------------"
-	echo ""
+	local CalledBy=$1
+	case ${CalledBy} in
+		add.sh)
+			shift
+			local Lang=$1
+			shift
+			local component=( $@ )
+			case ${component[0],,} in
+				shortcut)
+					case ${component[1],,} in
+						create)
+							echo -e "clide\t\t\t\t:\"Create a clide.desktop\""
+							echo -e "project, app\t\t\t:\"Create an <application>.desktop\""
+							;;
+						*)
+							echo "Component: shortcut"
+							echo -e "create <shortcut>\t\t:\"Create an application shortcut\""
+							echo -e "\tclide\t\t\t:\"Create a clide.desktop\""
+							echo -e "\tapp <app> \t\t:\"Create an <app>.desktop\""
+							echo -e "correct <app>\t\t\t:\"Adjust existing application shortcut\""
+							;;
+					esac
+					echo ""
+					echo -e "done\t\t\t\t: \"done with adding component\""
+					echo -e "exit, close\t\t\t: \"close mode\""
+					;;
+				project)
+					echo "Component: Project"
+					echo -e "create <project>\t\t:\"Create a brand new project template\""
+					echo -e "import\t\t\t\t:\"import a new project type (Lang.${Lang}.<type> FILE MUST EXIST)\""
+					echo -e "correct\t\t\t\t:\"Adjust existing project tempalte\""
+					echo ""
+					echo -e "done\t\t\t\t: \"done with adding component\""
+					echo -e "exit, close\t\t\t: \"close mode\""
+					;;
+				language)
+					echo "Component: Language Support"
+					echo -e "create <new language>\t\t:\"Create support for another language\""
+					echo -e "import\t\t\t\t:\"import new language to support (Lang.<type> FILE MUST EXIST)\""
+#					echo -e "change <lang> {run|cpl} <val>\t\t:\"Change the compiler/interpretor\""
+#					echo -e "change {run|cpl} <val>\t\t\t:\"Change the compiler/interpretor\""
+					echo -e "correct\t\t\t\t:\"Adjust existing support for Langauge\""
+					echo ""
+					echo -e "done\t\t\t\t: \"done with adding component\""
+					echo -e "exit, close\t\t\t: \"close mode\""
+					;;
+				*)
+					echo "Help options"
+					echo -e "set <cmp>\t\t\t: \"select component to add\""
+					echo -e "\tshortcut\t\t: \"Create shortcut for cl[ide]\""
+					echo -e "\tproject\t\t\t: \"select the 'project' component\""
+					echo -e "\tsupport, language\t: \"select the 'language' component\""
+					echo -e "using\t\t\t\t: \"List the content used in cl[ide]\""
+					echo ""
+					echo -e "exit, close\t\t\t: \"close mode\""
+					;;
+			esac
+			;;
+		*)
+			echo ""
+			echo "----------------[(${Head}) Modes]----------------"
+			echo -e "${repoTool}, repo\t\t: repo management"
+			echo -e "add <component>\t\t: install/add component management"
+			echo -e "-h, --help\t\t: \"Modes help page\""
+			echo "-----------------------------------------------"
+			echo ""
+			;;
+	esac
 }
-
 
 ModeHandler()
 {
@@ -568,8 +684,7 @@ ModeHandler()
 			fi
 			;;
 		add)
-			${ModesDir}/add.sh "${LibDir}" "${LangsDir}" "${ClideProjectDir}" ${Lang} ${cLang} ${Code} ${cCode} ${Arg}
-
+			${ModesDir}/add.sh ${Head} "${LibDir}" "${LangsDir}" "${ClideProjectDir}" ${Lang} ${cLang} ${Code} ${cCode} ${Arg}
 			;;
 		-h|--help)
 			ModesHelp
@@ -624,6 +739,9 @@ main()
 		ProjectCliHelp)
 			ProjectCliHelp $@
 			;;
+		PackageHelp)
+			PackageHelp $@
+			;;
 		BuildHelp)
 			BuildHelp $@
 			;;
@@ -632,6 +750,9 @@ main()
 			;;
 		ModeHandler)
 			ModeHandler $@
+			;;
+		RepoHelp)
+			RepoHelp $@
 			;;
 		*)
 			;;
