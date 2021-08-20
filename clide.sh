@@ -1400,24 +1400,60 @@ Actions()
 					;;
 				#handle java packages
 				package)
-					#Make sure this is a project
-					case ${CodeProject} in
-						none)
-							errorCode "project" "active"
-							;;
-						*)
-							#package commands
-							case ${UserIn[1]} in
-								#Create new package
-								new)
-									#Ensure package has a name
-									if [ ! -z "${UserIn[2]}" ]; then
-										ManageLangs ${Lang} "newPackage" ${UserIn[2]}
-									fi
+					local ThePackage=${UserIn[2]}
+					local PackageName=${ThePackage}
+					case ${Lang} in
+						Java)
+							#Make sure this is a project
+							case ${CodeProject} in
+								none)
+									errorCode "project" "active"
 									;;
 								*)
+									#package commands
+									case ${UserIn[1]} in
+										#Create new package
+										new)
+											#Ensure package has a name
+											if [ ! -z "${ThePackage}" ]; then
+												ManageLangs ${Lang} "newPackage" ${ThePackage}
+												ThePackage=$(ManageLangs ${Lang} "setPackage" ${ThePackage})
+												if [ ! -z "${ThePackage}" ]; then
+													errorCode "HINT" "Package \"${PackageName}\" has been created"
+													cd ${ThePackage}
+													refresh="yes"
+												fi
+											else
+												errorCode "package" "null-name"
+											fi
+											;;
+										set)
+											#Ensure package has a name
+											if [ ! -z "${ThePackage}" ]; then
+												ThePackage=$(ManageLangs ${Lang} "setPackage" ${ThePackage})
+												if [ ! -z "${ThePackage}" ]; then
+													errorCode "HINT" "Package \"${PackageName}\""
+													cd ${ThePackage}
+													refresh="yes"
+												else
+													errorCode "package" "null-name"
+												fi
+											else
+												errorCode "package" "null-name"
+											fi
+											;;
+										list)
+											ManageLangs ${Lang} "listPackage"
+											;;
+										*)
+											theHelp PackageHelp
+											;;
+									esac
 									;;
 							esac
+							;;
+						*)
+							errorCode "package" "need-java"
 							;;
 					esac
 					;;
@@ -2648,7 +2684,7 @@ loadAuto()
 	comp_list "mkdir"
 	comp_list "use" "${pg}"
 	comp_list "project" "delete discover files import load list link mode new remove swap save title type update"
-	comp_list "package" "new"
+	comp_list "package" "new set list"
 	comp_list "shell"
 	comp_list "new" "--version -v --help -h --custom -c"
 	comp_list "${editor} ed edit" "non-lang"

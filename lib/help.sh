@@ -190,6 +190,18 @@ ProjectHelp()
 	echo ""
 }
 
+PackageHelp()
+{
+	echo ""
+	echo "----------------[(${Head}) \"Package\" Help]----------------"
+	echo -e "Purpose: \"Handle Java Packages\""
+	echo -e "new <package>\t\t\t: \"Create a new package name (this.is.a.package)\""
+	echo -e "set <package>\t\t\t: \"Enter the package name (this.is.a.package)\""
+	echo -e "list\t\t\t\t: \"List all the packages\""
+	echo "----------------------------------------------------------"
+	echo ""
+}
+
 NotesHelp()
 {
 	local Lang=$1
@@ -726,6 +738,9 @@ main()
 			;;
 		ProjectCliHelp)
 			ProjectCliHelp $@
+			;;
+		PackageHelp)
+			PackageHelp $@
 			;;
 		BuildHelp)
 			BuildHelp $@

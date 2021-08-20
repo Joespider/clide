@@ -297,6 +297,29 @@ errorCode()
 					;;
 			esac
 			;;
+		package)
+			shift
+			local thr=$1
+			case ${sec} in
+				need-java)
+					errorCode "ERROR"
+					errorCode "ERROR" "packages are reserved for Java projects"
+					;;
+				null-name)
+					errorCode "ERROR"
+					errorCode "ERROR" "Please provide a package name"
+					errorCode "HINT" "command"
+					errorCode "HINT" "package new name.of.package"
+					;;
+				not-valid)
+					errorCode "ERROR"
+					errorCode "ERROR" "\"${thr}\" is not a valid package"
+					errorCode "HINT" "package can not contain \".new.\" or \".this.\""
+					;;
+				*)
+					;;
+			esac
+			;;
 		newCode)
 			case ${sec} in
 				one-at-a-time)
@@ -312,6 +335,26 @@ errorCode()
 				cli-already)
 					errorCode "ERROR"
 					errorCode "ERROR" "source code already made"
+					;;
+				need-package)
+					errorCode "ERROR"
+					errorCode "ERROR" "Need to be in a package"
+					echo ""
+					errorCode "HINT" "Create a package"
+					errorCode "HINT" "command"
+					errorCode "HINT" "package new path.to.package"
+					errorCode "HINT" "Or"
+					errorCode "HINT" "Change directory to package"
+					errorCode "HINT" "command"
+					errorCode "HINT" "cd path/to/package"
+					;;
+				choose-dir)
+					errorCode "ERROR"
+					errorCode "ERROR" "Please be in \"src/main/java\" or \"src/test/java\" when creating new code"
+					echo ""
+					errorCode "HINT" "Change directory"
+					errorCode "HINT" "command"
+					errorCode "HINT" "cd <path>"
 					;;
 				*)
 					errorCode "ERROR"
