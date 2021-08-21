@@ -19,10 +19,10 @@ errorCode()
 					errorCode "ERROR"
 					errorCode "ERROR" "No Make file created"
 					errorCode "HINT" "command"
-					ErrorCode "HINT" "make create"
+					errorCode "HINT" "make create"
 					errorCode "HINT" "\tor"
 					errorCode "HINT" "command"
-					ErrorCode "HINT" "create make"
+					errorCode "HINT" "create make"
 					;;
 				already)
 					errorCode "ERROR"
