@@ -2794,6 +2794,10 @@ main()
 			-v|--version)
 				ClideVersion
 				;;
+			#Get Config
+			-c|--config)
+				grep -v "#" ${root}/var/clide.conf | sed "s/export //g" | sed "s/=/: /g" | tr -d "\""
+				;;
 			#Get compile/interpreter version from cli
 			-cv|--code-version)
 				CodeVersion
