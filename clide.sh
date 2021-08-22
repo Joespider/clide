@@ -2263,6 +2263,31 @@ Actions()
 							;;
 					esac
 					;;
+				build)
+					case ${CodeProject} in
+						none)
+							errorCode "project" "must-be-active"
+							;;
+						*)
+							case ${Lang} in
+								Java)
+									ManageLangs ${Lang} "compileCode" "--jar" ${UserIn[1]} ${UserIn[2]}
+									;;
+								*)
+									ManageLangs ${Lang} "compileCode" ${Code} ${UserIn[1]} ${UserIn[2]}
+									;;
+							esac
+							;;
+					esac
+					#Jump-in and Jump-out
+					case ${InAndOut} in
+						yes)
+							break
+							;;
+						*)
+							;;
+					esac
+					;;
 				#Install compiled code into aliases
 				install)
 					ManageLangs ${Lang} "Install" ${Code} ${UserIn[1]}
@@ -2683,7 +2708,7 @@ loadAuto()
 	comp_list "pwd"
 	comp_list "mkdir"
 	comp_list "use" "${pg}"
-	comp_list "project" "delete discover files import load list link mode new remove swap save title type update"
+	comp_list "project" "build delete discover files import load list link mode new remove swap save title type update"
 	comp_list "package" "new set list"
 	comp_list "shell"
 	comp_list "new" "--version -v --help -h --custom -c"
@@ -2797,9 +2822,11 @@ main()
 			#List projects from cli
 			-p|--project)
 				shift
+				local ActionProject=$1
 				local GetProject=$1
-				if [ ! -z "${GetProject}" ]; then
-					case ${GetProject} in
+				local Code=$2
+				if [ ! -z "${ActionProject}" ]; then
+					case ${ActionProject} in
 						--discover)
 							discoverProject
 							;;
@@ -2807,6 +2834,7 @@ main()
 							shift
 							local Lang
 							GetProject=$1
+							Code=$2
 							if [ -z "${GetProject}" ]; then
 								theHelp BuildHelp ${UserArg}
 							else
@@ -2816,16 +2844,52 @@ main()
 										theHelp BuildHelp ${UserArg}
 										;;
 									*)
-										TheProject=$(loadProject ${GetProject})
+										local TheProject=$(loadProject ${GetProject})
 										if [ "${TheProject}" != "no" ]; then
 											Lang=$(echo ${TheProject} | cut -d ";" -f 1)
 											Lang=$(pgLang ${Lang})
+											#If no source code is found, look in project file
+											if [ -z "${Code}" ]; then
+												Code=$(echo ${TheProject} | cut -d ";" -f 2)
+											fi
 											local CodeDir=$(echo ${TheProject} | cut -d ";" -f 3)
 											if [ ! -z "${CodeDir}" ]; then
-												errorCode "WARNING"
-												errorCode "WARNING" "Needs work"
-												cd ${CodeDir}
-												ManageLangs ${Lang} "compileCode" ${GetProject} ${Args[@]}
+												CodeProject="${GetProject}"
+												if [ -d ${CodeDir} ]; then
+													cd ${CodeDir}
+													#Determine action based on language
+													case ${Lang} in
+														Java)
+															if [ -z "${Code}" ]; then
+																ManageLangs ${Lang} "compileCode" ${Code}
+															else
+																ManageLangs ${Lang} "compileCode" "--jar"
+															fi
+															;;
+														C|C++)
+															#Get Make file
+															local TheMakeFile=$(ManageLangs ${Lang} "getMakeFile" ${GetProject})
+															#Compile with makefile
+															if [ ! -z "${TheMakeFile}" ]; then
+																ManageLangs ${Lang} "compileCode"
+															#Compile with selected code
+															elif [ ! -z "${Code}" ]; then
+																ManageLangs ${Lang} "compileCode" ${Code}
+															else
+																errorCode "cli-cpl" "none"
+															fi
+															;;
+														*)
+															if [ ! -z "${Code}" ]; then
+																ManageLangs ${Lang} "compileCode" ${Code}
+															else
+																errorCode "cli-cpl" "none"
+															fi
+															;;
+													esac
+												else
+													errorCode "project" "not-valid" "${GetProject}"
+												fi
 											else
 												errorCode "cli-cpl" "none"
 											fi

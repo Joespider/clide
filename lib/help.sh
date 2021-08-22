@@ -430,7 +430,7 @@ RunHelp()
 
 ReadHelp()
 {
-	local cli="--run"
+	local cli="--read"
 	local cmd="\$ clide ${cli}"
 	echo ""
 	echo "----------------[(${Head}) cli {${cli}}]----------------"
@@ -529,7 +529,7 @@ ProjectCliHelp()
 	echo -e "${cmd} <project>\t\t: \"Select and Load\""
 	echo -e "${cmd} --list\t\t: \"List ${Head} Projects\""
 	echo -e "${cmd} --list <project>\t: \"List the contents of a given project\""
-	echo -e "${cmd} --build\t\t: \"Build a ${Head} Project\""
+	echo -e "${cmd} --build <project>\t: \"Build a ${Head} Project\""
 	echo -e "${cmd} --discover\t\t: \"Discover ${Head} Projects\""
 	echo -e "${cmd} -h, --help\t\t: \"help page\""
 	echo "-----------------------------------------------"

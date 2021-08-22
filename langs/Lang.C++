@@ -142,6 +142,13 @@ UseC++()
 		getOtherExt)
 			echo ${LangOtherExt}
 			;;
+		getMakeFile)
+			local project=$1
+			local TheMakeFile="${LangProject}/${project}/makefile"
+			if [ -f ${TheMakeFile} ]; then
+				echo ${TheMakeFile}
+			fi
+			;;
 		SupportVersion)
 			echo ${SupportV}
 			;;
