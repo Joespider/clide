@@ -242,13 +242,16 @@ CodeSupportVersion()
 {
 	local TheLang=$1
 	local Langs=""
+	local LangColor
 	#Get the support version of the current language in session
 	if [ ! -z "${TheLang}" ]; then
+		LangColor=$(ManageLangs ${TheLang} "color-number")
 		#Pull the version number form Lang.<language>
 		SupportNum=$(ManageLangs ${TheLang} "SupportVersion")
 		if [ ! -z "${SupportNum}" ]; then
-			echo "[Clide ${TheLang} Support]"
+			echo -e "\e[1;4${LangColor}m[Clide ${TheLang} Support]\e[0m"
 			echo "Version: ${SupportNum}"
+			echo ""
 		fi
 	#Get ALL support versions
 	else
@@ -282,11 +285,14 @@ CodeTemplateVersion()
 	local TheLang=$1
 	local TempNum
 	local Langs=""
+	local LangColor
 	if [ ! -z "${TheLang}" ]; then
+		LangColor=$(ManageLangs ${TheLang} "color-number")
 		TempNum=$(ManageLangs ${TheLang} "TemplateVersion" | sed "s/Version/${text}/g" | grep -v found)
 		if [ ! -z "${TempNum}" ]; then
-			echo "[\"New Code\" Teplate]"
+			echo -e "\e[1;4${LangColor}m[\"New Code\" Template]\e[0m"
 			echo "${TempNum}"
+			echo ""
 		fi
 	else
 		local CharCount
@@ -354,9 +360,17 @@ DebugVersion()
 {
 	local TheLang=$1
 	local Langs=""
+	local LangColors
+	local DebugV
 	#Get the ddebugger version of the langauge in session
 	if [ ! -z "${TheLang}" ]; then
-		ManageLangs ${TheLang} "getDebugVersion"
+		LangColor=$(ManageLangs ${TheLang} "color-number")
+		DebugV=$(ManageLangs ${TheLang} "getDebugVersion")
+		if [ ! -z "${DebugV}" ]; then
+			echo -e "\e[1;4${LangColor}m[${TheLang} Debugger]\e[0m"
+			echo "${DebugV}"
+			echo ""
+		fi
 	else
 		Langs=$(ls ${LangsDir}/ | sed "s/Lang.//g" | tr '\n' '|' | rev | sed "s/|//1" | rev)
 		local NumOfLangs=$(ls | wc -l)
@@ -372,7 +386,11 @@ DebugVersion()
 					;;
 				*)
 					#Pull degger version from Lang.<language>
-					ManageLangs "${text}" "getDebugVersion" | sed "s/Version:/${text}:/g"
+					DebugV=$(ManageLangs "${text}" "getDebugVersion")
+					if [ ! -z "${DebugV}" ]; then
+						echo -n "${text}: "
+						echo "${DebugV}"
+					fi
 					;;
 			esac
 			look=$((${look}+1))
@@ -2359,13 +2377,9 @@ Actions()
 					;;
 				#Display cl[ide] version
 				version|v)
-					echo ""
 					CodeSupportVersion ${Lang}
-					echo ""
 					CodeTemplateVersion ${Lang}
-					echo ""
 					CodeVersion ${Lang}
-					echo ""
 					DebugVersion ${Lang}
 					;;
 				#Display help page

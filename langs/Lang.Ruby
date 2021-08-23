@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.54"
+SupportV="0.1.55"
 Lang=Ruby
 LangExt=".rb"
 ColorNum=1
@@ -80,6 +80,9 @@ UseRuby()
 		color)
 		#Return Red
 			echo -e "\e[1;3${ColorNum}m${Lang}\e[0m"
+			;;
+		color-number)
+			echo "${ColorNum}"
 			;;
 		ProjectColor)
 			echo -e "\e[1;4${ColorNum}m${CodeProject}\e[0m"
@@ -267,7 +270,7 @@ UseRuby()
 			fi
 			;;
 		CplVersion)
-			echo "[${Lang} Shell]"
+			echo -e "\e[1;4${ColorNum}m[${Lang} Shell]\e[0m"
 			${LangRun} --version
 			echo ""
 			;;

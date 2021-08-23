@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.38"
+SupportV="0.1.39"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
@@ -86,6 +86,9 @@ UseC()
 			#Return Yellow
 			echo -e "\e[1;3${ColorNum}m${Lang}\e[0m"
 			;;
+		color-number)
+			echo "${ColorNum}"
+			;;
 		ProjectColor)
 			echo -e "\e[1;4${ColorNum}m${CodeProject}\e[0m"
 			;;
@@ -155,9 +158,7 @@ UseC()
 		getDebugVersion)
 			local debugV=$(${UseDebugger} --version 2> /dev/null | head -n 1)
 			if [ ! -z "${debugV}" ]; then
-				echo "[${Lang} Debugger]"
 				echo "${debugV}"
-				echo ""
 			fi
 			;;
 		hasExt)
@@ -381,7 +382,7 @@ UseC()
 			;;
 		#compiler version
 		CplVersion)
-			echo "[${Lang} Compiler]"
+			echo -e "\e[1;4${ColorNum}m[${Lang} Compiler]\e[0m"
 			${LangCpl} --version | head -n 1
 			echo ""
 			;;

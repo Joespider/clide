@@ -40,6 +40,7 @@ MenuHelp()
 			echo -e "edit config\t\t\t: \"edit ${Head} config\""
 			echo -e "version\t\t\t\t: \"Get ${Head} Version\""
 			echo -e "cv, code-version\t\t: \"Get compile/interpreter version of supported languages\""
+			echo -e "dv, debug-version\t\t: \"Get debugger version of supported languages\""
 			echo -e "sv, support-version\t\t: \"#Get compile/interpreter version of supported languages\""
 			echo -e "tv, temp-version\t\t: \"Get version of templates\""
 			echo -e "rv, repo-version\t\t: \"Get version control version\""

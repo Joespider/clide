@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.57"
+SupportV="0.1.58"
 Lang=Perl
 LangExt=".pl"
 #Color Purple
@@ -78,6 +78,9 @@ UsePerl()
 		color)
 			#Return Purple
 			echo -e "\e[1;3${ColorNum}m${Lang}\e[0m"
+			;;
+		color-number)
+			echo "${ColorNum}"
 			;;
 		ProjectColor)
 			echo -e "\e[1;4${ColorNum}m${CodeProject}\e[0m"
@@ -264,7 +267,7 @@ UsePerl()
 			fi
 			;;
 		CplVersion)
-			echo "[${Lang} Shell]"
+			echo -e "\e[1;4${ColorNum}m[${Lang} Shell]\e[0m"
 			${LangRun} -v 2> /dev/null | grep "This is perl" | sed "s/This is perl/perl/g"
 			echo ""
 			;;

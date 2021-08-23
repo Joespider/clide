@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.58"
+SupportV="0.1.59"
 Lang=Bash
 LangExt=".sh"
 ColorNum=2
@@ -77,6 +77,9 @@ UseBash()
 		color)
 			#Return Green
 			echo -e "\e[1;3${ColorNum}m${Lang}\e[0m"
+			;;
+		color-number)
+			echo "${ColorNum}"
 			;;
 		ProjectColor)
 			echo -e "\e[1;4${ColorNum}m${CodeProject}\e[0m"
@@ -272,7 +275,7 @@ UseBash()
 			fi
 			;;
 		CplVersion)
-			echo "[Shell]"
+			echo -e "\e[1;4${ColorNum}m[${Lang} Shell]\e[0m"
 			${LangRun} --version | head -n 1
 			echo ""
 			;;

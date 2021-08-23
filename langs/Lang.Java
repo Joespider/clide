@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.85"
+SupportV="0.1.86"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -88,6 +88,9 @@ UseJava()
 			#Return Red
 			echo -e "\e[1;3${ColorNum}m${Lang}\e[0m"
 			;;
+		color-number)
+			echo "${ColorNum}"
+			;;
 		ProjectColor)
 			echo -e "\e[1;4${ColorNum}m${CodeProject}\e[0m"
 			;;
@@ -141,11 +144,9 @@ UseJava()
 			echo "${UseDebugger}"
 			;;
 		getDebugVersion)
-			local debugV=$(${UseDebugger} -version 2> /dev/null | head -n 1)
+			local debugV=$(${UseDebugger} -version 2> /dev/null | head -n 1 | sed "s/This is jdb version/jdb/g")
 			if [ ! -z "${debugV}" ]; then
-				echo "[${Lang} Debugger]"
 				echo "${debugV}"
-				echo ""
 			fi
 			;;
 		getExt)
@@ -355,17 +356,18 @@ UseJava()
 			fi
 			;;
 		CplVersion)
-			echo "[${Lang} JDK/JRE]"
+			echo -e "\e[1;4${ColorNum}m[${Lang} JDK/JRE Compiler]\e[0m"
 			local LangRunVersion=$(${LangRun} --version 2> /dev/null | head -n 1)
 			local LangCplVersion=$(${LangCpl} --version 2> /dev/null | head -n 1)
 			if [ ! -z "${LangRunVersion}" ]; then
 				echo "${LangRunVersion}"
 				echo "${LangCplVersion}"
+				echo ""
 			else
 				${LangRun} -version
 				${LangCpl} -version
+				echo ""
 			fi
-			echo ""
 			;;
 		selectCode|addCode)
 			local name=$1

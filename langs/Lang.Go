@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.36"
+SupportV="0.1.37"
 Lang=Go
 LangExt=".go"
 #Color Green
@@ -83,6 +83,9 @@ UseGo()
 		color)
 			#Return Blue
 			echo -e "\e[1;3${ColorNum}m${Lang}\e[0m"
+			;;
+		color-number)
+			echo "${ColorNum}"
 			;;
 		ProjectColor)
 			echo -e "\e[1;4${ColorNum}m${CodeProject}\e[0m"
@@ -328,7 +331,7 @@ UseGo()
 			;;
 		#compiler version
 		CplVersion)
-			echo "[${Lang} Compiler]"
+			echo -e "\e[1;4${ColorNum}m[${Lang} Compiler]\e[0m"
 			${LangCpl} version | head -n 1
 			echo ""
 			;;
