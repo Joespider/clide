@@ -2,7 +2,7 @@ Shell=$(which bash)
 #!${Shell}
 
 #https://www3.ntu.edu.sg/home/ehchua/programming/cpp/gcc_make.html
-SupportV="0.1.93"
+SupportV="0.1.94"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -113,6 +113,9 @@ UseC++()
 			#Return Blue
 			echo -e "\e[1;3${ColorNum}m${Lang}\e[0m"
 			;;
+		color-number)
+			echo "${ColorNum}"
+			;;
 		ProjectColor)
 			echo -e "\e[1;4${ColorNum}m${CodeProject}\e[0m"
 			;;
@@ -141,6 +144,13 @@ UseC++()
 			;;
 		getOtherExt)
 			echo ${LangOtherExt}
+			;;
+		getMakeFile)
+			local project=$1
+			local TheMakeFile="${LangProject}/${project}/makefile"
+			if [ -f ${TheMakeFile} ]; then
+				echo ${TheMakeFile}
+			fi
 			;;
 		SupportVersion)
 			echo ${SupportV}
@@ -185,9 +195,7 @@ UseC++()
 		getDebugVersion)
 			local debugV=$(${UseDebugger} --version 2> /dev/null | head -n 1)
 			if [ ! -z "${debugV}" ]; then
-				echo "[${Lang} Debugger]"
 				echo "${debugV}"
-				echo ""
 			fi
 			;;
 		hasExt)
@@ -532,7 +540,7 @@ UseC++()
 			;;
 		#compiler version
 		CplVersion)
-			echo "[${Lang} Compiler]"
+			echo -e "\e[1;4${ColorNum}m[${Lang} Compiler]\e[0m"
 			${LangCpl} --version | head -n 1
 			echo ""
 			;;

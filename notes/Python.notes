@@ -1,5 +1,5 @@
 [Python Notes]
-Date: (12/14/2020)
+Date: (08/23/2021)
 
 >>>		---[Data Types]---
 	#Python does not have an offical data type for each variable
@@ -96,3 +96,12 @@ Date: (12/14/2020)
 	TheThread = threading.Thread(target=<method>, args=(<arg>,<arg>,))	#Form the thread
 	TheThread.start()							#Start thread
 	TheThread.join()							#have the program wait for the thread to finish
+
+>>>		---[OS commands]---
+	import os
+	os.system("command")
+
+	Output = ""
+	TheShell = os.popen(cmd)
+	Output = TheShell.read()
+	TheShell.close()
