@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.66"
+SupportV="0.1.67"
 Lang=Python
 LangExt=".py"
 #Color Yellow
@@ -121,7 +121,7 @@ UsePython()
 			if [ -d ${TheBinDir} ]; then
 				cd "${TheBinDir}"
 				TheCode=${TheCode//,/ }
-				local DebugFlag=$(grep "import ${UseDebugger}" ${TheCode} | grep -v "#")
+				local DebugFlag=$(grep "import ${UseDebugger}" ${TheCode} 2> /dev/null | grep -v "#")
 				if [ ! -z "${DebugFlag}" ]; then
 					echo "yes"
 				fi

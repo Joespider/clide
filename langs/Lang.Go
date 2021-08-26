@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.37"
+SupportV="0.1.38"
 Lang=Go
 LangExt=".go"
 #Color Green
@@ -50,6 +50,7 @@ UseGo()
 	#Get the enviornment variables for Go
 	#{
 	local LangCpl=${cplGo}
+	local UseDebugger=${debugGo}
 
 	local LangHome=${ProgDir}/${Lang}
 	local LangSrc=${LangHome}/src
@@ -142,6 +143,21 @@ UseGo()
 		getProjectDir)
 			local project=${CodeProject}
 			echo ${LangProject}/${project}
+			;;
+		IsDebugEnabled)
+#			local DebugFlag=$(echo ${CplArgs} | tr ',' ' ' | grep -w "\-g")
+#			if [ ! -z "${DebugFlag}" ]; then
+#				echo "yes"
+#			fi
+			;;
+		getDebugger)
+			echo "${UseDebugger}"
+			;;
+		getDebugVersion)
+			local debugV=$(${UseDebugger} --version 2> /dev/null | head -n 1)
+			if [ ! -z "${debugV}" ]; then
+				echo "${debugV}"
+			fi
 			;;
 		hasExt)
 			local SourceFile=$1
