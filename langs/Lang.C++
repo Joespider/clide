@@ -1444,11 +1444,7 @@ UseC++()
 			echo ${CplArgs}
 			;;
 		discoverProject)
-			local path=${LangProject}/
-			local ProjectList=$(ls ${path} 2> /dev/null | tr '\n' '|' | rev | sed "s/|//1" | rev)
-			if [ ! -z "${ProjectList}" ]; then
-				echo "${path}:${ProjectList}"
-			fi
+			echo ${LangProject}
 			;;
 		newProject)
 			local ProjectType=$1

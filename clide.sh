@@ -197,14 +197,10 @@ EnsureDirs()
 	#Handle the langauge specific directories
 	#{
 	#Get the list of Lang.<language> files from cl[ide]
-	local Langs=$(ls ${LangsDir}/ | sed "s/Lang.//g" | tr '\n' '|' | rev | sed "s/|//1" | rev)
-	local NumOfLangs=$(ls | wc -l)
-	local look=1
 	local text
-	while [ ${look} -le ${NumOfLangs} ];
-	do
+	for TheLang in ${LangsDir}/Lang.*; do
 		#Select the next langauge
-		text=$(echo ${Langs} | cut -d '|' -f ${look})
+		text=$(echo ${TheLang} | sed "s/Lang./|/g" | cut -d '|' -f 2)
 		#Make sure language is supported on computer
 		text=$(ManageLangs ${text} "pgLang")
 		case ${text} in
@@ -215,7 +211,6 @@ EnsureDirs()
 				ManageLangs "${text}" "EnsureDirs"
 				;;
 		esac
-		look=$((${look}+1))
 	done
 	#}
 }
@@ -255,14 +250,12 @@ CodeSupportVersion()
 		fi
 	#Get ALL support versions
 	else
-		Langs=$(ls ${LangsDir}/ | sed "s/Lang.//g" | tr '\n' '|' | rev | sed "s/|//1" | rev)
-		local NumOfLangs=$(ls | wc -l)
-		local look=1
 		local text
 		local SupportNum
-		while [ ${look} -le ${NumOfLangs} ];
+		for TheLang in ${LangsDir}/Lang.*;
 		do
-			text=$(echo ${Langs} | cut -d '|' -f ${look})
+			#Select the next langauge
+			text=$(echo ${TheLang} | sed "s/Lang./|/g" | cut -d '|' -f 2)
 			text=$(ManageLangs ${text} "pgLang")
 			case ${text} in
 				no)
@@ -274,7 +267,6 @@ CodeSupportVersion()
 					fi
 					;;
 			esac
-			look=$((${look}+1))
 		done
 	fi
 }
@@ -296,13 +288,11 @@ CodeTemplateVersion()
 		fi
 	else
 		local CharCount
-		local GetLangs=$(ls ${LangsDir}/ | sed "s/Lang.//g" | tr '\n' '|' | rev | sed "s/|//1" | rev)
-		local NumOfLangs=$(ls | wc -l)
-		local look=1
 		local text
-		while [ ${look} -le ${NumOfLangs} ];
+		for TheLang in ${LangsDir}/Lang.*;
 		do
-			text=$(echo ${GetLangs} | cut -d '|' -f ${look})
+			#Select the next langauge
+			text=$(echo ${TheLang} | sed "s/Lang./|/g" | cut -d '|' -f 2)
 			text=$(ManageLangs ${text} "pgLang")
 			case ${text} in
 				no)
@@ -321,7 +311,6 @@ CodeTemplateVersion()
 					fi
 					;;
 				esac
-			look=$((${look}+1))
 		done
 	fi
 }
@@ -334,13 +323,11 @@ CodeVersion()
 	if [ ! -z "${TheLang}" ]; then
 		ManageLangs ${TheLang} "CplVersion"
 	else
-		Langs=$(ls ${LangsDir}/ | sed "s/Lang.//g" | tr '\n' '|' | rev | sed "s/|//1" | rev)
-		local NumOfLangs=$(ls | wc -l)
-		local look=1
 		local text
-		while [ ${look} -le ${NumOfLangs} ];
+		for TheLang in ${LangsDir}/Lang.*;
 		do
-			text=$(echo ${Langs} | cut -d '|' -f ${look})
+			#Select the next langauge
+			text=$(echo ${TheLang} | sed "s/Lang./|/g" | cut -d '|' -f 2)
 			#Ensure langauge is supported on computer
 			text=$(ManageLangs ${text} "pgLang")
 			case ${text} in
@@ -351,7 +338,6 @@ CodeVersion()
 					ManageLangs "${text}" "CplVersion" | sed "s/Version:/${text}:/g"
 					;;
 			esac
-			look=$((${look}+1))
 		done
 	fi
 }
@@ -372,13 +358,11 @@ DebugVersion()
 			echo ""
 		fi
 	else
-		Langs=$(ls ${LangsDir}/ | sed "s/Lang.//g" | tr '\n' '|' | rev | sed "s/|//1" | rev)
-		local NumOfLangs=$(ls | wc -l)
-		local look=1
 		local text
-		while [ ${look} -le ${NumOfLangs} ];
+		for TheLang in ${LangsDir}/Lang.*;
 		do
-			text=$(echo ${Langs} | cut -d '|' -f ${look})
+			#Select the next langauge
+			text=$(echo ${TheLang} | sed "s/Lang./|/g" | cut -d '|' -f 2)
 			#Ensure langauge is supported on computer
 			text=$(ManageLangs ${text} "pgLang")
 			case ${text} in
@@ -393,7 +377,6 @@ DebugVersion()
 					fi
 					;;
 			esac
-			look=$((${look}+1))
 		done
 	fi
 }
@@ -701,64 +684,56 @@ discoverProject()
 	local NotDone=$4
 	local TheLang
 	local cTheLang
-	local Langs=$(ls ${LangsDir}/ | sed "s/Lang.//g" | tr '\n' '|' | rev | sed "s/|//1" | rev)
-	local NumOfLangs=$(ls ${LangsDir}/ | wc -l)
-	local NumOfProject
-	local look=1
-	local For
-	local text
 	local Name
 	local cName
 	local Path
 	local ChosenLangs=""
-	while [ ${look} -le ${NumOfLangs} ];
+
+	for TheLang in ${LangsDir}/Lang.*;
 	do
-		TheLang=$(echo ${Langs} | cut -d '|' -f ${look})
-		text=$(ManageLangs ${TheLang} "discoverProject")
-		if [ ! -z "${text}" ]; then
-			Path=$(echo ${text} | cut -d ":" -f 1)
-			text=$(echo ${text} | cut -d ":" -f 2)
-			NumOfProject=$(echo ${text} | tr '|' '\n' | wc -l)
-			For=1
-			while [ ${For} -le ${NumOfProject} ];
+		#Select the next langauge
+		TheLang=$(echo ${TheLang} | sed "s/Lang./|/g" | cut -d '|' -f 2)
+		Path=$(ManageLangs ${TheLang} "discoverProject")
+		if [ ! -z "${Path}" ]; then
+			for Name in ${Path}/*;
 			do
-				Name=$(echo ${text} | cut -d '|' -f ${For})
-				case ${Action} in
-					relink)
-						#Ignore anything that isn't a symbolic link
-						if [ -L ${Path}${Name} ]; then
-							case ${TheProjName} in
-								${Name})
+				if [ -d "${Name}" ]; then
+					Name=$(echo ${Name} | sed "s/projects\//|/g" | cut -d '|' -f 2)
+					case ${Action} in
+						relink)
+							#Ignore anything that isn't a symbolic link
+							if [ -L ${Path}/${Name} ]; then
+								case ${TheProjName} in
+									${Name})
+										cTheLang=$(color "${TheLang}")
+										cLinkLang=$(color "${LinkLang}")
+										echo -e "\tLinking ${cLinkLang} ---> ${cTheLang}"
+										linkProjects ${LinkLang} ${TheLang} ${Name} > /dev/null
+										;;
+									*)
+										;;
+								esac
+							fi
+							;;
+						*)
+							#Ignore anything that isn't a symbolic link
+							if [ ! -L ${Path}/${Name} ]; then
+								if [ ! -f ${ActiveProjectDir}/${Name}.clide ]; then
+									cName=$(color "${Name}")
 									cTheLang=$(color "${TheLang}")
 									cLinkLang=$(color "${LinkLang}")
-									echo -e "\tLinking ${cLinkLang} ---> ${cTheLang}"
-									linkProjects ${LinkLang} ${TheLang} ${Name} > /dev/null
-									;;
-								*)
-									;;
-							esac
-						fi
-						;;
-					*)
-						#Ignore anything that isn't a symbolic link
-						if [ ! -L ${Path}${Name} ]; then
-							if [ ! -f ${ActiveProjectDir}/${Name}.clide ]; then
-								cName=$(color "${Name}")
-								cTheLang=$(color "${TheLang}")
-								cLinkLang=$(color "${LinkLang}")
-								echo "[${cTheLang} Project: ${cName}]"
-								importProject ${TheLang} ${Name} ${Path}${Name} > /dev/null
-								errorCode "HINT" "\tProject Imported"
-								discoverProject "relink" ${TheLang} ${Name} "Not Done"
+									echo "[${cTheLang} Project: ${cName}]"
+									importProject ${TheLang} ${Name} ${Path}/${Name} > /dev/null
+									errorCode "HINT" "\tProject Imported"
+									discoverProject "relink" ${TheLang} ${Name} "Not Done"
+								fi
 							fi
-						fi
-						;;
-				esac
-				For=$((${For}+1))
+							;;
+					esac
+				fi
 			done
 
 		fi
-		look=$((${look}+1))
 	done
 	if [ -z "${NotDone}" ]; then
 		echo ""
@@ -1006,15 +981,14 @@ color()
 
 ColorCodes()
 {
-	local Langs=$(ls ${LangsDir}/ | sed "s/Lang.//g" | tr '\n' '|' | rev | sed "s/|//1" | rev)
-	local NumOfLangs=$(ls ${LangsDir}/ | wc -l)
-	local look=1
 	local text
 	local TheColor
 	local ChosenLangs=""
-	while [ ${look} -le ${NumOfLangs} ];
+
+	for TheLang in ${LangsDir}/Lang.*;
 	do
-		text=$(echo ${Langs} | cut -d '|' -f ${look})
+		#Select the next langauge
+		text=$(echo ${TheLang} | sed "s/Lang./|/g" | cut -d '|' -f 2)
 		text=$(ManageLangs ${text} "pgLang")
 		case ${text} in
 			no)
@@ -1028,7 +1002,6 @@ ColorCodes()
 				fi
 				;;
 		esac
-		look=$((${look}+1))
 	done
 	echo ${ChosenLangs}
 }
@@ -2540,12 +2513,10 @@ SelectLangByCode()
 				done
 				;;
 			*)
-				Langs=$(ls ${LangsDir}/ | sed "s/Lang.//g" | tr '\n' '|' | rev | sed "s/|//1" | rev)
-				NumOfLangs=$(ls ${LangsDir}/ | wc -l)
-				look=1
-				while [ ${look} -le ${NumOfLangs} ];
+				for TheLang in ${LangsDir}/Lang.*;
 				do
-					text=$(echo ${Langs} | cut -d '|' -f ${look})
+					#Select the next langauge
+					text=$(echo ${TheLang} | sed "s/Lang./|/g" | cut -d '|' -f 2)
 					text=$(ManageLangs ${text} "pgLang")
 					case ${text} in
 						no)
@@ -2557,7 +2528,6 @@ SelectLangByCode()
 							fi
 							;;
 					esac
-					look=$((${look}+1))
 				done
 				;;
 		esac
