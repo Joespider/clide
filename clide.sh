@@ -1271,7 +1271,7 @@ Actions()
 						clear
 						;;
 					#Set for session or add code to session
-					set|add)
+					select|set|add)
 						local theExt
 						local theOtherExt
 						local newCode
@@ -1307,7 +1307,7 @@ Actions()
 							fi
 						else
 							case ${UserArg} in
-								set)
+								select|set)
 									Code=$(selectCode ${Lang} ${UserIn[1]} ${Code})
 									refresh="yes"
 									;;
@@ -1672,10 +1672,23 @@ Actions()
 								esac
 								;;
 							#Load an existing project
-							load)
+							load|set|select)
 								local HasLink
-								project=$(loadProject ${UserIn[2]})
-								local ChosenLang=${UserIn[3]}
+								local ChosenLang
+								local IsLang=$(pgLang ${UserIn[2]})
+
+								case ${IsLang} in
+									no)
+										ChosenLang=""
+										project=$(loadProject ${UserIn[2]})
+										CodeProject=${UserIn[2]}
+										;;
+									*)
+										ChosenLang=${UserIn[2]}
+										project=$(loadProject ${UserIn[3]})
+										CodeProject=${UserIn[3]}
+										;;
+								esac
 
 								#If no language given, try the active language
 								if [ -z "${ChosenLang}" ]; then
@@ -1690,7 +1703,6 @@ Actions()
 										Lang=$(echo ${project} | cut -d ";" -f 1)
 										Code=$(echo ${project} | cut -d ";" -f 2)
 										ProjectType=$(echo ${project} | cut -d ";" -f 4)
-										CodeProject=${UserIn[2]}
 										cd ${CodeDir}/src 2> /dev/null
 										#Read title or project
 										local TheFile=${ActiveProjectDir}/${CodeProject}.clide
@@ -2724,14 +2736,14 @@ loadAuto()
 	comp_list "ll"
 	comp_list "clear"
 	comp_list "debug"
-	comp_list "set"
+	comp_list "set select"
 	comp_list "unset"
 	comp_list "rm remove delete rmbin rmsrc" "-f"
 	comp_list "cd"
 	comp_list "pwd"
 	comp_list "mkdir"
 	comp_list "use" "${pg}"
-	comp_list "project" "build delete discover files import load list link mode new remove swap use save title type update"
+	comp_list "project" "build delete discover files import load list link mode new remove swap set select use save title type update"
 	comp_list "package" "new set list"
 	comp_list "shell"
 	comp_list "new" "--version -v --help -h --custom -c"
@@ -2976,6 +2988,9 @@ main()
 						--list)
 							shift
 							local Lang
+							local CodeDir
+							local TheProject
+							local RemoveDirs
 							GetProject=$1
 							#Just list the projects
 							if [ -z "${GetProject}" ]; then
@@ -2986,10 +3001,40 @@ main()
 								if [ "${TheProject}" != "no" ]; then
 									Lang=$(echo ${TheProject} | cut -d ";" -f 1)
 									Lang=$(pgLang ${Lang})
+									CodeDir=$(echo ${TheProject} | cut -d ";" -f 3)
+									if [ ! -z "${CodeDir}" ]; then
+										RemoveDirs=${CodeDir//\//|}
+										find ${CodeDir} -print | tr '/' '|' | sed "s/${RemoveDirs}//g" | tr '|' '/'
+									else
+										errorCode "cli-cpl" "none"
+									fi
+								else
+									errorCode "project" "not-valid" "${GetProject}"
+								fi
+							fi
+							;;
+						--langs)
+							shift
+							local LangSupported
+							local CodeDir
+							local TheProject
+							GetProject=$1
+							#Just list the projects
+							if [ -z "${GetProject}" ]; then
+								listProjects
+							else
+								TheProject=$(loadProject ${GetProject})
+								if [ "${TheProject}" != "no" ]; then
+									Lang=$(echo ${TheProject} | cut -d ";" -f 1)
+									Lang=$(pgLang ${Lang})
 									local CodeDir=$(echo ${TheProject} | cut -d ";" -f 3)
 									if [ ! -z "${CodeDir}" ]; then
-										local RemoveDirs=${CodeDir//\//|}
-										find ${CodeDir} -print | tr '/' '|' | sed "s/${RemoveDirs}//g" | tr '|' '/'
+										LangSupported=$(echo ${TheProject} | cut -d ";" -f 5)
+										if [ ! -z "${LangSupported}" ]; then
+											echo ${LangSupported} | tr ',' '\n'
+										else
+											echo ${Lang}
+										fi
 									else
 										errorCode "cli-cpl" "none"
 									fi
@@ -3004,8 +3049,27 @@ main()
 						*)
 							shift
 							local ChosenLang=$1
+							local SaveProject=$1
+							local IsLang=$(pgLang ${GetProject})
+
+							if [ ! -z "${ChosenLang}" ]; then
+								case ${IsLang} in
+									no)
+										ChosenLang=""
+										TheProject=$(loadProject ${GetProject})
+										;;
+									*)
+										TheProject=$(loadProject ${ChosenLang})
+										ChosenLang=${GetProject}
+										project=$(loadProject ${UserIn[3]})
+										GetProject=${SaveProject}
+										;;
+								esac
+							else
+								TheProject=$(loadProject ${GetProject})
+							fi
+
 							local HasLink
-							TheProject=$(loadProject ${GetProject})
 							if [ "${TheProject}" != "no" ]; then
 								if [ -z "${ChosenLang}" ]; then
 									Lang=$(echo ${TheProject} | cut -d ";" -f 1)
