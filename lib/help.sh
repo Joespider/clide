@@ -90,7 +90,7 @@ MenuHelp()
 					echo -e "\tload\t\t\t: \"load and existing projects\""
 					echo -e "\tlink <lang>\t\t: \"Link a language to an active project\""
 					echo -e "\t\t--list, list\t: \"list the linked languages in an active project\""
-					echo -e "\tswap <lang>\t\t: \"swap to a language in an active project\""
+					echo -e "\tswap, use <lang>\t\t: \"swap to a language in an active project\""
 					echo -e "\t\t--list, list\t: \"list the linked languages in an active project\""
 					echo -e "\tdiscover\t\t: \"update the list of projects\""
 					echo -e "${repoTool}, repo\t\t\t: \"handle repos\""
