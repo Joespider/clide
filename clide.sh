@@ -519,7 +519,7 @@ newProject()
 	local project=$2
 	local projectType=$3
 	local ProjectFile=${ActiveProjectDir}/${project}.clide
-	local path=""
+	local path
 	#No Project is found
 	if [ -z "${project}" ]; then
 		errorCode "project" "none" "${Head}"
@@ -746,9 +746,13 @@ loadProject()
 {
 	local project=$1
 	local ProjectFile=${ActiveProjectDir}/${project}.clide
-	local path=""
-	local RtnVals=""
-	local tag=""
+	local name
+	local ProjectType
+	local path
+	local src
+	local links
+	local RtnVals
+	local tag
 	if [ ! -d "${ClideDir}" ]; then
 		errorCode "project"
 	else
@@ -775,7 +779,10 @@ loadProject()
 				tag="src="
 				src=$(grep ${tag} ${ProjectFile} | sed "s/${tag}//g")
 				#return valid
-				RtnVals="${lang};${src};${path};${ProjectType}"
+				tag="link="
+				links=$(grep ${tag} ${ProjectFile} | sed "s/${tag}//g")
+				#return valid
+				RtnVals="${lang};${src};${path};${ProjectType};${links}"
 				echo ${RtnVals}
 			else
 				#return false value
@@ -1637,7 +1644,7 @@ Actions()
 										;;
 								esac
 								;;
-							swap)
+							use|swap)
 								local project=${CodeProject}
 								local ProjectFile=${ActiveProjectDir}/${project}.clide
 								local Already=$(grep "link=" ${ProjectFile})
@@ -1666,10 +1673,19 @@ Actions()
 								;;
 							#Load an existing project
 							load)
+								local HasLink
 								project=$(loadProject ${UserIn[2]})
+								local ChosenLang=${UserIn[3]}
+
+								#If no language given, try the active language
+								if [ -z "${ChosenLang}" ]; then
+									ChosenLang=${Lang}
+								fi
+
 								if [ "${project}" != "no" ]; then
 									CodeDir=$(echo ${project} | cut -d ";" -f 3)
 									CodeDir=$(eval echo ${CodeDir})
+
 									if [ -d ${CodeDir} ]; then
 										Lang=$(echo ${project} | cut -d ";" -f 1)
 										Code=$(echo ${project} | cut -d ";" -f 2)
@@ -1679,6 +1695,13 @@ Actions()
 										#Read title or project
 										local TheFile=${ActiveProjectDir}/${CodeProject}.clide
 										if [ -f ${TheFile} ]; then
+											if [ ! -z "${ChosenLang}" ]; then
+												HasLink=$(grep "link=" ${TheFile} | grep ${ChosenLang})
+												if [ ! -z "${HasLink}" ]; then
+													Lang=${ChosenLang}
+												fi
+											fi
+
 											echo ""
 											local HasTitle=$(grep "title=" ${TheFile})
 											if [ ! -z "${HasTitle}" ]; then
@@ -2045,7 +2068,20 @@ Actions()
 						;;
 					#Read code without editing
 					${ReadBy}|read)
-						ManageLangs ${Lang} "readCode" ${Code} ${UserIn[1]}
+						case ${UserIn[1]} in
+							#edit non-langugage source files
+							non-lang)
+								if [ ! -z "${UserIn[2]}" ]; then
+									${ReadBy} ${UserIn[2]}
+								else
+									errorCode "readCode"
+								fi
+								;;
+							#edit language source code
+							*)
+								ManageLangs ${Lang} "readCode" ${Code} ${UserIn[1]}
+								;;
+						esac
 						;;
 					#Modes
 					mode)
@@ -2695,13 +2731,13 @@ loadAuto()
 	comp_list "pwd"
 	comp_list "mkdir"
 	comp_list "use" "${pg}"
-	comp_list "project" "build delete discover files import load list link mode new remove swap save title type update"
+	comp_list "project" "build delete discover files import load list link mode new remove swap use save title type update"
 	comp_list "package" "new set list"
 	comp_list "shell"
 	comp_list "new" "--version -v --help -h --custom -c"
 	comp_list "${editor} ed edit" "non-lang"
 	comp_list "add"
-	comp_list "${ReadBy} read"
+	comp_list "${ReadBy} read" "non-lang"
 	comp_list "search"
 	comp_list "create" "args cpl cpl-args make newCodeTemp reset version"
 	comp_list "compile cpl car car-a"
@@ -2966,11 +3002,30 @@ main()
 							theHelp ProjectCliHelp ${UserArg}
 							;;
 						*)
+							shift
+							local ChosenLang=$1
+							local HasLink
 							TheProject=$(loadProject ${GetProject})
 							if [ "${TheProject}" != "no" ]; then
-								Lang=$(echo ${TheProject} | cut -d ";" -f 1)
+								if [ -z "${ChosenLang}" ]; then
+									Lang=$(echo ${TheProject} | cut -d ";" -f 1)
+								else
+									HasLink=$(echo ${TheProject} | cut -d ";" -f 5)
+									if [ ! -z "${HasLink}" ]; then
+										case ${HasLink,,} in
+											*"${ChosenLang,,},"*)
+												Lang=${ChosenLang}
+												;;
+											*)
+												Lang=$(echo ${TheProject} | cut -d ";" -f 1)
+												;;
+										esac
+									else
+										Lang=$(echo ${TheProject} | cut -d ";" -f 1)
+									fi
+								fi
 								Lang=$(pgLang ${Lang})
-								Actions ${Lang} "code" "project" "load" "${GetProject}"
+								Actions ${Lang} "code" "project" "load" "${GetProject}" "${Lang}"
 								fi
 							;;
 					esac

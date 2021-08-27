@@ -521,7 +521,7 @@ UseC()
 										CheckForHeader=$(UseC "getProjSrc" ${name}${LangOtherExt} 2> /dev/null)
 										if [ ! -z "${CheckForSrc}" ]; then
 											name="${name}${LangExt}"
-										elif [ ! -z "${CheckForHeader}" ]]; then
+										elif [ ! -z "${CheckForHeader}" ]; then
 											name="${name}${LangOtherExt}"
 										fi
 										;;
