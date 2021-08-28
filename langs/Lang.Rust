@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.01"
+SupportV="0.1.02"
 Lang=Rust
 LangExt=".rs"
 ColorNum=1
@@ -397,7 +397,12 @@ UseRust()
 		editCode|readCode)
 			local src=$1
 			local num=$2
+			local project=${CodeProject}
+			local newName
+			local DirPath
+			local TheSrcDir
 			local ReadOrEdit
+			local HasAnExt
 
 			#Select the tool
 			#{
@@ -413,53 +418,122 @@ UseRust()
 			esac
 			#}
 
-			case ${src} in
-				*${LangExt})
-					if [[ "${src}" == *","* ]]; then
-						if [ -z "${num}" ]; then
-							#ERROR
-							#{
-							case ${Type} in
-								readCode)
-									errorCode "readNull"
-									;;
-								editCode)
-									errorCode "editNull"
-									;;
-								*)
-									;;
-							esac
-							#}
-						else
-							if [[ "${src}" == *"${num}"* ]]; then
-								if [[ "${num}" == *"${LangExt}" ]]; then
-									${ReadOrEdit} ${num}
+			HasAnExt=$(UseRust "hasExt" ${src})
+
+			if [ ! -z "${HasAnExt}" ]; then
+					case ${project} in
+						none)
+							if [[ "${src}" == *","* ]]; then
+								if [ -z "${num}" ]; then
+									#Error
+									#{
+									case ${Type} in
+										readCode)
+											errorCode "readNull"
+											;;
+										editCode)
+											errorCode "editNull"
+											;;
+										*)
+											;;
+									esac
+									#}
 								else
-									${ReadOrEdit} "${num}${LangExt}"
+									if [[ "${src}" == *"${num}"* ]]; then
+										#Choose file from list of choices
+										num=$(echo ${src} | tr ',' '\n' | grep ${num})
+										${ReadOrEdit} ${num}
+									else
+										#Error
+										#{
+										case ${Type} in
+											readCode)
+												errorCode "readNot"
+												;;
+											editCode)
+												errorCode "editNot"
+												;;
+											*)
+												;;
+										esac
+										#}
+									fi
 								fi
 							else
-								#ERROR
+								#Read or Write Code
 								#{
-								case ${Type} in
-									readCode)
-										errorCode "readNot"
-										;;
-									editCode)
-										errorCode "editNot"
-										;;
-									*)
-										;;
-								esac
+								${ReadOrEdit} ${src}
 								#}
 							fi
-						fi
-					else
-						${ReadOrEdit} ${src}
-					fi
-					;;
-				*)
-					;;
-			esac
+							;;
+						*)
+							TheSrcDir="${LangProject}/${project}/src/"
+							local NumFound
+							if [[ "${src}" == *","* ]]; then
+								if [ -z "${num}" ]; then
+									errorCode "editNull"
+									NumFound=0
+								else
+									if [[ "${src}" == *"${num}"* ]]; then
+										if [[ "${num}" == *"${LangExt}" ]]; then
+											src=${num}
+										else
+											src=${num}${LangExt}
+										fi
+										NumFound=$(find ${TheSrcDir} -name ${src} 2> /dev/null | wc -l)
+									else
+										#Error
+										#{
+										case ${Type} in
+											readCode)
+												errorCode "readNot"
+												;;
+											editCode)
+												errorCode "editNot"
+												;;
+											*)
+												;;
+										esac
+										NumFound=0
+										#}
+									fi
+								fi
+							else
+								NumFound=$(find ${TheSrcDir} -name ${src} 2> /dev/null | wc -l)
+							fi
+
+							case ${NumFound} in
+								0)
+									;;
+								1)
+									src=$(find ${TheSrcDir} -name ${src} 2> /dev/null)
+									if [ -f ${src} ]; then
+										#Read or Write Code
+										#{
+										${ReadOrEdit} ${src}
+										#}
+									fi
+									;;
+								*)
+									local Select
+									find ${TheSrcDir} -name ${src} 2> /dev/null | sed "s/\/${project}\/src\//|/1" | cut -d '|' -f 2 | nl
+									echo -n "> "
+									read Select
+									Select=$(echo ${Select} | grep "^-\?[0-9]*$")
+									if [ ! -z "${Select}" ]; then
+										if [ ${Select} -le ${NumFound} ] && [ ${Select} -gt 0 ]; then
+											src=$(find ${TheSrcDir} -name ${src} 2> /dev/null | tr '\n' '|' | cut -d '|' -f ${Select})
+											#Read or Write Code
+											#{
+											${ReadOrEdit} ${src}
+											#}
+										fi
+									fi
+									;;
+							esac
+							;;
+					esac
+			fi
 			;;
 		setCplArgs)
 			shift
@@ -535,74 +609,39 @@ UseRust()
 			#Handle Project Dir
 			case ${project} in
 				none)
-					project=""
 					TheBinDir=${LangBin}
-					;;
-				*)
-					project="${project}/"
-					TheBinDir="${LangProject}/${project}bin"
-					;;
-			esac
+					#Handle multiple files
+					if [[ "${src}" == *","* ]]; then
+						if [ -z "${name}" ]; then
+							src=$(echo ${src} | tr ',' ' ')
+							name=$(grep -l "fn main(" ${src} 2> /dev/null)
 
-			#Handle multiple files
-			if [[ "${src}" == *","* ]]; then
-				if [ -z "${name}" ]; then
-					src=$(echo ${src} | tr ',' ' ')
-					name=$(grep -l "fn main(" ${src} 2> /dev/null)
-
-					if [ -z "${name}" ]; then
-						echo "Unable to find the \"main\" file"
-						echo -n "Please choose: "
-						read name
-						case ${CodeProject} in
-							none)
+							if [ -z "${name}" ]; then
+								echo "Unable to find the \"main\" file"
+								echo -n "Please choose: "
+								read name
 								name=$(UseRust "removeExt" ${name})
 								if [ ! -f ${LangSrc}/${name}${LangExt} ]; then
 									name=""
 								fi
-								;;
-							*)
-								GetCount=$(UseRust "getProjSrc" ${src} | wc -l)
-								case ${GetCount} in
-									0)
-										;;
-									1)
-										src=$(UseRust "getProjSrc" ${src})
-										case ${cplArgs} in
-											none)
-												ERROR=$(${LangCpl} ${src} -o ${name} 2>&1 | tr '\n' '|')
-												;;
-											*)
-												ERROR=$(${LangCpl} ${src} -o ${name} ${cplArgs} 2>&1 | tr '\n' '|')
-												;;
-										esac
-										;;
-									*)
-										;;
-								esac
-								;;
-						esac
+							else
+								if [ ! -z "${name}" ]; then
+									name=$(UseRust "removeExt" ${name})
+									src="${name}${LangExt}"
+								fi
+							fi
+						fi
+					else
+						if [ -z "${name}" ]; then
+						name=$(grep -l "fn main(" ${src} 2> /dev/null)					
+						fi					
 					fi
 
-					if [ ! -z "${name}" ]; then
-						name=$(UseRust "removeExt" ${name})
-						src="${name}${LangExt}"
-					fi
-				fi
-			else
-				if [ -z "${name}" ]; then
-					name=$(grep -l "fn main(" ${src} 2> /dev/null)
-				fi
-			fi
+					name=$(UseRust "removeExt" ${name})
 
-			name=$(UseRust "removeExt" ${name})
-
-			#Set Code to executable
-			case ${src} in
-				*${LangExt})
-					#Change to Rust Binary dir
-					case ${CodeProject} in
-						none)
+					#Set Code to executable
+					case ${src} in
+						*${LangExt})
 							case ${cplArgs} in
 								none)
 									ERROR=$(${LangCpl} ${src} -o ${name} 2>&1 | tr '\n' '|')
@@ -611,38 +650,33 @@ UseRust()
 									ERROR=$(${LangCpl} ${src} -o ${name} ${cplArgs} 2>&1 | tr '\n' '|')
 									;;
 							esac
+							if [ -z "${ERROR}" ]; then
+								UseRust compileCode-message
+								mv ${name} ${TheBinDir}/
+							else
+								errorCode "cpl" "ERROR" "${ERROR}"
+							fi
 							;;
 						*)
-							GetCount=$(UseRust "getProjSrc" ${src} | wc -l)
-							case ${GetCount} in
-								0)
-									;;
-								1)
-									src=$(UseRust "getProjSrc" ${src})
-									case ${cplArgs} in
-										none)
-											ERROR=$(${LangCpl} ${src} -o ${name} 2>&1 | tr '\n' '|')
-											;;
-										*)
-											ERROR=$(${LangCpl} ${src} -o ${name} ${cplArgs} 2>&1 | tr '\n' '|')
-											;;
-									esac
-									;;
-								*)
-									;;
-							esac
+							errorCode "cpl" "choose"
 							;;
 					esac
-					#Change to Bash Source dir
-					if [ -z "${ERROR}" ]; then
-						UseRust compileCode-message
-						mv ${name} ${TheBinDir}/
-					else
-						errorCode "cpl" "ERROR" "${ERROR}"
-					fi
 					;;
 				*)
-					errorCode "cpl" "choose"
+					TheBinDir="${LangProject}/${project}/bin"
+					cd ${LangProject}/${project}/
+					ERROR=$(cargo build --quiet 2>&1 | tr '\n' '|')
+					if [ -z "${ERROR}" ] && [ -f ${LangProject}/${project}/target/debug/${project} ]; then
+						UseRust compileCode-message
+						mv ${LangProject}/${project}/target/debug/${project} ${TheBinDir}/
+					else
+						if [ -z "${ERROR}" ]; then
+							errorCode "cpl" "ERROR" "${project} binary not found"
+						else
+							errorCode "cpl" "ERROR" "${ERROR}"
+						fi
+					fi
+					cd - > /dev/null
 					;;
 			esac
 			;;
@@ -652,15 +686,13 @@ UseRust()
 		newProject)
 			local TheProjectType=$1
 			local project=$2
-			local path=${LangProject}/
+			local path=${LangProject}/${project}
 			if [ ! -d ${path} ]; then
 				case ${ProjectType} in
 					Generic)
-						mkdir ${path}
-						cd ${path}/
-						cargo new ${project}
-						mkdir ${path}/bin
-						cd ${path}/src
+						cd ${LangProject}
+						cargo new ${project} > /dev/null
+						mkdir -p ${path}/bin
 						;;
 					*)
 						ProjectTemplateHandler ${EnvVars[@]} ${Type} ${project}
