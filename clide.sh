@@ -1110,7 +1110,7 @@ Actions-NoLang()
 				main "--repo-version"
 				;;
 			#jump out of No-Lang session and into a language session
-			use|bash|c|c++|go|java|python|perl|ruby)
+			use|bash|c|c++|go|java|python|perl|ruby|rust)
 				local Lang
 				local Code
 				case ${UserIn[0],,} in
@@ -1801,7 +1801,7 @@ Actions()
 						refresh="yes"
 						;;
 					#Swap Programming Languages
-					use|bash|c|c++|go|java|python|perl|ruby)
+					use|bash|c|c++|go|java|python|perl|ruby|rust)
 						Old=${Lang}
 						OldCode=${Code}
 						case ${UserIn[0]} in
