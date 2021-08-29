@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.02"
+SupportV="0.1.03"
 Lang=Rust
 LangExt=".rs"
 ColorNum=1
@@ -691,7 +691,7 @@ UseRust()
 				case ${ProjectType} in
 					Generic)
 						cd ${LangProject}
-						cargo new ${project} > /dev/null
+						cargo new ${project} --quiet
 						mkdir -p ${path}/bin
 						;;
 					*)
