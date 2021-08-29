@@ -303,6 +303,9 @@ CliHelp()
 				--cpl|--compile)
 					cplHelp
 					;;
+				--read)
+					ReadHelp
+					;;
 				--run)
 					RunHelp
 					;;
@@ -311,9 +314,6 @@ CliHelp()
 					;;
 				--debug)
 					debuggerHelp
-					;;
-				--read)
-					RunHelp
 					;;
 				--list|--list-cpl|--lscpl)
 					listHelp ${example}
@@ -350,8 +350,8 @@ CliHelp()
 					else
 						cmd="clide ${calledBy} function "
 					fi
-					echo -e "${cmd}--edit\t\t: \"Get more information about editing files\""
-					echo -e "${cmd}--cpl\t\t: \"Learn how to do quick compiles\""
+					echo -e "${cmd}--edit\t: \"Get more information about editing files\""
+					echo -e "${cmd}--cpl\t: \"Learn how to do quick compiles\""
 					echo ""
 					echo "-----------------------------------------------"
 					echo ""

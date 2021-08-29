@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.03"
+SupportV="0.1.05"
 Lang=Rust
 LangExt=".rs"
 ColorNum=1
@@ -363,12 +363,6 @@ UseRust()
 								esac
 								;;
 							*)
-#								find ${TheSrcDir} -name ${name} 2> /dev/null | nl
-#								if [ -f ${name} ]; then
-#									name=${name%${LangExt}}
-#									newName=${name##*/}
-#									echo ${newName}${LangExt}
-#								fi
 								;;
 						esac
 					;;
@@ -609,58 +603,62 @@ UseRust()
 			#Handle Project Dir
 			case ${project} in
 				none)
-					TheBinDir=${LangBin}
-					#Handle multiple files
-					if [[ "${src}" == *","* ]]; then
-						if [ -z "${name}" ]; then
-							src=$(echo ${src} | tr ',' ' ')
-							name=$(grep -l "fn main(" ${src} 2> /dev/null)
-
+					if [ ! -z "${src}" ]; then
+						TheBinDir=${LangBin}
+						#Handle multiple files
+						if [[ "${src}" == *","* ]]; then
 							if [ -z "${name}" ]; then
-								echo "Unable to find the \"main\" file"
-								echo -n "Please choose: "
-								read name
-								name=$(UseRust "removeExt" ${name})
-								if [ ! -f ${LangSrc}/${name}${LangExt} ]; then
-									name=""
-								fi
-							else
-								if [ ! -z "${name}" ]; then
+								src=$(echo ${src} | tr ',' ' ')
+								name=$(grep -l "fn main(" ${src} 2> /dev/null)
+
+								if [ -z "${name}" ]; then
+									echo "Unable to find the \"main\" file"
+									echo -n "Please choose: "
+									read name
 									name=$(UseRust "removeExt" ${name})
-									src="${name}${LangExt}"
+									if [ ! -f ${LangSrc}/${name}${LangExt} ]; then
+										name=""
+									fi
+								else
+									if [ ! -z "${name}" ]; then
+										name=$(UseRust "removeExt" ${name})
+										src="${name}${LangExt}"
+									fi
 								fi
 							fi
+						else
+							if [ -z "${name}" ]; then
+								name=$(grep -l "fn main(" ${src} 2> /dev/null)					
+							fi					
 						fi
+
+						name=$(UseRust "removeExt" ${name})
+
+						#Set Code to executable
+						case ${src} in
+							*${LangExt})
+								case ${cplArgs} in
+									none)
+										ERROR=$(${LangCpl} ${src} -o ${name} 2>&1 | tr '\n' '|')
+										;;
+									*)
+										ERROR=$(${LangCpl} ${src} -o ${name} ${cplArgs} 2>&1 | tr '\n' '|')
+										;;
+								esac
+								if [ -z "${ERROR}" ]; then
+									UseRust compileCode-message
+									mv ${name} ${TheBinDir}/
+								else
+									errorCode "cpl" "ERROR" "${ERROR}"
+								fi
+								;;
+							*)
+								errorCode "cpl" "choose"
+								;;
+						esac
 					else
-						if [ -z "${name}" ]; then
-						name=$(grep -l "fn main(" ${src} 2> /dev/null)					
-						fi					
+						errorCode "cpl" "choose"
 					fi
-
-					name=$(UseRust "removeExt" ${name})
-
-					#Set Code to executable
-					case ${src} in
-						*${LangExt})
-							case ${cplArgs} in
-								none)
-									ERROR=$(${LangCpl} ${src} -o ${name} 2>&1 | tr '\n' '|')
-									;;
-								*)
-									ERROR=$(${LangCpl} ${src} -o ${name} ${cplArgs} 2>&1 | tr '\n' '|')
-									;;
-							esac
-							if [ -z "${ERROR}" ]; then
-								UseRust compileCode-message
-								mv ${name} ${TheBinDir}/
-							else
-								errorCode "cpl" "ERROR" "${ERROR}"
-							fi
-							;;
-						*)
-							errorCode "cpl" "choose"
-							;;
-					esac
 					;;
 				*)
 					TheBinDir="${LangProject}/${project}/bin"
@@ -707,13 +705,13 @@ UseRust()
 			local mode=$1
 			case ${ProjectType} in
 				Generic)
-					case ${mode} in
+#					case ${mode} in
 #						main|test)
 #							echo "${mode}"
 #							;;
-						*)
-							;;
-					esac
+#						*)
+#							;;
+#					esac
 					;;
 				*)
 					ProjectTemplateHandler ${EnvVars[@]} ${Type} ${mode}
@@ -815,7 +813,7 @@ UseRust()
 			#Handle Project Dir
 			case ${project} in
 				none)
-					TheName=$(OtherColor "${TheName%.*}")
+					TheName=$(OtherColor "${TheName%.${LangExt}}")
 					echo "./${TheName}"
 					;;
 				*)
@@ -1004,6 +1002,7 @@ UseRust()
 					if [ ! -z "${TheNew}" ]; then
 						TheOld=$(UseRust "removeExt" ${TheOld})
 						TheNew=$(UseRust "removeExt" ${TheNew})
+
 						sed "s/${TheOld}/${TheNew}/g" ${LangSrc}/${TheOld}${LangExt} > ${LangSrc}/${TheNew}${LangExt}
 
 						#Remove old file for "rename"
@@ -1026,7 +1025,6 @@ UseRust()
 							#Remove the extention
 							TheOld=$(UseRust "removeExt" ${TheOld})
 							TheNew=$(UseRust "removeExt" ${TheNew})
-
 							sed "s/${TheOld}/${TheNew}/g" ${TheOld}${LangExt} > ${TheNew}${LangExt}
 
 							#Remove old file for "rename"
@@ -1050,8 +1048,8 @@ UseRust()
 									#Get the file
 									TheFound=${TheFound##*/}
 									#Remove the extention
-									TheOld=$(UseRust "removeExt" ${TheOld})
-									TheNew=$(UseRust "removeExt" ${TheNew})
+									TheOld=$(UseRust "removeExt" ${TheOld})"
+									TheNew=$(UseRust "removeExt" ${TheNew})"
 									sed "s/${TheOld}/${TheNew}/g" ${TheDir}/${TheOld}${LangExt} > ${TheDir}/${TheNew}${LangExt}
 
 									#Remove old file for "rename"
@@ -1079,4 +1077,5 @@ UseRust()
 	esac
 }
 
+#init
 UseRust $@
