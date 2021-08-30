@@ -1110,7 +1110,7 @@ Actions-NoLang()
 				main "--repo-version"
 				;;
 			#jump out of No-Lang session and into a language session
-			use|bash|c|c++|go|java|python|perl|ruby)
+			use|bash|c|c++|go|java|python|perl|ruby|rust)
 				local Lang
 				local Code
 				case ${UserIn[0],,} in
@@ -1801,7 +1801,7 @@ Actions()
 						refresh="yes"
 						;;
 					#Swap Programming Languages
-					use|bash|c|c++|go|java|python|perl|ruby)
+					use|bash|c|c++|go|java|python|perl|ruby|rust)
 						Old=${Lang}
 						OldCode=${Code}
 						case ${UserIn[0]} in
@@ -2313,6 +2313,9 @@ Actions()
 								case ${Lang} in
 									Java)
 										ManageLangs ${Lang} "compileCode" "--jar" ${UserIn[1]} ${UserIn[2]}
+										;;
+									Rust)
+										ManageLangs ${Lang} "compileCode" "--release" ${UserIn[1]} ${UserIn[2]}
 										;;
 									*)
 										ManageLangs ${Lang} "compileCode" ${Code} ${UserIn[1]} ${UserIn[2]}
@@ -2916,6 +2919,13 @@ main()
 																ManageLangs ${Lang} "compileCode" ${Code}
 															else
 																errorCode "cli-cpl" "none"
+															fi
+															;;
+														Rust)
+															if [ -z "${Code}" ]; then
+																ManageLangs ${Lang} "compileCode" ${Code}
+															else
+																ManageLangs ${Lang} "compileCode" "--release"
 															fi
 															;;
 														*)
