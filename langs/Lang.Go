@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.38"
+SupportV="0.1.39"
 Lang=Go
 LangExt=".go"
 #Color Green

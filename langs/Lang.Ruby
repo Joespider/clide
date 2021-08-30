@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.57"
+SupportV="0.1.58"
 Lang=Ruby
 LangExt=".rb"
 ColorNum=1
