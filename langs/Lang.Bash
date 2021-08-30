@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.59"
+SupportV="0.1.60"
 Lang=Bash
 LangExt=".sh"
 ColorNum=2
@@ -402,28 +402,48 @@ UseBash()
 			;;
 		rmBin|rmSrc)
 			local name=$1
-			local ThePath
 			name=$(UseBash "removeExt" ${name})
-			name=${name}${LangExt}
+			local ThePath
+			local theSrc
+			local project=${CodeProject}
 			case ${Type} in
 				rmBin)
-					ThePath=${LangBin}
-					name=$(UseBash "removeExt" ${name})
+					case ${project} in
+						#not a project
+						none)
+							ThePath=${LangBin}
+							;;
+						*)
+							ThePath="${LangProject}/${project}/bin"
+							;;
+					esac
 					;;
 				rmSrc)
-					ThePath=${LangSrc}
-					name=$(UseBash "removeExt" ${name})
-					name=${name}${LangExt}
+					case ${project} in
+						#not a project
+						none)
+							ThePath=${LangSrc}
+							;;
+						*)
+							ThePath="${LangProject}/${project}/src"
+							;;
+					esac
 					;;
 				*)
 					;;
 			esac
-			if [ -f ${ThePath}/${name} ]; then
-				echo ${ThePath}/${name}
+	
+			if [ -f ${ThePath}/${name}${LangExt} ]; then
+				echo ${ThePath}/${name}${LangExt}
+			else
+				cd ${ThePath}/
+				theSrc=$(UseBash "getProjSrc" ${name}${LangExt})
+				cd -> /dev/null
+				if [ ! -z "${theSrc}" ]; then
+					echo ${ThePath}/${theSrc}
+				fi
 			fi
 			;;
-
-
 		editCode|readCode)
 			local src=$1
 			local num=$2

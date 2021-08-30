@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.06"
+SupportV="0.1.09"
 Lang=Rust
 LangExt=".rs"
 ColorNum=1
@@ -55,9 +55,9 @@ UseRust()
 	local LangProject=${LangHome}/projects
 
 	local TemplateCode=${NewRust}
-	TemplateCode=${LangBin}/${TemplateCode%${LangExt}}${LangExt}
+	TemplateCode=${LangBin}/${TemplateCode%${LangExt}}
 
-	local TemplateCodeSrc=${NewRust%${LangExt}}${LangExt}
+	local TemplateCodeSrc=${NewRust%${LangExt}}
 
 	local EnvVars=( ${LangCpl} ${LangHome} ${LangSrc} ${LangBin} ${LangExt} )
 	local Type=$1
@@ -379,21 +379,45 @@ UseRust()
 			;;
 		rmBin|rmSrc)
 			local name=$1
-			local ThePath
 			name=$(UseRust "removeExt" ${name})
-			name=${name}${LangExt}
+			local ThePath
+			local theSrc
+			local project=${CodeProject}
 			case ${Type} in
 				rmBin)
-					ThePath=${LangBin}
+					case ${project} in
+						#not a project
+						none)
+							ThePath=${LangBin}
+							;;
+						*)
+							ThePath="${LangProject}/${project}/bin"
+							;;
+					esac
 					;;
 				rmSrc)
-					ThePath=${LangSrc}
+					case ${project} in
+						#not a project
+						none)
+							ThePath=${LangSrc}
+							;;
+						*)
+							ThePath="${LangProject}/${project}/src"
+							;;
+					esac
 					;;
 				*)
 					;;
 			esac
-			if [ -f ${ThePath}/${name} ]; then
-				echo ${ThePath}/${name}
+			if [ -f ${ThePath}/${name}${LangExt} ]; then
+				echo ${ThePath}/${name}${LangExt}
+			else
+				cd ${ThePath}/
+				theSrc=$(UseRust "getProjSrc" ${name})
+				cd -> /dev/null
+				if [ ! -z "${theSrc}" ]; then
+					echo ${ThePath}/${theSrc}
+				fi
 			fi
 			;;
 		editCode|readCode)
@@ -665,10 +689,10 @@ UseRust()
 								*${LangExt})
 									case ${cplArgs} in
 										none)
-											ERROR=$(${LangCpl} ${src} -o ${name} 2>&1 | tr '\n' '|')
+											ERROR=$(${LangCpl} ${src} -o ${name} 2>&1 | tr '|' '.' | tr '\n' '|')
 											;;
 										*)
-											ERROR=$(${LangCpl} ${src} -o ${name} ${cplArgs} 2>&1 | tr '\n' '|')
+											ERROR=$(${LangCpl} ${src} -o ${name} ${cplArgs} 2>&1 | tr '|' '.' | tr '\n' '|')
 											;;
 									esac
 
@@ -709,11 +733,11 @@ UseRust()
 						case ${name} in
 							--release)
 								#Build as a release
-								ERROR=$(cargo build --release --quiet 2>&1 | tr '\n' '|')
+								ERROR=$(cargo build --release --quiet 2>&1 | tr '|' '.' | tr '\n' '|')
 								;;
 							*)
 								ERROR="Nothing to compile"
-								;;
+					8			;;
 						esac
 					#--release argument not given and/or source code not set
 					else
@@ -721,12 +745,12 @@ UseRust()
 							#--release compile argument given
 							--release)
 								#Build as a release
-								ERROR=$(cargo build --release --quiet 2>&1 | tr '\n' '|')
+								ERROR=$(cargo build --release --quiet 2>&1 | tr '|' '.' | tr '\n' '|')
 								;;
 							#Do a normal project build
 							*)
 								#Build as normal
-								ERROR=$(cargo build --quiet 2>&1 | tr '\n' '|')
+								ERROR=$(cargo build --quiet 2>&1 | tr '|' '.' | tr '\n' '|')
 								;;
 						esac
 					fi
@@ -874,10 +898,10 @@ UseRust()
 				if [ -f ${TemplateCode} ]; then
 					#Program Name Given
 					if [ ! -z "${name}" ];then
-						${LangCpl} ${TemplateCode} -n ${name} --cli --user $USER --main --write-file --read-file --user-input
+						${TemplateCode} -n ${name} --cli --user $USER --main --write-file --read-file --user-input
 					#No Program Name Given
 					else
-						${LangCpl} ${TemplateCode} --help
+						${TemplateCode} --help
 					fi
 				else
 					#Program Name Given
