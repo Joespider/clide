@@ -1,1 +1,57 @@
 [Rust Notes]
+site: https://doc.rust-lang.org/reference/introduction.html
+
+//Variables
+	let <var> = <val>;
+
+//To print a variable.."{}" is a place holder for variables
+	leg var = "This is a variable";
+	println!("{}", var);
+	"This is a variable"
+
+	let var1 = "Dog";
+	let var2 = "Cat";
+	println!("{}s are not {}s", var1, var2);
+	"Dogs are not Cats"
+
+//Functions are ALL LOWERCASE and can have '_'
+	fn i_am_a_function()
+	{
+		println!("I am a function");
+	}
+
+//ALL programs MUST have a main function
+	fn main()
+	{
+		println!("Hellow World");
+	}
+
+//Handle CLI arguments
+	use std::env;
+
+	fn main()
+	{
+		let args: Vec<String> = env::args().collect();
+		let ArgVal = &args[1]
+		println!("{:?}", args);
+	}
+
+	//or
+
+	use std::env;
+
+	fn main()
+	{
+		let mut arg_count = 0;
+		for argument in env::args()
+		{
+			if arg_count > 0
+			{
+				if argument == "--help"
+				{
+					println!("You passed --help as one of the arguments!");
+				}
+			}
+			arg_count += 1;
+		}
+	}

@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.55"
+SupportV="0.1.57"
 Lang=Ruby
 LangExt=".rb"
 ColorNum=1
@@ -130,7 +130,7 @@ UseRuby()
 				echo "${Lang}"
 			else
 				#Return rejection
-				echo "no"
+9				echo "no"
 			fi
 			;;
 		hasExt)
@@ -281,55 +281,74 @@ UseRuby()
 			local newName
 			local DirPath
 			local TheSrcDir
+
 			#Correct filename
 			if [ ! -z "${name}" ]; then
-				name=$(UseRuby "removeExt" ${name})
-				name=${name}${LangExt}
+
 				case ${project} in
 					#not a project
 					none)
 						case ${Type} in
+							selectCode)
+								#Correct filename
+								if [[ ! "${name}" == *"${LangExt}" ]] && [ -f "${name}${LangExt}" ]; then
+									name="${name}${LangExt}"
+								fi
+
+								#Return source file if exists
+								if [ -f "${name}" ]; then
+									echo "${name}"
+								fi
+								;;
 							addCode)
-								case ${new} in
-									*${LangExt})
-										if [ -f "${new}" ]; then
-											echo "${name},${new}"
-										else
-											echo "${name}"
-										fi
+								case ${name} in
+									*${LangExt}|*.h)
+										#Add cpp or header files with file extensions
+										case ${new} in
+											*${LangExt})
+												#Append file
+												if [ -f "${new}" ]; then
+													echo "${name},${new}"
+												else
+													echo "${name}"
+												fi
+												;;
+											#Add cpp or header files without file extensions
+											*)
+												#Append cpp files
+												if [ -f "${new}${LangExt}" ]; then
+													echo "${name},${new}${LangExt}"
+												else
+													echo "${name}"
+												fi
+												;;
+										esac
 										;;
 									*)
-										if [ -f "${new}${LangExt}" ]; then
-											echo "${name},${new}${LangExt}"
-										else
-											echo "${name}"
-										fi
 										;;
 								esac
 								;;
-							selectCode)
-									#Return source file if exists
-									if [ -f "${name}" ]; then
-										echo "${name}"
-									fi
-									;;
 							*)
-									;;
+								;;
 						esac
 						;;
 					#is a project
 					*)
-						local LookFor
 						TheSrcDir="${LangProject}/${project}/src/"
+						local LookFor
 						case ${Type} in
 							addCode)
-								new=$(UseRuby "removeExt" ${new})
-								new=${new}${LangExt}
+								#Correct filename
+								if [[ ! "${new}" == *"${LangExt}" ]]; then
+									new="${new}${LangExt}"
+								fi
 								LookFor=${new}
 								;;
 							selectCode)
-								name=$(UseRuby "removeExt" ${name})
-								name=${name}${LangExt}
+								#Correct filename
+								if [[ ! "${name}" == *"${LangExt}" ]]; then
+									name="${name}${LangExt}"
+								fi
 								LookFor=${name}
 								;;
 							*)
@@ -344,10 +363,10 @@ UseRuby()
 								case ${Type} in
 									addCode)
 										new=$(find ${TheSrcDir} -name ${new} 2> /dev/null)
-										if [ -f ${new} ]; then
-											new=$(UseRuby "removeExt" ${new})
-											newName=${new##*/}
-											echo "${name},${newName}${LangExt}"
+										#Append file
+										if [ -f "${new}" ]; then
+											new=${new##*/}
+											echo "${name},${new}"
 										else
 											echo "${name}"
 										fi
@@ -355,9 +374,8 @@ UseRuby()
 									selectCode)
 										name=$(find ${TheSrcDir} -name ${name} 2> /dev/null)
 										if [ -f ${name} ]; then
-											name=$(UseRuby "removeExt" ${name})
 											newName=${name##*/}
-											echo ${newName}${LangExt}
+											echo ${newName}
 										fi
 										;;
 									*)
@@ -373,32 +391,60 @@ UseRuby()
 #								fi
 								;;
 						esac
-					;;
+						;;
 				esac
 			fi
 			;;
 		rmBin|rmSrc)
 			local name=$1
-			local ThePath
 			name=$(UseRuby "removeExt" ${name})
-			name=${name}${LangExt}
+			local ThePath
+			local theSrc
+			local project=${CodeProject}
 			case ${Type} in
 				rmBin)
-					ThePath=${LangBin}
+					case ${project} in
+						#not a project
+						none)
+							ThePath=${LangBin}
+							;;
+						*)
+							ThePath="${LangProject}/${project}/bin"
+							;;
+					esac
 					;;
 				rmSrc)
-					ThePath=${LangSrc}
+					case ${project} in
+						#not a project
+						none)
+							ThePath=${LangSrc}
+							;;
+						*)
+							ThePath="${LangProject}/${project}/src"
+							;;
+					esac
 					;;
 				*)
 					;;
 			esac
-			if [ -f ${ThePath}/${name} ]; then
-				echo ${ThePath}/${name}
+			if [ -f ${ThePath}/${name}${LangExt} ]; then
+				echo ${ThePath}/${name}${LangExt}
+			else
+				cd ${ThePath}/
+				theSrc=$(UseRuby "getProjSrc" ${name})
+				cd -> /dev/null
+				if [ ! -z "${theSrc}" ]; then
+					echo ${ThePath}/${theSrc}${LangExt}
+				fi
 			fi
 			;;
 		editCode|readCode)
 			local src=$1
 			local num=$2
+			local project=${CodeProject}
+			local newName
+			local DirPath
+			local TheSrcDir
 			local ReadOrEdit
 
 			#Select the tool
@@ -417,52 +463,126 @@ UseRuby()
 
 			case ${src} in
 				*${LangExt})
-					if [[ "${src}" == *","* ]]; then
-						if [ -z "${num}" ]; then
-							#ERROR
-							#{
-							case ${Type} in
-								readCode)
-									errorCode "readNull"
-									;;
-								editCode)
-									errorCode "editNull"
-									;;
-								*)
-									;;
-							esac
-							#}
-						else
-							if [[ "${src}" == *"${num}"* ]]; then
-								if [[ "${num}" == *"${LangExt}" ]]; then
-									${ReadOrEdit} ${num}
+					case ${project} in
+						none)
+							if [[ "${src}" == *","* ]]; then
+								if [ -z "${num}" ]; then
+									#Error
+									#{
+									case ${Type} in
+										readCode)
+											errorCode "readNull"
+											;;
+										editCode)
+											errorCode "editNull"
+											;;
+										*)
+											;;
+									esac
+									#}
 								else
-									${ReadOrEdit} "${num}${LangExt}"
+									if [[ "${src}" == *"${num}"* ]]; then
+										#Choose file from list of choices
+										num=$(echo ${src} | tr ',' '\n' | grep ${num})
+										${ReadOrEdit} ${num}
+									else
+										#Error
+										#{
+										case ${Type} in
+											readCode)
+												errorCode "readNot"
+												;;
+											editCode)
+												errorCode "editNot"
+												;;
+											*)
+												;;
+										esac
+										#}
+									fi
 								fi
 							else
-								#ERROR
+								#Read or Write Code
 								#{
-								case ${Type} in
-									readCode)
-										errorCode "readNot"
-										;;
-									editCode)
-										errorCode "editNot"
-										;;
-									*)
-										;;
-								esac
+								${ReadOrEdit} ${src}
 								#}
 							fi
-						fi
-					else
-						${ReadOrEdit} ${src}
-					fi
+							;;
+						*)
+							TheSrcDir="${LangProject}/${project}/src/"
+							local NumFound
+							if [[ "${src}" == *","* ]]; then
+								if [ -z "${num}" ]; then
+									errorCode "editNull"
+									NumFound=0
+								else
+									if [[ "${src}" == *"${num}"* ]]; then
+										case ${num} in
+											*${LangExt})
+												src=${num}
+												;;
+											*)
+												src=${num}${LangExt}
+												;;
+										esac
+										NumFound=$(find ${TheSrcDir} -name ${src} 2> /dev/null | wc -l)
+									else
+										#Error
+										#{
+										case ${Type} in
+											readCode)
+												errorCode "readNot"
+												;;
+											editCode)
+												errorCode "editNot"
+												;;
+											*)
+												;;
+										esac
+										NumFound=0
+										#}
+									fi
+								fi
+							else
+								NumFound=$(find ${TheSrcDir} -name ${src} 2> /dev/null | wc -l)
+							fi
+
+							case ${NumFound} in
+								0)
+									;;
+								1)
+									src=$(find ${TheSrcDir} -name ${src} 2> /dev/null)
+									if [ -f ${src} ]; then
+										#Read or Write Code
+										#{
+										${ReadOrEdit} ${src}
+										#}
+									fi
+									;;
+								*)
+									local Select
+									find ${TheSrcDir} -name ${src} 2> /dev/null | sed "s/\/${project}\/src\//|/1" | cut -d '|' -f 2 | nl
+									echo -n "> "
+									read Select
+									Select=$(echo ${Select} | grep "^-\?[0-9]*$")
+									if [ ! -z "${Select}" ]; then
+										if [ ${Select} -le ${NumFound} ] && [ ${Select} -gt 0 ]; then
+											src=$(find ${TheSrcDir} -name ${src} 2> /dev/null | tr '\n' '|' | cut -d '|' -f ${Select})
+											#Read or Write Code
+											#{
+											${ReadOrEdit} ${src}
+											#}
+										fi
+									fi
+									;;
+							esac
+							;;
+					esac
 					;;
 				*)
 					;;
 			esac
-			;;
+			 ;;
 		setCplArgs)
 			;;
 		setCplArgs-help)
