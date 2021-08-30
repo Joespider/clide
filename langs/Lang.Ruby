@@ -130,7 +130,7 @@ UseRuby()
 				echo "${Lang}"
 			else
 				#Return rejection
-9				echo "no"
+				echo "no"
 			fi
 			;;
 		hasExt)

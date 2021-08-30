@@ -737,7 +737,7 @@ UseRust()
 								;;
 							*)
 								ERROR="Nothing to compile"
-					8			;;
+								;;
 						esac
 					#--release argument not given and/or source code not set
 					else
