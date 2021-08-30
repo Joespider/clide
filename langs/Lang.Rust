@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.09"
+SupportV="0.1.10"
 Lang=Rust
 LangExt=".rs"
 ColorNum=1
@@ -737,7 +737,7 @@ UseRust()
 								;;
 							*)
 								ERROR="Nothing to compile"
-					8			;;
+								;;
 						esac
 					#--release argument not given and/or source code not set
 					else

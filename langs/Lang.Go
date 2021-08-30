@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.38"
+SupportV="0.1.39"
 Lang=Go
 LangExt=".go"
 #Color Green
@@ -800,7 +800,7 @@ UseGo()
 			esac
 
 			#Compile ONLY if source code is selected OR makefile is present
-			if [[ "$src" == *"${LangExt}"* ]] || [ -f ${LangProject}/${project}makefile ]; then
+			if [[ "${src}" == *"${LangExt}"* ]] || [ -f ${LangProject}/${project}makefile ]; then
 				cd ${TheSrcDir}
 				case ${cplArgs} in
 					none)
