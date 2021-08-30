@@ -2314,6 +2314,9 @@ Actions()
 									Java)
 										ManageLangs ${Lang} "compileCode" "--jar" ${UserIn[1]} ${UserIn[2]}
 										;;
+									Rust)
+										ManageLangs ${Lang} "compileCode" "--release" ${UserIn[1]} ${UserIn[2]}
+										;;
 									*)
 										ManageLangs ${Lang} "compileCode" ${Code} ${UserIn[1]} ${UserIn[2]}
 										;;
@@ -2916,6 +2919,13 @@ main()
 																ManageLangs ${Lang} "compileCode" ${Code}
 															else
 																errorCode "cli-cpl" "none"
+															fi
+															;;
+														Rust)
+															if [ -z "${Code}" ]; then
+																ManageLangs ${Lang} "compileCode" ${Code}
+															else
+																ManageLangs ${Lang} "compileCode" "--release"
 															fi
 															;;
 														*)

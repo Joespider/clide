@@ -668,7 +668,13 @@ errorCode()
 					;;
 				not)
 					errorCode "ERROR"
-					errorCode "ERROR" "code not found"
+					errorCode "ERROR" "Code not found"
+					;;
+				no-name)
+					errorCode "ERROR"
+					errorCode "ERROR" "No \"main\" file found"
+					errorCode "HINT" "command"
+					errorCode "HINT" "cpl <code>"
 					;;
 				cli-need)
 					shift

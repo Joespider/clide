@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.05"
+SupportV="0.1.06"
 Lang=Rust
 LangExt=".rs"
 ColorNum=1
@@ -101,8 +101,16 @@ UseRust()
 			echo ${SupportV}
 			;;
 		MenuHelp)
-			echo -e "new <file>\t\t\t: \"create new ${Lang} script\""
-			echo -e "cpl, compile\t\t\t: \"make code executable\""
+			echo -e "new <file>\t\t\t: \"create new ${Lang} source code\""
+			echo -e "compile, cpl <type>\t\t: \"make code executable\""
+			local project=${CodeProject}
+			case ${project} in
+				none)
+					;;
+				*)
+					echo -e "\t--release\t\t\t: \"make code (release) executable\""
+					;;
+			esac
 			;;
 		ProjectHelp)
 			echo ""
@@ -589,7 +597,12 @@ UseRust()
 			echo -e "\t\t2021"
 			;;
 		compileCode-message)
-			echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
+			local cplType=$1
+			if [ ! -z "${cplType}" ]; then
+				echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled (${cplType})]\e[0m"
+			else
+				echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
+			fi
 			;;
 		compileCode)
 			local src=$1
@@ -627,53 +640,122 @@ UseRust()
 								fi
 							fi
 						else
+							#If no file is given...find it in your select source code
 							if [ -z "${name}" ]; then
-								name=$(grep -l "fn main(" ${src} 2> /dev/null)					
-							fi					
-						fi
-
-						name=$(UseRust "removeExt" ${name})
-
-						#Set Code to executable
-						case ${src} in
-							*${LangExt})
-								case ${cplArgs} in
-									none)
-										ERROR=$(${LangCpl} ${src} -o ${name} 2>&1 | tr '\n' '|')
+								name=$(grep -l "fn main(" ${src} 2> /dev/null)
+							else
+								case ${name} in
+									--*)
+										#If it is given, but begins with --, try finding it in your select source code
+										name=$(grep -l "fn main(" ${src} 2> /dev/null)
 										;;
 									*)
-										ERROR=$(${LangCpl} ${src} -o ${name} ${cplArgs} 2>&1 | tr '\n' '|')
 										;;
 								esac
-								if [ -z "${ERROR}" ]; then
-									UseRust compileCode-message
-									mv ${name} ${TheBinDir}/
-								else
-									errorCode "cpl" "ERROR" "${ERROR}"
-								fi
-								;;
-							*)
-								errorCode "cpl" "choose"
-								;;
-						esac
+							fi
+						fi
+
+						#remove the extention in the event it was given
+						name=$(UseRust "removeExt" ${name})
+
+						#A file name was given or recovered
+						if [ ! -z "${name}" ]; then
+							#Set Code to executable
+							case ${src} in
+								*${LangExt})
+									case ${cplArgs} in
+										none)
+											ERROR=$(${LangCpl} ${src} -o ${name} 2>&1 | tr '\n' '|')
+											;;
+										*)
+											ERROR=$(${LangCpl} ${src} -o ${name} ${cplArgs} 2>&1 | tr '\n' '|')
+											;;
+									esac
+
+									#Compile the binary if it is good
+									if [ -z "${ERROR}" ]; then
+										#Show compile message
+										UseRust compileCode-message
+										#move binary to Rust/bin/
+										mv ${name} ${TheBinDir}/
+									else
+										#if random binary is left behind, remove it
+										if [ -f ${LangSrc}/${name} ]; then
+											rm ${LangSrc}/${name}
+										fi
+										#show error message
+										errorCode "cpl" "ERROR" "${ERROR}"
+									fi
+									;;
+								*)
+									#show error message
+									errorCode "cpl" "choose"
+									;;
+							esac
+						else
+							errorCode "cpl" "no-name"
+						fi
 					else
 						errorCode "cpl" "choose"
 					fi
 					;;
+				#Compile a project
 				*)
 					TheBinDir="${LangProject}/${project}/bin"
+					#Go to project root directory
 					cd ${LangProject}/${project}/
-					ERROR=$(cargo build --quiet 2>&1 | tr '\n' '|')
-					if [ -z "${ERROR}" ] && [ -f ${LangProject}/${project}/target/debug/${project} ]; then
-						UseRust compileCode-message
-						mv ${LangProject}/${project}/target/debug/${project} ${TheBinDir}/
+					#--release argument not given
+					if [ ! -z "${name}" ]; then
+						case ${name} in
+							--release)
+								#Build as a release
+								ERROR=$(cargo build --release --quiet 2>&1 | tr '\n' '|')
+								;;
+							*)
+								ERROR="Nothing to compile"
+								;;
+						esac
+					#--release argument not given and/or source code not set
 					else
+						case ${src} in
+							#--release compile argument given
+							--release)
+								#Build as a release
+								ERROR=$(cargo build --release --quiet 2>&1 | tr '\n' '|')
+								;;
+							#Do a normal project build
+							*)
+								#Build as normal
+								ERROR=$(cargo build --quiet 2>&1 | tr '\n' '|')
+								;;
+						esac
+					fi
+
+					#Build was successful AND binary found in the 'debug' directory of project
+					if [ -z "${ERROR}" ] && [ -f ${LangProject}/${project}/target/debug/${project} ]; then
+						#Compile message
+						UseRust compileCode-message
+						#moe binary from 'debug' directory to the project's 'bin' directory
+						mv ${LangProject}/${project}/target/debug/${project} ${TheBinDir}/
+					#Build was successful AND binary found in the 'release' directory of project
+					elif [ -z "${ERROR}" ] && [ -f ${LangProject}/${project}/target/release/${project} ]; then
+						#Compile message with release
+						UseRust compileCode-message "release"
+						#moe binary from 'release' directory to the project's 'bin' directory
+						mv ${LangProject}/${project}/target/release/${project} ${TheBinDir}/
+					#Build was not successful
+					else
+						#No error message, but no binary was found
 						if [ -z "${ERROR}" ]; then
+							#display generic error message
 							errorCode "cpl" "ERROR" "${project} binary not found"
+						#Error message was shown
 						else
+							#display error message
 							errorCode "cpl" "ERROR" "${ERROR}"
 						fi
 					fi
+					#Go back to where ever you were
 					cd - > /dev/null
 					;;
 			esac
