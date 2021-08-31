@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.39"
+SupportV="0.1.40"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
@@ -622,6 +622,7 @@ UseC()
 			local name=$1
 			name=$(UseC "removeExt" ${name})
 			local ThePath
+			local theSrc
 			local project=${CodeProject}
 			case ${Type} in
 				rmBin)
@@ -636,7 +637,6 @@ UseC()
 					esac
 					;;
 				rmSrc)
-					local theHeader=${name}${LangOtherExt}
 					case ${project} in
 						#not a project
 						none)
@@ -647,16 +647,27 @@ UseC()
 							;;
 					esac
 					name=${name}${LangExt}
-					#secretly take care of the header file
-					if [ -f ${ThePath}/${theHeader} ]; then
-						rm ${ThePath}/${theHeader}
-					fi
 					;;
 				*)
 					;;
 			esac
+
 			if [ -f ${ThePath}/${name} ]; then
 				echo ${ThePath}/${name}
+			else
+				case ${Type} in
+					rmSrc)
+						cd ${ThePath}/
+						name=$(UseC "removeExt" ${name})
+						theSrc=$(UseC "getProjSrc" ${name}${LangExt})
+						cd -> /dev/null
+						if [ ! -z "${theSrc}" ]; then
+							echo ${theSrc}
+						fi
+						;;
+					*)
+						;;
+				esac
 			fi
 			;;
 		editCode|readCode)
@@ -1267,7 +1278,7 @@ UseC()
 				#Add command to Aliases
 				AddAlias "${BinFile}" "${TheBinDir}/${BinFile}"
 			elif [ ! -f "${TheBinDir}/${BinFile}" ]; then
-				#compule or swap to binary
+				#compile or swap to binary
 				errorCode "install" "${bin}"
 			else
 				errorCode "noCode"
@@ -1281,7 +1292,7 @@ UseC()
 				echo -n "${cLang}\$ ./${cTemplate} "
 				read -a Args
 				#Program Args Given
-				if [ ! -z "${Args}" ];then
+				if [ ! -z "${Args}" ]; then
 					${TemplateCode} ${Args[@]}
 				#No Program Name Given
 				else
@@ -1328,7 +1339,7 @@ UseC()
 					header)
 						if [ ! -f ${name}${LangOtherExt} ]; then
 							#Program Name Given
-							if [ ! -z "${name}" ];then
+							if [ ! -z "${name}" ]; then
 								touch "${name}${LangOtherExt}"
 								echo "#pragma once" > "${name}${LangOtherExt}"
 							else
@@ -1342,7 +1353,7 @@ UseC()
 							#Check for Custom Code Template
 							if [ -f ${TemplateCode} ]; then
 								#Program Name Given
-								if [ ! -z "${name}" ];then
+								if [ ! -z "${name}" ]; then
 									${TemplateCode} --random --write-file --read-file --cli --main --is-in --user-input --name ${name}
 								#No Program Name Given
 								else
@@ -1351,7 +1362,7 @@ UseC()
 								fi
 							else
 								#Program Name Given
-								if [ ! -z "${name}" ];then
+								if [ ! -z "${name}" ]; then
 									local Content="#include <stdio.h>\n\n//${Lang} Main\nint main()\n{\n\n\treturn 0;\n}"
 									touch ${name}${LangExt}
 									echo -e "${Content}" > ${name}${LangExt}
@@ -1366,7 +1377,7 @@ UseC()
 						if [ ! -f ${name}${LangExt} ]; then
 							if [ -f ${TemplateCode} ]; then
 								#Program Name Given
-								if [ ! -z "${name}" ];then
+								if [ ! -z "${name}" ]; then
 									${TemplateCode} -n "${name}"
 								#No Program Name Given
 								else
@@ -1375,7 +1386,7 @@ UseC()
 								fi
 							else
 								#Program Name Given
-								if [ ! -z "${name}" ];then
+								if [ ! -z "${name}" ]; then
 									touch ${name}${LangExt}
 								else
 									errorCode "newCode"

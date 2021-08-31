@@ -436,12 +436,18 @@ UseBash()
 			if [ -f ${ThePath}/${name}${LangExt} ]; then
 				echo ${ThePath}/${name}${LangExt}
 			else
-				cd ${ThePath}/
-				theSrc=$(UseBash "getProjSrc" ${name}${LangExt})
-				cd -> /dev/null
-				if [ ! -z "${theSrc}" ]; then
-					echo ${ThePath}/${theSrc}
-				fi
+				case ${Type} in
+					rmSrc)
+						cd ${ThePath}/
+						theSrc=$(UseBash "getProjSrc" ${name}${LangExt})
+						cd -> /dev/null
+						if [ ! -z "${theSrc}" ]; then
+							echo ${theSrc}
+						fi
+						;;
+					*)
+						;;
+				esac
 			fi
 			;;
 		editCode|readCode)
@@ -792,7 +798,7 @@ UseBash()
 				echo -n "${cLang}\$ ./${cTemplate} "
 				read -a Args
 				#Template Args Given
-				if [ ! -z "${Args}" ];then
+				if [ ! -z "${Args}" ]; then
 					${TemplateCode} ${Args[@]}
 				#No Template Args Given
 				else
@@ -815,7 +821,7 @@ UseBash()
 				#Check for Custom Code Template
 				if [ -f ${TemplateCode} ]; then
 					#Program Name Given
-					if [ ! -z "${name}" ];then
+					if [ ! -z "${name}" ]; then
 						${TemplateCode} ${name} > ${name}${LangExt}
 					#No Program Name Given
 					else
@@ -823,7 +829,7 @@ UseBash()
 					fi
 				else
 					#Program Name Given
-					if [ ! -z "${name}" ];then
+					if [ ! -z "${name}" ]; then
 						touch ${name}${LangExt}
 						echo -e "#!/bin/${LangRun}\n" > ${name}${LangExt}
 					else

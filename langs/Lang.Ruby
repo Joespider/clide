@@ -427,15 +427,22 @@ UseRuby()
 				*)
 					;;
 			esac
+	
 			if [ -f ${ThePath}/${name}${LangExt} ]; then
 				echo ${ThePath}/${name}${LangExt}
 			else
-				cd ${ThePath}/
-				theSrc=$(UseRuby "getProjSrc" ${name})
-				cd -> /dev/null
-				if [ ! -z "${theSrc}" ]; then
-					echo ${ThePath}/${theSrc}${LangExt}
-				fi
+				case ${Type} in
+					rmSrc)
+						cd ${ThePath}/
+						theSrc=$(UseRuby "getProjSrc" ${name}${LangExt})
+						cd -> /dev/null
+						if [ ! -z "${theSrc}" ]; then
+							echo ${theSrc}
+						fi
+						;;
+					*)
+						;;
+				esac
 			fi
 			;;
 		editCode|readCode)
@@ -782,7 +789,7 @@ UseRuby()
 				echo -n "${cLang}\$ ${LangRun} ${cTemplate} "
 				read -a Args
 				#Program Args Given
-				if [ ! -z "${Args}" ];then
+				if [ ! -z "${Args}" ]; then
 					${LangRun} ${TemplateCode} ${Args[@]}
 				#No Program Name Given
 				else
@@ -805,7 +812,7 @@ UseRuby()
 				#Check for Custom Code Template
 				if [ -f ${TemplateCode} ]; then
 					#Program Name Given
-					if [ ! -z "${name}" ];then
+					if [ ! -z "${name}" ]; then
 						${LangRun} ${TemplateCode} -n ${name} --cli --user $USER --main --write-file --read-file --user-input
 					#No Program Name Given
 					else
@@ -813,7 +820,7 @@ UseRuby()
 					fi
 				else
 					#Program Name Given
-					if [ ! -z "${name}" ];then
+					if [ ! -z "${name}" ]; then
 						touch ${name}${LangExt}
 					else
 						errorCode "newCode"

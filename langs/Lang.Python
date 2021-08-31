@@ -466,12 +466,18 @@ UsePython()
 			if [ -f ${ThePath}/${name}${LangExt} ]; then
 				echo ${ThePath}/${name}${LangExt}
 			else
-				cd ${ThePath}/
-				theSrc=$(UsePython "getProjSrc" ${name}${LangExt})
-				cd -> /dev/null
-				if [ ! -z "${theSrc}" ]; then
-					echo ${ThePath}/${theSrc}
-				fi
+				case ${Type} in
+					rmSrc)
+						cd ${ThePath}/
+						theSrc=$(UsePython "getProjSrc" ${name}${LangExt})
+						cd -> /dev/null
+						if [ ! -z "${theSrc}" ]; then
+							echo ${theSrc}
+						fi
+						;;
+					*)
+						;;
+				esac
 			fi
 			;;
 		editCode|readCode)

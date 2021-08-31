@@ -376,21 +376,52 @@ UsePerl()
 			;;
 		rmBin|rmSrc)
 			local name=$1
-			local ThePath
 			name=$(UsePerl "removeExt" ${name})
-			name=${name}${LangExt}
+			local ThePath
+			local theSrc
+			local project=${CodeProject}
 			case ${Type} in
 				rmBin)
-					ThePath=${LangBin}
+					case ${project} in
+						#not a project
+						none)
+							ThePath=${LangBin}
+							;;
+						*)
+							ThePath="${LangProject}/${project}/bin"
+							;;
+					esac
 					;;
 				rmSrc)
-					ThePath=${LangSrc}
+					case ${project} in
+						#not a project
+						none)
+							ThePath=${LangSrc}
+							;;
+						*)
+							ThePath="${LangProject}/${project}/src"
+							;;
+					esac
 					;;
 				*)
 					;;
 			esac
-			if [ -f ${ThePath}/${name} ]; then
-				echo ${ThePath}/${name}
+	
+			if [ -f ${ThePath}/${name}${LangExt} ]; then
+				echo ${ThePath}/${name}${LangExt}
+			else
+				case ${Type} in
+					rmSrc)
+						cd ${ThePath}/
+						theSrc=$(UsePerl "getProjSrc" ${name}${LangExt})
+						cd -> /dev/null
+						if [ ! -z "${theSrc}" ]; then
+							echo ${theSrc}
+						fi
+						;;
+					*)
+						;;
+				esac
 			fi
 			;;
 		editCode|readCode)
@@ -702,7 +733,7 @@ UsePerl()
 				echo -n "${cLang}\$ ${LangRun} ${cTemplate} "
 				read -a Args
 				#Program Args Given
-				if [ ! -z "${Args}" ];then
+				if [ ! -z "${Args}" ]; then
 					${LangRun} ${TemplateCode} ${Args[@]}
 				#No Program Name Given
 				else
@@ -725,7 +756,7 @@ UsePerl()
 				#Check for Custom Code Template
 				if [ -f ${TemplateCode} ]; then
 					#Program Name Given
-					if [ ! -z "${name}" ];then
+					if [ ! -z "${name}" ]; then
 						${LangRun} ${TemplateCode} --name ${name} --cli --main --write-file --read-file --os
 					#No Program Name Given
 					else
@@ -733,7 +764,7 @@ UsePerl()
 					fi
 				else
 					#Program Name Given
-					if [ ! -z "${name}" ];then
+					if [ ! -z "${name}" ]; then
 						touch ${name}${LangExt}
 					else
 						errorCode "newCode"
@@ -778,7 +809,7 @@ UsePerl()
 				TheBin="${name}"
 			fi
 
-			#Check if Python Bin exists
+			#Check if Perl Bin exists
 			if [ -f ${TheBinDir}/${TheBin} ]; then
 				case ${Type} in
 					debug)
