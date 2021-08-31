@@ -405,19 +405,28 @@ UseRust()
 							ThePath="${LangProject}/${project}/src"
 							;;
 					esac
+					name=${name}${LangExt}
 					;;
 				*)
 					;;
 			esac
-			if [ -f ${ThePath}/${name}${LangExt} ]; then
-				echo ${ThePath}/${name}${LangExt}
+	
+			if [ -f ${ThePath}/${name} ]; then
+				echo ${ThePath}/${name}
 			else
-				cd ${ThePath}/
-				theSrc=$(UseRust "getProjSrc" ${name})
-				cd -> /dev/null
-				if [ ! -z "${theSrc}" ]; then
-					echo ${ThePath}/${theSrc}
-				fi
+				case ${Type} in
+					rmSrc)
+						cd ${ThePath}/
+						name=$(UseRust "removeExt" ${name})
+						theSrc=$(UseRust "getProjSrc" ${name}${LangExt})
+						cd -> /dev/null
+						if [ ! -z "${theSrc}" ]; then
+							echo ${theSrc}
+						fi
+						;;
+					*)
+						;;
+				esac
 			fi
 			;;
 		editCode|readCode)
@@ -874,7 +883,7 @@ UseRust()
 				echo -n "${cLang}\$ ${LangCpl} ${cTemplate} "
 				read -a Args
 				#Program Args Given
-				if [ ! -z "${Args}" ];then
+				if [ ! -z "${Args}" ]; then
 					${LangCpl} ${TemplateCode} ${Args[@]}
 				#No Program Name Given
 				else
@@ -897,7 +906,7 @@ UseRust()
 				#Check for Custom Code Template
 				if [ -f ${TemplateCode} ]; then
 					#Program Name Given
-					if [ ! -z "${name}" ];then
+					if [ ! -z "${name}" ]; then
 						${TemplateCode} -n ${name} --cli --user $USER --main --write-file --read-file --user-input
 					#No Program Name Given
 					else
@@ -905,7 +914,7 @@ UseRust()
 					fi
 				else
 					#Program Name Given
-					if [ ! -z "${name}" ];then
+					if [ ! -z "${name}" ]; then
 						echo -e "fn main()\n{\n\tprintln!(\"main\");\n}" > ${name}${LangExt}
 					else
 						errorCode "newCode"

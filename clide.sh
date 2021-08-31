@@ -809,7 +809,6 @@ Remove()
 			*)
 				;;
 		esac
-
 		case ${active} in
 			*"${src}"*)
 				case ${option} in
@@ -834,8 +833,8 @@ Remove()
 								;;
 							#remove ALL
 							--all)
-								Remove --bin ${active} ${src} ${option} #> /dev/null
-								Remove --src ${active} ${src} ${option} #> /dev/null
+								Remove --bin ${active} ${src} ${option} > /dev/null
+								Remove --src ${active} ${src} ${option} > /dev/null
 								;;
 							*)
 								;;

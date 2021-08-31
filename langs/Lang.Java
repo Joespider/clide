@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.86"
+SupportV="0.1.87"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -438,7 +438,7 @@ UseJava()
 							1)
 								case ${Type} in
 									addCode)
-										new=$(find ${TheSrcDir} -name ${new} 2> /dev/null | grep "${ProjectMode}")
+										new=$(UseJava "getProjSrc" ${new})
 										if [ -f ${new} ]; then
 											new=$(UseJava "removeExt" "${new}")
 											newName=${new##*/}
@@ -448,7 +448,7 @@ UseJava()
 										fi
 										;;
 									selectCode)
-										name=$(find ${TheSrcDir} -name ${name} 2> /dev/null | grep "${ProjectMode}")
+										name=$(UseJava "getProjSrc" ${name})
 										if [ -f ${name} ]; then
 											name=$(UseJava "removeExt" "${name}")
 											newName=${name##*/}
@@ -474,28 +474,55 @@ UseJava()
 			;;
 		rmBin|rmSrc)
 			local name=$1
-			local TheName
 			local ThePath
+			local TheName
+			local theSrc
+			local project=${CodeProject}
 			case ${Type} in
 				rmBin)
-					ThePath=${LangBin}
+					case ${project} in
+						#not a project
+						none)
+							ThePath=${LangBin}
+							;;
+						*)
+							ThePath="${LangProject}/${project}/bin"
+							;;
+					esac
+					TheName=$(UseJava "removeExt" "${name}")
+					if [ -f ${ThePath}/${TheName}.class ]; then
+						echo ${ThePath}/${TheName}.class
+					fi
+					if [ -f ${ThePath}/${TheName}.jar ]; then
+						echo ${ThePath}/${TheName}.jar
+					fi
 					;;
 				rmSrc)
-					ThePath=${LangSrc}
+					case ${project} in
+						#not a project
+						none)
+							ThePath=${LangSrc}
+							;;
+						*)
+							ThePath="${LangProject}/${project}/src"
+							;;
+					esac
+					TheName=$(UseJava "removeExt" ${name})
+					if [ -f ${ThePath}/${TheName}${LangExt} ]; then
+						echo ${ThePath}/${TheName}${LangExt}
+					else
+						cd ${ThePath}/
+						name=$(UseJava "removeExt" ${name})
+						theSrc=$(UseJava "getProjSrc" ${name}${LangExt})
+						cd -> /dev/null
+						if [ ! -z "${theSrc}" ]; then
+							echo ${theSrc}
+						fi
+					fi
 					;;
 				*)
 					;;
 			esac
-			TheName=$(UseJava "removeExt" "${name}")
-			if [ -f ${ThePath}/${TheName}.class ]; then
-				echo ${ThePath}/${TheName}.class
-			fi
-			if [ -f ${ThePath}/${TheName}.jar ]; then
-				echo ${ThePath}/${TheName}.jar
-			fi
-			if [ -f ${ThePath}/${TheName}${LangExt} ]; then
-				echo ${ThePath}/${TheName}${LangExt}
-			fi
 			;;
 		editCode|readCode)
 			local src=$1
@@ -1081,7 +1108,7 @@ UseJava()
 				echo -n "${cLang}\$ java ${cTemplateC} "
 				read -a Args
 				#Program Args Given
-				if [ ! -z "${Args}" ];then
+				if [ ! -z "${Args}" ]; then
 					cd ${LangBin}
 					${LangRun} new${Lang} ${Args[@]}
 					cd - > /dev/null
@@ -1096,7 +1123,7 @@ UseJava()
 				echo -n "${cLang}\$ java -jar ${cTemplateJ} "
 				read -a Args
 				#Program Args Given
-				if [ ! -z "${Args}" ];then
+				if [ ! -z "${Args}" ]; then
 					${LangRun} -jar ${TemplateCodeJar} ${Args[@]}
 				#No Program Name Given
 				else

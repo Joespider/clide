@@ -978,7 +978,7 @@ UseGo()
 				#Add command to Aliases
 				AddAlias "${BinFile}" "${TheBinDir}/${BinFile}"
 			elif [ ! -f "${TheBinDir}/${BinFile}" ]; then
-				#compule or swap to binary
+				#compile or swap to binary
 				errorCode "install" "${bin}"
 			else
 				errorCode "noCode"
