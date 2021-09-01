@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.68"
+SupportV="0.1.69"
 Lang=Python
 LangExt=".py"
 #Color Yellow
@@ -155,7 +155,14 @@ UsePython()
 			;;
 		getProjectDir)
 			local project=${CodeProject}
-			echo ${LangProject}/${project}
+			case ${project} in
+				none)
+					echo ${LangProject}
+					;;
+				*)
+					echo ${LangProject}/${project}
+					;;
+			esac
 			;;
 		hasExt)
 			local SourceFile=$1

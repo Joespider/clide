@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.40"
+SupportV="0.1.41"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
@@ -136,7 +136,14 @@ UseC()
 			;;
 		getProjectDir)
 			local project=${CodeProject}
-			echo ${LangProject}/${project}
+			case ${project} in
+				none)
+					echo ${LangProject}
+					;;
+				*)
+					echo ${LangProject}/${project}
+					;;
+			esac
 			;;
 		getProjSrc)
 			local name=$1

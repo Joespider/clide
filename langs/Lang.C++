@@ -2,7 +2,7 @@ Shell=$(which bash)
 #!${Shell}
 
 #https://www3.ntu.edu.sg/home/ehchua/programming/cpp/gcc_make.html
-SupportV="0.1.95"
+SupportV="0.1.96"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -173,7 +173,14 @@ UseC++()
 			;;
 		getProjectDir)
 			local project=${CodeProject}
-			echo ${LangProject}/${project}
+			case ${project} in
+				none)
+					echo ${LangProject}
+					;;
+				*)
+					echo ${LangProject}/${project}
+					;;
+			esac
 			;;
 		getProjSrc)
 			local name=$1

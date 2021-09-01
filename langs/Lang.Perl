@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.58"
+SupportV="0.1.59"
 Lang=Perl
 LangExt=".pl"
 #Color Purple
@@ -119,7 +119,14 @@ UsePerl()
 			;;
 		getProjectDir)
 			local project=${CodeProject}
-			echo ${LangProject}/${project}
+			case ${project} in
+				none)
+					echo ${LangProject}
+					;;
+				*)
+					echo ${LangProject}/${project}
+					;;
+			esac
 			;;
 		hasExt)
 			local SourceFile=$1

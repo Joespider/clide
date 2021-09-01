@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.10"
+SupportV="0.1.11"
 Lang=Rust
 LangExt=".rs"
 ColorNum=1
@@ -119,7 +119,14 @@ UseRust()
 			;;
 		getProjectDir)
 			local project=${CodeProject}
-			echo ${LangProject}/${project}
+			case ${project} in
+				none)
+					echo ${LangProject}
+					;;
+				*)
+					echo ${LangProject}/${project}
+					;;
+			esac
 			;;
 		getProjSrc)
 			local name=$1

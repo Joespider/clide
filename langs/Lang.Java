@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.87"
+SupportV="0.1.88"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -171,7 +171,14 @@ UseJava()
 			;;
 		getProjectDir)
 			local project=${CodeProject}
-			echo ${LangProject}/${project}
+			case ${project} in
+				none)
+					echo ${LangProject}
+					;;
+				*)
+					echo ${LangProject}/${project}
+					;;
+			esac
 			;;
 		hasExt)
 			local SourceFile=$1

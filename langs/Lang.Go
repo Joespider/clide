@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.39"
+SupportV="0.1.40"
 Lang=Go
 LangExt=".go"
 #Color Green
@@ -142,7 +142,14 @@ UseGo()
 			;;
 		getProjectDir)
 			local project=${CodeProject}
-			echo ${LangProject}/${project}
+			case ${project} in
+				none)
+					echo ${LangProject}
+					;;
+				*)
+					echo ${LangProject}/${project}
+					;;
+			esac
 			;;
 		IsDebugEnabled)
 #			local DebugFlag=$(echo ${CplArgs} | tr ',' ' ' | grep -w "\-g")

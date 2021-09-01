@@ -36,6 +36,20 @@ errorCode()
 					;;
 			esac
 			;;
+		mode-pkg)
+			shift
+			local thr=$1
+			local four=$2
+			case ${sec} in
+				no-manager)
+					errorCode "ERROR"
+					errorCode "ERROR" "unable to find a package manager for ${thr}"
+					errorCode "WARNING" "\texiting mode..."
+					;;
+				*)
+					;;
+			esac
+			;;
 		mode-add)
 			shift
 			local thr=$1
@@ -524,7 +538,7 @@ errorCode()
 					errorCode "ERROR"
 					errorCode "ERROR" "Leaving your project is not allowed"
 					;;
-				import)
+				recover)
 					shift
 					local four=$1
 					case ${thr} in
@@ -553,7 +567,57 @@ errorCode()
 							errorCode "ERROR" "You Already have a project named \"${four}\""
 							;;
 						*)
-							echo "import Methods"
+							;;
+					esac
+					;;
+				export)
+					shift
+					local four=$1
+					case ${thr} in
+						unable=to-exportn)
+							errorCode "ERROR"
+							errorCode "ERROR" "Unable to include export project"
+							;;
+						corrupted)
+							errorCode "ERROR"
+							errorCode "ERROR" "Project File Corrupted"
+							;;
+						already)
+							errorCode "ERROR"
+							errorCode "ERROR" "Export of project ${four} has already been made"
+							;;
+						not-project|not-found)
+							errorCode "ERROR"
+							errorCode "ERROR" "project \"${four}\" not found"
+							;;
+						*)
+							;;
+					esac
+					;;
+				import)
+					shift
+					local four=$1
+					case ${thr} in
+						nothing-given)
+							errorCode "ERROR"
+							errorCode "ERROR" "Please provide a project name"
+							errorCode "HINT"
+							errorCode "HINT" "command"
+							errorCode "HINT" "project import <nane>"
+							;;
+						not-supported)
+							errorCode "ERROR"
+							errorCode "ERROR" "Language in ${four} project is not supported"
+							;;
+						already)
+							errorCode "ERROR"
+							errorCode "ERROR" "${four} project already exists"
+							;;
+						not-found)
+							errorCode "ERROR"
+							errorCode "ERROR" "Unable to locate exports directory"
+							;;
+						*)
 							;;
 					esac
 					;;

@@ -149,6 +149,9 @@ ModeHandler()
 				errorCode "project" "must-be-active"
 			fi
 			;;
+		pkg)
+			${ModesDir}/pkg.sh
+			;;
 		add)
 			${ModesDir}/add.sh ${Head} "${LibDir}" "${LangsDir}" "${ClideProjectDir}" ${Lang} ${cLang} ${Code} ${cCode} ${Arg}
 
@@ -192,6 +195,8 @@ EnsureDirs()
 		mkdir "${ClideProjectDir}"
 		mkdir "${TemplateProjectDir}"
 		mkdir "${ActiveProjectDir}"
+		mkdir "${ImportProjectDir}"
+		mkdir "${ExportProjectDir}"
 	fi
 
 	#Handle the langauge specific directories
@@ -461,7 +466,7 @@ LoadSession()
 	fi
 }
 
-importProject()
+recoverProject()
 {
 	local Lang=$1
 	local Name=$2
@@ -475,14 +480,9 @@ importProject()
 	local ProjectFile=${ActiveProjectDir}/${Name}.clide
 	if [ ! -z "${Name}" ]; then
 		if [ ! -f ${ProjectFile} ]; then
-			if [ -z "${Path}" ]; then
-				local prompt="Import Project \"${Name}\" from : "
-				read -e -p "${prompt}" Path
-				Path=$(eval $(echo ${Path}))
-			fi
 
 			if [ -z "${Path}" ]; then
-				errorCode "project" "import" "no-path"
+				errorCode "project" "recover" "no-path"
 			else
 				case ${Path} in
 					#Path does not exist and save details
@@ -499,16 +499,172 @@ importProject()
 						;;
 					#Path does not exist
 					*)
-						errorCode "project" "import" "name-in-path" "${Name}" "${Path}"
+						errorCode "project" "recover" "name-in-path" "${Name}" "${Path}"
 						;;
 				esac
 			fi
 		else
-			errorCode "project" "import" "exists" "${Name}"
+			errorCode "project" "recover" "exists" "${Name}"
 		fi
 	else
 
-		errorCode "project" "import" "no-name"
+		errorCode "project" "recover" "no-name"
+	fi
+}
+
+exportProject()
+{
+	local project=$1
+	if [ -z "${project}" ]; then
+		project=${CodeProject}
+	fi
+	local ClideFile
+	local ProjectLang
+	local ProjectPath
+	local ProjectType
+	#Ensure this is a project
+	case ${project} in
+		#Is not a project
+		none)
+			errorCode "project" "none" "${Head}"
+			;;
+		#Is a project
+		*)
+			if [ -f ${ActiveProjectDir}/${project}.clide ]; then
+				if [ -d ${ExportProjectDir} ]; then
+					if [ ! -f ${ExportProjectDir}/${project}.tar.gz ]; then
+						ClideFile=$(loadProject ${project})
+						ProjectLang=$(echo ${ClideFile} | cut -d ';' -f 1)
+						ProjectPath=$(echo ${ClideFile} | cut -d ';' -f 3)
+						ProjectType=$(echo ${ClideFile} | cut -d ';' -f 4)
+						if [ -d ${ProjectPath} ]; then
+							cd ${ExportProjectDir}/
+							case ${ProjectType} in
+								Generic)
+									cp -pR ${ProjectPath}/ .
+									grep -v "path=" ${ActiveProjectDir}/${project}.clide > ${project}.clide
+									tar -cpzf ${project}.tar.gz ${project}/ ${project}.clide 2> /dev/null
+									rm -rf ${project} ${project}.clide
+									;;
+								*)
+									if [ -f ${TemplateProjectDir}/${ProjectLang}.${ProjectType} ]; then
+										cp -pR ${ProjectPath}/ .
+										cp ${ActiveProjectDir}/${project}.clide .
+										tar -cpzf ${project}.tar.gz ${project}/ ${project}.clide 2> /dev/null
+										rm -rf ${project} ${project}.clide ${ProjectLang}.${ProjectType}
+									fi
+									;;
+							esac
+							cd - > /dev/null
+							if [ -f ${ExportProjectDir}/${project}.tar.gz ]; then
+								errorCode "HINT" "Exported: ${project}"
+								errorCode "HINT"
+								errorCode "HINT" "File: ${ExportProjectDir}/${project}.tar.gz"
+							else
+								errorCode "project" "export" "not-supported"
+							fi
+						else
+							errorCode "project" "export" "corrupted"
+						fi
+					else
+						errorCode "project" "export" "already" "${project}"
+					fi
+				else
+					errorCode "project" "export" "not-found" "${project}"
+				fi
+			else
+				errorCode "project" "export" "not-project" "${project}"
+			fi
+			;;
+	esac
+}
+
+importProject()
+{
+	local project=$1
+	local ProjectFile=${ActiveProjectDir}/${project}.clide
+	local ClideFile
+	local ProjectLang
+	local ProjectType
+	local ProjectPath
+	local IsSupported
+	#No Project is found
+	if [ -z "${project}" ]; then
+		errorCode "project" "none" "${Head}"
+	else
+		#Make sure Imports dir exists
+		if [ -d ${ImportProjectDir} ]; then
+			#Make sure project.tar.gz exists and project isn't already installed
+			if [ -f ${ImportProjectDir}/${project}.tar.gz ] && [ ! -f ${ActiveProjectDir}/${project}.clide ]; then
+				#Go to Imports dir
+				cd ${ImportProjectDir}/
+				#Untar file
+				tar xzf ${project}.tar.gz
+				#Make sure the tar file has all the needed contents
+				if [ -f ${project}.clide ] && [ -d ${project} ]; then
+					#Move config file to clide's records
+					mv ${project}.clide ${ActiveProjectDir}/
+					#Get contents of file
+					ClideFile=$(loadProject ${project})
+					#Get Langauge
+					ProjectLang=$(echo ${ClideFile} | cut -d ';' -f 1)
+					#Check if language is supported
+					IsSupported=$(ManageLangs ${ProjectLang} "pgLang")
+					case ${IsSupported} in
+						no)
+							#remove config from clide
+							rm ${ActiveProjectDir}/${project}.clide
+							errorCode "project" "import" "not-supported" "${project}"
+							;;
+						*)
+							#Get the project path from the language
+							ProjectPath=$(ManageLangs ${ProjectLang} "getProjectDir")
+							#Make sure project path was found and project isn't already installed
+							if [ ! -d ${ProjectPath}/${project} ] && [ ! -z "${ProjectPath}" ]; then
+								#make sure tar unziped the project directory
+								if [ -d ${project} ]; then
+									#Copy project to languages project folder
+									cp -pR  ${project}/ ${ProjectPath}/
+									#Record path into the config
+									echo  "path=${ProjectPath}/${project}" >> ${ActiveProjectDir}/${project}.clide
+									#Check for the project type
+									ProjectType=$(echo ${ClideFile} | cut -d ';' -f 4)
+									case ${ProjectType} in
+										#if Generic...do nothing
+										Generic)
+											;;
+										#If specified
+										*)
+											#Make sure project type was included in tar.gz
+											if [ -f ${ProjectLang}.${ProjectType} ] && [ ! -z "${ProjectType}" ]; then
+												#Make sure existing project type doesn't already exist
+												if [ ! -f ${TemplateProjectDir}/${ProjectLang}.${ProjectType} ] && [ -d ${TemplateProjectDir} ]; then
+													mv ${ProjectLang}.${ProjectType} ${TemplateProjectDir}/
+												else
+													rm ${ProjectLang}.${ProjectType}
+												fi
+											fi
+											;;
+									esac
+									rm -rf ${project}/ ${project}.tar.gz
+									errorCode "HINT" "${project} has been imported"
+								fi
+							else
+								rm ${ActiveProjectDir}/${project}.clide
+								errorCode "project" "exists" "${project}"
+							fi
+							;;
+					esac
+				cd - > /dev/null
+				fi
+			else
+				errorCode "ERROR"
+				errorCode "ERROR" "Please make this file exists"
+				errorCode "HINT"
+				errorCode "HINT" "File: ${ImportProjectDir}/${project}.tar.gz"
+
+			fi
+		fi
 	fi
 }
 
@@ -723,7 +879,7 @@ discoverProject()
 									cTheLang=$(color "${TheLang}")
 									cLinkLang=$(color "${LinkLang}")
 									echo "[${cTheLang} Project: ${cName}]"
-									importProject ${TheLang} ${Name} ${Path}/${Name} > /dev/null
+									recoverProject ${TheLang} ${Name} ${Path}/${Name} > /dev/null
 									errorCode "HINT" "\tProject Imported"
 									discoverProject "relink" ${TheLang} ${Name} "Not Done"
 								fi
@@ -1675,6 +1831,7 @@ Actions()
 								local HasLink
 								local ChosenLang
 								local IsLang=$(pgLang ${UserIn[2]})
+								local TheFile
 
 								case ${IsLang} in
 									no)
@@ -1704,7 +1861,7 @@ Actions()
 										ProjectType=$(echo ${project} | cut -d ";" -f 4)
 										cd ${CodeDir}/src 2> /dev/null
 										#Read title or project
-										local TheFile=${ActiveProjectDir}/${CodeProject}.clide
+										TheFile=${ActiveProjectDir}/${CodeProject}.clide
 										if [ -f ${TheFile} ]; then
 											if [ ! -z "${ChosenLang}" ]; then
 												HasLink=$(grep "link=" ${TheFile} | grep ${ChosenLang})
@@ -1730,9 +1887,16 @@ Actions()
 									errorCode "project" "load" "no-project" "${UserIn[2]}"
 								fi
 								;;
+							export)
+								exportProject
+								;;
 							#Import project not created by cl[ide]
 							import)
-								importProject ${Lang} ${UserIn[2]} ${UserIn[3]}
+								if [ ! -z "${UserIn[2]}" ]; then
+									importProject ${UserIn[2]}
+								else
+									errorCode "project" "import" "nothing-given"
+								fi
 								;;
 							#Discover projects for clide
 							discover)
@@ -2744,8 +2908,9 @@ loadAuto()
 	comp_list "cd"
 	comp_list "pwd"
 	comp_list "mkdir"
+	comp_list "mode" "add pkg ${repoTool} repo"
 	comp_list "use" "${pg}"
-	comp_list "project" "build delete discover files import load list link mode new remove swap set select use save title type update"
+	comp_list "project" "build delete discover export files import load list link mode new remove swap set select use save title type update"
 	comp_list "package" "new set list"
 	comp_list "shell"
 	comp_list "new" "--version -v --help -h --custom -c"
@@ -2948,17 +3113,48 @@ main()
 								esac
 							fi
 							;;
+						--export)
+							shift
+							local TheProjectName=$1
+							if [ ! -z "${TheProjectName}" ]; then
+								exportProject ${TheProjectName}
+							fi
+							;;
+						--import)
+							shift
+							local TheProjectName=$1
+							if [ ! -z "${TheProjectName}" ]; then
+								importProject ${TheProjectName}
+							fi
+							;;
 						--remove|--delete)
-								shift
-								local TheProjectName=$1
-								if [ ! -z "${TheProjectName}" ]; then
-									case ${TheProjectName} in
-										all)
+							shift
+							local TheProjectName=$1
+							if [ ! -z "${TheProjectName}" ]; then
+								case ${TheProjectName} in
+									all)
+										case ${GetProject} in
+											#remove project ONLY from record
+											--remove)
+												rm ${ActiveProjectDir}/*.clide 2> /dev/null
+												echo "ALL projects removed from record"
+												;;
+											#remove project files AND record
+											--delete)
+												#rm ${ActiveProjectDir}/*.clide
+												echo "Delete ALL projects"
+												;;
+											*)
+												;;
+										esac
+										;;
+									*)
+										if [ -f "${ActiveProjectDir}/${TheProjectName}.clide" ]; then
 											case ${GetProject} in
 												#remove project ONLY from record
 												--remove)
-													rm ${ActiveProjectDir}/*.clide 2> /dev/null
-													echo "ALL projects removed from record"
+													rm ${ActiveProjectDir}/${TheProjectName}.clide 2> /dev/null
+													echo "The project \"${TheProjectName}\" removed from record"
 													;;
 												#remove project files AND record
 												--delete)
@@ -2968,31 +3164,14 @@ main()
 												*)
 													;;
 											esac
-											;;
-										*)
-											if [ -f "${ActiveProjectDir}/${TheProjectName}.clide" ]; then
-												case ${GetProject} in
-													#remove project ONLY from record
-													--remove)
-														rm ${ActiveProjectDir}/${TheProjectName}.clide 2> /dev/null
-														echo "The project \"${TheProjectName}\" removed from record"
-														;;
-													#remove project files AND record
-													--delete)
-														#rm ${ActiveProjectDir}/*.clide
-														echo "Delete ALL projects"
-														;;
-													*)
-														;;
-												esac
-											else
-												theHelp ProjectCliHelp ${UserArg}
-											fi
-											;;
-									esac
-								else
-									theHelp ProjectCliHelp ${UserArg}
-								fi
+										else
+											theHelp ProjectCliHelp ${UserArg}
+										fi
+										;;
+								esac
+							else
+								theHelp ProjectCliHelp ${UserArg}
+							fi
 							;;
 						--list)
 							shift
@@ -3057,6 +3236,7 @@ main()
 							;;
 						*)
 							shift
+							local TheProjectDir
 							local ChosenLang=$1
 							local SaveProject=$1
 							local IsLang=$(pgLang ${GetProject})
@@ -3098,8 +3278,13 @@ main()
 									fi
 								fi
 								Lang=$(pgLang ${Lang})
-								Actions ${Lang} "code" "project" "load" "${GetProject}" "${Lang}"
+								TheProjectDir=$(echo ${TheProject} | cut -d ";" -f 3)
+								if [ -d ${TheProjectDir} ]; then
+									Actions ${Lang} "code" "project" "load" "${GetProject}" "${Lang}"
+								else
+									errorCode "project" "load" "no-path" "${GetProject}"
 								fi
+							fi
 							;;
 					esac
 				else
