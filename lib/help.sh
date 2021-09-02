@@ -547,6 +547,7 @@ ProjectCliHelp()
 	echo -e "${cmd} --remove <project>\t: \"Remove a ${Head} Project\""
 	echo -e "${cmd} --remove all\t\t: \"Remove ALL ${Head} Projects\""
 	echo -e "${cmd} --export <project>\t: \"package a ${Head} Project into a <project>.tar.gz\""
+	echo -e "${cmd} --import <lang> <project>\t: \"install a ${Head} Project <project>.tar.gz file (if <project>.clide is not present)\""
 	echo -e "${cmd} --import <project>\t: \"install a ${Head} Project <project>.tar.gz file\""
 	echo -e "${cmd} --discover\t\t: \"Discover ${Head} Projects\""
 	echo -e "${cmd} -h, --help\t\t: \"help page\""

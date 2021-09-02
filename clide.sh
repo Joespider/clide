@@ -581,10 +581,10 @@ exportProject()
 
 importProject()
 {
-	local project=$1
+	local ProjectLang=$1
+	local project=$2
 	local ProjectFile=${ActiveProjectDir}/${project}.clide
 	local ClideFile
-	local ProjectLang
 	local ProjectType
 	local ProjectPath
 	local IsSupported
@@ -601,19 +601,24 @@ importProject()
 				#Untar file
 				tar xzf ${project}.tar.gz
 				#Make sure the tar file has all the needed contents
-				if [ -f ${project}.clide ] && [ -d ${project} ]; then
-					#Move config file to clide's records
-					mv ${project}.clide ${ActiveProjectDir}/
-					#Get contents of file
-					ClideFile=$(loadProject ${project})
-					#Get Langauge
-					ProjectLang=$(echo ${ClideFile} | cut -d ';' -f 1)
+				if [ -d ${project} ]; then
+					if [ -f ${project}.clide ]; then
+						#Move config file to clide's records
+						grep -v "path=" ${project}.clide > ${ActiveProjectDir}/${project}.clide
+						rm ${project}.clide
+						#Get contents of file
+						ClideFile=$(loadProject ${project})
+						#Get Langauge
+						ProjectLang=$(echo ${ClideFile} | cut -d ';' -f 1)
+					fi
 					#Check if language is supported
 					IsSupported=$(ManageLangs ${ProjectLang} "pgLang")
 					case ${IsSupported} in
 						no)
 							#remove config from clide
-							rm ${ActiveProjectDir}/${project}.clide
+							if [ -f ${ActiveProjectDir}/${project}.clide ]; then
+								rm ${ActiveProjectDir}/${project}.clide
+							fi
 							errorCode "project" "import" "not-supported" "${project}"
 							;;
 						*)
@@ -625,32 +630,38 @@ importProject()
 								if [ -d ${project} ]; then
 									#Copy project to languages project folder
 									cp -pR  ${project}/ ${ProjectPath}/
-									#Record path into the config
-									echo  "path=${ProjectPath}/${project}" >> ${ActiveProjectDir}/${project}.clide
-									#Check for the project type
-									ProjectType=$(echo ${ClideFile} | cut -d ';' -f 4)
-									case ${ProjectType} in
-										#if Generic...do nothing
-										Generic)
-											;;
-										#If specified
-										*)
-											#Make sure project type was included in tar.gz
-											if [ -f ${ProjectLang}.${ProjectType} ] && [ ! -z "${ProjectType}" ]; then
-												#Make sure existing project type doesn't already exist
-												if [ ! -f ${TemplateProjectDir}/${ProjectLang}.${ProjectType} ] && [ -d ${TemplateProjectDir} ]; then
-													mv ${ProjectLang}.${ProjectType} ${TemplateProjectDir}/
-												else
-													rm ${ProjectLang}.${ProjectType}
+									if [ ! -f ${ActiveProjectDir}/${project}.clide ]; then
+										recoverProject ${ProjectLang} ${project} ${ProjectPath}/${project} > /dev/null
+									else
+										#Record path into the config
+										echo  "path=${ProjectPath}/${project}" >> ${ActiveProjectDir}/${project}.clide
+										#Check for the project type
+										ProjectType=$(echo ${ClideFile} | cut -d ';' -f 4)
+										case ${ProjectType} in
+											#if Generic...do nothing
+											Generic)
+												;;
+											#If specified
+											*)
+												#Make sure project type was included in tar.gz
+												if [ -f ${ProjectLang}.${ProjectType} ] && [ ! -z "${ProjectType}" ]; then
+													#Make sure existing project type doesn't already exist
+													if [ ! -f ${TemplateProjectDir}/${ProjectLang}.${ProjectType} ] && [ -d ${TemplateProjectDir} ]; then
+														mv ${ProjectLang}.${ProjectType} ${TemplateProjectDir}/
+													else
+														rm ${ProjectLang}.${ProjectType}
+													fi
 												fi
-											fi
-											;;
-									esac
+												;;
+										esac
+									fi
 									rm -rf ${project}/ ${project}.tar.gz
 									errorCode "HINT" "${project} has been imported"
 								fi
 							else
-								rm ${ActiveProjectDir}/${project}.clide
+								if [ -f ${ActiveProjectDir}/${project}.clide ]; then
+									rm ${ActiveProjectDir}/${project}.clide
+								fi
 								errorCode "project" "exists" "${project}"
 							fi
 							;;
@@ -1893,7 +1904,11 @@ Actions()
 							#Import project not created by cl[ide]
 							import)
 								if [ ! -z "${UserIn[2]}" ]; then
-									importProject ${UserIn[2]}
+									if [ ! -z "${UserIn[3]}" ]; then
+										importProject ${UserIn[2]} ${UserIn[3]}
+									else
+										importProject ${Lang} ${UserIn[2]}
+									fi
 								else
 									errorCode "project" "import" "nothing-given"
 								fi
@@ -3122,9 +3137,12 @@ main()
 							;;
 						--import)
 							shift
-							local TheProjectName=$1
-							if [ ! -z "${TheProjectName}" ]; then
-								importProject ${TheProjectName}
+							local TheLang=$1
+							local TheProjectName=$2
+							if [ ! -z "${TheLang}" ] && [ ! -z "${TheProjectName}" ]; then
+									importProject ${TheLang} ${TheProjectName}
+							elif [ ! -z "${TheLang}" ] && [ -z "${TheProjectName}" ]; then
+									importProject "none" ${TheLang}
 							fi
 							;;
 						--remove|--delete)
