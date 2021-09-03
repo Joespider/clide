@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.69"
+SupportV="0.1.70"
 Lang=Python
 LangExt=".py"
 #Color Yellow
@@ -30,19 +30,11 @@ OtherColor()
 
 ProjectTemplateHandler()
 {
-	local SupportArgs=( "${LibDir}" "${VarDir}" "${editor}" "${ReadBy}" "${CodeProject}" "${ProjectMode}" "${CplArgs}" )
-	local Envs=( ${Lang} "$1" "$2" "$3" "$4" "$5" )
+	local TheType=$1
+	local Action=$2
 	shift
 	shift
-	shift
-	shift
-	shift
-
-	local Type=$1
-	shift
-	if [ -f ${TemplateProjectDir}/${Lang}.${ProjectType} ]; then
-		${TemplateProjectDir}/${Lang}.${ProjectType} ${SupportArgs[@]} ${Envs[@]} ${Type} $@
-	fi
+	${LibDir}/ProjectTemplateHandler.sh ${Lang} ${TheType} ${Action} $@
 }
 
 UsePython()
@@ -218,35 +210,35 @@ UsePython()
 			local newName
 			local DirPath
 			local TheSrcDir
+			local UseTempalte
 			case ${project} in
 				none)
 					TheSrcDir=${LangSrc}
 					;;
 				*)
-					case ${ProjectType} in
-						Generic)
-							case ${name} in
-								*.*)
-									newName=${name##*.}
-									DirPath=$(echo ${name%${newName}} | tr '.' '/')
-									TheSrcDir="${LangProject}/${project}/src/${DirPath}"
-									name=${newName}
-									;;
-								*/*)
-									newName=${name##*/}
-									DirPath=${name%${newName}}
-									TheSrcDir="${LangProject}/${project}/src/${DirPath}"
-									name=${newName}
-									;;
-								*)
-									TheSrcDir="$(pwd)/"
-									;;
-							esac
-							;;
-						*)
-							TheSrcDir=$(ProjectTemplateHandler ${EnvVars[@]} ${Type} ${mode})
-							;;
-					esac
+					UseTempalte=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
+					if [ -z "${UseTempalte}" ]; then
+						case ${name} in
+							*.*)
+								newName=${name##*.}
+								DirPath=$(echo ${name%${newName}} | tr '.' '/')
+								TheSrcDir="${LangProject}/${project}/src/${DirPath}"
+								name=${newName}
+								;;
+							*/*)
+								newName=${name##*/}
+								DirPath=${name%${newName}}
+								TheSrcDir="${LangProject}/${project}/src/${DirPath}"
+								name=${newName}
+								;;
+							*)
+								TheSrcDir="$(pwd)/"
+								;;
+						esac
+					else
+						TheSrcDir=$(ProjectTemplateHandler ${ProjectType} ${Type})
+
+					fi
 					;;
 			esac
 

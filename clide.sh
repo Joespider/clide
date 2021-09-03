@@ -1893,9 +1893,11 @@ Actions()
 										fi
 									else
 										errorCode "project" "load" "no-path" "${UserIn[2]}"
+										CodeProject="none"
 									fi
 								else
 									errorCode "project" "load" "no-project" "${UserIn[2]}"
+									CodeProject="none"
 								fi
 								;;
 							export)
