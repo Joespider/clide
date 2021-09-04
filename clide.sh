@@ -205,7 +205,8 @@ EnsureDirs()
 	local text
 	for TheLang in ${LangsDir}/Lang.*; do
 		#Select the next langauge
-		text=$(echo ${TheLang} | sed "s/Lang./|/g" | cut -d '|' -f 2)
+		TheLang=${TheLang##*/}
+		text=${TheLang#Lang.*}
 		#Make sure language is supported on computer
 		text=$(ManageLangs ${text} "pgLang")
 		case ${text} in
@@ -260,7 +261,8 @@ CodeSupportVersion()
 		for TheLang in ${LangsDir}/Lang.*;
 		do
 			#Select the next langauge
-			text=$(echo ${TheLang} | sed "s/Lang./|/g" | cut -d '|' -f 2)
+			TheLang=${TheLang##*/}
+			text=${TheLang#Lang.*}
 			text=$(ManageLangs ${text} "pgLang")
 			case ${text} in
 				no)
@@ -297,7 +299,8 @@ CodeTemplateVersion()
 		for TheLang in ${LangsDir}/Lang.*;
 		do
 			#Select the next langauge
-			text=$(echo ${TheLang} | sed "s/Lang./|/g" | cut -d '|' -f 2)
+			TheLang=${TheLang##*/}
+			text=${TheLang#Lang.*}
 			text=$(ManageLangs ${text} "pgLang")
 			case ${text} in
 				no)
@@ -332,7 +335,8 @@ CodeVersion()
 		for TheLang in ${LangsDir}/Lang.*;
 		do
 			#Select the next langauge
-			text=$(echo ${TheLang} | sed "s/Lang./|/g" | cut -d '|' -f 2)
+			TheLang=${TheLang##*/}
+			text=${TheLang#Lang.*}
 			#Ensure langauge is supported on computer
 			text=$(ManageLangs ${text} "pgLang")
 			case ${text} in
@@ -367,7 +371,8 @@ DebugVersion()
 		for TheLang in ${LangsDir}/Lang.*;
 		do
 			#Select the next langauge
-			text=$(echo ${TheLang} | sed "s/Lang./|/g" | cut -d '|' -f 2)
+			TheLang=${TheLang##*/}
+			text=${TheLang#Lang.*}
 			#Ensure langauge is supported on computer
 			text=$(ManageLangs ${text} "pgLang")
 			case ${text} in
@@ -695,7 +700,6 @@ newProject()
 			projectType="Generic"
 		fi
 		#Get the project path from Lang.<language>
-		ManageLangs ${Lang} "newProject" "${projectType}" ${project}
 		path=$(ManageLangs ${Lang} "newProject" "${projectType}" ${project})
 		if [ ! -z "${path}" ]; then
 			#Grab Project Data
@@ -860,7 +864,8 @@ discoverProject()
 	for TheLang in ${LangsDir}/Lang.*;
 	do
 		#Select the next langauge
-		TheLang=$(echo ${TheLang} | sed "s/Lang./|/g" | cut -d '|' -f 2)
+		TheLang=${TheLang##*/}
+		TheLang=${TheLang#Lang.*}
 		Path=$(ManageLangs ${TheLang} "discoverProject")
 		if [ ! -z "${Path}" ]; then
 			for Name in ${Path}/*;
@@ -1162,7 +1167,8 @@ ColorCodes()
 	for TheLang in ${LangsDir}/Lang.*;
 	do
 		#Select the next langauge
-		text=$(echo ${TheLang} | sed "s/Lang./|/g" | cut -d '|' -f 2)
+		TheLang=${TheLang##*/}
+		text=${TheLang#Lang.*}
 		text=$(ManageLangs ${text} "pgLang")
 		case ${text} in
 			no)
@@ -2748,7 +2754,8 @@ SelectLangByCode()
 				for TheLang in ${LangsDir}/Lang.*;
 				do
 					#Select the next langauge
-					text=$(echo ${TheLang} | sed "s/Lang./|/g" | cut -d '|' -f 2)
+					TheLang=${TheLang##*/}
+					text=${TheLang#Lang.*}
 					text=$(ManageLangs ${text} "pgLang")
 					case ${text} in
 						no)
@@ -3162,8 +3169,31 @@ main()
 												;;
 											#remove project files AND record
 											--delete)
-												#rm ${ActiveProjectDir}/*.clide
-												echo "Delete ALL projects"
+												rm ${ActiveProjectDir}/*.clide 2> /dev/null
+												#Handle the langauge specific directories
+												#{
+												#Get the list of Lang.<language> files from cl[ide]
+												local text
+												local ProjectPath
+												for TheLang in ${LangsDir}/Lang.*; do
+													#Select the next langauge
+													TheLang=${TheLang##*/}
+													text=${TheLang#Lang.*}
+													#Make sure language is supported on computer
+													text=$(ManageLangs ${text} "pgLang")
+													case ${text} in
+														no)
+															;;
+														*)
+															ProjectPath=$(ManageLangs ${text} "getProjectDir")
+															if [ ! -z "${ProjectPath}" ] && [ -d "${ProjectPath}" ]; then
+																rm -rf ${ProjectPath}/* 2> /dev/null
+															fi
+															;;
+													esac
+												done
+												#}
+												echo "Deleted ALL projects"
 												;;
 											*)
 												;;
@@ -3179,8 +3209,17 @@ main()
 													;;
 												#remove project files AND record
 												--delete)
-													#rm ${ActiveProjectDir}/*.clide
-													echo "Delete ALL projects"
+													local TheProject=$(loadProject ${TheProjectName})
+													if [ "${TheProject}" != "no" ]; then
+														Lang=$(echo ${TheProject} | cut -d ";" -f 1)
+														Lang=$(pgLang ${Lang})
+														local CodeDir=$(echo ${TheProject} | cut -d ";" -f 3)
+														if [ ! -z "${CodeDir}" ]; then
+															rm -rf ${CodeDir} 2> /dev/null
+														fi
+														rm ${ActiveProjectDir}/${TheProjectName}.clide 2> /dev/null
+														echo "Deleted the \"${TheProjectName}\" project"
+													fi
 													;;
 												*)
 													;;
