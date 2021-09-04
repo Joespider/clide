@@ -1684,7 +1684,7 @@ Actions()
 										errorCode "project" "exists" ${ProjectName}
 									else
 										newProject ${Lang} ${ProjectName} ${UserIn[3]} ${UserIn[4]}
-										if [ ! -f ${ActiveProjectDir}/${ProjectName}.clide ]; then
+										if [ -f ${ActiveProjectDir}/${ProjectName}.clide ]; then
 											Code=""
 											updateProject ${Code}
 											if [ ! -z "${UserIn[2]}" ]; then
