@@ -322,8 +322,8 @@ Repo()
 {
 	local cRepoTool=$(colors ${repoTool})
 	local cBranch
-	local prompt=""
-	local UserArg=""
+	local prompt
+	local UserArg
 	while true
 	do
 		case ${Refresh} in

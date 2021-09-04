@@ -2,7 +2,7 @@ Shell=$(which bash)
 #!${Shell}
 
 #https://www3.ntu.edu.sg/home/ehchua/programming/cpp/gcc_make.html
-SupportV="0.1.95"
+SupportV="0.1.98"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -56,19 +56,7 @@ OtherColor()
 
 ProjectTemplateHandler()
 {
-	local SupportArgs=( "${LibDir}" "${VarDir}" "${editor}" "${ReadBy}" "${CodeProject}" "${ProjectMode}" "${CplArgs}" )
-	local Envs=( ${Lang} "$1" "$2" "$3" "$4" "$5" )
-	shift
-	shift
-	shift
-	shift
-	shift
-
-	local Type=$1
-	shift
-	if [ -f ${TemplateProjectDir}/${Lang}.${ProjectType} ]; then
-		${TemplateProjectDir}/${Lang}.${ProjectType} ${SupportArgs[@]} ${Envs[@]} ${Type} $@
-	fi
+	${LibDir}/ProjectTemplateHandler.sh ${Lang} $@
 }
 
 UseC++()
@@ -173,7 +161,14 @@ UseC++()
 			;;
 		getProjectDir)
 			local project=${CodeProject}
-			echo ${LangProject}/${project}
+			case ${project} in
+				none)
+					echo ${LangProject}
+					;;
+				*)
+					echo ${LangProject}/${project}
+					;;
+			esac
 			;;
 		getProjSrc)
 			local name=$1

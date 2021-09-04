@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.39"
+SupportV="0.1.42"
 Lang=Go
 LangExt=".go"
 #Color Green
@@ -30,19 +30,7 @@ OtherColor()
 
 ProjectTemplateHandler()
 {
-	local SupportArgs=( "${LibDir}" "${VarDir}" "${editor}" "${ReadBy}" "${CodeProject}" "${ProjectMode}" "${CplArgs}" )
-	local Envs=( ${Lang} "$1" "$2" "$3" "$4" "$5" )
-	shift
-	shift
-	shift
-	shift
-	shift
-
-	local Type=$1
-	shift
-	if [ -f ${TemplateProjectDir}/${Lang}.${ProjectType} ]; then
-		${TemplateProjectDir}/${Lang}.${ProjectType} ${SupportArgs[@]} ${Envs[@]} ${Type} $@
-	fi
+	${LibDir}/ProjectTemplateHandler.sh ${Lang} $@
 }
 
 UseGo()
@@ -142,7 +130,14 @@ UseGo()
 			;;
 		getProjectDir)
 			local project=${CodeProject}
-			echo ${LangProject}/${project}
+			case ${project} in
+				none)
+					echo ${LangProject}
+					;;
+				*)
+					echo ${LangProject}/${project}
+					;;
+			esac
 			;;
 		IsDebugEnabled)
 #			local DebugFlag=$(echo ${CplArgs} | tr ',' ' ' | grep -w "\-g")

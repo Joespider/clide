@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.68"
+SupportV="0.1.71"
 Lang=Python
 LangExt=".py"
 #Color Yellow
@@ -30,19 +30,7 @@ OtherColor()
 
 ProjectTemplateHandler()
 {
-	local SupportArgs=( "${LibDir}" "${VarDir}" "${editor}" "${ReadBy}" "${CodeProject}" "${ProjectMode}" "${CplArgs}" )
-	local Envs=( ${Lang} "$1" "$2" "$3" "$4" "$5" )
-	shift
-	shift
-	shift
-	shift
-	shift
-
-	local Type=$1
-	shift
-	if [ -f ${TemplateProjectDir}/${Lang}.${ProjectType} ]; then
-		${TemplateProjectDir}/${Lang}.${ProjectType} ${SupportArgs[@]} ${Envs[@]} ${Type} $@
-	fi
+	${LibDir}/ProjectTemplateHandler.sh ${Lang} $@
 }
 
 UsePython()
@@ -155,7 +143,14 @@ UsePython()
 			;;
 		getProjectDir)
 			local project=${CodeProject}
-			echo ${LangProject}/${project}
+			case ${project} in
+				none)
+					echo ${LangProject}
+					;;
+				*)
+					echo ${LangProject}/${project}
+					;;
+			esac
 			;;
 		hasExt)
 			local SourceFile=$1
@@ -211,33 +206,27 @@ UsePython()
 			local newName
 			local DirPath
 			local TheSrcDir
+			local UseTempalte
 			case ${project} in
 				none)
 					TheSrcDir=${LangSrc}
 					;;
 				*)
-					case ${ProjectType} in
-						Generic)
-							case ${name} in
-								*.*)
-									newName=${name##*.}
-									DirPath=$(echo ${name%${newName}} | tr '.' '/')
-									TheSrcDir="${LangProject}/${project}/src/${DirPath}"
-									name=${newName}
-									;;
-								*/*)
-									newName=${name##*/}
-									DirPath=${name%${newName}}
-									TheSrcDir="${LangProject}/${project}/src/${DirPath}"
-									name=${newName}
-									;;
-								*)
-									TheSrcDir="$(pwd)/"
-									;;
-							esac
+					case ${name} in
+						*.*)
+							newName=${name##*.}
+							DirPath=$(echo ${name%${newName}} | tr '.' '/')
+							TheSrcDir="${LangProject}/${project}/src/${DirPath}"
+							name=${newName}
+							;;
+						*/*)
+							newName=${name##*/}
+							DirPath=${name%${newName}}
+							TheSrcDir="${LangProject}/${project}/src/${DirPath}"
+							name=${newName}
 							;;
 						*)
-							TheSrcDir=$(ProjectTemplateHandler ${EnvVars[@]} ${Type} ${mode})
+							TheSrcDir="$(pwd)/"
 							;;
 					esac
 					;;
@@ -744,17 +733,24 @@ UsePython()
 			local project=$2
 			local path=${LangProject}/${project}
 			if [ ! -d ${path} ]; then
-				case ${ProjectType} in
-					Generic)
-						mkdir ${path}
-						mkdir ${path}/src
+				UseTempalte=$(ProjectTemplateHandler ${TheProjectType} --check ${Type})
+				if [ -z "${UseTempalte}" ]; then
+					mkdir ${path}
+					mkdir ${path}/src
+					mkdir ${path}/bin
+				else
+					mkdir ${path}
+					ProjectTemplateHandler ${TheProjectType} ${Type} ${path}
+					if [ ! -d ${path}/src/ ] && [ ! -d ${path}/bin/ ]; then
 						mkdir ${path}/bin
-						cd ${path}/src
-						;;
-					*)
-						ProjectTemplateHandler ${EnvVars[@]} ${Type} ${project}
-						;;
-				esac
+						mkdir ${path}/src
+					elif [ -d ${path}/src/ ] && [ ! -d ${path}/bin/ ]; then
+						mkdir ${path}/bin
+					elif [ ! -d ${path}/src/ ] && [ -d ${path}/bin/ ]; then
+						mkdir ${path}/src
+					fi
+				fi
+				cd ${path}/src
 			else
 				cd ${path}
 			fi
@@ -848,34 +844,39 @@ UsePython()
 			name=$(UsePython "removeExt" ${name})
 
 			if [ ! -f ${name}${LangExt} ]; then
-				#Check for Custom Code Template
-				if [ -f ${TemplateCode} ]; then
-					#Program Name Given
-					if [ ! -z "${name}" ]; then
-						${LangRun} ${TemplateCode} -n ${name} --cli --main --shell --write-file --read-file --os --random
-					#No Program Name Given
+				UseTempalte=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
+				if [ -z "${UseTempalte}" ]; then
+					#Check for Custom Code Template
+					if [ -f ${TemplateCode} ]; then
+						#Program Name Given
+						if [ ! -z "${name}" ]; then
+							${LangRun} ${TemplateCode} -n ${name} --cli --main --shell --write-file --read-file --os --random
+						#No Program Name Given
+						else
+							${LangRun} ${TemplateCode} --help
+						fi
 					else
-						${LangRun} ${TemplateCode} --help
+						#Program Name Given
+						if [ ! -z "${name}" ]; then
+							local Content
+							case ${LangRun,,} in
+								python)
+									Content="import sys\n\n#${Lang} main\ndef main():\n\tArgs = sys.argv\n\tArgs.pop(0)\n\tprint len(Args)\n\tprint Args\nmain()"
+									;;
+								python3)
+									Content="import sys\n\n#${Lang}3 main\ndef main():\n\tArgs = sys.argv\n\tArgs.pop(0)\n\tprint(len(Args))\n\tprint(Args)\nmain()"
+									;;
+								*)
+									;;
+							esac
+							touch ${name}${LangExt}
+							echo -e "${Content}" > ${name}${LangExt}
+						else
+							errorCode "newCode"
+						fi
 					fi
 				else
-					#Program Name Given
-					if [ ! -z "${name}" ]; then
-						local Content
-						case ${LangRun,,} in
-							python)
-								Content="import sys\n\n#${Lang} main\ndef main():\n\tArgs = sys.argv\n\tArgs.pop(0)\n\tprint len(Args)\n\tprint Args\nmain()"
-								;;
-							python3)
-								Content="import sys\n\n#${Lang}3 main\ndef main():\n\tArgs = sys.argv\n\tArgs.pop(0)\n\tprint(len(Args))\n\tprint(Args)\nmain()"
-								;;
-							*)
-								;;
-						esac
-						touch ${name}${LangExt}
-						echo -e "${Content}" > ${name}${LangExt}
-					else
-						errorCode "newCode"
-					fi
+					UseTempalte=$(ProjectTemplateHandler ${ProjectType} ${Type} ${name}${LangExt})
 				fi
 			fi
 			;;

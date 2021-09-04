@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.58"
+SupportV="0.1.61"
 Lang=Perl
 LangExt=".pl"
 #Color Purple
@@ -30,19 +30,7 @@ OtherColor()
 
 ProjectTemplateHandler()
 {
-	local SupportArgs=( "${LibDir}" "${VarDir}" "${editor}" "${ReadBy}" "${CodeProject}" "${ProjectMode}" "${CplArgs}" )
-	local Envs=( ${Lang} "$1" "$2" "$3" "$4" "$5" )
-	shift
-	shift
-	shift
-	shift
-	shift
-
-	local Type=$1
-	shift
-	if [ -f ${TemplateProjectDir}/${Lang}.${ProjectType} ]; then
-		${TemplateProjectDir}/${Lang}.${ProjectType} ${SupportArgs[@]} ${Envs[@]} ${Type} $@
-	fi
+	${LibDir}/ProjectTemplateHandler.sh ${Lang} $@
 }
 
 UsePerl()
@@ -119,7 +107,14 @@ UsePerl()
 			;;
 		getProjectDir)
 			local project=${CodeProject}
-			echo ${LangProject}/${project}
+			case ${project} in
+				none)
+					echo ${LangProject}
+					;;
+				*)
+					echo ${LangProject}/${project}
+					;;
+			esac
 			;;
 		hasExt)
 			local SourceFile=$1
