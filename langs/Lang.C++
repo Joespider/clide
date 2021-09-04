@@ -2,7 +2,7 @@ Shell=$(which bash)
 #!${Shell}
 
 #https://www3.ntu.edu.sg/home/ehchua/programming/cpp/gcc_make.html
-SupportV="0.1.97"
+SupportV="0.1.98"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -56,11 +56,7 @@ OtherColor()
 
 ProjectTemplateHandler()
 {
-	local TheType=$1
-	local Action=$2
-	shift
-	shift
-	${LibDir}/ProjectTemplateHandler.sh ${Lang} ${TheType} ${Action} $@
+	${LibDir}/ProjectTemplateHandler.sh ${Lang} $@
 }
 
 UseC++()

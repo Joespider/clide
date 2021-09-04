@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.42"
+SupportV="0.1.43"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
@@ -30,11 +30,7 @@ OtherColor()
 
 ProjectTemplateHandler()
 {
-	local TheType=$1
-	local Action=$2
-	shift
-	shift
-	${LibDir}/ProjectTemplateHandler.sh ${Lang} ${TheType} ${Action} $@
+	${LibDir}/ProjectTemplateHandler.sh ${Lang} $@
 }
 
 UseC()

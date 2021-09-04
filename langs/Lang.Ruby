@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.61"
+SupportV="0.1.62"
 Lang=Ruby
 LangExt=".rb"
 ColorNum=1
@@ -29,11 +29,7 @@ OtherColor()
 
 ProjectTemplateHandler()
 {
-	local TheType=$1
-	local Action=$2
-	shift
-	shift
-	${LibDir}/ProjectTemplateHandler.sh ${Lang} ${TheType} ${Action} $@
+	${LibDir}/ProjectTemplateHandler.sh ${Lang} $@
 }
 
 UseRuby()

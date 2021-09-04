@@ -1,0 +1,8 @@
+Shell=$(which bash)
+#!${Shell}
+
+ThePath=$1
+if [ ! -z "${ThePath}" ] && [ -d "${ThePath}" ]; then
+	cd ${ThePath}
+	mkdir ${ThePath}/Testing
+fi

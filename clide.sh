@@ -695,6 +695,7 @@ newProject()
 			projectType="Generic"
 		fi
 		#Get the project path from Lang.<language>
+		ManageLangs ${Lang} "newProject" "${projectType}" ${project}
 		path=$(ManageLangs ${Lang} "newProject" "${projectType}" ${project})
 		if [ ! -z "${path}" ]; then
 			#Grab Project Data
