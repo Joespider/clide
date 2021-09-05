@@ -1070,33 +1070,37 @@ runCode()
 	local First="${Args[0]}"
 	local JavaProp="none"
 	local TheBin=$(ManageLangs ${Lang} "getBin" "${name}")
-	#Come up with a way to know if arguments are needed
-	TheLang=$(color "${Lang}")
-	#User Wishes to provide arments for program
-	case ${option} in
-		-a|--args)
-			CLIout=$(ManageLangs ${Lang} "cli" "${TheBin}")
-			CLIout="$USER@${Name}:~/${TheLang}\$ ${CLIout}"
-			#User Args not Pre-done'
-			if [ -z "${First}" ]; then
-				if [ -z "${RunTimeArgs}" ]; then
-					#Get User Args
-					echo -n "${CLIout} "
-					read -a Args
-				#User Args Pre-done
-				else
-					#Show Args
-					echo -n ${CLIout} "${RunTimeArgs[@]}"
-					read
-					Args=${RunTimeArgs[@]}
+	local TheLang
+	if [ ! -z "${TheBin}" ]; then
+		#User Wishes to provide arments for program
+		case ${option} in
+			-a|--args)
+				TheLang=$(color "${Lang}")
+				CLIout=$(ManageLangs ${Lang} "cli" "${TheBin}")
+				CLIout="$USER@${Name}:~/${TheLang}\$ ${CLIout}"
+				#User Args not Pre-done'
+				if [ -z "${First}" ]; then
+					if [ -z "${RunTimeArgs}" ]; then
+						#Get User Args
+						echo -n "${CLIout} "
+						read -a Args
+					#User Args Pre-done
+					else
+						#Show Args
+						echo -n ${CLIout} "${RunTimeArgs[@]}"
+						read
+						Args=${RunTimeArgs[@]}
+					fi
 				fi
-			fi
-			;;
-		*)
-			;;
-	esac
-	#Get the Lang.<language> to handle running the code
-	ManageLangs ${Lang} "runCode" "${TheBin}" "${JavaProp}" ${Args[@]}
+				;;
+			*)
+				;;
+		esac
+		#Get the Lang.<language> to handle running the code
+		ManageLangs ${Lang} "runCode" "${TheBin}" "${JavaProp}" ${Args[@]}
+	else
+		errorCode "cpl" "need" ${name}
+	fi
 }
 
 ManageCreate()
@@ -1684,7 +1688,7 @@ Actions()
 										errorCode "project" "exists" ${ProjectName}
 									else
 										newProject ${Lang} ${ProjectName} ${UserIn[3]} ${UserIn[4]}
-										if [ ! -f ${ActiveProjectDir}/${ProjectName}.clide ]; then
+										if [ -f ${ActiveProjectDir}/${ProjectName}.clide ]; then
 											Code=""
 											updateProject ${Code}
 											if [ ! -z "${UserIn[2]}" ]; then
