@@ -2301,15 +2301,6 @@ Actions()
 								;;
 						esac
 						refresh="yes"
-
-						#Jump-in and Jump-out
-						case ${InAndOut} in
-							yes)
-								break
-								;;
-							*)
-								;;
-						esac
 						;;
 					#Edit new source code
 					${editor}|edit|ed)
@@ -2573,14 +2564,6 @@ Actions()
 								esac
 								;;
 						esac
-						#Jump-in and Jump-out
-						case ${InAndOut} in
-							yes)
-								break
-								;;
-							*)
-								;;
-						esac
 						;;
 					#Install compiled code into aliases
 					install)
@@ -2696,6 +2679,15 @@ Actions()
 						break
 						;;
 					#ignore all other commands
+					*)
+						;;
+				esac
+
+				#Jump-in and Jump-out
+				case ${InAndOut} in
+					yes)
+						break
+						;;
 					*)
 						;;
 				esac
@@ -3121,6 +3113,25 @@ main()
 				local Code=$2
 				if [ ! -z "${ActionProject}" ]; then
 					case ${ActionProject} in
+						--new)
+							shift
+							local TheLang=$1
+							local TheProjectName=$2
+							shift
+							shift
+							TheLang=$(pgLang ${TheLang})
+							local Args=$@
+							if [ ! -z "${TheProjectName}" ]; then
+								case ${TheLang} in
+									no)
+										;;
+									*)
+										InAndOut="yes"
+										Actions ${TheLang} "code" "project" "new" ${TheProjectName} ${Args[@]}
+										;;
+								esac
+							fi
+							;;
 						--discover)
 							discoverProject
 							;;
@@ -3432,6 +3443,9 @@ main()
 				local Lang
 				local Code=$2
 				local Args
+				local FindCode
+				local AlreadyCode
+				local ColorCode
 				if [ -z "${Code}" ]; then
 					Lang=$(SelectLangByCode $1)
 					if [ ! -z "${Lang}" ]; then
@@ -3473,9 +3487,22 @@ main()
 						*)
 							local CodeDir=$(pgDir ${Lang})
 							if [ ! -z "${CodeDir}" ]; then
+								ColorCode=$(ManageLangs ${Lang} "color-number")
 								cd ${CodeDir}
 								InAndOut="yes"
-								Actions ${Lang} "code" "new" ${Code} ${Args[@]}
+								IFS=',' read -ra ADDR <<< "${Code}"
+								for NewCode in "${ADDR[@]}";
+								do
+									AlreadyCode=$(ManageLangs ${Lang} "getCode" ${NewCode})
+									if [ -z "${AlreadyCode}" ]; then
+										Actions ${Lang} "code" "new" ${NewCode} ${Args[@]}
+										FindCode=$(ManageLangs ${Lang} "getCode" ${NewCode})
+										if [ ! -z "${FindCode}" ]; then
+											echo -e "\e[1;4${ColorCode}m[${Lang} (${FindCode}) Created]\e[0m"
+
+										fi
+									fi
+								done
 #							else
 #								errorCode "cli-cpl" "none"
 							fi
@@ -3796,11 +3823,48 @@ main()
 						Actions-NoLang ${Args[@]}
 						;;
 					*)
+						local Args
 						Lang=$(pgLang ${Lang})
 						shift
-						local Args=$@
-						#Start IDE
-						Actions ${Lang} ${Args[@]}
+						local HiddenAction=$1
+						local NextHiddenAction=$2
+						case ${HiddenAction} in
+							--new)
+								shift
+								Args=$@
+								main ${HiddenAction} ${Lang} ${Args[@]}
+								Actions ${Lang} ${Args[@]}
+								;;
+							# $ clide <lang> --project <action> <ProjectName>
+							-p|--project)
+								case ${NextHiddenAction} in
+									# $ clide <lang> --project --new <ProjectName>
+									#Or
+									# $ clide <lang> --project --new <ProjectName>
+									--new|--import)
+										shift
+										shift
+										Args=$@
+										main ${HiddenAction} ${NextHiddenAction} ${Lang} ${Args[@]}
+										InAndOut="no"
+										main ${HiddenAction} ${Lang} ${Args[@]}
+										;;
+									# $ clide <lang> --project <ProjectName>
+									*)
+										shift
+										Args=$@
+										main ${HiddenAction} ${Lang} ${Args[@]}
+										;;
+								esac
+								#main ${HiddenAction} ${Lang} ${Args[@]}
+								;;
+							#Normal usage
+							*)
+								Args=$@
+								#Start IDE
+								Actions ${Lang} ${Args[@]}
+								;;
+						esac
 						;;
 				esac
 				;;

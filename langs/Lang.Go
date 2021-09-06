@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.42"
+SupportV="0.1.43"
 Lang=Go
 LangExt=".go"
 #Color Green
@@ -61,12 +61,13 @@ UseGo()
 		Art)
 			local srt="\e[1;3${ColorNum}m"
 			local end="\e[0m"
-			echo -e " ${srt}d888b${end}   ${srt}.d88b.${end}"
-			echo -e "${srt}88'${end} ${srt}Y8b${end} ${srt}.8P${end}  ${srt}Y8.${end}"
-			echo -e "${srt}88${end}      ${srt}88${end}    ${srt}88${end}"
-			echo -e "${srt}88${end}  ${srt}ooo${end} ${srt}88${end}    ${srt}88${end}"
-			echo -e "${srt}88.${end} ${srt}~8~${end} ${srt}\`8b${end}  ${srt}d8'${end}"
-			echo -e " ${srt}Y888P${end}   ${srt}\`Y88P'${end}"
+			echo -e "  ${srt}.oooooo.${end}"
+			echo -e " ${srt}d8P'${end}  ${srt}\`Y8b${end}"
+			echo -e "${srt}888${end}            ${srt}.ooooo.${end}"
+			echo -e "${srt}888${end}           ${srt}d88'${end} ${srt}\`88b${end}"
+			echo -e "${srt}888${end}     ${srt}ooooo${end} ${srt}888${end}   ${srt}888${end}"
+			echo -e "${srt}\`88.${end}    ${srt}.88'${end}  ${srt}888${end}   ${srt}888${end}"
+			echo -e " ${srt}\`Y8bood8P'${end}   ${srt}\`Y8bod8P'${end}"
 			echo ""
 			;;
 		color)
