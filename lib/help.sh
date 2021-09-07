@@ -332,18 +332,23 @@ CliHelp()
 					echo "\"I can perform normal tasks quickly.\""
 					echo "\"Here is how I can help\""
 					echo ""
-					echo -e "--new <args>\t\t\t\t: \"New source code\""
-					echo -e "--edit <args>\t\t\t\t: \"Edit source code\""
-					echo -e "--edit --config\t\t\t\t: \"Edit ${Head} config\""
-					echo -e "--cpl, --compile <args>\t\t\t: \"Compile source code\""
-					echo -e "--install <args>\t\t\t: \"install program (.bash_aliases)\""
-					echo -e "--debug <args>\t\t\t\t: \"Debug compiled code\""
-					echo -e "--run <args>\t\t\t\t: \"Run compiled code\""
-					echo -e "--read <args>\t\t\t\t: \"Read out (cat) source code\""
-					echo -e "--list <lang>\t\t\t\t: \"List source code\""
-					echo -e "--list-cpl <lang>\t\t\t: \"List compiled code\""
-					echo -e "--lscpl <lang>\t\t\t\t: \"List compiled code\""
-					echo -e "-p, --project <args>\t\t\t: \"List or Load Clide Projects\""
+					echo -e "\t[Without a session]"
+					echo -e "--new <args>\t\t\t\t\t: \"New source code\""
+					echo -e "--edit <args>\t\t\t\t\t: \"Edit source code\""
+					echo -e "--edit --config\t\t\t\t\t: \"Edit ${Head} config\""
+					echo -e "--cpl, --compile <args>\t\t\t\t: \"Compile source code\""
+					echo -e "--install <args>\t\t\t\t: \"install program (.bash_aliases)\""
+					echo -e "--debug <args>\t\t\t\t\t: \"Debug compiled code\""
+					echo -e "--run <args>\t\t\t\t\t: \"Run compiled code\""
+					echo -e "--read <args>\t\t\t\t\t: \"Read out (cat) source code\""
+					echo -e "--list <lang>\t\t\t\t\t: \"List source code\""
+					echo -e "--list-cpl <lang>\t\t\t\t: \"List compiled code\""
+					echo -e "--lscpl <lang>\t\t\t\t\t: \"List compiled code\""
+					echo -e "-p, --project <args>\t\t\t\t: \"List or Load Clide Projects\""
+					echo ""
+					echo -e "\t[With a session]"
+					echo -e "$ clide <language --new <code>\t\t\t: \"New source code\""
+					echo -e "$ clide <language --new <code>,<code>\t\t: \"New source code\""
 					echo ""
 					echo -e "\"Need more information? Just ask!\""
 					echo ""
@@ -352,13 +357,13 @@ CliHelp()
 					else
 						cmd="clide ${calledBy} function "
 					fi
-					echo -e "${cmd}--edit\t\t: \"Get more information about editing files\""
+					echo -e "${cmd}--edit\t\t\t: \"Get more information about editing files\""
 					case ${calledBy} in
 						--help)
-							echo -e "${cmd}--cpl\t\t: \"Learn how to do quick compiles\""
+							echo -e "${cmd}--cpl\t\t\t: \"Learn how to do quick compiles\""
 							;;
 						-h)
-							echo -e "${cmd}--cpl\t\t\t: \"Learn how to do quick compiles\""
+							echo -e "${cmd}--cpl\t\t\t\t: \"Learn how to do quick compiles\""
 							;;
 						*)
 							;;

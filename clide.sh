@@ -3833,6 +3833,7 @@ main()
 								shift
 								Args=$@
 								main ${HiddenAction} ${Lang} ${Args[@]}
+								InAndOut="no"
 								Actions ${Lang} ${Args[@]}
 								;;
 							# $ clide <lang> --project <action> <ProjectName>
