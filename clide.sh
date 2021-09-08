@@ -2243,14 +2243,13 @@ Actions()
 								local ActionType=${UserIn[2]}
 								local ThePackageName=${UserIn[3]}
 								local IsOk
-								local project=${CodeProject}
 								local HasPackage
 								case ${Lang} in
 									Java)
 										#Make sure this is a project
-										case ${project} in
+										case ${CodeProject} in
 											none)
-												errorCode "project" "active"
+												errorCode "project" "must-be-active"
 												;;
 											*)
 												if [ ! -z "${ActionType}" ] && [ ! -z "${ThePackageName}" ]; then
@@ -2281,13 +2280,12 @@ Actions()
 										esac
 										;;
 									*)
-										errorCode "package" "need-java"
 										;;
 								esac
 
 								#Ensure filename is given
-								if [ ! -z "${UserIn[1]}" ]; then
-									case ${UserIn[1]} in
+								if [ ! -z "${SrcName}" ]; then
+									case ${SrcName} in
 										*","*|*";"*)
 											errorCode "newCode" "one-at-a-time"
 											IsOk="no"
