@@ -564,6 +564,7 @@ ProjectCliHelp()
 	echo -e "${cmd} --list\t\t\t\t: \"List ${Head} Projects\""
 	echo -e "${cmd} --list <project>\t\t\t: \"List the contents of a given project\""
 	echo -e "${cmd} --langs <project>\t\t\t: \"List the langes associated a given project\""
+	echo -e "${cmd} --new <language> <project>\t\t: \"Create a new project using the given language\""
 	echo -e "${cmd} --build <project>\t\t\t: \"Build a ${Head} Project\""
 	echo -e "${cmd} --remove <project>\t\t\t: \"Remove a ${Head} Project\""
 	echo -e "${cmd} --remove all\t\t\t\t: \"Remove ALL ${Head} Projects\""
