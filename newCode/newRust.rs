@@ -23,6 +23,22 @@ fn help()
 	print("\t--user-input : enable \"Raw_Input\" file method");
 }
 
+fn raw_input(message: &str)
+{
+    use std::io::{stdin,stdout,Write};
+    let mut s=String::new();
+    print!("{}: ",message);
+    let _=stdout().flush();
+    stdin().read_line(&mut s).expect("Did not enter a correct string");
+    if let Some('\n')=s.chars().next_back() {
+        s.pop();
+    }
+    if let Some('\r')=s.chars().next_back() {
+        s.pop();
+    }
+    println!("{}",s);
+}
+
 fn main()
 {
 	let mut arg_count = 0;
@@ -36,9 +52,10 @@ fn main()
 		arg_count += 1;
 	}
 
-	if arg_count == 0
+	if arg_count > 1
 	{
-		print!("");
+		raw_input("What is your name");
+		print("yeah!");
 	}
 	else
 	{

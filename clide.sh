@@ -965,6 +965,60 @@ loadProject()
 	fi
 }
 
+HandleJavaPackage()
+{
+	local Lang=$1
+	local TheAction=$2
+	local ThePackage=$3
+	local PackageName=${ThePackage}
+	#package commands
+	case ${TheAction} in
+		#Create new package
+		new)
+			#Ensure package has a name
+			if [ ! -z "${ThePackage}" ]; then
+				ManageLangs ${Lang} "newPackage" ${ThePackage}
+				ThePackage=$(ManageLangs ${Lang} "setPackage" ${ThePackage})
+				if [ ! -z "${ThePackage}" ]; then
+					errorCode "HINT" "Package \"${PackageName}\" has been created"
+					cd ${ThePackage}
+				fi
+			else
+				errorCode "package" "null-name"
+			fi
+			;;
+		set|check)
+			#Ensure package has a name
+			if [ ! -z "${ThePackage}" ]; then
+				ThePackage=$(ManageLangs ${Lang} "setPackage" ${ThePackage})
+				if [ ! -z "${ThePackage}" ]; then
+					case ${TheAction} in
+						set)
+							errorCode "HINT" "Package \"${PackageName}\" Set"
+							cd ${ThePackage}
+							;;
+						check)
+							echo ${PackageName}
+							;;
+						*)
+							;;
+					esac
+				else
+					errorCode "package" "null-name"
+				fi
+			else
+				errorCode "package" "null-name"
+			fi
+			;;
+		list)
+			ManageLangs ${Lang} "listPackage"
+			;;
+		*)
+			theHelp PackageHelp
+			;;
+	esac
+}
+
 #remove source code and bin
 Remove()
 {
@@ -1577,8 +1631,6 @@ Actions()
 						;;
 					#handle java packages
 					package)
-						local ThePackage=${UserIn[2]}
-						local PackageName=${ThePackage}
 						case ${Lang} in
 							Java)
 								#Make sure this is a project
@@ -1587,48 +1639,11 @@ Actions()
 										errorCode "project" "active"
 										;;
 									*)
-										#package commands
-										case ${UserIn[1]} in
-											#Create new package
-											new)
-												#Ensure package has a name
-												if [ ! -z "${ThePackage}" ]; then
-													ManageLangs ${Lang} "newPackage" ${ThePackage}
-													ThePackage=$(ManageLangs ${Lang} "setPackage" ${ThePackage})
-													if [ ! -z "${ThePackage}" ]; then
-														errorCode "HINT" "Package \"${PackageName}\" has been created"
-														cd ${ThePackage}
-														refresh="yes"
-													fi
-												else
-													errorCode "package" "null-name"
-												fi
-												;;
-											set)
-												#Ensure package has a name
-												if [ ! -z "${ThePackage}" ]; then
-													ThePackage=$(ManageLangs ${Lang} "setPackage" ${ThePackage})
-													if [ ! -z "${ThePackage}" ]; then
-														errorCode "HINT" "Package \"${PackageName}\""
-														cd ${ThePackage}
-														refresh="yes"
-													else
-														errorCode "package" "null-name"
-													fi
-												else
-													errorCode "package" "null-name"
-												fi
-												;;
-											list)
-												ManageLangs ${Lang} "listPackage"
-												;;
-											*)
-												theHelp PackageHelp
-												;;
-										esac
+										HandleJavaPackage ${Lang} ${UserIn[1]} ${UserIn[2]}
+										refresh="yes"
 										;;
-								esac
-								;;
+									esac
+									;;
 							*)
 								errorCode "package" "need-java"
 								;;
@@ -2223,8 +2238,53 @@ Actions()
 								;;
 							#Create new src file
 							*)
+								local SrcName=${UserIn[1]}
+								local SrcType=${UserIn[2]}
+								local ActionType=${UserIn[2]}
+								local ThePackageName=${UserIn[3]}
 								local IsOk
 								local project=${CodeProject}
+								local HasPackage
+								case ${Lang} in
+									Java)
+										#Make sure this is a project
+										case ${project} in
+											none)
+												errorCode "project" "active"
+												;;
+											*)
+												if [ ! -z "${ActionType}" ] && [ ! -z "${ThePackageName}" ]; then
+													if [ ! -z "${UserIn[4]}" ]; then
+														SrcType=${UserIn[2]}
+														ActionType=${UserIn[3]}
+														ThePackageName=${UserIn[4]}
+													fi
+
+													case ${ActionType} in
+														--package)
+															HasPackage=$(HandleJavaPackage ${Lang} "check" ${ThePackageName})
+															case ${HasPackage} in
+																${ThePackageName})
+																	HandleJavaPackage ${Lang} "set" ${ThePackageName}
+																	;;
+																*)
+																	HandleJavaPackage ${Lang} "new" ${ThePackageName}
+																	HasPackage=${ThePackageName}
+																	;;
+															esac
+																	;;
+														*)
+															;;
+													esac
+												fi
+												;;
+										esac
+										;;
+									*)
+										errorCode "package" "need-java"
+										;;
+								esac
+
 								#Ensure filename is given
 								if [ ! -z "${UserIn[1]}" ]; then
 									case ${UserIn[1]} in
@@ -2260,10 +2320,10 @@ Actions()
 											case ${IsOk} in
 												yes)
 													#Return the name of source code
-													ManageLangs ${Lang} "newCode" ${UserIn[1]} ${UserIn[2]} ${Code}
+													ManageLangs ${Lang} "newCode" ${SrcName} ${SrcType} ${Code}
 													if [ ! -z "${Code}" ]; then
 														local OldCode=${Code}
-														local NewCode=$(ManageLangs ${Lang} "getCode" ${UserIn[1]} ${OldCode})
+														local NewCode=$(ManageLangs ${Lang} "getCode" ${SrcName} ${OldCode})
 														if [ ! -z "${NewCode}" ]; then
 															case ${OldCode} in
 																*"${NewCode}"*)
@@ -2275,8 +2335,17 @@ Actions()
 															esac
 														fi
 													else
-														Code=$(ManageLangs ${Lang} "getCode" ${UserIn[1]} ${OldCode})
+														Code=$(ManageLangs ${Lang} "getCode" ${SrcName} ${OldCode})
 													fi
+
+													case ${HasPackage} in
+														${ThePackageName})
+															cd - > /dev/null
+															;;
+														*)
+															;;
+													esac
+
 													refresh="yes"
 													;;
 												no)
@@ -2301,15 +2370,6 @@ Actions()
 								;;
 						esac
 						refresh="yes"
-
-						#Jump-in and Jump-out
-						case ${InAndOut} in
-							yes)
-								break
-								;;
-							*)
-								;;
-						esac
 						;;
 					#Edit new source code
 					${editor}|edit|ed)
@@ -2573,14 +2633,6 @@ Actions()
 								esac
 								;;
 						esac
-						#Jump-in and Jump-out
-						case ${InAndOut} in
-							yes)
-								break
-								;;
-							*)
-								;;
-						esac
 						;;
 					#Install compiled code into aliases
 					install)
@@ -2696,6 +2748,15 @@ Actions()
 						break
 						;;
 					#ignore all other commands
+					*)
+						;;
+				esac
+
+				#Jump-in and Jump-out
+				case ${InAndOut} in
+					yes)
+						break
+						;;
 					*)
 						;;
 				esac
@@ -3121,6 +3182,25 @@ main()
 				local Code=$2
 				if [ ! -z "${ActionProject}" ]; then
 					case ${ActionProject} in
+						--new)
+							shift
+							local TheLang=$1
+							local TheProjectName=$2
+							shift
+							shift
+							TheLang=$(pgLang ${TheLang})
+							local Args=$@
+							if [ ! -z "${TheProjectName}" ]; then
+								case ${TheLang} in
+									no)
+										;;
+									*)
+										InAndOut="yes"
+										Actions ${TheLang} "code" "project" "new" ${TheProjectName} ${Args[@]}
+										;;
+								esac
+							fi
+							;;
 						--discover)
 							discoverProject
 							;;
@@ -3432,6 +3512,9 @@ main()
 				local Lang
 				local Code=$2
 				local Args
+				local FindCode
+				local AlreadyCode
+				local ColorCode
 				if [ -z "${Code}" ]; then
 					Lang=$(SelectLangByCode $1)
 					if [ ! -z "${Lang}" ]; then
@@ -3473,9 +3556,22 @@ main()
 						*)
 							local CodeDir=$(pgDir ${Lang})
 							if [ ! -z "${CodeDir}" ]; then
+								ColorCode=$(ManageLangs ${Lang} "color-number")
 								cd ${CodeDir}
 								InAndOut="yes"
-								Actions ${Lang} "code" "new" ${Code} ${Args[@]}
+								IFS=',' read -ra ADDR <<< "${Code}"
+								for NewCode in "${ADDR[@]}";
+								do
+									AlreadyCode=$(ManageLangs ${Lang} "getCode" ${NewCode})
+									if [ -z "${AlreadyCode}" ]; then
+										Actions ${Lang} "code" "new" ${NewCode} ${Args[@]}
+										FindCode=$(ManageLangs ${Lang} "getCode" ${NewCode})
+										if [ ! -z "${FindCode}" ]; then
+											echo -e "\e[1;4${ColorCode}m[${Lang} (${FindCode}) Created]\e[0m"
+
+										fi
+									fi
+								done
 #							else
 #								errorCode "cli-cpl" "none"
 							fi
@@ -3796,11 +3892,49 @@ main()
 						Actions-NoLang ${Args[@]}
 						;;
 					*)
+						local Args
 						Lang=$(pgLang ${Lang})
 						shift
-						local Args=$@
-						#Start IDE
-						Actions ${Lang} ${Args[@]}
+						local HiddenAction=$1
+						local NextHiddenAction=$2
+						case ${HiddenAction} in
+							--new)
+								shift
+								Args=$@
+								main ${HiddenAction} ${Lang} ${Args[@]}
+								InAndOut="no"
+								Actions ${Lang} ${Args[@]}
+								;;
+							# $ clide <lang> --project <action> <ProjectName>
+							-p|--project)
+								case ${NextHiddenAction} in
+									# $ clide <lang> --project --new <ProjectName>
+									#Or
+									# $ clide <lang> --project --new <ProjectName>
+									--new|--import)
+										shift
+										shift
+										Args=$@
+										main ${HiddenAction} ${NextHiddenAction} ${Lang} ${Args[@]}
+										InAndOut="no"
+										main ${HiddenAction} ${Lang} ${Args[@]}
+										;;
+									# $ clide <lang> --project <ProjectName>
+									*)
+										shift
+										Args=$@
+										main ${HiddenAction} ${Lang} ${Args[@]}
+										;;
+								esac
+								#main ${HiddenAction} ${Lang} ${Args[@]}
+								;;
+							#Normal usage
+							*)
+								Args=$@
+								#Start IDE
+								Actions ${Lang} ${Args[@]}
+								;;
+						esac
 						;;
 				esac
 				;;
