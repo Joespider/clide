@@ -176,7 +176,13 @@ ProjectHelp()
 	echo ""
 	echo "----------------[(${Head}) \"Project\" Help]----------------"
 	echo -e "Purpose: \"handle projects\""
-	echo -e "new <project>\t\t\t: \"Create a new project\""
+	case ${Lang} in
+		Java)
+			;;
+		*)
+			echo -e "new <project>\t\t\t: \"Create a new project\""
+			;;
+	esac
 	echo -e "import <project> <path>\t\t: \"Import projects\""
 	echo -e "update, save\t\t\t: \"Update the active project\""
 	echo -e "export\t\t\t\t: \"Export the active project to a tar.gz\""
@@ -206,6 +212,7 @@ PackageHelp()
 	echo "----------------[(${Head}) \"Package\" Help]----------------"
 	echo -e "Purpose: \"Handle Java Packages\""
 	echo -e "new <package>\t\t\t: \"Create a new package name (this.is.a.package)\""
+	echo -e "check <package>\t\t\t: \"Check if package name exists (this.is.a.package)\""
 	echo -e "set <package>\t\t\t: \"Enter the package name (this.is.a.package)\""
 	echo -e "list\t\t\t\t: \"List all the packages\""
 	echo "----------------------------------------------------------"
@@ -347,8 +354,8 @@ CliHelp()
 					echo -e "-p, --project <args>\t\t\t\t: \"List or Load Clide Projects\""
 					echo ""
 					echo -e "\t[With a session]"
-					echo -e "$ clide <language --new <code>\t\t\t: \"New source code\""
-					echo -e "$ clide <language --new <code>,<code>\t\t: \"New source code\""
+					echo -e "$ clide <language> --new <code>\t\t\t: \"New source code\""
+					echo -e "$ clide <language> --new <code>,<code>\t\t: \"New source code\""
 					echo ""
 					echo -e "\"Need more information? Just ask!\""
 					echo ""
@@ -582,8 +589,8 @@ ProjectCliHelp()
 	echo ""
 	echo -e "\t\"Default project Functionality\""
 	echo ""
-	echo -e "${cmd} <project>\t\t\t\t: \"Select and Load\""
-	echo -e "${cmd} <language> <project>\t\t\t: \"Select and Load\""
+	echo -e "${cmd} <project>\t\t\t\t: \"Select and Load ${Head} project\""
+	echo -e "${cmd} <language> <project>\t\t\t: \"Select and Load ${Head} language with project\""
 	echo "-----------------------------------------------"
 	echo ""
 }
