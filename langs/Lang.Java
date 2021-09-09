@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.91"
+SupportV="0.1.92"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -1134,7 +1134,7 @@ UseJava()
 		#Create new code
 		newCode)
 			local name=$1
-			local TheOfType=$2
+			local CodeType=$2
 			local oldCode=$3
 			local project=${CodeProject}
 			local newName
@@ -1142,21 +1142,22 @@ UseJava()
 			local PackageName
 			local PackageNameJava
 			local Content
+			local UseTempalte
 			local TemplateC=${TemplateCodeClass##*/}
 			TemplateC=${TemplateC%.*}
 
-			#Sometimes "oldCode" gets passed as "TheOfType"
+			#Sometimes "oldCode" gets passed as "CodeType"
 			if [ -z "${oldCode}" ]; then
-				case ${TheOfType} in
+				case ${CodeType} in
 					*${LangOtherExt}|*${LangExt})
-						oldCode=${TheOfType}
+						oldCode=${CodeType}
 						;;
 					*)
 						;;
 				esac
 			fi
 
-			TheOfType=${TheOfType,,}
+			CodeType=${CodeType,,}
 			name=$(UseJava "removeExt" "${name}")
 			local TheSrcDir
 
@@ -1171,6 +1172,7 @@ UseJava()
 							;;
 						#Handle Project Specific code
 						*)
+							UseTempalte=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 							PackageName=$(echo ${PWD}/ | sed "s/${project}\/src/|/g" | cut -d '|' -f 2 | sed "s/\/main\/java\///1" | sed "s/\/test\/java\///1" | tr '/' '.')
 							if [ ! -z "${PackageName}" ]; then
 								PackageName=${PackageName%*.}
@@ -1180,22 +1182,30 @@ UseJava()
 					esac
 						#Check for Custom Code Template...is class
 						if [ -f ${TemplateCodeClass} ]; then
-							case ${TheOfType} in
+							case ${CodeType} in
 								#create main file
 								main)
-									#echo "main"
-									cd ${LangBin}
-									${LangRun} ${TemplateC} --user $USER --main --shell --write-file --read-file --user-input --append-array ${PackageNameJava} --name ${name}
-									cd - > /dev/null
-									mv "${LangBin}/${name}${LangExt}" .
+									if [ -z "${UseTempalte}" ]; then
+										#echo "main"
+										cd ${LangBin}
+										${LangRun} ${TemplateC} --user $USER --main --shell --write-file --read-file --user-input --append-array ${PackageNameJava} --name ${name}
+										cd - > /dev/null
+										mv "${LangBin}/${name}${LangExt}" .
+									else
+										ProjectTemplateHandler ${ProjectType} ${Type} ${name}${LangExt} ${CodeType}
+									fi
 									;;
 								#create component file
 								component)
-									#echo "component"
-									cd ${LangBin}
-									${LangRun} ${TemplateC} --user $USER --write-file --read-file --user-input --append-array ${PackageNameJava} --name ${name}
-									cd - > /dev/null
-									mv "${LangBin}/${name}${LangExt}" . 2> /dev/null
+									if [ -z "${UseTempalte}" ]; then
+										#echo "component"
+										cd ${LangBin}
+										${LangRun} ${TemplateC} --user $USER --write-file --read-file --user-input --append-array ${PackageNameJava} --name ${name}
+										cd - > /dev/null
+										mv "${LangBin}/${name}${LangExt}" . 2> /dev/null
+									else
+										ProjectTemplateHandler ${ProjectType} ${Type} ${name}${LangExt} ${CodeType}
+									fi
 									;;
 								#cl[ide] knows best
 								*)
@@ -1257,16 +1267,24 @@ UseJava()
 							esac
 						#Check for Custom Code Template...is jar
 						elif [ -f ${TemplateCodeJar} ]; then
-							case ${TheOfType} in
+							case ${CodeType} in
 								#create main file
 								main)
-									#echo "main"
-									${LangRun} -jar ${TemplateCodeJar} --user $USER --main --shell --write-file --read-file --user-input --append-array ${PackageNameJava} --name ${name}
+									if [ -z "${UseTempalte}" ]; then
+										#echo "main"
+										${LangRun} -jar ${TemplateCodeJar} --user $USER --main --shell --write-file --read-file --user-input --append-array ${PackageNameJava} --name ${name}
+									else
+										ProjectTemplateHandler ${ProjectType} ${Type} ${name}${LangExt} ${CodeType}
+									fi
 									;;
 								#create component file
 								component)
-									#echo "component"
-									${LangRun} -jar ${TemplateCodeJar} --user $USER --write-file --read-file ${PackageNameJava} --name ${name}
+									if [ -z "${UseTempalte}" ]; then
+										#echo "component"
+										${LangRun} -jar ${TemplateCodeJar} --user $USER --write-file --read-file ${PackageNameJava} --name ${name}
+									else
+										ProjectTemplateHandler ${ProjectType} ${Type} ${name}${LangExt} ${CodeType}
+									fi
 									;;
 								#cl[ide] knows best
 								*)
@@ -1357,16 +1375,20 @@ UseJava()
 				fi
 			#No Program Name Given
 			else
-				#Check for Custom Code Template...is class
-				if [ -f ${TemplateCodeClass} ]; then
-					cd ${LangBin}
-					${LangRun} ${TemplateC} --help
-					cd - > /dev/null
-				#Check for Custom Code Template...is jar
-				elif [ -f ${TemplateCodeJar} ]; then
-					${LangRun} -jar ${TemplateCodeJar} --help
+				if [ -z "${UseTempalte}" ]; then
+					#Check for Custom Code Template...is class
+					if [ -f ${TemplateCodeClass} ]; then
+						cd ${LangBin}
+						${LangRun} ${TemplateC} --help
+						cd - > /dev/null
+					#Check for Custom Code Template...is jar
+					elif [ -f ${TemplateCodeJar} ]; then
+						${LangRun} -jar ${TemplateCodeJar} --help
+					else
+						errorCode "newCode"
+					fi
 				else
-					errorCode "newCode"
+					ProjectTemplateHandler ${ProjectType} ${Type} ${name}${LangExt} ${CodeType}
 				fi
 			fi
 			;;

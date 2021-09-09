@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.43"
+SupportV="0.1.44"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
@@ -814,11 +814,18 @@ UseC()
 			local HasXos
 			local src=$1
 			local cplArgs=$2
+			cplArgs=${cplArgs//,/ }
 			#[Threads] Compile for Threads
 			#{
 			NeedThreads=$(grep "#include <pthread.h>" ${src})
 			if [ ! -z "${NeedThreads}" ]; then
-				cplArgs="${cplArgs} -lpthread"
+				case ${cplArgs} in
+					*"-lpthread"*)
+						;;
+					*)
+						cplArgs="${cplArgs} -lpthread"
+						;;
+				esac
 			fi
 			#}
 			#[X11] Compile with X11 code
@@ -827,7 +834,13 @@ UseC()
 			HasXutil=$(grep "#include <X11/Xutil.h>" ${src})
 			HasXos=$(grep "#include <X11/Xos.h>" ${src})
 			if [ ! -z "${HasXlib}" ] || [ ! -z "${HasXutil}" ] || [ ! -z "${HasXos}" ]; then
-				cplArgs="${cplArgs} -I /usr/X11/include -L /usr/X11/lib -lX11"
+				case ${cplArgs} in
+					*"-I /usr/X11/include -L /usr/X11/lib -lX11"*)
+						;;
+					*)
+						cplArgs="${cplArgs} -I /usr/X11/include -L /usr/X11/lib -lX11"
+						;;
+				esac
 			fi
 			#}
 			echo ${cplArgs// /,}
@@ -838,7 +851,8 @@ UseC()
 			local Vals="none"
 			local Item=""
 			local str=$@
-			local IFS=' '         # space is set as delimiter
+			# space is set as delimiter
+			local IFS=' '
 			read -ra arg <<< "${str}"
 			for TheItem in "${arg[@]}"; do
 				if [ ! -z "${TheItem}" ]; then
@@ -865,6 +879,12 @@ UseC()
 							;;
 						-d|--debug)
 							Item="-g"
+							;;
+						-t|--thread)
+							Item="-lpthread"
+							;;
+						-x|--gui)
+							Item="-I /usr/X11/include -L /usr/X11/lib -lX11"
 							;;
 						-w|--warnings)
 							Item="-g"
@@ -906,6 +926,8 @@ UseC()
 			echo -e "--opt-space\t\t: \"Optimize space over speed (-Os)\""
 			echo -e "-v, --verboses\t\t: \"Verbose (-v)\""
 			echo -e "-d, --debug\t\t: \"Set Debugging (-g)\""
+			echo -e "-t, --thread\t\t: \"Set Threading (-lpthread)\""
+			echo -e "-x, --gui\t\t: \"Set GUI (-I /usr/X11/include -L /usr/X11/lib -lX11)\""
 			echo -e "-w, --warnings\t\t: \"Show ALL warnings (-Wall)\""
 			echo -e "--std=<version>\t\t: \"Set C version\""
 			case ${LangCpl} in
@@ -1157,6 +1179,24 @@ UseC()
 					;;
 			esac
 			;;
+		delete-make)
+			case ${CodeProject} in
+				#No Project
+				none)
+					errorCode "make" "need-to-be-project" ${Lang}
+					;;
+				#Is a project
+				*)
+					#makefile already exists
+					if [ -f ${LangProject}/${CodeProject}/makeDisabled ]; then
+						rm ${LangProject}/${CodeProject}/makeDisabled
+					fi
+					if [ -f ${LangProject}/${CodeProject}/makefile ]; then
+						rm ${LangProject}/${CodeProject}/makefile
+					fi
+					;;
+			esac
+			;;
 		create-version|create-std=*)
 			Type=${Type#create-}
 			local cLang=$(UseC color)
@@ -1302,23 +1342,24 @@ UseC()
 		#Create new src files
 		newCode)
 			local name=$1
-			local Type=$2
+			local CodeType=$2
 			local oldCode=$3
 			local TheName
 			local project=${CodeProject}
+			local UseTempalte
 
 			#Sometimes "oldCode" gets passed as "Type"
 			if [ -z "${oldCode}" ]; then
-				case ${Type} in
+				case ${CodeType} in
 					*${LangOtherExt}|*${LangExt})
-						oldCode=${Type}
+						oldCode=${CodeType}
 						;;
 					*)
 						;;
 				esac
 			fi
 
-			Type=${Type,,}
+			CodeType=${CodeType,,}
 			case ${name} in
 				*${LangOtherExt})
 					name=$(UseC "removeExt" ${name})
@@ -1329,63 +1370,78 @@ UseC()
 					;;
 			esac
 			if [ ! -f ${name}${LangExt} ] || [ ! -f ${name}${LangOtherExt} ]; then
-				case ${Type} in
+				case ${CodeType} in
 					#create header file
 					header)
 						if [ ! -f ${name}${LangOtherExt} ]; then
-							#Program Name Given
-							if [ ! -z "${name}" ]; then
-								touch "${name}${LangOtherExt}"
-								echo "#pragma once" > "${name}${LangOtherExt}"
+							UseTempalte=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
+							if [ -z "${UseTempalte}" ]; then
+								#Program Name Given
+								if [ ! -z "${name}" ]; then
+									touch "${name}${LangOtherExt}"
+									echo "#pragma once" > "${name}${LangOtherExt}"
+								else
+									errorCode "newCode"
+								fi
 							else
-								errorCode "newCode"
+								ProjectTemplateHandler ${ProjectType} ${Type} ${name}${LangOtherExt} ${CodeType}
 							fi
 						fi
 						;;
 					#create main file
 					main)
 						if [ ! -f ${name}${LangExt} ]; then
-							#Check for Custom Code Template
-							if [ -f ${TemplateCode} ]; then
-								#Program Name Given
-								if [ ! -z "${name}" ]; then
-									${TemplateCode} --random --write-file --read-file --cli --main --is-in --user-input --name ${name}
-								#No Program Name Given
+							UseTempalte=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
+							if [ -z "${UseTempalte}" ]; then
+								#Check for Custom Code Template
+								if [ -f ${TemplateCode} ]; then
+									#Program Name Given
+									if [ ! -z "${name}" ]; then
+										${TemplateCode} --random --write-file --read-file --cli --main --is-in --user-input --name ${name}
+									#No Program Name Given
+									else
+										#Help Page
+										${TemplateCode} --help
+									fi
 								else
-									#Help Page
-									${TemplateCode} --help
+									#Program Name Given
+									if [ ! -z "${name}" ]; then
+										local Content="#include <stdio.h>\n\n//${Lang} Main\nint main()\n{\n\n\treturn 0;\n}"
+										touch ${name}${LangExt}
+										echo -e "${Content}" > ${name}${LangExt}
+									else
+										errorCode "newCode"
+									fi
 								fi
 							else
-								#Program Name Given
-								if [ ! -z "${name}" ]; then
-									local Content="#include <stdio.h>\n\n//${Lang} Main\nint main()\n{\n\n\treturn 0;\n}"
-									touch ${name}${LangExt}
-									echo -e "${Content}" > ${name}${LangExt}
-								else
-									errorCode "newCode"
-								fi
+								ProjectTemplateHandler ${ProjectType} ${Type} ${name}${LangExt} ${CodeType}
 							fi
 						fi
 						;;
 					#create component file
 					component)
 						if [ ! -f ${name}${LangExt} ]; then
-							if [ -f ${TemplateCode} ]; then
-								#Program Name Given
-								if [ ! -z "${name}" ]; then
-									${TemplateCode} -n "${name}"
-								#No Program Name Given
+							UseTempalte=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
+							if [ -z "${UseTempalte}" ]; then
+								if [ -f ${TemplateCode} ]; then
+									#Program Name Given
+									if [ ! -z "${name}" ]; then
+										${TemplateCode} -n "${name}"
+									#No Program Name Given
+									else
+										#Help Page
+										${TemplateCode} --help
+									fi
 								else
-									#Help Page
-									${TemplateCode} --help
+									#Program Name Given
+									if [ ! -z "${name}" ]; then
+										touch ${name}${LangExt}
+									else
+										errorCode "newCode"
+									fi
 								fi
 							else
-								#Program Name Given
-								if [ ! -z "${name}" ]; then
-									touch ${name}${LangExt}
-								else
-									errorCode "newCode"
-								fi
+								ProjectTemplateHandler ${ProjectType} ${Type} ${name}${LangExt} ${CodeType}
 							fi
 						fi
 						;;

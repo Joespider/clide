@@ -176,19 +176,14 @@ ProjectHelp()
 	echo ""
 	echo "----------------[(${Head}) \"Project\" Help]----------------"
 	echo -e "Purpose: \"handle projects\""
-	case ${Lang} in
-		Java)
-			;;
-		*)
-			echo -e "new <project>\t\t\t: \"Create a new project\""
-			;;
-	esac
+	echo -e "new <project>\t\t\t: \"Create a new project\""
 	echo -e "import <project> <path>\t\t: \"Import projects\""
 	echo -e "update, save\t\t\t: \"Update the active project\""
 	echo -e "export\t\t\t\t: \"Export the active project to a tar.gz\""
 	echo -e "load <project>\t\t\t: \"Choose a project to make active\""
 	echo -e "set <project>\t\t\t: \"Choose a project to make active\""
-	echo -e "select <project>\t\t\t: \"Choose a project to make active\""
+	echo -e "select <project>\t\t: \"Choose a project to make active\""
+	echo -e "title\t\t\t\t: \"Make a title for a project\""
 	echo -e "remove, delete <project>\t: \"Choose a project to remove or delete\""
 	echo -e "type\t\t\t\t: \"display the type of project\""
 	echo -e "\tlist\t\t\t: \"Show list of possible project types\""
@@ -564,7 +559,7 @@ ProjectCliHelp()
 	echo -e "${cmd} --list\t\t\t\t: \"List ${Head} Projects\""
 	echo -e "${cmd} --list <project>\t\t\t: \"List the contents of a given project\""
 	echo -e "${cmd} --langs <project>\t\t\t: \"List the langes associated a given project\""
-	echo -e "${cmd} --new <language> <project>\t\t: \"Create a new project using the given language\""
+	echo -e "${cmd} --new <language> <project> <type>\t: \"Create a new project using the given language\""
 	echo -e "${cmd} --build <project>\t\t\t: \"Build a ${Head} Project\""
 	echo -e "${cmd} --remove <project>\t\t\t: \"Remove a ${Head} Project\""
 	echo -e "${cmd} --remove all\t\t\t\t: \"Remove ALL ${Head} Projects\""
@@ -576,7 +571,7 @@ ProjectCliHelp()
 	echo ""
 	echo -e "\t\"Alternativly, a ${Head} session can held after performing a given action\""
 	echo ""
-	echo -e "$ clide <language> ${cli} --new <project>\t\t: \"Create, Select and Load project\""
+	echo -e "$ clide <language> ${cli} --new <project> <type>\t: \"Create, Select and Load project\""
 	case ${cli} in
 		-p)
 			echo -e "$ clide <language> ${cli} --import <project>\t: \"Import, Select and Load project\""

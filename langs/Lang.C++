@@ -1,8 +1,11 @@
 Shell=$(which bash)
 #!${Shell}
 
-#https://www3.ntu.edu.sg/home/ehchua/programming/cpp/gcc_make.html
-SupportV="0.1.98"
+#make files: https://www3.ntu.edu.sg/home/ehchua/programming/cpp/gcc_make.html
+#Link Libs: https://gist.github.com/gubatron/32f82053596c24b6bec6
+#both https://avikdas.com/2019/12/16/makefiles-for-c-cpp-projects.html
+
+SupportV="0.1.99"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -1071,11 +1074,18 @@ UseC++()
 			local HasXos
 			local src=$1
 			local cplArgs=$2
+			cplArgs=${cplArgs//,/ }
 			#[Threads] Compile for Threads
 			#{
 			NeedThreads=$(grep "#include <thread>" ${src})
 			if [ ! -z "${NeedThreads}" ]; then
-				cplArgs="${cplArgs} -lpthread"
+				case ${cplArgs} in
+					*"-lpthread"*)
+						;;
+					*)
+						cplArgs="${cplArgs} -lpthread"
+						;;
+				esac
 			fi
 			#}
 			#[X11] Compile with X11 code
@@ -1084,7 +1094,13 @@ UseC++()
 			HasXutil=$(grep "#include <X11/Xutil.h>" ${src})
 			HasXos=$(grep "#include <X11/Xos.h>" ${src})
 			if [ ! -z "${HasXlib}" ] || [ ! -z "${HasXutil}" ] || [ ! -z "${HasXos}" ]; then
-				cplArgs="${cplArgs} -I /usr/X11/include -L /usr/X11/lib -lX11"
+				case ${cplArgs} in
+					*"-I /usr/X11/include -L /usr/X11/lib -lX11"*)
+						;;
+					*)
+						cplArgs="${cplArgs} -I /usr/X11/include -L /usr/X11/lib -lX11"
+						;;
+				esac
 			fi
 			#}
 			echo ${cplArgs// /,}
@@ -1095,7 +1111,8 @@ UseC++()
 			local Vals="none"
 			local Item=""
 			local str=$@
-			local IFS=' '         # space is set as delimiter
+			# space is set as delimiter
+			local IFS=' '
 			read -ra arg <<< "${str}"
 			for TheItem in "${arg[@]}"; do
 				if [ ! -z "${TheItem}" ]; then
@@ -1122,6 +1139,12 @@ UseC++()
 							;;
 						-d|--debug)
 							Item="-g"
+							;;
+						-t|--thread)
+							Item="-lpthread"
+							;;
+						-x|--gui)
+							Item="-I /usr/X11/include -L /usr/X11/lib -lX11"
 							;;
 						-w|--warnings)
 							Item="-Wall"
@@ -1163,6 +1186,8 @@ UseC++()
 			echo -e "--opt-space\t\t: \"Optimize space over speed (-Os)\""
 			echo -e "-v, --verboses\t\t: \"Verbose (-v)\""
 			echo -e "-d, --debug\t\t: \"Set Debugging (-g)\""
+			echo -e "-t, --thread\t\t: \"Set Threading (-lpthread)\""
+			echo -e "-x, --gui\t\t: \"Set GUI (-I /usr/X11/include -L /usr/X11/lib -lX11)\""
 			echo -e "-w, --warnings\t\t: \"Show ALL warnings (-Wall)\""
 			echo -e "--std=<version>\t\t: \"Set C++ version\""
 			case ${LangCpl} in
@@ -1415,6 +1440,25 @@ UseC++()
 					;;
 			esac
 			;;
+		delete-make)
+			case ${CodeProject} in
+				#No Project
+				none)
+					errorCode "make" "need-to-be-project" ${Lang}
+					;;
+				#Is a project
+				*)
+					#makefile already exists
+					if [ -f ${LangProject}/${CodeProject}/makeDisabled ]; then
+						rm ${LangProject}/${CodeProject}/makeDisabled
+					fi
+
+					if [ -f ${LangProject}/${CodeProject}/makefile ]; then
+						rm ${LangProject}/${CodeProject}/makefile
+					fi
+					;;
+			esac
+			;;
 		create-version|create-std=*)
 			Type=${Type#create-}
 			local cLang=$(UseC++ color)
@@ -1560,20 +1604,20 @@ UseC++()
 		#Create new src files
 		newCode)
 			local name=$1
-			local TheOfType=$2
+			local CodeType=$2
 			local TheName
 			local oldCode=$3
 			local project=${CodeProject}
 			local HasAHeaderExt
 			local IsNotAType
 
-			#Sometimes "oldCode" gets passed as "TheOfType"
+			#Sometimes "oldCode" gets passed as "CodeType"
 			if [ -z "${oldCode}" ]; then
-				IsNotAType=$(UseC++ "hasExtForAll" ${TheOfType})
+				IsNotAType=$(UseC++ "hasExtForAll" ${CodeType})
 				case ${IsNotAType} in
 					yes)
-						oldCode=${TheOfType}
-						TheOfType=""
+						oldCode=${CodeType}
+						CodeType=""
 	
 						;;
 					*)
@@ -1581,13 +1625,13 @@ UseC++()
 				esac
 			fi
 
-			TheOfType=${TheOfType,,}
+			CodeType=${CodeType,,}
 
 			HasAHeaderExt=$(UseC++ "hasExtForHeader" ${name})
 			case ${HasAHeaderExt} in
 				yes)
 					name=$(UseC++ "removeExt" ${name})
-					TheOfType="header"
+					CodeType="header"
 					;;
 				*)
 					name=$(UseC++ "removeExt" ${name})
@@ -1595,63 +1639,78 @@ UseC++()
 			esac
 
 			if [ ! -f ${name}${LangExt} ] || [ ! -f ${name}${LangOtherExt} ]; then
-				case ${TheOfType} in
+				case ${CodeType} in
 					#create header file
 					header)
 						if [ ! -f ${name}${LangOtherExt} ]; then
-							#Program Name Given
-							if [ ! -z "${name}" ]; then
-								touch "${name}${LangOtherExt}"
-								echo "#pragma once" > "${name}${LangOtherExt}"
+							UseTempalte=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
+							if [ -z "${UseTempalte}" ]; then
+								#Program Name Given
+								if [ ! -z "${name}" ]; then
+									touch "${name}${LangOtherExt}"
+									echo "#pragma once" > "${name}${LangOtherExt}"
+								else
+									errorCode "newCode"
+								fi
 							else
-								errorCode "newCode"
+								ProjectTemplateHandler ${ProjectType} ${Type} ${name}${LangOtherExt} ${CodeType}
 							fi
 						fi
 						;;
 					#create main file
 					main)
 						if [ ! -f ${name}${LangExt} ]; then
-							#Check for Custom Code Template
-							if [ -f ${TemplateCode} ]; then
-								#Program Name Given
-								if [ ! -z "${name}" ]; then
-									${TemplateCode} --random --write-file --read-file --cli --main --is-in --user-input --name "${name}" --ext "${LangExt}"
-								#No Program Name Given
+							UseTempalte=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
+							if [ -z "${UseTempalte}" ]; then
+								#Check for Custom Code Template
+								if [ -f ${TemplateCode} ]; then
+									#Program Name Given
+									if [ ! -z "${name}" ]; then
+										${TemplateCode} --random --write-file --read-file --cli --main --is-in --user-input --name "${name}" --ext "${LangExt}"
+									#No Program Name Given
+									else
+										#Help Page
+										${TemplateCode} --help
+									fi
 								else
-									#Help Page
-									${TemplateCode} --help
+									#Program Name Given
+									if [ ! -z "${name}" ]; then
+										local Content="#include <iostream>\n\n//${Lang} Main\nint main()\n{\n\n\treturn 0;\n}"
+										touch ${name}${LangExt}
+										echo -e "${Content}" > ${name}${LangExt}
+									else
+										errorCode "newCode"
+									fi
 								fi
 							else
-								#Program Name Given
-								if [ ! -z "${name}" ]; then
-									local Content="#include <iostream>\n\n//${Lang} Main\nint main()\n{\n\n\treturn 0;\n}"
-									touch ${name}${LangExt}
-									echo -e "${Content}" > ${name}${LangExt}
-								else
-									errorCode "newCode"
-								fi
+								ProjectTemplateHandler ${ProjectType} ${Type} ${name}${LangExt} ${CodeType}
 							fi
 						fi
 						;;
 					#create component file
 					component)
 						if [ ! -f ${name}${LangExt} ]; then
-							if [ -f ${TemplateCode} ]; then
-								#Program Name Given
-								if [ ! -z "${name}" ]; then
-									${TemplateCode} -n "${name}" --ext "${LangExt}"
-								#No Program Name Given
+							UseTempalte=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
+							if [ -z "${UseTempalte}" ]; then
+								if [ -f ${TemplateCode} ]; then
+									#Program Name Given
+									if [ ! -z "${name}" ]; then
+										${TemplateCode} -n "${name}" --ext "${LangExt}"
+									#No Program Name Given
+									else
+										#Help Page
+										${TemplateCode} --help
+									fi
 								else
-									#Help Page
-									${TemplateCode} --help
+									#Program Name Given
+									if [ ! -z "${name}" ]; then
+										touch ${name}${LangExt}
+									else
+										errorCode "newCode"
+									fi
 								fi
 							else
-								#Program Name Given
-								if [ ! -z "${name}" ]; then
-									touch ${name}${LangExt}
-								else
-									errorCode "newCode"
-								fi
+								ProjectTemplateHandler ${ProjectType} ${Type} ${name}${LangExt} ${CodeType}
 							fi
 						fi
 						;;

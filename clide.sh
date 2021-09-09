@@ -1665,6 +1665,9 @@ Actions()
 									#only C and C++ uses make
 									C*)
 										case ${UserIn[1]} in
+											delete)
+												ManageLangs ${Lang} "delete-make"
+												;;
 											disable)
 												ManageLangs ${Lang} "disable-make"
 												;;
@@ -2336,13 +2339,15 @@ Actions()
 														Code=$(ManageLangs ${Lang} "getCode" ${SrcName} ${OldCode})
 													fi
 
-													case ${HasPackage} in
-														${ThePackageName})
-															cd - > /dev/null
-															;;
-														*)
-															;;
-													esac
+													if [ ! -z "${ThePackageName}" ]; then
+														case ${HasPackage} in
+															${ThePackageName})
+																cd - > /dev/null
+																;;
+															*)
+																;;
+														esac
+													fi
 
 													refresh="yes"
 													;;
