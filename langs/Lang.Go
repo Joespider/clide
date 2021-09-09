@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.43"
+SupportV="0.1.44"
 Lang=Go
 LangExt=".go"
 #Color Green
@@ -1003,14 +1003,14 @@ UseGo()
 		#Create new src files
 		newCode)
 			local name=$1
-			local Type=$2
+			local CodeType=$2
 			local oldCode=$3
 			local TheName
 			local project=${CodeProject}
 
 			#Sometimes "oldCode" gets passed as "Type"
 			if [ -z "${oldCode}" ]; then
-				case ${Type} in
+				case ${CodeType} in
 					*${LangExt})
 						oldCode=${Type}
 						;;
@@ -1019,57 +1019,67 @@ UseGo()
 				esac
 			fi
 
-			Type=${Type,,}
+			CodeType=${CodeType,,}
 			name=$(UseGo "removeExt" ${name})
 
 			if [ ! -f ${name}${LangExt} ]; then
-				case ${Type} in
+				case ${CodeType} in
 					#create main file
 					main)
 						if [ ! -f ${name}${LangExt} ]; then
-							#Check for Custom Code Template
-							if [ -f ${TemplateCode} ]; then
-								#Program Name Given
-								if [ ! -z "${name}" ]; then
-									${TemplateCode} --random --write-file --read-file --cli --main --is-in --user-input --name ${name}
-								#No Program Name Given
+							UseTempalte=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
+							if [ -z "${UseTempalte}" ]; then
+								#Check for Custom Code Template
+								if [ -f ${TemplateCode} ]; then
+									#Program Name Given
+									if [ ! -z "${name}" ]; then
+										${TemplateCode} --random --write-file --read-file --cli --main --is-in --user-input --name ${name}
+									#No Program Name Given
+									else
+										#Help Page
+										${TemplateCode} --help
+									fi
 								else
-									#Help Page
-									${TemplateCode} --help
+									#Program Name Given
+									if [ ! -z "${name}" ]; then
+										local Content="package main\n\nimport (\n\t"fmt"\n\t"os"\n)\n\nfunc main() {\n\targs := os.Args[1:]\n\n\tfor arg := range args {\n\tfmt.Println(arg,args[arg])\n\t}\n\tfmt.Println(\"And thats it!\")\n}"
+										touch ${name}${LangExt}
+										echo -e "${Content}" > ${name}${LangExt}
+									else
+										errorCode "newCode"
+									fi
 								fi
 							else
-								#Program Name Given
-								if [ ! -z "${name}" ]; then
-									local Content="package main\n\nimport (\n\t"fmt"\n\t"os"\n)\n\nfunc main() {\n\targs := os.Args[1:]\n\n\tfor arg := range args {\n\tfmt.Println(arg,args[arg])\n\t}\n\tfmt.Println(\"And thats it!\")\n}"
-									touch ${name}${LangExt}
-									echo -e "${Content}" > ${name}${LangExt}
-								else
-									errorCode "newCode"
-								fi
+								ProjectTemplateHandler ${ProjectType} ${Type} ${name}${LangExt} ${CodeType}
 							fi
 						fi
 						;;
 					#create component file
 					component)
 						if [ ! -f ${name}${LangExt} ]; then
-							if [ -f ${TemplateCode} ]; then
-								#Program Name Given
-								if [ ! -z "${name}" ]; then
-									${TemplateCode} -n "${name}"
-								#No Program Name Given
+							UseTempalte=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
+							if [ -z "${UseTempalte}" ]; then
+								if [ -f ${TemplateCode} ]; then
+									#Program Name Given
+									if [ ! -z "${name}" ]; then
+										${TemplateCode} -n "${name}"
+									#No Program Name Given
+									else
+										#Help Page
+										${TemplateCode} --help
+									fi
 								else
-									#Help Page
-									${TemplateCode} --help
+									#Program Name Given
+									if [ ! -z "${name}" ]; then
+										local Content="package main\n\nimport (\n\t"fmt"\n\t"os"\n)\n\nfunc main() {\n\targs := os.Args[1:]\n\n\tfor arg := range args {\n\tfmt.Println(arg,args[arg])\n\t}\n\tfmt.Println(\"And thats it!\")\n}"
+										touch ${name}${LangExt}
+										echo -e "${Content}" > ${name}${LangExt}
+									else
+										errorCode "newCode"
+									fi
 								fi
 							else
-								#Program Name Given
-								if [ ! -z "${name}" ]; then
-									local Content="package main\n\nimport (\n\t"fmt"\n\t"os"\n)\n\nfunc main() {\n\targs := os.Args[1:]\n\n\tfor arg := range args {\n\tfmt.Println(arg,args[arg])\n\t}\n\tfmt.Println(\"And thats it!\")\n}"
-									touch ${name}${LangExt}
-									echo -e "${Content}" > ${name}${LangExt}
-								else
-									errorCode "newCode"
-								fi
+								ProjectTemplateHandler ${ProjectType} ${Type} ${name}${LangExt} ${CodeType}
 							fi
 						fi
 						;;

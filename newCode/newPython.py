@@ -1,7 +1,7 @@
 import sys
 
 ProgramName = "newPython"
-VersionName = "0.1.03"
+VersionName = "0.1.04"
 
 def Help():
 	print "Author: Joespider"
@@ -80,14 +80,14 @@ def Methods(getMain,getShell,getCLI,getWrite,getRead,getRandom):
 	TheMethods = ""
 	#{
 	OSshellMethod = "def shell(cmd):\n\tOutput = \"\"\n\tTheShell = os.popen(cmd)\n\tOutput = TheShell.read()\n\tTheShell.close()\n\treturn Output\n"
-	CLImethod = "def GetArgs():\n\tArgs = sys.argv\n\tArgs.pop(0)\n\tnow = \"\"\n\tnext = \"\"\n\t#\n\tlp = 0\n\tend = len(Args)\n\twhile lp != end:\n\t\t#Flag arg\n\t\tnow = Args[lp]\n\t\tlp += 1\n"
+	CLImethod = "def GetArgs():\n\tArgs = sys.argv\n\tArgs.pop(0)\n\treturn Args\n"
 	WriteMethod = "def Write(FileName,content):\n\tTheFile = open(FileName,\"w\")\n\tTheFile.write(content)\n\tTheFile.close()\n"
 	ReadMethod = "def Read(FileName):\n\tOutput = \"\"\n\tTheFile = open(FileName,\"r\")\n\tOutput = TheFile.read()\n\tTheFile.close()\n\treturn Output\n"
 	RandomMethod = "def Random(min=0,max=0):\n\tif min == 0 and max == 0:\n\t\treturn random()\n\telse:\n\t\treturn randint(min,max)\n"
 	if getCLI == True:
-		MainMethod = "def main():\n\t#Get User CLI Input\n\tUserArgs = GetArgs()\n\nmain()"
+		MainMethod = "def main():\n\t#Get User CLI Input\n\tUserArgs = GetArgs()\n\nif __name__ == '__main__':\n\tmain()"
 	else:
-		MainMethod = "def main():\n\tprint \"main\"\n\nmain()"
+		MainMethod = "def main():\n\tprint \"main\"\n\nif __name__ == '__main__':\n\tmain()"
 	#}
 	#Get Write Method
 	if getWrite == True:
@@ -151,4 +151,5 @@ def main():
 	else:
 		Help()
 
-main()
+if __name__ == '__main__':
+	main()

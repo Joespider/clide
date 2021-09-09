@@ -67,9 +67,17 @@ Status: Implimented
 	Have a "test" function
 
 3: Remove existing projects
-Status: New
+Status: completed
 	Allow for users to remove their
 	#To remove a specific project
 	ie: projects remove <project>
 	#To remove ALL projects
 	ie: projects remove all
+
+4: (C/C++) If possible, evaluate compile arguments based on code
+Status: Started
+	Also, allow user to select option regardless what is found
+	incorperate into make file creation
+	Threading
+	X11
+	C++ version

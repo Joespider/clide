@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.62"
+SupportV="0.1.63"
 Lang=Ruby
 LangExt=".rb"
 ColorNum=1
@@ -797,30 +797,127 @@ UseRuby()
 			;;
 		newCode)
 			local name=$1
-			local Type=$2
+			local CodeType=$2
 			local oldCode=$3
+			local TheName
+			local UseTempalte
 			local project=${CodeProject}
 
-			Type=${Type,,}
+			#Sometimes "oldCode" gets passed as "CodeType"
+			if [ -z "${oldCode}" ]; then
+				case ${CodeType} in
+					*${LangExt})
+						oldCode=${CodeType}
+						;;
+					*)
+						;;
+				esac
+			fi
+
+			CodeType=${CodeType,,}
 			name=$(UseRuby "removeExt" ${name})
+
 			if [ ! -f ${name}${LangExt} ]; then
-				#Check for Custom Code Template
-				if [ -f ${TemplateCode} ]; then
-					#Program Name Given
-					if [ ! -z "${name}" ]; then
-						${LangRun} ${TemplateCode} -n ${name} --cli --user $USER --main --write-file --read-file --user-input
-					#No Program Name Given
-					else
-						${LangRun} ${TemplateCode} --help
-					fi
-				else
-					#Program Name Given
-					if [ ! -z "${name}" ]; then
-						touch ${name}${LangExt}
-					else
-						errorCode "newCode"
-					fi
-				fi
+				case ${CodeType} in
+					#create main file
+					main)
+						if [ ! -f ${name}${LangExt} ]; then
+							UseTempalte=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
+							if [ -z "${UseTempalte}" ]; then
+								#Check for Custom Code Template
+								if [ -f ${TemplateCode} ]; then
+									#Program Name Given
+									if [ ! -z "${name}" ]; then
+										${LangRun} ${TemplateCode} -n ${name} --cli --main --shell --write-file --read-file --os --random
+									#No Program Name Given
+									else
+										${LangRun} ${TemplateCode} --help
+									fi
+								else
+									#Program Name Given
+									if [ ! -z "${name}" ]; then
+										touch ${name}${LangExt}
+									else
+										errorCode "newCode"
+									fi
+								fi
+							else
+								ProjectTemplateHandler ${ProjectType} ${Type} ${name}${LangExt} ${CodeType}
+							fi
+						fi
+						;;
+					#create component file
+					component)
+						if [ ! -f ${name}${LangExt} ]; then
+							UseTempalte=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
+							if [ -z "${UseTempalte}" ]; then
+								if [ -f ${TemplateCode} ]; then
+									#Program Name Given
+									if [ ! -z "${name}" ]; then
+										${LangRun} ${TemplateCode} -n "${name}"
+									#No Program Name Given
+									else
+										#Help Page
+										${LangRun} ${TemplateCode} --help
+									fi
+								else
+									#Program Name Given
+									if [ ! -z "${name}" ]; then
+										touch ${name}${LangExt}
+									else
+										errorCode "newCode"
+									fi
+								fi
+							else
+								ProjectTemplateHandler ${ProjectType} ${Type} ${name}${LangExt} ${CodeType}
+							fi
+						fi
+						;;
+					#cl[ide] knows best
+					*)
+						#Because projects are walled off from the rest of your source code,while non-project code is shared,
+						#Source code creation must be handled differently.
+						#(non-project) accounts for what is "set"
+						#(project) accounts for source code living in the directories
+						case ${project} in
+							#Is not a project
+							none)
+								#Looks like you have source code already set
+								TheName=$(UseRuby "removeExt" ${name})
+								if [ ! -z "${oldCode}" ]; then
+									UseRuby "newCode" ${name} "component" ${oldCode}
+								#No source code has been made, create a main file
+								else
+									UseRuby "newCode" ${name} "main"
+								fi
+								;;
+							#Is a project
+							*)
+								#Because a project can have source code scattered in different directories,
+								#make sure you have one main component
+								#Figure out how to account for headers
+								local TheSrcDir="${LangProject}/${project}/src/"
+								local HasSrcCode=$(find ${TheSrcDir} -type f -name "*${LangExt}")
+								#Has Source Code
+								if [ ! -z "${HasSrcCode}" ]; then
+									TheName=$(UseRuby "removeExt" ${name})
+									local NumFound=$(find ${TheSrcDir} -name ${TheName}}${LangExt} 2> /dev/null | wc -l)
+									case ${NumFound} in
+										#No other source code was found...make your main file
+										0)
+											UseRuby "newCode" ${name} "component" ${oldCode}
+											;;
+										*)
+											;;
+									esac
+								#Make first source file
+								else
+									UseRuby "newCode" ${name} "main" ${oldCode}
+								fi
+								;;
+						esac
+						;;
+				esac
 			fi
 			;;
 		cli)
