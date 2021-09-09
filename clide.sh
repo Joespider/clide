@@ -1558,6 +1558,7 @@ Actions()
 					#Delete source code and binary
 					rm|remove|delete)
 						Remove "--all" ${Code} ${UserIn[1]} ${UserIn[2]}
+						CodeProject="none"
 						Code=""
 						refresh="yes"
 						;;
@@ -2252,7 +2253,9 @@ Actions()
 										#Make sure this is a project
 										case ${CodeProject} in
 											none)
-												errorCode "project" "must-be-active"
+												if [ ! -z "${ActionType}" ] && [ ! -z "${ThePackageName}" ]; then
+													errorCode "project" "must-be-active"
+												fi
 												;;
 											*)
 												if [ ! -z "${ActionType}" ] && [ ! -z "${ThePackageName}" ]; then

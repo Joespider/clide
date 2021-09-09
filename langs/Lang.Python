@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.73"
+SupportV="0.1.74"
 Lang=Python
 LangExt=".py"
 #Color Yellow
@@ -878,10 +878,10 @@ UsePython()
 										local Content
 										case ${LangRun,,} in
 											python)
-												Content="\n\n#${Lang} main\ndef main():\n\tprint "python main"\n\nif __name__ == '__main__':\n\tmain()"
+												Content="\n\n#${Lang} main\ndef main():\n\tprint \"python main\"\n\nif __name__ == '__main__':\n\tmain()"
 												;;
 											python3)
-												Content="\n\n#${Lang} main\ndef main():\n\tprint "python main"\n\nif __name__ == '__main__':\n\tmain()"
+												Content="\n\n#${Lang} main\ndef main():\n\tprint(\"python main\")\n\nif __name__ == \'__main__\':\n\tmain()"
 												;;
 											*)
 												;;
