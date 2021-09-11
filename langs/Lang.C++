@@ -5,7 +5,7 @@ Shell=$(which bash)
 #Link Libs: https://gist.github.com/gubatron/32f82053596c24b6bec6
 #both https://avikdas.com/2019/12/16/makefiles-for-c-cpp-projects.html
 
-SupportV="0.1.99"
+SupportV="0.2.0"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -496,8 +496,8 @@ UseC++()
 			echo ${LangSrc}
 			;;
 		CreateHelp)
-			echo -e "make\t\t\t: create makefile"
-			echo -e "version, -std=<c++#>\t: compile with a specific version"
+			echo -e "make\t\t\t\t: create makefile"
+			echo -e "version, -std=<c++#>\t\t: compile with a specific version"
 			;;
 		shell)
 			;;

@@ -2481,6 +2481,18 @@ Actions()
 											if [ -z "${options}" ]; then
 												errorCode "cpl" "cpl-args"
 											else
+												case ${OldVal} in
+													none)
+														;;
+													*)
+														echo ""
+														echo -n "Current: \""
+														echo -n ${OldVal} | tr ',' ' '
+														echo "\""
+														echo ""
+														;;
+												esac
+
 												echo ${options} | tr '|' '\n'
 												#User input
 												echo -n "${cLang}\$ "
@@ -2567,10 +2579,25 @@ Actions()
 								;;
 							#Clear all
 							reset)
-								#Default values
-								RunTimeArgs=""
-								RunCplArgs="none"
-								echo "All rest"
+								case ${UserIn[2]} in
+									cpl|cpl-args)
+										RunCplArgs="none"
+										echo "Compile args reset"
+										;;
+									args)
+										RunTimeArgs=""
+										echo "Run time args reset"
+										;;
+									all)
+										#Default values
+										RunTimeArgs=""
+										RunCplArgs="none"
+										echo "All rest"
+										;;
+									help|*)
+										theHelp CreateHelp ${Lang}
+										;;
+								esac
 								;;
 							#Compile arguments
 							${UserIn[1]}-${UserIn[2]})

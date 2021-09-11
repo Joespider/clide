@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.44"
+SupportV="0.1.45"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
@@ -335,8 +335,8 @@ UseC()
 			echo ${LangSrc}
 			;;
 		CreateHelp)
-			echo -e "make\t\t\t: create makefile"
-			echo -e "version, -std=<c#>\t: compile with a specific version"
+			echo -e "make\t\t\t\t: create makefile"
+			echo -e "version, -std=<c#>\t\t: compile with a specific version"
 			;;
 		shell)
 			;;
