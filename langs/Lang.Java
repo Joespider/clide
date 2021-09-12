@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.92"
+SupportV="0.1.93"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -1419,12 +1419,13 @@ UseJava()
 			;;
 		cli)
 			local TheName=$1
-			local TheBin="${TheName%.*}.class"
-			local TheJar="${TheName%.*}.jar"
+			TheName=${TheName%.*}
+			local TheBin="${TheName}"
+			local TheJar="${TheName}.jar"
 			local JavaProp=$2
 			if [ ! -z "${JavaProp}" ]; then
 				#Its a Class
-				if [ -f ${LangBin}/${TheBin} ]; then
+				if [ -f ${LangBin}/${TheBin}.class ]; then
 					TheName=$(OtherColor ${TheBin})
 					echo "java ${JavaProp} ${TheName}"
 				#Its a Jar
@@ -1434,7 +1435,7 @@ UseJava()
 				fi
 			else
 				#Its a Class
-				if [ -f ${LangBin}/${TheBin} ]; then
+				if [ -f ${LangBin}/${TheBin}.class ]; then
 					TheName=$(OtherColor ${TheBin})
 					echo "java ${TheName}"
 				#Its a Jar
