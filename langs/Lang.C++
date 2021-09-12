@@ -5,7 +5,7 @@ Shell=$(which bash)
 #Link Libs: https://gist.github.com/gubatron/32f82053596c24b6bec6
 #both https://avikdas.com/2019/12/16/makefiles-for-c-cpp-projects.html
 
-SupportV="0.2.01"
+SupportV="0.2.02"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -1086,6 +1086,7 @@ UseC++()
 			;;
 		handleCplArgs)
 			local project=${CodeProject}
+			local HasAutoInFunction
 			local NeedThreads
 			local HasXlib
 			local HasXutil
@@ -1106,6 +1107,7 @@ UseC++()
 			case ${project} in
 				none)
 					if [ ! -z "${src}" ]; then
+						HasAutoInFunction=$(grep -E \(*auto*\) ${src})
 						NeedThreads=$(grep "#include <thread>" ${src})
 						HasXlib=$(grep "#include <X11/Xlib.h>" ${src})
 						HasXutil=$(grep "#include <X11/Xutil.h>" ${src})
@@ -1119,6 +1121,7 @@ UseC++()
 
 					#Check headers for ALL values
 					if [ ! -z "${GetHeaders}" ]; then
+						HasAutoInFunction=$(grep -E \(*auto*\) "${GetHeaders}")
 						NeedThreads=$(grep "#include <thread>" "${GetHeaders}")
 						HasXlib=$(grep "#include <X11/Xlib.h>" "${GetHeaders}")
 						HasXutil=$(grep "#include <X11/Xutil.h>" "${GetHeaders}")
@@ -1127,6 +1130,10 @@ UseC++()
 
 					#Nothing found
 					if [ ! -z "${GetSrc}" ]; then
+						if [ -z "${HasAutoInFunction}" ]; then
+							HasAutoInFunction=$(grep -E \(*auto*\) "${GetHeaders}")
+						fi
+
 						if [ -z "${NeedThreads}" ]; then
 							#Look in source code
 							NeedThreads=$(grep "#include <thread>" "${GetSrc}")
@@ -1141,6 +1148,23 @@ UseC++()
 
 					;;
 			esac
+
+			#[auto] Compile for auto in function
+			#{
+			if [ ! -z "${HasAutoInFunction}" ]; then
+				case ${cplArgs} in
+					*"-fconcepts"*)
+						;;
+					*)
+						if [ -z "${cplArgs}" ]; then
+							cplArgs="-fconcepts"
+						else
+							cplArgs="${cplArgs} -fconcepts"
+						fi
+						;;
+				esac
+			fi
+			#}
 
 			#[Threads] Compile for Threads
 			#{
@@ -1158,6 +1182,7 @@ UseC++()
 				esac
 			fi
 			#}
+
 			#[X11] Compile with X11 code
 			#{
 			if [ ! -z "${HasXlib}" ] || [ ! -z "${HasXutil}" ] || [ ! -z "${HasXos}" ]; then
@@ -1212,6 +1237,9 @@ UseC++()
 						-d|--debug)
 							Item="-g"
 							;;
+						-c|--concepts)
+							Item="-fconcepts"
+							;;
 						-t|--thread)
 							Item="-lpthread"
 							;;
@@ -1258,6 +1286,7 @@ UseC++()
 			echo -e "--opt-space\t\t: \"Optimize space over speed (-Os)\""
 			echo -e "-v, --verboses\t\t: \"Verbose (-v)\""
 			echo -e "-d, --debug\t\t: \"Set Debugging (-g)\""
+			echo -e "--c, --concepts\t\t: \"Set concepts (-fconcepts)\""
 			echo -e "-t, --thread\t\t: \"Set Threading (-lpthread)\""
 			echo -e "-x, --gui\t\t: \"Set GUI (-I /usr/X11/include -L /usr/X11/lib -lX11)\""
 			echo -e "-w, --warnings\t\t: \"Show ALL warnings (-Wall)\""
