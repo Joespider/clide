@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.14"
+SupportV="0.1.15"
 Lang=Rust
 LangExt=".rs"
 ColorNum=1
@@ -649,7 +649,7 @@ UseRust()
 						#Handle multiple files
 						if [[ "${src}" == *","* ]]; then
 							if [ -z "${name}" ]; then
-								src=$(echo ${src} | tr ',' ' ')
+								src=${src//,/ }
 								name=$(grep -l "fn main(" ${src} 2> /dev/null)
 
 								if [ -z "${name}" ]; then
@@ -1069,7 +1069,7 @@ UseRust()
 					none)
 						#Find the main file
 						if [ ! -z "${name}" ]; then
-							name=$(echo ${name} | tr ',' ' ')
+							name=${name//,/ /}
 							name=$(grep -l "fn main(" ${name} 2> /dev/null)
 							TheBin=$(UseRust "removeExt" ${name})
 						fi

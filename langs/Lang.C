@@ -152,7 +152,7 @@ UseC()
 			fi
 			;;
 		IsDebugEnabled)
-			local DebugFlag=$(echo ${CplArgs} | tr ',' ' ' | grep -w "\-g")
+			local DebugFlag=$(echo ${CplArgs//,/ } | grep -w "\-g")
 			if [ ! -z "${DebugFlag}" ]; then
 				echo "yes"
 			fi
@@ -1034,7 +1034,7 @@ UseC()
 			if [ -z "${name}" ]; then
 				case ${src} in
 					*,*)
-						src=$(echo ${src} | tr ',' ' ')
+						src=${src//,/ }
 						name=$(grep -l "int main(" ${src} 2> /dev/null)
 						if [ -z "${name}" ]; then
 							FoundMain="no"
@@ -1635,7 +1635,7 @@ UseC()
 					none)
 						#Find the main file
 						if [ ! -z "${name}" ]; then
-							name=$(echo ${name} | tr ',' ' ')
+							name=${name//,/ }
 							name=$(grep -l "int main(" ${name} 2> /dev/null)
 							TheBin="${name%.*}"
 						fi

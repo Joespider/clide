@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.44"
+SupportV="0.1.45"
 Lang=Go
 LangExt=".go"
 #Color Green
@@ -141,7 +141,7 @@ UseGo()
 			esac
 			;;
 		IsDebugEnabled)
-#			local DebugFlag=$(echo ${CplArgs} | tr ',' ' ' | grep -w "\-g")
+#			local DebugFlag=$(echo ${CplArgs//,/ } | grep -w "\-g")
 #			if [ ! -z "${DebugFlag}" ]; then
 #				echo "yes"
 #			fi
@@ -613,7 +613,7 @@ UseGo()
 			;;
 		make)
 			local src=$1
-			src=$(echo ${src} | tr ',' ' ')
+			src=${src//,/ }
 			local cplArgs=${CplArgs}
 			local project=${CodeProject}
 			local NeedThreads
@@ -750,7 +750,7 @@ UseGo()
 			if [ -z "${name}" ]; then
 				case ${src} in
 					*,*)
-						src=$(echo ${src} | tr ',' ' ')
+						src=${src//,/ }
 						name=$(grep -l "func main(" ${src} 2> /dev/null)
 						if [ -z "${name}" ]; then
 							FoundMain="no"
@@ -1198,7 +1198,7 @@ UseGo()
 					none)
 						#Find the main file
 						if [ ! -z "${name}" ]; then
-							name=$(echo ${name} | tr ',' ' ')
+							name=${name//,/ }
 							name=$(grep -l "int main(" ${name} 2> /dev/null)
 							TheBin="${name%.*}"
 						fi
