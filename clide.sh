@@ -1123,8 +1123,25 @@ runCode()
 	local Args=( $@ )
 	local First="${Args[0]}"
 	local JavaProp="none"
-	local TheBin=$(ManageLangs ${Lang} "getBin" "${name}")
+	local TheBin
 	local TheLang
+
+	case ${Lang} in
+		C|C++|Go|Java|Rust)
+			case ${CodeProject} in
+				none)
+					TheBin=$(ManageLangs ${Lang} "getBin" "${name}")
+					;;
+				*)
+					TheBin=$(ManageLangs ${Lang} "getBin" "${CodeProject}")
+					;;
+			esac
+			;;
+		*)
+			TheBin=$(ManageLangs ${Lang} "getBin" "${name}")
+			;;
+	esac
+
 	if [ ! -z "${TheBin}" ]; then
 		#User Wishes to provide arments for program
 		case ${option} in
@@ -1766,7 +1783,7 @@ Actions()
 								local RemoveDirs=${CodeDir//\//|}
 								find ${CodeDir} -print | tr '/' '|' | sed "s/${RemoveDirs}//g" | tr '|' '/'
 								;;
-							#Delete proejct
+							#Delete project
 							remove|delete)
 								local TheProjectAction=${UserIn[1]}
 								local project=${UserIn[2]}
@@ -2481,6 +2498,18 @@ Actions()
 											if [ -z "${options}" ]; then
 												errorCode "cpl" "cpl-args"
 											else
+												case ${OldVal} in
+													none)
+														;;
+													*)
+														echo ""
+														echo -n "Current: \""
+														echo -n ${OldVal} | tr ',' ' '
+														echo "\""
+														echo ""
+														;;
+												esac
+
 												echo ${options} | tr '|' '\n'
 												#User input
 												echo -n "${cLang}\$ "
@@ -2518,6 +2547,17 @@ Actions()
 												esac
 											fi
 										fi
+										;;
+								esac
+								;;
+							make)
+								case ${Lang} in
+									#only C and C++ uses make
+									C*)
+										ManageLangs ${Lang} "create-make" "${Code}"
+										;;
+									*)
+										errorCode "make" "not-for-lang" ${Lang}
 										;;
 								esac
 								;;
@@ -2567,10 +2607,25 @@ Actions()
 								;;
 							#Clear all
 							reset)
-								#Default values
-								RunTimeArgs=""
-								RunCplArgs="none"
-								echo "All rest"
+								case ${UserIn[2]} in
+									cpl|cpl-args)
+										RunCplArgs="none"
+										echo "Compile args reset"
+										;;
+									args)
+										RunTimeArgs=""
+										echo "Run time args reset"
+										;;
+									all)
+										#Default values
+										RunTimeArgs=""
+										RunCplArgs="none"
+										echo "All rest"
+										;;
+									help|*)
+										theHelp CreateHelp ${Lang}
+										;;
+								esac
 								;;
 							#Compile arguments
 							${UserIn[1]}-${UserIn[2]})
@@ -3209,6 +3264,9 @@ main()
 							;;
 						--discover)
 							discoverProject
+							;;
+						--run)
+							errorCode "ERROR" "This feature needs work"
 							;;
 						--build)
 							shift

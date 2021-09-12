@@ -5,7 +5,7 @@ Shell=$(which bash)
 #Link Libs: https://gist.github.com/gubatron/32f82053596c24b6bec6
 #both https://avikdas.com/2019/12/16/makefiles-for-c-cpp-projects.html
 
-SupportV="0.1.99"
+SupportV="0.2.01"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -178,11 +178,28 @@ UseC++()
 			local project=${CodeProject}
 			local TheSrcDir=${LangProject}/${project}/src
 			if [ ! -z "${name}" ]; then
-				find ${TheSrcDir} -name "${name}" 2> /dev/null
+				case ${name} in
+					${LangExt})
+						find ${TheSrcDir} -name *".cpp" 2> /dev/null
+						find ${TheSrcDir} -name *".cc" 2> /dev/null
+						find ${TheSrcDir} -name *".cxx" 2> /dev/null
+						find ${TheSrcDir} -name *".c++" 2> /dev/null
+						;;
+					${LangOtherExt})
+						find ${TheSrcDir} -name *".h" 2> /dev/null
+						find ${TheSrcDir} -name *".hh" 2> /dev/null
+						find ${TheSrcDir} -name *".hpp" 2> /dev/null
+						find ${TheSrcDir} -name *".hxx" 2> /dev/null
+						find ${TheSrcDir} -name *".h++" 2> /dev/null
+						;;
+					*)
+						find ${TheSrcDir} -name "${name}" 2> /dev/null
+						;;
+				esac
 			fi
 			;;
 		IsDebugEnabled)
-			local DebugFlag=$(echo ${CplArgs} | tr ',' ' ' | grep -w "\-g")
+			local DebugFlag=$(echo ${CplArgs//,/ } | grep -w "\-g")
 			if [ ! -z "${DebugFlag}" ]; then
 				echo "yes"
 			fi
@@ -496,8 +513,8 @@ UseC++()
 			echo ${LangSrc}
 			;;
 		CreateHelp)
-			echo -e "make\t\t\t: create makefile"
-			echo -e "version, -std=<c++#>\t: compile with a specific version"
+			echo -e "make\t\t\t\t: create makefile"
+			echo -e "version, -std=<c++#>\t\t: compile with a specific version"
 			;;
 		shell)
 			;;
@@ -1068,41 +1085,96 @@ UseC++()
 			fi
 			;;
 		handleCplArgs)
+			local project=${CodeProject}
 			local NeedThreads
 			local HasXlib
 			local HasXutil
 			local HasXos
 			local src=$1
+			src=${src//,/ }
 			local cplArgs=$2
 			cplArgs=${cplArgs//,/ }
+
+			case ${CplArgs} in
+				none)
+					cplArgs=""
+					;;
+				*)
+					;;
+			esac
+
+			case ${project} in
+				none)
+					if [ ! -z "${src}" ]; then
+						NeedThreads=$(grep "#include <thread>" ${src})
+						HasXlib=$(grep "#include <X11/Xlib.h>" ${src})
+						HasXutil=$(grep "#include <X11/Xutil.h>" ${src})
+						HasXos=$(grep "#include <X11/Xos.h>" ${src})
+					fi
+					;;
+				*)
+					#Look in headers
+					local GetHeaders=$(UseC++ "getProjSrc" ${LangOtherExt})
+					local GetSrc=$(UseC++ "getProjSrc" ${LangExt})
+
+					#Check headers for ALL values
+					if [ ! -z "${GetHeaders}" ]; then
+						NeedThreads=$(grep "#include <thread>" "${GetHeaders}")
+						HasXlib=$(grep "#include <X11/Xlib.h>" "${GetHeaders}")
+						HasXutil=$(grep "#include <X11/Xutil.h>" "${GetHeaders}")
+						HasXos=$(grep "#include <X11/Xos.h>" "${GetHeaders}")
+					fi
+
+					#Nothing found
+					if [ ! -z "${GetSrc}" ]; then
+						if [ -z "${NeedThreads}" ]; then
+							#Look in source code
+							NeedThreads=$(grep "#include <thread>" "${GetSrc}")
+						fi
+
+						if [ -z "${HasXlib}" ] && [ -z "${HasXutil}" ] && [ -z "${HasXos}" ]; then
+							HasXlib=$(grep "#include <X11/Xlib.h>" "${GetSrc}")
+							HasXutil=$(grep "#include <X11/Xutil.h>" "${GetSrc}")
+							HasXos=$(grep "#include <X11/Xos.h>" "${GetSrc}")
+						fi
+					fi
+
+					;;
+			esac
+
 			#[Threads] Compile for Threads
 			#{
-			NeedThreads=$(grep "#include <thread>" ${src})
 			if [ ! -z "${NeedThreads}" ]; then
 				case ${cplArgs} in
 					*"-lpthread"*)
 						;;
 					*)
-						cplArgs="${cplArgs} -lpthread"
+						if [ -z "${cplArgs}" ]; then
+							cplArgs="-lpthread"
+						else
+							cplArgs="${cplArgs} -lpthread"
+						fi
 						;;
 				esac
 			fi
 			#}
 			#[X11] Compile with X11 code
 			#{
-			HasXlib=$(grep "#include <X11/Xlib.h>" ${src})
-			HasXutil=$(grep "#include <X11/Xutil.h>" ${src})
-			HasXos=$(grep "#include <X11/Xos.h>" ${src})
 			if [ ! -z "${HasXlib}" ] || [ ! -z "${HasXutil}" ] || [ ! -z "${HasXos}" ]; then
 				case ${cplArgs} in
 					*"-I /usr/X11/include -L /usr/X11/lib -lX11"*)
 						;;
 					*)
-						cplArgs="${cplArgs} -I /usr/X11/include -L /usr/X11/lib -lX11"
-						;;
+						if [ -z "${cplArgs}" ]; then
+							cplArgs="-I /usr/X11/include -L /usr/X11/lib -lX11"
+						else
+							cplArgs="${cplArgs} -I /usr/X11/include -L /usr/X11/lib -lX11"
+						fi
+					;;
 				esac
 			fi
 			#}
+
 			echo ${cplArgs// /,}
 			;;
 		setCplArgs)
@@ -1229,7 +1301,7 @@ UseC++()
 			if [ -z "${name}" ]; then
 				case ${src} in
 					*,*)
-						src=$(echo ${src} | tr ',' ' ')
+						src=${src//,/ }
 						name=$(grep -l "int main(" ${src} 2> /dev/null)
 						if [ -z "${name}" ]; then
 							FoundMain="no"
@@ -1307,8 +1379,9 @@ UseC++()
 					else
 						case ${FoundMain} in
 							yes)
+								local CheckSrc=${src// /,}
 								cplArgs=${cplArgs// /,}
-								cplArgs=$(UseC++ "handleCplArgs" ${src} ${cplArgs})
+								cplArgs=$(UseC++ "handleCplArgs" ${CheckSrc} ${cplArgs})
 								cplArgs=${cplArgs//,/ }
 
 								#Handle Verbose
@@ -1367,24 +1440,27 @@ UseC++()
 						errorCode "make" "already"
 					else
 						local TheMakeArgs
-						local cplArgs
-						case ${CplArgs} in
-							none)
-								if [ ! -z "${src}" ]; then
-									TheMakeArgs="CC = ${LangCpl}\n\nVPATH=src\n\nall: ${CodeProject}\n\n${CodeProject}: ${src}\n\t\$(CC) -o bin/\$@ \$<"
-								else
-									TheMakeArgs="CC = ${LangCpl}\n\nall: ${CodeProject}\n\n${CodeProject}:\n\t\$(CC) -o bin/${CodeProject} src/"
-								fi
-								;;
-							*)
-								cplArgs="${CplArgs//,/ }"
-								if [ ! -z "${src}" ]; then
-									TheMakeArgs="CC = ${LangCpl}\nCFLAGS = ${cplArgs}\n\nVPATH=src\n\nall: ${CodeProject}\n\n${CodeProject}: ${src}\n\t\$(CC) -o bin/\$@ \$< \$(CFLAGS)"
-								else
-									TheMakeArgs="CC = ${LangCpl}\nCFLAGS = ${cplArgs}\n\nall: ${CodeProject}\n\n${CodeProject}:\n\t\$(CC) -o bin/${CodeProject} src/ \$(CFLAGS)"
-								fi
-								;;
-						esac
+						local cplArgs=${CplArgs// /,}
+						if [ ! -z "${src}" ]; then
+							local CheckSrc=${src// /,}
+							cplArgs=$(UseC++ "handleCplArgs" "${CheckSrc}" ${cplArgs})
+						else
+							cplArgs=$(UseC++ "handleCplArgs" "none" ${cplArgs})
+						fi
+                                                cplArgs=${cplArgs//,/ }
+                                                if [ -z "${cplArgs}" ]; then
+							if [ ! -z "${src}" ]; then
+								TheMakeArgs="CC = ${LangCpl}\n\nVPATH=src\n\nall: ${CodeProject}\n\n${CodeProject}: ${src}\n\t\$(CC) -o bin/\$@ \$<"
+							else
+								TheMakeArgs="CC = ${LangCpl}\n\nall: ${CodeProject}\n\n${CodeProject}:\n\t\$(CC) -o bin/${CodeProject} src/"
+							fi
+						else
+							if [ ! -z "${src}" ]; then
+								TheMakeArgs="CC = ${LangCpl}\nCFLAGS = ${cplArgs}\n\nVPATH=src\n\nall: ${CodeProject}\n\n${CodeProject}: ${src}\n\t\$(CC) -o bin/\$@ \$< \$(CFLAGS)"
+							else
+								TheMakeArgs="CC = ${LangCpl}\nCFLAGS = ${cplArgs}\n\nall: ${CodeProject}\n\n${CodeProject}:\n\t\$(CC) -o bin/${CodeProject} src/ \$(CFLAGS)"
+							fi
+						fi
 						touch ${LangProject}/${CodeProject}/makefile
 						echo -e "${TheMakeArgs}" > ${LangProject}/${CodeProject}/makefile
 						errorCode "HINT" "makefile Created"
@@ -1832,7 +1908,7 @@ UseC++()
 					none)
 						#Find the main file
 						if [ ! -z "${name}" ]; then
-							name=$(echo ${name} | tr ',' ' ')
+							name=${name//,/ }
 							name=$(grep -l "int main(" ${name} 2> /dev/null)
 							TheBin="${name%.*}"
 						fi

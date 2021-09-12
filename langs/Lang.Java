@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.93"
+SupportV="0.1.94"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -697,7 +697,7 @@ UseJava()
 					#Compile source code
 					case ${src} in
 						*${LangExt})
-							src=$(echo ${src} | tr ',' ' ')
+							src=${src//,/ }
 							#Looks for Main class
 							TheMainClass=$(grep -l "public static void main" ${src})
 							#get Java Class/compiled file name
@@ -1485,7 +1485,7 @@ UseJava()
 
 			#Handle multiple files
 			if [[ "${name}" == *","* ]]; then
-				name=$(echo ${name} | tr ',' ' ')
+				name=${name//,/ }
 				name=$(grep -l "public static void main" ${name})
 				if [ -z "${name}" ]; then
 					echo "Unable to find the \"main\" file"

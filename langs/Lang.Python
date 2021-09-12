@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.74"
+SupportV="0.1.75"
 Lang=Python
 LangExt=".py"
 #Color Yellow
@@ -645,7 +645,7 @@ UsePython()
 			#Handle multiple files
 			if [[ "${src}" == *","* ]]; then
 				if [ -z "${name}" ]; then
-					name=$(echo ${src} | tr ',' ' ')
+					name=${src//,/ }
 					name=$(grep -l "if __name__ == '__main__':" ${name} 2> /dev/null)
 					src=""
 					if [ -z "${name}" ]; then
@@ -999,7 +999,7 @@ UsePython()
 
 			#Handle multiple files
 			if [[ "${name}" == *","* ]]; then
-				name=$(echo ${name} | tr ',' ' ')
+				name=${name//,/ }
 				name=$(grep -l "if __name__ == '__main__':" ${name} 2> /dev/null)
 				if [ -z "${name}" ]; then
 					echo "Unable to find the \"main\" file"

@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.62"
+SupportV="0.1.63"
 Lang=Perl
 LangExt=".pl"
 #Color Purple
@@ -892,7 +892,7 @@ UsePerl()
 
 			#Handle multiple files
 			if [[ "${name}" == *","* ]]; then
-				#name=$(echo ${name} | tr ',' ' ')
+				#name=${name//,/ }
 				if [ -z "${name}" ]; then
 					echo "Unable to find the \"main\" file"
 					echo -n "Please choose: "

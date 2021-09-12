@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.63"
+SupportV="0.1.64"
 Lang=Bash
 LangExt=".sh"
 ColorNum=2
