@@ -1123,8 +1123,25 @@ runCode()
 	local Args=( $@ )
 	local First="${Args[0]}"
 	local JavaProp="none"
-	local TheBin=$(ManageLangs ${Lang} "getBin" "${name}")
+	local TheBin
 	local TheLang
+
+	case ${Lang} in
+		C|C++|Go|Java|Rust)
+			case ${CodeProject} in
+				none)
+					TheBin=$(ManageLangs ${Lang} "getBin" "${name}")
+					;;
+				*)
+					TheBin=$(ManageLangs ${Lang} "getBin" "${CodeProject}")
+					;;
+			esac
+			;;
+		*)
+			TheBin=$(ManageLangs ${Lang} "getBin" "${name}")
+			;;
+	esac
+
 	if [ ! -z "${TheBin}" ]; then
 		#User Wishes to provide arments for program
 		case ${option} in
@@ -1766,7 +1783,7 @@ Actions()
 								local RemoveDirs=${CodeDir//\//|}
 								find ${CodeDir} -print | tr '/' '|' | sed "s/${RemoveDirs}//g" | tr '|' '/'
 								;;
-							#Delete proejct
+							#Delete project
 							remove|delete)
 								local TheProjectAction=${UserIn[1]}
 								local project=${UserIn[2]}
@@ -2533,6 +2550,17 @@ Actions()
 										;;
 								esac
 								;;
+							make)
+								case ${Lang} in
+									#only C and C++ uses make
+									C*)
+										ManageLangs ${Lang} "create-make" "${Code}"
+										;;
+									*)
+										errorCode "make" "not-for-lang" ${Lang}
+										;;
+								esac
+								;;
 							#Args for run time
 							args)
 								echo -n "${cLang}\$ "
@@ -3236,6 +3264,9 @@ main()
 							;;
 						--discover)
 							discoverProject
+							;;
+						--run)
+							errorCode "ERROR" "This feature needs work"
 							;;
 						--build)
 							shift
