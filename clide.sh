@@ -3265,10 +3265,7 @@ main()
 						--discover)
 							discoverProject
 							;;
-						--run)
-							errorCode "ERROR" "This feature needs work"
-							;;
-						--build)
+						--run|--build)
 							shift
 							local Lang
 							GetProject=$1
@@ -3295,41 +3292,56 @@ main()
 												CodeProject="${GetProject}"
 												if [ -d ${CodeDir} ]; then
 													cd ${CodeDir}
-													#Determine action based on language
-													case ${Lang} in
-														Java)
-															if [ -z "${Code}" ]; then
-																ManageLangs ${Lang} "compileCode" ${Code}
+													case ${ActionProject} in
+														--run)
+															shift
+															local ArgFlag=$1
+															if [ ! -z "${ArgFlag}" ]; then
+																runCode ${Lang} "none" "none" "none" $@
 															else
-																ManageLangs ${Lang} "compileCode" "--jar"
+																runCode ${Lang} "none"
 															fi
 															;;
-														C|C++)
-															#Get Make file
-															local TheMakeFile=$(ManageLangs ${Lang} "getMakeFile" ${GetProject})
-															#Compile with makefile
-															if [ ! -z "${TheMakeFile}" ]; then
-																ManageLangs ${Lang} "compileCode"
-															#Compile with selected code
-															elif [ ! -z "${Code}" ]; then
-																ManageLangs ${Lang} "compileCode" ${Code}
-															else
-																errorCode "cli-cpl" "none"
-															fi
-															;;
-														Rust)
-															if [ -z "${Code}" ]; then
-																ManageLangs ${Lang} "compileCode" ${Code}
-															else
-																ManageLangs ${Lang} "compileCode" "--release"
-															fi
+														--build)
+															#Determine action based on language
+															case ${Lang} in
+																Java)
+																	if [ -z "${Code}" ]; then
+																		ManageLangs ${Lang} "compileCode" ${Code}
+																	else
+																		ManageLangs ${Lang} "compileCode" "--jar"
+																	fi
+																	;;
+																C|C++)
+																	#Get Make file
+																	local TheMakeFile=$(ManageLangs ${Lang} "getMakeFile" ${GetProject})
+																	#Compile with makefile
+																	if [ ! -z "${TheMakeFile}" ]; then
+																		ManageLangs ${Lang} "compileCode"
+																	#Compile with selected code
+																	elif [ ! -z "${Code}" ]; then
+																		ManageLangs ${Lang} "compileCode" ${Code}
+																	else
+																		errorCode "cli-cpl" "none"
+																	fi
+																	;;
+																Rust)
+																	if [ -z "${Code}" ]; then
+																		ManageLangs ${Lang} "compileCode" ${Code}
+																	else
+																		ManageLangs ${Lang} "compileCode" "--release"
+																	fi
+																	;;
+																*)
+																	if [ ! -z "${Code}" ]; then
+																		ManageLangs ${Lang} "compileCode" ${Code}
+																	else
+																		errorCode "cli-cpl" "none"
+																	fi
+																	;;
+															esac
 															;;
 														*)
-															if [ ! -z "${Code}" ]; then
-																ManageLangs ${Lang} "compileCode" ${Code}
-															else
-																errorCode "cli-cpl" "none"
-															fi
 															;;
 													esac
 												else
