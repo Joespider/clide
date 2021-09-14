@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.46"
+SupportV="0.1.47"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
@@ -1364,7 +1364,7 @@ UseC()
 				ls ${path}
 			fi
 			;;
-		Install)
+		exe-string)
 			local bin=$1
 			local BinFile="${bin%.*}"
 			local project=${CodeProject}
@@ -1382,14 +1382,46 @@ UseC()
 			esac
 			#Make sure Binary exists
 			if [ -f "${TheBinDir}/${BinFile}" ]; then
-				#Add command to Aliases
-				AddAlias "${BinFile}" "${TheBinDir}/${BinFile}"
-			elif [ ! -f "${TheBinDir}/${BinFile}" ]; then
-				#compile or swap to binary
-				errorCode "install" "${bin}"
-			else
-				errorCode "noCode"
+				echo "${TheBinDir}/${BinFile}"
 			fi
+			;;
+		Install|exe-string)
+			local bin=$1
+			local BinFile="${bin%.*}"
+			local project=${CodeProject}
+			local TheBinDir
+			#Handle Project Dir
+			case ${project} in
+				none)
+					project=""
+					TheBinDir=${LangBin}
+					;;
+				*)
+					project="${project}/"
+					TheBinDir="${LangProject}/${project}bin"
+					;;
+			esac
+			#Make sure Binary exists
+			case ${Type} in
+				Install)
+					if [ -f "${TheBinDir}/${BinFile}" ]; then
+						#Add command to Aliases
+						AddAlias "${BinFile}" "${TheBinDir}/${BinFile}"
+					elif [ ! -f "${TheBinDir}/${BinFile}" ]; then
+						#compile or swap to binary
+						errorCode "install" "${bin}"
+					else
+						errorCode "noCode"
+					fi
+					;;
+				exe-string)
+					if [ -f "${TheBinDir}/${BinFile}" ]; then
+						echo "${TheBinDir}/${BinFile}"
+					fi
+					;;
+				*)
+					;;
+			esac
 			;;
 		customCode)
 			local cLang=$(UseC "color")

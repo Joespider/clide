@@ -5,7 +5,7 @@ Shell=$(which bash)
 #Link Libs: https://gist.github.com/gubatron/32f82053596c24b6bec6
 #both https://avikdas.com/2019/12/16/makefiles-for-c-cpp-projects.html
 
-SupportV="0.2.02"
+SupportV="0.2.03"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -1659,7 +1659,7 @@ UseC++()
 				ls ${path}
 			fi
 			;;
-		Install)
+		Install|exe-string)
 			local bin=$1
 			local BinFile="${bin%.*}"
 			local project=${CodeProject}
@@ -1675,16 +1675,29 @@ UseC++()
 					TheBinDir="${LangProject}/${project}bin"
 					;;
 			esac
-			#Make sure Binary exists
-			if [ -f "${TheBinDir}/${BinFile}" ]; then
-				#Add command to Aliases
-				AddAlias "${BinFile}" "${TheBinDir}/${BinFile}"
-			elif [ ! -f "${TheBinDir}/${BinFile}" ]; then
-				#compile or swap to binary
-				errorCode "install" "${bin}"
-			else
-				errorCode "noCode"
-			fi
+
+			case ${Type} in
+				Install)
+					#Make sure Binary exists
+					if [ -f "${TheBinDir}/${BinFile}" ]; then
+						#Add command to Aliases
+						AddAlias "${BinFile}" "${TheBinDir}/${BinFile}"
+					elif [ ! -f "${TheBinDir}/${BinFile}" ]; then
+						#compile or swap to binary
+						errorCode "install" "${bin}"
+					else
+						errorCode "noCode"
+					fi
+					;;
+				exe-string)
+					#Make sure Binary exists
+					if [ -f "${TheBinDir}/${BinFile}" ]; then
+						echo "${TheBinDir}/${BinFile}"
+					fi
+					;;
+				*)
+					;;
+			esac
 			;;
 		customCode)
 			local cLang=$(UseC++ "color")

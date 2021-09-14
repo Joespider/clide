@@ -139,7 +139,12 @@ ModeHandler()
 	local cLang=$3
 	local Code=$4
 	local cCode=$5
-	local Arg=$6
+	shift
+	shift
+	shift
+	shift
+	shift
+	local Arg=$@
 	case ${Mode} in
 		${repoTool}|repo)
 			#Use ONLY for Projects
@@ -153,7 +158,7 @@ ModeHandler()
 			${ModesDir}/pkg.sh
 			;;
 		add)
-			${ModesDir}/add.sh ${Head} "${LibDir}" "${LangsDir}" "${ClideProjectDir}" ${Lang} ${cLang} ${Code} ${cCode} ${Arg}
+			${ModesDir}/add.sh ${Head} "${LibDir}" "${LangsDir}" "${ClideProjectDir}" ${Lang} ${cLang} ${Code} ${cCode} ${Arg[@]}
 
 			;;
 		#Provide help page when asked
@@ -2087,21 +2092,37 @@ Actions()
 						refresh="yes"
 						;;
 					#Swap Programming Languages
-					use|bash|c|c++|go|java|python|perl|ruby|rust)
+					use|bash|c|c++|go|java|python|perl|ruby|rust|no-lang|nl)
 						Old=${Lang}
 						OldCode=${Code}
 						case ${UserIn[0]} in
 							use)
 								if [ ! -z "${UserIn[1]}" ]; then
-									Lang=$(pgLang ${UserIn[1]})
-									Code=${UserIn[2]}
+									case ${UserIn[1]} in
+										no-lang|nl)
+											#Start IDE
+											Actions-NoLang
+											;;
+										*)
+											Lang=$(pgLang ${UserIn[1]})
+											Code=${UserIn[2]}
+											;;
+									esac
 								else
 									Lang="no"
 								fi
 								;;
 							*)
-								Lang=$(pgLang ${UserIn[0]})
-								Code=${UserIn[1]}
+								case ${UserArg} in
+									no-lang|nl)
+										#Start IDE
+										Actions-NoLang
+										;;
+									*)
+										Lang=$(pgLang ${UserIn[0]})
+										Code=${UserIn[1]}
+										;;
+								esac
 								;;
 						esac
 
@@ -3518,6 +3539,8 @@ main()
 							local TheProjectDir
 							local ChosenLang=$1
 							local SaveProject=$1
+							local ModeAction
+							local ModeType
 							local IsLang=$(pgLang ${GetProject})
 
 							if [ ! -z "${ChosenLang}" ]; then
@@ -3525,12 +3548,17 @@ main()
 									no)
 										ChosenLang=""
 										TheProject=$(loadProject ${GetProject})
+										SaveProject=${GetProject}
+										ModeAction=$1
+										ModeType=$2
 										;;
 									*)
 										TheProject=$(loadProject ${ChosenLang})
 										ChosenLang=${GetProject}
 										project=$(loadProject ${UserIn[3]})
 										GetProject=${SaveProject}
+										ModeAction=$2
+										ModeType=$3
 										;;
 								esac
 							else
@@ -3559,7 +3587,36 @@ main()
 								Lang=$(pgLang ${Lang})
 								TheProjectDir=$(echo ${TheProject} | cut -d ";" -f 3)
 								if [ -d ${TheProjectDir} ]; then
-									Actions ${Lang} "code" "project" "load" "${GetProject}" "${Lang}"
+									CodeProject=${SaveProject}
+									if [ ! -z "${ModeAction}" ]; then
+										case ${ModeAction} in
+											--mode)
+												shift
+												local cCode
+												local cLang=$(color "${Lang}")
+
+												if [ ! -z "${ModeType}" ]; then
+													shift
+													Code=$(echo ${TheProject} | cut -d ";" -f 2)
+													local passCode=${Code}
+													local passcCode=$(color "${Code}")
+													if [ -z "${passCode}" ]; then
+														passCode="none"
+													fi
+													if [ -z "${passcCode}" ]; then
+														passcCode="none"
+													fi
+													#Swap cl[ide] to a given mode
+													ModeHandler ${ModeType} ${Lang} ${cLang} ${passCode} ${passcCode} $@
+												fi
+												;;
+											*)
+												theHelp ProjectCliHelp ${UserArg}
+												;;
+										esac
+									else
+										Actions ${Lang} "code" "project" "load" "${GetProject}" "${Lang}"
+									fi
 								else
 									errorCode "project" "load" "no-path" "${GetProject}"
 								fi

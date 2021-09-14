@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.63"
+SupportV="0.1.64"
 Lang=Ruby
 LangExt=".rb"
 ColorNum=1
@@ -750,7 +750,7 @@ UseRuby()
 				ls ${path}
 			fi
 			;;
-		Install)
+		Install|exe-string)
 			local bin=$1
 			local BinFile="${bin%.*}"
 			local project=${CodeProject}
@@ -766,15 +766,28 @@ UseRuby()
 					TheBinDir="${LangProject}/${project}bin"
 					;;
 			esac
-			#Make sure Binary exists
-			if [ -f "${TheBinDir}/${bin}" ]; then
-				#Add command to Aliases
-				AddAlias "${BinFile}" "${LangRun} ${TheBinDir}/${bin}"
-			elif [ ! -f "${TheBinDir}/${bin}" ]; then
-				errorCode "install" "${bin}"
-			else
-				errorCode "noCode"
-			fi
+
+			case ${Type} in
+				Install)
+					#Make sure Binary exists
+					if [ -f "${TheBinDir}/${bin}" ]; then
+						#Add command to Aliases
+						AddAlias "${BinFile}" "${LangRun} ${TheBinDir}/${bin}"
+					elif [ ! -f "${TheBinDir}/${bin}" ]; then
+						errorCode "install" "${bin}"
+					else
+						errorCode "noCode"
+					fi
+					;;
+				exe-string)
+					#Make sure Binary exists
+					if [ -f "${TheBinDir}/${bin}" ]; then
+						echo "${LangRun} ${TheBinDir}/${bin}"
+					fi
+					;;
+				*)
+					;;
+			esac
 			;;
 		customCode)
 			local cLang=$(UseRuby "color")

@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.64"
+SupportV="0.1.65"
 Lang=Bash
 LangExt=".sh"
 ColorNum=2
@@ -757,7 +757,7 @@ UseBash()
 				ls ${path}
 			fi
 			;;
-		Install)
+		Install|exe-string)
 			local bin=$1
 			local BinFile="${bin%.*}"
 			local project=${CodeProject}
@@ -774,15 +774,28 @@ UseBash()
 					;;
 			esac
 
-			#Make sure Binary exists
-			if [ -f "${TheBinDir}/${bin}" ]; then
-				#Add command to Aliases
-				AddAlias "${BinFile}" "${TheBinDir}/${bin}"
-			elif [ ! -f "${TheBinDir}/${bin}" ]; then
-				errorCode "install" "${bin}"
-			else
-				errorCode "noCode"
-			fi
+			case ${Type} in
+				Install)
+					#Make sure Binary exists
+					if [ -f "${TheBinDir}/${bin}" ]; then
+						#Add command to Aliases
+						AddAlias "${BinFile}" "${TheBinDir}/${bin}"
+					elif [ ! -f "${TheBinDir}/${bin}" ]; then
+						errorCode "install" "${bin}"
+					else
+						errorCode "noCode"
+					fi
+					;;
+				exe-string)
+					#Make sure Binary exists
+					if [ -f "${TheBinDir}/${bin}" ]; then
+						#Add command to Aliases
+						echo "${TheBinDir}/${bin}"
+					fi
+					;;
+				*)
+					;;
+			esac
 			;;
 		customCode)
 			local cLang=$(UseBash "color")

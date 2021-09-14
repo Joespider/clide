@@ -1,81 +1,10 @@
-1: Project Templates
-Status: Implimented
-	Just like Language support, (ie lang/Langs.<language>) have project template scripts
-	Standard/Default Project Tempaltes are built into the Lang.<language>
-	Each project template would have to correspond to a langauge
-
-	Format: project.<lang>.<type>
-		{
-			#!/bin/bash
-			Create()
-			{
-				mkdir <dir> <dir>
-				touch <file> <file>
-			}
-
-			Actions()
-			{
-				local Do=$1
-				case ${Do} in
-					Create)
-						Create
-						;;
-					compileCode)
-						local compiler=$1
-						shift
-						local files=$@
-						#whatever is needed to compile code
-						...
-						;;
-					runCode)
-						#Interpreter
-						local ToRun=$1
-						#whatever is needed to compile code
-						...
-						;;
-					lscpl)
-						local TheBinDir=$1
-						ls ${TheBinDir}
-						;;
-					*)
-						;;
-				esac
-			}
-			Actions $@
-		}
-
-	Example: cl[ide](Java):$ project new MyWebSite Apache
-		Then "Lang.Java" uses "newProject" to calls script "project.Java.Apache"
-
-		newProject
-		{
-			...
-			...
-			project.${lang}.${type} "Create" ${name}
-			...
-			...
-		}
-
-		Lang.Java then calls project.Java.Apache for ALL project specific calls
-		...as of now, would only include compileCode(cpl) and runCode(run, run -a)
-
-		if default project is given, clide passed "default" to Lang.<language>
-
-2: Project Tests
+1: Project Tests
 Status: Implimented
 	Allow for written test cases, like is done in java
 	Have a "test" function
 
-3: Remove existing projects
-Status: completed
-	Allow for users to remove their
-	#To remove a specific project
-	ie: projects remove <project>
-	#To remove ALL projects
-	ie: projects remove all
-
-4: (C/C++) If possible, evaluate compile arguments based on code
-Status: Started
+2: (C/C++) If possible, evaluate compile arguments based on code
+Status: Implimented
 	Also, allow user to select option regardless what is found
 	incorperate into make file creation
 	Threading

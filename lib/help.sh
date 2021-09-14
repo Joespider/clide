@@ -587,8 +587,13 @@ ProjectCliHelp()
 	echo ""
 	echo -e "\t\"Default project Functionality\""
 	echo ""
-	echo -e "${cmd} <project>\t\t\t\t: \"Select and Load ${Head} project\""
-	echo -e "${cmd} <language> <project>\t\t\t: \"Select and Load ${Head} language with project\""
+	echo "\"Select and Load ${Head} project\""
+	echo "${cmd} <project>"
+	echo "${cmd} <language> <project>"
+	echo ""
+	echo "\"Select ${Head} project and Load into a <mode> shell\""
+	echo "${cmd} <project> --mode <mode> <mode arg>"
+	echo "${cmd} <language> <project> --mode <mode> <mode arg>"
 	echo "-----------------------------------------------"
 	echo ""
 }
@@ -664,8 +669,9 @@ ModesHelp()
 				shortcut)
 					case ${component[1],,} in
 						create)
-							echo -e "clide\t\t\t\t:\"Create a clide.desktop\""
-							echo -e "project, app\t\t\t:\"Create an <application>.desktop\""
+							echo "${component[1]}"
+							echo -e "\tclide\t\t\t:\"Create a clide.desktop\""
+							echo -e "\tproject, app <app>\t\t:\"Create an <app>.desktop\""
 							;;
 						*)
 							echo "Component: shortcut"

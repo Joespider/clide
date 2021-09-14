@@ -6,7 +6,7 @@ Shell=$(which bash)
 #git submodule add https://github.com/chaconinc/DbConnector
 
 Head="cl[ide]"
-IDE=$(echo -e "\e[1;43mrepo\e[0m")
+IDE=$(echo -e "\e[1;42mrepo\e[0m")
 Name="cl[${IDE}]"
 
 shift
@@ -84,7 +84,7 @@ gitHandler()
 			#clone a new repo
 			use|clone)
 				#Find repo name
-				repo=$@
+				local repo=$@
 				if [ ! -z "${repo}" ]; then
 					echo git clone ${repo[@]}
 				#Repo not given
@@ -105,7 +105,7 @@ gitHandler()
 				;;
 			#Add files to changes
 			add)
-				files=$@
+				local files=$@
 				#Files given
 				if [ ! -z "${files}" ]; then
 					git add ${files[@]}
@@ -117,7 +117,7 @@ gitHandler()
 			#Provide message for repo
 			message|commit)
 				#Get message
-				msg=$@
+				local msg=$@
 				if [ ! -z "${msg}" ]; then
 					git commit -m "\"${msg[@]}\""
 				#No message found
@@ -127,6 +127,7 @@ gitHandler()
 				;;
 			#Handles Git Branches
 			branch|branches)
+				local name
 				branchAct=$1
 				shift
 				case ${branchAct} in
@@ -198,7 +199,14 @@ gitHandler()
 						;;
 					#list all branches
 					*)
-						git branch -a
+						case ${repoAct} in
+							branch)
+								gitHandler "ActiveBranch"
+								;;
+							*)
+								git branch -a
+								;;
+						esac
 						;;
 				esac
 				;;
@@ -212,6 +220,14 @@ gitHandler()
 					else
 						errorCode "mode-repo" "${repoTool}" "push-no-branch"
 					fi
+				fi
+				;;
+			select|checkout)
+				#Get branch name
+				local name=$1
+				if [ ! -z "${name}" ]; then
+					gitHandler "branch" ${repoAct} ${name}
+					Refresh=True
 				fi
 				;;
 			#Download from the repo
@@ -280,7 +296,7 @@ svnHandler()
 	shift
 	#Git is installed
 	if [ ! -z "${SvnTool}" ]; then
-		echo "svn is installed"
+		errorCode "HINT" "svn is installed"
 	#svn is not installed
 	else
 		errorCode "mode-repo" "${repoTool}" "please-install"

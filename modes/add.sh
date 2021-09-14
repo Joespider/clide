@@ -15,7 +15,7 @@ ClideProjectDir=$1
 ClideProjectDir=${ClideProjectDir}/Templates
 shift
 
-Version="0.1.03"
+Version="0.1.04"
 IDE=$(echo -e "\e[1;43madd\e[0m")
 Name="cl[${IDE}]"
 
@@ -89,6 +89,7 @@ AddShortcut()
 	local Lang=$1
 	local Code=$2
 	local Project=$3
+	local ExeString
 	shift
 	shift
 	shift
@@ -118,6 +119,7 @@ AddShortcut()
 					;;
 				app)
 					local Name=${Choice[2]}
+					local shortcut="/usr/share/applications/${Name}.desktop"
 					case ${Code} in
 						none)
 							errorCode "mode-add" "shortcut" "app" "none"
@@ -133,10 +135,19 @@ AddShortcut()
 									;;
 							esac
 							if [ ! -z "${Name}" ]; then
-								echo "${Name}.desktop"
-								echo "{"
-								echo -e "[Desktop Entry]\nName=${Name}\nEncoding=UTF-8\nExec=bash -c \"\"\nStartupNotify=false\nType=Application"
-								echo "}"
+								ExeString=$(ManageLangs ${Lang} "exe-string" "${Code}")
+								if [ ! -z "${ExeString}" ] && [ ! -f ${shortcut} ]; then
+									echo -e "[Desktop Entry]\nName=${Name}\nEncoding=UTF-8\nExec=bash -c \"${ExeString}\"\nStartupNotify=false\nType=Application" > ${Name}.desktop
+									case ${USER,,} in
+										root)
+											mv ${Name}.desktop ${shortcut}
+											;;
+										*)
+											sudo mv ${Name}.desktop ${shortcut}
+											;;
+									esac
+									errorCode "HINT" "${Name}.desktop created"
+								fi
 							else
 								theHelp "${Lang}" "shortcut" "${Choice[0],,}"
 							fi
@@ -154,7 +165,7 @@ AddShortcut()
 			if [ ! -z "${Name}" ]; then
 				shortcut="/usr/share/applications/${Name}.desktop"
 				if [ -f "${shortcut}" ]; then
-					case $USER in
+					case ${USER,,} in
 						root)
 							${editor} ${shortcut}
 							;;
