@@ -23,8 +23,6 @@ ManageLangs()
 	local Manage=$@
 	if [ -f ${Langs} ]; then
 		${Langs} ${PassedVars[@]} ${Manage[@]}
-#	else
-#		UseOther ${TheLang} ${Manage[@]}
 	fi
 }
 
@@ -560,6 +558,8 @@ ProjectCliHelp()
 	echo ""
 	echo -e "${cmd} --list\t\t\t\t: \"List ${Head} Projects\""
 	echo -e "${cmd} --list <project>\t\t\t: \"List the contents of a given project\""
+	echo -e "${cmd} --link <lang> <project>\t\t: \"Link a language to a given project\""
+	echo -e "${cmd} --link --list <project>\t\t: \"List the linked languages in a given project\""
 	echo -e "${cmd} --langs <project>\t\t\t: \"List the langes associated a given project\""
 	echo -e "${cmd} --new <language> <project> <type>\t: \"Create a new project using the given language\""
 	echo -e "${cmd} --build <project>\t\t\t: \"Build a ${Head} Project\""

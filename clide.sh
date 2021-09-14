@@ -3252,7 +3252,7 @@ main()
 				RepoVersion
 				;;
 			#list supported Langauges
-			-ll|--languages)
+			-ll|--languages|--langs)
 				local pg=$(ColorCodes)
 				echo "Supported Languages: ${pg}"
 				;;
@@ -3285,6 +3285,63 @@ main()
 							;;
 						--discover)
 							discoverProject
+							;;
+						#Link a project with another language
+						--link)
+							shift
+							local Lang
+							local TheLinkAction=$1
+							local TheLang=$1
+							TheLang=$(pgLang ${TheLang})
+							local TheProjectName=$2
+							local TheProject
+							local ProjectFile
+							local Already
+
+							if [ ! -z "${TheProjectName}" ]; then
+								TheProject=$(loadProject ${TheProjectName})
+								if [ "${TheProject}" != "no" ]; then
+									local GetLang=$(echo ${TheProject} | cut -d ";" -f 1)
+									Lang=$(pgLang ${GetLang})
+									case ${Lang} in
+										no)
+											errorCode "ERROR"
+											errorCode "ERROR" "{Default Language} \"${GetLang}\" is not supported"
+											;;
+										*)
+											ProjectFile=${ActiveProjectDir}/${TheProjectName}.clide
+											Already=$(grep "link=" ${ProjectFile})
+											case ${TheLinkAction} in
+												--list)
+													echo ${Already} | sed "s/link=//g" | tr ',' '\n' | sort
+													;;
+												*)
+													case ${TheLang} in
+														no)
+															;;
+														*)
+															local IsLinked=$(linkProjects ${Lang} ${TheLang} ${TheProjectName})
+															if [ ! -z "${IsLinked}" ]; then
+																local cTheLang=$(color "${TheLang}")
+																local cLinkLang=$(color "${Lang}")
+																local cName=$(color "${TheProjectName}")
+																echo "[${cLinkLang} Project: ${cName}]"
+																echo -e "\tLinking ${cLinkLang} ---> ${cTheLang}"
+															else
+																errorCode "project" "link" "unable-link" ${TheLang}
+															fi
+															;;
+													esac
+													;;
+											esac
+											;;
+									esac
+								else
+									errorCode "project" "load" "no-path" "${TheProjectName}"
+								fi
+							else
+								theHelp ProjectCliHelp ${UserArg}
+							fi
 							;;
 						--run|--build)
 							shift
