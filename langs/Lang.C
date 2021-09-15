@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.47"
+SupportV="0.1.48"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
@@ -629,6 +629,17 @@ UseC()
 			local ThePath
 			local theSrc
 			local project=${CodeProject}
+
+			if [ -z "${name}" ]; then
+				case ${project} in
+					none)
+						;;
+					*)
+						name=${project}
+						;;
+				esac
+			fi
+
 			case ${Type} in
 				rmBin)
 					case ${project} in
@@ -839,10 +850,10 @@ UseC()
 			case ${project} in
 				none)
 					if [ ! -z "${src}" ]; then
-						NeedThreads=$(grep "#include <pthread.h>" ${src})
-						HasXlib=$(grep "#include <X11/Xlib.h>" ${src})
-						HasXutil=$(grep "#include <X11/Xutil.h>" ${src})
-						HasXos=$(grep "#include <X11/Xos.h>" ${src})
+						NeedThreads=$(grep "#include <pthread.h>" ${src} 2> /dev/null)
+						HasXlib=$(grep "#include <X11/Xlib.h>" ${src} 2> /dev/null)
+						HasXutil=$(grep "#include <X11/Xutil.h>" ${src} 2> /dev/null)
+						HasXos=$(grep "#include <X11/Xos.h>" ${src} 2> /dev/null)
 					fi
 					;;
 				*)
@@ -852,23 +863,23 @@ UseC()
 
 					#Check headers for ALL values
 					if [ ! -z "${GetHeaders}" ]; then
-						NeedThreads=$(grep "#include <pthread.h>" "${GetHeaders}")
-						HasXlib=$(grep "#include <X11/Xlib.h>" "${GetHeaders}")
-						HasXutil=$(grep "#include <X11/Xutil.h>" "${GetHeaders}")
-						HasXos=$(grep "#include <X11/Xos.h>" "${GetHeaders}")
+						NeedThreads=$(grep "#include <pthread.h>" "${GetHeaders}" 2> /dev/null)
+						HasXlib=$(grep "#include <X11/Xlib.h>" "${GetHeaders}" 2> /dev/null)
+						HasXutil=$(grep "#include <X11/Xutil.h>" "${GetHeaders}" 2> /dev/null)
+						HasXos=$(grep "#include <X11/Xos.h>" "${GetHeaders}" 2> /dev/null)
 					fi
 
 					#Nothing found
 					if [ ! -z "${GetSrc}" ]; then
 						if [ -z "${NeedThreads}" ]; then
 							#Look in source code
-							NeedThreads=$(grep "#include <pthread.h>" "${GetSrc}")
+							NeedThreads=$(grep "#include <pthread.h>" "${GetSrc}" 2> /dev/null)
 						fi
 
 						if [ -z "${HasXlib}" ] && [ -z "${HasXutil}" ] && [ -z "${HasXos}" ]; then
-							HasXlib=$(grep "#include <X11/Xlib.h>" "${GetSrc}")
-							HasXutil=$(grep "#include <X11/Xutil.h>" "${GetSrc}")
-							HasXos=$(grep "#include <X11/Xos.h>" "${GetSrc}")
+							HasXlib=$(grep "#include <X11/Xlib.h>" "${GetSrc}" 2> /dev/null)
+							HasXutil=$(grep "#include <X11/Xutil.h>" "${GetSrc}" 2> /dev/null)
+							HasXos=$(grep "#include <X11/Xos.h>" "${GetSrc}" 2> /dev/null)
 						fi
 					fi
 

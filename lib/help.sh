@@ -562,6 +562,8 @@ ProjectCliHelp()
 	echo -e "${cmd} --link --list <project>\t\t: \"List the linked languages in a given project\""
 	echo -e "${cmd} --langs <project>\t\t\t: \"List the langes associated a given project\""
 	echo -e "${cmd} --new <language> <project> <type>\t: \"Create a new project using the given language\""
+	echo -e "${cmd} --run <project>\t\t\t: \"Run compiled project\""
+	echo -e "${cmd} --run <language> <project>\t\t: \"Run compoled code from given langauge inside project\""
 	echo -e "${cmd} --build <project>\t\t\t: \"Build a ${Head} Project\""
 	echo -e "${cmd} --remove <project>\t\t\t: \"Remove a ${Head} Project\""
 	echo -e "${cmd} --remove all\t\t\t\t: \"Remove ALL ${Head} Projects\""

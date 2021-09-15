@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.95"
+SupportV="0.1.96"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -475,6 +475,17 @@ UseJava()
 			local TheName
 			local theSrc
 			local project=${CodeProject}
+
+			if [ -z "${name}" ]; then
+				case ${project} in
+					none)
+						;;
+					*)
+						name=${project}
+						;;
+				esac
+			fi
+
 			case ${Type} in
 				rmBin)
 					case ${project} in

@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.46"
+SupportV="0.1.48"
 Lang=Go
 LangExt=".go"
 #Color Green
@@ -455,6 +455,17 @@ UseGo()
 			name=$(UseGo "removeExt" ${name})
 			local ThePath
 			local project=${CodeProject}
+
+			if [ -z "${name}" ]; then
+				case ${project} in
+					none)
+						;;
+					*)
+						name=${project}
+						;;
+				esac
+			fi
+
 			case ${Type} in
 				rmBin)
 					case ${project} in
@@ -825,7 +836,14 @@ UseGo()
 
 								#Code compiled successfully
 								if [ -z "${ERROR}" ]; then
-									mv ${name} ${TheBinDir}/
+									case ${project} in
+										none)
+											mv ${name} ${TheBinDir}/
+											;;
+										*)
+											mv ${name} ${TheBinDir}/${project}
+											;;
+									esac
 									UseGo compileCode-message
 								else
 									errorCode "cpl" "ERROR" "${ERROR}"

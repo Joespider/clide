@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.64"
+SupportV="0.1.65"
 Lang=Perl
 LangExt=".pl"
 #Color Purple
@@ -375,6 +375,17 @@ UsePerl()
 			local ThePath
 			local theSrc
 			local project=${CodeProject}
+
+			if [ -z "${name}" ]; then
+				case ${project} in
+					none)
+						;;
+					*)
+						name=${project}
+						;;
+				esac
+			fi
+
 			case ${Type} in
 				rmBin)
 					case ${project} in

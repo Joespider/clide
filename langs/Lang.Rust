@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.16"
+SupportV="0.1.17"
 Lang=Rust
 LangExt=".rs"
 ColorNum=1
@@ -378,6 +378,17 @@ UseRust()
 			local ThePath
 			local theSrc
 			local project=${CodeProject}
+
+			if [ -z "${name}" ]; then
+				case ${project} in
+					none)
+						;;
+					*)
+						name=${project}
+						;;
+				esac
+			fi
+
 			case ${Type} in
 				rmBin)
 					case ${project} in

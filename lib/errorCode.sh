@@ -744,13 +744,13 @@ errorCode()
 					shift
 					local thr=$1
 					errorCode "ERROR"
-					errorCode "ERROR" "${thr} is not compiled"
+					errorCode "ERROR" "${thr} code is not compiled"
 					;;
 				need)
 					shift
 					local thr=$1
 					errorCode "ERROR"
-					errorCode "ERROR" "${thr} is not compiled"
+					errorCode "ERROR" "${thr} code is not compiled"
 					errorCode "HINT" "command"
 					errorCode "HINT" "cpl"
 					;;
