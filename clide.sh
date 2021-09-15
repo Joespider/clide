@@ -41,6 +41,11 @@ AddAlias()
 	${LibDir}/AddAlias.sh $@
 }
 
+ColorPrompt()
+{
+	echo -e "\e[1;40m${1}\e[0m"
+}
+
 #Handle the banner
 Art()
 {
@@ -139,7 +144,12 @@ ModeHandler()
 	local cLang=$3
 	local Code=$4
 	local cCode=$5
-	local Arg=$6
+	shift
+	shift
+	shift
+	shift
+	shift
+	local Arg=$@
 	case ${Mode} in
 		${repoTool}|repo)
 			#Use ONLY for Projects
@@ -153,7 +163,7 @@ ModeHandler()
 			${ModesDir}/pkg.sh
 			;;
 		add)
-			${ModesDir}/add.sh ${Head} "${LibDir}" "${LangsDir}" "${ClideProjectDir}" ${Lang} ${cLang} ${Code} ${cCode} ${Arg}
+			${ModesDir}/add.sh ${Head} "${LibDir}" "${LangsDir}" "${ClideProjectDir}" ${Lang} ${cLang} ${Code} ${cCode} ${Arg[@]}
 
 			;;
 		#Provide help page when asked
@@ -1049,6 +1059,8 @@ Remove()
 									#remove file
 									rm ${TheFile}
 								fi
+								TheFile=${TheFile##*/}
+								echo "\"${TheFile}\" binary REMOVED"
 								;;
 							#Remove the source code ONLY
 							--src)
@@ -1057,16 +1069,18 @@ Remove()
 								if [ ! -z "${TheFile}" ]; then
 									rm ${TheFile}
 								fi
+								TheFile=${TheFile##*/}
+								echo "\"${TheFile}\" source code REMOVED"
 								;;
 							#remove ALL
 							--all)
 								Remove --bin ${active} ${src} ${option} > /dev/null
 								Remove --src ${active} ${src} ${option} > /dev/null
+								echo "binary and source code REMOVED"
 								;;
 							*)
 								;;
 						esac
-						echo "\"${src}\" is REMOVED"
 						;;
 					*)
 						clear
@@ -1126,8 +1140,8 @@ runCode()
 	local TheBin
 	local TheLang
 
-	case ${Lang} in
-		C|C++|Go|Java|Rust)
+#	case ${Lang} in
+#		C|C++|Go|Java|Rust)
 			case ${CodeProject} in
 				none)
 					TheBin=$(ManageLangs ${Lang} "getBin" "${name}")
@@ -1136,11 +1150,11 @@ runCode()
 					TheBin=$(ManageLangs ${Lang} "getBin" "${CodeProject}")
 					;;
 			esac
-			;;
-		*)
-			TheBin=$(ManageLangs ${Lang} "getBin" "${name}")
-			;;
-	esac
+#			;;
+#		*)
+#			TheBin=$(ManageLangs ${Lang} "getBin" "${name}")
+#			;;
+#	esac
 
 	if [ ! -z "${TheBin}" ]; then
 		#User Wishes to provide arments for program
@@ -1170,7 +1184,7 @@ runCode()
 		#Get the Lang.<language> to handle running the code
 		ManageLangs ${Lang} "runCode" "${TheBin}" "${JavaProp}" ${Args[@]}
 	else
-		errorCode "cpl" "need" ${name}
+		errorCode "cpl" "need" ${Lang}
 	fi
 }
 
@@ -1412,6 +1426,7 @@ Actions()
 	local ThePWD
 	local refresh
 	local UserArg
+	local ProjectPrompt
 	local FirstAction=$1
 	#Pass into array
 	local UserIn=( $@ )
@@ -1438,7 +1453,8 @@ Actions()
 					#ProjectDir=${ProjectDir/\//:}
 					cCodeProject=$(ManageLangs ${Lang} "ProjectColor")
 					#Menu with no code
-					prompt="${Name}(${cCodeProject}[${ProjectType:0:1}${ProjectDir}]):$ "
+					ProjectPrompt=$(ColorPrompt ${ProjectType:0:1}:${ProjectDir})
+					prompt="${Name}(${cCodeProject}[${ProjectPrompt}]):$ "
 					;;
 			esac
 		else
@@ -1473,7 +1489,8 @@ Actions()
 					#ProjectDir=${ProjectDir/\//:}
 					#Menu with no code
 					cCodeProject=$(ManageLangs ${Lang} "ProjectColor")
-					prompt="${Name}(${cCodeProject}[${ProjectType:0:1}:${ProjectDir}]{${listSrc}}):$ "
+					ProjectPrompt=$(ColorPrompt ${ProjectType:0:1}:${ProjectDir})
+					prompt="${Name}(${cCodeProject}[${ProjectPrompt}]{${listSrc}}):$ "
 					;;
 			esac
 		fi
@@ -1508,7 +1525,7 @@ Actions()
 						;;
 					lscpl)
 						#list compiled code using Lang.<language>
-					ManageLangs ${Lang} "lscpl"
+						ManageLangs ${Lang} "lscpl"
 						;;
 					ll)
 						shift
@@ -1575,7 +1592,6 @@ Actions()
 					#Delete source code and binary
 					rm|remove|delete)
 						Remove "--all" ${Code} ${UserIn[1]} ${UserIn[2]}
-						CodeProject="none"
 						Code=""
 						refresh="yes"
 						;;
@@ -1597,6 +1613,7 @@ Actions()
 						;;
 					#change dir in project
 					cd)
+						local here
 						local ProjectDir=$(ManageLangs ${Lang} "getProjectDir")
 						#Use ONLY for Projects
 						case ${CodeProject} in
@@ -1606,7 +1623,7 @@ Actions()
 							*)
 								if [ ! -z "${UserIn[1]}" ]; then
 									cd ${UserIn[1]} 2> /dev/null
-									here=$(pwd)
+									here=${PWD}
 									case ${here} in
 										${ProjectDir}*)
 											;;
@@ -1624,13 +1641,14 @@ Actions()
 						;;
 					#get pwd of dir
 					pwd)
+						local here
 						#Use ONLY for Projects
 						case ${CodeProject} in
 							none)
 								errorCode "project" "none" "${Head}"
 								;;
 							*)
-								here=$(pwd)/
+								here=${PWD}/
 								echo ${here#*${CodeProject}}
 								;;
 						esac
@@ -1917,9 +1935,12 @@ Actions()
 								esac
 								;;
 							use|swap)
+								local here
 								local project=${CodeProject}
 								local ProjectFile=${ActiveProjectDir}/${project}.clide
 								local Already=$(grep "link=" ${ProjectFile})
+								local ProjectDir
+
 								case ${UserIn[2]} in
 									#list the active projects
 									--list|list)
@@ -1930,6 +1951,12 @@ Actions()
 										local IsLinked=$(swapProjects ${Lang} ${UserIn[2]})
 										if [ ! -z "${IsLinked}" ]; then
 											Lang=${IsLinked}
+											here=${PWD}/
+											ProjectDir=$(ManageLangs ${Lang} "getProjectDir")
+											if [ -d ${ProjectDir}${here#*${CodeProject}} ]; then
+												cd ${ProjectDir}${here#*${CodeProject}}
+											fi
+
 											if [ ! -z "${UserIn[3]}" ]; then
 												Code=$(selectCode ${Lang} ${UserIn[3]})
 											else
@@ -1945,10 +1972,12 @@ Actions()
 								;;
 							#Load an existing project
 							load|set|select)
+								local here
 								local HasLink
 								local ChosenLang
 								local IsLang=$(pgLang ${UserIn[2]})
 								local TheFile
+								local ProjectDir
 
 								case ${IsLang} in
 									no)
@@ -1984,6 +2013,12 @@ Actions()
 												HasLink=$(grep "link=" ${TheFile} | grep ${ChosenLang})
 												if [ ! -z "${HasLink}" ]; then
 													Lang=${ChosenLang}
+													here=${PWD}/
+
+													ProjectDir=$(ManageLangs ${Lang} "getProjectDir")
+													if [ -d ${ProjectDir}${here#*${CodeProject}} ]; then
+														cd ${ProjectDir}${here#*${CodeProject}}
+													fi
 												fi
 											fi
 
@@ -2087,21 +2122,37 @@ Actions()
 						refresh="yes"
 						;;
 					#Swap Programming Languages
-					use|bash|c|c++|go|java|python|perl|ruby|rust)
+					use|bash|c|c++|go|java|python|perl|ruby|rust|no-lang|nl)
 						Old=${Lang}
 						OldCode=${Code}
 						case ${UserIn[0]} in
 							use)
 								if [ ! -z "${UserIn[1]}" ]; then
-									Lang=$(pgLang ${UserIn[1]})
-									Code=${UserIn[2]}
+									case ${UserIn[1]} in
+										no-lang|nl)
+											#Start IDE
+											Actions-NoLang
+											;;
+										*)
+											Lang=$(pgLang ${UserIn[1]})
+											Code=${UserIn[2]}
+											;;
+									esac
 								else
 									Lang="no"
 								fi
 								;;
 							*)
-								Lang=$(pgLang ${UserIn[0]})
-								Code=${UserIn[1]}
+								case ${UserArg} in
+									no-lang|nl)
+										#Start IDE
+										Actions-NoLang
+										;;
+									*)
+										Lang=$(pgLang ${UserIn[0]})
+										Code=${UserIn[1]}
+										;;
+								esac
 								;;
 						esac
 
@@ -2849,8 +2900,9 @@ Actions()
 											ProjectDir=${ThePWD##*/}
 											#ProjectDir=${ProjectDir/\//:}
 											cCodeProject=$(ManageLangs ${Lang} "ProjectColor")
+											ProjectPrompt=$(ColorPrompt ${ProjectType:0:1}:${ProjectDir})
 											#Menu with no code
-											prompt="${Name}(${cCodeProject}[${ProjectType:0:1}:${ProjectDir}]):$ "
+											prompt="${Name}(${cCodeProject}[${ProjectPrompt}]):$ "
 											;;
 									esac
 								else
@@ -2884,7 +2936,8 @@ Actions()
 											#ProjectDir=${ProjectDir/\//:}
 											#Menu with no code
 											cCodeProject=$(ManageLangs ${Lang} "ProjectColor")
-											prompt="${Name}(${cCodeProject}[${ProjectType:0:1}:${ProjectDir}]{${listSrc}}):$ "
+											ProjectPrompt=$(ColorPrompt ${ProjectType:0:1}:${ProjectDir})
+											prompt="${Name}(${cCodeProject}[${ProjectPrompt}]{${listSrc}}):$ "
 											;;
 									esac
 								fi
@@ -3231,7 +3284,7 @@ main()
 				RepoVersion
 				;;
 			#list supported Langauges
-			-ll|--languages)
+			-ll|--languages|--langs)
 				local pg=$(ColorCodes)
 				echo "Supported Languages: ${pg}"
 				;;
@@ -3265,11 +3318,80 @@ main()
 						--discover)
 							discoverProject
 							;;
-						--run|--build)
+						#Link a project with another language
+						--link)
 							shift
 							local Lang
-							GetProject=$1
-							Code=$2
+							local TheLinkAction=$1
+							local TheLang=$1
+							TheLang=$(pgLang ${TheLang})
+							local TheProjectName=$2
+							local TheProject
+							local ProjectFile
+							local Already
+
+							if [ ! -z "${TheProjectName}" ]; then
+								TheProject=$(loadProject ${TheProjectName})
+								if [ "${TheProject}" != "no" ]; then
+									local GetLang=$(echo ${TheProject} | cut -d ";" -f 1)
+									Lang=$(pgLang ${GetLang})
+									case ${Lang} in
+										no)
+											errorCode "ERROR"
+											errorCode "ERROR" "{Default Language} \"${GetLang}\" is not supported"
+											;;
+										*)
+											ProjectFile=${ActiveProjectDir}/${TheProjectName}.clide
+											Already=$(grep "link=" ${ProjectFile})
+											case ${TheLinkAction} in
+												--list)
+													echo ${Already} | sed "s/link=//g" | tr ',' '\n' | sort
+													;;
+												*)
+													case ${TheLang} in
+														no)
+															;;
+														*)
+															local IsLinked=$(linkProjects ${Lang} ${TheLang} ${TheProjectName})
+															if [ ! -z "${IsLinked}" ]; then
+																local cTheLang=$(color "${TheLang}")
+																local cLinkLang=$(color "${Lang}")
+																local cName=$(color "${TheProjectName}")
+																echo "[${cLinkLang} Project: ${cName}]"
+																echo -e "\tLinking ${cLinkLang} ---> ${cTheLang}"
+															else
+																errorCode "project" "link" "unable-link" ${TheLang}
+															fi
+															;;
+													esac
+													;;
+											esac
+											;;
+									esac
+								else
+									errorCode "project" "load" "no-path" "${TheProjectName}"
+								fi
+							else
+								theHelp ProjectCliHelp ${UserArg}
+							fi
+							;;
+						--run|--build)
+							shift
+							local Lang=$1
+							Lang=$(pgLang ${Lang})
+
+							case ${Lang} in
+								no)
+									Lang=""
+									GetProject=$1
+									Code=$2
+									;;
+								*)
+									GetProject=$2
+									Code=$3
+									;;
+							esac
+
 							if [ -z "${GetProject}" ]; then
 								theHelp BuildHelp ${UserArg}
 							else
@@ -3281,12 +3403,17 @@ main()
 									*)
 										local TheProject=$(loadProject ${GetProject})
 										if [ "${TheProject}" != "no" ]; then
-											Lang=$(echo ${TheProject} | cut -d ";" -f 1)
-											Lang=$(pgLang ${Lang})
+
+											if [ -z "${Lang}" ]; then
+												Lang=$(echo ${TheProject} | cut -d ";" -f 1)
+												Lang=$(pgLang ${Lang})
+											fi
+
 											#If no source code is found, look in project file
 											if [ -z "${Code}" ]; then
 												Code=$(echo ${TheProject} | cut -d ";" -f 2)
 											fi
+
 											local CodeDir=$(echo ${TheProject} | cut -d ";" -f 3)
 											if [ ! -z "${CodeDir}" ]; then
 												CodeProject="${GetProject}"
@@ -3518,6 +3645,8 @@ main()
 							local TheProjectDir
 							local ChosenLang=$1
 							local SaveProject=$1
+							local ModeAction
+							local ModeType
 							local IsLang=$(pgLang ${GetProject})
 
 							if [ ! -z "${ChosenLang}" ]; then
@@ -3525,12 +3654,17 @@ main()
 									no)
 										ChosenLang=""
 										TheProject=$(loadProject ${GetProject})
+										SaveProject=${GetProject}
+										ModeAction=$1
+										ModeType=$2
 										;;
 									*)
 										TheProject=$(loadProject ${ChosenLang})
 										ChosenLang=${GetProject}
 										project=$(loadProject ${UserIn[3]})
 										GetProject=${SaveProject}
+										ModeAction=$2
+										ModeType=$3
 										;;
 								esac
 							else
@@ -3559,7 +3693,36 @@ main()
 								Lang=$(pgLang ${Lang})
 								TheProjectDir=$(echo ${TheProject} | cut -d ";" -f 3)
 								if [ -d ${TheProjectDir} ]; then
-									Actions ${Lang} "code" "project" "load" "${GetProject}" "${Lang}"
+									CodeProject=${SaveProject}
+									if [ ! -z "${ModeAction}" ]; then
+										case ${ModeAction} in
+											--mode)
+												shift
+												local cCode
+												local cLang=$(color "${Lang}")
+
+												if [ ! -z "${ModeType}" ]; then
+													shift
+													Code=$(echo ${TheProject} | cut -d ";" -f 2)
+													local passCode=${Code}
+													local passcCode=$(color "${Code}")
+													if [ -z "${passCode}" ]; then
+														passCode="none"
+													fi
+													if [ -z "${passcCode}" ]; then
+														passcCode="none"
+													fi
+													#Swap cl[ide] to a given mode
+													ModeHandler ${ModeType} ${Lang} ${cLang} ${passCode} ${passcCode} $@
+												fi
+												;;
+											*)
+												theHelp ProjectCliHelp ${UserArg}
+												;;
+										esac
+									else
+										Actions ${Lang} "code" "project" "load" "${GetProject}" "${Lang}"
+									fi
 								else
 									errorCode "project" "load" "no-path" "${GetProject}"
 								fi
@@ -3866,7 +4029,7 @@ main()
 									#run the code..."none" "none" is to provide the needed padding to run
 									runCode ${Lang} ${Code} "none" "none" ${Args[@]}
 								else
-									errorCode "cpl" "cli-need" "${Code}"
+									errorCode "cpl" "cli-need" "${Lang}"
 								fi
 							fi
 							;;

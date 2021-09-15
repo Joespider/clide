@@ -23,8 +23,6 @@ ManageLangs()
 	local Manage=$@
 	if [ -f ${Langs} ]; then
 		${Langs} ${PassedVars[@]} ${Manage[@]}
-#	else
-#		UseOther ${TheLang} ${Manage[@]}
 	fi
 }
 
@@ -560,8 +558,12 @@ ProjectCliHelp()
 	echo ""
 	echo -e "${cmd} --list\t\t\t\t: \"List ${Head} Projects\""
 	echo -e "${cmd} --list <project>\t\t\t: \"List the contents of a given project\""
+	echo -e "${cmd} --link <lang> <project>\t\t: \"Link a language to a given project\""
+	echo -e "${cmd} --link --list <project>\t\t: \"List the linked languages in a given project\""
 	echo -e "${cmd} --langs <project>\t\t\t: \"List the langes associated a given project\""
 	echo -e "${cmd} --new <language> <project> <type>\t: \"Create a new project using the given language\""
+	echo -e "${cmd} --run <project>\t\t\t: \"Run compiled project\""
+	echo -e "${cmd} --run <language> <project>\t\t: \"Run compoled code from given langauge inside project\""
 	echo -e "${cmd} --build <project>\t\t\t: \"Build a ${Head} Project\""
 	echo -e "${cmd} --remove <project>\t\t\t: \"Remove a ${Head} Project\""
 	echo -e "${cmd} --remove all\t\t\t\t: \"Remove ALL ${Head} Projects\""
@@ -587,8 +589,13 @@ ProjectCliHelp()
 	echo ""
 	echo -e "\t\"Default project Functionality\""
 	echo ""
-	echo -e "${cmd} <project>\t\t\t\t: \"Select and Load ${Head} project\""
-	echo -e "${cmd} <language> <project>\t\t\t: \"Select and Load ${Head} language with project\""
+	echo "\"Select and Load ${Head} project\""
+	echo "${cmd} <project>"
+	echo "${cmd} <language> <project>"
+	echo ""
+	echo "\"Select ${Head} project and Load into a <mode> shell\""
+	echo "${cmd} <project> --mode <mode> <mode arg>"
+	echo "${cmd} <language> <project> --mode <mode> <mode arg>"
 	echo "-----------------------------------------------"
 	echo ""
 }
@@ -664,8 +671,9 @@ ModesHelp()
 				shortcut)
 					case ${component[1],,} in
 						create)
-							echo -e "clide\t\t\t\t:\"Create a clide.desktop\""
-							echo -e "project, app\t\t\t:\"Create an <application>.desktop\""
+							echo "${component[1]}"
+							echo -e "\tclide\t\t\t:\"Create a clide.desktop\""
+							echo -e "\tproject, app <app>\t\t:\"Create an <app>.desktop\""
 							;;
 						*)
 							echo "Component: shortcut"

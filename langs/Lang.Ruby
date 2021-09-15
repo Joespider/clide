@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.63"
+SupportV="0.1.65"
 Lang=Ruby
 LangExt=".rb"
 ColorNum=1
@@ -396,6 +396,17 @@ UseRuby()
 			local ThePath
 			local theSrc
 			local project=${CodeProject}
+
+			if [ -z "${name}" ]; then
+				case ${project} in
+					none)
+						;;
+					*)
+						name=${project}
+						;;
+				esac
+			fi
+
 			case ${Type} in
 				rmBin)
 					case ${project} in
@@ -634,7 +645,7 @@ UseRuby()
 									1)
 										src=$(UseRuby "getProjSrc" ${src})
 										src="..${src##*${CodeProject}}"
-										ERROR=$(ln -s ${src} 2>&1 | tr '\n' '|')
+										ERROR=$(ln -s ${src} ${CodeProject}${LangExt} 2>&1 | tr '\n' '|')
 										;;
 									*)
 										;;
@@ -669,7 +680,7 @@ UseRuby()
 									1)
 										src=$(UseRuby "getProjSrc" ${src})
 										src="..${src##*${CodeProject}}"
-										ERROR=$(ln -s ${src} 2>&1 | tr '\n' '|')
+										ERROR=$(ln -s ${src} ${CodeProject}${LangExt}  2>&1 | tr '\n' '|')
 										;;
 									*)
 										;;
@@ -750,7 +761,7 @@ UseRuby()
 				ls ${path}
 			fi
 			;;
-		Install)
+		Install|exe-string)
 			local bin=$1
 			local BinFile="${bin%.*}"
 			local project=${CodeProject}
@@ -766,15 +777,28 @@ UseRuby()
 					TheBinDir="${LangProject}/${project}bin"
 					;;
 			esac
-			#Make sure Binary exists
-			if [ -f "${TheBinDir}/${bin}" ]; then
-				#Add command to Aliases
-				AddAlias "${BinFile}" "${LangRun} ${TheBinDir}/${bin}"
-			elif [ ! -f "${TheBinDir}/${bin}" ]; then
-				errorCode "install" "${bin}"
-			else
-				errorCode "noCode"
-			fi
+
+			case ${Type} in
+				Install)
+					#Make sure Binary exists
+					if [ -f "${TheBinDir}/${bin}" ]; then
+						#Add command to Aliases
+						AddAlias "${BinFile}" "${LangRun} ${TheBinDir}/${bin}"
+					elif [ ! -f "${TheBinDir}/${bin}" ]; then
+						errorCode "install" "${bin}"
+					else
+						errorCode "noCode"
+					fi
+					;;
+				exe-string)
+					#Make sure Binary exists
+					if [ -f "${TheBinDir}/${bin}" ]; then
+						echo "${LangRun} ${TheBinDir}/${bin}"
+					fi
+					;;
+				*)
+					;;
+			esac
 			;;
 		customCode)
 			local cLang=$(UseRuby "color")

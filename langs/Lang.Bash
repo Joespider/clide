@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.64"
+SupportV="0.1.66"
 Lang=Bash
 LangExt=".sh"
 ColorNum=2
@@ -401,6 +401,17 @@ UseBash()
 			local ThePath
 			local theSrc
 			local project=${CodeProject}
+
+			if [ -z "${name}" ]; then
+				case ${project} in
+					none)
+						;;
+					*)
+						name=${project}
+						;;
+				esac
+			fi
+
 			case ${Type} in
 				rmBin)
 					case ${project} in
@@ -428,8 +439,10 @@ UseBash()
 					;;
 			esac
 	
-			if [ -f ${ThePath}/${name}${LangExt} ]; then
+			if [ -f ${ThePath}/${name}${LangExt} ] ; then
 				echo ${ThePath}/${name}${LangExt}
+			elif [ -f ${ThePath}/${project}${LangExt} ]; then
+				echo ${ThePath}/${project}${LangExt}
 			else
 				case ${Type} in
 					rmSrc)
@@ -639,7 +652,7 @@ UseBash()
 									1)
 										src=$(UseBash "getProjSrc" ${src})
 										src="..${src##*${CodeProject}}"
-										ERROR=$(ln -s ${src} 2>&1 | tr '\n' '|')
+										ERROR=$(ln -s ${src} ${CodeProject}${LangExt} 2>&1 | tr '\n' '|')
 										;;
 									*)
 										;;
@@ -676,7 +689,7 @@ UseBash()
 										src=$(UseBash "getProjSrc" ${src})
 										src="..${src##*${CodeProject}}"
 										chmod +x ${src} 2> /dev/null
-										ERROR=$(ln -s ${src} 2>&1 | tr '\n' '|')
+										ERROR=$(ln -s ${src} ${CodeProject}${LangExt} 2>&1 | tr '\n' '|')
 										;;
 									*)
 										;;
@@ -757,7 +770,7 @@ UseBash()
 				ls ${path}
 			fi
 			;;
-		Install)
+		Install|exe-string)
 			local bin=$1
 			local BinFile="${bin%.*}"
 			local project=${CodeProject}
@@ -774,15 +787,28 @@ UseBash()
 					;;
 			esac
 
-			#Make sure Binary exists
-			if [ -f "${TheBinDir}/${bin}" ]; then
-				#Add command to Aliases
-				AddAlias "${BinFile}" "${TheBinDir}/${bin}"
-			elif [ ! -f "${TheBinDir}/${bin}" ]; then
-				errorCode "install" "${bin}"
-			else
-				errorCode "noCode"
-			fi
+			case ${Type} in
+				Install)
+					#Make sure Binary exists
+					if [ -f "${TheBinDir}/${bin}" ]; then
+						#Add command to Aliases
+						AddAlias "${BinFile}" "${TheBinDir}/${bin}"
+					elif [ ! -f "${TheBinDir}/${bin}" ]; then
+						errorCode "install" "${bin}"
+					else
+						errorCode "noCode"
+					fi
+					;;
+				exe-string)
+					#Make sure Binary exists
+					if [ -f "${TheBinDir}/${bin}" ]; then
+						#Add command to Aliases
+						echo "${TheBinDir}/${bin}"
+					fi
+					;;
+				*)
+					;;
+			esac
 			;;
 		customCode)
 			local cLang=$(UseBash "color")

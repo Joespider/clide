@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.45"
+SupportV="0.1.48"
 Lang=Go
 LangExt=".go"
 #Color Green
@@ -455,6 +455,17 @@ UseGo()
 			name=$(UseGo "removeExt" ${name})
 			local ThePath
 			local project=${CodeProject}
+
+			if [ -z "${name}" ]; then
+				case ${project} in
+					none)
+						;;
+					*)
+						name=${project}
+						;;
+				esac
+			fi
+
 			case ${Type} in
 				rmBin)
 					case ${project} in
@@ -825,7 +836,14 @@ UseGo()
 
 								#Code compiled successfully
 								if [ -z "${ERROR}" ]; then
-									mv ${name} ${TheBinDir}/
+									case ${project} in
+										none)
+											mv ${name} ${TheBinDir}/
+											;;
+										*)
+											mv ${name} ${TheBinDir}/${project}
+											;;
+									esac
 									UseGo compileCode-message
 								else
 									errorCode "cpl" "ERROR" "${ERROR}"
@@ -953,7 +971,7 @@ UseGo()
 				ls ${path}
 			fi
 			;;
-		Install)
+		Install|exe-string)
 			local bin=$1
 			local BinFile="${bin%.*}"
 			local project=${CodeProject}
@@ -969,16 +987,29 @@ UseGo()
 					TheBinDir="${LangProject}/${project}bin"
 					;;
 			esac
-			#Make sure Binary exists
-			if [ -f "${TheBinDir}/${BinFile}" ]; then
-				#Add command to Aliases
-				AddAlias "${BinFile}" "${TheBinDir}/${BinFile}"
-			elif [ ! -f "${TheBinDir}/${BinFile}" ]; then
-				#compile or swap to binary
-				errorCode "install" "${bin}"
-			else
-				errorCode "noCode"
-			fi
+
+			case ${Type} in
+				Install)
+					#Make sure Binary exists
+					if [ -f "${TheBinDir}/${BinFile}" ]; then
+						#Add command to Aliases
+						AddAlias "${BinFile}" "${TheBinDir}/${BinFile}"
+					elif [ ! -f "${TheBinDir}/${BinFile}" ]; then
+						#compile or swap to binary
+						errorCode "install" "${bin}"
+					else
+						errorCode "noCode"
+					fi
+					;;
+				exe-string)
+					#Make sure Binary exists
+					if [ -f "${TheBinDir}/${BinFile}" ]; then
+						echo "${TheBinDir}/${BinFile}"
+					fi
+					;;
+				*)
+					;;
+			esac
 			;;
 		customCode)
 			local cLang=$(UseGo "color")

@@ -5,7 +5,7 @@ Shell=$(which bash)
 #Link Libs: https://gist.github.com/gubatron/32f82053596c24b6bec6
 #both https://avikdas.com/2019/12/16/makefiles-for-c-cpp-projects.html
 
-SupportV="0.2.02"
+SupportV="0.2.04"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -886,6 +886,17 @@ UseC++()
 			local theHeader
 			local theSrc
 			local project=${CodeProject}
+
+			if [ -z "${name}" ]; then
+				case ${project} in
+					none)
+						;;
+					*)
+						name=${project}
+						;;
+				esac
+			fi
+
 			case ${Type} in
 				rmBin)
 					case ${project} in
@@ -1107,11 +1118,11 @@ UseC++()
 			case ${project} in
 				none)
 					if [ ! -z "${src}" ]; then
-						HasAutoInFunction=$(grep -E \(*auto*\) ${src})
-						NeedThreads=$(grep "#include <thread>" ${src})
-						HasXlib=$(grep "#include <X11/Xlib.h>" ${src})
-						HasXutil=$(grep "#include <X11/Xutil.h>" ${src})
-						HasXos=$(grep "#include <X11/Xos.h>" ${src})
+						HasAutoInFunction=$(grep -E \(*auto*\) ${src} 2> /dev/null)
+						NeedThreads=$(grep "#include <thread>" ${src} 2> /dev/null)
+						HasXlib=$(grep "#include <X11/Xlib.h>" ${src} 2> /dev/null)
+						HasXutil=$(grep "#include <X11/Xutil.h>" ${src} 2> /dev/null)
+						HasXos=$(grep "#include <X11/Xos.h>" ${src} 2> /dev/null)
 					fi
 					;;
 				*)
@@ -1121,28 +1132,28 @@ UseC++()
 
 					#Check headers for ALL values
 					if [ ! -z "${GetHeaders}" ]; then
-						HasAutoInFunction=$(grep -E \(*auto*\) "${GetHeaders}")
-						NeedThreads=$(grep "#include <thread>" "${GetHeaders}")
-						HasXlib=$(grep "#include <X11/Xlib.h>" "${GetHeaders}")
-						HasXutil=$(grep "#include <X11/Xutil.h>" "${GetHeaders}")
-						HasXos=$(grep "#include <X11/Xos.h>" "${GetHeaders}")
+						HasAutoInFunction=$(grep -E \(*auto*\) "${GetHeaders}" 2> /dev/null)
+						NeedThreads=$(grep "#include <thread>" "${GetHeaders}" 2> /dev/null)
+						HasXlib=$(grep "#include <X11/Xlib.h>" "${GetHeaders}" 2> /dev/null)
+						HasXutil=$(grep "#include <X11/Xutil.h>" "${GetHeaders}" 2> /dev/null)
+						HasXos=$(grep "#include <X11/Xos.h>" "${GetHeaders}" 2> /dev/null)
 					fi
 
 					#Nothing found
 					if [ ! -z "${GetSrc}" ]; then
 						if [ -z "${HasAutoInFunction}" ]; then
-							HasAutoInFunction=$(grep -E \(*auto*\) "${GetHeaders}")
+							HasAutoInFunction=$(grep -E \(*auto*\) "${GetHeaders}" 2> /dev/null)
 						fi
 
 						if [ -z "${NeedThreads}" ]; then
 							#Look in source code
-							NeedThreads=$(grep "#include <thread>" "${GetSrc}")
+							NeedThreads=$(grep "#include <thread>" "${GetSrc}" 2> /dev/null)
 						fi
 
 						if [ -z "${HasXlib}" ] && [ -z "${HasXutil}" ] && [ -z "${HasXos}" ]; then
-							HasXlib=$(grep "#include <X11/Xlib.h>" "${GetSrc}")
-							HasXutil=$(grep "#include <X11/Xutil.h>" "${GetSrc}")
-							HasXos=$(grep "#include <X11/Xos.h>" "${GetSrc}")
+							HasXlib=$(grep "#include <X11/Xlib.h>" "${GetSrc}" 2> /dev/null)
+							HasXutil=$(grep "#include <X11/Xutil.h>" "${GetSrc}" 2> /dev/null)
+							HasXos=$(grep "#include <X11/Xos.h>" "${GetSrc}" 2> /dev/null)
 						fi
 					fi
 
@@ -1659,7 +1670,7 @@ UseC++()
 				ls ${path}
 			fi
 			;;
-		Install)
+		Install|exe-string)
 			local bin=$1
 			local BinFile="${bin%.*}"
 			local project=${CodeProject}
@@ -1675,16 +1686,29 @@ UseC++()
 					TheBinDir="${LangProject}/${project}bin"
 					;;
 			esac
-			#Make sure Binary exists
-			if [ -f "${TheBinDir}/${BinFile}" ]; then
-				#Add command to Aliases
-				AddAlias "${BinFile}" "${TheBinDir}/${BinFile}"
-			elif [ ! -f "${TheBinDir}/${BinFile}" ]; then
-				#compile or swap to binary
-				errorCode "install" "${bin}"
-			else
-				errorCode "noCode"
-			fi
+
+			case ${Type} in
+				Install)
+					#Make sure Binary exists
+					if [ -f "${TheBinDir}/${BinFile}" ]; then
+						#Add command to Aliases
+						AddAlias "${BinFile}" "${TheBinDir}/${BinFile}"
+					elif [ ! -f "${TheBinDir}/${BinFile}" ]; then
+						#compile or swap to binary
+						errorCode "install" "${bin}"
+					else
+						errorCode "noCode"
+					fi
+					;;
+				exe-string)
+					#Make sure Binary exists
+					if [ -f "${TheBinDir}/${BinFile}" ]; then
+						echo "${TheBinDir}/${BinFile}"
+					fi
+					;;
+				*)
+					;;
+			esac
 			;;
 		customCode)
 			local cLang=$(UseC++ "color")

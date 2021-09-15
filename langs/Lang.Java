@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.94"
+SupportV="0.1.96"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -475,6 +475,17 @@ UseJava()
 			local TheName
 			local theSrc
 			local project=${CodeProject}
+
+			if [ -z "${name}" ]; then
+				case ${project} in
+					none)
+						;;
+					*)
+						name=${project}
+						;;
+				esac
+			fi
+
 			case ${Type} in
 				rmBin)
 					case ${project} in
@@ -1061,7 +1072,7 @@ UseJava()
 				ls ${path}
 			fi
 			;;
-		Install)
+		Install|exe-string)
 			local bin=$1
 			local BinFile="${bin%.*}"
 			local project=${CodeProject}
@@ -1077,20 +1088,37 @@ UseJava()
 					TheBinDir="${LangProject}/${project}bin"
 					;;
 			esac
-			#Java binary
-			if [[ "${bin}" == *"${LangExt}" ]]; then
-				#Check for Jar file
-				if [ -f "${TheBinDir}/${BinFile}.jar" ]; then
-					AddAlias "${BinFile}" "${LangRun} -jar ${TheBinDir}/${BinFile}.jar"
-				elif [ -f "${TheBinDir}/${BinFile}.class" ]; then
-					echo "Please compile as jar file"
-					echo "[hint] $ cpl jar"
-				else
-					errorCode "install" "${bin}"
-				fi
-			else
-				errorCode "noCode"
-			fi
+			case ${Type} in
+				Install)
+					#Java binary
+					if [[ "${bin}" == *"${LangExt}" ]]; then
+						#Check for Jar file
+						if [ -f "${TheBinDir}/${BinFile}.jar" ]; then
+							AddAlias "${BinFile}" "${LangRun} -jar ${TheBinDir}/${BinFile}.jar"
+						elif [ -f "${TheBinDir}/${BinFile}.class" ]; then
+							errorCode "ERROR"
+							errorCode "ERROR" "Please compile as jar file"
+							errorCode "HINT" "command"
+							errorCode "HINT" "cpl jar"
+						else
+							errorCode "install" "${bin}"
+						fi
+					else
+						errorCode "noCode"
+					fi
+					;;
+				exe-string)
+					#Java binary
+					if [[ "${bin}" == *"${LangExt}" ]]; then
+						#Check for Jar file
+						if [ -f "${TheBinDir}/${BinFile}.jar" ]; then
+							echo "${LangRun} -jar ${TheBinDir}/${BinFile}.jar"
+						fi
+					fi
+					;;
+				*)
+					;;
+			esac
 			;;
 		customCode)
 			local cLang=$(UseJava "color")

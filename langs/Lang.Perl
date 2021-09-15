@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.63"
+SupportV="0.1.65"
 Lang=Perl
 LangExt=".pl"
 #Color Purple
@@ -375,6 +375,17 @@ UsePerl()
 			local ThePath
 			local theSrc
 			local project=${CodeProject}
+
+			if [ -z "${name}" ]; then
+				case ${project} in
+					none)
+						;;
+					*)
+						name=${project}
+						;;
+				esac
+			fi
+
 			case ${Type} in
 				rmBin)
 					case ${project} in
@@ -695,7 +706,7 @@ UsePerl()
 				ls ${path}
 			fi
 			;;
-		Install)
+		Install|exe-string)
 			bin=$1
 			BinFile="${bin%.*}"
 			local project=${CodeProject}
@@ -711,15 +722,28 @@ UsePerl()
 					TheBinDir="${LangProject}/${project}bin"
 					;;
 			esac
-			#Make sure Binary exists
-			if [ -f "${TheBinDir}/${bin}" ]; then
-				#Add command to Aliases
-				AddAlias "${BinFile}" "${LangRun} ${TheBinDir}/${bin}"
-			elif [ ! -f "${TheBinDir}/${bin}" ]; then
-				errorCode "install" "${bin}"
-			else
-				errorCode "noCode"
-			fi
+
+			case ${Type} in
+				Install)
+					#Make sure Binary exists
+					if [ -f "${TheBinDir}/${bin}" ]; then
+						#Add command to Aliases
+						AddAlias "${BinFile}" "${LangRun} ${TheBinDir}/${bin}"
+					elif [ ! -f "${TheBinDir}/${bin}" ]; then
+						errorCode "install" "${bin}"
+					else
+						errorCode "noCode"
+					fi
+					;;
+				exe-string)
+					#Make sure Binary exists
+					if [ -f "${TheBinDir}/${bin}" ]; then
+						echo "${LangRun} ${TheBinDir}/${bin}"
+					fi
+					;;
+				*)
+					;;
+			esac
 			;;
 		customCode)
 			local cLang=$(UsePerl "color")
