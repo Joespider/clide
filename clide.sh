@@ -1756,7 +1756,7 @@ Actions()
 											updateProject ${Code}
 											if [ ! -z "${UserIn[2]}" ]; then
 												CodeProject=${ProjectName}
-												echo "Created \"${CodeProject}\""
+												errorCode "HINT" "Created \"${CodeProject}\""
 												ProjectDir=$(echo ${ThePWD#*${CodeProject}})
 												ProjectDir=${ProjectDir/\//:}
 											fi
@@ -1807,6 +1807,7 @@ Actions()
 								;;
 							#list the project files
 							files)
+								local CodeDir=$(ManageLangs ${Lang} "getProjectDir")
 								local RemoveDirs=${CodeDir//\//|}
 								find ${CodeDir} -print | tr '/' '|' | sed "s/${RemoveDirs}//g" | tr '|' '/'
 								;;
