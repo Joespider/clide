@@ -708,7 +708,16 @@ newProject()
 	else
 		if [ -z "${projectType}" ]; then
 			projectType="Generic"
+		else
+			case ${projectType} in
+				--*)
+					projectType="Generic"
+					;;
+				*)
+					;;
+			esac
 		fi
+
 		#Get the project path from Lang.<language>
 		path=$(ManageLangs ${Lang} "newProject" "${projectType}" ${project})
 		if [ ! -z "${path}" ]; then
@@ -2220,7 +2229,9 @@ Actions()
 						esac
 						;;
 					#Rename the source code of selected code
-					rename)
+					#OR
+					#Make a copy of your selected code...similar to backup...but nothing to restore
+					cp|copy|rename)
 						local chosen=${UserIn[1]}
 						local TheNewChosen=${UserIn[2]}
 						case ${Code} in
@@ -2228,49 +2239,121 @@ Actions()
 								if [ ! -z "${TheNewChosen}" ]; then
 									case ${Code} in
 										*${chosen}*)
-											ManageLangs ${Lang} "rename" ${chosen} ${TheNewChosen} > /dev/null
-											Code=${Code//${chosen}/${TheNewChosen}}
+											local GetCount=$(echo -e ${Code//,/\\n} | grep ${chosen} | wc -l)
+											case ${GetCount} in
+												1)
+													chosen=$(echo -e ${Code//,/\\n} | grep ${chosen})
+													case ${UserArg} in
+														rename)
+															TheNewChosen=$(ManageLangs ${Lang} "rename" ${chosen} ${TheNewChosen})
+															;;
+														cp|copy)
+															TheNewChosen=$(ManageLangs ${Lang} "copy" ${chosen} ${TheNewChosen})
+															;;
+														*)
+															;;
+													esac
+													Code=${Code//${chosen}/${TheNewChosen}}
+													refresh="yes"
+													;;
+												*)
+													case ${UserArg} in
+														rename)
+															errorCode "rename" "wrong" ${chosen}
+															;;
+														cp|copy)
+															errorCode "copy" "wrong" ${chosen}
+															;;
+														*)
+															;;
+													esac
+													;;
+											esac
+											;;
+										*)
+											case ${UserArg} in
+												rename)
+													errorCode "rename" "wrong" ${chosen}
+													;;
+												cp|copy)
+													errorCode "copy" "wrong" ${chosen}
+													;;
+												*)
+													;;
+											esac
+											;;
+									esac
+								else
+									case ${UserArg} in
+										rename)
+											errorCode "rename" "null"
+											;;
+										cp|copy)
+											errorCode "backup" "null"
+											;;
+										*)
+											;;
+									esac
+								fi
+								;;
+							*)
+								if [ -z "${TheNewChosen}" ]; then
+									case ${UserArg} in
+										rename)
+											Code=$(ManageLangs ${Lang} "rename" ${Code} ${chosen})
+											;;
+										cp|copy)
+											Code=$(ManageLangs ${Lang} "copy" ${Code} ${chosen})
+											;;
+										*)
+											;;
+									esac
+									refresh="yes"
+								else
+									case ${Code} in
+										${chosen})
+											case ${UserArg} in
+												rename)
+													Code=$(ManageLangs ${Lang} "rename" ${chosen} ${TheNewChosen})
+													;;
+												cp|copy)
+													Code=$(ManageLangs ${Lang} "copy" ${chosen} ${TheNewChosen})
+													;;
+												*)
+													;;
+											esac
+											refresh="yes"
+											;;
+										*${chosen}*)
+											chosen=$(echo ${Code} | grep ${chosen})
+											case ${UserArg} in
+												rename)
+													Code=$(ManageLangs ${Lang} "rename" ${chosen} ${TheNewChosen})
+													;;
+												cp|copy)
+													Code=$(ManageLangs ${Lang} "copy" ${chosen} ${TheNewChosen})
+													;;
+												*)
+													;;
+											esac
 											refresh="yes"
 											;;
 										*)
-											errorCode "rename" "wrong"
+											case ${UserArg} in
+												rename)
+													errorCode "rename" "wrong" ${chosen}
+													;;
+												cp|copy)
+													errorCode "copy" "wrong" ${chosen}
+													;;
+												*)
+													;;
+ 											esac
 											;;
 									esac
-								else
-									errorCode "rename" "null"
 								fi
 								;;
-							*)
-								Code=$(ManageLangs ${Lang} "rename" ${Code} ${chosen})
-								;;
 						esac
-						refresh="yes"
-						;;
-					#Make a copy of your selected code...similar to backup...but nothing to restore
-					cp|copy)
-						local chosen=${UserIn[1]}
-						local TheNewChosen=${UserIn[2]}
-						case ${Code} in
-							*,*)
-								if [ ! -z "${TheNewChosen}" ]; then
-									case ${Code} in
-										*${chosen}*)
-											ManageLangs ${Lang} "copy" ${chosen} ${TheNewChosen} > /dev/null
-											Code=${Code//${chosen}/${TheNewChosen}}
-											;;
-										*)
-											errorCode "copy" "wrong"
-											;;
-									esac
-								else
-									errorCode "backup" "null"
-								fi
-								;;
-							*)
-								Code=$(ManageLangs ${Lang} "copy" ${Code} ${chosen})
-								;;
-						esac
-						refresh="yes"
 						;;
 					#use the shell of a given language
 					shell)
