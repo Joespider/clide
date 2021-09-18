@@ -7,6 +7,22 @@ errorCode()
 	shift
 	local sec=$1
 	case ${ecd} in
+		rename)
+			shift
+			local thr=$1
+			case ${sec} in
+				wrong)
+					errorCode "ERROR"
+					errorCode "ERROR" "${thr} may not be specific enough"
+					;;
+				null)
+					errorCode "ERROR"
+					errorCode "ERROR" "No source code selected"
+					;;
+				*)
+					;;
+			esac
+			;;
 		make)
 			shift
 			local thr=$1

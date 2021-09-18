@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.66"
+SupportV="0.1.67"
 Lang=Bash
 LangExt=".sh"
 ColorNum=2
@@ -987,24 +987,27 @@ UseBash()
 			;;
 		#create a copy of set code
 		copy|rename)
-			local TheOld=$1
-			local TheNew=$2
-			TheOld=$(UseBash "removeExt" ${TheOld})
-			TheOld="${TheOld}${LangExt}"
-			TheNew=$(UseBash "removeExt" ${TheNew})
-			TheNew="${TheNew}${LangExt}"
+			local Src=$1
+			local New=$2
+			local TheOld
+			local TheNew
 			local project=${CodeProject}
 			case ${project} in
 				none)
 					if [ ! -z "${TheNew}" ]; then
-						TheOld=$(UseBash "removeExt" ${TheOld})
-						TheNew=$(UseBash "removeExt" ${TheNew})
-						sed "s/${TheOld}/${TheNew}/g" ${LangSrc}/${TheOld}${LangExt} > ${LangSrc}/${TheNew}${LangExt}
+						TheOld=$(UseBash "removeExt" ${Src})
+						TheNew=$(UseBash "removeExt" ${New})
+
+						TheOld="${TheOld}${LangExt}"
+						TheNew="${TheNew}${LangExt}"
 
 						#Remove old file for "rename"
 						case ${Type} in
 							rename)
-								rm ${LangSrc}/${TheOld}${LangExt}
+								mv ${LangSrc}/${TheOld}${LangExt} ${LangSrc}/${TheNew}${LangExt}
+								;;
+							copy)
+								cp ${LangSrc}/${TheOld}${LangExt} ${LangSrc}/${TheNew}${LangExt}
 								;;
 							*)
 								;;
@@ -1015,54 +1018,62 @@ UseBash()
 					fi
 					;;
 				*)
-					if [ ! -z "${TheNew}" ]; then
-						#File is in current dir
-						if [ -f ${TheNew} ]; then
-							#Remove the extention
-							TheOld=$(UseBash "removeExt" ${TheOld})
-							TheNew=$(UseBash "removeExt" ${TheNew})
-							sed "s/${TheOld}/${TheNew}/g" ${TheOld}${LangExt} > ${TheNew}${LangExt}
+					#Check if extenion is given
+					local HasAnExt
+					local CheckForSrc
+					local ThePath
 
-							#Remove old file for "rename"
+					HasAnExt=$(UseBash "hasExt" ${Src})
+					if [ ! -f ${Src} ]; then
+						#Extension is NOT given
+						if [ -z "${HasAnExt}" ]; then
+							#Find src
+							CheckForSrc=$(UseBash "getProjSrc" ${Src}${LangExt} 2> /dev/null)
+							ThePath=${CheckForSrc%/*}
+							Src=${CheckForSrc##*/}
+						else
+							CheckForFile=$(UseBash "getProjSrc" ${Src} 2> /dev/null)
+							if [ ! -z "${CheckForFile}" ]; then
+								ThePath=${CheckForFile%/*}
+							fi
+						fi
+					fi
+
+					TheOld=${Src}
+					HasAnExt=$(UseBash "hasExt" ${New})
+					if [ -z "${HasAnExt}" ]; then
+						TheNew="${New}${LangExt}"
+					else
+						TheNew=${New}
+					fi
+
+					if [ ! -z "${TheOld}" ] && [ ! -z "${TheNew}" ]; then
+						if [ ! -z "${ThePath}" ]; then
+							cd ${ThePath}
 							case ${Type} in
 								rename)
-									rm ${LangSrc}/${TheOld}${LangExt}
+									mv ${TheOld} ${TheNew}
+									;;
+								copy)
+									cp ${TheOld} ${TheNew}
 									;;
 								*)
 									;;
 							esac
-
-							echo ${TheNew}${LangExt}
+							echo ${TheNew}
+							cd - > /dev/null
 						else
-							local TheDir
-							local TheCount=$(UseBash "getProjSrc" "${TheOld}" | wc -l)
-							case ${TheCount} in
-								1)
-									local TheFound=$(UseBash "getProjSrc" "${TheOld}")
-									#Get the dir
-									TheDir=${TheFound%/*}
-									#Get the file
-									TheFound=${TheFound##*/}
-									#Remove the extention
-									TheOld=$(UseBash "removeExt" ${TheOld})
-									TheNew=$(UseBash "removeExt" ${TheNew})
-									sed "s/${TheOld}/${TheNew}/g" ${TheDir}/${TheOld}${LangExt} > ${TheDir}/${TheNew}${LangExt}
-
-									#Remove old file for "rename"
-									case ${Type} in
-										rename)
-											rm ${LangSrc}/${TheOld}${LangExt}
-											;;
-										*)
-											;;
-									esac
-
-									#return new file
-									echo ${TheNew}${LangExt}
+							case ${Type} in
+								rename)
+									mv ${TheOld} ${TheNew}
+									;;
+								copy)
+									cp ${TheOld} ${TheNew}
 									;;
 								*)
 									;;
 							esac
+							echo ${TheNew}
 						fi
 					fi
 					;;
