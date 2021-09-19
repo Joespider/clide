@@ -351,6 +351,10 @@ CliHelp()
 					echo -e "--lscpl <lang>\t\t\t\t\t: \"List compiled code\""
 					echo -e "-p, --project <args>\t\t\t\t: \"List or Load Clide Projects\""
 					echo ""
+					echo "\"Still want a session?\""
+					echo "\"Want me to setup your session before entering one?\""
+					echo "\"I can pre-setup an action before providing you with a session\""
+					echo ""
 					echo -e "\t[With a session]"
 					echo -e "$ clide <language> --new <code>\t\t\t: \"New source code\""
 					echo -e "$ clide <language> --new <code>,<code>\t\t: \"New source code\""
@@ -362,13 +366,12 @@ CliHelp()
 					else
 						cmd="clide ${calledBy} function "
 					fi
-					echo -e "${cmd}--edit\t\t\t: \"Get more information about editing files\""
 					case ${calledBy} in
 						--help)
-							echo -e "${cmd}--cpl\t\t\t: \"Learn how to do quick compiles\""
+							echo -e "${cmd}<function>\t\t: \"Learn more about a given function\""
 							;;
 						-h)
-							echo -e "${cmd}--cpl\t\t\t\t: \"Learn how to do quick compiles\""
+							echo -e "${cmd}<function>\t\t\t: \"Learn more about a given function\""
 							;;
 						*)
 							;;
