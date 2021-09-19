@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.67"
+SupportV="0.1.68"
 Lang=Bash
 LangExt=".sh"
 ColorNum=2
@@ -971,7 +971,7 @@ UseBash()
 										;;
 									1)
 										TheFound=$(UseBash "getProjSrc" "${name}")
-										mv ${TheFound} ${TheFound}.bak
+										cp ${TheFound} ${TheFound}.bak
 										echo "\"${name}\" backed-up"
 										;;
 									*)

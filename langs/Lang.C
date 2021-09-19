@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.50"
+SupportV="0.1.51"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
@@ -1791,7 +1791,7 @@ UseC()
 										;;
 									1)
 										TheFound=$(UseC "getProjSrc" "${name}")
-										mv ${TheFound} ${TheFound}.bak
+										cp ${TheFound} ${TheFound}.bak
 										echo "\"${name}\" backed-up"
 										;;
 									*)

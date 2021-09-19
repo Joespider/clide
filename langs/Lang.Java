@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.97"
+SupportV="0.1.98"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -1667,7 +1667,7 @@ UseJava()
 										;;
 									1)
 										TheFound=$(UseJava "getProjSrc" "${name}")
-										mv ${TheFound} ${TheFound}.bak
+										cp ${TheFound} ${TheFound}.bak
 										echo "\"${name}\" backed-up"
 										;;
 									*)

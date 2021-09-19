@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.78"
+SupportV="0.1.79"
 Lang=Python
 LangExt=".py"
 #Color Yellow
@@ -1126,7 +1126,7 @@ UsePython()
 										;;
 									1)
 										TheFound=$(UsePython "getProjSrc" "${name}")
-										mv ${TheFound} ${TheFound}.bak
+										cp ${TheFound} ${TheFound}.bak
 										echo "\"${name}\" backed-up"
 										;;
 									*)
