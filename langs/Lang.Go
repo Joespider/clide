@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.49"
+SupportV="0.1.50"
 Lang=Go
 LangExt=".go"
 #Color Green
@@ -1335,7 +1335,7 @@ UseGo()
 										;;
 									1)
 										TheFound=$(UseGo "getProjSrc" "${name}")
-										mv ${TheFound} ${TheFound}.bak
+										cp ${TheFound} ${TheFound}.bak
 										echo "\"${name}\" backed-up"
 										;;
 									*)

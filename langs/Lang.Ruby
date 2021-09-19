@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.66"
+SupportV="0.1.67"
 Lang=Ruby
 LangExt=".rb"
 ColorNum=1
@@ -1053,7 +1053,7 @@ UseRuby()
 										;;
 									1)
 										TheFound=$(UseRuby "getProjSrc" "${name}")
-										mv ${TheFound} ${TheFound}.bak
+										cp ${TheFound} ${TheFound}.bak
 										echo "\"${name}\" backed-up"
 										;;
 									*)

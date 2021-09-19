@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.66"
+SupportV="0.1.67"
 Lang=Perl
 LangExt=".pl"
 #Color Purple
@@ -1019,7 +1019,7 @@ UsePerl()
 										;;
 									1)
 										TheFound=$(UsePerl "getProjSrc" "${name}")
-										mv ${TheFound} ${TheFound}.bak
+										cp ${TheFound} ${TheFound}.bak
 										echo "\"${name}\" backed-up"
 										;;
 									*)

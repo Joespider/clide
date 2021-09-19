@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.18"
+SupportV="0.1.19"
 Lang=Rust
 LangExt=".rs"
 ColorNum=1
@@ -1188,7 +1188,7 @@ UseRust()
 										;;
 									1)
 										TheFound=$(UseRust "getProjSrc" "${name}.bak")
-										mv ${TheFound} ${TheFound%.bak}
+										cp ${TheFound} ${TheFound%.bak}
 										echo "\"${name}\" restored"
 										;;
 									*)
