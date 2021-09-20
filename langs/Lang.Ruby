@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.67"
+SupportV="0.1.68"
 Lang=Ruby
 LangExt=".rb"
 ColorNum=1
@@ -1076,12 +1076,9 @@ UseRuby()
 			local project=${CodeProject}
 			case ${project} in
 				none)
-					if [ ! -z "${TheNew}" ]; then
+					if [ ! -z "${New}" ]; then
 						TheOld=$(UseRuby "removeExt" ${Src})
 						TheNew=$(UseRuby "removeExt" ${New})
-
-						TheOld="${TheOld}${LangExt}"
-						TheNew="${TheNew}${LangExt}"
 
 						#Remove old file for "rename"
 						case ${Type} in

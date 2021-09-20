@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.79"
+SupportV="0.1.80"
 Lang=Python
 LangExt=".py"
 #Color Yellow
@@ -1149,12 +1149,9 @@ UsePython()
 			local project=${CodeProject}
 			case ${project} in
 				none)
-					if [ ! -z "${TheNew}" ]; then
+					if [ ! -z "${New}" ]; then
 						TheOld=$(UsePython "removeExt" ${Src})
 						TheNew=$(UsePython "removeExt" ${New})
-
-						TheOld="${TheOld}${LangExt}"
-						TheNew="${TheNew}${LangExt}"
 
 						#Remove old file for "rename"
 						case ${Type} in

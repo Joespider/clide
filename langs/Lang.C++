@@ -5,7 +5,7 @@ Shell=$(which bash)
 #Link Libs: https://gist.github.com/gubatron/32f82053596c24b6bec6
 #both https://avikdas.com/2019/12/16/makefiles-for-c-cpp-projects.html
 
-SupportV="0.2.07"
+SupportV="0.2.08"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -2105,12 +2105,9 @@ UseC++()
 			local project=${CodeProject}
 			case ${project} in
 				none)
-					if [ ! -z "${TheNew}" ]; then
+					if [ ! -z "${New}" ]; then
 						TheOld=$(UseC++ "removeExt" ${Src})
 						TheNew=$(UseC++ "removeExt" ${New})
-
-						TheOld="${TheOld}${LangExt}"
-						TheNew="${TheNew}${LangExt}"
 
 						#Remove old file for "rename"
 						case ${Type} in
