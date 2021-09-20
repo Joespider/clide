@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.51"
+SupportV="0.1.52"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
@@ -1814,12 +1814,9 @@ UseC()
 			local project=${CodeProject}
 			case ${project} in
 				none)
-					if [ ! -z "${TheNew}" ]; then
+					if [ ! -z "${New}" ]; then
 						TheOld=$(UseC "removeExt" ${Src})
 						TheNew=$(UseC "removeExt" ${New})
-
-						TheOld="${TheOld}${LangExt}"
-						TheNew="${TheNew}${LangExt}"
 
 						#Remove old file for "rename"
 						case ${Type} in

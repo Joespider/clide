@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.19"
+SupportV="0.1.20"
 Lang=Rust
 LangExt=".rs"
 ColorNum=1
@@ -1231,12 +1231,9 @@ UseRust()
 			local project=${CodeProject}
 			case ${project} in
 				none)
-					if [ ! -z "${TheNew}" ]; then
+					if [ ! -z "${New}" ]; then
 						TheOld=$(UseRust "removeExt" ${Src})
 						TheNew=$(UseRust "removeExt" ${New})
-
-						TheOld="${TheOld}${LangExt}"
-						TheNew="${TheNew}${LangExt}"
 
 						#Remove old file for "rename"
 						case ${Type} in
