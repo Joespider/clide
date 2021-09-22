@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.52"
+SupportV="0.1.53"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
@@ -1050,7 +1050,7 @@ UseC()
 						if [ -z "${name}" ]; then
 							FoundMain="no"
 						else
-							NumOfMain=$(echo ${name} | tr ' ' '\n' | wc -l)
+							NumOfMain=$(echo -e "${name// /\\n}" | wc -l)
 							case ${NumOfMain} in
 								1)
 									name=$(UseC "removeExt" ${name})

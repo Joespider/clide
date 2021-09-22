@@ -5,7 +5,7 @@ Shell=$(which bash)
 #Link Libs: https://gist.github.com/gubatron/32f82053596c24b6bec6
 #both https://avikdas.com/2019/12/16/makefiles-for-c-cpp-projects.html
 
-SupportV="0.2.08"
+SupportV="0.2.09"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -1354,7 +1354,7 @@ UseC++()
 						if [ -z "${name}" ]; then
 							FoundMain="no"
 						else
-							NumOfMain=$(echo ${name} | tr ' ' '\n' | wc -l)
+							NumOfMain=$(echo -e "${name// /\\n}" | wc -l)
 							case ${NumOfMain} in
 								1)
 									name=$(UseC++ "removeExt" ${name})
