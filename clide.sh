@@ -2381,7 +2381,7 @@ Actions()
 								ManageLangs ${Lang} "customCode" ${Lang} ${cLang}
 								AfterFiles=$(ManageLangs ${Lang} "AfterFiles")
 								#look for created files
-								NewCode=$(echo ${BeforeFiles} ${AfterFiles} | tr ' ' '\n' | sort | uniq -u | tr -d '\n')
+								NewCode=$(echo -e "${BeforeFiles// /\\n} ${AfterFiles// /\\n}" | sort | uniq -u | tr -d '\n')
 								#Check if new code is found
 								if [ ! -z "${NewCode}" ]; then
 									#Select new Code

@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.51"
+SupportV="0.1.52"
 Lang=Go
 LangExt=".go"
 #Color Green
@@ -766,7 +766,7 @@ UseGo()
 						if [ -z "${name}" ]; then
 							FoundMain="no"
 						else
-							NumOfMain=$(echo ${name} | tr ' ' '\n' | wc -l)
+							NumOfMain=$(echo -e "${name// /\\n}" | wc -l)
 							case ${NumOfMain} in
 								1)
 									name=$(UseGo "removeExt" ${name})

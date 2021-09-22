@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.99"
+SupportV="0.2.00"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -719,7 +719,7 @@ UseJava()
 								case ${name} in
 									#Compile as Jar
 									--jar)
-										NumOfMain=$(echo ${TheMainClass} | tr ' ' '\n' | wc -l)
+										NumOfMain=$(echo -e "${TheMainClass// /\\n}" | wc -l)
 										case ${NumOfMain} in
 											#only ONE "main" class was found
 											1)
@@ -763,7 +763,7 @@ UseJava()
 									*|--class)
 										#move Java Class to Binary dir
 										mv *.class ${TheBinDir}/
-										NumOfMain=$(echo ${TheMainClass} | tr ' ' '\n' | wc -l)
+										NumOfMain=$(echo -e "${TheMainClass// /\\n}" | wc -l)
 										case ${NumOfMain} in
 											#only ONE "main" class was found
 											1)
