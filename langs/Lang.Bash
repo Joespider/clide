@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.69"
+SupportV="0.1.70"
 Lang=Bash
 LangExt=".sh"
 ColorNum=2
@@ -165,11 +165,11 @@ UseBash()
 				local TheItem
 				local CplList=$(UseBash lscpl | tr '\n' '|')
 				local look=1
-				local NumOfCpls=$(echo ${srcCode} | tr ',' '\n' | wc -l)
+				local NumOfCpls=$(echo -e "${srcCode//,/\\n}" | wc -l)
 				while [ ${look} -le ${NumOfCpls} ];
 				do
 					TheItem=$(echo ${srcCode} | cut -d ',' -f ${look})
-					TheCpl=$(echo ${CplList} | tr '|' '\n' | grep -w ${TheItem})
+					TheCpl=$(echo -e "${CplList//|/\\n}" | grep -w ${TheItem})
 					if [ ! -z "${TheCpl}" ]; then
 						break
 					fi
@@ -503,7 +503,7 @@ UseBash()
 								else
 									if [[ "${src}" == *"${num}"* ]]; then
 										#Choose file from list of choices
-										num=$(echo ${src} | tr ',' '\n' | grep ${num})
+										num=$(echo -e "${src//,/\\n}" | grep ${num})
 										${ReadOrEdit} ${num}
 									else
 										#Error

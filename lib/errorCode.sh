@@ -486,7 +486,7 @@ errorCode()
 					;;
 				already)
 					errorCode "ERROR"
-					errorCode "ERROR" "No need to add it again"
+					errorCode "ERROR" "No need to add ${thr} again"
 					;;
 				*)
 					errorCode "ERROR"

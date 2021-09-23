@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.68"
+SupportV="0.1.69"
 Lang=Perl
 LangExt=".pl"
 #Color Purple
@@ -148,11 +148,11 @@ UsePerl()
 				local TheItem
 				local CplList=$(UsePerl lscpl | tr '\n' '|')
 				local look=1
-				local NumOfCpls=$(echo ${srcCode} | tr ',' '\n' | wc -l)
+				local NumOfCpls=$(echo -e "${srcCode//,/\\n}" | wc -l)
 				while [ ${look} -le ${NumOfCpls} ];
 				do
 					TheItem=$(echo ${srcCode} | cut -d ',' -f ${look})
-					TheCpl=$(echo ${CplList} | tr '|' '\n' | grep -w ${TheItem})
+					TheCpl=$(echo -e "${CplList//|/\\n}" | grep -w ${TheItem})
 					if [ ! -z "${TheCpl}" ]; then
 						break
 					fi

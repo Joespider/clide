@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.53"
+SupportV="0.1.54"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
@@ -219,7 +219,7 @@ UseC()
 				local CplList=$(UseC lscpl | tr '\n' '|')
 				local look=1
 				#Get the number of set source code
-				local NumOfCpls=$(echo ${srcCode} | tr ',' '\n' | wc -l)
+				local NumOfCpls=$(echo -e "${srcCode//,\\n}" | wc -l)
 				while [ ${look} -le ${NumOfCpls} ];
 				do
 					#Choose one item
@@ -227,7 +227,7 @@ UseC()
 					TheItem=$(UseC "removeExt" ${TheItem})
 
 					#Look for binary from list of compiled
-					TheCpl=$(echo ${CplList} | tr '|' '\n' | grep -w ${TheItem})
+					TheCpl=$(echo -e "${CplList//|/\\n}" | grep -w ${TheItem})
 					if [ ! -z "${TheCpl}" ]; then
 						break
 					fi
@@ -731,7 +731,7 @@ UseC()
 								else
 									if [[ "${src}" == *"${num}"* ]]; then
 										#Choose file from list of choices
-										num=$(echo ${src} | tr ',' '\n' | grep ${num})
+										num=$(echo -e "${src//,/\\n}" | grep ${num})
 										${ReadOrEdit} ${num}
 									else
 										#Error
