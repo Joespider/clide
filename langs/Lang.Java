@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.2.00"
+SupportV="0.2.01"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -204,7 +204,7 @@ UseJava()
 				local TheItem
 				local CplList=$(UseJava lscpl | tr '\n' '|')
 				local look=1
-				local NumOfCpls=$(echo ${srcCode} | tr ',' '\n' | wc -l)
+				local NumOfCpls=$(echo -e "${srcCode//,/\\n}" | wc -l)
 				while [ ${look} -le ${NumOfCpls} ];
 				do
 					TheItem=$(echo ${srcCode} | cut -d ',' -f ${look})
@@ -212,14 +212,14 @@ UseJava()
 
 					case ${TheItem} in
 						*.jar)
-							IsJar=$(echo ${CplList} | tr '|' '\n' | grep -w ${TheItem})
+							IsJar=$(echo -e "${CplList//|\\n}" | grep -w ${TheItem})
 							;;
 						*.class)
-							IsClass=$(echo ${CplList} | tr '|' '\n' | grep -w ${TheItem})
+							IsClass=$(echo -e "${CplList//|/\\n}" | grep -w ${TheItem})
 							;;
 						*)
-							IsJar=$(echo ${CplList} | tr '|' '\n' | grep -w ${TheItem}.jar)
-							IsClass=$(echo ${CplList} | tr '|' '\n' | grep -w ${TheItem}.class)
+							IsJar=$(echo -e "${CplList//|/\\n}" | grep -w ${TheItem}.jar)
+							IsClass=$(echo -e "${CplList//|/\\n}" | grep -w ${TheItem}.class)
 							;;
 					esac
 
@@ -857,7 +857,7 @@ UseJava()
 								echo "Created-By: $USER" >> ${ManifestFile}
 								#format for manifest file
 								if [ -d "${TheLibDir}" ]; then
-									TheClassPath=$(echo ${TheClassPath} | tr ';' ' ')
+									TheClassPath=$(echo -e "${TheClassPath//;/ }")
 									#Class path found
 									if [ ! -z "${TheClassPath}" ]; then
 										#Add to manifest
@@ -981,7 +981,7 @@ UseJava()
 			;;
 		newPackage)
 			local name=$1
-			local packagePath=$(echo ${name} | tr '.' '/')
+			local packagePath=$(echo -e "${name//./\/}")
 			local project=${CodeProject}
 			local path=${LangProject}/${project}/src/${ProjectMode}/java/
 			case ${project} in
@@ -1005,7 +1005,7 @@ UseJava()
 			;;
 		setPackage)
 			local name=$1
-			local packagePath=$(echo ${name} | tr '.' '/')
+			local packagePath=$(echo -e "${name//./\/}")
 			local project=${CodeProject}
 			local path=${LangProject}/${project}/src/${ProjectMode}/java
 			case ${project} in
@@ -1030,7 +1030,7 @@ UseJava()
 		listPackage)
 			local project=${CodeProject}
 			local path=${LangProject}/${project}/src/${ProjectMode}/java/
-			local RemoveDirs=$(echo ${path} | tr '/' '|')
+			local RemoveDirs=$(echo -e "${path//\//|}")
 			case ${project} in
 				none)
 					;;
@@ -1547,7 +1547,7 @@ UseJava()
 				if [ -f ${TheClassDir}${package}${TheBin} ]; then
 					TheBin=${TheBin%.*}
 					cd ${TheClassDir}
-					package=$(echo ${package} | tr '/' '.')
+					package=$(echo -e "${package//\//.}")
 					#If no JavaProp found
 					case ${JavaProp} in
 						none)

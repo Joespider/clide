@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.52"
+SupportV="0.1.53"
 Lang=Go
 LangExt=".go"
 #Color Green
@@ -193,14 +193,14 @@ UseGo()
 				local CplList=$(UseGo lscpl | tr '\n' '|')
 				local look=1
 				#Get the number of set source code
-				local NumOfCpls=$(echo ${srcCode} | tr ',' '\n' | wc -l)
+				local NumOfCpls=$(echo -e "${srcCode//,/\\n}" | wc -l)
 				while [ ${look} -le ${NumOfCpls} ];
 				do
 					#Choose one item
 					TheItem=$(echo ${srcCode} | cut -d ',' -f ${look})
 					TheItem=$(UseGo "removeExt" ${TheItem})
 					#Look for binary from list of compiled
-					TheCpl=$(echo ${CplList} | tr '|' '\n' | grep -w ${TheItem})
+					TheCpl=$(echo -e "${CplList//|/\\n}" | grep -w ${TheItem})
 					if [ ! -z "${TheCpl}" ]; then
 						break
 					fi

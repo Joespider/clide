@@ -404,7 +404,6 @@ DebugVersion()
 Banner()
 {
 	local Type=$1
-	local Version=$(echo ${Version} | tr -d '\n')
 	case ${Type} in
 		main)
 			Art
@@ -782,10 +781,9 @@ linkProjects()
 
 	if [ ! -z "${LinkLang}" ]; then
 		local Already=$(grep "link=" ${ProjectFile})
-		local Langs=$(ls ${LangsDir}/ | sed "s/Lang./|/g")
+		local Langs=$(ls ${LangsDir}/ | sed "s/Lang./|/g" | tr -d '\n')
 		ThePath=$(ManageLangs ${LinkLang} "getProjDir")
 		LinkPath=$(ManageLangs ${Lang} "getProjDir")
-		Langs=$(echo ${Langs} | tr -d ' ')
 		Langs="${Langs}|"
 		case ${Langs} in
 			*"|${LinkLang}|"*)
@@ -835,8 +833,7 @@ swapProjects()
 	local Already=$(grep "link=" ${ProjectFile})
 
 	if [ ! -z "${LinkLang}" ]; then
-		local Langs=$(ls ${LangsDir}/ | sed "s/Lang./|/g")
-		Langs=$(echo ${Langs} | tr -d ' ')
+		local Langs=$(ls ${LangsDir}/ | sed "s/Lang./|/g" | tr -d '\n')
 		Langs="${Langs}|"
 		case ${Langs} in
 			*"|${LinkLang}|"*)
@@ -1300,13 +1297,9 @@ preSelectSrc()
 			local WantedCode=${Code}
 			#Clean source code
 			Code=""
-			#Get the number of requested source files
-			local NumOfSrc=$(echo ${WantedCode} | tr ',' '\n' | wc -l)
-			local look=1
-			while [ ${look} -le ${NumOfSrc} ];
+			# set comma as internal field separator for the string list
+			for newCode in ${WantedCode//,/ };
 			do
-				#Get the next file
-				newCode=$(echo ${WantedCode} | cut -d ',' -f ${look})
 				#Set the first file
 				if [ -z "${Code}" ]; then
 					Code=$(selectCode ${Lang} ${newCode})
@@ -1317,7 +1310,6 @@ preSelectSrc()
 						Code=${TheCode}
 					fi
 				fi
-				look=$((${look}+1))
 			done
 			;;
 		*)
@@ -1471,7 +1463,7 @@ Actions()
 			cCode=$(color ${Code})
 			case ${Code} in
 				*,*)
-					cntSrc=$(echo ${Code} | tr ',' '\n' | wc -l)
+					cntSrc=$(echo -e "${Code//,/\\n}" | wc -l)
 					case ${cntSrc} in
 						2)
 							listSrc=${cCode}
@@ -1549,41 +1541,48 @@ Actions()
 						local theExt
 						local theOtherExt
 						local newCode
+						local newCodeWithoutExt
 						local OldCode
 						if [ ! -z "${Code}" ]; then
 							if [ ! -z "${UserIn[1]}" ]; then
 								theExt=$(ManageLangs ${Lang} "getExt")
 								theOtherExt=$(ManageLangs ${Lang} "getOtherExt")
-								newCode=${UserIn[1]}
-								newCode=$(ManageLangs ${Lang} "removeExt" ${newCode})
-								#Ensure Code is not added twice
-								if [[ ! "${Code}" == *"${newCode}${theExt}"* ]] || [[ ! "${Code}" == *"${newCode}${theOtherExt}"* ]]; then
-									OldCode=${Code}
-									Code=$(ManageLangs ${Lang} "addCode" ${Code} ${UserIn[1]})
-									#make sure code has changed
-									case ${Code} in
-										#Code has not changed...do nothing
-										${OldCode})
-											errorCode "selectCode" "already"
-											;;
-										#Code has changed
-										*)
-											#refresh
-											refresh="yes"
-											;;
-									esac
-								#Code is trying to be added twice
-								else
-									errorCode "selectCode" "already"
-								fi
+								for newCode in ${UserIn[1]//,/ };
+								do
+									newCodeWithoutExt=$(ManageLangs ${Lang} "removeExt" ${newCode})
+									#Ensure Code is not added twice
+									if [[ ! "${Code}" == *"${newCodeWithoutExt}${theExt}"* ]] || [[ ! "${Code}" == *"${newCodeWithoutExt}${theOtherExt}"* ]]; then
+										OldCode=${Code}
+										Code=$(ManageLangs ${Lang} "addCode" ${Code} ${newCode})
+										#make sure code has changed
+										case ${Code} in
+											#Code has not changed...do nothing
+											${OldCode})
+												errorCode "selectCode" "already" "${newCode}"
+												;;
+											#Code has changed
+											*)
+												#refresh
+												refresh="yes"
+												;;
+										esac
+									#Code is trying to be added twice
+									else
+										errorCode "selectCode" "already" "${newCode}"
+									fi
+								done
 							else
 								errorCode "selectCode" "nothing"
 							fi
 						else
 							case ${UserArg} in
 								select|set)
-									Code=$(selectCode ${Lang} ${UserIn[1]} ${Code})
-									refresh="yes"
+									if [ ! -z "${UserIn[1]}" ]; then
+										Code=$(preSelectSrc ${Lang} ${UserIn[1]})
+										refresh="yes"
+									else
+										errorCode "selectCode" "nothing"
+									fi
 									;;
 								add)
 									errorCode "selectCode" "set"
@@ -1696,7 +1695,7 @@ Actions()
 						;;
 					#List source code
 					src|source)
-						echo ${Code} | tr ',' '\n'
+						echo -e "${Code//,/\\n}"
 						;;
 					make)
 						case ${CodeProject} in
@@ -1931,7 +1930,7 @@ Actions()
 								local Already=$(grep "link=" ${ProjectFile})
 								case ${UserIn[2]} in
 									--list|list)
-										echo ${Already} | sed "s/link=//g" | tr ',' '\n'
+										echo -e "${Already//,/\\n}" | sed "s/link=//g"
 										;;
 									*)
 										local IsLinked=$(linkProjects ${Lang} ${UserIn[2]})
@@ -1954,7 +1953,7 @@ Actions()
 								case ${UserIn[2]} in
 									#list the active projects
 									--list|list)
-										echo ${Already} | sed "s/link=//g" | tr ',' '\n'
+										echo -e "${Already//,/\\n}" | sed "s/link=//g"
 										;;
 									#swap new language and code
 									*)
@@ -1974,7 +1973,7 @@ Actions()
 											fi
 										else
 											echo "Linked Languages:"
-											echo ${Already} | sed "s/link=//g" | tr ',' '\n' | nl
+											echo -e "${Already//,/\\n}" | sed "s/link=//g" | nl
 											errorCode "project" "link" "not-link" ${UserIn[2]}
 										fi
 										;;
@@ -2624,7 +2623,7 @@ Actions()
 										if [ -z "${options}" ]; then
 											errorCode "cpl" "cpl-args"
 										else
-											echo ${options} | tr '|' '\n'
+											echo -e "${options//|/\\n}"
 										fi
 										;;
 									*)
@@ -2641,13 +2640,13 @@ Actions()
 													*)
 														echo ""
 														echo -n "Current: \""
-														echo -n ${OldVal} | tr ',' ' '
+														echo -ne "${OldVal//,/ }"
 														echo "\""
 														echo ""
 														;;
 												esac
 
-												echo ${options} | tr '|' '\n'
+												echo -e "${options//|/\\n}"
 												#User input
 												echo -n "${cLang}\$ "
 												read -a NewVal
@@ -2996,7 +2995,7 @@ Actions()
 									cCode=$(color ${Code})
 									case ${Code} in
 										*,*)
-											cntSrc=$(echo ${Code} | tr ',' '\n' | wc -l)
+											cntSrc=$(echo -e "${Code//,/\\n}" | wc -l)
 											case ${cntSrc} in
 												2)
 													listSrc=${cCode}
@@ -3059,8 +3058,8 @@ SelectLangByCode()
 				local Lang
 				local WantedCode=${GetExt}
 				local newCode
-				local NumOfSrc=$(echo ${GetExt} | tr ',' '\n' | wc -l)
 				local look=1
+				local NumOfSrc=$(echo -e "${GetExt//,/\\n}" | wc -l)
 				while [ ${look} -le ${NumOfSrc} ];
 				do
 					#Get the next file

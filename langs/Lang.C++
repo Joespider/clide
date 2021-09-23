@@ -5,7 +5,7 @@ Shell=$(which bash)
 #Link Libs: https://gist.github.com/gubatron/32f82053596c24b6bec6
 #both https://avikdas.com/2019/12/16/makefiles-for-c-cpp-projects.html
 
-SupportV="0.2.09"
+SupportV="0.2.10"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -317,7 +317,7 @@ UseC++()
 						if [ -z "${CheckForFile}" ]; then
 							local look=1
 							#Get the number of set source code
-							local NumOfSrcs=$(echo ${ThePossible} | tr ',' '\n' | wc -l)
+							local NumOfSrcs=$(echo -e "${ThePossible//,/\\n}" | wc -l)
 							while [ ${look} -le ${NumOfSrcs} ];
 							do
 								#Choose one item
@@ -387,7 +387,7 @@ UseC++()
 				local CplList=$(UseC++ lscpl | tr '\n' '|')
 				local look=1
 				#Get the number of set source code
-				local NumOfCpls=$(echo ${srcCode} | tr ',' '\n' | wc -l)
+				local NumOfCpls=$(echo -e "${srcCode//,/\\n}" | wc -l)
 				while [ ${look} -le ${NumOfCpls} ];
 				do
 					#Choose one item
@@ -395,7 +395,7 @@ UseC++()
 					TheItem=$(UseC++ "removeExt" ${TheItem})
 
 					#Look for binary from list of compiled
-					TheCpl=$(echo ${CplList} | tr '|' '\n' | grep -w ${TheItem})
+					TheCpl=$(echo -e "${CplList//|/\\n}" | grep -w ${TheItem})
 					if [ ! -z "${TheCpl}" ]; then
 						break
 					fi
@@ -1009,7 +1009,7 @@ UseC++()
 								else
 									if [[ "${src}" == *"${num}"* ]]; then
 										#Choose file from list of choices
-										num=$(echo ${src} | tr ',' '\n' | grep ${num})
+										num=$(echo -e "${src//,/\\n}" | grep ${num})
 										${ReadOrEdit} ${num}
 									else
 										#Error
