@@ -2372,16 +2372,18 @@ Actions()
 								theHelp newCodeHelp ${Lang}
 								;;
 							--custom|-c)
-								local BeforeFiles=""
-								local AfterFiles=""
-								local Type=""
+								local BeforeFiles
+								local AfterFiles
+								local AllFiles
+								local Type
 								local NewCode
 								BeforeFiles=$(ManageLangs ${Lang} "BeforeFiles")
 								#Create new code
 								ManageLangs ${Lang} "customCode" ${Lang} ${cLang}
 								AfterFiles=$(ManageLangs ${Lang} "AfterFiles")
-								#look for created files
-								NewCode=$(echo -e "${BeforeFiles// /\\n} ${AfterFiles// /\\n}" | sort | uniq -u | tr -d '\n')
+								AllFiles="${BeforeFiles} ${AfterFiles}"
+								#Look ALL files for new for new file
+								NewCode=$(echo -e "${AllFiles// /\\n}" | sort | uniq -u | tr -d '\n')
 								#Check if new code is found
 								if [ ! -z "${NewCode}" ]; then
 									#Select new Code
