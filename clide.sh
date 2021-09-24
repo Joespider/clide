@@ -427,7 +427,7 @@ Banner()
 lookFor()
 {
 	local project=${CodeProject}
-	local search=$2
+	local search=$1
 	#Determin if it is a project
 	case ${project} in
 		#IS NOT a project
