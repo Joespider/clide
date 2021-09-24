@@ -1558,7 +1558,7 @@ Actions()
 										case ${Code} in
 											#Code has not changed...do nothing
 											${OldCode})
-												errorCode "selectCode" "already" "${newCode}"
+												errorCode "selectCode" "not-found" "${newCode}"
 												;;
 											#Code has changed
 											*)
