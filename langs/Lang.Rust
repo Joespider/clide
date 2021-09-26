@@ -45,7 +45,7 @@ UseRust()
 	local TemplateCode=${NewRust}
 	TemplateCode=${LangBin}/${TemplateCode%${LangExt}}
 
-	local TemplateCodeSrc=${NewRust%${LangExt}}
+	local TemplateCodeSrc=${NewRust%${LangExt}}${LangExt}
 
 	local EnvVars=( ${LangCpl} ${LangHome} ${LangSrc} ${LangBin} ${LangExt} )
 	local Type=$1

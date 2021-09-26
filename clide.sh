@@ -42,6 +42,16 @@ AddAlias()
 	${LibDir}/AddAlias.sh $@
 }
 
+Protect()
+{
+	local Done=$1
+	if [ -z "${Done}" ] && [ -w "${ThisFile}" ]; then
+		chmod -w ${ThisFile} 2> /dev/null
+	else
+		chmod u+w ${ThisFile} 2> /dev/null
+	fi
+}
+
 ColorPrompt()
 {
 	echo -e "\e[1;40m${1}\e[0m"
@@ -1555,6 +1565,8 @@ Actions()
 		#Keep IDE running until user is done
 		while true
 		do
+			#Protect clide from being edited
+			Protect
 			#User's first action
 			if [ ! -z "${FirstAction}" ]; then
 				UserArg=${FirstAction,,}
@@ -2754,6 +2766,8 @@ Actions()
 							newCodeTemp)
 								local NewCode=$(ManageLangs ${Lang} "getNewCode")
 								local LangSrcDir=$(ManageLangs ${Lang} "getSrcDir")
+								local MoveError
+								local LinkError
 
 								case ${UserIn[2]} in
 									#Create your own "new" code template
@@ -2773,16 +2787,18 @@ Actions()
 												ManageLangs ${Lang} "newCode" ${NewCode}
 											fi
 											#Move your custom code to cl[ide]'s template directory
-											mv ${LangSrcDir}/${NewCode} ${NewCodeDir}/
+											MoveError=$(mv ${LangSrcDir}/${NewCode} ${NewCodeDir}/ 2>&1)
 										fi
-
 										#Copy and set source code to src/
-										cd ${LangSrcDir}/
-										if [ ! -f ${LangSrcDir}/${NewCode} ]; then
-											ln -s ${NewCodeDir}/${NewCode}
+										if [ ! -f ${LangSrcDir}/${NewCode} ] && [ -f ${NewCodeDir}/${NewCode} ]; then
+											LinkError=$(ln -s ${NewCodeDir}/${NewCode} 2>&1)
+										elif [ ! -f ${LangSrcDir}/${NewCode} ] && [ ! -f ${NewCodeDir}/${NewCode} ]; then
+											LinkError="no"
 										fi
-										Code=$(selectCode ${Lang} "set" ${NewCode})
-										refresh="yes"
+										if [ -z "${LinkError}" ] && [ -z "${MoveError}" ]; then
+											Code=$(selectCode ${Lang} "set" ${NewCode})
+											refresh="yes"
+										fi
 										;;
 									help|*)
 										theHelp CreateHelp ${Lang}
@@ -3085,6 +3101,8 @@ Actions()
 				esac
 			fi
 		done
+		#Protect clide from being edited
+		Protect "done"
 	fi
 }
 
@@ -3344,6 +3362,7 @@ main()
 		pg=$(ColorCodes)
 		local getLang=""
 		if [ ! -z "${pg}" ]; then
+			Protect
 			#CliHelp
 			Banner "main"
 			errorCode "HINT"
@@ -3357,6 +3376,7 @@ main()
 				read -e -p "${prompt}" getLang
 				case ${getLang} in
 					exit)
+						Protect "done"
 						break
 						;;
 					no-lang|nl)
@@ -3423,6 +3443,8 @@ main()
 				;;
 			#List projects from cli
 			-p|--project)
+				#Protect clide from being edited
+				Protect
 				shift
 				local ActionProject=$1
 				local GetProject=$1
@@ -3865,6 +3887,8 @@ main()
 				else
 					theHelp ProjectCliHelp ${UserArg}
 				fi
+				#Done protecting
+				Protect "done"
 				;;
 			#Get cli help page
 			-h|--help)
@@ -3951,6 +3975,8 @@ main()
 				fi
 				;;
 			--edit)
+				#Protecting
+				Protect
 				shift
 				local Action=$1
 				local Lang=$2
@@ -4047,6 +4073,8 @@ main()
 						fi
 						;;
 				esac
+				#Done protecting
+				Protect "done"
 				;;
 			#compile code without entering cl[ide]
 			--cpl|--compile)
@@ -4156,6 +4184,8 @@ main()
 				;;
 			#run your compiled code
 			--run)
+				#Protect
+				Protect
 				shift
 				local Lang=$1
 				local Code=$2
@@ -4202,6 +4232,8 @@ main()
 							;;
 					esac
 				fi
+				#Done protecting
+				Protect "done"
 				;;
 			#cat out source code
 			--read)
@@ -4294,8 +4326,12 @@ main()
 				local Lang=$1
 				case ${Lang} in
 					no-lang|nl)
+						#Done protecting
+						Protect
 						#Start IDE
 						Actions-NoLang ${Args[@]}
+						#Done protecting
+						Protect "done"
 						;;
 					*)
 						local Args
@@ -4353,7 +4389,5 @@ AliasTest=$(echo $@ | grep "/")
 if [ -z "${AliasTest}" ]; then
 	history -c
 	#Run clide
-	chmod -w ${ThisFile} 2> /dev/null
 	main $@
-	chmod u+w ${ThisFile} 2> /dev/null
 fi
