@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.69"
+SupportV="0.1.70"
 Lang=Perl
 LangExt=".pl"
 #Color Purple
@@ -147,16 +147,12 @@ UsePerl()
 				local TheCpl
 				local TheItem
 				local CplList=$(UsePerl lscpl | tr '\n' '|')
-				local look=1
-				local NumOfCpls=$(echo -e "${srcCode//,/\\n}" | wc -l)
-				while [ ${look} -le ${NumOfCpls} ];
+				for TheItem in ${srcCode//,/ };
 				do
-					TheItem=$(echo ${srcCode} | cut -d ',' -f ${look})
 					TheCpl=$(echo -e "${CplList//|/\\n}" | grep -w ${TheItem})
 					if [ ! -z "${TheCpl}" ]; then
 						break
 					fi
-					look=$((${look}+1))
 				done
 				echo ${TheCpl}
 			fi
@@ -168,11 +164,14 @@ UsePerl()
 			local newName
 			local DirPath
 			local TheSrcDir
+			local UseProjectTemplate
+
 			case ${project} in
 				none)
 					TheSrcDir=${LangSrc}
 					;;
 				*)
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					case ${ProjectType} in
 						Generic)
 							case ${name} in
@@ -273,6 +272,7 @@ UsePerl()
 			local newName
 			local DirPath
 			local TheSrcDir
+			local UseProjectTemplate
 			#Correct filename
 			if [ ! -z "${name}" ]; then
 				name=$(UsePerl "removeExt" ${name})
@@ -311,6 +311,7 @@ UsePerl()
 						;;
 					#is a project
 					*)
+						UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 						local LookFor
 						TheSrcDir="${LangProject}/${project}/src/"
 						case ${Type} in
@@ -357,12 +358,6 @@ UsePerl()
 								esac
 								;;
 							*)
-#								find ${TheSrcDir} -name ${name} 2> /dev/null | nl
-#								if [ -f ${name} ]; then
-#									name=${name%${LangExt}}
-#									newName=${name##*/}
-#									echo ${newName}${LangExt}
-#								fi
 								;;
 						esac
 					;;
@@ -375,12 +370,14 @@ UsePerl()
 			local ThePath
 			local theSrc
 			local project=${CodeProject}
+			local UseProjectTemplate
 
 			if [ -z "${name}" ]; then
 				case ${project} in
 					none)
 						;;
 					*)
+						UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 						name=${project}
 						;;
 				esac
@@ -552,7 +549,8 @@ UsePerl()
 			local name=$2
 			local keep=$3
 			local project=${CodeProject}
-			local cplArgs=""
+			local UseProjectTemplate
+			local cplArgs
 			local TheBinDir
 			local GetCount
 			local ERROR
@@ -563,6 +561,7 @@ UsePerl()
 					TheBinDir=${LangBin}
 					;;
 				*)
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					project="${project}/"
 					TheBinDir="${LangProject}/${project}bin"
 					;;
@@ -656,6 +655,7 @@ UsePerl()
 			local TheProjectType=$1
 			local project=$2
 			local path=${LangProject}/${project}
+			local UseProjectTemplate
 			if [ ! -d ${path} ]; then
 				case ${ProjectType} in
 					Generic)
@@ -675,30 +675,28 @@ UsePerl()
 			;;
 		projectMode)
 			local mode=$1
+			local UseProjectTemplate
 			case ${ProjectType} in
 				Generic)
-					case ${mode} in
-#						main|test)
-#							echo "${mode}"
-#							;;
-						*)
-							;;
-					esac
 					;;
 				*)
-					ProjectTemplateHandler ${EnvVars[@]} ${Type} ${mode}
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
+					if [ ! -z "${UseTempalt}" ]; then
+						ProjectTemplateHandler ${EnvVars[@]} ${Type} ${mode}
+					fi
 					;;
 			esac
 			;;
 		lscpl)
-			local project
+			local project=${CodeProject}
 			local path
+			local UseProjectTemplate
 			case ${CodeProject} in
 				none)
 					path=${LangBin}/
 					;;
 				*)
-					project=${CodeProject}
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					path=${LangProject}/${project}/bin
 					;;
 			esac
@@ -708,9 +706,10 @@ UsePerl()
 			;;
 		Install|exe-string)
 			bin=$1
-			BinFile="${bin%.*}"
+			BinFile=$(UsePerl "removeExt" ${bin})
 			local project=${CodeProject}
 			local TheBinDir
+			local UseProjectTemplate
 			#Handle Project Dir
 			case ${project} in
 				none)
@@ -718,6 +717,7 @@ UsePerl()
 					TheBinDir=${LangBin}
 					;;
 				*)
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					project="${project}/"
 					TheBinDir="${LangProject}/${project}bin"
 					;;
@@ -768,8 +768,9 @@ UsePerl()
 			local CodeType=$2
 			local oldCode=$3
 			local TheName
-			local UseTempalte
+			local UseProjectTemplate
 			local project=${CodeProject}
+			local UseProjectTemplate
 
 			#Sometimes "oldCode" gets passed as "CodeType"
 			if [ -z "${oldCode}" ]; then
@@ -785,13 +786,20 @@ UsePerl()
 			CodeType=${CodeType,,}
 			name=$(UsePerl "removeExt" ${name})
 
+			case ${project} in
+				none)
+					;;
+				*)
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
+					;;
+			esac
+
 			if [ ! -f ${name}${LangExt} ]; then
 				case ${CodeType} in
 					#create main file
 					main)
 						if [ ! -f ${name}${LangExt} ]; then
-							UseTempalte=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
-							if [ -z "${UseTempalte}" ]; then
+							if [ -z "${UseProjectTemplate}" ]; then
 								#Check for Custom Code Template
 								if [ -f ${TemplateCode} ]; then
 									#Program Name Given
@@ -817,8 +825,7 @@ UsePerl()
 					#create component file
 					component)
 						if [ ! -f ${name}${LangExt} ]; then
-							UseTempalte=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
-							if [ -z "${UseTempalte}" ]; then
+							if [ -z "${UseProjectTemplate}" ]; then
 								if [ -f ${TemplateCode} ]; then
 									#Program Name Given
 									if [ ! -z "${name}" ]; then
@@ -894,9 +901,11 @@ UsePerl()
 			;;
 		runCode|debug)
 			local name=$1
-			local TheBin="${name%.*}${LangExt}"
+			local TheBin=$(UsePerl "removeExt" ${name})
+			TheBin=${TheBin}${LangExt}
 			local project=${CodeProject}
 			local TheBinDir
+			local UseProjectTemplate
 			shift
 			shift
 			local Args=$@
@@ -908,6 +917,7 @@ UsePerl()
 					cd ${LangSrc}/
 					;;
 				*)
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					project="${project}/"
 					TheBinDir="${LangProject}/${project}bin"
 					cd ${LangProject}/${project}/src
@@ -927,6 +937,7 @@ UsePerl()
 
 			#Check if Perl Bin exists
 			if [ -f ${TheBinDir}/${TheBin} ]; then
+				chmod -w ${TheBinDir}/${TheBin} 2> /dev/null
 				case ${Type} in
 					debug)
 						echo "no debugger for Perl"
@@ -936,6 +947,7 @@ UsePerl()
 						${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
 						;;
 				esac
+				chmod u+w ${TheBinDir}/${TheBin} 2> /dev/null
 			else
 				errorCode "cpl" "need" "${name}"
 			fi
@@ -945,6 +957,7 @@ UsePerl()
 			name=$(UsePerl "removeExt" ${name})
 			name="${name}${LangExt}"
 			local project=${CodeProject}
+			local UseProjectTemplate
 			local TheDir
 			local TheCount
 			local TheFound
@@ -986,6 +999,7 @@ UsePerl()
 					fi
 					;;
 				*)
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					case ${Type} in
 						restore)
 							if [ -f "${name}.bak" ]; then
@@ -1040,6 +1054,7 @@ UsePerl()
 			local TheOld
 			local TheNew
 			local project=${CodeProject}
+			local UseProjectTemplate
 			case ${project} in
 				none)
 					if [ ! -z "${New}" ]; then
@@ -1063,6 +1078,7 @@ UsePerl()
 					fi
 					;;
 				*)
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					#Check if extenion is given
 					local HasAnExt
 					local CheckForSrc

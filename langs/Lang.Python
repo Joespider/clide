@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.81"
+SupportV="0.1.82"
 Lang=Python
 LangExt=".py"
 #Color Yellow
@@ -103,7 +103,7 @@ UsePython()
 					TheBinDir=${LangBin}
 					;;
 				*)
-					TheBinDir="${LangProject}/${project}bin"
+					TheBinDir="${LangProject}/${project}/bin"
 					;;
 			esac
 			if [ -d ${TheBinDir} ]; then
@@ -183,18 +183,14 @@ UsePython()
 				local TheCpl
 				local TheItem
 				local CplList=$(UsePython lscpl | tr '\n' '|')
-				local look=1
-				local NumOfCpls=$(echo -e "${srcCode//n/\\n}" | wc -l)
-				while [ ${look} -le ${NumOfCpls} ];
+				for TheItem in ${srcCode//,/ };
 				do
-					TheItem=$(echo ${srcCode} | cut -d ',' -f ${look})
 					TheItem=$(UsePython "removeExt" ${TheItem})
 					TheItem=${TheItem}${LangExt}
 					TheCpl=$(echo -e "${CplList//|/\\n}" | grep -w ${TheItem})
 					if [ ! -z "${TheCpl}" ]; then
 						break
 					fi
-					look=$((${look}+1))
 				done
 				echo ${TheCpl}
 			fi
@@ -206,12 +202,13 @@ UsePython()
 			local newName
 			local DirPath
 			local TheSrcDir
-			local UseTempalte
+			local UseProjectTemplate
 			case ${project} in
 				none)
 					TheSrcDir=${LangSrc}
 					;;
 				*)
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					case ${name} in
 						*.*)
 							newName=${name##*.}
@@ -488,6 +485,8 @@ UsePython()
 			local DirPath
 			local TheSrcDir
 			local ReadOrEdit
+			local UseProjectTemplate
+
 
 			#Select the tool
 			#{
@@ -551,6 +550,7 @@ UsePython()
 							fi
 							;;
 						*)
+							UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 							TheSrcDir="${LangProject}/${project}/src/"
 							local NumFound
 							if [[ "${src}" == *","* ]]; then
@@ -641,6 +641,7 @@ UsePython()
 			local TheBinDir
 			local GetCount
 			local ERROR
+			local UseProjectTemplate
 			#Handle Project Dir
 			case ${project} in
 				none)
@@ -648,8 +649,8 @@ UsePython()
 					TheBinDir=${LangBin}
 					;;
 				*)
-					project="${project}/"
-					TheBinDir="${LangProject}/${project}bin"
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
+					TheBinDir="${LangProject}/${project}/bin"
 					;;
 			esac
 
@@ -743,9 +744,11 @@ UsePython()
 			local TheProjectType=$1
 			local project=$2
 			local path=${LangProject}/${project}
+			local UseProjectTemplate
+
 			if [ ! -d ${path} ]; then
-				UseTempalte=$(ProjectTemplateHandler ${TheProjectType} --check ${Type})
-				if [ -z "${UseTempalte}" ]; then
+				UseProjectTemplate=$(ProjectTemplateHandler ${TheProjectType} --check ${Type})
+				if [ -z "${UseProjectTemplate}" ]; then
 					mkdir ${path}
 					mkdir ${path}/src
 					mkdir ${path}/bin
@@ -769,30 +772,26 @@ UsePython()
 			;;
 		projectMode)
 			local mode=$1
+			local UseProjectTemplate
 			case ${ProjectType} in
 				Generic)
-					case ${mode} in
-#						main|test)
-#							echo "${mode}"
-#							;;
-						*)
-							;;
-					esac
 					;;
 				*)
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					ProjectTemplateHandler ${EnvVars[@]} ${Type} ${mode}
 					;;
 			esac
 			;;
 		lscpl)
-			local project
+			local project=${CodeProject}
 			local path
-			case ${CodeProject} in
+			local UseProjectTemplate
+			case ${project} in
 				none)
 					path=${LangBin}/
 					;;
 				*)
-					project=${CodeProject}
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					path=${LangProject}/${project}/bin
 					;;
 			esac
@@ -802,8 +801,9 @@ UsePython()
 			;;
 		Install|exe-string)
 			local bin=$1
-			local BinFile="${bin%.*}"
+			local BinFile=$(UsePython "removeExt" ${bin})
 			local project=${CodeProject}
+			local UseProjectTemplate
 			local TheBinDir
 			#Handle Project Dir
 			case ${project} in
@@ -812,8 +812,8 @@ UsePython()
 					TheBinDir=${LangBin}
 					;;
 				*)
-					project="${project}/"
-					TheBinDir="${LangProject}/${project}bin"
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
+					TheBinDir="${LangProject}/${project}/bin"
 					;;
 			esac
 
@@ -863,8 +863,17 @@ UsePython()
 			local CodeType=$2
 			local oldCode=$3
 			local TheName
-			local UseTempalte
+			local UseProjectTemplate
 			local project=${CodeProject}
+			local UseProjectTemplate
+
+			case ${project} in
+				none)
+					;;
+				*)
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
+					;;
+			esac
 
 			#Sometimes "oldCode" gets passed as "CodeType"
 			if [ -z "${oldCode}" ]; then
@@ -885,8 +894,7 @@ UsePython()
 					#create main file
 					main)
 						if [ ! -f ${name}${LangExt} ]; then
-							UseTempalte=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
-							if [ -z "${UseTempalte}" ]; then
+							if [ -z "${UseProjectTemplate}" ]; then
 								#Check for Custom Code Template
 								if [ -f ${TemplateCode} ]; then
 									#Program Name Given
@@ -924,8 +932,7 @@ UsePython()
 					#create component file
 					component)
 						if [ ! -f ${name}${LangExt} ]; then
-							UseTempalte=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
-							if [ -z "${UseTempalte}" ]; then
+							if [ -z "${UseProjectTemplate}" ]; then
 								if [ -f ${TemplateCode} ]; then
 									#Program Name Given
 									if [ ! -z "${name}" ]; then
@@ -1004,6 +1011,7 @@ UsePython()
 			local TheBin="${name%.*}${LangExt}"
 			local project=${CodeProject}
 			local TheBinDir
+			local UseProjectTemplate
 			shift
 			shift
 			local Args=$@
@@ -1015,9 +1023,9 @@ UsePython()
 					cd ${LangSrc}/
 					;;
 				*)
-					project="${project}/"
-					TheBinDir="${LangProject}/${project}bin"
-					cd ${LangProject}/${project}/src
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
+					TheBinDir="${LangProject}/${project}/bin"
+					cd ${LangProject}/${project}/src/
 					;;
 			esac
 
@@ -1035,6 +1043,8 @@ UsePython()
 
 			#Check if Python Bin exists
 			if [ -f ${TheBinDir}/${TheBin} ]; then
+				#protect the shell script while running
+				chmod -w ${TheBinDir}/${TheBin} 2> /dev/null
 				case ${Type} in
 					debug)
 						${LangRun} -m ${UseDebugger} ${TheBinDir}/${TheBin} ${Args[@]}
@@ -1043,6 +1053,8 @@ UsePython()
 						${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
 						;;
 				esac
+				#release protections
+				chmod u+w ${TheBinDir}/${TheBin} 2> /dev/null
 			else
 				errorCode "cpl" "need" "${name}"
 			fi
@@ -1055,6 +1067,7 @@ UsePython()
 			local TheDir
 			local TheCount
 			local TheFound
+			local UseProjectTemplate
 
 			case ${project} in
 				none)
@@ -1093,6 +1106,7 @@ UsePython()
 					fi
 					;;
 				*)
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					case ${Type} in
 						restore)
 							if [ -f "${name}.bak" ]; then
@@ -1147,6 +1161,8 @@ UsePython()
 			local TheOld
 			local TheNew
 			local project=${CodeProject}
+			local UseProjectTemplate
+
 			case ${project} in
 				none)
 					if [ ! -z "${New}" ]; then
@@ -1174,6 +1190,7 @@ UsePython()
 					local HasAnExt
 					local CheckForSrc
 					local ThePath
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 
 					HasAnExt=$(UsePython "hasExt" ${Src})
 					if [ ! -f ${Src} ]; then

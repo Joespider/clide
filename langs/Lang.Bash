@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.70"
+SupportV="0.1.71"
 Lang=Bash
 LangExt=".sh"
 ColorNum=2
@@ -106,11 +106,13 @@ UseBash()
 			;;
 		getProjectDir)
 			local project=${CodeProject}
+			local UseProjectTemplate
 			case ${project} in
 				none)
 					echo ${LangProject}
 					;;
 				*)
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					echo ${LangProject}/${project}
 					;;
 			esac
@@ -164,16 +166,12 @@ UseBash()
 				local TheCpl
 				local TheItem
 				local CplList=$(UseBash lscpl | tr '\n' '|')
-				local look=1
-				local NumOfCpls=$(echo -e "${srcCode//,/\\n}" | wc -l)
-				while [ ${look} -le ${NumOfCpls} ];
+				for TheItem in ${srcCode//,/ };
 				do
-					TheItem=$(echo ${srcCode} | cut -d ',' -f ${look})
 					TheCpl=$(echo -e "${CplList//|/\\n}" | grep -w ${TheItem})
 					if [ ! -z "${TheCpl}" ]; then
 						break
 					fi
-					look=$((${look}+1))
 				done
 				echo ${TheCpl}
 			fi
@@ -185,11 +183,13 @@ UseBash()
 			local newName
 			local DirPath
 			local TheSrcDir
+			local UseProjectTemplate
 			case ${project} in
 				none)
 					TheSrcDir=${LangSrc}
 					;;
 				*)
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					case ${ProjectType} in
 						Generic)
 							case ${name} in
@@ -224,7 +224,7 @@ UseBash()
 			fi
 			;;
 		BeforeFiles|AfterFiles)
-				ls *${LangExt} 2> /dev/null
+			ls *${LangExt} 2> /dev/null
 			;;
 		pgDir)
 			#Return Bash src Dir
@@ -281,6 +281,7 @@ UseBash()
 			local newName
 			local DirPath
 			local TheSrcDir
+			local UseProjectTemplate
 
 			#Correct filename
 			if [ ! -z "${name}" ]; then
@@ -334,6 +335,7 @@ UseBash()
 						;;
 					#is a project
 					*)
+						UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 						TheSrcDir="${LangProject}/${project}/src/"
 						local LookFor
 						case ${Type} in
@@ -383,12 +385,6 @@ UseBash()
 								esac
 								;;
 							*)
-#								find ${TheSrcDir} -name ${name} 2> /dev/null | nl
-#								if [ -f ${name} ]; then
-#									name=${name%${LangExt}}
-#									newName=${name##*/}
-#									echo ${newName}${LangExt}
-#								fi
 								;;
 						esac
 						;;
@@ -401,12 +397,14 @@ UseBash()
 			local ThePath
 			local theSrc
 			local project=${CodeProject}
+			local UseProjectTemplate
 
 			if [ -z "${name}" ]; then
 				case ${project} in
 					none)
 						;;
 					*)
+						UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 						name=${project}
 						;;
 				esac
@@ -466,6 +464,7 @@ UseBash()
 			local DirPath
 			local TheSrcDir
 			local ReadOrEdit
+			local UseProjectTemplate
 
 			#Select the tool
 			#{
@@ -529,6 +528,7 @@ UseBash()
 							fi
 							;;
 						*)
+							UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 							TheSrcDir="${LangProject}/${project}/src/"
 							local NumFound
 							if [[ "${src}" == *","* ]]; then
@@ -618,6 +618,7 @@ UseBash()
 			local cplArgs=""
 			local TheBinDir
 			local ERROR
+			local UseProjectTemplate
 			#Handle Project Dir
 			case ${project} in
 				none)
@@ -625,8 +626,8 @@ UseBash()
 					TheBinDir=${LangBin}
 					;;
 				*)
-					project="${project}/"
-					TheBinDir="${LangProject}/${project}bin"
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
+					TheBinDir="${LangProject}/${project}/bin"
 					;;
 			esac
 
@@ -720,18 +721,32 @@ UseBash()
 			local TheProjectType=$1
 			local project=$2
 			local path=${LangProject}/${project}
+			local UseProjectTemplate
 			if [ ! -d ${path} ]; then
 				case ${ProjectType} in
 					Generic)
 						mkdir ${path}
-						cd ${path}
-						mkdir src bin
-						cd ${path}/src
+						mkdir ${path}/bin
+						mkdir ${path}/src
 						;;
 					*)
-						ProjectTemplateHandler ${EnvVars[@]} ${Type} ${project}
+						UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
+						mkdir ${path}
+						if [ ! -z "${UseProjectTemplate}" ]; then
+							ProjectTemplateHandler ${EnvVars[@]} ${Type} ${project}
+							if [ ! -d ${path}/bin ]; then
+								mkdir ${path}/bin
+							fi
+							if [ ! -d ${path}/src ]; then
+								mkdir ${path}/src
+							fi
+						else
+							mkdir ${path}/bin
+							mkdir ${path}/src
+						fi
 						;;
 				esac
+				cd ${path}/src
 			else
 				cd ${path}/srs
 			fi
@@ -739,29 +754,28 @@ UseBash()
 			;;
 		projectMode)
 			local mode=$1
+			local UseProjectTemplate
 			case ${ProjectType} in
 				Generic)
-					case ${mode} in
-#						main|test)
-#							echo "${mode}"
-#							;;
-						*)
-							;;
-					esac
 					;;
 				*)
-					ProjectTemplateHandler ${EnvVars[@]} ${Type} ${mode}
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
+					if [ ! -z "${UseProjectTemplate}" ]; then
+						ProjectTemplateHandler ${EnvVars[@]} ${Type} ${mode}
+					fi
 					;;
 			esac
 			;;
 		lscpl)
 			local project
 			local path
+			local UseProjectTemplate
 			case ${CodeProject} in
 				none)
 					path=${LangBin}/
 					;;
 				*)
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					project=${CodeProject}
 					path=${LangProject}/${project}/bin/
 					;;
@@ -775,6 +789,7 @@ UseBash()
 			local BinFile="${bin%.*}"
 			local project=${CodeProject}
 			local TheBinDir
+			local UseProjectTemplate
 			#Handle Project Dir
 			case ${project} in
 				none)
@@ -782,8 +797,8 @@ UseBash()
 					TheBinDir=${LangBin}
 					;;
 				*)
-					project="${project}/"
-					TheBinDir="${LangProject}/${project}bin"
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
+					TheBinDir="${LangProject}/${project}/bin"
 					;;
 			esac
 
@@ -835,27 +850,33 @@ UseBash()
 			local Type=$2
 			local oldCode=$3
 			local project=${CodeProject}
+			local UseProjectTemplate
 
 			Type=${Type,,}
 			name=$(UseBash "removeExt" ${name})
 			if [ ! -f ${name}${LangExt} ]; then
-				#Check for Custom Code Template
-				if [ -f ${TemplateCode} ]; then
-					#Program Name Given
-					if [ ! -z "${name}" ]; then
-						${TemplateCode} ${name} > ${name}${LangExt}
-					#No Program Name Given
+				UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
+				if [ -z "${UseProjectTemplate}" ]; then
+					#Check for Custom Code Template
+					if [ -f ${TemplateCode} ]; then
+						#Program Name Given
+						if [ ! -z "${name}" ]; then
+							${TemplateCode} ${name} > ${name}${LangExt}
+						#No Program Name Given
+						else
+							${TemplateCode} --help
+						fi
 					else
-						${TemplateCode} --help
+						#Program Name Given
+						if [ ! -z "${name}" ]; then
+							touch ${name}${LangExt}
+							echo -e "#!/bin/${LangRun}\n" > ${name}${LangExt}
+						else
+							errorCode "newCode"
+						fi
 					fi
 				else
-					#Program Name Given
-					if [ ! -z "${name}" ]; then
-						touch ${name}${LangExt}
-						echo -e "#!/bin/${LangRun}\n" > ${name}${LangExt}
-					else
-						errorCode "newCode"
-					fi
+					echo ProjectTemplateHandler
 				fi
 			fi
 			;;
@@ -868,6 +889,7 @@ UseBash()
 			local TheBin="${name%.*}${LangExt}"
 			local project=${CodeProject}
 			local TheBinDir
+			local UseProjectTemplate
 			shift
 			shift
 			local Args=$@
@@ -879,15 +901,19 @@ UseBash()
 					cd ${LangSrc}/
 					;;
 				*)
-					project="${project}/"
-					TheBinDir="${LangProject}/${project}bin"
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
+					TheBinDir="${LangProject}/${project}/bin"
 					cd ${LangProject}/${project}/src
 					;;
 			esac
 
 			#Check if Bash Bin exists
 			if [ -f ${TheBinDir}/${TheBin} ]; then
+				#protect the shell script while running
+				chmod -w ${TheBinDir}/${TheBin} 2> /dev/null
 				${TheBinDir}/${TheBin} ${Args[@]}
+				#release protection
+				chmod u+w ${TheBinDir}/${TheBin} 2> /dev/null
 			else
 				errorCode "cpl" "need" "${name}"
 			fi
@@ -897,6 +923,7 @@ UseBash()
 			name=$(UseBash "removeExt" ${name})
 			name="${name}${LangExt}"
 			local project=${CodeProject}
+			local UseProjectTemplate
 			local TheDir
 			local TheCount
 			local TheFound
@@ -938,6 +965,7 @@ UseBash()
 					fi
 					;;
 				*)
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					case ${Type} in
 						restore)
 							if [ -f "${name}.bak" ]; then
@@ -992,6 +1020,7 @@ UseBash()
 			local TheOld
 			local TheNew
 			local project=${CodeProject}
+			local UseProjectTemplate
 			case ${project} in
 				none)
 					if [ ! -f ${New} ]; then
@@ -1015,6 +1044,7 @@ UseBash()
 					fi
 					;;
 				*)
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					#Check if extenion is given
 					local HasAnExt
 					local CheckForSrc

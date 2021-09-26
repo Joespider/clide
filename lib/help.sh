@@ -117,6 +117,23 @@ MenuHelp()
 	esac
 }
 
+LookForHelp()
+{
+	local cmd="search"
+	echo ""
+	echo "----------------[(${cmd}) Menu]----------------"
+	echo "Search project for text in your source code"
+	echo ""
+	echo -e "${cmd} <look for>\t\t\t: \"Search your project\""
+	echo -e "${cmd} --file-only <look for>\t\t: \"ONLY display source file\""
+	echo -e "${cmd} --files <look for>\t\t: \"ONLY display source file\""
+	echo -e "${cmd} --count <look for>\t\t: \"display number of search results\""
+	echo -e "${cmd} --occur <look for>\t\t: \"display number of search results\""
+	echo -e "${cmd} --help\t\t\t\t: \"ONLY display source file\""
+	echo "------------------------------------------------"
+	echo ""
+}
+
 CreateHelp()
 {
 	local Lang=$1
@@ -341,6 +358,7 @@ CliHelp()
 					echo -e "--new <args>\t\t\t\t\t: \"New source code\""
 					echo -e "--edit <args>\t\t\t\t\t: \"Edit source code\""
 					echo -e "--edit --config\t\t\t\t\t: \"Edit ${Head} config\""
+					echo -e "--edit --lang <language>\t\t\t: \"Edit the ${Head} langauge support file\""
 					echo -e "--cpl, --compile <args>\t\t\t\t: \"Compile source code\""
 					echo -e "--install <args>\t\t\t\t: \"install program (.bash_aliases)\""
 					echo -e "--debug <args>\t\t\t\t\t: \"Debug compiled code\""
@@ -519,6 +537,7 @@ EditHelp()
 	echo -e "\"Edit your code without having a session\""
 	echo ""
 	echo -e "${cmd} --config\t\t\t: \"Edit the ${Head} config file\""
+	echo -e "${cmd} --lang <language>\t: \"Edit the ${Head} langauge support file\""
 	echo -e "${cmd} <language> <code>\t: \"Edit the source code by identifying langauge and source code\""
 	echo -e "${cmd} <code>\t\t\t: \"Edit source code by providing source code and extension\""
 	echo -e "${cmd} -h, --help\t\t: \"help page\""
@@ -774,6 +793,9 @@ main()
 	case ${Call} in
 		MenuHelp)
 			MenuHelp $@
+			;;
+		LookForHelp)
+			LookForHelp $@
 			;;
 		CreateHelp)
 			CreateHelp $@

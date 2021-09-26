@@ -17,8 +17,11 @@ TemplateHandler()
 		#Meant for Lang.<lang> to determine if actiont exists
 		--check)
 			Job=$4
-			if [ -d ${TemplateProjectDir}/${Lang}.${ProjectType} ] && [ -f ${TemplateProjectDir}/${Lang}.${ProjectType}/${Job} ]; then
-				echo "yes"
+			if [ -d ${TemplateProjectDir}/${Lang}.${ProjectType} ] && [ -f ${TemplateProjectDir}/${Lang}.${ProjectType}/${Job} ] && [ -x ${TemplateProjectDir}/${Lang}.${ProjectType}/${Job} ]; then
+				local Content=$(cat ${TemplateProjectDir}/${Lang}.${ProjectType}/${Job})
+				if [ ! -z "${Content}" ]; then
+					echo "yes"
+				fi
 			fi
 			;;
 		*)

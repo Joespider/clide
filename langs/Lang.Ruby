@@ -101,11 +101,13 @@ UseRuby()
 			;;
 		getProjectDir)
 			local project=${CodeProject}
+			local UseProjectTemplate
 			case ${project} in
 				none)
 					echo ${LangProject}
 					;;
 				*)
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					echo ${LangProject}/${project}
 					;;
 			esac
@@ -114,6 +116,7 @@ UseRuby()
 			local name=$1
 			local project=${CodeProject}
 			local TheSrcDir=${LangProject}/${project}/src
+			local UseProjectTemplate
 			if [ ! -z "${name}" ]; then
 				find ${TheSrcDir} -name "${name}" 2> /dev/null
 			fi
@@ -159,18 +162,15 @@ UseRuby()
 				local TheCpl
 				local TheItem
 				local CplList=$(UseRuby lscpl | tr '\n' '|')
-				local look=1
 				local NumOfCpls=$(echo -e "${srcCode//,/\\n}" | wc -l)
-				while [ ${look} -le ${NumOfCpls} ];
+				for TheItem in ${srcCode//,/ };
 				do
-					TheItem=$(echo ${srcCode} | cut -d ',' -f ${look})
 					TheItem=$(UseRuby "removeExt" ${TheItem})
 					TheItem=${TheItem}${LangExt}
 					TheCpl=$(echo -e "${CplList//|/\\n}" | grep -w ${TheItem})
 					if [ ! -z "${TheCpl}" ]; then
 						break
 					fi
-					look=$((${look}+1))
 				done
 				echo ${TheCpl}
 			fi
@@ -179,6 +179,7 @@ UseRuby()
 			local name=$1
 			name=$(UseRuby "removeExt" ${name})
 			local project=${CodeProject}
+			local UseProjectTemplate
 			local newName
 			local DirPath
 			local TheSrcDir
@@ -187,6 +188,7 @@ UseRuby()
 					TheSrcDir=${LangSrc}
 					;;
 				*)
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					case ${ProjectType} in
 						Generic)
 							case ${name} in
@@ -273,13 +275,13 @@ UseRuby()
 			local name=$1
 			local new=$2
 			local project=${CodeProject}
+			local UseProjectTemplate
 			local newName
 			local DirPath
 			local TheSrcDir
 
 			#Correct filename
 			if [ ! -z "${name}" ]; then
-
 				case ${project} in
 					#not a project
 					none)
@@ -329,6 +331,7 @@ UseRuby()
 						;;
 					#is a project
 					*)
+						UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 						TheSrcDir="${LangProject}/${project}/src/"
 						local LookFor
 						case ${Type} in
@@ -396,12 +399,14 @@ UseRuby()
 			local ThePath
 			local theSrc
 			local project=${CodeProject}
+			local UseProjectTemplate
 
 			if [ -z "${name}" ]; then
 				case ${project} in
 					none)
 						;;
 					*)
+						UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 						name=${project}
 						;;
 				esac
@@ -455,6 +460,7 @@ UseRuby()
 			local src=$1
 			local num=$2
 			local project=${CodeProject}
+			local UseProjectTemplate
 			local newName
 			local DirPath
 			local TheSrcDir
@@ -522,6 +528,7 @@ UseRuby()
 							fi
 							;;
 						*)
+							UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 							TheSrcDir="${LangProject}/${project}/src/"
 							local NumFound
 							if [[ "${src}" == *","* ]]; then
@@ -612,6 +619,8 @@ UseRuby()
 			local TheBinDir
 			local GetCount
 			local ERROR
+			local UseProjectTemplate
+
 			#Handle Project Dir
 			case ${project} in
 				none)
@@ -619,6 +628,7 @@ UseRuby()
 					TheBinDir=${LangBin}
 					;;
 				*)
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					project="${project}/"
 					TheBinDir="${LangProject}/${project}bin"
 					;;
@@ -711,6 +721,8 @@ UseRuby()
 			local TheProjectType=$1
 			local project=$2
 			local path=${LangProject}/${project}
+			local UseProjectTemplate
+
 			if [ ! -d ${path} ]; then
 				case ${ProjectType} in
 					Generic)
@@ -720,7 +732,10 @@ UseRuby()
 						cd ${path}/src
 						;;
 					*)
-						ProjectTemplateHandler ${EnvVars[@]} ${Type} ${project}
+						UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
+						if [ ! -z "${UseProjectTemplate}" ]; then
+							ProjectTemplateHandler ${EnvVars[@]} ${Type} ${project}
+						fi
 						;;
 				esac
 			else
@@ -730,29 +745,28 @@ UseRuby()
 			;;
 		projectMode)
 			local mode=$1
+			local UseProjectTemplate
 			case ${ProjectType} in
 				Generic)
-					case ${mode} in
-#						main|test)
-#							echo "${mode}"
-#							;;
-						*)
-							;;
-					esac
 					;;
 				*)
-					ProjectTemplateHandler ${EnvVars[@]} ${Type} ${mode}
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
+					if [ ! -z "${UseProjectTemplate}" ]; then
+						ProjectTemplateHandler ${EnvVars[@]} ${Type} ${mode}
+					fi
 					;;
 			esac
 			;;
 		lscpl)
 			local project
 			local path
+			local UseProjectTemplate
 			case ${CodeProject} in
 				none)
 					path=${LangBin}/
 					;;
 				*)
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					project=${CodeProject}
 					path=${LangProject}/${project}/bin
 					;;
@@ -766,6 +780,7 @@ UseRuby()
 			local BinFile="${bin%.*}"
 			local project=${CodeProject}
 			local TheBinDir
+			local UseProjectTemplate
 			#Handle Project Dir
 			case ${project} in
 				none)
@@ -773,6 +788,7 @@ UseRuby()
 					TheBinDir=${LangBin}
 					;;
 				*)
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					project="${project}/"
 					TheBinDir="${LangProject}/${project}bin"
 					;;
@@ -824,8 +840,9 @@ UseRuby()
 			local CodeType=$2
 			local oldCode=$3
 			local TheName
-			local UseTempalte
+			local UseProjectTemplate
 			local project=${CodeProject}
+			local UseProjectTemplate
 
 			#Sometimes "oldCode" gets passed as "CodeType"
 			if [ -z "${oldCode}" ]; then
@@ -838,6 +855,14 @@ UseRuby()
 				esac
 			fi
 
+			case ${project} in
+				none)
+					;;
+				*)
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
+					;;
+			esac
+
 			CodeType=${CodeType,,}
 			name=$(UseRuby "removeExt" ${name})
 
@@ -846,8 +871,7 @@ UseRuby()
 					#create main file
 					main)
 						if [ ! -f ${name}${LangExt} ]; then
-							UseTempalte=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
-							if [ -z "${UseTempalte}" ]; then
+							if [ -z "${UseProjectTemplate}" ]; then
 								#Check for Custom Code Template
 								if [ -f ${TemplateCode} ]; then
 									#Program Name Given
@@ -873,8 +897,7 @@ UseRuby()
 					#create component file
 					component)
 						if [ ! -f ${name}${LangExt} ]; then
-							UseTempalte=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
-							if [ -z "${UseTempalte}" ]; then
+							if [ -z "${UseProjectTemplate}" ]; then
 								if [ -f ${TemplateCode} ]; then
 									#Program Name Given
 									if [ ! -z "${name}" ]; then
@@ -953,6 +976,7 @@ UseRuby()
 			local TheBin="${name}"
 			local project=${CodeProject}
 			local TheBinDir
+			local UseProjectTemplate
 			shift
 			shift
 			local Args=$@
@@ -963,13 +987,17 @@ UseRuby()
 					TheBinDir=${LangBin}
 					;;
 				*)
-					project="${project}/"
-					TheBinDir="${LangProject}/${project}bin"
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
+					TheBinDir="${LangProject}/${project}/bin"
 				;;
 			esac
 			#Check if Ruby Bin exists
 			if [ -f ${TheBinDir}/${TheBin} ]; then
+				#protect the shell script while running
+				chmod -w ${TheBinDir}/${TheBin} 2> /dev/null
 				${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+				#Release protection
+				chmod u+w ${TheBinDir}/${TheBin} 2> /dev/null
 			else
 				errorCode "cpl" "need" "${name}"
 			fi
@@ -979,6 +1007,7 @@ UseRuby()
 			name=$(UseRuby "removeExt" ${name})
 			name="${name}${LangExt}"
 			local project=${CodeProject}
+			local UseProjectTemplate
 			local TheDir
 			local TheCount
 			local TheFound
@@ -1020,6 +1049,7 @@ UseRuby()
 					fi
 					;;
 				*)
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					case ${Type} in
 						restore)
 							if [ -f "${name}.bak" ]; then
@@ -1074,6 +1104,7 @@ UseRuby()
 			local TheOld
 			local TheNew
 			local project=${CodeProject}
+			local UseProjectTemplate
 			case ${project} in
 				none)
 					if [ ! -z "${New}" ]; then
@@ -1097,6 +1128,7 @@ UseRuby()
 					fi
 					;;
 				*)
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					#Check if extenion is given
 					local HasAnExt
 					local CheckForSrc

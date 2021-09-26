@@ -1,7 +1,8 @@
 Shell=$(which bash)
 #!${Shell}
+ThisFile=$0
 #Get path of the script
-ShellPath=$(realpath $0)
+ShellPath=$(realpath ${ThisFile})
 #Get the dir name
 root=$(dirname ${ShellPath})
 #load the config files
@@ -154,16 +155,22 @@ ModeHandler()
 		${repoTool}|repo)
 			#Use ONLY for Projects
 			if [[ ! "${CodeProject}" == "none" ]]; then
+				chmod -w ${ModesDir}/repo.sh 2> /dev/null
 				${ModesDir}/repo.sh
+				chmod u+w ${ModesDir}/repo.sh 2> /dev/null
 			else
 				errorCode "project" "must-be-active"
 			fi
 			;;
 		pkg)
+			chmod -w ${ModesDir}/pkg.sh 2> /dev/null
 			${ModesDir}/pkg.sh
+			chmod u+w ${ModesDir}/pkg.sh 2> /dev/null
 			;;
 		add)
+			chmod -w ${ModesDir}/add.sh 2> /dev/null
 			${ModesDir}/add.sh ${Head} "${LibDir}" "${LangsDir}" "${ClideProjectDir}" ${Lang} ${cLang} ${Code} ${cCode} ${Arg[@]}
+			chmod u+w ${ModesDir}/add.sh 2> /dev/null
 
 			;;
 		#Provide help page when asked
@@ -426,8 +433,22 @@ Banner()
 #Search selected code for element
 lookFor()
 {
+	local Count
 	local project=${CodeProject}
-	local search=$1
+	local TypeOfSearch=$1
+	local search=$2
+
+	if [ ! -z "${TypeOfSearch}" ] && [ -z "${search}" ]; then
+		case ${TypeOfSearch} in
+			-*)
+				;;
+			*)
+				search=${TypeOfSearch}
+				TypeOfSearch=""
+				;;
+		esac
+	fi
+
 	#Determin if it is a project
 	case ${project} in
 		#IS NOT a project
@@ -436,11 +457,38 @@ lookFor()
 			errorCode "project" "none" "${Head}"
 			;;
 		*)
-			if [ ! -z "${search}" ]; then
-				grep -iR ${search} * | less
-			else
-				errorCode "lookFor" "none"
-			fi
+			case ${TypeOfSearch} in
+				-*help)
+					theHelp LookForHelp
+					;;
+				*)
+					if [ ! -z "${search}" ]; then
+						case ${TypeOfSearch} in
+							--file-only|--files)
+								Count=$(grep -liR ${search} * | wc -l)
+								if [ ${Count} -gt 20 ]; then
+									grep -liR ${search} * | less
+								else
+									grep -liR ${search} *
+								fi
+								;;
+							--count|--occur)
+								grep -iR ${search} * | wc -l
+								;;
+							*)
+								Count=$(grep -iR ${search} * | wc -l)
+								if [ ${Count} -gt 20 ]; then
+									grep -iR ${search} * | less
+								else
+									grep -iR ${search} *
+								fi
+								;;
+						esac
+					else
+						errorCode "lookFor" "none"
+					fi
+					;;
+			esac
 			;;
 	esac
 }
@@ -2579,7 +2627,7 @@ Actions()
 						;;
 					#search for element in project
 					search)
-						lookFor ${UserIn[1]}
+						lookFor ${UserIn[1]} ${UserIn[2]}
 						;;
 					#Write notes for code
 					notes)
@@ -3905,6 +3953,7 @@ main()
 			--edit)
 				shift
 				local Action=$1
+				local Lang=$2
 				case ${Action} in
 					--config)
 						local YourAnswer
@@ -3926,6 +3975,39 @@ main()
 							*)
 								;;
 						esac
+						;;
+					--lang)
+						if [ ! -z "${Lang}" ]; then
+							Lang=${Lang,,}
+							Lang=${Lang^}
+							local TheLang=${LangsDir}/Lang.${Lang}
+
+							if [ -f "${TheLang}" ]; then
+								local YourAnswer
+								errorCode "WARNING"
+								errorCode "WARNING" "Editing this file incorrectly could render ${Lang} unusable"
+								echo ""
+								errorCode "WARNING" "Do you wish to continue (y/n)"
+								echo -n "> "
+								read YourAnswer
+								YourAnswer=${YourAnswer,,}
+								case ${YourAnswer} in
+									y)
+										${editor} ${TheLang}
+										clear
+										errorCode "WARNING" "May God have mercy on your ${Head}"
+										echo ""
+										;;
+									*)
+										;;
+								esac
+							else
+								errorCode "ERROR"
+								errorCode "ERROR" "\"${Lang}\" is not a supported language"
+							fi
+						else
+							theHelp EditHelp
+						fi
 						;;
 					*)
 						if [ -z "${Action}" ]; then
@@ -4271,5 +4353,7 @@ AliasTest=$(echo $@ | grep "/")
 if [ -z "${AliasTest}" ]; then
 	history -c
 	#Run clide
+	chmod -w ${ThisFile} 2> /dev/null
 	main $@
+	chmod u+w ${ThisFile} 2> /dev/null
 fi
