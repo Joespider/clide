@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.2.02"
+SupportV="0.2.03"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -954,39 +954,39 @@ UseJava()
 			if [ ! -d ${path} ]; then
 				case ${ProjectType} in
 					Generic)
-						mkdir ${path}/lib
-						mkdir ${path}/classes
-						mkdir ${path}/META-INF
-						mkdir ${path}/src
-						mkdir ${path}/bin
-						mkdir ${path}/src/main
-						mkdir ${path}/src/test
-						mkdir ${path}/src/main/java
-						mkdir ${path}/src/test/java
+						mkdir -p ${path}/lib
+						mkdir -p ${path}/classes
+						mkdir -p ${path}/META-INF
+						mkdir -p ${path}/src
+						mkdir -p ${path}/bin
+						mkdir -p ${path}/src/main
+						mkdir -p ${path}/src/test
+						mkdir -p ${path}/src/main/java
+						mkdir -p ${path}/src/test/java
 						;;
 					*)
 						UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 						if [ ! -z "${UseProjectTemplate}" ]; then
 							ProjectTemplateHandler ${EnvVars[@]} ${Type} ${project}
 							if [ ! -d ${path}/classes ]; then
-								mkdir ${path}/classes
+								mkdir -p ${path}/classes
 							fi
 							if [ ! -d ${path}/bin ]; then
-								mkdir ${path}/bin
+								mkdir -p ${path}/bin
 							fi
 							if [ ! -d ${path}/src ]; then
-								mkdir ${path}/src
+								mkdir -p ${path}/src
 							fi
 						else
-							mkdir ${path}/lib
-							mkdir ${path}/classes
-							mkdir ${path}/META-INF
-							mkdir ${path}/src
-							mkdir ${path}/bin
-							mkdir ${path}/src/main
-							mkdir ${path}/src/test
-							mkdir ${path}/src/main/java
-							mkdir ${path}/src/test/java
+							mkdir -p ${path}/lib
+							mkdir -p ${path}/classes
+							mkdir -p ${path}/META-INF
+							mkdir -p ${path}/src
+							mkdir -p ${path}/bin
+							mkdir -p ${path}/src/main
+							mkdir -p ${path}/src/test
+							mkdir -p ${path}/src/main/java
+							mkdir -p ${path}/src/test/java
 						fi
 						;;
 				esac
