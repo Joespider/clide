@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.2.01"
+SupportV="0.2.03"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -203,11 +203,8 @@ UseJava()
 				local IsClass
 				local TheItem
 				local CplList=$(UseJava lscpl | tr '\n' '|')
-				local look=1
-				local NumOfCpls=$(echo -e "${srcCode//,/\\n}" | wc -l)
-				while [ ${look} -le ${NumOfCpls} ];
+				for TheItem in ${srcCode//,/ };
 				do
-					TheItem=$(echo ${srcCode} | cut -d ',' -f ${look})
 					TheItem=$(UseJava "removeExt" "${TheItem}")
 
 					case ${TheItem} in
@@ -231,7 +228,6 @@ UseJava()
 						fi
 					break
 					fi
-					look=$((${look}+1))
 				done
 				echo ${TheCpl}
 				fi
@@ -775,17 +771,13 @@ UseJava()
 											#many "main" class were found
 											*)
 												#remove ALL jar
-												while [ ${look} -le ${NumOfMain} ];
+												for TheItem in ${TheMainClass};
 												do
-													TheItem=$(echo ${TheMainClass} | cut -d ' ' -f ${look})
 													TheItem=${TheItem%.class}.jar
-
 													#remove ALL jar that exist
 													if [ -f ${TheBinDir}/${TheItem} ]; then
 														rm ${TheBinDir}/${TheItem}
 													fi
-
-													look=$((${look}+1))
 												done
 												;;
 										esac
@@ -958,22 +950,47 @@ UseJava()
 			local TheProjectType=$1
 			local project=$2
 			local path=${LangProject}/${project}
+			local UseProjectTemplate
 			if [ ! -d ${path} ]; then
 				case ${ProjectType} in
 					Generic)
-						mkdir ${path}
-						cd ${path}
-						mkdir lib
-						mkdir classes
-						mkdir META-INF
-						mkdir src bin
-						mkdir src/main src/test
-						mkdir src/main/java src/test/java
+						mkdir -p ${path}/lib
+						mkdir -p ${path}/classes
+						mkdir -p ${path}/META-INF
+						mkdir -p ${path}/src
+						mkdir -p ${path}/bin
+						mkdir -p ${path}/src/main
+						mkdir -p ${path}/src/test
+						mkdir -p ${path}/src/main/java
+						mkdir -p ${path}/src/test/java
 						;;
 					*)
-						ProjectTemplateHandler ${EnvVars[@]} ${Type} ${project}
+						UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
+						if [ ! -z "${UseProjectTemplate}" ]; then
+							ProjectTemplateHandler ${EnvVars[@]} ${Type} ${project}
+							if [ ! -d ${path}/classes ]; then
+								mkdir -p ${path}/classes
+							fi
+							if [ ! -d ${path}/bin ]; then
+								mkdir -p ${path}/bin
+							fi
+							if [ ! -d ${path}/src ]; then
+								mkdir -p ${path}/src
+							fi
+						else
+							mkdir -p ${path}/lib
+							mkdir -p ${path}/classes
+							mkdir -p ${path}/META-INF
+							mkdir -p ${path}/src
+							mkdir -p ${path}/bin
+							mkdir -p ${path}/src/main
+							mkdir -p ${path}/src/test
+							mkdir -p ${path}/src/main/java
+							mkdir -p ${path}/src/test/java
+						fi
 						;;
 				esac
+				cd ${path}
 			else
 				cd ${path}
 			fi
@@ -984,6 +1001,7 @@ UseJava()
 			local packagePath=$(echo -e "${name//./\/}")
 			local project=${CodeProject}
 			local path=${LangProject}/${project}/src/${ProjectMode}/java/
+			local UseProjectTemplate
 			case ${project} in
 				none)
 					;;
@@ -1041,6 +1059,7 @@ UseJava()
 			;;
 		projectMode)
 			local mode=$1
+			local UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 			case ${ProjectType} in
 				Generic)
 					case ${mode} in
@@ -1052,18 +1071,23 @@ UseJava()
 					esac
 					;;
 				*)
-					ProjectTemplateHandler ${EnvVars[@]} ${Type} ${mode}
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
+					if [ ! -z "${UseProjectTemplate}" ]; then
+						ProjectTemplateHandler ${EnvVars[@]} ${Type} ${mode}
+					fi
 					;;
 			esac
 			;;
 		lscpl)
 			local project
 			local path
+			local UseProjectTemplate
 			case ${CodeProject} in
 				none)
 					path=${LangBin}/
 					;;
 				*)
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					project=${CodeProject}
 					path=${LangProject}/${project}/bin/
 					;;
@@ -1077,6 +1101,7 @@ UseJava()
 			local BinFile="${bin%.*}"
 			local project=${CodeProject}
 			local TheBinDir
+			local UseProjectTemplate
 			#Handle Project Dir
 			case ${project} in
 				none)
@@ -1084,6 +1109,7 @@ UseJava()
 					TheBinDir=${LangBin}
 					;;
 				*)
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					project="${project}/"
 					TheBinDir="${LangProject}/${project}bin"
 					;;
@@ -1170,7 +1196,7 @@ UseJava()
 			local PackageName
 			local PackageNameJava
 			local Content
-			local UseTempalte
+			local UseProjectTemplate
 			local TemplateC=${TemplateCodeClass##*/}
 			TemplateC=${TemplateC%.*}
 
@@ -1200,7 +1226,7 @@ UseJava()
 							;;
 						#Handle Project Specific code
 						*)
-							UseTempalte=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
+							UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 							PackageName=$(echo ${PWD}/ | sed "s/${project}\/src/|/g" | cut -d '|' -f 2 | sed "s/\/main\/java\///1" | sed "s/\/test\/java\///1" | tr '/' '.')
 							if [ ! -z "${PackageName}" ]; then
 								PackageName=${PackageName%*.}
@@ -1213,7 +1239,7 @@ UseJava()
 							case ${CodeType} in
 								#create main file
 								main)
-									if [ -z "${UseTempalte}" ]; then
+									if [ -z "${UseProjectTemplate}" ]; then
 										#echo "main"
 										cd ${LangBin}
 										${LangRun} ${TemplateC} --user $USER --main --shell --write-file --read-file --user-input --append-array ${PackageNameJava} --name ${name}
@@ -1225,7 +1251,7 @@ UseJava()
 									;;
 								#create component file
 								component)
-									if [ -z "${UseTempalte}" ]; then
+									if [ -z "${UseProjectTemplate}" ]; then
 										#echo "component"
 										cd ${LangBin}
 										${LangRun} ${TemplateC} --user $USER --write-file --read-file --user-input --append-array ${PackageNameJava} --name ${name}
@@ -1298,7 +1324,7 @@ UseJava()
 							case ${CodeType} in
 								#create main file
 								main)
-									if [ -z "${UseTempalte}" ]; then
+									if [ -z "${UseProjectTemplate}" ]; then
 										#echo "main"
 										${LangRun} -jar ${TemplateCodeJar} --user $USER --main --shell --write-file --read-file --user-input --append-array ${PackageNameJava} --name ${name}
 									else
@@ -1307,7 +1333,7 @@ UseJava()
 									;;
 								#create component file
 								component)
-									if [ -z "${UseTempalte}" ]; then
+									if [ -z "${UseProjectTemplate}" ]; then
 										#echo "component"
 										${LangRun} -jar ${TemplateCodeJar} --user $USER --write-file --read-file ${PackageNameJava} --name ${name}
 									else
@@ -1403,7 +1429,7 @@ UseJava()
 				fi
 			#No Program Name Given
 			else
-				if [ -z "${UseTempalte}" ]; then
+				if [ -z "${UseProjectTemplate}" ]; then
 					#Check for Custom Code Template...is class
 					if [ -f ${TemplateCodeClass} ]; then
 						cd ${LangBin}
@@ -1507,6 +1533,7 @@ UseJava()
 			local TheClassDir
 			local TheJarDir
 			local JavaProp=$2
+			local UseProjectTemplate
 			shift
 			shift
 			local Args=$@
@@ -1533,6 +1560,7 @@ UseJava()
 						TheJarDir=${LangBin}
 						;;
 					*)
+						UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 						TheJar="${project}.jar"
 						TheClassDir=${LangProject}/${project}/classes/
 						package=$(find ${TheClassDir} -name "*.class")
