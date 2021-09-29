@@ -1,7 +1,9 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.2.03"
+#https://stackoverflow.com/questions/10339637/java-import-cannot-find-symbol
+
+SupportV="0.2.04"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -531,6 +533,7 @@ UseJava()
 		editCode|readCode)
 			local src=$1
 			local num=$2
+			local TheFile
 			local project=${CodeProject}
 			local newName
 			local DirPath
@@ -610,42 +613,60 @@ UseJava()
 						#Is a project
 						*)
 							if [[ "${src}" == *","* ]]; then
-								echo "Please Add support for handling multiple source code"
-							else
-								TheSrcDir="${LangProject}/${project}/src/"
+								if [ -z "${num}" ]; then
+									errorCode "editNull"
+									NumFound=0
+								else
+									num=$(UseJava "removeExt" "${num}")
+									num=${num}${LangExt}
 
-								local NumFound=$(find ${TheSrcDir} -name ${src} 2> /dev/null | grep "${ProjectMode}" | wc -l)
-								case ${NumFound} in
-									0)
-										;;
-									1)
-										src=$(find ${TheSrcDir} -name ${src} 2> /dev/null | grep "${ProjectMode}")
-										if [ -f ${src} ]; then
+									case ${src} in
+										*,${num}*)
+											TheFile=${num}
+											;;
+										*${num},*)
+											TheFile=${num}
+											;;
+										*)
+											;;
+									esac
+								fi
+							else
+								TheFile=${src}
+							fi
+
+							TheSrcDir="${LangProject}/${project}/src/"
+
+							local NumFound=$(find ${TheSrcDir} -name ${TheFile} 2> /dev/null | grep "${ProjectMode}" | wc -l)
+							case ${NumFound} in
+								0)
+									;;
+								1)
+									TheFile=$(find ${TheSrcDir} -name ${TheFile} 2> /dev/null | grep "${ProjectMode}")
+									if [ -f ${TheFile} ]; then
+										#Read or Write Code
+										#{
+									${ReadOrEdit} ${TheFile}
+										#}
+									fi
+									;;
+								*)
+									local Select
+									find ${TheSrcDir} -name ${TheFile} 2> /dev/null | grep "${ProjectMode}" | sed "s/\/${project}\/src\//|/1" | cut -d '|' -f 2 | nl
+									echo -n "> "
+									read Select
+									Select=$(echo ${Select} | grep "^-\?[0-9]*$")
+									if [ ! -z "${Select}" ]; then
+										if [ ${Select} -le ${NumFound} ] && [ ${Select} -gt 0 ]; then
+											TheFile=$(find ${TheSrcDir} -name ${TheFile} 2> /dev/null | grep "${ProjectMode}" | tr '\n' '|' | cut -d '|' -f ${Select})
 											#Read or Write Code
 											#{
-											${ReadOrEdit} ${src}
+											${ReadOrEdit} ${TheFile}
 											#}
 										fi
-										;;
-									*)
-										local Select
-										find ${TheSrcDir} -name ${src} 2> /dev/null | grep "${ProjectMode}" | sed "s/\/${project}\/src\//|/1" | cut -d '|' -f 2 | nl
-										echo -n "> "
-										read Select
-										Select=$(echo ${Select} | grep "^-\?[0-9]*$")
-										if [ ! -z "${Select}" ]; then
-											if [ ${Select} -le ${NumFound} ] && [ ${Select} -gt 0 ]; then
-												src=$(find ${TheSrcDir} -name ${src} 2> /dev/null | grep "${ProjectMode}" | tr '\n' '|' | cut -d '|' -f ${Select})
-												#Read or Write Code
-												#{
-												${ReadOrEdit} ${src}
-												#}
-											fi
-										fi
-										;;
-								esac
-
-							fi
+									fi
+									;;
+							esac
 							;;
 					esac
 					;;
