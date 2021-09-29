@@ -2,8 +2,9 @@ Shell=$(which bash)
 #!${Shell}
 
 #https://stackoverflow.com/questions/10339637/java-import-cannot-find-symbol
+#https://www.codejava.net/java-core/tools/how-to-compile-package-and-run-a-java-program-using-command-line-tools-javac-jar-and-java
 
-SupportV="0.2.04"
+SupportV="0.2.06"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -254,18 +255,22 @@ UseJava()
 							case ${name} in
 								*.*)
 									newName=${name##*.}
-									DirPath=$(echo ${name%${newName}} | tr '.' '/')
-									PackageName=$(echo ${name%.*} | sed "s/${ProjectMode}.java.//1" | tr '/' '.')
+									DirPath=${name%${newName}}
+									DirPath=${DirPath//./\/}
+									PackageName=$(echo ${name%.*} | sed "s/${ProjectMode}.java.//1")
+									PackageName=${PackageName//\//.}
 									TheSrcDir="${LangProject}/${project}/src/${DirPath}"
 									;;
 								*/*)
 									newName=${name##*/}
-									PackageName=$(echo ${name%/*} | sed "s/${ProjectMode}\/java\///1" | tr '/' '.')
+									PackageName=$(echo ${name%/*} | sed "s/${ProjectMode}\/java\///1")
+									PackageName=${PackageName//\//.}
 									DirPath=${name%${newName}}
 									TheSrcDir="${LangProject}/${project}/src/${DirPath}"
 									;;
 								*)
-									PackageName=$(pwd | sed "s/${project}\/src/|/g" | sed "s/${ProjectMode}\/java\///1" | cut -d '|' -f 2 | tr '/' '.')
+									PackageName=$(pwd | sed "s/${project}\/src/|/g" | sed "s/${ProjectMode}\/java\///1" | cut -d '|' -f 2)
+									PackageName=${PackageName//\//.}
 									TheSrcDir="$(pwd)/"
 									newName=${name}
 									;;
@@ -455,12 +460,6 @@ UseJava()
 								esac
 								;;
 							*)
-#								find ${TheSrcDir} -name ${name} 2> /dev/null | nl
-#								if [ -f ${name} ]; then
-#									name=${name%${LangExt}}
-#									newName=${name##*/}
-#									echo ${newName}${LangExt}
-#								fi
 								;;
 						esac
 					;;
@@ -817,19 +816,38 @@ UseJava()
 					;;
 				#Code is part of a project
 				*)
+					TheBinDir=${LangProject}/${project}/bin/
+					local TheOldDir=${PWD}
 					local Package
 					local IsMain
 					local TheMain
+					local TheJavaSrc
+					local TheClassBin
 					local TheClassPath
-					local ManifestFile=META-INF/MANIFEST.MF
+					local ManifestFile=${LangProject}/${project}/META-INF/MANIFEST.MF
 					local TheLibDir="${LangProject}/${project}/lib/"
 					TheSrcDir="${LangProject}/${project}/src/"
 					local ThePWD=${LangProject}/${project}/
 					local TheClassDir=${ThePWD}classes/
-					cd ${ThePWD}
-					local ReplaceTheSrcDir=$(echo ${LangProject}/${project}/ | tr '/' '|')
-					local ReplaceTheBinDir=$(echo ${LangProject}/${project}/classes/ | tr '/' '|')
-					TheBinDir="${LangProject}/${project}/bin"
+					local ReplaceTheSrcDir=${LangProject}/${project}/
+					ReplaceTheSrcDir=${ReplaceTheSrcDir//\//|}
+					local ReplaceTheBinDir=${LangProject}/${project}/classes/
+					ReplaceTheBinDir=${ReplaceTheBinDir//\//|}
+					local ReplaceTheLibDir=${LangProject}/${project}/
+					ReplaceTheLibDir=${ReplaceTheLibDir//\//|}
+					local ProjectModeDir
+
+					if [ ! -z "${ProjectMode}" ]; then
+						case ${ProjectMode} in
+							main|test)
+								ProjectModeDir=${TheSrcDir}${ProjectMode}/java/
+								;;
+							*)
+								;;
+						esac
+					else
+						ProjectModeDir=${TheSrcDir}
+					fi
 
 					case ${src} in
 						--*)
@@ -844,14 +862,14 @@ UseJava()
 					case ${name} in
 						#Compile as Jar
 						--jar)
+							cd ${ProjectModeDir}
 							#Compile to Class
 							ERROR=$(UseJava ${Type} ${src} --class ${keep})
 							#Convert Class files to Jar
 							if [ -z "${ERROR}" ]; then
 								#Look for java class containing main
 								#{
-								local Files=$(cat sources.txt | tr '\n' '|')
-								IFS="|"
+								local Files=$(find . -name "*${LangExt}")
 								for val in ${Files};
 								do
 									IsMain=$(grep -w "public static void main" ${val})
@@ -883,14 +901,16 @@ UseJava()
 								#}
 
 								#Look for compiled classes
-								find ${TheClassDir} -name "*.class" | tr '/' '|' | sed "s/${ReplaceTheBinDir}//g" | tr '|' '/'  > sources.txt
-								local ClassFound=$(cat sources.txt)
+								cd ${TheClassDir}
+								TheClassBin=$(find . -name "*.class")
 								#package as jar of class found
-								if [ ! -z "${ClassFound}" ]; then
-									ERROR=$(jar -cfm ${project}.jar ${ManifestFile} -C classes @sources.txt 2>&1 | tr '/' '|' | sed "s/${ReplaceTheSrcDir}/\//g" | tr '|' '/' | tr '\n' '|')
+								if [ ! -z "${TheClassBin}" ]; then
+									TheClassBin=$(ls -d *)
+									cd ${ThePWD}
+									ERROR=$(jar -cfm ${project}.jar ${ManifestFile} -C classes ${TheClassBin} 2>&1 | tr '\n' '|')
 									#move Java Class to Binary dir
 									if [ -z "${ERROR}" ]; then
-										mv ${project}.jar ${TheBinDir}/ 2> /dev/null
+										mv ${project}.jar ${TheBinDir} 2> /dev/null
 										rm -rf ${TheClassDir}* 2> /dev/null
 										UseJava compileCode-message project-jar ${project}
 									else
@@ -904,33 +924,37 @@ UseJava()
 								#Display Error from compiler
 								errorCode "cpl" "ERROR" "${ERROR}"
 							fi
-							rm sources.txt
-							cd - > /dev/null
+							cd ${TheOldDir}
 							;;
 						#compile class
 						--class)
+							cd ${ProjectModeDir}
 							case ${src} in
 								${LangExt})
-									find ${TheSrcDir} -name "*${LangExt}" | grep "${ProjectMode}" | tr '/' '|' | sed "s/${ReplaceTheSrcDir}//g" | tr '|' '/'  > sources.txt
+									TheJavaSrc=$(find . -name "*${LangExt}")
 									;;
 								*)
-									find ${TheSrcDir} -name "${src}" | grep "${ProjectMode}" | tr '/' '|' | sed "s/${ReplaceTheSrcDir}//g" | tr '|' '/'  > sources.txt
+									
+									TheJavaSrc=$(find . -name "${src}")
 									;;
 							esac
-							#Compile java code with lib jars
-							if [ -d "${TheLibDir}" ]; then
-								local ReplaceTheLibDir=$(echo "${LangProject}/${project}/" | tr '/' '|')
-								TheClassPath=$(find ${TheLibDir} -name "*.jar" | grep "${ProjectMode}" | tr '/' '|' | sed "s/${ReplaceTheLibDir}//g" | tr '|' '/' | tr '\n' ';' | rev | sed "s/;//1" | rev)
-								#make sure jars exist in lib
-								if [ ! -z "${TheClassPath}" ]; then
-									ERROR=$(${LangCpl} -cp ".;${TheClassPath}" -d classes @sources.txt 2>&1 | tr '\n' '|')
+							if [ ! -z "${TheJavaSrc}" ]; then
+								#Compile java code with lib jars
+								if [ -d "${TheLibDir}" ]; then
+									TheClassPath=$(find ${TheLibDir} -name "*.jar" | grep "${ProjectMode}" | tr '/' '|' | sed "s/${ReplaceTheLibDir}//g" | tr '|' '/' | tr '\n' ';' | rev | sed "s/;//1" | rev)
+									#make sure jars exist in lib
+									if [ ! -z "${TheClassPath}" ]; then
+										ERROR=$(${LangCpl} -cp ".;${TheClassPath}" -d ${TheClassDir} ${TheJavaSrc} 2>&1 | tr '\n' '|')
+									#jars don't exist in lib...compile as usual
+									else
+										ERROR=$(${LangCpl} -d ${TheClassDir} ${TheJavaSrc} 2>&1 | tr '\n' '|')
+									fi
 								#jars don't exist in lib...compile as usual
 								else
-									ERROR=$(${LangCpl} -d classes @sources.txt 2>&1 | tr '\n' '|')
+									ERROR=$(${LangCpl} -d ${TheClassDir} ${TheJavaSrc} 2>&1 | tr '\n' '|')
 								fi
-							#jars don't exist in lib...compile as usual
 							else
-								ERROR=$(${LangCpl} -d classes @sources.txt 2>&1 | tr '\n' '|')
+								ERROR="NO Java files found"
 							fi
 							echo ${ERROR}
 							;;
@@ -957,7 +981,6 @@ UseJava()
 									errorCode "cpl" "ERROR" "${ERROR}"
 								fi
 							fi
-							rm sources.txt
 							cd - > /dev/null
 							;;
 					esac
@@ -1019,7 +1042,7 @@ UseJava()
 			;;
 		newPackage)
 			local name=$1
-			local packagePath=$(echo -e "${name//./\/}")
+			local packagePath=${name//./\/}
 			local project=${CodeProject}
 			local path=${LangProject}/${project}/src/${ProjectMode}/java/
 			local UseProjectTemplate
@@ -1029,7 +1052,7 @@ UseJava()
 				*)
 					if [ ! -z "${name}" ]; then
 						case ${name} in
-							*.new.*|*.this.*)
+							*.new.*|*.this.*|new.*|this.*|*.new|*.this)
 								errorCode "package" "not-valid"
 								;;
 							*)
@@ -1044,7 +1067,7 @@ UseJava()
 			;;
 		setPackage)
 			local name=$1
-			local packagePath=$(echo -e "${name//./\/}")
+			local packagePath=${name//./\/}
 			local project=${CodeProject}
 			local path=${LangProject}/${project}/src/${ProjectMode}/java
 			case ${project} in
@@ -1053,7 +1076,7 @@ UseJava()
 				*)
 					if [ ! -z "${name}" ]; then
 						case ${name} in
-							*.new.*|*.this.*)
+							*.new.*|*.this.*|new.*|this.*|*.new|*.this)
 								errorCode "package" "not-valid"
 								;;
 							*)
@@ -1069,7 +1092,7 @@ UseJava()
 		listPackage)
 			local project=${CodeProject}
 			local path=${LangProject}/${project}/src/${ProjectMode}/java/
-			local RemoveDirs=$(echo -e "${path//\//|}")
+			local RemoveDirs=${path//\//|}
 			case ${project} in
 				none)
 					;;
@@ -1131,8 +1154,7 @@ UseJava()
 					;;
 				*)
 					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
-					project="${project}/"
-					TheBinDir="${LangProject}/${project}bin"
+					TheBinDir="${LangProject}/${project}/bin"
 					;;
 			esac
 			case ${Type} in
@@ -1248,8 +1270,10 @@ UseJava()
 						#Handle Project Specific code
 						*)
 							UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
-							PackageName=$(echo ${PWD}/ | sed "s/${project}\/src/|/g" | cut -d '|' -f 2 | sed "s/\/main\/java\///1" | sed "s/\/test\/java\///1" | tr '/' '.')
+							PackageName=$(echo ${PWD}/ | sed "s/${project}\/src/|/g" | cut -d '|' -f 2 | sed "s/\/main\/java\///1" | sed "s/\/test\/java\///1")
 							if [ ! -z "${PackageName}" ]; then
+								PackageName=${PackageName//\//.}
+								PackageName=${PackageName#.}
 								PackageName=${PackageName%*.}
 								PackageNameJava="--package ${PackageName}"
 							fi
