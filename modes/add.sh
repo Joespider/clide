@@ -1,7 +1,8 @@
 Shell=$(which bash)
 #!${Shell}
+ThisFile=$0
 
-ShellPath=$(realpath $0)
+ShellPath=$(realpath ${ThisFile})
 root=$(dirname ${ShellPath})
 root=${root%/modes}
 

@@ -1,7 +1,8 @@
 Shell=$(which bash)
 #!${Shell}
+ThisFile=$0
 #Get path of the script
-ShellPath=$(realpath $0)
+ShellPath=$(realpath ${ThisFile})
 #Get the dir name
 root=$(dirname ${ShellPath})
 #load the config files
@@ -39,6 +40,16 @@ errorCode()
 AddAlias()
 {
 	${LibDir}/AddAlias.sh $@
+}
+
+Protect()
+{
+	local Done=$1
+	if [ -z "${Done}" ] && [ -w "${ThisFile}" ]; then
+		chmod -w ${ThisFile} 2> /dev/null
+	else
+		chmod u+w ${ThisFile} 2> /dev/null
+	fi
 }
 
 ColorPrompt()
@@ -154,16 +165,22 @@ ModeHandler()
 		${repoTool}|repo)
 			#Use ONLY for Projects
 			if [[ ! "${CodeProject}" == "none" ]]; then
+				chmod -w ${ModesDir}/repo.sh 2> /dev/null
 				${ModesDir}/repo.sh
+				chmod u+w ${ModesDir}/repo.sh 2> /dev/null
 			else
 				errorCode "project" "must-be-active"
 			fi
 			;;
 		pkg)
+			chmod -w ${ModesDir}/pkg.sh 2> /dev/null
 			${ModesDir}/pkg.sh
+			chmod u+w ${ModesDir}/pkg.sh 2> /dev/null
 			;;
 		add)
+			chmod -w ${ModesDir}/add.sh 2> /dev/null
 			${ModesDir}/add.sh ${Head} "${LibDir}" "${LangsDir}" "${ClideProjectDir}" ${Lang} ${cLang} ${Code} ${cCode} ${Arg[@]}
+			chmod u+w ${ModesDir}/add.sh 2> /dev/null
 
 			;;
 		#Provide help page when asked
@@ -426,8 +443,22 @@ Banner()
 #Search selected code for element
 lookFor()
 {
+	local Count
 	local project=${CodeProject}
-	local search=$1
+	local TypeOfSearch=$1
+	local search=$2
+
+	if [ ! -z "${TypeOfSearch}" ] && [ -z "${search}" ]; then
+		case ${TypeOfSearch} in
+			-*)
+				;;
+			*)
+				search=${TypeOfSearch}
+				TypeOfSearch=""
+				;;
+		esac
+	fi
+
 	#Determin if it is a project
 	case ${project} in
 		#IS NOT a project
@@ -436,11 +467,38 @@ lookFor()
 			errorCode "project" "none" "${Head}"
 			;;
 		*)
-			if [ ! -z "${search}" ]; then
-				grep -iR ${search} * | less
-			else
-				errorCode "lookFor" "none"
-			fi
+			case ${TypeOfSearch} in
+				-*help)
+					theHelp LookForHelp
+					;;
+				*)
+					if [ ! -z "${search}" ]; then
+						case ${TypeOfSearch} in
+							--file-only|--files)
+								Count=$(grep -liR ${search} * | wc -l)
+								if [ ${Count} -gt 20 ]; then
+									grep -liR ${search} * | less
+								else
+									grep -liR ${search} *
+								fi
+								;;
+							--count|--occur)
+								grep -iR ${search} * | wc -l
+								;;
+							*)
+								Count=$(grep -iR ${search} * | wc -l)
+								if [ ${Count} -gt 20 ]; then
+									grep -iR ${search} * | less
+								else
+									grep -iR ${search} *
+								fi
+								;;
+						esac
+					else
+						errorCode "lookFor" "none"
+					fi
+					;;
+			esac
 			;;
 	esac
 }
@@ -1507,6 +1565,8 @@ Actions()
 		#Keep IDE running until user is done
 		while true
 		do
+			#Protect clide from being edited
+			Protect
 			#User's first action
 			if [ ! -z "${FirstAction}" ]; then
 				UserArg=${FirstAction,,}
@@ -2579,7 +2639,7 @@ Actions()
 						;;
 					#search for element in project
 					search)
-						lookFor ${UserIn[1]}
+						lookFor ${UserIn[1]} ${UserIn[2]}
 						;;
 					#Write notes for code
 					notes)
@@ -2706,6 +2766,8 @@ Actions()
 							newCodeTemp)
 								local NewCode=$(ManageLangs ${Lang} "getNewCode")
 								local LangSrcDir=$(ManageLangs ${Lang} "getSrcDir")
+								local MoveError
+								local LinkError
 
 								case ${UserIn[2]} in
 									#Create your own "new" code template
@@ -2725,16 +2787,18 @@ Actions()
 												ManageLangs ${Lang} "newCode" ${NewCode}
 											fi
 											#Move your custom code to cl[ide]'s template directory
-											mv ${LangSrcDir}/${NewCode} ${NewCodeDir}/
+											MoveError=$(mv ${LangSrcDir}/${NewCode} ${NewCodeDir}/ 2>&1)
 										fi
-
 										#Copy and set source code to src/
-										cd ${LangSrcDir}/
-										if [ ! -f ${LangSrcDir}/${NewCode} ]; then
-											ln -s ${NewCodeDir}/${NewCode}
+										if [ ! -f ${LangSrcDir}/${NewCode} ] && [ -f ${NewCodeDir}/${NewCode} ]; then
+											LinkError=$(ln -s ${NewCodeDir}/${NewCode} 2>&1)
+										elif [ ! -f ${LangSrcDir}/${NewCode} ] && [ ! -f ${NewCodeDir}/${NewCode} ]; then
+											LinkError="no"
 										fi
-										Code=$(selectCode ${Lang} "set" ${NewCode})
-										refresh="yes"
+										if [ -z "${LinkError}" ] && [ -z "${MoveError}" ]; then
+											Code=$(selectCode ${Lang} "set" ${NewCode})
+											refresh="yes"
+										fi
 										;;
 									help|*)
 										theHelp CreateHelp ${Lang}
@@ -3037,6 +3101,8 @@ Actions()
 				esac
 			fi
 		done
+		#Protect clide from being edited
+		Protect "done"
 	fi
 }
 
@@ -3296,6 +3362,7 @@ main()
 		pg=$(ColorCodes)
 		local getLang=""
 		if [ ! -z "${pg}" ]; then
+			Protect
 			#CliHelp
 			Banner "main"
 			errorCode "HINT"
@@ -3309,6 +3376,7 @@ main()
 				read -e -p "${prompt}" getLang
 				case ${getLang} in
 					exit)
+						Protect "done"
 						break
 						;;
 					no-lang|nl)
@@ -3375,6 +3443,8 @@ main()
 				;;
 			#List projects from cli
 			-p|--project)
+				#Protect clide from being edited
+				Protect
 				shift
 				local ActionProject=$1
 				local GetProject=$1
@@ -3817,6 +3887,8 @@ main()
 				else
 					theHelp ProjectCliHelp ${UserArg}
 				fi
+				#Done protecting
+				Protect "done"
 				;;
 			#Get cli help page
 			-h|--help)
@@ -3903,8 +3975,11 @@ main()
 				fi
 				;;
 			--edit)
+				#Protecting
+				Protect
 				shift
 				local Action=$1
+				local Lang=$2
 				case ${Action} in
 					--config)
 						local YourAnswer
@@ -3926,6 +4001,39 @@ main()
 							*)
 								;;
 						esac
+						;;
+					--lang)
+						if [ ! -z "${Lang}" ]; then
+							Lang=${Lang,,}
+							Lang=${Lang^}
+							local TheLang=${LangsDir}/Lang.${Lang}
+
+							if [ -f "${TheLang}" ]; then
+								local YourAnswer
+								errorCode "WARNING"
+								errorCode "WARNING" "Editing this file incorrectly could render ${Lang} unusable"
+								echo ""
+								errorCode "WARNING" "Do you wish to continue (y/n)"
+								echo -n "> "
+								read YourAnswer
+								YourAnswer=${YourAnswer,,}
+								case ${YourAnswer} in
+									y)
+										${editor} ${TheLang}
+										clear
+										errorCode "WARNING" "May God have mercy on your ${Head}"
+										echo ""
+										;;
+									*)
+										;;
+								esac
+							else
+								errorCode "ERROR"
+								errorCode "ERROR" "\"${Lang}\" is not a supported language"
+							fi
+						else
+							theHelp EditHelp
+						fi
 						;;
 					*)
 						if [ -z "${Action}" ]; then
@@ -3965,6 +4073,8 @@ main()
 						fi
 						;;
 				esac
+				#Done protecting
+				Protect "done"
 				;;
 			#compile code without entering cl[ide]
 			--cpl|--compile)
@@ -4074,6 +4184,8 @@ main()
 				;;
 			#run your compiled code
 			--run)
+				#Protect
+				Protect
 				shift
 				local Lang=$1
 				local Code=$2
@@ -4120,6 +4232,8 @@ main()
 							;;
 					esac
 				fi
+				#Done protecting
+				Protect "done"
 				;;
 			#cat out source code
 			--read)
@@ -4212,8 +4326,12 @@ main()
 				local Lang=$1
 				case ${Lang} in
 					no-lang|nl)
+						#Done protecting
+						Protect
 						#Start IDE
 						Actions-NoLang ${Args[@]}
+						#Done protecting
+						Protect "done"
 						;;
 					*)
 						local Args

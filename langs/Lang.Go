@@ -86,6 +86,7 @@ UseGo()
 		#source code directory
 		getSrcDir)
 			local project=${CodeProject}
+			local UseProjectTemplate
 			case ${project} in
 				#not a project
 				none)
@@ -93,6 +94,7 @@ UseGo()
 					;;
 				#is a project
 				*)
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					pwd
 					;;
 			esac
@@ -191,20 +193,17 @@ UseGo()
 				local TheItem
 				#Get list of compiled code
 				local CplList=$(UseGo lscpl | tr '\n' '|')
-				local look=1
 				#Get the number of set source code
-				local NumOfCpls=$(echo -e "${srcCode//,/\\n}" | wc -l)
-				while [ ${look} -le ${NumOfCpls} ];
+				for TheItem in ${srcCode//,/ };
 				do
 					#Choose one item
-					TheItem=$(echo ${srcCode} | cut -d ',' -f ${look})
+
 					TheItem=$(UseGo "removeExt" ${TheItem})
 					#Look for binary from list of compiled
 					TheCpl=$(echo -e "${CplList//|/\\n}" | grep -w ${TheItem})
 					if [ ! -z "${TheCpl}" ]; then
 						break
 					fi
-					look=$((${look}+1))
 				done
 				echo ${TheCpl}
 			fi
@@ -217,6 +216,7 @@ UseGo()
 			local newName
 			local DirPath
 			local TheSrcDir
+			local UseProjectTemplate
 			case ${project} in
 				#Is not a project
 				none)
@@ -224,6 +224,7 @@ UseGo()
 					;;
 				#Is a project
 				*)
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					case ${ProjectType} in
 						#Is a generic project
 						Generic)
@@ -354,6 +355,7 @@ UseGo()
 			local newName
 			local DirPath
 			local TheSrcDir
+			local UseProjectTemplate
 			#Correct filename
 			if [ ! -z "${name}" ]; then
 				name=$(UseGo "removeExt" ${name})
@@ -392,6 +394,7 @@ UseGo()
 						;;
 					#is a project
 					*)
+						UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 						local LookFor
 						TheSrcDir="${LangProject}/${project}/src/"
 						case ${Type} in
@@ -438,12 +441,6 @@ UseGo()
 								esac
 								;;
 							*)
-#								find ${TheSrcDir} -name ${name} 2> /dev/null | nl
-#								if [ -f ${name} ]; then
-#									name=${name%${LangExt}}
-#									newName=${name##*/}
-#									echo ${newName}${LangExt}
-#								fi
 								;;
 						esac
 					;;
@@ -455,12 +452,14 @@ UseGo()
 			name=$(UseGo "removeExt" ${name})
 			local ThePath
 			local project=${CodeProject}
+			local UseProjectTemplate
 
 			if [ -z "${name}" ]; then
 				case ${project} in
 					none)
 						;;
 					*)
+						UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 						name=${project}
 						;;
 				esac
@@ -623,72 +622,6 @@ UseGo()
 			esac
 			;;
 		make)
-			local src=$1
-			src=${src//,/ }
-			local cplArgs=${CplArgs}
-			local project=${CodeProject}
-			local NeedThreads
-			local HasXlib
-			local HasXutil
-			local HasXos
-			local TheBin=${project}
-			local TheSrcDir="${LangProject}/${project}/src"
-			local TheBinDir="${LangProject}/${project}/bin"
-
-			case ${project} in
-				none)
-					;;
-				*)
-
-					#[Threads] Compile for Threads
-					#{
-					NeedThreads=$(grep "#include <thread>" ${src})
-					if [ ! -z "${NeedThreads}" ]; then
-						cplArgs="${cplArgs} -lpthread"
-					fi
-					#}
-
-					#[X11] Compile with X11 code
-					#{
-					HasXlib=$(grep "#include <X11/Xlib.h>" ${src})
-					HasXutil=$(grep "#include <X11/Xutil.h>" ${src})
-					HasXos=$(grep "#include <X11/Xos.h>" ${src})
-					if [ ! -z "${HasXlib}" ] || [ ! -z "${HasXutil}" ] || [ ! -z "${HasXos}" ]; then
-						cplArgs="${cplArgs} -I /usr/X11/include -L /usr/X11/lib -lX11"
-					fi
-					#}
-
-					#The Make file
-					#{
-					echo "#The Compiler for ${Lang}"
-					echo "cpl = ${LangCpl}"
-					case ${cplArgs} in
-						none)
-							;;
-						*)
-							echo ""
-							echo "#Compile arguments"
-							echo "cplArgs = ${cplArgs}"
-							;;
-					esac
-					echo ""
-					echo "The build target"
-					echo "TheBin = ${TheBin}"
-					echo ""
-					echo "all: \$(TheBin)"
-					echo ""
-					echo "\$(TheBin): ${src}"
-					case ${cplArgs} in
-						none)
-							echo -e "\t\$(cpl) ${src} -o ${TheBinDir}/\$(TheBin)"
-							;;
-						*)
-							echo -e "\t\$(cpl) ${src} -o ${TheBinDir}/\$(TheBin) \$(cplArgs)"
-							;;
-					esac
-					#}
-					;;
-			esac
 			;;
 		setCplArgs)
 			shift
@@ -756,6 +689,7 @@ UseGo()
 			local ERROR
 			local FoundMain="yes"
 			local NumOfMain
+			local UseProjectTemplate
 
 			#Handle multiple files
 			if [ -z "${name}" ]; then
@@ -792,6 +726,7 @@ UseGo()
 					TheBinDir=${LangBin}
 					;;
 				*)
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					name=${project}
 					project="${project}/"
 					TheSrcDir="${LangProject}/${project}src"
@@ -914,6 +849,7 @@ UseGo()
 			local ProjectType=$1
 			local project=$2
 			local path=${LangProject}/${project}
+			local UseProjectTemplate
 			#create and cd to project dir
 			if [ ! -d ${path} ]; then
 				case ${ProjectType} in
@@ -930,7 +866,27 @@ UseGo()
 						cd ${path}/src
 						;;
 					*)
-						ProjectTemplateHandler ${EnvVars[@]} ${Type} ${project}
+						UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type}) 
+						mkdir ${path}
+						if [ ! -z "${UseProjectTemplate}" ]; then
+							ProjectTemplateHandler ${EnvVars[@]} ${Type} ${project}
+							if [ ! -d "${path}/bin/" ]; then
+								mkdir ${path}/bin
+							fi
+							if [ ! -d "${path}/src/" ]; then
+								mkdir ${path}/src
+							fi
+						else
+							mkdir ${path}/bin
+							mkdir ${path}/build
+							mkdir ${path}/doc
+							mkdir ${path}/include
+							mkdir ${path}/lib
+							mkdir ${path}/spike
+							mkdir ${path}/src
+							mkdir ${path}/test
+						fi
+						cd ${path}/src
 						;;
 				esac
 			else
@@ -940,29 +896,28 @@ UseGo()
 			;;
 		projectMode)
 			local mode=$1
+			local UseProjectTemplate
 			case ${ProjectType} in
 				Generic)
-					case ${mode} in
-#						main|test)
-#							echo "${mode}"
-#							;;
-						*)
-							;;
-					esac
 					;;
 				*)
-					ProjectTemplateHandler ${EnvVars[@]} ${Type} ${mode}
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type}) 
+					if [ ! -z "${UseProjectTemplate}" ]; then
+						ProjectTemplateHandler ${EnvVars[@]} ${Type} ${mode}
+					fi
 					;;
 			esac
 			;;
 		lscpl)
 			local project
 			local path
+			local UseProjectTemplate
 			case ${CodeProject} in
 				none)
 					path=${LangBin}/
 					;;
 				*)
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type}) 
 					project=${CodeProject}
 					path=${LangProject}/${project}/bin
 					;;
@@ -976,6 +931,7 @@ UseGo()
 			local BinFile="${bin%.*}"
 			local project=${CodeProject}
 			local TheBinDir
+			local UseProjectTemplate
 			#Handle Project Dir
 			case ${project} in
 				none)
@@ -983,6 +939,7 @@ UseGo()
 					TheBinDir=${LangBin}
 					;;
 				*)
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type}) 
 					project="${project}/"
 					TheBinDir="${LangProject}/${project}bin"
 					;;
@@ -1038,6 +995,7 @@ UseGo()
 			local oldCode=$3
 			local TheName
 			local project=${CodeProject}
+			local UseProjectTemplate
 
 			#Sometimes "oldCode" gets passed as "Type"
 			if [ -z "${oldCode}" ]; then
@@ -1050,6 +1008,14 @@ UseGo()
 				esac
 			fi
 
+			case ${project} in
+				none)
+					;;
+				*)
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type}) 
+					;;
+			esac
+
 			CodeType=${CodeType,,}
 			name=$(UseGo "removeExt" ${name})
 
@@ -1058,8 +1024,7 @@ UseGo()
 					#create main file
 					main)
 						if [ ! -f ${name}${LangExt} ]; then
-							UseTempalte=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
-							if [ -z "${UseTempalte}" ]; then
+							if [ -z "${UseProjectTemplate}" ]; then
 								#Check for Custom Code Template
 								if [ -f ${TemplateCode} ]; then
 									#Program Name Given
@@ -1088,8 +1053,7 @@ UseGo()
 					#create component file
 					component)
 						if [ ! -f ${name}${LangExt} ]; then
-							UseTempalte=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
-							if [ -z "${UseTempalte}" ]; then
+							if [ -z "${UseProjectTemplate}" ]; then
 								if [ -f ${TemplateCode} ]; then
 									#Program Name Given
 									if [ ! -z "${name}" ]; then
@@ -1192,22 +1156,13 @@ UseGo()
 		#Run the compiled code
 		runCode)
 			local name=$1
-
-			#Handle Extension
-			case ${name} in
-				*${LangExt})
-					;;
-				*)
-					name="${name}${LangExt}"
-					;;
-			esac
-
 			shift
 			shift
 			local Args=$@
-			local TheBin="${name%.*}"
+			local TheBin=$(UseGo "removeExt" ${name})
 			local project=${CodeProject}
 			local TheBinDir
+			local UseProjectTemplate
 
 			#Handle Project Dir
 			case ${project} in
@@ -1217,6 +1172,7 @@ UseGo()
 					cd ${LangSrc}/
 					;;
 				*)
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type}) 
 					TheBinDir="${LangProject}/${project}/bin"
 					cd ${LangProject}/${project}/src/
 					TheBin="${project}"
@@ -1264,6 +1220,7 @@ UseGo()
 			local TheDir
 			local TheCount
 			local TheFound
+			local UseProjectTemplate
 
 			case ${project} in
 				none)
@@ -1302,6 +1259,7 @@ UseGo()
 					fi
 					;;
 				*)
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type}) 
 					case ${Type} in
 						restore)
 							if [ -f "${name}.bak" ]; then
@@ -1356,6 +1314,7 @@ UseGo()
 			local TheOld
 			local TheNew
 			local project=${CodeProject}
+			local UseProjectTemplate
 			case ${project} in
 				none)
 					if [ ! -z "${New}" ]; then
@@ -1379,6 +1338,7 @@ UseGo()
 					fi
 					;;
 				*)
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type}) 
 					#Check if extenion is given
 					local HasAnExt
 					local CheckForSrc

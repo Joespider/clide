@@ -5,7 +5,7 @@ Shell=$(which bash)
 #Link Libs: https://gist.github.com/gubatron/32f82053596c24b6bec6
 #both https://avikdas.com/2019/12/16/makefiles-for-c-cpp-projects.html
 
-SupportV="0.2.10"
+SupportV="0.2.11"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -164,11 +164,13 @@ UseC++()
 			;;
 		getProjectDir)
 			local project=${CodeProject}
+			local UseProjectTemplate
 			case ${project} in
 				none)
 					echo ${LangProject}
 					;;
 				*)
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					echo ${LangProject}/${project}
 					;;
 			esac
@@ -315,14 +317,8 @@ UseC++()
 						esac
 						CheckForFile=$(UseC++ "getProjSrc" ${name}${ext} 2> /dev/null)
 						if [ -z "${CheckForFile}" ]; then
-							local look=1
-							#Get the number of set source code
-							local NumOfSrcs=$(echo -e "${ThePossible//,/\\n}" | wc -l)
-							while [ ${look} -le ${NumOfSrcs} ];
+							for ext in ${ThePossible//,/ };
 							do
-								#Choose one item
-								ext=$(echo ${ThePossible} | cut -d ',' -f ${look})
-
 								CheckForFile=$(UseC++ "getProjSrc" ${name}${ext} 2> /dev/null)
 								if [ ! -z "${CheckForFile}" ]; then
 									echo ${CheckForFile}
@@ -385,13 +381,9 @@ UseC++()
 				local TheItem
 				#Get list of compiled code
 				local CplList=$(UseC++ lscpl | tr '\n' '|')
-				local look=1
-				#Get the number of set source code
-				local NumOfCpls=$(echo -e "${srcCode//,/\\n}" | wc -l)
-				while [ ${look} -le ${NumOfCpls} ];
+				for TheItem in ${srcCode//,/ } ;
 				do
 					#Choose one item
-					TheItem=$(echo ${srcCode} | cut -d ',' -f ${look})
 					TheItem=$(UseC++ "removeExt" ${TheItem})
 
 					#Look for binary from list of compiled
@@ -399,7 +391,6 @@ UseC++()
 					if [ ! -z "${TheCpl}" ]; then
 						break
 					fi
-					look=$((${look}+1))
 				done
 				echo ${TheCpl}
 			fi
@@ -412,6 +403,7 @@ UseC++()
 			local newName
 			local DirPath
 			local TheSrcDir
+			local UseProjectTemplate
 			case ${project} in
 				#Is not a project
 				none)
@@ -443,6 +435,7 @@ UseC++()
 							;;
 						#Is a specalized project
 						*)
+							UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 							#get source code from project template
 							TheSrcDir=$(ProjectTemplateHandler ${EnvVars[@]} ${Type} ${mode})
 							;;
@@ -894,12 +887,14 @@ UseC++()
 			local theHeader
 			local theSrc
 			local project=${CodeProject}
+			local UseProjectTemplate
 
 			if [ -z "${name}" ]; then
 				case ${project} in
 					none)
 						;;
 					*)
+						UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 						name=${project}
 						;;
 				esac
@@ -1344,6 +1339,7 @@ UseC++()
 			local ERROR
 			local FoundMain="yes"
 			local NumOfMain
+			local UseProjectTemplate
 
 			#Handle multiple files
 			if [ -z "${name}" ]; then
@@ -1380,6 +1376,7 @@ UseC++()
 					TheBinDir=${LangBin}
 					;;
 				*)
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					name=${project}
 					project="${project}/"
 					TheSrcDir="${LangProject}/${project}src"
@@ -1476,6 +1473,7 @@ UseC++()
 		create-make)
 			local src=$1
 			src="${src//,/ /}"
+			local UseProjectTemplate
 			case ${CodeProject} in
 				#No Project
 				none)
@@ -1483,7 +1481,8 @@ UseC++()
 					;;
 				#Is a project
 				*)
-					#makefile already exists
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
+					#makefile already exists\
 					if [ -f ${LangProject}/${CodeProject}/makefile ]; then
 						errorCode "make" "already"
 					else
@@ -1621,6 +1620,7 @@ UseC++()
 			local ProjectType=$1
 			local project=$2
 			local path=${LangProject}/${project}
+			local UseProjectTemplate
 			#create and cd to project dir
 			if [ ! -d ${path} ]; then
 				case ${ProjectType} in
@@ -1634,12 +1634,33 @@ UseC++()
 						mkdir ${path}/spike
 						mkdir ${path}/src
 						mkdir ${path}/test
-						cd ${path}/src
 						;;
 					*)
-						ProjectTemplateHandler ${EnvVars[@]} ${Type} ${project}
+						UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
+						mkdir ${path}
+						if [ ! -z "${UseProjectTemplate}" ]; then
+							ProjectTemplateHandler ${EnvVars[@]} ${Type} ${project}
+							if [ ! -d ${path}/bin ]; then
+								mkdir ${path}/bin
+							fi
+							if [ ! -d ${path}/src ]; then
+								mkdir ${path}/src
+							fi
+						else
+							mkdir ${path}/bin
+							mkdir ${path}/build
+							mkdir ${path}/doc
+							mkdir ${path}/include
+							mkdir ${path}/lib
+							mkdir ${path}/spike
+							mkdir ${path}/src
+							mkdir ${path}/test
+							mkdir ${path}/bin
+							mkdir ${path}/src
+						fi
 						;;
 				esac
+				cd ${path}/src
 			else
 				cd ${path}/src
 			fi
@@ -1647,30 +1668,28 @@ UseC++()
 			;;
 		projectMode)
 			local mode=$1
+			local UseProjectTemplate
 			case ${ProjectType} in
 				Generic)
-					case ${mode} in
-#						main|test)
-#							echo "${mode}"
-#							;;
-						*)
-							;;
-					esac
 					;;
 				*)
-					ProjectTemplateHandler ${EnvVars[@]} ${Type} ${mode}
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
+					if [ ! -z "${UseProjectTemplate}" ]; then
+						ProjectTemplateHandler ${EnvVars[@]} ${Type} ${mode}
+					fi
 					;;
 			esac
 			;;
 		lscpl)
-			local project
+			local project=${CodeProject}
 			local path
+			local UseProjectTemplate
 			case ${CodeProject} in
 				none)
 					path=${LangBin}/
 					;;
 				*)
-					project=${CodeProject}
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					path=${LangProject}/${project}/bin
 					;;
 			esac
@@ -1680,9 +1699,10 @@ UseC++()
 			;;
 		Install|exe-string)
 			local bin=$1
-			local BinFile="${bin%.*}"
+			local BinFile=$(UseC++ "removeExt" ${bin%.*})
 			local project=${CodeProject}
 			local TheBinDir
+			local UseProjectTemplate
 			#Handle Project Dir
 			case ${project} in
 				none)
@@ -1690,8 +1710,8 @@ UseC++()
 					TheBinDir=${LangBin}
 					;;
 				*)
-					project="${project}/"
-					TheBinDir="${LangProject}/${project}bin"
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
+					TheBinDir="${LangProject}/${project}/bin"
 					;;
 			esac
 
@@ -1747,6 +1767,7 @@ UseC++()
 			local project=${CodeProject}
 			local HasAHeaderExt
 			local IsNotAType
+			local UseProjectTemplate
 
 			#Sometimes "oldCode" gets passed as "CodeType"
 			if [ -z "${oldCode}" ]; then
@@ -1761,6 +1782,14 @@ UseC++()
 						;;
 				esac
 			fi
+
+			case ${project} in
+				none)
+					;;
+				*)
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
+					;;
+			esac
 
 			CodeType=${CodeType,,}
 
@@ -1780,8 +1809,7 @@ UseC++()
 					#create header file
 					header)
 						if [ ! -f ${name}${LangOtherExt} ]; then
-							UseTempalte=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
-							if [ -z "${UseTempalte}" ]; then
+							if [ -z "${UseProjectTemplate}" ]; then
 								#Program Name Given
 								if [ ! -z "${name}" ]; then
 									touch "${name}${LangOtherExt}"
@@ -1797,8 +1825,7 @@ UseC++()
 					#create main file
 					main)
 						if [ ! -f ${name}${LangExt} ]; then
-							UseTempalte=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
-							if [ -z "${UseTempalte}" ]; then
+							if [ -z "${UseProjectTemplate}" ]; then
 								#Check for Custom Code Template
 								if [ -f ${TemplateCode} ]; then
 									#Program Name Given
@@ -1827,8 +1854,7 @@ UseC++()
 					#create component file
 					component)
 						if [ ! -f ${name}${LangExt} ]; then
-							UseTempalte=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
-							if [ -z "${UseTempalte}" ]; then
+							if [ -z "${UseProjectTemplate}" ]; then
 								if [ -f ${TemplateCode} ]; then
 									#Program Name Given
 									if [ ! -z "${name}" ]; then
@@ -1917,6 +1943,7 @@ UseC++()
 		cli)
 			local TheName=$1
 			local project=${CodeProject}
+			local UseProjectTemplate
 			#Handle Project Dir
 			case ${project} in
 				none)
@@ -1924,6 +1951,7 @@ UseC++()
 					echo "./${TheName}"
 					;;
 				*)
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					TheName=$(OtherColor "${project}")
 					echo "./${TheName}"
 					;;
@@ -1932,6 +1960,7 @@ UseC++()
 		#Run the compiled code
 		runCode|debug)
 			local name=$1
+			local UseProjectTemplate
 
 			#Handle Extension
 			case ${name} in
@@ -1957,6 +1986,7 @@ UseC++()
 					cd ${LangSrc}/
 					;;
 				*)
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					TheBinDir="${LangProject}/${project}/bin"
 					cd ${LangProject}/${project}/src/
 					TheBin="${project}"
@@ -2011,6 +2041,7 @@ UseC++()
 			local TheDir
 			local TheCount
 			local TheFound
+			local UseProjectTemplate
 
 			case ${project} in
 				none)
@@ -2049,6 +2080,7 @@ UseC++()
 					fi
 					;;
 				*)
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					case ${Type} in
 						restore)
 							if [ -f "${name}.bak" ]; then
@@ -2103,6 +2135,7 @@ UseC++()
 			local TheOld
 			local TheNew
 			local project=${CodeProject}
+			local UseProjectTemplate
 			case ${project} in
 				none)
 					if [ ! -z "${New}" ]; then
@@ -2126,6 +2159,7 @@ UseC++()
 					fi
 					;;
 				*)
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					#Check if extenion is given
 					local HasAnExt
 					local HasAnExtSrc
