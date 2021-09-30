@@ -717,7 +717,7 @@ errorCode()
 					local thr=$@
 					local ERROR=$(echo ${thr} | tr '|' '\n')
 					echo -en "\e[1;31m[\e[0m"
-					echo -en "\e[1;41mERROR\e[0m"
+					echo -en "\e[5;41mERROR\e[0m"
 					echo -e "\e[1;31m]\e[0m"
 					echo -e "\e[1;31m${ERROR}\e[0m"
 					;;

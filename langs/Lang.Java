@@ -4,7 +4,7 @@ Shell=$(which bash)
 #https://stackoverflow.com/questions/10339637/java-import-cannot-find-symbol
 #https://www.codejava.net/java-core/tools/how-to-compile-package-and-run-a-java-program-using-command-line-tools-javac-jar-and-java
 
-SupportV="0.2.06"
+SupportV="0.2.08"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -863,10 +863,11 @@ UseJava()
 						#Compile as Jar
 						--jar)
 							cd ${ProjectModeDir}
+							UseJava ${Type} ${src} --class ${keep} | grep -v "(CLASS)"
 							#Compile to Class
-							ERROR=$(UseJava ${Type} ${src} --class ${keep})
+							ERROR=$(find ${ThePWD} -name "*.class")
 							#Convert Class files to Jar
-							if [ -z "${ERROR}" ]; then
+							if [ ! -z "${ERROR}" ]; then
 								#Look for java class containing main
 								#{
 								local Files=$(find . -name "*${LangExt}")
@@ -905,24 +906,19 @@ UseJava()
 								TheClassBin=$(find . -name "*.class")
 								#package as jar of class found
 								if [ ! -z "${TheClassBin}" ]; then
-									TheClassBin=$(ls -d *)
-									cd ${ThePWD}
-									ERROR=$(jar -cfm ${project}.jar ${ManifestFile} -C classes ${TheClassBin} 2>&1 | tr '\n' '|')
+									#TheClassBin=$(ls -d *)
+									#cd ${ThePWD}
+									#ERROR=$(jar -cfm ${project}.jar ${ManifestFile} -C classes ${TheClassBin} 2>&1 | tr '\n' '|')
+									ERROR=$(jar -cfm ${TheBinDir}${project}.jar ${ManifestFile} * 2>&1 | tr '\n' '|')
 									#move Java Class to Binary dir
 									if [ -z "${ERROR}" ]; then
-										mv ${project}.jar ${TheBinDir} 2> /dev/null
 										rm -rf ${TheClassDir}* 2> /dev/null
 										UseJava compileCode-message project-jar ${project}
 									else
 										#Display Error from compiler
 										errorCode "cpl" "ERROR" "${ERROR}"
 									fi
-								else
-									errorCode "cpl" "ERROR" "No compiled Clases found"
 								fi
-							else
-								#Display Error from compiler
-								errorCode "cpl" "ERROR" "${ERROR}"
 							fi
 							cd ${TheOldDir}
 							;;
@@ -956,16 +952,7 @@ UseJava()
 							else
 								ERROR="NO Java files found"
 							fi
-							echo ${ERROR}
-							;;
-						#default
-						*)
-							if [ -z "${src}" ]; then
-								src=${LangExt}
-							fi
 
-							#Compile to Class
-							ERROR=$(UseJava ${Type} ${src} --class ${keep})
 							IsClass=$(find ${ThePWD} -name "*.class")
 							#Code Compile from Java
 							if [ -z "${ERROR}" ] && [ ! -z "${IsClass}" ]; then
@@ -974,14 +961,17 @@ UseJava()
 								fi
 								UseJava compileCode-message project-class ${project}
 							else
-								if [ -z "${IsClass}" ]; then
-									errorCode "cpl" "ERROR" "Class did not compile"
-								else
-									#Display Error from compiler
-									errorCode "cpl" "ERROR" "${ERROR}"
-								fi
+								#Display Error from compiler
+								errorCode "cpl" "ERROR" "${ERROR}"
+								rm -rf ${TheClassDir}* 2> /dev/null
 							fi
 							cd - > /dev/null
+							;;
+						*)
+							if [ -z "${src}" ]; then
+								src=${LangExt}
+							fi
+							UseJava ${Type} ${src} --jar ${keep}
 							;;
 					esac
 					;;
