@@ -3348,65 +3348,13 @@ loadAuto()
 	comp_list "exit close"
 }
 
-#Main Function
-main()
+CLI()
 {
-	#Make sure everything is working
-	EnsureDirs
 	local UserArg=$1
 	local pg
 	local prompt
 	#No argument given
-	if [ -z "${UserArg}" ]; then
-		clear
-		pg=$(ColorCodes)
-		local getLang=""
-		if [ ! -z "${pg}" ]; then
-			Protect
-			#CliHelp
-			Banner "main"
-			errorCode "HINT"
-			errorCode "HINT" "enter \"no-lang\" or \"nl\" to enter into a ${Head} shell"
-			echo ""
-			echo "~Choose a language~"
-			#Force user to select language
-			while [[ "${getLang}" == "" ]] || [[ "${Lang}" == "no" ]];
-			do
-				prompt="${Name}(${pg}):$ "
-				read -e -p "${prompt}" getLang
-				case ${getLang} in
-					exit)
-						Protect "done"
-						break
-						;;
-					no-lang|nl)
-						Lang="no-lang"
-						break
-						;;
-					*)
-						#Verify Language
-						Lang=$(pgLang ${getLang})
-						;;
-				esac
-			done
-
-			clear
-			if [ ! -z "${Lang}" ]; then
-				case ${Lang} in
-					no-lang|nl)
-						#Start IDE
-						Actions-NoLang
-						;;
-					*)
-						#Start IDE
-						Actions ${Lang}
-						;;
-				esac
-			fi
-		else
-			errorCode "no-langs"
-		fi
-	else
+	if [ ! -z "${UserArg}" ]; then
 		case ${UserArg} in
 			#Get version from cli
 			-v|--version)
@@ -3903,6 +3851,90 @@ main()
 				#Start IDE
 				Actions ${Lang} ${Code} ${CodeProject}
 				;;
+			#Search for source code path OR langauge and source code name
+			--find)
+				shift
+				local Lang=$1
+				local TheSrc=$2
+				local CodeDir
+				local src
+				local Found
+				local ColorCode
+				#Language not provided...but source code is
+				if [ -z "${TheSrc}" ]; then
+					TheSrc=${Lang}
+					Lang=""
+				#Langauge and source code provided
+				else
+					#adjust letter
+					Lang=${Lang,,}
+					Lang=${Lang^}
+				fi
+
+				#incorrect characters given in source code
+				case ${TheSrc} in
+					.*|*/*)
+						#reset search
+						TheSrc=""
+						;;
+					*)
+						;;
+				esac
+
+				#source code provided
+				if [ ! -z "${TheSrc}" ]; then
+					#Language not provided
+					if [ -z "${Lang}" ]; then
+						case ${TheSrc} in
+							*.*)
+								#Attempt to locatelanguage using source code
+								Lang=$(SelectLangByCode ${TheSrc})
+								;;
+							*)
+								;;
+						esac
+					fi
+
+					#remove extension
+					TheSrc=${TheSrc%%.*}
+
+					#Langauge provided or found
+					if [ ! -z "${Lang}" ]; then
+						#Find lanaguge directory
+						CodeDir=$(pgDir ${Lang})
+						if [ ! -z "${CodeDir}" ]; then
+							#Go to source code path
+							cd ${CodeDir}
+							#check if source code exists
+							src=$(selectCode ${Lang} ${TheSrc})
+							if [ ! -z "${src}" ]; then
+								#Find fill path of source code
+								find ${ProgDir} -name ${src} | grep "/src/"
+							fi
+						fi
+					#No Language found
+					else
+						#Search for source code via name
+						Found=$(find ${ProgDir} -name *${TheSrc}* | grep "/src/" | sort)
+						#Code has been founs
+						if [ ! -z "${Found}" ]; then
+							echo -e "\e[1;40m{Language}\t\t{source code}\e[0m"
+							for src in ${Found};
+							do
+								src=${src##*/}
+								#Get language by source code
+								Lang=$(SelectLangByCode ${src})
+								if [ ! -z "${Lang}" ]; then
+									#get langauge color
+									ColorCode=$(ManageLangs ${Lang} "color-number")
+									#Display language and code
+									echo -e "\e[1;3${ColorCode}m${Lang}\t\t\t${src}\e[0m"
+								fi
+							done
+						fi
+					fi
+				fi
+				;;
 			--new)
 				shift
 				local Lang
@@ -4297,84 +4329,156 @@ main()
 						;;
 				esac
 				;;
-			#Get by file extension
-			*.*)
-				local CodeDir
-				local Code=$1
-				#Get language by extension from source file
-				local Lang=$(SelectLangByCode ${Code})
-				CodeDir=$(pgDir ${Lang})
-				case ${CodeDir} in
-					no)
-						errorCode "not-a-lang" "${Lang}"
+			*)
+				;;
+		esac
+	fi
+}
+
+#Main Function
+main()
+{
+	#Make sure everything is working
+	EnsureDirs
+	local UserArg=$1
+	local pg
+	local prompt
+	#No argument given
+	if [ -z "${UserArg}" ]; then
+		clear
+		pg=$(ColorCodes)
+		local getLang=""
+		if [ ! -z "${pg}" ]; then
+			Protect
+			#CliHelp
+			Banner "main"
+			errorCode "HINT"
+			errorCode "HINT" "enter \"no-lang\" or \"nl\" to enter into a ${Head} shell"
+			echo ""
+			echo "~Choose a language~"
+			#Force user to select language
+			while [[ "${getLang}" == "" ]] || [[ "${Lang}" == "no" ]];
+			do
+				prompt="${Name}(${pg}):$ "
+				read -e -p "${prompt}" getLang
+				case ${getLang} in
+					exit)
+						Protect "done"
+						break
+						;;
+					no-lang|nl)
+						Lang="no-lang"
+						break
 						;;
 					*)
-						if [ ! -z "${CodeDir}" ]; then
-							cd ${CodeDir}
-							Code=$(preSelectSrc ${Lang} ${Code})
-							if [ ! -z "${Code}" ]; then
-								#Start IDE
-								Actions ${Lang} ${Code}
-							fi
-						fi
+						#Verify Language
+						Lang=$(pgLang ${getLang})
 						;;
 				esac
-				;;
-			#Check for language given
-			*)
-				#Verify Language
-				local Lang=$1
+			done
+
+			clear
+			if [ ! -z "${Lang}" ]; then
 				case ${Lang} in
 					no-lang|nl)
-						#Done protecting
-						Protect
 						#Start IDE
-						Actions-NoLang ${Args[@]}
-						#Done protecting
-						Protect "done"
+						Actions-NoLang
 						;;
 					*)
-						local Args
-						Lang=$(pgLang ${Lang})
-						shift
-						local HiddenAction=$1
-						local NextHiddenAction=$2
-						case ${HiddenAction} in
-							--new)
-								shift
-								Args=$@
-								main ${HiddenAction} ${Lang} ${Args[@]}
-								InAndOut="no"
-								Actions ${Lang} ${Args[@]}
+						#Start IDE
+						Actions ${Lang}
+						;;
+				esac
+			fi
+		else
+			errorCode "no-langs"
+		fi
+	else
+		case ${UserArg} in
+			-*)
+				CLI $@
+				;;
+			*)
+				case ${UserArg} in
+					#Get by file extension
+					*.*)
+						local CodeDir
+						local Code=$1
+						#Get language by extension from source file
+						local Lang=$(SelectLangByCode ${Code})
+						CodeDir=$(pgDir ${Lang})
+						case ${CodeDir} in
+							no)
+								errorCode "not-a-lang" "${Lang}"
 								;;
-							# $ clide <lang> --project <action> <ProjectName>
-							-p|--project)
-								case ${NextHiddenAction} in
-									# $ clide <lang> --project --new <ProjectName>
-									#Or
-									# $ clide <lang> --project --new <ProjectName>
-									--new|--import)
-										shift
+							*)
+								if [ ! -z "${CodeDir}" ]; then
+									cd ${CodeDir}
+									Code=$(preSelectSrc ${Lang} ${Code})
+									if [ ! -z "${Code}" ]; then
+										#Start IDE
+										Actions ${Lang} ${Code}
+									fi
+								fi
+								;;
+						esac
+						;;
+					#Check for language given
+					*)
+						#Verify Language
+						local Lang=$1
+						case ${Lang} in
+							no-lang|nl)
+								#Done protecting
+								Protect
+								#Start IDE
+								Actions-NoLang ${Args[@]}
+								#Done protecting
+								Protect "done"
+								;;
+							*)
+								local Args
+								Lang=$(pgLang ${Lang})
+								shift
+								local HiddenAction=$1
+								local NextHiddenAction=$2
+								case ${HiddenAction} in
+									--new)
 										shift
 										Args=$@
-										main ${HiddenAction} ${NextHiddenAction} ${Lang} ${Args[@]}
+										main ${HiddenAction} ${Lang} ${Args[@]}
 										InAndOut="no"
-										main ${HiddenAction} ${Lang} ${Args[@]}
+										Actions ${Lang} ${Args[@]}
 										;;
-									# $ clide <lang> --project <ProjectName>
+										# $ clide <lang> --project <action> <ProjectName>
+									-p|--project)
+										case ${NextHiddenAction} in
+											# $ clide <lang> --project --new <ProjectName>
+											#Or
+											# $ clide <lang> --project --new <ProjectName>
+											--new|--import)
+												shift
+												shift
+												Args=$@
+												main ${HiddenAction} ${NextHiddenAction} ${Lang} ${Args[@]}
+												InAndOut="no"
+												main ${HiddenAction} ${Lang} ${Args[@]}
+												;;
+											# $ clide <lang> --project <ProjectName>
+											*)
+												shift
+												Args=$@
+												main ${HiddenAction} ${Lang} ${Args[@]}
+												;;
+										esac
+										;;
+									#Normal usage
 									*)
-										shift
 										Args=$@
-										main ${HiddenAction} ${Lang} ${Args[@]}
+										#Start IDE
+										Actions ${Lang} ${Args[@]}
 										;;
 								esac
-								#main ${HiddenAction} ${Lang} ${Args[@]}
-								;;
-							#Normal usage
-							*)
-								Args=$@
-								#Start IDE
-								Actions ${Lang} ${Args[@]}
 								;;
 						esac
 						;;

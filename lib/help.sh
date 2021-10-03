@@ -330,6 +330,9 @@ CliHelp()
 				--read)
 					ReadHelp
 					;;
+				--find)
+					FindHelp
+					;;
 				--run)
 					RunHelp
 					;;
@@ -367,6 +370,7 @@ CliHelp()
 					echo -e "--list <lang>\t\t\t\t\t: \"List source code\""
 					echo -e "--list-cpl <lang>\t\t\t\t: \"List compiled code\""
 					echo -e "--lscpl <lang>\t\t\t\t\t: \"List compiled code\""
+					echo -e "--find <args>\t\t\t\t\t: \"Find the souce code\""
 					echo -e "-p, --project <args>\t\t\t\t: \"List or Load Clide Projects\""
 					echo ""
 					echo "\"Still want a session?\""
@@ -463,6 +467,22 @@ NewHelp()
 	echo -e "${cmd} <language> <code> {arguments}"
 	echo -e "${cmd} <code> {arguments}"
 	echo -e "${cmd} -h, --help\t\t\t: \"help page\""
+	echo "-----------------------------------------------"
+	echo ""
+}
+
+FindHelp()
+{
+	local cli="--find"
+	local cmd="\$ clide ${cli}"
+	echo ""
+	echo "----------------[(${Head}) cli {${cli}}]----------------"
+	echo -e "Find your source code without having a ${Head} session"
+	echo ""
+	echo -e "${cmd} <language> <code>\t\t\t: \"display the path of your source code\""
+	echo -e "${cmd} <code>\t\t\t\t\t: \"lists language and source code\""
+	echo -e "\t\t<code>.<ext>\t\t\t\t: \"displays the path of your source code"
+	echo -e "${cmd} -h, --help\t\t\t\t: \"help page\""
 	echo "-----------------------------------------------"
 	echo ""
 }
