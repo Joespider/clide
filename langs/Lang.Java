@@ -873,7 +873,6 @@ UseJava()
 						#Compile as Jar
 						--jar)
 							cd ${ProjectModeDir}
-							echo ${src}
 							UseJava ${Type} ${src} --class ${keep} | grep -v "(CLASS)"
 							#Compile to Class
 							ERROR=$(find ${ThePWD} -name "*.class")

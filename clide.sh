@@ -3442,7 +3442,7 @@ loadAuto()
 	comp_list "mode" "add pkg ${repoTool} repo"
 	comp_list "use" "${pg}"
 	comp_list "project" "build delete discover export files import load list link mode new remove swap select src use save title type update"
-	comp_list "package" "new set list mv move"
+	comp_list "package" "get new set list mv move"
 	comp_list "shell"
 	comp_list "new" "--version -v --help -h --custom -c"
 	comp_list "${editor} ed edit" "non-lang"
