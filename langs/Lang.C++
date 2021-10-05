@@ -5,7 +5,7 @@ Shell=$(which bash)
 #Link Libs: https://gist.github.com/gubatron/32f82053596c24b6bec6
 #both https://avikdas.com/2019/12/16/makefiles-for-c-cpp-projects.html
 
-SupportV="0.2.11"
+SupportV="0.2.12"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -174,6 +174,19 @@ UseC++()
 					echo ${LangProject}/${project}
 					;;
 			esac
+			;;
+		getAllProjSrc)
+			local project=${CodeProject}
+			local TheSrcDir=${LangProject}/${project}/src
+			find ${TheSrcDir} -name *".cpp" 2> /dev/null
+			find ${TheSrcDir} -name *".cc" 2> /dev/null
+			find ${TheSrcDir} -name *".cxx" 2> /dev/null
+			find ${TheSrcDir} -name *".c++" 2> /dev/null
+			find ${TheSrcDir} -name *".h" 2> /dev/null
+			find ${TheSrcDir} -name *".hh" 2> /dev/null
+			find ${TheSrcDir} -name *".hpp" 2> /dev/null
+			find ${TheSrcDir} -name *".hxx" 2> /dev/null
+			find ${TheSrcDir} -name *".h++" 2> /dev/null
 			;;
 		getProjSrc)
 			local name=$1

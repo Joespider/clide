@@ -346,6 +346,18 @@ errorCode()
 					errorCode "ERROR" "\"${thr}\" is not a valid package"
 					errorCode "HINT" "package can not contain \".new.\" or \".this.\""
 					;;
+				need-name)
+					errorCode "ERROR"
+					errorCode "ERROR" "Please provide new package"
+					;;
+				same)
+					errorCode "ERROR"
+					errorCode "ERROR" "Old Pacakge can NOT be the same as the new package"
+					;;
+				none)
+					errorCode "ERROR"
+					errorCode "ERROR" "Source Code not found"
+					;;
 				*)
 					;;
 			esac

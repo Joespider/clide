@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.82"
+SupportV="0.1.83"
 Lang=Python
 LangExt=".py"
 #Color Yellow
@@ -84,6 +84,11 @@ UsePython()
 			;;
 		getProjDir)
 			echo ${LangProject}
+			;;
+		getAllProjSrc)
+			local project=${CodeProject}
+			local TheSrcDir=${LangProject}/${project}/src
+			find ${TheSrcDir} -name *"${LangExt}" 2> /dev/null
 			;;
 		getProjSrc)
 			local name=$1
