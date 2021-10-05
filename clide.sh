@@ -1044,9 +1044,18 @@ HandleJavaPackage()
 	local Lang=$1
 	local TheAction=$2
 	local ThePackage=$3
+	local TheSrc=$3
+	local NewPackage=$4
 	local PackageName=${ThePackage}
+	local OldPackagePath
+	local NewPackagePath
+	local Proceed
+	local TheExt
+	local AllSrc
+	local TheClass
+	local aSrc
 	#package commands
-	case ${TheAction} in
+	case ${TheAction,,} in
 		#Create new package
 		new)
 			#Ensure package has a name
@@ -1059,6 +1068,60 @@ HandleJavaPackage()
 				fi
 			else
 				errorCode "package" "null-name"
+			fi
+			;;
+		get)
+			ThePackage=$(ManageLangs ${Lang} "getPackage" ${TheSrc})
+			if [ ! -z "${ThePackage}" ]; then
+				echo ${ThePackage}
+			fi
+			;;
+		mv|move)
+			if [ ! -z "${TheSrc}" ]; then
+				ThePackage=$(HandleJavaPackage ${Lang} "get" ${TheSrc})
+				if [ ! -z "${ThePackage}" ] && [ ! -z "${NewPackage}" ]; then
+					Proceed=$(ManageLangs ${Lang} "isPackage" ${ThePackage})
+					case ${Proceed} in
+						yes)
+							TheExt=$(ManageLangs ${Lang} "getExt")
+							OldPackagePath=$(ManageLangs ${Lang} "pathPackage" ${ThePackage})
+							HandleJavaPackage ${Lang} "new" ${NewPackage} > /dev/null
+							NewPackagePath=$(ManageLangs ${Lang} "pathPackage" ${NewPackage})
+							case ${TheSrc} in
+								*${TheExt})
+									;;
+								*)
+									TheSrc=${TheSrc}${TheExt}
+									;;
+							esac
+							case ${OldPackagePath} in
+								${NewPackagePath})
+									errorCode "package" "same"
+									;;
+								*)
+									TheClass=$(ManageLangs ${Lang} "removeExt" ${TheSrc})
+									AllSrc=$(ManageLangs ${Lang} "getAllProjSrc")
+									for aSrc in ${AllSrc};
+									do
+										if [ ! -z "${aSrc}" ]; then
+											sed -i "s/import ${ThePackage}.${TheClass};/import ${NewPackage}.${TheClass};/g" ${aSrc}
+										fi
+									done
+									mv ${OldPackagePath}/${TheSrc} ${NewPackagePath}/${TheSrc}
+									sed -i "s/package ${ThePackage};/package ${NewPackage};/g" ${NewPackagePath}/${TheSrc}
+									echo "${TheSrc}: Package (${ThePackage} -> ${NewPackage})"
+									;;
+							esac
+							cd - > /dev/null
+							;;
+						*)
+							;;
+					esac
+				else
+					echo "package or source code not found"
+				fi
+			else
+				echo "no source code found"
 			fi
 			;;
 		set|check)
@@ -1743,8 +1806,55 @@ Actions()
 										errorCode "project" "active"
 										;;
 									*)
-										HandleJavaPackage ${Lang} ${UserIn[1]} ${UserIn[2]}
-										refresh="yes"
+										case ${UserIn[1]} in
+											mv|move)
+												TheExt=$(ManageLangs ${Lang} "getExt")
+												case ${Code} in
+													*,*)
+														case ${Code} in
+															*"${UserIn[2]}"*)
+																case ${Code} in
+																	*"${UserIn[3]}"*|*"${UserIn[3]}${TheExt}"*)
+																		errorCode "package" "need-name"
+																		;;
+																	*)
+																		HandleJavaPackage ${Lang} ${UserIn[1]} ${UserIn[2]} ${UserIn[3]}
+																		;;
+																esac
+																;;
+															*)
+																errorCode "package" "none"
+																;;
+														esac
+														;;
+													*)
+														if [ ! -z "${Code}" ] && [ -z "${UserIn[3]}" ]; then
+															case ${Code} in
+																${UserIn[2]}|${UserIn[2]}${TheExt})
+																	errorCode "package" "need-name"
+																	;;
+																*)
+																	HandleJavaPackage ${Lang} ${UserIn[1]} ${Code} ${UserIn[2]}
+																	;;
+															esac
+														else
+															HandleJavaPackage ${Lang} ${UserIn[1]} ${UserIn[2]} ${UserIn[3]} ${UserIn[4]}
+														fi
+														;;
+												esac
+												;;
+											get)
+												if [ -z "${UserIn[2]}" ]; then
+													HandleJavaPackage ${Lang} ${UserIn[1]} ${Code}
+												else
+													HandleJavaPackage ${Lang} ${UserIn[1]} ${UserIn[2]}
+												fi
+												;;
+											*)
+												HandleJavaPackage ${Lang} ${UserIn[1]} ${UserIn[2]} ${UserIn[3]} ${UserIn[4]}
+												refresh="yes"
+												;;
+										esac
 										;;
 									esac
 									;;
@@ -1868,7 +1978,14 @@ Actions()
 							files)
 								local CodeDir=$(ManageLangs ${Lang} "getProjectDir")
 								local RemoveDirs=${CodeDir//\//|}
-								find ${CodeDir} -print | tr '/' '|' | sed "s/${RemoveDirs}//g" | tr '|' '/'
+								case ${UserIn[2]} in
+									src)
+										ManageLangs ${Lang} "getAllProjSrc" | tr '/' '|' | sed "s/${RemoveDirs}//g" | tr '|' '/'
+										;;
+									*)
+										find ${CodeDir} -print | tr '/' '|' | sed "s/${RemoveDirs}//g" | tr '|' '/'
+										;;
+								esac
 								;;
 							#Delete project
 							remove|delete)
@@ -3324,8 +3441,8 @@ loadAuto()
 	comp_list "mkdir"
 	comp_list "mode" "add pkg ${repoTool} repo"
 	comp_list "use" "${pg}"
-	comp_list "project" "build delete discover export files import load list link mode new remove swap set select use save title type update"
-	comp_list "package" "new set list"
+	comp_list "project" "build delete discover export files import load list link mode new remove swap select src use save title type update"
+	comp_list "package" "new set list mv move"
 	comp_list "shell"
 	comp_list "new" "--version -v --help -h --custom -c"
 	comp_list "${editor} ed edit" "non-lang"

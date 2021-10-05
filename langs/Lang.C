@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.55"
+SupportV="0.1.56"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
@@ -136,6 +136,11 @@ UseC()
 					echo ${LangProject}/${project}
 					;;
 			esac
+			;;
+		getAllProjSrc)
+			local project=${CodeProject}
+			local TheSrcDir=${LangProject}/${project}/src
+			find ${TheSrcDir} -name *"${LangExt}" 2> /dev/null
 			;;
 		getProjSrc)
 			local name=$1

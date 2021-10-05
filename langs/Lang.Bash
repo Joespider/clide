@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.71"
+SupportV="0.1.72"
 Lang=Bash
 LangExt=".sh"
 ColorNum=2
@@ -83,6 +83,11 @@ UseBash()
 			;;
 		getProjDir)
 			echo ${LangProject}
+			;;
+		getAllProjSrc)
+			local project=${CodeProject}
+			local TheSrcDir=${LangProject}/${project}/src
+			find ${TheSrcDir} -name *"${LangExt}" 2> /dev/null
 			;;
 		getProjSrc)
 			local name=$1

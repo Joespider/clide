@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.69"
+SupportV="0.1.70"
 Lang=Ruby
 LangExt=".rb"
 ColorNum=1
@@ -111,6 +111,11 @@ UseRuby()
 					echo ${LangProject}/${project}
 					;;
 			esac
+			;;
+		getAllProjSrc)
+			local project=${CodeProject}
+			local TheSrcDir=${LangProject}/${project}/src
+			find ${TheSrcDir} -name *"${LangExt}" 2> /dev/null
 			;;
 		getProjSrc)
 			local name=$1

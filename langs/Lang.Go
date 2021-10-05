@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.53"
+SupportV="0.1.54"
 Lang=Go
 LangExt=".go"
 #Color Green
@@ -101,6 +101,11 @@ UseGo()
 			;;
 		getProjDir)
 			echo ${LangProject}
+			;;
+		getAllProjSrc)
+			local project=${CodeProject}
+			local TheSrcDir=${LangProject}/${project}/src
+			find ${TheSrcDir} -name *"${LangExt}" 2> /dev/null
 			;;
 		getProjSrc)
 			local name=$1

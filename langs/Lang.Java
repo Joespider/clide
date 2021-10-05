@@ -4,7 +4,7 @@ Shell=$(which bash)
 #https://stackoverflow.com/questions/10339637/java-import-cannot-find-symbol
 #https://www.codejava.net/java-core/tools/how-to-compile-package-and-run-a-java-program-using-command-line-tools-javac-jar-and-java
 
-SupportV="0.2.08"
+SupportV="0.2.09"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -94,6 +94,11 @@ UseJava()
 		getProjDir)
 			echo ${LangProject}
 			;;
+		getAllProjSrc)
+			local project=${CodeProject}
+			local TheSrcDir=${LangProject}/${project}/src
+			find ${TheSrcDir} -name *"${LangExt}" 2> /dev/null | grep "${ProjectMode}"
+			;;
 		getProjSrc)
 			local name=$1
 			local project=${CodeProject}
@@ -151,7 +156,11 @@ UseJava()
 			echo -e "new <file> {main|component} --package <package>\t: \"create new ${Lang} source file with a new or existing package\""
 			echo -e "new <file> --package <package>\t\t: \"create new ${Lang} source file with a new or existing package\""
 			echo -e "package new <package>\t\t: \"create a new package\""
-			echo -e "\tie: package new this.is.a.package"
+			echo -e "package move <code> <package>\t\t: \"move existing source code to a new package\""
+			echo -e "package move <package>\t\t: \"move a selected source code to a new package\""
+			echo -e "\t<package> as in \"this.is.a.package\""
+			echo -e "package get <code>\t\t: \"get the package of existing code\""
+			echo -e "package get\t\t: \"get the package of selected code\""
 			echo -e "compile, cpl <type> <manifest>\t: \"make code executable\""
 			echo -e "\t--class\t\t\t: \"make code (CLASS) executable\""
 			echo -e "\t--jar\t\t\t: \"make code (JAR) executable\""
@@ -348,7 +357,7 @@ UseJava()
 				TempBin=${TempBin%.class}
 				echo -n "${TemplateCodeClass##*/} : "
 				cd ${LangBin}/
-				java ${TempBin} 2> /dev/null | grep Version | sed "s/Version: //g"
+				${LangRun} ${TempBin} 2> /dev/null | grep Version | sed "s/Version: //g"
 				cd - > /dev/null
 			#Code is not compiled
 			else
@@ -816,6 +825,7 @@ UseJava()
 					;;
 				#Code is part of a project
 				*)
+					src=${LangExt}
 					TheBinDir=${LangProject}/${project}/bin/
 					local TheOldDir=${PWD}
 					local Package
@@ -863,6 +873,7 @@ UseJava()
 						#Compile as Jar
 						--jar)
 							cd ${ProjectModeDir}
+							echo ${src}
 							UseJava ${Type} ${src} --class ${keep} | grep -v "(CLASS)"
 							#Compile to Class
 							ERROR=$(find ${ThePWD} -name "*.class")
@@ -930,7 +941,6 @@ UseJava()
 									TheJavaSrc=$(find . -name "*${LangExt}")
 									;;
 								*)
-									
 									TheJavaSrc=$(find . -name "${src}")
 									;;
 							esac
@@ -1047,7 +1057,9 @@ UseJava()
 								;;
 							*)
 								cd ${path}
-								mkdir -p ${packagePath}
+								if [ ! -d ${packagePath} ]; then
+									mkdir -p ${packagePath}
+								fi
 								cd - > /dev/null
 								;;
 						esac
@@ -1055,7 +1067,61 @@ UseJava()
 					;;
 			esac
 			;;
-		setPackage)
+		getPackage)
+			local src=$1
+			local TheFile
+			local ThePackage
+			local project=${CodeProject}
+			local path=${LangProject}/${project}/src/${ProjectMode}/java
+			case ${project} in
+				none)
+					;;
+				*)
+					if [ ! -z "${src}" ]; then
+						src=$(UseJava "removeExt" "${src}")
+						TheFile=${src}${LangExt}
+						local NumFound=$(find ${TheSrcDir} -name ${TheFile} 2> /dev/null | grep "${ProjectMode}" | wc -l)
+						case ${NumFound} in
+							0)
+								;;
+							1)
+								TheFile=$(find ${TheSrcDir} -name ${TheFile} 2> /dev/null | grep "${ProjectMode}")
+								if [ -f ${TheFile} ]; then
+									#Read or Write Code
+									#{
+									ThePackage=$(grep package ${TheFile})
+									#}
+								fi
+								;;
+							*)
+								local Select
+								find ${TheSrcDir} -name ${TheFile} 2> /dev/null | grep "${ProjectMode}" | sed "s/\/${project}\/src\//|/1" | cut -d '|' -f 2 | nl
+								echo -n "> "
+								read Select
+								Select=$(echo ${Select} | grep "^-\?[0-9]*$")
+								if [ ! -z "${Select}" ]; then
+									if [ ${Select} -le ${NumFound} ] && [ ${Select} -gt 0 ]; then
+									TheFile=$(find ${TheSrcDir} -name ${TheFile} 2> /dev/null | grep "${ProjectMode}" | tr '\n' '|' | cut -d '|' -f ${Select})
+										#Read or Write Code
+										#{
+										ThePackage=$(grep package ${TheFile})
+										#}
+									fi
+								fi
+								;;
+						esac
+
+					fi
+
+					if [ ! -z "${ThePackage}" ]; then
+						ThePackage=${ThePackage//package /}
+						ThePackage=${ThePackage%%;*}
+						echo ${ThePackage}
+					fi
+					;;
+			esac
+			;;
+		setPackage|isPackage|pathPackage)
 			local name=$1
 			local packagePath=${name//./\/}
 			local project=${CodeProject}
@@ -1067,11 +1133,26 @@ UseJava()
 					if [ ! -z "${name}" ]; then
 						case ${name} in
 							*.new.*|*.this.*|new.*|this.*|*.new|*.this)
-								errorCode "package" "not-valid"
+								case ${Type} in
+									setPackage)
+										errorCode "package" "not-valid"
+										;;
+									*)
+										;;
+								esac
 								;;
 							*)
 								if [ -d "${path}/${packagePath}" ]; then
-									echo ${path}/${packagePath}
+									case ${Type} in
+										setPackage|pathPackage)
+											echo ${path}/${packagePath}
+											;;
+										isPackage)
+											echo "yes"
+											;;
+										*)
+											;;
+									esac
 								fi
 								;;
 						esac

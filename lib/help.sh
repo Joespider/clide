@@ -214,6 +214,7 @@ ProjectHelp()
 	echo -e "\t--list, list\t\t: \"list the linked languages in an active project\""
 	echo -e "active\t\t\t\t: \"Display the name of the current project\""
 	echo -e "files\t\t\t\t: \"List the files under the active project\""
+	echo -e "files src\t\t\t: \"List the source code paths only in an active project\""
 	echo -e "types\t\t\t\t: \"Display the types of projects under ${Lang}\""
 	echo -e "discover\t\t\t: \"Discover project on system (creates project profile)"
 	ManageLangs ${Lang} "ProjectHelp"
