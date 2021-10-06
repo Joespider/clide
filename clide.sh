@@ -1289,7 +1289,7 @@ runCode()
 			-a|--args)
 				TheLang=$(color "${Lang}")
 				CLIout=$(ManageLangs ${Lang} "cli" "${TheBin}")
-				CLIout="$USER@${Name}:~/${TheLang}\$ ${CLIout}"
+				CLIout="$USER@${Name}:~${TheLang}\$ ${CLIout}"
 				#User Args not Pre-done'
 				if [ -z "${First}" ]; then
 					if [ -z "${RunTimeArgs}" ]; then
@@ -1446,7 +1446,7 @@ Actions-NoLang()
 	history -c
 	local NoLang=cl[$(echo -e "\e[1;41mide\e[0m")]
 	local UserIn
-	local prompt="${NoLang}($(echo -e "\e[1;31mno-lang\e[0m")):$ "
+	local prompt="${NoLang}($(echo -e "\e[1;31mno-lang\e[0m")):~$ "
 	while true
 	do
 		read -e -p "${prompt}" -a UserIn
@@ -1542,7 +1542,7 @@ Actions()
 	shift
 	local CodeDir=$(pgDir ${Lang})
 	local pLangs=$(ColorCodes)
-	local prompt=""
+	local prompt
 	local listSrc
 	local cntSrc
 	local ThePWD
@@ -1566,7 +1566,7 @@ Actions()
 			case ${CodeProject} in
 				none)
 					#Menu with no code
-					prompt="${Name}(${cLang}):$ "
+					prompt="${Name}(${cLang}):~$ "
 					;;
 				*)
 					ThePWD=${PWD}
@@ -1575,8 +1575,18 @@ Actions()
 					#ProjectDir=${ProjectDir/\//:}
 					cCodeProject=$(ManageLangs ${Lang} "ProjectColor")
 					#Menu with no code
-					ProjectPrompt=$(ColorPrompt ${ProjectType:0:1}:${ProjectDir})
-					prompt="${Name}(${cCodeProject}[${ProjectPrompt}]):$ "
+					#ProjectPrompt=$(ColorPrompt ${ProjectType:0:1}:${ProjectDir})
+					case ${ProjectDir} in
+						${CodeProject})
+							#ProjectDir="/"
+							ProjectDir=""
+							;;
+						*)
+							;;
+					esac
+					#ProjectPrompt=$(ColorPrompt ${ProjectDir})
+					#prompt="${Name}(${cCodeProject}):${ProjectPrompt}$ "
+					prompt="${Name}(${cCodeProject}):~/${ProjectDir}$ "
 					;;
 			esac
 		else
@@ -1602,7 +1612,7 @@ Actions()
 			case ${CodeProject} in
 				none)
 					#Menu with code
-					prompt="${Name}(${cLang}{${listSrc}}):$ "
+					prompt="${Name}(${cLang}{${listSrc}}):~$ "
 					;;
 				*)
 					ThePWD=${PWD}
@@ -1611,8 +1621,18 @@ Actions()
 					#ProjectDir=${ProjectDir/\//:}
 					#Menu with no code
 					cCodeProject=$(ManageLangs ${Lang} "ProjectColor")
-					ProjectPrompt=$(ColorPrompt ${ProjectType:0:1}:${ProjectDir})
-					prompt="${Name}(${cCodeProject}[${ProjectPrompt}]{${listSrc}}):$ "
+					#ProjectPrompt=$(ColorPrompt ${ProjectType:0:1}:${ProjectDir})
+					case ${ProjectDir} in
+						${CodeProject})
+							#ProjectDir="/"
+							ProjectDir=""
+							;;
+						*)
+							;;
+					esac
+					#ProjectPrompt=$(ColorPrompt ${ProjectDir})
+					#prompt="${Name}(${cCodeProject}{${listSrc}}):${ProjectPrompt}$ "
+					prompt="${Name}(${cCodeProject}{${listSrc}}):~/${ProjectDir}$ "
 					;;
 			esac
 		fi
@@ -3158,7 +3178,7 @@ Actions()
 									case ${CodeProject} in
 										none)
 											#Menu with no code
-											prompt="${Name}(${cLang}):$ "
+											prompt="${Name}(${cLang}):~$ "
 											;;
 										*)
 											ThePWD=$(pwd)
@@ -3166,9 +3186,19 @@ Actions()
 											ProjectDir=${ThePWD##*/}
 											#ProjectDir=${ProjectDir/\//:}
 											cCodeProject=$(ManageLangs ${Lang} "ProjectColor")
-											ProjectPrompt=$(ColorPrompt ${ProjectType:0:1}:${ProjectDir})
+											#ProjectPrompt=$(ColorPrompt ${ProjectType:0:1}:${ProjectDir})
+											case ${ProjectDir} in
+												${CodeProject})
+													#ProjectDir="/"
+													ProjectDir=""
+													;;
+												*)
+													;;
+											esac
+											#ProjectPrompt=$(ColorPrompt ${ProjectDir})
 											#Menu with no code
-											prompt="${Name}(${cCodeProject}[${ProjectPrompt}]):$ "
+											#prompt="${Name}(${cCodeProject}):${ProjectPrompt}$ "
+											prompt="${Name}(${cCodeProject}):~/${ProjectDir}$ "
 											;;
 									esac
 								else
@@ -3193,7 +3223,7 @@ Actions()
 									case ${CodeProject} in
 										none)
 											#Menu with code
-											prompt="${Name}(${cLang}{${listSrc}}):$ "
+											prompt="${Name}(${cLang}{${listSrc}}):~$ "
 											;;
 										*)
 											ThePWD=${PWD}
@@ -3202,8 +3232,18 @@ Actions()
 											#ProjectDir=${ProjectDir/\//:}
 											#Menu with no code
 											cCodeProject=$(ManageLangs ${Lang} "ProjectColor")
-											ProjectPrompt=$(ColorPrompt ${ProjectType:0:1}:${ProjectDir})
-											prompt="${Name}(${cCodeProject}[${ProjectPrompt}]{${listSrc}}):$ "
+											#ProjectPrompt=$(ColorPrompt ${ProjectType:0:1}:${ProjectDir})
+											case ${ProjectDir} in
+												${CodeProject})
+													#ProjectDir="/"
+													ProjectDir=""
+													;;
+												*)
+													;;
+											esac
+											#ProjectPrompt=$(ColorPrompt ${ProjectDir})
+											#prompt="${Name}(${cCodeProject}{${listSrc}}):${ProjectPrompt}$ "
+											prompt="${Name}(${cCodeProject}{${listSrc}}):~/${ProjectDir}$ "
 											;;
 									esac
 								fi
@@ -4476,7 +4516,7 @@ main()
 			#Force user to select language
 			while [[ "${getLang}" == "" ]] || [[ "${Lang}" == "no" ]];
 			do
-				prompt="${Name}(${pg}):$ "
+				prompt="${Name}(${pg}):~$ "
 				read -e -p "${prompt}" getLang
 				case ${getLang} in
 					exit)
