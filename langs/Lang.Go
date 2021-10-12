@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.54"
+SupportV="0.1.56"
 Lang=Go
 LangExt=".go"
 #Color Green
@@ -361,84 +361,102 @@ UseGo()
 			local DirPath
 			local TheSrcDir
 			local UseProjectTemplate
+
 			#Correct filename
 			if [ ! -z "${name}" ]; then
-				name=$(UseGo "removeExt" ${name})
-				name=${name}${LangExt}
+
 				case ${project} in
 					#not a project
 					none)
 						case ${Type} in
+							selectCode)
+								#Correct filename
+								if [[ ! "${name}" == *"${LangExt}" ]] && [ -f "${name}${LangExt}" ]; then
+									name="${name}${LangExt}"
+								fi
+
+								#Return source file if exists
+								if [ -f "${name}" ]; then
+									echo "${name}"
+								fi
+								;;
 							addCode)
-								case ${new} in
-									*${LangExt})
-										if [ -f "${new}" ]; then
-											echo "${name},${new}"
-										else
-											echo "${name}"
-										fi
+								case ${name} in
+									*${LangExt}|*.h)
+										#Add cpp or header files with file extensions
+										case ${new} in
+											*${LangExt})
+												#Append file
+												if [ -f "${new}" ]; then
+													echo "${name},${new}"
+												else
+													echo "${name}"
+												fi
+												;;
+											#Add cpp or header files without file extensions
+											*)
+												#Append cpp files
+												if [ -f "${new}${LangExt}" ]; then
+													echo "${name},${new}${LangExt}"
+												else
+													echo "${name}"
+												fi
+												;;
+										esac
 										;;
 									*)
-										if [ -f "${new}${LangExt}" ]; then
-											echo "${name},${new}${LangExt}"
-										else
-											echo "${name}"
-										fi
 										;;
 								esac
 								;;
-							selectCode)
-									#Return source file if exists
-									if [ -f "${name}" ]; then
-										echo "${name}"
-									fi
-									;;
 							*)
-									;;
+								;;
 						esac
 						;;
 					#is a project
 					*)
 						UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
-						local LookFor
 						TheSrcDir="${LangProject}/${project}/src/"
+						local LookFor
 						case ${Type} in
 							addCode)
-								new=$(UseGo "removeExt" ${new})
-								new=${new}${LangExt}
+								#Correct filename
+								if [[ ! "${new}" == *"${LangExt}" ]]; then
+									new="${new}${LangExt}"
+								fi
 								LookFor=${new}
 								;;
 							selectCode)
-								name=$(UseGo "removeExt" ${name})
-								name=${name}${LangExt}
+								#Correct filename
+								if [[ ! "${name}" == *"${LangExt}" ]]; then
+									name="${name}${LangExt}"
+								fi
 								LookFor=${name}
 								;;
 							*)
 								;;
 						esac
 
-						local NumFound=$(find ${TheSrcDir} -name ${LookFor} 2> /dev/null | grep "${ProjectMode}" | wc -l)
+						local NumFound=$(find ${TheSrcDir} -name ${LookFor} 2> /dev/null | wc -l)
 						case ${NumFound} in
 							0)
 								;;
 							1)
 								case ${Type} in
 									addCode)
-										new=$(find ${TheSrcDir} -name ${new} 2> /dev/null | grep "${ProjectMode}")
-										if [ -f ${new} ]; then
-											new=$(UseGo "removeExt" ${new})
-											newName=${new##*/}
-											echo "${name},${newName}${LangExt}"
+										new=$(find ${TheSrcDir} -name ${new} 2> /dev/null)
+										#Append file
+										if [ -f "${new}" ]; then
+											new=${new##*/}
+											echo "${name},${new}"
 										else
 											echo "${name}"
 										fi
 										;;
 									selectCode)
-										name=$(find ${TheSrcDir} -name ${name} 2> /dev/null | grep "${ProjectMode}")
+										name=$(find ${TheSrcDir} -name ${name} 2> /dev/null)
 										if [ -f ${name} ]; then
-											name=$(UseGo "removeExt" ${name})
 											newName=${name##*/}
-											echo ${newName}${LangExt}
+											echo ${newName}
 										fi
 										;;
 									*)
@@ -448,7 +466,7 @@ UseGo()
 							*)
 								;;
 						esac
-					;;
+						;;
 				esac
 			fi
 			;;
@@ -509,6 +527,7 @@ UseGo()
 			local DirPath
 			local TheSrcDir
 			local ReadOrEdit
+			local UseProjectTemplate
 
 			#Select the tool
 			#{
@@ -527,7 +546,6 @@ UseGo()
 			case ${src} in
 				*${LangExt})
 					case ${project} in
-						#Is NOT a project
 						none)
 							if [[ "${src}" == *","* ]]; then
 								if [ -z "${num}" ]; then
@@ -546,17 +564,9 @@ UseGo()
 									#}
 								else
 									if [[ "${src}" == *"${num}"* ]]; then
-										if [[ "${num}" == *"${LangExt}" ]]; then
-											#Read or Write Code
-											#{
-											${ReadOrEdit} ${num}
-											#}
-										else
-											#Read or Write Code
-											#{
-											${ReadOrEdit} "${num}${LangExt}"
-											#}
-										fi
+										#Choose file from list of choices
+										num=$(echo -e "${src//,/\\n}" | grep ${num})
+										${ReadOrEdit} ${num}
 									else
 										#Error
 										#{
@@ -580,52 +590,82 @@ UseGo()
 								#}
 							fi
 							;;
-						#Is a project
 						*)
+							UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
+							TheSrcDir="${LangProject}/${project}/src/"
+							local NumFound
 							if [[ "${src}" == *","* ]]; then
-								echo "Please Add support for handling multiple source code"
+								if [ -z "${num}" ]; then
+									errorCode "editNull"
+									NumFound=0
+								else
+									if [[ "${src}" == *"${num}"* ]]; then
+										case ${num} in
+											*${LangExt})
+												src=${num}
+												;;
+											*)
+												src=${num}${LangExt}
+												;;
+										esac
+										NumFound=$(find ${TheSrcDir} -name ${src} 2> /dev/null | wc -l)
+									else
+										#Error
+										#{
+										case ${Type} in
+											readCode)
+												errorCode "readNot"
+												;;
+											editCode)
+												errorCode "editNot"
+												;;
+											*)
+												;;
+										esac
+										NumFound=0
+										#}
+									fi
+								fi
 							else
-								TheSrcDir="${LangProject}/${project}/src/"
+								NumFound=$(find ${TheSrcDir} -name ${src} 2> /dev/null | wc -l)
+							fi
 
-								local NumFound=$(find ${TheSrcDir} -name ${src} 2> /dev/null | grep "${ProjectMode}" | wc -l)
-								case ${NumFound} in
-									0)
-										;;
-									1)
-										src=$(find ${TheSrcDir} -name ${src} 2> /dev/null | grep "${ProjectMode}")
-										if [ -f ${src} ]; then
+							case ${NumFound} in
+								0)
+									;;
+								1)
+									src=$(find ${TheSrcDir} -name ${src} 2> /dev/null)
+									if [ -f ${src} ]; then
+										#Read or Write Code
+										#{
+										${ReadOrEdit} ${src}
+										#}
+									fi
+									;;
+								*)
+									local Select
+									find ${TheSrcDir} -name ${src} 2> /dev/null | sed "s/\/${project}\/src\//|/1" | cut -d '|' -f 2 | nl
+									echo -n "> "
+									read Select
+									Select=$(echo ${Select} | grep "^-\?[0-9]*$")
+									if [ ! -z "${Select}" ]; then
+										if [ ${Select} -le ${NumFound} ] && [ ${Select} -gt 0 ]; then
+											src=$(find ${TheSrcDir} -name ${src} 2> /dev/null | tr '\n' '|' | cut -d '|' -f ${Select})
 											#Read or Write Code
 											#{
 											${ReadOrEdit} ${src}
 											#}
 										fi
-										;;
-									*)
-										local Select
-										find ${TheSrcDir} -name ${src} 2> /dev/null | grep "${ProjectMode}" | sed "s/\/${project}\/src\//|/1" | cut -d '|' -f 2 | nl
-										echo -n "> "
-										read Select
-										Select=$(echo ${Select} | grep "^-\?[0-9]*$")
-										if [ ! -z "${Select}" ]; then
-											if [ ${Select} -le ${NumFound} ] && [ ${Select} -gt 0 ]; then
-												src=$(find ${TheSrcDir} -name ${src} 2> /dev/null | grep "${ProjectMode}" | tr '\n' '|' | cut -d '|' -f ${Select})
-												#Read or Write Code
-												#{
-												${ReadOrEdit} ${src}
-												#}
-											fi
-										fi
-										;;
-								esac
-
-							fi
+									fi
+									;;
+							esac
 							;;
 					esac
 					;;
 				*)
 					;;
 			esac
-			;;
+			 ;;
 		make)
 			;;
 		setCplArgs)
@@ -684,10 +724,6 @@ UseGo()
 			local name=$2
 			local cplArgs=${CplArgs//,/ }
 			local project=${CodeProject}
-			local NeedThreads
-			local HasXlib
-			local HasXutil
-			local HasXos
 			local ReplaceTheSrcDir
 			local TheSrcDir
 			local TheBinDir
@@ -696,53 +732,61 @@ UseGo()
 			local NumOfMain
 			local UseProjectTemplate
 
-			#Handle multiple files
-			if [ -z "${name}" ]; then
-				case ${src} in
-					*,*)
-						src=${src//,/ }
-						name=$(grep -l "func main(" ${src} 2> /dev/null)
-						if [ -z "${name}" ]; then
-							FoundMain="no"
-						else
-							NumOfMain=$(echo -e "${name// /\\n}" | wc -l)
-							case ${NumOfMain} in
-								1)
-									name=$(UseGo "removeExt" ${name})
-									;;
-								*)
-									FoundMain="no"
-									errorCode "cpl" "ERROR" "More than one \"main\" files were found"
-									;;
-							esac
-						fi
-						;;
-					*)
-						name=$(UseGo "removeExt" ${src})
-						;;
-				esac
-			fi
-
 			#Handle Project Dir
 			case ${project} in
 				none)
 					TheSrcDir=${LangSrc}
 					project=""
 					TheBinDir=${LangBin}
+					#Handle multiple files
+					if [ -z "${name}" ]; then
+						case ${src} in
+							*,*)
+								src=${src//,/ }
+								name=$(grep -l "func main(" ${src} 2> /dev/null)
+								if [ -z "${name}" ]; then
+									FoundMain="no"
+								else
+									NumOfMain=$(echo -e "${name// /\\n}" | wc -l)
+									case ${NumOfMain} in
+										1)
+											name=$(UseGo "removeExt" ${name})
+											;;
+										*)
+											FoundMain="no"
+											errorCode "cpl" "ERROR" "More than one \"main\" files were found"
+											;;
+									esac
+								fi
+								;;
+							*)
+								name=$(UseGo "removeExt" ${src})
+								;;
+						esac
+					fi
 					;;
 				*)
 					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
-					name=${project}
-					project="${project}/"
-					TheSrcDir="${LangProject}/${project}src"
-					#if NO code is selected, then select ALL
-					#{
-					#if [ -z "${src}" ]; then
-						ReplaceTheSrcDir=$(echo "${LangProject}/${project}src/" | tr '/' '|')
-						src=$(find ${TheSrcDir} -type f -name "*${LangExt}" | tr '/' '|' | sed "s/${ReplaceTheSrcDir}//g" | tr '|' '/')
-					#fi
-					#}
-					TheBinDir="${LangProject}/${project}bin"
+					TheSrcDir="${LangProject}/${project}/src"
+					ReplaceTheSrcDir=$(echo "${LangProject}/${project}src/" | tr '/' '|')
+					src=$(find ${TheSrcDir} -type f -name "*${LangExt}" | tr '/' '|' | sed "s/${ReplaceTheSrcDir}//g" | tr '|' '/')
+					name=$(grep -l "func main(" ${src} 2> /dev/null)
+					if [ -z "${name}" ]; then
+						FoundMain="no"
+					else
+						NumOfMain=$(echo -e "${name// /\\n}" | wc -l)
+						case ${NumOfMain} in
+							1)
+								name=${name##*/}
+								name=$(UseGo "removeExt" ${name})
+								;;
+							*)
+								FoundMain="no"
+								errorCode "cpl" "ERROR" "More than one \"main\" files were found"
+								;;
+						esac
+					fi
+					TheBinDir="${LangProject}/${project}/bin"
 					;;
 			esac
 
@@ -773,7 +817,6 @@ UseGo()
 							yes)
 								#Compile and check for errors
 								ERROR=$(${LangCpl} build ${src} 2>&1 | tr '\n' '|')
-
 								#Code compiled successfully
 								if [ -z "${ERROR}" ]; then
 									case ${project} in
@@ -859,37 +902,36 @@ UseGo()
 			if [ ! -d ${path} ]; then
 				case ${ProjectType} in
 					Generic)
-						mkdir ${path}
-						mkdir ${path}/bin
-						mkdir ${path}/build
-						mkdir ${path}/doc
-						mkdir ${path}/include
-						mkdir ${path}/lib
-						mkdir ${path}/spike
-						mkdir ${path}/src
-						mkdir ${path}/test
+						mkdir -p ${path}/bin
+						mkdir -p ${path}/build
+						mkdir -p ${path}/doc
+						mkdir -p ${path}/include
+						mkdir -p ${path}/lib
+						mkdir -p ${path}/spike
+						mkdir -p ${path}/src
+						mkdir -p ${path}/test
 						cd ${path}/src
 						;;
 					*)
 						UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type}) 
-						mkdir ${path}
+						mkdir -p ${path}
 						if [ ! -z "${UseProjectTemplate}" ]; then
 							ProjectTemplateHandler ${EnvVars[@]} ${Type} ${project}
 							if [ ! -d "${path}/bin/" ]; then
-								mkdir ${path}/bin
+								mkdir -p ${path}/bin
 							fi
 							if [ ! -d "${path}/src/" ]; then
-								mkdir ${path}/src
+								mkdir -p ${path}/src
 							fi
 						else
-							mkdir ${path}/bin
-							mkdir ${path}/build
-							mkdir ${path}/doc
-							mkdir ${path}/include
-							mkdir ${path}/lib
-							mkdir ${path}/spike
-							mkdir ${path}/src
-							mkdir ${path}/test
+							mkdir -p ${path}/bin
+							mkdir -p ${path}/build
+							mkdir -p ${path}/doc
+							mkdir -p ${path}/include
+							mkdir -p ${path}/lib
+							mkdir -p ${path}/spike
+							mkdir -p ${path}/src
+							mkdir -p ${path}/test
 						fi
 						cd ${path}/src
 						;;

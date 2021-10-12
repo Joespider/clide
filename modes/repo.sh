@@ -116,6 +116,17 @@ gitHandler()
 					git add .
 				fi
 				;;
+			#Ignore files
+			ignore)
+				local IgnoreFile=".gitignore"
+				local files=$@
+				#Files given
+				if [ ! -z "${files}" ]; then
+					echo ${files[@]} >> ${IgnoreFile}
+				else
+					${editor} ${IgnoreFile}
+				fi
+				;;
 			#Provide message for repo
 			message|commit)
 				#Get message

@@ -1458,6 +1458,15 @@ Actions-NoLang()
 			clear)
 				clear
 				;;
+			read)
+				case ${UserIn[1],,} in
+					config)
+						main "--read" "--config" "session"
+						;;
+					*)
+						;;
+				esac
+				;;
 			edit)
 				case ${UserIn[1],,} in
 					config)
@@ -1653,7 +1662,6 @@ Actions()
 			#User's first action
 			if [ ! -z "${FirstAction}" ]; then
 				UserArg=${FirstAction,,}
-				FirstAction=""
 			else
 				#Handle CLI
 				#read -a UserIn
@@ -1958,6 +1966,7 @@ Actions()
 								;;
 							#Add a title to the project
 							title)
+								local LangColor
 								#Ensure this is a project
 								case ${CodeProject} in
 									#Is not a project
@@ -1968,6 +1977,7 @@ Actions()
 									*)
 										local TheFile=${ActiveProjectDir}/${CodeProject}.clide
 										if [ -f ${TheFile} ]; then
+											LangColor=$(ManageLangs ${Lang} "color-number")
 											local HasTitle=$(grep "title=" ${TheFile})
 											if [ -z "${HasTitle}" ]; then
 												local Args
@@ -1975,7 +1985,7 @@ Actions()
 												read -a Args
 												if [ ! -z "${Args[0]}" ]; then
 													echo "title=${Args[@]}" >> ${TheFile}
-													echo "Title added"
+													echo -e "\e[1;4${LangColor}mTitle added\e[0m"
 												else
 													errorCode "project" "no-title"
 												fi
@@ -1983,7 +1993,7 @@ Actions()
 												errorCode "project" "already-title" "${CodeProject}"
 												HasTitle=$(echo ${HasTitle} | sed "s/title=//g")
 												echo ""
-												echo "Title: \"${HasTitle}\""
+												echo -e "\e[1;4${LangColor}mTitle:\e[0m \e[1;3${LangColor}m\"${HasTitle}\"\e[0m"
 											fi
 										fi
 										;;
@@ -1991,8 +2001,9 @@ Actions()
 								;;
 							#Update live project
 							update|save)
+								local LangColor=$(ManageLangs ${Lang} "color-number")
 								updateProject ${Code}
-								echo "\"${CodeProject}\" updated"
+								echo -e "\e[1;4${LangColor}m\"${CodeProject}\" updated\e[0m"
 								;;
 							#list the project files
 							files)
@@ -2184,6 +2195,7 @@ Actions()
 								local IsLang=$(pgLang ${UserIn[2]})
 								local TheFile
 								local ProjectDir
+								local LangColor
 
 								case ${IsLang} in
 									no)
@@ -2229,12 +2241,13 @@ Actions()
 											fi
 
 											echo ""
+											LangColor=$(ManageLangs ${Lang} "color-number")
 											local HasTitle=$(grep "title=" ${TheFile})
 											if [ ! -z "${HasTitle}" ]; then
 												HasTitle=$(echo ${HasTitle} | sed "s/title=//g")
-												echo "${CodeProject}: \"${HasTitle}\""
+												echo -e "\e[1;4${LangColor}m${CodeProject}:\e[0m \e[1;3${LangColor}m\"${HasTitle}\"\e[0m"
 											else
-												echo "Project \"${CodeProject}\" loaded"
+												echo -e "\e[1;4${LangColor}mProject \"${CodeProject}\" loaded\e[0m"
 											fi
 											echo ""
 										fi
@@ -3165,7 +3178,11 @@ Actions()
 					-*)
 						;;
 					*)
-						history -s "${UserIn[@]}"
+						if [ -z "${FirstAction}" ]; then
+							history -s "${UserIn[@]}"
+						else
+							FirstAction=""
+						fi
 						#Refresh CLI User Interface
 						case ${refresh} in
 							yes)
@@ -4427,34 +4444,49 @@ CLI()
 			#cat out source code
 			--read)
 				shift
+				local Action=$1
 				local Lang=$(pgLang $1)
 				local Code=$2
 				if [ -z "${Code}" ]; then
-					Lang=$(SelectLangByCode $1)
-					Code=$1
-					shift
-					local Args=$@
-					if [ ! -z "${Lang}" ] && [ ! -z "${Code}" ]; then
-						main --read "${Lang}" "${Code}" ${Args[@]}
-					fi
-				else
-					case ${Lang} in
-						no)
-							errorCode "lang" "no-lang" "$1"
+					case ${Action} in
+						--config)
+							cat ${root}/var/clide.conf
 							;;
 						*)
-							local CodeDir=$(pgDir ${Lang})
-							if [ ! -z "${CodeDir}" ]; then
-								cd ${CodeDir}
-								Code=$(selectCode ${Lang} ${Code})
-								if [ ! -z "${Code}" ]; then
-									cat ${Code}
-								else
-									errorCode "lang" "readCode"
-								fi
-							else
-								errorCode "lang" "readCode"
+							Lang=$(SelectLangByCode $1)
+							Code=$1
+							shift
+							local Args=$@
+							if [ ! -z "${Lang}" ] && [ ! -z "${Code}" ]; then
+								main --read "${Lang}" "${Code}" ${Args[@]}
 							fi
+							;;
+					esac
+				else
+					case ${Action} in
+						--config)
+							${ReadBy} ${root}/var/clide.conf
+							;;
+						*)
+							case ${Lang} in
+								no)
+									errorCode "lang" "no-lang" "$1"
+									;;
+								*)
+									local CodeDir=$(pgDir ${Lang})
+									if [ ! -z "${CodeDir}" ]; then
+										cd ${CodeDir}
+										Code=$(selectCode ${Lang} ${Code})
+										if [ ! -z "${Code}" ]; then
+											cat ${Code}
+										else
+											errorCode "lang" "readCode"
+										fi
+									else
+										errorCode "lang" "readCode"
+									fi
+							esac
+							;;
 					esac
 				fi
 				;;
