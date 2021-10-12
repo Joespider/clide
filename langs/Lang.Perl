@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.72"
+SupportV="0.1.73"
 Lang=Perl
 LangExt=".pl"
 #Color Purple
@@ -907,7 +907,6 @@ UsePerl()
 			local name=$1
 			local TheBin=$(UsePerl "removeExt" ${name})
 			TheBin=${TheBin}${LangExt}
-			echo ${TheBin}
 			local project=${CodeProject}
 			local TheBinDir
 			local UseProjectTemplate
@@ -948,7 +947,7 @@ UsePerl()
 						#${LangRun} -m ${UseDebugger} ${TheBinDir}/${TheBin} ${Args[@]}
 						;;
 					runCode)
-						echo ${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+						${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
 						;;
 				esac
 				chmod u+w ${TheBinDir}/${TheBin} 2> /dev/null
