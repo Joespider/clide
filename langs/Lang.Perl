@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.71"
+SupportV="0.1.72"
 Lang=Perl
 LangExt=".pl"
 #Color Purple
@@ -554,11 +554,10 @@ UsePerl()
 			local name=$2
 			local keep=$3
 			local project=${CodeProject}
-			local UseProjectTemplate
-			local cplArgs
+			local cplArgs=""
 			local TheBinDir
-			local GetCount
 			local ERROR
+			local UseProjectTemplate
 			#Handle Project Dir
 			case ${project} in
 				none)
@@ -567,8 +566,7 @@ UsePerl()
 					;;
 				*)
 					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
-					project="${project}/"
-					TheBinDir="${LangProject}/${project}bin"
+					TheBinDir="${LangProject}/${project}/bin"
 					;;
 			esac
 
@@ -594,7 +592,7 @@ UsePerl()
 									1)
 										src=$(UsePerl "getProjSrc" ${src})
 										src="..${src##*${CodeProject}}"
-										ERROR=$(ln -s ${src} 2>&1 | tr '\n' '|')
+										ERROR=$(ln -s ${src} ${CodeProject}${LangExt} 2>&1 | tr '\n' '|')
 										;;
 									*)
 										;;
@@ -612,24 +610,25 @@ UsePerl()
 			#Set Code to executable
 			case ${src} in
 				*${LangExt})
-					#Check if Perl Script does NOT exist
+					#Check if Bash Script does NOT exist
 					if [ ! -f "${TheBinDir}/${src}" ]; then
-						#Change to Perl Binary dir
+						#Change to Bash Binary dir
 						cd ${TheBinDir}
 						case ${CodeProject} in
 							none)
-								#Create Symbolic Link to Perl Script
+								#Create Symbolic Link to Bash Script
 								ERROR=$(ln -s ../src/${src} 2>&1 | tr '\n' '|')
 								;;
 							*)
-								GetCount=$(UsePerl "getProjSrc" ${src} | wc -l)
+								local GetCount=$(UsePerl "getProjSrc" ${src} | wc -l)
 								case ${GetCount} in
 									0)
 										;;
 									1)
 										src=$(UsePerl "getProjSrc" ${src})
 										src="..${src##*${CodeProject}}"
-										ERROR=$(ln -s ${src} 2>&1 | tr '\n' '|')
+										chmod +x ${src} 2> /dev/null
+										ERROR=$(ln -s ${src} ${CodeProject}${LangExt} 2>&1 | tr '\n' '|')
 										;;
 									*)
 										;;
@@ -643,7 +642,7 @@ UsePerl()
 						else
 							errorCode "cpl" "ERROR" "${ERROR}"
 						fi
-					#Code is already found
+						#Code is already found
 					else
 						errorCode "cpl" "already" ${src}
 					fi
@@ -908,6 +907,7 @@ UsePerl()
 			local name=$1
 			local TheBin=$(UsePerl "removeExt" ${name})
 			TheBin=${TheBin}${LangExt}
+			echo ${TheBin}
 			local project=${CodeProject}
 			local TheBinDir
 			local UseProjectTemplate
@@ -923,8 +923,7 @@ UsePerl()
 					;;
 				*)
 					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
-					project="${project}/"
-					TheBinDir="${LangProject}/${project}bin"
+					TheBinDir="${LangProject}/${project}/bin"
 					cd ${LangProject}/${project}/src
 					;;
 			esac
@@ -949,7 +948,7 @@ UsePerl()
 						#${LangRun} -m ${UseDebugger} ${TheBinDir}/${TheBin} ${Args[@]}
 						;;
 					runCode)
-						${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+						echo ${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
 						;;
 				esac
 				chmod u+w ${TheBinDir}/${TheBin} 2> /dev/null
@@ -1151,3 +1150,4 @@ UsePerl()
 }
 
 UsePerl $@
+
