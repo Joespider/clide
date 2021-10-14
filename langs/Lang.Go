@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.56"
+SupportV="0.1.57"
 Lang=Go
 LangExt=".go"
 #Color Green
@@ -1085,7 +1085,7 @@ UseGo()
 								else
 									#Program Name Given
 									if [ ! -z "${name}" ]; then
-										local Content="package main\n\nimport (\n\t"fmt"\n\t"os"\n)\n\nfunc main() {\n\targs := os.Args[1:]\n\n\tfor arg := range args {\n\tfmt.Println(arg,args[arg])\n\t}\n\tfmt.Println(\"And thats it!\")\n}"
+										local Content="package main\n\nimport (\n\t\"fmt\"\n\t\"os\"\n)\n\nfunc main() {\n\targs := os.Args[1:]\n\n\tfor arg := range args {\n\t\tfmt.Println(arg,args[arg])\n\t}\n\tfmt.Println(\"And thats it!\")\n}"
 										touch ${name}${LangExt}
 										echo -e "${Content}" > ${name}${LangExt}
 									else

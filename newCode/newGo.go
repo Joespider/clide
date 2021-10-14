@@ -1,18 +1,18 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
-)
+	)
 
 func help() {
 	var ProgName string
 	ProgName = "newGo"
 
 	var Version string
-	Version = "0.0.1"
+	Version = "0.1.0"
+
 	fmt.Println("Author: Joespider")
 	fmt.Println("Program: \""+ProgName+"\"")
 	fmt.Println("Version: "+Version)
@@ -29,17 +29,17 @@ func help() {
 	fmt.Println("\t--user-input : enable \"Raw_Input\" file method")
 }
 
-func Print(content string) {
-	fmt.Printf(content)
+func getPackage(ThePackage string) string {
+	return "package "+ThePackage+"\n"
 }
 
 //create import listing
-func getImports(write bool, read bool, random bool) {
+func getImports(UserInput bool, write bool, read bool, random bool, cli bool) string {
 	var Imports string
 	Imports = ""
 
 	var standard string
-	standard = "#include <iostream>\n#include <string>\n"
+	standard = "\"fmt\"\n"
 
 	var readWrite string
 	readWrite = ""
@@ -47,55 +47,114 @@ func getImports(write bool, read bool, random bool) {
 	var ForRandom string
 	ForRandom = ""
 
+	var ForCLI string
+	ForCLI = ""
+
+	var ForUserInput string
+	ForUserInput = ""
+
 	if read == true || write == true {
-		readWrite = "#include <fstream>\n"
-	}
-	if random == true {
-		ForRandom = "#include <stdlib.h>\n#include <time.h>\n"
+		readWrite = "\t\"io/ioutil\"\n\t\"io\"\n"
 	}
 
-	Imports = standard+readWrite+ForRandom+"\n"
+	if read == true || write == true || cli == true {
+		ForCLI = "\t\"os\"\n"
+	}
+
+	if UserInput == true {
+		ForUserInput = "\t\"bufio\"\n"
+	}
+
+	if random == true {
+		ForRandom = "\t\"math/rand\"\n\t\"time\"\n"
+	}
+
+	Imports = standard+readWrite+ForRandom+ForCLI+ForUserInput
+	if Imports == standard {
+		Imports = "import "+Imports
+	} else {
+		Imports = "import (\n\t"+Imports+"\t)\n"
+	}
 
 	return Imports
 }
 
+func getMethods(getRawIn bool, getRand bool, getWrite bool, getRead bool, getIsIn bool) string {
+	var TheMethods string
+	TheMethods = ""
+
+	var ReadMethod string
+	ReadMethod = ""
+
+	var WriteMethod string
+	WriteMethod = ""
+
+	var RandMethod string
+	RandMethod = ""
+
+	var UserInput string
+	UserInput = ""
+
+	if getRawIn == true {
+		UserInput = "func raw_input(Message string) string {\n\tvar UserIn string\n\tfmt.Print(Message)\n\treader := bufio.NewReader(os.Stdin)\n\tUserIn, _ = reader.ReadString('\\n')\n\treturn UserIn\n}\n\n"
+	}
+
+	if getRead == true {
+		ReadMethod = "func ReadFile(filename string) {\n\n\tdata, err := ioutil.ReadFile(filename)\n\tif err != nil {\n\t\tfmt.Println(\"file reading error\", err)\n\t\treturn\n\t}\n\tfmt.Println(\"Contents of file:\", string(data))\n}\n\n"
+	}
+
+	if getWrite == true {
+		WriteMethod = "func WriteToFile(filename string, content string) error {\n\tfile, err := os.Create(filename)\n\tif err != nil {\n\t\treturn err\n\t}\n\tdefer file.Close()\n\n\t_, err = io.WriteString(file, content)\n\tif err != nil {\n\t\treturn err\n\t}\n\treturn file.Sync()\n}\n\n"
+	}
+
+	if getRand == true {
+		RandMethod = "func Random(min int, max int) {\n\treturn rand.Intn(max-min) + min\n}\n\n"
+	}
+
+	TheMethods = UserInput+WriteMethod+ReadMethod+RandMethod
+	return TheMethods
+}
+
 //build main function
-func getMain(Args, getRandom bool) {
+func getMain(Args bool, getRandom bool) string {
 	var Main string
 	Main = ""
 
-	var StartRandom string
-	StartRandom = ""
+	var RandStart string
+	RandStart = ""
+
 
 	if getRandom == true {
-		StartRandom = ""
+		RandStart = "\trand.Seed(time.Now().UnixNano())\n"
 	}
 
 	if Args == true {
-		Main = "//main\nfunc main(){\n\targs := os.Args[1:]\n\tfor arg := range args {\n\t\tfmt.Println(args[arg])\n}"
+		Main = "//main\nfunc main() {\n"+RandStart+"\targs := os.Args[1:]\n\tfor arg := range args {\n\t\tfmt.Println(args[arg])\n\t}\n}"
 	} else {
-		Main = "//main\nfunc main(){\n\tfmt.Printf(\"hellow world\")\n}"
+		Main = "//main\nfunc main() {\n"+RandStart+"\tfmt.Printf(\"hellow world\")\n}"
 	}
 	return Main
 }
 
 //create new Go program
-func CreateNew(filename string, content string) {
+func CreateNew(filename string, content string) error {
 	filename = filename+".go"
-	Print(content)
-/*
-	std::ofstream myfile
-	myfile.open(filename.c_str())
-	myfile << content
-	myfile.close()
-*/
+	file, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	_, err = io.WriteString(file, content)
+	if err != nil {
+		return err
+	}
+	return file.Sync()
 }
+
 
 //Go main
 func main() {
-	var NameIsNotOk bool
-	NameIsNotOk = true
-
 	var getName bool
 	getName = false
 
@@ -122,6 +181,9 @@ func main() {
 
 	var UserIn string
 	UserIn = ""
+
+	var ThePackage string
+	ThePackage = ""
 
 	var CName string
 	CName = ""
@@ -175,22 +237,23 @@ func main() {
 		} else if UserIn == "--user-input" {
 			getName = false
 			getRawIn = true
-		}
-		if NameIsNotOk == false {
+		//Get Name of program
+		} else if getName == true {
 			CName = UserIn
+			getName = false
 		}
-		getName = false
 	}
 	//Ensure program name is given
 	if CName != "" {
-		Imports = getImports(getWrite,getRead,getRand)
-		Methods =  getMethods(getRawIn,getRand,getWrite,getRead,getIsIn)
+		ThePackage = getPackage("main")
+		Imports = getImports(getRawIn,getWrite,getRead,getRand,getArgs)
+		Methods = getMethods(getRawIn,getRand,getWrite,getRead,getIsIn)
 		if IsMain == true {
 			Main = getMain(getArgs,getRand)
 		} else {
 			Main = ""
 		}
-		Content = Imports+Marcos+Methods+Main
+		Content = ThePackage+"\n"+Imports+"\n"+Methods+"\n"+Main
 		CreateNew(CName,Content)
 	} else {
 		help()
