@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.72"
+SupportV="0.1.73"
 Lang=Bash
 LangExt=".sh"
 ColorNum=2
@@ -70,7 +70,12 @@ UseBash()
 			echo "${ColorNum}"
 			;;
 		ProjectColor)
-			echo -e "\e[1;4${ColorNum}m${CodeProject}\e[0m"
+			local TheText=$1
+			if [ -z "${TheText}" ]; then
+				echo -e "\e[1;4${ColorNum}m${CodeProject}\e[0m"
+			else
+				echo -e "\e[1;4${ColorNum}m${TheText}\e[0m"
+			fi
 			;;
 		SupportVersion)
 			echo ${SupportV}
@@ -196,7 +201,7 @@ UseBash()
 				*)
 					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					case ${ProjectType} in
-						Generic)
+						${ProjectDefaultType})
 							case ${name} in
 								*.*)
 									newName=${name##*.}
@@ -729,7 +734,7 @@ UseBash()
 			local UseProjectTemplate
 			if [ ! -d ${path} ]; then
 				case ${ProjectType} in
-					Generic)
+					${ProjectDefaultType})
 						mkdir ${path}
 						mkdir ${path}/bin
 						mkdir ${path}/src
@@ -761,7 +766,7 @@ UseBash()
 			local mode=$1
 			local UseProjectTemplate
 			case ${ProjectType} in
-				Generic)
+				${ProjectDefaultType})
 					;;
 				*)
 					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})

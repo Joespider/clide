@@ -546,7 +546,7 @@ recoverProject()
 	local projectType=$4
 	#If project type is not provided, assume is generic
 	if [ -z "${projectType}" ]; then
-		projectType="Generic"
+		projectType="${ProjectDefaultType}"
 	fi
 
 	local ProjectFile=${ActiveProjectDir}/${Name}.clide
@@ -559,7 +559,7 @@ recoverProject()
 				case ${Path} in
 					#Path does not exist and save details
 					*${Name}|*${Name}/)
-						local cName=$(color "${Name}")
+						local cName=$(ManageLangs ${Lang} "ProjectColor" "${Name}")
 						local cLang=$(color "${Lang}")
 						#Format and save details into project file
 						echo "name=${Name}" > ${ProjectFile}
@@ -612,7 +612,7 @@ exportProject()
 						if [ -d ${ProjectPath} ]; then
 							cd ${ExportProjectDir}/
 							case ${ProjectType} in
-								Generic)
+								${ProjectDefaultType})
 									cp -pR ${ProjectPath}/ .
 									grep -v "path=" ${ActiveProjectDir}/${project}.clide > ${project}.clide
 									tar -cpzf ${project}.tar.gz ${project}/ ${project}.clide 2> /dev/null
@@ -711,7 +711,7 @@ importProject()
 										ProjectType=$(echo ${ClideFile} | cut -d ';' -f 4)
 										case ${ProjectType} in
 											#if Generic...do nothing
-											Generic)
+											${ProjectDefaultType})
 												;;
 											#If specified
 											*)
@@ -764,11 +764,11 @@ newProject()
 		errorCode "project" "none" "${Head}"
 	else
 		if [ -z "${projectType}" ]; then
-			projectType="Generic"
+			projectType="${ProjectDefaultType}"
 		else
 			case ${projectType} in
 				--*)
-					projectType="Generic"
+					projectType="${ProjectDefaultType}"
 					;;
 				*)
 					;;
@@ -966,12 +966,11 @@ discoverProject()
 							#Ignore anything that isn't a symbolic link
 							if [ ! -L ${Path}/${Name} ]; then
 								if [ ! -f ${ActiveProjectDir}/${Name}.clide ]; then
-									cName=$(color "${Name}")
+									cName=$(ManageLangs ${TheLang} "ProjectColor" "${Name}")
 									cTheLang=$(color "${TheLang}")
 									cLinkLang=$(color "${LinkLang}")
-									echo "[${cTheLang} Project: ${cName}]"
+									echo "[Project: ${cTheLang}{${cName}}]"
 									recoverProject ${TheLang} ${Name} ${Path}/${Name} > /dev/null
-									errorCode "HINT" "\tProject Imported"
 									discoverProject "relink" ${TheLang} ${Name} "Not Done"
 								fi
 							fi
@@ -2383,7 +2382,7 @@ Actions()
 							#{
 							Code=$(preSelectSrc ${Lang} ${Code})
 							CodeProject="none"
-							ProjectType="Generic"
+							ProjectType="${ProjectDefaultType}"
 							RunTimeArgs=""
 							#}
 						else

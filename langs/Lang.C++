@@ -5,7 +5,7 @@ Shell=$(which bash)
 #Link Libs: https://gist.github.com/gubatron/32f82053596c24b6bec6
 #both https://avikdas.com/2019/12/16/makefiles-for-c-cpp-projects.html
 
-SupportV="0.2.12"
+SupportV="0.2.13"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -108,7 +108,12 @@ UseC++()
 			echo "${ColorNum}"
 			;;
 		ProjectColor)
-			echo -e "\e[1;4${ColorNum}m${CodeProject}\e[0m"
+			local TheText=$1
+			if [ -z "${TheText}" ]; then
+				echo -e "\e[1;4${ColorNum}m${CodeProject}\e[0m"
+			else
+				echo -e "\e[1;4${ColorNum}m${TheText}\e[0m"
+			fi
 			;;
 		getNewCode)
 			echo ${TemplateCodeSrc}
@@ -426,7 +431,7 @@ UseC++()
 				*)
 					case ${ProjectType} in
 						#Is a generic project
-						Generic)
+						${ProjectDefaultType})
 							#handle path
 							case ${name} in
 								*.*)
@@ -1637,7 +1642,7 @@ UseC++()
 			#create and cd to project dir
 			if [ ! -d ${path} ]; then
 				case ${ProjectType} in
-					Generic)
+					${ProjectDefaultType})
 						mkdir ${path}
 						mkdir ${path}/bin
 						mkdir ${path}/build
@@ -1683,7 +1688,7 @@ UseC++()
 			local mode=$1
 			local UseProjectTemplate
 			case ${ProjectType} in
-				Generic)
+				${ProjectDefaultType})
 					;;
 				*)
 					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})

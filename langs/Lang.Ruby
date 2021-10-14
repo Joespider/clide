@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.70"
+SupportV="0.1.71"
 Lang=Ruby
 LangExt=".rb"
 ColorNum=1
@@ -73,7 +73,12 @@ UseRuby()
 			echo "${ColorNum}"
 			;;
 		ProjectColor)
-			echo -e "\e[1;4${ColorNum}m${CodeProject}\e[0m"
+			local TheText=$1
+			if [ -z "${TheText}" ]; then
+				echo -e "\e[1;4${ColorNum}m${CodeProject}\e[0m"
+			else
+				echo -e "\e[1;4${ColorNum}m${TheText}\e[0m"
+			fi
 			;;
 		getNewCode)
 			echo ${TemplateCodeSrc}
@@ -195,7 +200,7 @@ UseRuby()
 				*)
 					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					case ${ProjectType} in
-						Generic)
+						${ProjectDefaultType})
 							case ${name} in
 								*.*)
 									newName=${name##*.}
@@ -730,7 +735,7 @@ UseRuby()
 
 			if [ ! -d ${path} ]; then
 				case ${ProjectType} in
-					Generic)
+					${ProjectDefaultType})
 						mkdir ${path}
 						mkdir ${path}/src
 						mkdir ${path}/bin
@@ -752,7 +757,7 @@ UseRuby()
 			local mode=$1
 			local UseProjectTemplate
 			case ${ProjectType} in
-				Generic)
+				${ProjectDefaultType})
 					;;
 				*)
 					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
