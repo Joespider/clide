@@ -1,11 +1,19 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.59"
+SupportV="0.1.60"
 Lang=Go
 LangExt=".go"
 #Color Green
 ColorNum=2
+
+#Handle Pipes
+#{
+ThePipe=""
+if readlink /proc/$$/fd/0 | grep -q "^pipe:"; then
+	ThePipe="Pipe"
+fi
+#}
 
 CplArgs=$1
 shift
@@ -1252,7 +1260,11 @@ UseGo()
 
 			#Find Executable
 			if [ -f ${TheBinDir}/${TheBin} ]; then
-				${TheBinDir}/${TheBin} ${Args[@]}
+				if [ ! -z "${ThePipe}" ]; then
+					cat /dev/stdin | ${TheBinDir}/${TheBin} ${Args[@]}
+				else
+					${TheBinDir}/${TheBin} ${Args[@]}
+				fi
 			else
 				case ${project} in
 					none)

@@ -1,10 +1,18 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.73"
+SupportV="0.1.74"
 Lang=Bash
 LangExt=".sh"
 ColorNum=2
+
+#Handle Pipes
+#{
+ThePipe=""
+if readlink /proc/$$/fd/0 | grep -q "^pipe:"; then
+	ThePipe="Pipe"
+fi
+#}
 
 CplArgs=$1
 shift
@@ -921,7 +929,11 @@ UseBash()
 			if [ -f ${TheBinDir}/${TheBin} ]; then
 				#protect the shell script while running
 				chmod -w ${TheBinDir}/${TheBin} 2> /dev/null
-				${TheBinDir}/${TheBin} ${Args[@]}
+				if [ ! -z "${ThePipe}" ]; then
+					cat /dev/stdin | ${TheBinDir}/${TheBin} ${Args[@]}
+				else
+					${TheBinDir}/${TheBin} ${Args[@]}
+				fi
 				#release protection
 				chmod u+w ${TheBinDir}/${TheBin} 2> /dev/null
 			else

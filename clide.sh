@@ -1,10 +1,13 @@
 Shell=$(which bash)
 #!${Shell}
 
+#Handle Pipes
+#{
 ThePipe=""
 if readlink /proc/$$/fd/0 | grep -q "^pipe:"; then
-	ThePipe="$(cat ${1:-/dev/stdin})"
+	ThePipe="Pipe"
 fi
+#}
 
 ThisFile=$0
 #Get path of the script
@@ -141,13 +144,25 @@ UseOther()
 ManageLangs()
 {
 	local TheLang=$1
+	local TheAction=$2
 	local Langs=${LangsDir}/Lang.${TheLang^}
 	local PassedVars=( "${RunCplArgs}" )
 	#Make first letter uppercase
 	shift
 	local Manage=$@
 	if [ -f ${Langs} ]; then
-		${Langs} ${PassedVars[@]} ${Manage[@]}
+		case ${TheAction} in
+			runCode)
+				if [ ! -z "${ThePipe}" ]; then
+					cat /dev/stdin | ${Langs} ${PassedVars[@]} ${Manage[@]}
+				else
+					${Langs} ${PassedVars[@]} ${Manage[@]}
+				fi
+				;;
+			*)
+				${Langs} ${PassedVars[@]} ${Manage[@]}
+				;;
+		esac
 	else
 		UseOther ${TheLang} ${Manage[@]}
 	fi
@@ -1271,22 +1286,14 @@ runCode()
 	local JavaProp="none"
 	local TheBin
 	local TheLang
-
-#	case ${Lang} in
-#		C|C++|Go|Java|Rust)
-			case ${CodeProject} in
-				none)
-					TheBin=$(ManageLangs ${Lang} "getBin" "${name}")
-					;;
-				*)
-					TheBin=$(ManageLangs ${Lang} "getBin" "${CodeProject}")
-					;;
-			esac
-#			;;
-#		*)
-#			TheBin=$(ManageLangs ${Lang} "getBin" "${name}")
-#			;;
-#	esac
+	case ${CodeProject} in
+		none)
+			TheBin=$(ManageLangs ${Lang} "getBin" "${name}")
+			;;
+		*)
+			TheBin=$(ManageLangs ${Lang} "getBin" "${CodeProject}")
+			;;
+	esac
 
 	if [ ! -z "${TheBin}" ]; then
 		#User Wishes to provide arments for program
@@ -1655,7 +1662,9 @@ Actions()
 			yes)
 				;;
 			*)
-				Banner ${Lang}
+				if [ -z "${ThePipe}" ]; then
+					Banner ${Lang}
+				fi
 				;;
 		esac
 
@@ -1668,10 +1677,12 @@ Actions()
 			if [ ! -z "${FirstAction}" ]; then
 				UserArg=${FirstAction,,}
 			else
-				#Handle CLI
-				#read -a UserIn
-				read -e -p "${prompt}" -a UserIn
-				UserArg=${UserIn[0],,}
+				if [ -z "${ThePipe}" ]; then
+					#Handle CLI
+					#read -a UserIn
+					read -e -p "${prompt}" -a UserIn
+					UserArg=${UserIn[0],,}
+				fi
 			fi
 
 			if [ ! -z "${UserArg}" ]; then
@@ -3279,6 +3290,10 @@ Actions()
 						;;
 				esac
 			fi
+
+			if [ ! -z "${ThePipe}" ]; then
+				break
+			fi
 		done
 		#Protect clide from being edited
 		Protect "done"
@@ -3537,36 +3552,52 @@ CLI()
 		case ${UserArg} in
 			#Get version from cli
 			-v|--version)
-				ClideVersion
+				if [ -z "${ThePipe}" ]; then
+					ClideVersion
+				fi
 				;;
 			#Get Config
 			-c|--config)
-				grep -v "#" ${root}/var/clide.conf | sed "s/export //g" | sed "s/=/: /g" | tr -d "\""
+				if [ -z "${ThePipe}" ]; then
+					grep -v "#" ${root}/var/clide.conf | sed "s/export //g" | sed "s/=/: /g" | tr -d "\""
+				fi
 				;;
 			#Get compile/interpreter version from cli
 			-cv|--code-version)
-				CodeVersion
+				if [ -z "${ThePipe}" ]; then
+					CodeVersion
+				fi
 				;;
 			#Get compile/interpreter version from cli
 			-dv|--debug-version)
-				DebugVersion
+				if [ -z "${ThePipe}" ]; then
+					DebugVersion
+				fi
 				;;
 			#Get compile/interpreter version from cli
 			-sv|--support-version)
-				CodeSupportVersion
+				if [ -z "${ThePipe}" ]; then
+					CodeSupportVersion
+				fi
 				;;
 			#Get version of template
 			-tv|--temp-version)
-				CodeTemplateVersion
+				if [ -z "${ThePipe}" ]; then
+					CodeTemplateVersion
+				fi
 				;;
 			#Get version control version from cli
 			-rv|--repo-version)
-				RepoVersion
+				if [ -z "${ThePipe}" ]; then
+					RepoVersion
+				fi
 				;;
 			#list supported Langauges
 			-ll|--languages|--langs)
-				local pg=$(ColorCodes)
-				echo "Supported Languages: ${pg}"
+				if [ -z "${ThePipe}" ]; then
+					local pg=$(ColorCodes)
+					echo "Supported Languages: ${pg}"
+				fi
 				;;
 			#List projects from cli
 			-p|--project)
@@ -3579,82 +3610,88 @@ CLI()
 				if [ ! -z "${ActionProject}" ]; then
 					case ${ActionProject} in
 						--new)
-							shift
-							local TheLang=$1
-							local TheProjectName=$2
-							shift
-							shift
-							TheLang=$(pgLang ${TheLang})
-							local Args=$@
-							if [ ! -z "${TheProjectName}" ]; then
-								case ${TheLang} in
-									no)
-										;;
-									*)
-										InAndOut="yes"
-										Actions ${TheLang} "code" "project" "new" ${TheProjectName} ${Args[@]}
-										;;
-								esac
+							if [ -z "${ThePipe}" ]; then
+								shift
+								local TheLang=$1
+								local TheProjectName=$2
+								shift
+								shift
+								TheLang=$(pgLang ${TheLang})
+								local Args=$@
+								if [ ! -z "${TheProjectName}" ]; then
+									case ${TheLang} in
+										no)
+											;;
+										*)
+											InAndOut="yes"
+											Actions ${TheLang} "code" "project" "new" ${TheProjectName} ${Args[@]}
+											;;
+									esac
+								fi
 							fi
 							;;
 						--discover)
-							discoverProject
+							if [ -z "${ThePipe}" ]; then
+								discoverProject
+							fi
 							;;
 						#Link a project with another language
 						--link)
-							shift
-							local Lang
-							local TheLinkAction=$1
-							local TheLang=$1
-							TheLang=$(pgLang ${TheLang})
-							local TheProjectName=$2
-							local TheProject
-							local ProjectFile
-							local Already
+							if [ -z "${ThePipe}" ]; then
+								shift
+								local Lang
+								local TheLinkAction=$1
+								local TheLang=$1
+								TheLang=$(pgLang ${TheLang})
+								local TheProjectName=$2
+								local TheProject
+								local ProjectFile
+								local Already
 
-							if [ ! -z "${TheProjectName}" ]; then
-								TheProject=$(loadProject ${TheProjectName})
-								if [ "${TheProject}" != "no" ]; then
-									local GetLang=$(echo ${TheProject} | cut -d ";" -f 1)
-									Lang=$(pgLang ${GetLang})
-									case ${Lang} in
-										no)
-											errorCode "ERROR"
-											errorCode "ERROR" "{Default Language} \"${GetLang}\" is not supported"
-											;;
-										*)
-											ProjectFile=${ActiveProjectDir}/${TheProjectName}.clide
-											Already=$(grep "link=" ${ProjectFile})
-											case ${TheLinkAction} in
-												--list)
-													echo ${Already} | sed "s/link=//g" | tr ',' '\n' | sort
-													;;
-												*)
-													case ${TheLang} in
-														no)
-															;;
-														*)
-															local IsLinked=$(linkProjects ${Lang} ${TheLang} ${TheProjectName})
-															if [ ! -z "${IsLinked}" ]; then
-																local cTheLang=$(color "${TheLang}")
-																local cLinkLang=$(color "${Lang}")
-																local cName=$(color "${TheProjectName}")
-																echo "[${cLinkLang} Project: ${cName}]"
-																echo -e "\tLinking ${cLinkLang} ---> ${cTheLang}"
-															else
-																errorCode "project" "link" "unable-link" ${TheLang}
-															fi
-															;;
-													esac
-													;;
-											esac
-											;;
-									esac
+								if [ ! -z "${TheProjectName}" ]; then
+									TheProject=$(loadProject ${TheProjectName})
+									if [ "${TheProject}" != "no" ]; then
+										local GetLang=$(echo ${TheProject} | cut -d ";" -f 1)
+										Lang=$(pgLang ${GetLang})
+										case ${Lang} in
+											no)
+												errorCode "ERROR"
+												errorCode "ERROR" "{Default Language} \"${GetLang}\" is not supported"
+												;;
+											*)
+												ProjectFile=${ActiveProjectDir}/${TheProjectName}.clide
+												Already=$(grep "link=" ${ProjectFile})
+												case ${TheLinkAction} in
+													--list)
+														echo ${Already} | sed "s/link=//g" | tr ',' '\n' | sort
+														;;
+													*)
+														case ${TheLang} in
+															no)
+																;;
+															*)
+																local IsLinked=$(linkProjects ${Lang} ${TheLang} ${TheProjectName})
+																if [ ! -z "${IsLinked}" ]; then
+																	local cTheLang=$(color "${TheLang}")
+																	local cLinkLang=$(color "${Lang}")
+																	local cName=$(color "${TheProjectName}")
+																	echo "[${cLinkLang} Project: ${cName}]"
+																	echo -e "\tLinking ${cLinkLang} ---> ${cTheLang}"
+																else
+																	errorCode "project" "link" "unable-link" ${TheLang}
+																fi
+																;;
+														esac
+														;;
+												esac
+												;;
+										esac
+									else
+										errorCode "project" "load" "no-path" "${TheProjectName}"
+									fi
 								else
-									errorCode "project" "load" "no-path" "${TheProjectName}"
+									theHelp ProjectCliHelp ${UserArg}
 								fi
-							else
-								theHelp ProjectCliHelp ${UserArg}
 							fi
 							;;
 						--run|--build)
@@ -3675,12 +3712,16 @@ CLI()
 							esac
 
 							if [ -z "${GetProject}" ]; then
-								theHelp BuildHelp ${UserArg}
+								if [ -z "${ThePipe}" ]; then
+									theHelp BuildHelp ${UserArg}
+								fi
 							else
 								case ${GetProject} in
 									#Provide the help page
 									-h|--help)
-										theHelp BuildHelp ${UserArg}
+										if [ -z "${ThePipe}" ]; then
+											theHelp BuildHelp ${UserArg}
+										fi
 										;;
 									*)
 										local TheProject=$(loadProject ${GetProject})
@@ -3712,43 +3753,45 @@ CLI()
 															fi
 															;;
 														--build)
-															#Determine action based on language
-															case ${Lang} in
-																Java)
-																	if [ -z "${Code}" ]; then
-																		ManageLangs ${Lang} "compileCode" ${Code}
-																	else
-																		ManageLangs ${Lang} "compileCode" "--jar"
-																	fi
-																	;;
-																C|C++)
-																	#Get Make file
-																	local TheMakeFile=$(ManageLangs ${Lang} "getMakeFile" ${GetProject})
-																	#Compile with makefile
-																	if [ ! -z "${TheMakeFile}" ]; then
-																		ManageLangs ${Lang} "compileCode"
-																	#Compile with selected code
-																	elif [ ! -z "${Code}" ]; then
-																		ManageLangs ${Lang} "compileCode" ${Code}
-																	else
-																		errorCode "cli-cpl" "none"
-																	fi
-																	;;
-																Rust)
-																	if [ -z "${Code}" ]; then
-																		ManageLangs ${Lang} "compileCode" ${Code}
-																	else
-																		ManageLangs ${Lang} "compileCode" "--release"
-																	fi
-																	;;
-																*)
-																	if [ ! -z "${Code}" ]; then
-																		ManageLangs ${Lang} "compileCode" ${Code}
-																	else
-																		errorCode "cli-cpl" "none"
-																	fi
-																	;;
-															esac
+															if [ -z "${ThePipe}" ]; then
+																#Determine action based on language
+																case ${Lang} in
+																	Java)
+																		if [ -z "${Code}" ]; then
+																			ManageLangs ${Lang} "compileCode" ${Code}
+																		else
+																			ManageLangs ${Lang} "compileCode" "--jar"
+																		fi
+																		;;
+																	C|C++)
+																		#Get Make file
+																		local TheMakeFile=$(ManageLangs ${Lang} "getMakeFile" ${GetProject})
+																		#Compile with makefile
+																		if [ ! -z "${TheMakeFile}" ]; then
+																			ManageLangs ${Lang} "compileCode"
+																		#Compile with selected code
+																		elif [ ! -z "${Code}" ]; then
+																			ManageLangs ${Lang} "compileCode" ${Code}
+																		else
+																			errorCode "cli-cpl" "none"
+																		fi
+																		;;
+																	Rust)
+																		if [ -z "${Code}" ]; then
+																			ManageLangs ${Lang} "compileCode" ${Code}
+																		else
+																			ManageLangs ${Lang} "compileCode" "--release"
+																		fi
+																		;;
+																	*)
+																		if [ ! -z "${Code}" ]; then
+																			ManageLangs ${Lang} "compileCode" ${Code}
+																		else
+																			errorCode "cli-cpl" "none"
+																		fi
+																		;;
+																esac
+															fi
 															;;
 														*)
 															;;
@@ -3767,246 +3810,260 @@ CLI()
 							fi
 							;;
 						--export)
-							shift
-							local TheProjectName=$1
-							if [ ! -z "${TheProjectName}" ]; then
-								exportProject ${TheProjectName}
+							if [ -z "${ThePipe}" ]; then
+								shift
+								local TheProjectName=$1
+								if [ ! -z "${TheProjectName}" ]; then
+									exportProject ${TheProjectName}
+								fi
 							fi
 							;;
 						--import)
-							shift
-							local TheLang=$1
-							local TheProjectName=$2
-							if [ ! -z "${TheLang}" ] && [ ! -z "${TheProjectName}" ]; then
-									importProject ${TheLang} ${TheProjectName}
-							elif [ ! -z "${TheLang}" ] && [ -z "${TheProjectName}" ]; then
-									importProject "none" ${TheLang}
+							if [ -z "${ThePipe}" ]; then
+								shift
+								local TheLang=$1
+								local TheProjectName=$2
+								if [ ! -z "${TheLang}" ] && [ ! -z "${TheProjectName}" ]; then
+										importProject ${TheLang} ${TheProjectName}
+								elif [ ! -z "${TheLang}" ] && [ -z "${TheProjectName}" ]; then
+										importProject "none" ${TheLang}
+								fi
 							fi
 							;;
 						--remove|--delete)
-							shift
-							local TheProjectName=$1
-							if [ ! -z "${TheProjectName}" ]; then
-								case ${TheProjectName} in
-									all)
-										case ${GetProject} in
-											#remove project ONLY from record
-											--remove)
-												rm ${ActiveProjectDir}/*.clide 2> /dev/null
-												echo "ALL projects removed from record"
-												;;
-											#remove project files AND record
-											--delete)
-												rm ${ActiveProjectDir}/*.clide 2> /dev/null
-												#Handle the langauge specific directories
-												#{
-												#Get the list of Lang.<language> files from cl[ide]
-												local text
-												local ProjectPath
-												for TheLang in ${LangsDir}/Lang.*; do
-													#Select the next langauge
-													TheLang=${TheLang##*/}
-													text=${TheLang#Lang.*}
-													#Make sure language is supported on computer
-													text=$(ManageLangs ${text} "pgLang")
-													case ${text} in
-														no)
-															;;
-														*)
-															ProjectPath=$(ManageLangs ${text} "getProjectDir")
-															if [ ! -z "${ProjectPath}" ] && [ -d "${ProjectPath}" ]; then
-																rm -rf ${ProjectPath}/* 2> /dev/null
-															fi
-															;;
-													esac
-												done
-												#}
-												echo "Deleted ALL projects"
-												;;
-											*)
-												;;
-										esac
-										;;
-									*)
-										if [ -f "${ActiveProjectDir}/${TheProjectName}.clide" ]; then
+							if [ -z "${ThePipe}" ]; then
+								shift
+								local TheProjectName=$1
+								if [ ! -z "${TheProjectName}" ]; then
+									case ${TheProjectName} in
+										all)
 											case ${GetProject} in
 												#remove project ONLY from record
 												--remove)
-													rm ${ActiveProjectDir}/${TheProjectName}.clide 2> /dev/null
-													echo "The project \"${TheProjectName}\" removed from record"
+													rm ${ActiveProjectDir}/*.clide 2> /dev/null
+													echo "ALL projects removed from record"
 													;;
 												#remove project files AND record
 												--delete)
-													local TheProject=$(loadProject ${TheProjectName})
-													if [ "${TheProject}" != "no" ]; then
-														Lang=$(echo ${TheProject} | cut -d ";" -f 1)
-														Lang=$(pgLang ${Lang})
-														local CodeDir=$(echo ${TheProject} | cut -d ";" -f 3)
-														if [ ! -z "${CodeDir}" ]; then
-															rm -rf ${CodeDir} 2> /dev/null
-														fi
-														rm ${ActiveProjectDir}/${TheProjectName}.clide 2> /dev/null
-														echo "Deleted the \"${TheProjectName}\" project"
-													fi
+													rm ${ActiveProjectDir}/*.clide 2> /dev/null
+													#Handle the langauge specific directories
+													#{
+													#Get the list of Lang.<language> files from cl[ide]
+													local text
+													local ProjectPath
+													for TheLang in ${LangsDir}/Lang.*; do
+														#Select the next langauge
+														TheLang=${TheLang##*/}
+														text=${TheLang#Lang.*}
+														#Make sure language is supported on computer
+														text=$(ManageLangs ${text} "pgLang")
+														case ${text} in
+															no)
+																;;
+															*)
+																ProjectPath=$(ManageLangs ${text} "getProjectDir")
+																if [ ! -z "${ProjectPath}" ] && [ -d "${ProjectPath}" ]; then
+																	rm -rf ${ProjectPath}/* 2> /dev/null
+																fi
+																;;
+														esac
+													done
+													#}
+													echo "Deleted ALL projects"
 													;;
 												*)
 													;;
 											esac
-										else
-											theHelp ProjectCliHelp ${UserArg}
-										fi
-										;;
-								esac
-							else
-								theHelp ProjectCliHelp ${UserArg}
+											;;
+										*)
+											if [ -f "${ActiveProjectDir}/${TheProjectName}.clide" ]; then
+												case ${GetProject} in
+													#remove project ONLY from record
+													--remove)
+														rm ${ActiveProjectDir}/${TheProjectName}.clide 2> /dev/null
+														echo "The project \"${TheProjectName}\" removed from record"
+														;;
+													#remove project files AND record
+													--delete)
+														local TheProject=$(loadProject ${TheProjectName})
+														if [ "${TheProject}" != "no" ]; then
+															Lang=$(echo ${TheProject} | cut -d ";" -f 1)
+															Lang=$(pgLang ${Lang})
+															local CodeDir=$(echo ${TheProject} | cut -d ";" -f 3)
+															if [ ! -z "${CodeDir}" ]; then
+																rm -rf ${CodeDir} 2> /dev/null
+															fi
+															rm ${ActiveProjectDir}/${TheProjectName}.clide 2> /dev/null
+															echo "Deleted the \"${TheProjectName}\" project"
+														fi
+														;;
+													*)
+														;;
+												esac
+											else
+												theHelp ProjectCliHelp ${UserArg}
+											fi
+											;;
+									esac
+								else
+									theHelp ProjectCliHelp ${UserArg}
+								fi
 							fi
 							;;
 						--list)
-							shift
-							local Lang
-							local CodeDir
-							local TheProject
-							local RemoveDirs
-							GetProject=$1
-							#Just list the projects
-							if [ -z "${GetProject}" ]; then
-								listProjects
-							#list the entire project
-							else
-								TheProject=$(loadProject ${GetProject})
-								if [ "${TheProject}" != "no" ]; then
-									Lang=$(echo ${TheProject} | cut -d ";" -f 1)
-									Lang=$(pgLang ${Lang})
-									CodeDir=$(echo ${TheProject} | cut -d ";" -f 3)
-									if [ ! -z "${CodeDir}" ]; then
-										RemoveDirs=${CodeDir//\//|}
-										find ${CodeDir} -print | tr '/' '|' | sed "s/${RemoveDirs}//g" | tr '|' '/'
-									else
-										errorCode "cli-cpl" "none"
-									fi
+							if [ -z "${ThePipe}" ]; then
+								shift
+								local Lang
+								local CodeDir
+								local TheProject
+								local RemoveDirs
+								GetProject=$1
+								#Just list the projects
+								if [ -z "${GetProject}" ]; then
+									listProjects
+								#list the entire project
 								else
-									errorCode "project" "not-valid" "${GetProject}"
+									TheProject=$(loadProject ${GetProject})
+									if [ "${TheProject}" != "no" ]; then
+										Lang=$(echo ${TheProject} | cut -d ";" -f 1)
+										Lang=$(pgLang ${Lang})
+										CodeDir=$(echo ${TheProject} | cut -d ";" -f 3)
+										if [ ! -z "${CodeDir}" ]; then
+											RemoveDirs=${CodeDir//\//|}
+											find ${CodeDir} -print | tr '/' '|' | sed "s/${RemoveDirs}//g" | tr '|' '/'
+										else
+											errorCode "cli-cpl" "none"
+										fi
+									else
+										errorCode "project" "not-valid" "${GetProject}"
+									fi
 								fi
 							fi
 							;;
 						--langs)
-							shift
-							local LangSupported
-							local CodeDir
-							local TheProject
-							GetProject=$1
-							#Just list the projects
-							if [ -z "${GetProject}" ]; then
-								listProjects
-							else
-								TheProject=$(loadProject ${GetProject})
-								if [ "${TheProject}" != "no" ]; then
-									Lang=$(echo ${TheProject} | cut -d ";" -f 1)
-									Lang=$(pgLang ${Lang})
-									local CodeDir=$(echo ${TheProject} | cut -d ";" -f 3)
-									if [ ! -z "${CodeDir}" ]; then
-										LangSupported=$(echo ${TheProject} | cut -d ";" -f 5)
-										if [ ! -z "${LangSupported}" ]; then
-											echo ${LangSupported} | tr ',' '\n'
+							if [ -z "${ThePipe}" ]; then
+								shift
+								local LangSupported
+								local CodeDir
+								local TheProject
+								GetProject=$1
+								#Just list the projects
+								if [ -z "${GetProject}" ]; then
+									listProjects
+								else
+									TheProject=$(loadProject ${GetProject})
+									if [ "${TheProject}" != "no" ]; then
+										Lang=$(echo ${TheProject} | cut -d ";" -f 1)
+										Lang=$(pgLang ${Lang})
+										local CodeDir=$(echo ${TheProject} | cut -d ";" -f 3)
+										if [ ! -z "${CodeDir}" ]; then
+											LangSupported=$(echo ${TheProject} | cut -d ";" -f 5)
+											if [ ! -z "${LangSupported}" ]; then
+												echo ${LangSupported} | tr ',' '\n'
+											else
+												echo ${Lang}
+											fi
 										else
-											echo ${Lang}
+											errorCode "cli-cpl" "none"
 										fi
 									else
-										errorCode "cli-cpl" "none"
+										errorCode "project" "not-valid" "${GetProject}"
 									fi
-								else
-									errorCode "project" "not-valid" "${GetProject}"
 								fi
 							fi
 							;;
 						-h|--help)
-							theHelp ProjectCliHelp ${UserArg}
+							if [ -z "${ThePipe}" ]; then
+								theHelp ProjectCliHelp ${UserArg}
+							fi
 							;;
 						*)
-							shift
-							local TheProjectDir
-							local ChosenLang=$1
-							local SaveProject=$1
-							local ModeAction
-							local ModeType
-							local IsLang=$(pgLang ${GetProject})
+							if [ -z "${ThePipe}" ]; then
+								shift
+								local TheProjectDir
+								local ChosenLang=$1
+								local SaveProject=$1
+								local ModeAction
+								local ModeType
+								local IsLang=$(pgLang ${GetProject})
 
-							if [ ! -z "${ChosenLang}" ]; then
-								case ${IsLang} in
-									no)
-										ChosenLang=""
-										TheProject=$(loadProject ${GetProject})
-										SaveProject=${GetProject}
-										ModeAction=$1
-										ModeType=$2
-										;;
-									*)
-										TheProject=$(loadProject ${ChosenLang})
-										ChosenLang=${GetProject}
-										project=$(loadProject ${UserIn[3]})
-										GetProject=${SaveProject}
-										ModeAction=$2
-										ModeType=$3
-										;;
-								esac
-							else
-								TheProject=$(loadProject ${GetProject})
-							fi
-
-							local HasLink
-							if [ "${TheProject}" != "no" ]; then
-								if [ -z "${ChosenLang}" ]; then
-									Lang=$(echo ${TheProject} | cut -d ";" -f 1)
+								if [ ! -z "${ChosenLang}" ]; then
+									case ${IsLang} in
+										no)
+											ChosenLang=""
+											TheProject=$(loadProject ${GetProject})
+											SaveProject=${GetProject}
+											ModeAction=$1
+											ModeType=$2
+											;;
+										*)
+											TheProject=$(loadProject ${ChosenLang})
+											ChosenLang=${GetProject}
+											project=$(loadProject ${UserIn[3]})
+											GetProject=${SaveProject}
+											ModeAction=$2
+											ModeType=$3
+											;;
+									esac
 								else
-									HasLink=$(echo ${TheProject} | cut -d ";" -f 5)
-									if [ ! -z "${HasLink}" ]; then
-										case ${HasLink,,} in
-											*"${ChosenLang,,},"*)
-												Lang=${ChosenLang}
-												;;
-											*)
-												Lang=$(echo ${TheProject} | cut -d ";" -f 1)
-												;;
-										esac
-									else
-										Lang=$(echo ${TheProject} | cut -d ";" -f 1)
-									fi
+									TheProject=$(loadProject ${GetProject})
 								fi
-								Lang=$(pgLang ${Lang})
-								TheProjectDir=$(echo ${TheProject} | cut -d ";" -f 3)
-								if [ -d ${TheProjectDir} ]; then
-									CodeProject=${SaveProject}
-									if [ ! -z "${ModeAction}" ]; then
-										case ${ModeAction} in
-											--mode)
-												shift
-												local cCode
-												local cLang=$(color "${Lang}")
 
-												if [ ! -z "${ModeType}" ]; then
-													shift
-													Code=$(echo ${TheProject} | cut -d ";" -f 2)
-													local passCode=${Code}
-													local passcCode=$(color "${Code}")
-													if [ -z "${passCode}" ]; then
-														passCode="none"
-													fi
-													if [ -z "${passcCode}" ]; then
-														passcCode="none"
-													fi
-													#Swap cl[ide] to a given mode
-													ModeHandler ${ModeType} ${Lang} ${cLang} ${passCode} ${passcCode} $@
-												fi
-												;;
-											*)
-												theHelp ProjectCliHelp ${UserArg}
-												;;
-										esac
+								local HasLink
+								if [ "${TheProject}" != "no" ]; then
+									if [ -z "${ChosenLang}" ]; then
+										Lang=$(echo ${TheProject} | cut -d ";" -f 1)
 									else
-										Actions ${Lang} "code" "project" "load" "${GetProject}" "${Lang}"
+										HasLink=$(echo ${TheProject} | cut -d ";" -f 5)
+										if [ ! -z "${HasLink}" ]; then
+											case ${HasLink,,} in
+												*"${ChosenLang,,},"*)
+													Lang=${ChosenLang}
+													;;
+												*)
+													Lang=$(echo ${TheProject} | cut -d ";" -f 1)
+													;;
+											esac
+										else
+											Lang=$(echo ${TheProject} | cut -d ";" -f 1)
+										fi
 									fi
-								else
-									errorCode "project" "load" "no-path" "${GetProject}"
+									Lang=$(pgLang ${Lang})
+									TheProjectDir=$(echo ${TheProject} | cut -d ";" -f 3)
+									if [ -d ${TheProjectDir} ]; then
+										CodeProject=${SaveProject}
+										if [ ! -z "${ModeAction}" ]; then
+											case ${ModeAction} in
+												--mode)
+													shift
+													local cCode
+													local cLang=$(color "${Lang}")
+
+													if [ ! -z "${ModeType}" ]; then
+														shift
+														Code=$(echo ${TheProject} | cut -d ";" -f 2)
+														local passCode=${Code}
+														local passcCode=$(color "${Code}")
+														if [ -z "${passCode}" ]; then
+															passCode="none"
+														fi
+														if [ -z "${passcCode}" ]; then
+															passcCode="none"
+														fi
+														#Swap cl[ide] to a given mode
+														ModeHandler ${ModeType} ${Lang} ${cLang} ${passCode} ${passcCode} $@
+													fi
+													;;
+												*)
+													theHelp ProjectCliHelp ${UserArg}
+													;;
+											esac
+										else
+											Actions ${Lang} "code" "project" "load" "${GetProject}" "${Lang}"
+										fi
+									else
+										errorCode "project" "load" "no-path" "${GetProject}"
+									fi
 								fi
 							fi
 							;;
@@ -4019,375 +4076,388 @@ CLI()
 				;;
 			#Get cli help page
 			-h|--help)
-				theHelp CliHelp ${UserArg} $2 $3
+				if [ -z "${ThePipe}" ]; then
+					theHelp CliHelp ${UserArg} $2 $3
+				fi
 				;;
 			#Load last saved session
 			-l|--load|--last)
-				session=$(LoadSession)
-				Lang=$(echo ${session} | cut -d ";" -f 1)
-				Code=$(echo ${session} | cut -d ";" -f 3)
-				CodeProject=$(echo ${session} | cut -d ";" -f 2)
-				#Start IDE
-				Actions ${Lang} ${Code} ${CodeProject}
+				if [ -z "${ThePipe}" ]; then
+					session=$(LoadSession)
+					Lang=$(echo ${session} | cut -d ";" -f 1)
+					Code=$(echo ${session} | cut -d ";" -f 3)
+					CodeProject=$(echo ${session} | cut -d ";" -f 2)
+					#Start IDE
+					Actions ${Lang} ${Code} ${CodeProject}
+				fi
 				;;
 			#Search for source code path OR langauge and source code name
 			--find)
-				shift
-				local Lang=$1
-				local TheSrc=$2
-				local CodeDir
-				local src
-				local Found
-				local ColorCode
-				#Language not provided...but source code is
-				if [ -z "${TheSrc}" ]; then
-					TheSrc=${Lang}
-					Lang=""
-				#Langauge and source code provided
-				else
-					#adjust letter
-					Lang=${Lang,,}
-					Lang=${Lang^}
-				fi
-
-				#incorrect characters given in source code
-				case ${TheSrc} in
-					.*|*/*)
-						#reset search
-						TheSrc=""
-						;;
-					*)
-						;;
-				esac
-
-				#source code provided
-				if [ ! -z "${TheSrc}" ]; then
-					#Language not provided
-					if [ -z "${Lang}" ]; then
-						case ${TheSrc} in
-							*.*)
-								#Attempt to locatelanguage using source code
-								Lang=$(SelectLangByCode ${TheSrc})
-								;;
-							*)
-								;;
-						esac
+				if [ -z "${ThePipe}" ]; then
+					shift
+					local Lang=$1
+					local TheSrc=$2
+					local CodeDir
+					local src
+					local Found
+					local ColorCode
+					#Language not provided...but source code is
+					if [ -z "${TheSrc}" ]; then
+						TheSrc=${Lang}
+						Lang=""
+					#Langauge and source code provided
+					else
+						#adjust letter
+						Lang=${Lang,,}
+						Lang=${Lang^}
 					fi
 
-					#remove extension
-					TheSrc=${TheSrc%%.*}
+					#incorrect characters given in source code
+					case ${TheSrc} in
+						.*|*/*)
+							#reset search
+							TheSrc=""
+							;;
+						*)
+							;;
+					esac
 
-					#Langauge provided or found
-					if [ ! -z "${Lang}" ]; then
-						#Find lanaguge directory
-						CodeDir=$(pgDir ${Lang})
-						if [ ! -z "${CodeDir}" ]; then
-							#Go to source code path
-							cd ${CodeDir}
-							#check if source code exists
-							src=$(selectCode ${Lang} ${TheSrc})
-							if [ ! -z "${src}" ]; then
-								#Find fill path of source code
-								find ${ProgDir} -name ${src} | grep "/src/"
-							fi
+					#source code provided
+					if [ ! -z "${TheSrc}" ]; then
+						#Language not provided
+						if [ -z "${Lang}" ]; then
+							case ${TheSrc} in
+								*.*)
+									#Attempt to locatelanguage using source code
+									Lang=$(SelectLangByCode ${TheSrc})
+									;;
+								*)
+									;;
+							esac
 						fi
-					#No Language found
-					else
-						#Search for source code via name
-						Found=$(find ${ProgDir} -name *${TheSrc}* | grep "/src/" | sort)
-						#Code has been founs
-						if [ ! -z "${Found}" ]; then
-							echo -e "\e[1;40m{Language}\t\t{source code}\e[0m"
-							for src in ${Found};
-							do
-								src=${src##*/}
-								#Get language by source code
-								Lang=$(SelectLangByCode ${src})
-								if [ ! -z "${Lang}" ]; then
-									#get langauge color
-									ColorCode=$(ManageLangs ${Lang} "color-number")
-									#Display language and code
-									echo -e "\e[1;3${ColorCode}m${Lang}\t\t\t${src}\e[0m"
+
+						#remove extension
+						TheSrc=${TheSrc%%.*}
+
+						#Langauge provided or found
+						if [ ! -z "${Lang}" ]; then
+							#Find lanaguge directory
+							CodeDir=$(pgDir ${Lang})
+							if [ ! -z "${CodeDir}" ]; then
+								#Go to source code path
+								cd ${CodeDir}
+								#check if source code exists
+								src=$(selectCode ${Lang} ${TheSrc})
+								if [ ! -z "${src}" ]; then
+									#Find fill path of source code
+									find ${ProgDir} -name ${src} | grep "/src/"
 								fi
-							done
+							fi
+						#No Language found
+						else
+							#Search for source code via name
+							Found=$(find ${ProgDir} -name *${TheSrc}* | grep "/src/" | sort)
+							#Code has been founs
+							if [ ! -z "${Found}" ]; then
+								echo -e "\e[1;40m{Language}\t\t{source code}\e[0m"
+								for src in ${Found};
+								do
+									src=${src##*/}
+									#Get language by source code
+									Lang=$(SelectLangByCode ${src})
+									if [ ! -z "${Lang}" ]; then
+										#get langauge color
+										ColorCode=$(ManageLangs ${Lang} "color-number")
+										#Display language and code
+										echo -e "\e[1;3${ColorCode}m${Lang}\t\t\t${src}\e[0m"
+									fi
+								done
+							fi
 						fi
 					fi
 				fi
 				;;
 			--new)
-				shift
-				local Lang
-				local Code=$2
-				local Args
-				local FindCode
-				local AlreadyCode
-				local ColorCode
-				if [ -z "${Code}" ]; then
-					Lang=$(SelectLangByCode $1)
-					if [ ! -z "${Lang}" ]; then
-						Code=$1
-						shift
-						local Args=$@
-						case ${Code} in
-							-h|--help)
-#								theHelp installHelp
-								;;
-							*)
-								if [ ! -z "${Code}" ]; then
-									main --new "${Lang}" "${Code}" ${Args[@]}
-								fi
-								;;
-						esac
-#					else
-#						theHelp cplHelp
-					fi
-				else
-					case ${Code} in
-						--*)
-							Lang=$(SelectLangByCode $1)
+				if [ -z "${ThePipe}" ]; then
+					shift
+					local Lang
+					local Code=$2
+					local Args
+					local FindCode
+					local AlreadyCode
+					local ColorCode
+					if [ -z "${Code}" ]; then
+						Lang=$(SelectLangByCode $1)
+						if [ ! -z "${Lang}" ]; then
 							Code=$1
 							shift
-							Args=$@
-							;;
-						*)
-							Lang=$(pgLang $1)
-							shift
-							shift
-							Args=$@
-							;;
-					esac
-					case ${Lang} in
-						no)
-							errorCode "install" "cli-not-supported" "$1"
-							;;
-						*)
-							local CodeDir=$(pgDir ${Lang})
-							if [ ! -z "${CodeDir}" ]; then
-								ColorCode=$(ManageLangs ${Lang} "color-number")
-								cd ${CodeDir}
-								InAndOut="yes"
-								IFS=',' read -ra ADDR <<< "${Code}"
-								for NewCode in "${ADDR[@]}";
-								do
-									AlreadyCode=$(ManageLangs ${Lang} "getCode" ${NewCode})
-									if [ -z "${AlreadyCode}" ]; then
-										Actions ${Lang} "code" "new" ${NewCode} ${Args[@]}
-										FindCode=$(ManageLangs ${Lang} "getCode" ${NewCode})
-										if [ ! -z "${FindCode}" ]; then
-											echo -e "\e[1;4${ColorCode}m[${Lang} (${FindCode}) Created]\e[0m"
-
-										fi
-									fi
-								done
-#							else
-#								errorCode "cli-cpl" "none"
-							fi
-					esac
-				fi
-				;;
-			--edit)
-				#Protecting
-				Protect
-				shift
-				local Action=$1
-				local Lang=$2
-				case ${Action} in
-					--config)
-						local YourAnswer
-						errorCode "WARNING"
-						errorCode "WARNING" "Editing this file incorrectly could render ${Head} unusable"
-						echo ""
-						errorCode "WARNING" "Do you wish to continue (y/n)"
-						echo -n "> "
-						read YourAnswer
-						YourAnswer=${YourAnswer,,}
-						case ${YourAnswer} in
-							y)
-								${editor} ${root}/var/clide.conf
-								clear
-								errorCode "WARNING" "Please restart ${Head} for changes to take affect"
-								errorCode "WARNING" "May God have mercy on your ${Head}"
-								echo ""
-								;;
-							*)
-								;;
-						esac
-						;;
-					--lang)
-						if [ ! -z "${Lang}" ]; then
-							Lang=${Lang,,}
-							Lang=${Lang^}
-							local TheLang=${LangsDir}/Lang.${Lang}
-
-							if [ -f "${TheLang}" ]; then
-								local YourAnswer
-								errorCode "WARNING"
-								errorCode "WARNING" "Editing this file incorrectly could render ${Lang} unusable"
-								echo ""
-								errorCode "WARNING" "Do you wish to continue (y/n)"
-								echo -n "> "
-								read YourAnswer
-								YourAnswer=${YourAnswer,,}
-								case ${YourAnswer} in
-									y)
-										${editor} ${TheLang}
-										clear
-										errorCode "WARNING" "May God have mercy on your ${Head}"
-										echo ""
-										;;
-									*)
-										;;
-								esac
-							else
-								errorCode "ERROR"
-								errorCode "ERROR" "\"${Lang}\" is not a supported language"
-							fi
-						else
-							theHelp EditHelp
-						fi
-						;;
-					*)
-						if [ -z "${Action}" ]; then
-							theHelp EditHelp
-						else
-							case ${Action} in
+							local Args=$@
+							case ${Code} in
 								-h|--help)
-									theHelp EditHelp
+#										theHelp installHelp
 									;;
 								*)
-									local Lang=$(pgLang $1)
-									local Code=$2
-									if [ -z "${Code}" ]; then
-										Lang=$(SelectLangByCode $1)
-										Code=$1
-										shift
-										main --edit "${Lang}" "${Code}"
-									else
-										case ${Lang} in
-											no)
-												errorCode "lang" "cli-not-supported" "$1"
-												;;
-											*)
-												local CodeDir=$(pgDir ${Lang})
-												if [ ! -z "${CodeDir}" ]; then
-													cd ${CodeDir}
-													Code=$(selectCode ${Lang} ${Code})
-													ManageLangs ${Lang} "editCode" ${Code}
-												else
-													errorCode "cli-cpl" "none"
-												fi
-												;;
-										esac
+									if [ ! -z "${Code}" ]; then
+										main --new "${Lang}" "${Code}" ${Args[@]}
 									fi
 									;;
 							esac
-						fi
-						;;
-				esac
-				#Done protecting
-				Protect "done"
+#							else
+#								theHelp cplHelp
+							fi
+					else
+						case ${Code} in
+							--*)
+								Lang=$(SelectLangByCode $1)
+								Code=$1
+								shift
+								Args=$@
+								;;
+							*)
+								Lang=$(pgLang $1)
+								shift
+								shift
+								Args=$@
+								;;
+						esac
+						case ${Lang} in
+							no)
+								errorCode "install" "cli-not-supported" "$1"
+								;;
+							*)
+								local CodeDir=$(pgDir ${Lang})
+								if [ ! -z "${CodeDir}" ]; then
+									ColorCode=$(ManageLangs ${Lang} "color-number")
+									cd ${CodeDir}
+									InAndOut="yes"
+									IFS=',' read -ra ADDR <<< "${Code}"
+									for NewCode in "${ADDR[@]}";
+									do
+										AlreadyCode=$(ManageLangs ${Lang} "getCode" ${NewCode})
+										if [ -z "${AlreadyCode}" ]; then
+											Actions ${Lang} "code" "new" ${NewCode} ${Args[@]}
+											FindCode=$(ManageLangs ${Lang} "getCode" ${NewCode})
+											if [ ! -z "${FindCode}" ]; then
+												echo -e "\e[1;4${ColorCode}m[${Lang} (${FindCode}) Created]\e[0m"
+											fi
+										fi
+									done
+#								else
+#									errorCode "cli-cpl" "none"
+								fi
+						esac
+					fi
+				fi
+				;;
+			--edit)
+				if [ -z "${ThePipe}" ]; then
+					#Protecting
+					Protect
+					shift
+					local Action=$1
+					local Lang=$2
+					case ${Action} in
+						--config)
+							local YourAnswer
+							errorCode "WARNING"
+							errorCode "WARNING" "Editing this file incorrectly could render ${Head} unusable"
+							echo ""
+							errorCode "WARNING" "Do you wish to continue (y/n)"
+							echo -n "> "
+							read YourAnswer
+							YourAnswer=${YourAnswer,,}
+							case ${YourAnswer} in
+								y)
+									${editor} ${root}/var/clide.conf
+									clear
+									errorCode "WARNING" "Please restart ${Head} for changes to take affect"
+									errorCode "WARNING" "May God have mercy on your ${Head}"
+									echo ""
+									;;
+								*)
+									;;
+							esac
+							;;
+						--lang)
+							if [ ! -z "${Lang}" ]; then
+								Lang=${Lang,,}
+								Lang=${Lang^}
+								local TheLang=${LangsDir}/Lang.${Lang}
+
+								if [ -f "${TheLang}" ]; then
+									local YourAnswer
+									errorCode "WARNING"
+									errorCode "WARNING" "Editing this file incorrectly could render ${Lang} unusable"
+									echo ""
+									errorCode "WARNING" "Do you wish to continue (y/n)"
+									echo -n "> "
+									read YourAnswer
+									YourAnswer=${YourAnswer,,}
+									case ${YourAnswer} in
+										y)
+											${editor} ${TheLang}
+											clear
+											errorCode "WARNING" "May God have mercy on your ${Head}"
+											echo ""
+											;;
+										*)
+											;;
+									esac
+								else
+									errorCode "ERROR"
+									errorCode "ERROR" "\"${Lang}\" is not a supported language"
+								fi
+							else
+								theHelp EditHelp
+							fi
+							;;
+						*)
+							if [ -z "${Action}" ]; then
+								theHelp EditHelp
+							else
+								case ${Action} in
+									-h|--help)
+										theHelp EditHelp
+										;;
+									*)
+										local Lang=$(pgLang $1)
+										local Code=$2
+										if [ -z "${Code}" ]; then
+											Lang=$(SelectLangByCode $1)
+											Code=$1
+											shift
+											main --edit "${Lang}" "${Code}"
+										else
+											case ${Lang} in
+												no)
+													errorCode "lang" "cli-not-supported" "$1"
+													;;
+												*)
+													local CodeDir=$(pgDir ${Lang})
+													if [ ! -z "${CodeDir}" ]; then
+														cd ${CodeDir}
+														Code=$(selectCode ${Lang} ${Code})
+														ManageLangs ${Lang} "editCode" ${Code}
+												else
+														errorCode "cli-cpl" "none"
+													fi
+													;;
+											esac
+										fi
+										;;
+								esac
+							fi
+							;;
+					esac
+					#Done protecting
+					Protect "done"
+				fi
 				;;
 			#compile code without entering cl[ide]
 			--cpl|--compile)
-				shift
-				local Lang
-				local Code=$2
-				local Args
-				if [ -z "${Code}" ]; then
-					Lang=$(SelectLangByCode $1)
-					if [ ! -z "${Lang}" ]; then
-						Code=$1
-						shift
-						local Args=$@
-						case ${Code} in
-							-h|--help)
-								theHelp cplHelp
-								;;
-							*)
-								if [ ! -z "${Code}" ]; then
-									main --cpl "${Lang}" "${Code}" ${Args[@]}
-								fi
-								;;
-						esac
-					else
-						theHelp cplHelp
-					fi
-				else
-					case ${Code} in
-						--*)
-							Lang=$(SelectLangByCode $1)
+				if [ -z "${ThePipe}" ]; then
+					shift
+					local Lang
+					local Code=$2
+					local Args
+					if [ -z "${Code}" ]; then
+						Lang=$(SelectLangByCode $1)
+						if [ ! -z "${Lang}" ]; then
 							Code=$1
 							shift
-							Args=$@
-							;;
-						*)
-							Lang=$(pgLang $1)
-							shift
-							shift
-							Args=$@
-							;;
-					esac
-					case ${Lang} in
-						no)
-							errorCode "lang" "cli-not-supported" "$1"
-							;;
-						*)
-							local CodeDir=$(pgDir ${Lang})
-							if [ ! -z "${CodeDir}" ]; then
-								cd ${CodeDir}
-								Code=$(selectCode ${Lang} ${Code})
-								if [ ! -z "${Code}" ]; then
-									InAndOut="yes"
-									Actions ${Lang} "code" "cpl" ${Code} ${Args[@]}
+							local Args=$@
+							case ${Code} in
+								-h|--help)
+									theHelp cplHelp
+									;;
+								*)
+									if [ ! -z "${Code}" ]; then
+										main --cpl "${Lang}" "${Code}" ${Args[@]}
+									fi
+									;;
+							esac
+						else
+							theHelp cplHelp
+						fi
+					else
+						case ${Code} in
+							--*)
+								Lang=$(SelectLangByCode $1)
+								Code=$1
+								shift
+								Args=$@
+								;;
+							*)
+								Lang=$(pgLang $1)
+								shift
+								shift
+								Args=$@
+								;;
+						esac
+						case ${Lang} in
+							no)
+								errorCode "lang" "cli-not-supported" "$1"
+								;;
+							*)
+								local CodeDir=$(pgDir ${Lang})
+								if [ ! -z "${CodeDir}" ]; then
+									cd ${CodeDir}
+									Code=$(selectCode ${Lang} ${Code})
+									if [ ! -z "${Code}" ]; then
+										InAndOut="yes"
+										Actions ${Lang} "code" "cpl" ${Code} ${Args[@]}
+									else
+										errorCode "cli-cpl" "none"
+									fi
 								else
 									errorCode "cli-cpl" "none"
 								fi
-							else
-								errorCode "cli-cpl" "none"
-							fi
-					esac
+						esac
+					fi
 				fi
 				;;
 			#Install compiled code into aliases
 			--install)
-				shift
-				local Lang=$(pgLang $1)
-				local Code=$2
-				if [ -z "${Code}" ]; then
-					Lang=$(SelectLangByCode $1)
-					Code=$1
+				if [ -z "${ThePipe}" ]; then
 					shift
-					local Args=$@
-					case ${Code} in
-						-h|--help)
-							theHelp installHelp
-							;;
-						*)
-							if [ ! -z "${Code}" ]; then
-								main --install "${Lang}" "${Code}" ${Args[@]}
-							fi
-							;;
-					esac
-				else
-					shift
-					shift
-					local Args=$@
-					case ${Lang} in
-						no)
-							errorCode "install" "cli-not-supported" "$1"
-							theHelp installHelp
-							;;
-						*)
-							local CodeDir=$(pgDir ${Lang})
-							if [ ! -z "${CodeDir}" ]; then
-								cd ${CodeDir}
-								Code=$(selectCode ${Lang} ${Code})
-								ManageLangs ${Lang} "Install" ${Code} ${Args[@]}
-								cd - > /dev/null
-							else
-								errorCode "cli-cpl" "none"
-							fi
-					esac
+					local Lang=$(pgLang $1)
+					local Code=$2
+					if [ -z "${Code}" ]; then
+						Lang=$(SelectLangByCode $1)
+						Code=$1
+						shift
+						local Args=$@
+						case ${Code} in
+							-h|--help)
+								theHelp installHelp
+								;;
+							*)
+								if [ ! -z "${Code}" ]; then
+									main --install "${Lang}" "${Code}" ${Args[@]}
+								fi
+								;;
+						esac
+					else
+						shift
+						shift
+						local Args=$@
+						case ${Lang} in
+							no)
+								errorCode "install" "cli-not-supported" "$1"
+								theHelp installHelp
+								;;
+							*)
+								local CodeDir=$(pgDir ${Lang})
+								if [ ! -z "${CodeDir}" ]; then
+									cd ${CodeDir}
+									Code=$(selectCode ${Lang} ${Code})
+									ManageLangs ${Lang} "Install" ${Code} ${Args[@]}
+									cd - > /dev/null
+								else
+									errorCode "cli-cpl" "none"
+								fi
+						esac
+					fi
 				fi
 				;;
 			#debug your compiled code
@@ -4425,6 +4495,8 @@ CLI()
 									fi
 									;;
 								*)
+									shift
+									shift
 									;;
 							esac
 
@@ -4448,80 +4520,86 @@ CLI()
 				;;
 			#cat out source code
 			--read)
-				shift
-				local Action=$1
-				local Lang=$(pgLang $1)
-				local Code=$2
-				if [ -z "${Code}" ]; then
-					case ${Action} in
-						--config)
-							cat ${root}/var/clide.conf
-							;;
-						*)
-							Lang=$(SelectLangByCode $1)
-							Code=$1
-							shift
-							local Args=$@
-							if [ ! -z "${Lang}" ] && [ ! -z "${Code}" ]; then
-								main --read "${Lang}" "${Code}" ${Args[@]}
-							fi
-							;;
-					esac
-				else
-					case ${Action} in
-						--config)
-							${ReadBy} ${root}/var/clide.conf
-							;;
-						*)
-							case ${Lang} in
-								no)
-									errorCode "lang" "no-lang" "$1"
-									;;
-								*)
-									local CodeDir=$(pgDir ${Lang})
-									if [ ! -z "${CodeDir}" ]; then
-										cd ${CodeDir}
-										Code=$(selectCode ${Lang} ${Code})
-										if [ ! -z "${Code}" ]; then
-											cat ${Code}
+				if [ -z "${ThePipe}" ]; then
+					shift
+					local Action=$1
+					local Lang=$(pgLang $1)
+					local Code=$2
+					if [ -z "${Code}" ]; then
+						case ${Action} in
+							--config)
+								cat ${root}/var/clide.conf
+								;;
+							*)
+								Lang=$(SelectLangByCode $1)
+								Code=$1
+								shift
+								local Args=$@
+								if [ ! -z "${Lang}" ] && [ ! -z "${Code}" ]; then
+									main --read "${Lang}" "${Code}" ${Args[@]}
+								fi
+								;;
+						esac
+					else
+						case ${Action} in
+							--config)
+								${ReadBy} ${root}/var/clide.conf
+								;;
+							*)
+								case ${Lang} in
+									no)
+										errorCode "lang" "no-lang" "$1"
+										;;
+									*)
+										local CodeDir=$(pgDir ${Lang})
+										if [ ! -z "${CodeDir}" ]; then
+											cd ${CodeDir}
+											Code=$(selectCode ${Lang} ${Code})
+											if [ ! -z "${Code}" ]; then
+												cat ${Code}
+											else
+												errorCode "lang" "readCode"
+											fi
 										else
 											errorCode "lang" "readCode"
 										fi
-									else
-										errorCode "lang" "readCode"
-									fi
-							esac
-							;;
-					esac
+								esac
+								;;
+						esac
+					fi
 				fi
 				;;
 			#List source code from given language
 			--list)
-				shift
-				local Lang=$(pgLang $1)
-				case ${Lang} in
-					no)
-						errorCode "lang" "cli-not-supported" "$1"
-						;;
-					*)
-						local CodeDir=$(pgDir ${Lang})
-						if [ ! -z "${CodeDir}" ]; then
-							ls ${CodeDir}
-						fi
-						;;
-				esac
+				if [ -z "${ThePipe}" ]; then
+					shift
+					local Lang=$(pgLang $1)
+					case ${Lang} in
+						no)
+							errorCode "lang" "cli-not-supported" "$1"
+							;;
+						*)
+							local CodeDir=$(pgDir ${Lang})
+							if [ ! -z "${CodeDir}" ]; then
+								ls ${CodeDir}
+							fi
+							;;
+					esac
+				fi
 				;;
 			--list-cpl|--lscpl)
-				shift
-				local Lang=$(pgLang $1)
-				case ${Lang} in
-					no)
-						errorCode "lang" "cli-not-supported" "$1"
-						;;
-					*)
-						ManageLangs ${Lang} "lscpl"
-						;;
-				esac
+				if [ -z "${ThePipe}" ]; then
+					shift
+					local Lang=$(pgLang $1)
+					case ${Lang} in
+						no)
+							errorCode "lang" "cli-not-supported" "$1"
+							;;
+						*)
+							ManageLangs ${Lang} "lscpl"
+							;;
+					esac
+				fi
 				;;
 			*)
 				;;
@@ -4543,46 +4621,50 @@ main()
 		pg=$(ColorCodes)
 		local getLang=""
 		if [ ! -z "${pg}" ]; then
-			Protect
-			#CliHelp
-			Banner "main"
-			errorCode "HINT"
-			errorCode "HINT" "enter \"no-lang\" or \"nl\" to enter into a ${Head} shell"
-			echo ""
-			echo "~Choose a language~"
-			#Force user to select language
-			while [[ "${getLang}" == "" ]] || [[ "${Lang}" == "no" ]];
-			do
-				prompt="${Name}(${pg}):~$ "
-				read -e -p "${prompt}" getLang
-				case ${getLang} in
-					exit)
-						Protect "done"
-						break
-						;;
-					no-lang|nl)
-						Lang="no-lang"
-						break
-						;;
-					*)
-						#Verify Language
-						Lang=$(pgLang ${getLang})
-						;;
-				esac
-			done
+			if [ -z "${ThePipe}" ]; then
+				Protect
+				#CliHelp
+				Banner "main"
+				errorCode "HINT"
+				errorCode "HINT" "enter \"no-lang\" or \"nl\" to enter into a ${Head} shell"
+				echo ""
+				echo "~Choose a language~"
+				#Force user to select language
+				while [[ "${getLang}" == "" ]] || [[ "${Lang}" == "no" ]];
+				do
+					prompt="${Name}(${pg}):~$ "
+					read -e -p "${prompt}" getLang
+					case ${getLang} in
+						exit)
+							Protect "done"
+							break
+							;;
+						no-lang|nl)
+							Lang="no-lang"
+							break
+							;;
+						*)
+							#Verify Language
+							Lang=$(pgLang ${getLang})
+							;;
+					esac
+				done
 
-			clear
-			if [ ! -z "${Lang}" ]; then
-				case ${Lang} in
-					no-lang|nl)
-						#Start IDE
-						Actions-NoLang
-						;;
-					*)
-						#Start IDE
-						Actions ${Lang}
-						;;
-				esac
+				clear
+				if [ ! -z "${Lang}" ]; then
+					case ${Lang} in
+						no-lang|nl)
+							#Start IDE
+							Actions-NoLang
+							;;
+						*)
+							#Start IDE
+							Actions ${Lang}
+							;;
+					esac
+				fi
+			else
+				errorCode "pipe" "${Head}"
 			fi
 		else
 			errorCode "no-langs"
@@ -4684,10 +4766,8 @@ main()
 
 #Ignore if program resolves to alias
 AliasTest=$(echo $@ | grep "/")
-if [ -z "${AliasTest}" ] && [ -z "${ThePipe}" ]; then
+if [ -z "${AliasTest}" ]; then
 	history -c
 	#Run clide
 	main $@
-elif [ ! -z "${ThePipe}" ]; then
-	errorCode "pipe" "${Head}"
 fi

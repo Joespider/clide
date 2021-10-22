@@ -9,7 +9,11 @@ errorCode()
 	case ${ecd} in
 		pipe)
 			errorCode "ERROR"
-			errorCode "ERROR" "${sec} cannot handle pipes at the moment"
+			errorCode "ERROR" "Using pipes with ${sec} is interfering with normal funtionality"
+			echo ""
+			errorCode "HINT" "${sec} can pass piped data to programs"
+			errorCode "HINT" "command"
+			errorCode "HINT" "echo \"Try me\" | clide --run <lang> <program>"
 			;;
 		rename)
 			shift

@@ -1,10 +1,18 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.71"
+SupportV="0.1.73"
 Lang=Ruby
 LangExt=".rb"
 ColorNum=1
+
+#Handle Pipes
+#{
+ThePipe=""
+if readlink /proc/$$/fd/0 | grep -q "^pipe:"; then
+	ThePipe="Pipe"
+fi
+#}
 
 CplArgs=$1
 shift
@@ -1005,7 +1013,11 @@ UseRuby()
 			if [ -f ${TheBinDir}/${TheBin} ]; then
 				#protect the shell script while running
 				chmod -w ${TheBinDir}/${TheBin} 2> /dev/null
-				${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+				if [ ! -z "${ThePipe}" ]; then
+					cat /dev/stdin | ${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+				else
+					${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+				fi
 				#Release protection
 				chmod u+w ${TheBinDir}/${TheBin} 2> /dev/null
 			else

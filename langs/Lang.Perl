@@ -1,11 +1,19 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.74"
+SupportV="0.1.76"
 Lang=Perl
 LangExt=".pl"
 #Color Purple
 ColorNum=5
+
+#Handle Pipes
+#{
+ThePipe=""
+if readlink /proc/$$/fd/0 | grep -q "^pipe:"; then
+	ThePipe="Pipe"
+fi
+#}
 
 CplArgs=$1
 shift
@@ -952,7 +960,11 @@ UsePerl()
 						#${LangRun} -m ${UseDebugger} ${TheBinDir}/${TheBin} ${Args[@]}
 						;;
 					runCode)
-						${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+						if [ ! -z "${ThePipe}" ]; then
+							cat /dev/stdin | ${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+						else
+							${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+						fi
 						;;
 				esac
 				chmod u+w ${TheBinDir}/${TheBin} 2> /dev/null

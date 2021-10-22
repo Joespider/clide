@@ -5,10 +5,18 @@ Shell=$(which bash)
 #Link Libs: https://gist.github.com/gubatron/32f82053596c24b6bec6
 #both https://avikdas.com/2019/12/16/makefiles-for-c-cpp-projects.html
 
-SupportV="0.2.13"
+SupportV="0.2.14"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
+
+#Handle Pipes
+#{
+ThePipe=""
+if readlink /proc/$$/fd/0 | grep -q "^pipe:"; then
+	ThePipe="Pipe"
+fi
+#}
 
 #Checking user's desired extension for source files
 case ${CppSrcExt,,} in
@@ -2039,7 +2047,11 @@ UseC++()
 						cd - > /dev/null
 						;;
 					runCode)
-						${TheBinDir}/${TheBin} ${Args[@]}
+						if [ ! -z "${ThePipe}" ]; then
+							cat /dev/stdin | ${TheBinDir}/${TheBin} ${Args[@]}
+						else
+							${TheBinDir}/${TheBin} ${Args[@]}
+						fi
 						;;
 				esac
 			else

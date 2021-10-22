@@ -1,11 +1,19 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.57"
+SupportV="0.1.58"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
 ColorNum=3
+
+#Handle Pipes
+#{
+ThePipe=""
+if readlink /proc/$$/fd/0 | grep -q "^pipe:"; then
+	ThePipe="Pipe"
+fi
+#}
 
 CplArgs=$1
 shift
@@ -1741,7 +1749,11 @@ UseC()
 						cd - > /dev/null
 						;;
 					runCode)
-						${TheBinDir}/${TheBin} ${Args[@]}
+						if [ ! -z "${ThePipe}" ]; then
+							cat /dev/stdin | ${TheBinDir}/${TheBin} ${Args[@]}
+						else
+							${TheBinDir}/${TheBin} ${Args[@]}
+						fi
 						;;
 				esac
 			else
