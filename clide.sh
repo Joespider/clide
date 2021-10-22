@@ -1,5 +1,11 @@
 Shell=$(which bash)
 #!${Shell}
+
+ThePipe=""
+if readlink /proc/$$/fd/0 | grep -q "^pipe:"; then
+	ThePipe="$(cat ${1:-/dev/stdin})"
+fi
+
 ThisFile=$0
 #Get path of the script
 ShellPath=$(realpath ${ThisFile})
@@ -4678,8 +4684,10 @@ main()
 
 #Ignore if program resolves to alias
 AliasTest=$(echo $@ | grep "/")
-if [ -z "${AliasTest}" ]; then
+if [ -z "${AliasTest}" ] && [ -z "${ThePipe}" ]; then
 	history -c
 	#Run clide
 	main $@
+elif [ ! -z "${ThePipe}" ]; then
+	errorCode "pipe" "${Head}"
 fi

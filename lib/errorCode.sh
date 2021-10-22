@@ -7,6 +7,10 @@ errorCode()
 	shift
 	local sec=$1
 	case ${ecd} in
+		pipe)
+			errorCode "ERROR"
+			errorCode "ERROR" "${sec} cannot handle pipes at the moment"
+			;;
 		rename)
 			shift
 			local thr=$1
