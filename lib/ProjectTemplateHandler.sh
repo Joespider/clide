@@ -26,7 +26,7 @@ TemplateHandler()
 			;;
 		*)
 			case ${ProjectType} in
-				Generic)
+				${ProjectDefaultType})
 					;;
 				*)
 					if [ -d ${TemplateProjectDir}/${Lang}.${ProjectType} ] && [ -f ${TemplateProjectDir}/${Lang}.${ProjectType}/${Job} ]; then

@@ -1,11 +1,19 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.57"
+SupportV="0.1.60"
 Lang=Go
 LangExt=".go"
 #Color Green
 ColorNum=2
+
+#Handle Pipes
+#{
+ThePipe=""
+if readlink /proc/$$/fd/0 | grep -q "^pipe:"; then
+	ThePipe="Pipe"
+fi
+#}
 
 CplArgs=$1
 shift
@@ -78,7 +86,12 @@ UseGo()
 			echo "${ColorNum}"
 			;;
 		ProjectColor)
-			echo -e "\e[1;4${ColorNum}m${CodeProject}\e[0m"
+			local TheText=$1
+			if [ -z "${TheText}" ]; then
+				echo -e "\e[1;4${ColorNum}m${CodeProject}\e[0m"
+			else
+				echo -e "\e[1;4${ColorNum}m${TheText}\e[0m"
+			fi
 			;;
 		getNewCode)
 			echo ${TemplateCodeSrc}
@@ -232,7 +245,7 @@ UseGo()
 					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					case ${ProjectType} in
 						#Is a generic project
-						Generic)
+						${ProjectDefaultType})
 							#handle path
 							case ${name} in
 								*.*)
@@ -901,7 +914,7 @@ UseGo()
 			#create and cd to project dir
 			if [ ! -d ${path} ]; then
 				case ${ProjectType} in
-					Generic)
+					${ProjectDefaultType})
 						mkdir -p ${path}/bin
 						mkdir -p ${path}/build
 						mkdir -p ${path}/doc
@@ -945,7 +958,7 @@ UseGo()
 			local mode=$1
 			local UseProjectTemplate
 			case ${ProjectType} in
-				Generic)
+				${ProjectDefaultType})
 					;;
 				*)
 					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type}) 
@@ -1247,7 +1260,11 @@ UseGo()
 
 			#Find Executable
 			if [ -f ${TheBinDir}/${TheBin} ]; then
-				${TheBinDir}/${TheBin} ${Args[@]}
+				if [ ! -z "${ThePipe}" ]; then
+					cat /dev/stdin | ${TheBinDir}/${TheBin} ${Args[@]}
+				else
+					${TheBinDir}/${TheBin} ${Args[@]}
+				fi
 			else
 				case ${project} in
 					none)

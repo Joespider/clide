@@ -4,10 +4,18 @@ Shell=$(which bash)
 #https://stackoverflow.com/questions/10339637/java-import-cannot-find-symbol
 #https://www.codejava.net/java-core/tools/how-to-compile-package-and-run-a-java-program-using-command-line-tools-javac-jar-and-java
 
-SupportV="0.2.09"
+SupportV="0.2.12"
 Lang=Java
 LangExt=".java"
 ColorNum=1
+
+#Handle Pipes
+#{
+ThePipe=""
+if readlink /proc/$$/fd/0 | grep -q "^pipe:"; then
+	ThePipe="Pipe"
+fi
+#}
 
 CplArgs=$1
 shift
@@ -83,7 +91,12 @@ UseJava()
 			echo "${ColorNum}"
 			;;
 		ProjectColor)
-			echo -e "\e[1;4${ColorNum}m${CodeProject}\e[0m"
+			local TheText=$1
+			if [ -z "${TheText}" ]; then
+				echo -e "\e[1;4${ColorNum}m${CodeProject}\e[0m"
+			else
+				echo -e "\e[1;4${ColorNum}m${TheText}\e[0m"
+			fi
 			;;
 		getNewCode)
 			echo ${TemplateCodeSrc}
@@ -260,7 +273,7 @@ UseJava()
 					;;
 				*)
 					case ${ProjectType} in
-						Generic)
+						${ProjectDefaultType})
 							case ${name} in
 								*.*)
 									newName=${name##*.}
@@ -996,7 +1009,7 @@ UseJava()
 			local UseProjectTemplate
 			if [ ! -d ${path} ]; then
 				case ${ProjectType} in
-					Generic)
+					${ProjectDefaultType})
 						mkdir -p ${path}/lib
 						mkdir -p ${path}/classes
 						mkdir -p ${path}/META-INF
@@ -1175,7 +1188,7 @@ UseJava()
 			local mode=$1
 			local UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 			case ${ProjectType} in
-				Generic)
+				${ProjectDefaultType})
 					case ${mode} in
 						main|test)
 							echo "${mode}"
@@ -1700,7 +1713,11 @@ UseJava()
 									;;
 								runCode)
 									#Execute without
-									${LangRun} ${package}${TheBin} ${Args[@]}
+									if [ ! -z "${ThePipe}" ]; then
+										cat /dev/stdin | ${LangRun} ${package}${TheBin} ${Args[@]}
+									else
+										${LangRun} ${package}${TheBin} ${Args[@]}
+									fi
 									;;
 								*)
 									;;
@@ -1713,7 +1730,11 @@ UseJava()
 									;;
 								runCode)
 									#Execute without
-									${LangRun} "${JavaProp}" ${package}${TheBin} ${Args[@]}
+									if [ ! -z "${ThePipe}" ]; then
+										cat /dev/stdin | ${LangRun} "${JavaProp}" ${package}${TheBin} ${Args[@]}
+									else
+										${LangRun} "${JavaProp}" ${package}${TheBin} ${Args[@]}
+									fi
 									;;
 								*)
 									;;
@@ -1723,7 +1744,11 @@ UseJava()
 					cd - > /dev/null
 				#Check if Java Jar exists
 				elif [ -f ${TheJarDir}/${TheJar} ]; then
-					${LangRun} -jar ${TheJarDir}/${TheJar} ${Args[@]}
+					if [ ! -z "${ThePipe}" ]; then
+						cat /dev/stdin | ${LangRun} -jar ${TheJarDir}/${TheJar} ${Args[@]}
+					else
+						${LangRun} -jar ${TheJarDir}/${TheJar} ${Args[@]}
+					fi
 				else
 					errorCode "cpl" "need" "${name}"
 				fi

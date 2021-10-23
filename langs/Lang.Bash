@@ -1,10 +1,18 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.72"
+SupportV="0.1.74"
 Lang=Bash
 LangExt=".sh"
 ColorNum=2
+
+#Handle Pipes
+#{
+ThePipe=""
+if readlink /proc/$$/fd/0 | grep -q "^pipe:"; then
+	ThePipe="Pipe"
+fi
+#}
 
 CplArgs=$1
 shift
@@ -70,7 +78,12 @@ UseBash()
 			echo "${ColorNum}"
 			;;
 		ProjectColor)
-			echo -e "\e[1;4${ColorNum}m${CodeProject}\e[0m"
+			local TheText=$1
+			if [ -z "${TheText}" ]; then
+				echo -e "\e[1;4${ColorNum}m${CodeProject}\e[0m"
+			else
+				echo -e "\e[1;4${ColorNum}m${TheText}\e[0m"
+			fi
 			;;
 		SupportVersion)
 			echo ${SupportV}
@@ -196,7 +209,7 @@ UseBash()
 				*)
 					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					case ${ProjectType} in
-						Generic)
+						${ProjectDefaultType})
 							case ${name} in
 								*.*)
 									newName=${name##*.}
@@ -729,7 +742,7 @@ UseBash()
 			local UseProjectTemplate
 			if [ ! -d ${path} ]; then
 				case ${ProjectType} in
-					Generic)
+					${ProjectDefaultType})
 						mkdir ${path}
 						mkdir ${path}/bin
 						mkdir ${path}/src
@@ -761,7 +774,7 @@ UseBash()
 			local mode=$1
 			local UseProjectTemplate
 			case ${ProjectType} in
-				Generic)
+				${ProjectDefaultType})
 					;;
 				*)
 					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
@@ -916,7 +929,11 @@ UseBash()
 			if [ -f ${TheBinDir}/${TheBin} ]; then
 				#protect the shell script while running
 				chmod -w ${TheBinDir}/${TheBin} 2> /dev/null
-				${TheBinDir}/${TheBin} ${Args[@]}
+				if [ ! -z "${ThePipe}" ]; then
+					cat /dev/stdin | ${TheBinDir}/${TheBin} ${Args[@]}
+				else
+					${TheBinDir}/${TheBin} ${Args[@]}
+				fi
 				#release protection
 				chmod u+w ${TheBinDir}/${TheBin} 2> /dev/null
 			else

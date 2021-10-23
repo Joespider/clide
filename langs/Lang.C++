@@ -5,10 +5,18 @@ Shell=$(which bash)
 #Link Libs: https://gist.github.com/gubatron/32f82053596c24b6bec6
 #both https://avikdas.com/2019/12/16/makefiles-for-c-cpp-projects.html
 
-SupportV="0.2.12"
+SupportV="0.2.15"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
+
+#Handle Pipes
+#{
+ThePipe=""
+if readlink /proc/$$/fd/0 | grep -q "^pipe:"; then
+	ThePipe="Pipe"
+fi
+#}
 
 #Checking user's desired extension for source files
 case ${CppSrcExt,,} in
@@ -108,7 +116,12 @@ UseC++()
 			echo "${ColorNum}"
 			;;
 		ProjectColor)
-			echo -e "\e[1;4${ColorNum}m${CodeProject}\e[0m"
+			local TheText=$1
+			if [ -z "${TheText}" ]; then
+				echo -e "\e[1;4${ColorNum}m${CodeProject}\e[0m"
+			else
+				echo -e "\e[1;4${ColorNum}m${TheText}\e[0m"
+			fi
 			;;
 		getNewCode)
 			echo ${TemplateCodeSrc}
@@ -426,7 +439,7 @@ UseC++()
 				*)
 					case ${ProjectType} in
 						#Is a generic project
-						Generic)
+						${ProjectDefaultType})
 							#handle path
 							case ${name} in
 								*.*)
@@ -1637,7 +1650,7 @@ UseC++()
 			#create and cd to project dir
 			if [ ! -d ${path} ]; then
 				case ${ProjectType} in
-					Generic)
+					${ProjectDefaultType})
 						mkdir ${path}
 						mkdir ${path}/bin
 						mkdir ${path}/build
@@ -1683,7 +1696,7 @@ UseC++()
 			local mode=$1
 			local UseProjectTemplate
 			case ${ProjectType} in
-				Generic)
+				${ProjectDefaultType})
 					;;
 				*)
 					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
@@ -1843,7 +1856,7 @@ UseC++()
 								if [ -f ${TemplateCode} ]; then
 									#Program Name Given
 									if [ ! -z "${name}" ]; then
-										${TemplateCode} --random --write-file --read-file --cli --main --is-in --user-input --name "${name}" --ext "${LangExt}"
+										${TemplateCode} --random --write-file --read-file --cli --main --is-in --user-input --name "${name}" --ext "${LangExt}" --shell
 									#No Program Name Given
 									else
 										#Help Page
@@ -2034,7 +2047,11 @@ UseC++()
 						cd - > /dev/null
 						;;
 					runCode)
-						${TheBinDir}/${TheBin} ${Args[@]}
+						if [ ! -z "${ThePipe}" ]; then
+							cat /dev/stdin | ${TheBinDir}/${TheBin} ${Args[@]}
+						else
+							${TheBinDir}/${TheBin} ${Args[@]}
+						fi
 						;;
 				esac
 			else

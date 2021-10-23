@@ -1,11 +1,19 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.73"
+SupportV="0.1.76"
 Lang=Perl
 LangExt=".pl"
 #Color Purple
 ColorNum=5
+
+#Handle Pipes
+#{
+ThePipe=""
+if readlink /proc/$$/fd/0 | grep -q "^pipe:"; then
+	ThePipe="Pipe"
+fi
+#}
 
 CplArgs=$1
 shift
@@ -71,7 +79,12 @@ UsePerl()
 			echo "${ColorNum}"
 			;;
 		ProjectColor)
-			echo -e "\e[1;4${ColorNum}m${CodeProject}\e[0m"
+			local TheText=$1
+			if [ -z "${TheText}" ]; then
+				echo -e "\e[1;4${ColorNum}m${CodeProject}\e[0m"
+			else
+				echo -e "\e[1;4${ColorNum}m${TheText}\e[0m"
+			fi
 			;;
 		getNewCode)
 			echo ${TemplateCodeSrc}
@@ -178,7 +191,7 @@ UsePerl()
 				*)
 					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					case ${ProjectType} in
-						Generic)
+						${ProjectDefaultType})
 							case ${name} in
 								*.*)
 									newName=${name##*.}
@@ -662,7 +675,7 @@ UsePerl()
 			local UseProjectTemplate
 			if [ ! -d ${path} ]; then
 				case ${ProjectType} in
-					Generic)
+					${ProjectDefaultType})
 						mkdir ${path}
 						mkdir ${path}/src
 						mkdir ${path}/bin
@@ -681,7 +694,7 @@ UsePerl()
 			local mode=$1
 			local UseProjectTemplate
 			case ${ProjectType} in
-				Generic)
+				${ProjectDefaultType})
 					;;
 				*)
 					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
@@ -947,7 +960,11 @@ UsePerl()
 						#${LangRun} -m ${UseDebugger} ${TheBinDir}/${TheBin} ${Args[@]}
 						;;
 					runCode)
-						${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+						if [ ! -z "${ThePipe}" ]; then
+							cat /dev/stdin | ${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+						else
+							${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+						fi
 						;;
 				esac
 				chmod u+w ${TheBinDir}/${TheBin} 2> /dev/null

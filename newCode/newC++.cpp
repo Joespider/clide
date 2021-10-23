@@ -8,7 +8,7 @@
 static void help()
 {
 	std::string ProgName = "newC++";
-	std::string Version = "0.1.09";
+	std::string Version = "0.1.10";
 	print("Author: Joespider");
 	print("Program: \"" << ProgName << "\"");
 	print("Version: " << Version);
@@ -19,6 +19,7 @@ static void help()
 	print("\t--ext <extension> : choose an extension (.cpp is default)");
 	print("\t--cli : enable command line (Main file ONLY)");
 	print("\t--main : main file");
+	print("\t--shell : unix shell");
 	print("\t--random : enable \"random\" int method");
 	print("\t--write-file : enable \"write\" file method");
 	print("\t--read-file : enable \"read\" file method");
@@ -27,12 +28,13 @@ static void help()
 }
 
 //create import listing
-static std::string getImports(bool write, bool read, bool random)
+static std::string getImports(bool write, bool read, bool random, bool shell)
 {
 	std::string Imports = "";
 	std::string standard = "#include <iostream>\n#include <string>\n";
 	std::string readWrite = "";
 	std::string ForRandom = "";
+	std::string ForShell = "";
 	if ((read == true) || (write == true))
 	{
 		readWrite = "#include <fstream>\n";
@@ -41,14 +43,18 @@ static std::string getImports(bool write, bool read, bool random)
 	{
 		ForRandom = "#include <stdlib.h>\n#include <time.h>\n";
 	}
+	if (shell == true)
+	{
+		ForShell = "#include <stdio.h>\n#include <stdlib.h>\n";
+	}
 
-	Imports = standard+readWrite+ForRandom+"\n";
+	Imports = standard+readWrite+ForRandom+ForShell+"\n";
 
 	return Imports;
 }
 
 //create base methods
-static std::string getMethods(bool rawinput, bool rand, bool write, bool read, bool isin)
+static std::string getMethods(bool rawinput, bool rand, bool write, bool read, bool isin, bool shell)
 {
 	std::string Methods = "";
 	std::string Random = "";
@@ -56,6 +62,7 @@ static std::string getMethods(bool rawinput, bool rand, bool write, bool read, b
 	std::string WriteFile = "";
 	std::string ReadFile = "";
 	std::string IsIn = "";
+	std::string TheShell = "";
 
 	if (rawinput == true)
 	{
@@ -77,8 +84,12 @@ static std::string getMethods(bool rawinput, bool rand, bool write, bool read, b
 	{
 		IsIn = "//Check if sub-string is in string\nbool IsIn(std::string Str, std::string Sub)\n{\n\tbool found = false;\n\tif (Str.find(Sub) != std::string::npos)\n\t{\n\t\tfound = true;\n\t}\n\treturn found;\n}\n\n";
 	}
+	if (shell == true)
+	{
+		TheShell = "std::string Shell(std::string cmd) {\n\tstd::string data;\n\tFILE * stream;\n\tconst int max_buffer = 256;\n\tchar buffer[max_buffer];\n\tcmd.append(\" 2>&1\");\n\n\tstream = popen(cmd.c_str(), \"r\");\n\tif (stream)\n\t{\n\t\twhile (!feof(stream))\n\t\t\tif (fgets(buffer, max_buffer, stream) != NULL) data.append(buffer);\n\t\tpclose(stream);\n\t}\n\treturn data;\n}\n\n";
+	}
 	//Methods for C++
-	Methods = RawInput+Random+IsIn+WriteFile+ReadFile;
+	Methods = RawInput+Random+IsIn+WriteFile+ReadFile+TheShell;
 
 	return Methods;
 }
@@ -137,6 +148,7 @@ int main(int argc, char** argv)
 	bool getRead = false;
 	bool getIsIn = false;
 	bool getRawIn = false;
+	bool getShell = false;
 	bool IsMain = false;
 	std::string UserIn = "";
 	std::string TheExt = ".cpp";
@@ -207,6 +219,11 @@ int main(int argc, char** argv)
 				getName = false;
 				getRawIn = true;
 			}
+			//Get shell method
+			else if (UserIn == "--shell")
+			{
+				getShell = true;
+			}
 			//capture new C++ program name
 			else if (getName == true)
 			{
@@ -233,11 +250,11 @@ int main(int argc, char** argv)
 		//Ensure program name is given
 		if (CName != "")
 		{
-			Imports = getImports(getWrite,getRead,getRand);
+			Imports = getImports(getWrite,getRead,getRand,getShell);
 			MarcoPrint = "//print marco for cout\n#define print(x); std::cout << x << std::endl\n";
-			MarcoLen = "//len marco for sizeof\n#define len(item) (sizeof(item))\n";
+			//MarcoLen = "//len marco for sizeof\n#define len(item) (sizeof(item))\n";
 			Marcos = MarcoPrint+MarcoLen+"\n";
-			Methods =  getMethods(getRawIn,getRand,getWrite,getRead,getIsIn);
+			Methods =  getMethods(getRawIn,getRand,getWrite,getRead,getIsIn,getShell);
 			if (IsMain == true)
 			{
 				Main = getMain(getArgs,getRand);
