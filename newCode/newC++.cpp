@@ -8,7 +8,7 @@
 static void help()
 {
 	std::string ProgName = "newC++";
-	std::string Version = "0.1.10";
+	std::string Version = "0.1.11";
 	print("Author: Joespider");
 	print("Program: \"" << ProgName << "\"");
 	print("Version: " << Version);
@@ -45,7 +45,7 @@ static std::string getImports(bool write, bool read, bool random, bool shell)
 	}
 	if (shell == true)
 	{
-		ForShell = "#include <stdio.h>\n#include <stdlib.h>\n";
+		ForShell = "#include <stdexcept>\n#include <stdio.h>\n#include <string>\n\n";
 	}
 
 	Imports = standard+readWrite+ForRandom+ForShell+"\n";
@@ -86,7 +86,7 @@ static std::string getMethods(bool rawinput, bool rand, bool write, bool read, b
 	}
 	if (shell == true)
 	{
-		TheShell = "std::string Shell(std::string cmd) {\n\tstd::string data;\n\tFILE * stream;\n\tconst int max_buffer = 256;\n\tchar buffer[max_buffer];\n\tcmd.append(\" 2>&1\");\n\n\tstream = popen(cmd.c_str(), \"r\");\n\tif (stream)\n\t{\n\t\twhile (!feof(stream))\n\t\t\tif (fgets(buffer, max_buffer, stream) != NULL) data.append(buffer);\n\t\tpclose(stream);\n\t}\n\treturn data;\n}\n\n";
+		TheShell = "std::string shell(std::string command)\n{\n\tchar buffer[128];\n\tstd::string result = \"\";\n\n\t// Open pipe to file\n\tFILE* pipe = popen(command.c_str(), \"r\");\n\tif (!pipe)\n\t{\n\t\treturn \"popen failed!\";\n\t}\n\n\t// read till end of process:\n\twhile (!feof(pipe))\n\t{\n\t\t// use buffer to read and add to result\n\t\tif (fgets(buffer, 128, pipe) != NULL)\n\t\t{\n\t\t\tresult += buffer;\n\t\t}\n\t}\n\n\tpclose(pipe);\n\treturn result;\n}\n\n";
 	}
 	//Methods for C++
 	Methods = RawInput+Random+IsIn+WriteFile+ReadFile+TheShell;
