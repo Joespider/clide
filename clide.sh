@@ -1266,22 +1266,14 @@ runCode()
 	local JavaProp="none"
 	local TheBin
 	local TheLang
-
-#	case ${Lang} in
-#		C|C++|Go|Java|Rust)
-			case ${CodeProject} in
-				none)
-					TheBin=$(ManageLangs ${Lang} "getBin" "${name}")
-					;;
-				*)
-					TheBin=$(ManageLangs ${Lang} "getBin" "${CodeProject}")
-					;;
-			esac
-#			;;
-#		*)
-#			TheBin=$(ManageLangs ${Lang} "getBin" "${name}")
-#			;;
-#	esac
+	case ${CodeProject} in
+		none)
+			TheBin=$(ManageLangs ${Lang} "getBin" "${name}")
+			;;
+		*)
+			TheBin=$(ManageLangs ${Lang} "getBin" "${CodeProject}")
+			;;
+	esac
 
 	if [ ! -z "${TheBin}" ]; then
 		#User Wishes to provide arments for program
@@ -4363,6 +4355,8 @@ CLI()
 									fi
 									;;
 								*)
+									shift
+									shift
 									;;
 							esac
 
