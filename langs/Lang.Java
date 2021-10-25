@@ -4,7 +4,7 @@ Shell=$(which bash)
 #https://stackoverflow.com/questions/10339637/java-import-cannot-find-symbol
 #https://www.codejava.net/java-core/tools/how-to-compile-package-and-run-a-java-program-using-command-line-tools-javac-jar-and-java
 
-SupportV="0.2.12"
+SupportV="0.2.13"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -65,6 +65,8 @@ UseJava()
 
 	local TemplateCodeClass=${LangBin}/${TemplateCode}.class
 	local TemplateCodeJar=${LangBin}/${TemplateCode}.jar
+
+	local TemplateCodeArgs=${NewJavaArgs}
 
 	local EnvVars=( ${LangRun} ${LangHome} ${LangSrc} ${LangBin} ${LangExt} )
 	local Type=$1
@@ -1370,7 +1372,7 @@ UseJava()
 									if [ -z "${UseProjectTemplate}" ]; then
 										#echo "main"
 										cd ${LangBin}
-										${LangRun} ${TemplateC} --user $USER --main --shell --write-file --read-file --user-input --append-array ${PackageNameJava} --name ${name}
+										${LangRun} ${TemplateC} --name ${name} --user $USER --main ${TemplateCodeArgs} ${PackageNameJava}
 										cd - > /dev/null
 										mv "${LangBin}/${name}${LangExt}" .
 									else
@@ -1382,7 +1384,7 @@ UseJava()
 									if [ -z "${UseProjectTemplate}" ]; then
 										#echo "component"
 										cd ${LangBin}
-										${LangRun} ${TemplateC} --user $USER --write-file --read-file --user-input --append-array ${PackageNameJava} --name ${name}
+										${LangRun} ${TemplateC} --name ${name} --user $USER ${TemplateCodeArgs} ${PackageNameJava}
 										cd - > /dev/null
 										mv "${LangBin}/${name}${LangExt}" . 2> /dev/null
 									else
@@ -1454,7 +1456,7 @@ UseJava()
 								main)
 									if [ -z "${UseProjectTemplate}" ]; then
 										#echo "main"
-										${LangRun} -jar ${TemplateCodeJar} --user $USER --main --shell --write-file --read-file --user-input --append-array ${PackageNameJava} --name ${name}
+										${LangRun} -jar ${TemplateCodeJar} --name ${name} --user $USER --main ${TemplateCodeArgs} ${PackageNameJava}
 									else
 										ProjectTemplateHandler ${ProjectType} ${Type} ${name}${LangExt} ${CodeType}
 									fi
@@ -1463,7 +1465,7 @@ UseJava()
 								component)
 									if [ -z "${UseProjectTemplate}" ]; then
 										#echo "component"
-										${LangRun} -jar ${TemplateCodeJar} --user $USER --write-file --read-file ${PackageNameJava} --name ${name}
+										${LangRun} -jar ${TemplateCodeJar} --name ${name} --user $USER ${TemplateCodeArgs} ${PackageNameJava}
 									else
 										ProjectTemplateHandler ${ProjectType} ${Type} ${name}${LangExt} ${CodeType}
 									fi

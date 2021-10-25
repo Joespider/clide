@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.60"
+SupportV="0.1.61"
 Lang=Go
 LangExt=".go"
 #Color Green
@@ -57,6 +57,7 @@ UseGo()
 	TemplateCode=${LangBin}/${TemplateCode%${LangExt}}
 
 	local TemplateCodeSrc=${NewGo%${LangExt}}${LangExt}
+	local TemplateCodeArgs=${NewGoArgs}
 
 	local EnvVars=( ${LangRun} ${LangHome} ${LangSrc} ${LangBin} ${LangExt} )
 	#}
@@ -1089,7 +1090,7 @@ UseGo()
 								if [ -f ${TemplateCode} ]; then
 									#Program Name Given
 									if [ ! -z "${name}" ]; then
-										${TemplateCode} --random --write-file --read-file --cli --main --is-in --user-input --name ${name}
+										${TemplateCode} --name ${name} ${TemplateCodeArgs}
 									#No Program Name Given
 									else
 										#Help Page

@@ -8,7 +8,7 @@
 static void help()
 {
 	std::string ProgName = "newC++";
-	std::string Version = "0.1.11";
+	std::string Version = "0.1.12";
 	print("Author: Joespider");
 	print("Program: \"" << ProgName << "\"");
 	print("Version: " << Version);
@@ -45,7 +45,7 @@ static std::string getImports(bool write, bool read, bool random, bool shell)
 	}
 	if (shell == true)
 	{
-		ForShell = "#include <stdexcept>\n#include <stdio.h>\n#include <string>\n\n";
+		ForShell = "#include <stdexcept>\n#include <stdio.h>\n";
 	}
 
 	Imports = standard+readWrite+ForRandom+ForShell+"\n";

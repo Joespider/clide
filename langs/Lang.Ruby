@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.73"
+SupportV="0.1.74"
 Lang=Ruby
 LangExt=".rb"
 ColorNum=1
@@ -54,6 +54,9 @@ UseRuby()
 	TemplateCode=${LangBin}/${TemplateCode%${LangExt}}${LangExt}
 
 	local TemplateCodeSrc=${NewRuby%${LangExt}}${LangExt}
+	local TemplateCodeArgs=${NewRubyArgs}
+
+	local TemplateCodeArgs=${NewRubyArgs}
 
 	local EnvVars=( ${LangRun} ${LangHome} ${LangSrc} ${LangBin} ${LangExt} )
 	local Type=$1
@@ -894,7 +897,7 @@ UseRuby()
 								if [ -f ${TemplateCode} ]; then
 									#Program Name Given
 									if [ ! -z "${name}" ]; then
-										${LangRun} ${TemplateCode} -n ${name} --cli --main --shell --write-file --read-file --os --random
+										${LangRun} ${TemplateCode} --name ${name} --main ${TemplateCodeArgs}
 									#No Program Name Given
 									else
 										${LangRun} ${TemplateCode} --help
@@ -919,7 +922,7 @@ UseRuby()
 								if [ -f ${TemplateCode} ]; then
 									#Program Name Given
 									if [ ! -z "${name}" ]; then
-										${LangRun} ${TemplateCode} -n "${name}"
+										${LangRun} ${TemplateCode} --name "${name}"
 									#No Program Name Given
 									else
 										#Help Page

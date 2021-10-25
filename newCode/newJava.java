@@ -26,6 +26,31 @@ public class newJava {
 	private static boolean getShell = false;
 	private static boolean getArrays = false;
 
+	private static void Help()
+	{
+		String program = "newJava";
+		String version = "0.1.09";
+		print("Author: Joespider");
+		print("Program: \""+program+"\"");
+		print("Version: "+version);
+		print("Purpose: make new Java programs");
+		print("Usage: "+program+" <args>");
+		print("\t--user <username>: get username for comments");
+		print("\t-n <name> : program name");
+		print("\t--name <name> : program name");
+		print("\t\tnew libary with inheritance");
+		print("\t-p <name> : parent program name");
+		print("\t--parent <name> : parent program name");
+		print("\t--package <package> : package name");
+		print("\t-m : main file");
+		print("\t--main : main file");
+		print("\t--shell : unix shell");
+		print("\t--write-file : enable \"write\" file method");
+		print("\t--read-file : enable \"read\" file method");
+		print("\t--user-input : enable \"raw_input\" method");
+		print("\t--append-array : enable \"append\" array method");
+	}
+
 	private static void print(Object out)
 	{
 		System.out.println(out);
@@ -87,31 +112,6 @@ public class newJava {
 			//Catch exception if any
 			print("Error: " + e.getMessage());
 		}
-	}
-
-	private static void Help()
-	{
-		String program = "newJava";
-		String version = "0.1.08";
-		print("Author: Joespider");
-		print("Program: \""+program+"\"");
-		print("Version: "+version);
-		print("Purpose: make new Java programs");
-		print("Usage: "+program+" <args>");
-		print("\t--user <username>: get username for comments");
-		print("\t-n <name> : program name");
-		print("\t--name <name> : program name");
-		print("\t\tnew libary with inheritance");
-		print("\t-p <name> : parent program name");
-		print("\t--parent <name> : parent program name");
-		print("\t--package <package> : package name");
-		print("\t-m : main file");
-		print("\t--main : main file");
-		print("\t--shell : unix shell");
-		print("\t--write-file : enable \"write\" file method");
-		print("\t--read-file : enable \"read\" file method");
-		print("\t--user-input : enable \"raw_input\" method");
-		print("\t--append-array : enable \"append\" array method");
 	}
 
 	private static void GetArgs(String[] Args)

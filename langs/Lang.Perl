@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.76"
+SupportV="0.1.77"
 Lang=Perl
 LangExt=".pl"
 #Color Purple
@@ -54,6 +54,7 @@ UsePerl()
 	TemplateCode=${LangBin}/${TemplateCode%${LangExt}}${LangExt}
 
 	local TemplateCodeSrc=${NewPerl%${LangExt}}${LangExt}
+	local TemplateCodeArgs=${NewPerlArgs}
 
 	local EnvVars=( ${LangRun} ${LangHome} ${LangSrc} ${LangBin} ${LangExt} )
 	local Type=$1
@@ -821,7 +822,7 @@ UsePerl()
 								if [ -f ${TemplateCode} ]; then
 									#Program Name Given
 									if [ ! -z "${name}" ]; then
-										${LangRun} ${TemplateCode} -n ${name} --cli --main --shell --write-file --read-file --os --random
+										${LangRun} ${TemplateCode} --name ${name} --main ${TemplateCodeArgs}
 									#No Program Name Given
 									else
 										${LangRun} ${TemplateCode} --help
@@ -846,7 +847,7 @@ UsePerl()
 								if [ -f ${TemplateCode} ]; then
 									#Program Name Given
 									if [ ! -z "${name}" ]; then
-										${LangRun} ${TemplateCode} -n "${name}"
+										${LangRun} ${TemplateCode} --name "${name}"
 									#No Program Name Given
 									else
 										#Help Page

@@ -5,7 +5,7 @@ Shell=$(which bash)
 #Link Libs: https://gist.github.com/gubatron/32f82053596c24b6bec6
 #both https://avikdas.com/2019/12/16/makefiles-for-c-cpp-projects.html
 
-SupportV="0.2.15"
+SupportV="0.2.16"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -87,6 +87,7 @@ UseC++()
 	TemplateCode=${LangBin}/${TemplateCode%${LangExt}}
 
 	local TemplateCodeSrc=${NewCpp%${LangExt}}${LangExt}
+	local TemplateCodeArgs=${NewCppArgs}
 
 	local EnvVars=( ${LangRun} ${LangHome} ${LangSrc} ${LangBin} ${LangExt} )
 	#}
@@ -1856,7 +1857,7 @@ UseC++()
 								if [ -f ${TemplateCode} ]; then
 									#Program Name Given
 									if [ ! -z "${name}" ]; then
-										${TemplateCode} --random --write-file --read-file --cli --main --is-in --user-input --name "${name}" --ext "${LangExt}" --shell
+										${TemplateCode} --name "${name}" --main --ext "${LangExt}" ${TemplateCodeArgs}
 									#No Program Name Given
 									else
 										#Help Page
@@ -1884,7 +1885,7 @@ UseC++()
 								if [ -f ${TemplateCode} ]; then
 									#Program Name Given
 									if [ ! -z "${name}" ]; then
-										${TemplateCode} -n "${name}" --ext "${LangExt}"
+										${TemplateCode} --name "${name}" --ext "${LangExt}"
 									#No Program Name Given
 									else
 										#Help Page

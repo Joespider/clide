@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.86"
+SupportV="0.1.88"
 Lang=Python
 LangExt=".py"
 #Color Yellow
@@ -55,6 +55,8 @@ UsePython()
 	TemplateCode=${LangBin}/${TemplateCode%${LangExt}}${LangExt}
 
 	local TemplateCodeSrc=${NewPython%${LangExt}}${LangExt}
+
+	local TemplateCodeArgs=${NewPythonArgs}
 
 	local EnvVars=( ${LangRun} ${LangHome} ${LangSrc} ${LangBin} ${LangExt} )
 	local Type=$1
@@ -917,7 +919,7 @@ UsePython()
 								if [ -f ${TemplateCode} ]; then
 									#Program Name Given
 									if [ ! -z "${name}" ]; then
-										${LangRun} ${TemplateCode} -n ${name} --cli --main --shell --write-file --read-file --os --random
+										${LangRun} ${TemplateCode} -n ${name} --main ${TemplateCodeArgs}
 									#No Program Name Given
 									else
 										${LangRun} ${TemplateCode} --help
