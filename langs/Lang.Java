@@ -4,7 +4,7 @@ Shell=$(which bash)
 #https://stackoverflow.com/questions/10339637/java-import-cannot-find-symbol
 #https://www.codejava.net/java-core/tools/how-to-compile-package-and-run-a-java-program-using-command-line-tools-javac-jar-and-java
 
-SupportV="0.2.13"
+SupportV="0.2.14"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -1887,63 +1887,41 @@ UseJava()
 					local HasAnExt
 					local CheckForSrc
 					local ThePath
+					local TheSrcPath
+					local LocalSrc
 
-					HasAnExt=$(UseJava "hasExt" ${Src})
-					if [ ! -f ${Src} ]; then
-						#Extension is NOT given
-						if [ -z "${HasAnExt}" ]; then
-							#Find src
-							CheckForSrc=$(UseJava "getProjSrc" ${Src}${LangExt} 2> /dev/null)
-							ThePath=${CheckForSrc%/*}
-							Src=${CheckForSrc##*/}
-						else
-							CheckForFile=$(UseJava "getProjSrc" ${Src} 2> /dev/null)
-							if [ ! -z "${CheckForFile}" ]; then
-								ThePath=${CheckForFile%/*}
-							fi
-						fi
-					fi
-
-					TheOld=${Src}
-					HasAnExt=$(UseJava "hasExt" ${New})
-					if [ -z "${HasAnExt}" ]; then
-						TheNew="${New}${LangExt}"
-					else
-						TheNew=${New}
-					fi
+					TheOld=$(UseJava "removeExt" ${Src})
+					TheOld="${TheOld}${LangExt}"
+					New=$(UseJava "removeExt" ${New})
+					TheNew="${New}${LangExt}"
 
 					if [ ! -z "${TheOld}" ] && [ ! -z "${TheNew}" ]; then
-						if [ ! -z "${ThePath}" ]; then
-							cd ${ThePath}
-							case ${Type} in
-								rename)
-									mv ${TheOld} ${TheNew}
-									;;
-								copy)
-									cp ${TheOld} ${TheNew}
-									;;
-								*)
-									;;
-							esac
-							ReplaceTheOld=$(UseJava "removeExt" ${TheOld})
-							WithTheNew=$(UseJava "removeExt" ${TheNew})
-							sed -i "s/${ReplaceTheOld}/${WithTheNew}/g" ${TheNew}
-							cd - > /dev/null
-						else
-							case ${Type} in
-								rename)
-									mv ${TheOld} ${TheNew}
-									;;
-								copy)
-									cp ${TheOld} ${TheNew}
-									;;
-								*)
-									;;
-							esac
-							ReplaceTheOld=$(UseJava "removeExt" ${TheOld})
-							WithTheNew=$(UseJava "removeExt" ${TheNew})
-							sed -i "s/${ReplaceTheOld}/${WithTheNew}/g" ${TheNew}
-						fi
+						TheSrcPath=$(UseJava "getProjSrc" ${TheOld})
+						TheSrcPath=${TheSrcPath%/*}
+						ReplaceTheOld=$(UseJava "removeExt" ${TheOld})
+						WithTheNew=$(UseJava "removeExt" ${TheNew})
+						case ${Type} in
+							rename)
+								LocalSrc=$(UseJava "getAllProjSrc")
+								for TheSrc in ${LocalSrc};
+								do
+									case ${TheSrc} in
+										${TheSrcPath}/${TheOld})
+											;;
+										*)
+											sed -i "s/${ReplaceTheOld}/${WithTheNew}/g" ${TheSrc} 2> /dev/null
+											;;
+									esac
+								done
+								mv ${TheSrcPath}/${TheOld} ${TheSrcPath}/${TheNew}
+								;;
+							copy)
+								cp ${TheOld} ${TheNew}
+								;;
+							*)
+								;;
+						esac
+						sed -i "s/${ReplaceTheOld}/${WithTheNew}/g" ${TheSrcPath}/${TheNew} 2> /dev/null
 						echo ${TheNew}
 					fi
 					;;
