@@ -19,13 +19,17 @@ shift
 
 errorCode()
 {
-	${LibDir}/errorCode.sh $@
+	if [ -d ${LibDir} ] && [ -f ${LibDir}/errorCode.sh ]; then
+		${LibDir}/errorCode.sh $@
+	fi
 }
 
 #Handle Aliases
 AddAlias()
 {
-	${LibDir}/AddAlias.sh $@
+	if [ -d ${LibDir} ] && [ -f ${LibDir}/AddAlias.sh ]; then
+		${LibDir}/AddAlias.sh $@
+	fi
 }
 
 OtherColor()
@@ -37,7 +41,9 @@ OtherColor()
 
 ProjectTemplateHandler()
 {
-	${LibDir}/ProjectTemplateHandler.sh ${Lang} $@
+	if [ -d ${LibDir} ] && [ -f ${LibDir}/ProjectTemplateHandler.sh ]; then
+		${LibDir}/ProjectTemplateHandler.sh ${Lang} $@
+	fi
 }
 
 UseBash()
