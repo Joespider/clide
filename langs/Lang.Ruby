@@ -1,8 +1,6 @@
 Shell=$(which bash)
 #!${Shell}
 
-unset LS_COLORS
-
 SupportV="0.1.75"
 Lang=Ruby
 LangExt=".rb"
