@@ -282,6 +282,14 @@ EnsureDirs()
 		mkdir -p "${ImportProjectDir}"
 	fi
 
+	if [ ! -d "${ClideUserProjectDir}" ]; then
+		mkdir -p "${ClideUserProjectDir}"
+	fi
+
+	if [ ! -d "${ClideUserDir}" ]; then
+		mkdir -p "${ClideUserDir}"
+	fi
+
 	if [ ! -d "${ExportProjectDir}" ]; then
 		mkdir -p "${ExportProjectDir}"
 	fi
@@ -607,7 +615,7 @@ GetProjectType()
 #Save Last Session
 SaveSession()
 {
-	local Session="${ClideDir}/session"
+	local Session="${ClideUserDir}/session"
 	local Project=${CodeProject}
 	local Language=$1
 	local SrcCode=$2
@@ -623,7 +631,7 @@ SaveSession()
 #Load Last Session
 LoadSession()
 {
-	local Session="${ClideDir}/session"
+	local Session="${ClideUserDir}/session"
 	if [ -d ${ClideDir} ]; then
 		#check for clide session
 		if [ ! -f "${Session}" ]; then
