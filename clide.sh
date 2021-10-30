@@ -1,7 +1,6 @@
 Shell=$(which bash)
 #!${Shell}
 
-unset LS_COLORS
 #Handle Pipes
 #{
 ThePipe=""
