@@ -3753,7 +3753,7 @@ CLI()
 				local Code=$2
 				if [ ! -z "${ActionProject}" ]; then
 					case ${ActionProject} in
-						--new)
+						-n|--new)
 							if [ -z "${ThePipe}" ]; then
 								shift
 								local TheLang=$1
@@ -3838,7 +3838,7 @@ CLI()
 								fi
 							fi
 							;;
-						--run|--build)
+						-x|--run|--build)
 							shift
 							local Lang=$1
 							Lang=$(pgLang ${Lang})
@@ -3887,7 +3887,7 @@ CLI()
 												if [ -d ${CodeDir} ]; then
 													cd ${CodeDir}
 													case ${ActionProject} in
-														--run)
+														-x|--run)
 															shift
 															local ArgFlag=$1
 															if [ ! -z "${ArgFlag}" ]; then
@@ -3962,7 +3962,7 @@ CLI()
 								fi
 							fi
 							;;
-						--import)
+						-i|--import)
 							if [ -z "${ThePipe}" ]; then
 								shift
 								local TheLang=$1
@@ -3974,7 +3974,7 @@ CLI()
 								fi
 							fi
 							;;
-						--remove|--delete)
+						-r|--remove|-d|--delete)
 							if [ -z "${ThePipe}" ]; then
 								shift
 								local TheProjectName=$1
@@ -3983,12 +3983,12 @@ CLI()
 										all)
 											case ${GetProject} in
 												#remove project ONLY from record
-												--remove)
+												-r|--remove)
 													rm ${ActiveProjectDir}/*.clide 2> /dev/null
 													echo "ALL projects removed from record"
 													;;
 												#remove project files AND record
-												--delete)
+												-d|--delete)
 													rm ${ActiveProjectDir}/*.clide 2> /dev/null
 													#Handle the langauge specific directories
 													#{
@@ -4023,12 +4023,12 @@ CLI()
 											if [ -f "${ActiveProjectDir}/${TheProjectName}.clide" ]; then
 												case ${GetProject} in
 													#remove project ONLY from record
-													--remove)
+													-r|--remove)
 														rm ${ActiveProjectDir}/${TheProjectName}.clide 2> /dev/null
 														echo "The project \"${TheProjectName}\" removed from record"
 														;;
 													#remove project files AND record
-													--delete)
+													-d|--delete)
 														local TheProject=$(loadProject ${TheProjectName})
 														if [ "${TheProject}" != "no" ]; then
 															Lang=$(echo ${TheProject} | cut -d ";" -f 1)
@@ -4321,7 +4321,7 @@ CLI()
 					fi
 				fi
 				;;
-			--new)
+			-n|--new)
 				if [ -z "${ThePipe}" ]; then
 					shift
 					local Lang
@@ -4608,7 +4608,7 @@ CLI()
 			--debug)
 				;;
 			#run your compiled code
-			--run)
+			-x|--run)
 				#Protect
 				Protect
 				shift
@@ -4617,12 +4617,12 @@ CLI()
 				local CodeDir
 				#Provide the help page
 				if [ -z "${Lang}" ]; then
-					theHelp RunHelp
+					theHelp RunHelp ${UserArg}
 				else
 					case ${Lang} in
 						#Provide the help page
 						-h|--help)
-							theHelp RunHelp
+							theHelp RunHelp ${UserArg}
 							;;
 						*)
 							Lang=$(pgLang ${Lang})
@@ -4863,7 +4863,7 @@ main()
 								local HiddenAction=$1
 								local NextHiddenAction=$2
 								case ${HiddenAction} in
-									--new)
+									-n|--new)
 										shift
 										Args=$@
 										main ${HiddenAction} ${Lang} ${Args[@]}
@@ -4876,7 +4876,7 @@ main()
 											# $ clide <lang> --project --new <ProjectName>
 											#Or
 											# $ clide <lang> --project --new <ProjectName>
-											--new|--import)
+											-n|--new|-i|--import)
 												shift
 												shift
 												Args=$@

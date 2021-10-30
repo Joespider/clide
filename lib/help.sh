@@ -322,7 +322,7 @@ CliHelp()
 			;;
 		function)
 			case ${example} in
-				--new)
+				-n|--new)
 					NewHelp
 					;;
 				--edit)
@@ -337,8 +337,8 @@ CliHelp()
 				--find)
 					FindHelp
 					;;
-				--run)
-					RunHelp
+				-x|--run)
+					RunHelp ${example}
 					;;
 				--install)
 					installHelp
@@ -370,6 +370,7 @@ CliHelp()
 					echo -e "--install <args>\t\t\t\t: \"install program (.bash_aliases)\""
 					echo -e "--debug <args>\t\t\t\t\t: \"Debug compiled code\""
 					echo -e "--run <args>\t\t\t\t\t: \"Run compiled code\""
+					echo -e "-x <args>\t\t\t\t\t\t: \"Run compiled code\""
 					echo -e "--read <args>\t\t\t\t\t: \"Read out (cat) source code\""
 					echo -e "--list <lang>\t\t\t\t\t: \"List source code\""
 					echo -e "--list-cpl <lang>\t\t\t\t: \"List compiled code\""
@@ -493,7 +494,7 @@ FindHelp()
 
 RunHelp()
 {
-	local cli="--run"
+	local cli="$1"
 	local cmd="\$ clide ${cli}"
 	echo ""
 	echo "----------------[(${Head}) cli {${cli}}]----------------"
@@ -613,9 +614,13 @@ ProjectCliHelp()
 	echo -e "${cmd} --new <language> <project> <type>\t: \"Create a new project using the given language\""
 	echo -e "${cmd} --run <project>\t\t\t: \"Run compiled project\""
 	echo -e "${cmd} --run <language> <project>\t\t: \"Run compoled code from given langauge inside project\""
+	echo -e "${cmd} -x <project>\t\t\t\t: \"Run compiled project\""
+	echo -e "${cmd} -x <language> <project>\t\t\t: \"Run compoled code from given langauge inside project\""
 	echo -e "${cmd} --build <project>\t\t\t: \"Build a ${Head} Project\""
 	echo -e "${cmd} --remove <project>\t\t\t: \"Remove a ${Head} Project\""
 	echo -e "${cmd} --remove all\t\t\t\t: \"Remove ALL ${Head} Projects\""
+	echo -e "${cmd} -r <project>\t\t\t\t: \"Remove a ${Head} Project\""
+	echo -e "${cmd} -r all\t\t\t\t\t: \"Remove ALL ${Head} Projects\""
 	echo -e "${cmd} --export <project>\t\t\t: \"package a ${Head} Project into a <project>.tar.gz\""
 	echo -e "${cmd} --import <lang> <project>\t\t: \"install a ${Head} Project <project>.tar.gz file (if <project>.clide is not present)\""
 	echo -e "${cmd} --import <project>\t\t\t: \"install a ${Head} Project <project>.tar.gz file\""
