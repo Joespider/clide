@@ -1,7 +1,9 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.59"
+unset LS_COLORS
+
+SupportV="0.1.60"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
@@ -1441,7 +1443,7 @@ UseC()
 					;;
 			esac
 			if [ -d ${path} ]; then
-				ls ${path}
+				ls --color=auto ${path}
 			fi
 			;;
 		Install|exe-string)

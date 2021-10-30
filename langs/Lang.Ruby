@@ -1,7 +1,9 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.74"
+unset LS_COLORS
+
+SupportV="0.1.75"
 Lang=Ruby
 LangExt=".rb"
 ColorNum=1
@@ -799,7 +801,7 @@ UseRuby()
 					;;
 			esac
 			if [ -d ${path} ]; then
-				ls ${path}
+				ls --color=auto ${path}
 			fi
 			;;
 		Install|exe-string)
