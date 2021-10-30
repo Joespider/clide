@@ -4,7 +4,7 @@ Shell=$(which bash)
 #https://stackoverflow.com/questions/10339637/java-import-cannot-find-symbol
 #https://www.codejava.net/java-core/tools/how-to-compile-package-and-run-a-java-program-using-command-line-tools-javac-jar-and-java
 
-SupportV="0.2.12"
+SupportV="0.2.14"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -22,13 +22,17 @@ shift
 
 errorCode()
 {
-	${LibDir}/errorCode.sh $@
+	if [ -d ${LibDir} ] && [ -f ${LibDir}/errorCode.sh ]; then
+		${LibDir}/errorCode.sh $@
+	fi
 }
 
 #Handle Aliases
 AddAlias()
 {
-	${LibDir}/AddAlias.sh $@
+	if [ -d ${LibDir} ] && [ -f ${LibDir}/AddAlias.sh ]; then
+		${LibDir}/AddAlias.sh $@
+	fi
 }
 
 OtherColor()
@@ -40,7 +44,9 @@ OtherColor()
 
 ProjectTemplateHandler()
 {
-	${LibDir}/ProjectTemplateHandler.sh ${Lang} $@
+	if [ -d ${LibDir} ] && [ -f ${LibDir}/ProjectTemplateHandler.sh ]; then
+		${LibDir}/ProjectTemplateHandler.sh ${Lang} $@
+	fi
 }
 
 UseJava()
@@ -65,6 +71,8 @@ UseJava()
 
 	local TemplateCodeClass=${LangBin}/${TemplateCode}.class
 	local TemplateCodeJar=${LangBin}/${TemplateCode}.jar
+
+	local TemplateCodeArgs=${NewJavaArgs}
 
 	local EnvVars=( ${LangRun} ${LangHome} ${LangSrc} ${LangBin} ${LangExt} )
 	local Type=$1
@@ -1370,7 +1378,7 @@ UseJava()
 									if [ -z "${UseProjectTemplate}" ]; then
 										#echo "main"
 										cd ${LangBin}
-										${LangRun} ${TemplateC} --user $USER --main --shell --write-file --read-file --user-input --append-array ${PackageNameJava} --name ${name}
+										${LangRun} ${TemplateC} --name ${name} --user $USER --main ${TemplateCodeArgs} ${PackageNameJava}
 										cd - > /dev/null
 										mv "${LangBin}/${name}${LangExt}" .
 									else
@@ -1382,7 +1390,7 @@ UseJava()
 									if [ -z "${UseProjectTemplate}" ]; then
 										#echo "component"
 										cd ${LangBin}
-										${LangRun} ${TemplateC} --user $USER --write-file --read-file --user-input --append-array ${PackageNameJava} --name ${name}
+										${LangRun} ${TemplateC} --name ${name} --user $USER ${TemplateCodeArgs} ${PackageNameJava}
 										cd - > /dev/null
 										mv "${LangBin}/${name}${LangExt}" . 2> /dev/null
 									else
@@ -1454,7 +1462,7 @@ UseJava()
 								main)
 									if [ -z "${UseProjectTemplate}" ]; then
 										#echo "main"
-										${LangRun} -jar ${TemplateCodeJar} --user $USER --main --shell --write-file --read-file --user-input --append-array ${PackageNameJava} --name ${name}
+										${LangRun} -jar ${TemplateCodeJar} --name ${name} --user $USER --main ${TemplateCodeArgs} ${PackageNameJava}
 									else
 										ProjectTemplateHandler ${ProjectType} ${Type} ${name}${LangExt} ${CodeType}
 									fi
@@ -1463,7 +1471,7 @@ UseJava()
 								component)
 									if [ -z "${UseProjectTemplate}" ]; then
 										#echo "component"
-										${LangRun} -jar ${TemplateCodeJar} --user $USER --write-file --read-file ${PackageNameJava} --name ${name}
+										${LangRun} -jar ${TemplateCodeJar} --name ${name} --user $USER ${TemplateCodeArgs} ${PackageNameJava}
 									else
 										ProjectTemplateHandler ${ProjectType} ${Type} ${name}${LangExt} ${CodeType}
 									fi
@@ -1885,63 +1893,41 @@ UseJava()
 					local HasAnExt
 					local CheckForSrc
 					local ThePath
+					local TheSrcPath
+					local LocalSrc
 
-					HasAnExt=$(UseJava "hasExt" ${Src})
-					if [ ! -f ${Src} ]; then
-						#Extension is NOT given
-						if [ -z "${HasAnExt}" ]; then
-							#Find src
-							CheckForSrc=$(UseJava "getProjSrc" ${Src}${LangExt} 2> /dev/null)
-							ThePath=${CheckForSrc%/*}
-							Src=${CheckForSrc##*/}
-						else
-							CheckForFile=$(UseJava "getProjSrc" ${Src} 2> /dev/null)
-							if [ ! -z "${CheckForFile}" ]; then
-								ThePath=${CheckForFile%/*}
-							fi
-						fi
-					fi
-
-					TheOld=${Src}
-					HasAnExt=$(UseJava "hasExt" ${New})
-					if [ -z "${HasAnExt}" ]; then
-						TheNew="${New}${LangExt}"
-					else
-						TheNew=${New}
-					fi
+					TheOld=$(UseJava "removeExt" ${Src})
+					TheOld="${TheOld}${LangExt}"
+					New=$(UseJava "removeExt" ${New})
+					TheNew="${New}${LangExt}"
 
 					if [ ! -z "${TheOld}" ] && [ ! -z "${TheNew}" ]; then
-						if [ ! -z "${ThePath}" ]; then
-							cd ${ThePath}
-							case ${Type} in
-								rename)
-									mv ${TheOld} ${TheNew}
-									;;
-								copy)
-									cp ${TheOld} ${TheNew}
-									;;
-								*)
-									;;
-							esac
-							ReplaceTheOld=$(UseJava "removeExt" ${TheOld})
-							WithTheNew=$(UseJava "removeExt" ${TheNew})
-							sed -i "s/${ReplaceTheOld}/${WithTheNew}/g" ${TheNew}
-							cd - > /dev/null
-						else
-							case ${Type} in
-								rename)
-									mv ${TheOld} ${TheNew}
-									;;
-								copy)
-									cp ${TheOld} ${TheNew}
-									;;
-								*)
-									;;
-							esac
-							ReplaceTheOld=$(UseJava "removeExt" ${TheOld})
-							WithTheNew=$(UseJava "removeExt" ${TheNew})
-							sed -i "s/${ReplaceTheOld}/${WithTheNew}/g" ${TheNew}
-						fi
+						TheSrcPath=$(UseJava "getProjSrc" ${TheOld})
+						TheSrcPath=${TheSrcPath%/*}
+						ReplaceTheOld=$(UseJava "removeExt" ${TheOld})
+						WithTheNew=$(UseJava "removeExt" ${TheNew})
+						case ${Type} in
+							rename)
+								LocalSrc=$(UseJava "getAllProjSrc")
+								for TheSrc in ${LocalSrc};
+								do
+									case ${TheSrc} in
+										${TheSrcPath}/${TheOld})
+											;;
+										*)
+											sed -i "s/${ReplaceTheOld}/${WithTheNew}/g" ${TheSrc} 2> /dev/null
+											;;
+									esac
+								done
+								mv ${TheSrcPath}/${TheOld} ${TheSrcPath}/${TheNew}
+								;;
+							copy)
+								cp ${TheOld} ${TheNew}
+								;;
+							*)
+								;;
+						esac
+						sed -i "s/${ReplaceTheOld}/${WithTheNew}/g" ${TheSrcPath}/${TheNew} 2> /dev/null
 						echo ${TheNew}
 					fi
 					;;

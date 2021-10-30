@@ -7,6 +7,22 @@ errorCode()
 	shift
 	local sec=$1
 	case ${ecd} in
+		missing)
+			shift
+			local thr=$1
+			case ${sec} in
+				dir)
+					errorCode "ERROR"
+					errorCode "ERROR" "MISSING: ${thr}/"
+					;;
+				file)
+					errorCode "ERROR"
+					errorCode "ERROR" "MISSING: ${thr}"
+					;;
+				*)
+					;;
+			esac
+			;;
 		pipe)
 			errorCode "ERROR"
 			errorCode "ERROR" "Using pipes with ${sec} is interfering with normal funtionality"
@@ -603,6 +619,7 @@ errorCode()
 							errorCode "ERROR" "You Already have a project named \"${four}\""
 							;;
 						*)
+							echo "no"
 							;;
 					esac
 					;;
@@ -652,6 +669,10 @@ errorCode()
 						not-found)
 							errorCode "ERROR"
 							errorCode "ERROR" "Unable to locate exports directory"
+							;;
+						corrupted)
+							errorCode "ERROR"
+							errorCode "ERROR" "Project Corrupted"
 							;;
 						*)
 							;;

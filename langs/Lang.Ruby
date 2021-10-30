@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.73"
+SupportV="0.1.74"
 Lang=Ruby
 LangExt=".rb"
 ColorNum=1
@@ -19,13 +19,17 @@ shift
 
 errorCode()
 {
-	${LibDir}/errorCode.sh $@
+	if [ -d ${LibDir} ] && [ -f ${LibDir}/errorCode.sh ]; then
+		${LibDir}/errorCode.sh $@
+	fi
 }
 
 #Handle Aliases
 AddAlias()
 {
-	${LibDir}/AddAlias.sh $@
+	if [ -d ${LibDir} ] && [ -f ${LibDir}/AddAlias.sh ]; then
+		${LibDir}/AddAlias.sh $@
+	fi
 }
 
 OtherColor()
@@ -37,7 +41,9 @@ OtherColor()
 
 ProjectTemplateHandler()
 {
-	${LibDir}/ProjectTemplateHandler.sh ${Lang} $@
+	if [ -d ${LibDir} ] && [ -f ${LibDir}/ProjectTemplateHandler.sh ]; then
+		${LibDir}/ProjectTemplateHandler.sh ${Lang} $@
+	fi
 }
 
 UseRuby()
@@ -54,6 +60,9 @@ UseRuby()
 	TemplateCode=${LangBin}/${TemplateCode%${LangExt}}${LangExt}
 
 	local TemplateCodeSrc=${NewRuby%${LangExt}}${LangExt}
+	local TemplateCodeArgs=${NewRubyArgs}
+
+	local TemplateCodeArgs=${NewRubyArgs}
 
 	local EnvVars=( ${LangRun} ${LangHome} ${LangSrc} ${LangBin} ${LangExt} )
 	local Type=$1
@@ -894,7 +903,7 @@ UseRuby()
 								if [ -f ${TemplateCode} ]; then
 									#Program Name Given
 									if [ ! -z "${name}" ]; then
-										${LangRun} ${TemplateCode} -n ${name} --cli --main --shell --write-file --read-file --os --random
+										${LangRun} ${TemplateCode} --name ${name} --main ${TemplateCodeArgs}
 									#No Program Name Given
 									else
 										${LangRun} ${TemplateCode} --help
@@ -919,7 +928,7 @@ UseRuby()
 								if [ -f ${TemplateCode} ]; then
 									#Program Name Given
 									if [ ! -z "${name}" ]; then
-										${LangRun} ${TemplateCode} -n "${name}"
+										${LangRun} ${TemplateCode} --name "${name}"
 									#No Program Name Given
 									else
 										#Help Page

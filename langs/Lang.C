@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.58"
+SupportV="0.1.59"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
@@ -20,13 +20,17 @@ shift
 
 errorCode()
 {
-	${LibDir}/errorCode.sh $@
+	if [ -d ${LibDir} ] && [ -f ${LibDir}/errorCode.sh ]; then
+		${LibDir}/errorCode.sh $@
+	fi
 }
 
 #Handle Aliases
 AddAlias()
 {
-	${LibDir}/AddAlias.sh $@
+	if [ -d ${LibDir} ] && [ -f ${LibDir}/AddAlias.sh ]; then
+		${LibDir}/AddAlias.sh $@
+	fi
 }
 
 OtherColor()
@@ -38,7 +42,9 @@ OtherColor()
 
 ProjectTemplateHandler()
 {
-	${LibDir}/ProjectTemplateHandler.sh ${Lang} $@
+	if [ -d ${LibDir} ] && [ -f ${LibDir}/ProjectTemplateHandler.sh ]; then
+		${LibDir}/ProjectTemplateHandler.sh ${Lang} $@
+	fi
 }
 
 UseC()
@@ -57,6 +63,9 @@ UseC()
 	TemplateCode=${LangBin}/${TemplateCode%${LangExt}}
 
 	local TemplateCodeSrc=${NewC%${LangExt}}${LangExt}
+	local TemplateCodeArgs=${NewCArgs}
+
+	local TemplateCodeArgs=${NewCArgs}
 
 	local EnvVars=( ${LangRun} ${LangHome} ${LangSrc} ${LangBin} ${LangExt} )
 	#}
@@ -1559,7 +1568,7 @@ UseC()
 								if [ -f ${TemplateCode} ]; then
 									#Program Name Given
 									if [ ! -z "${name}" ]; then
-										${TemplateCode} --random --write-file --read-file --cli --main --is-in --user-input --name ${name}
+										${TemplateCode} --name ${name} --main ${TemplateCodeArgs}
 									#No Program Name Given
 									else
 										#Help Page
@@ -1588,7 +1597,7 @@ UseC()
 								if [ -f ${TemplateCode} ]; then
 									#Program Name Given
 									if [ ! -z "${name}" ]; then
-										${TemplateCode} -n "${name}"
+										${TemplateCode} --name "${name}"
 									#No Program Name Given
 									else
 										#Help Page

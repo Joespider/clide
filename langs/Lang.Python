@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.86"
+SupportV="0.1.88"
 Lang=Python
 LangExt=".py"
 #Color Yellow
@@ -20,13 +20,17 @@ shift
 
 errorCode()
 {
-	${LibDir}/errorCode.sh $@
+	if [ -d ${LibDir} ] && [ -f ${LibDir}/errorCode.sh ]; then
+		${LibDir}/errorCode.sh $@
+	fi
 }
 
 #Handle Aliases
 AddAlias()
 {
-	${LibDir}/AddAlias.sh $@
+	if [ -d ${LibDir} ] && [ -f ${LibDir}/AddAlias.sh ]; then
+		${LibDir}/AddAlias.sh $@
+	fi
 }
 
 OtherColor()
@@ -38,7 +42,9 @@ OtherColor()
 
 ProjectTemplateHandler()
 {
-	${LibDir}/ProjectTemplateHandler.sh ${Lang} $@
+	if [ -d ${LibDir} ] && [ -f ${LibDir}/ProjectTemplateHandler.sh ]; then
+		${LibDir}/ProjectTemplateHandler.sh ${Lang} $@
+	fi
 }
 
 UsePython()
@@ -55,6 +61,8 @@ UsePython()
 	TemplateCode=${LangBin}/${TemplateCode%${LangExt}}${LangExt}
 
 	local TemplateCodeSrc=${NewPython%${LangExt}}${LangExt}
+
+	local TemplateCodeArgs=${NewPythonArgs}
 
 	local EnvVars=( ${LangRun} ${LangHome} ${LangSrc} ${LangBin} ${LangExt} )
 	local Type=$1
@@ -917,7 +925,7 @@ UsePython()
 								if [ -f ${TemplateCode} ]; then
 									#Program Name Given
 									if [ ! -z "${name}" ]; then
-										${LangRun} ${TemplateCode} -n ${name} --cli --main --shell --write-file --read-file --os --random
+										${LangRun} ${TemplateCode} -n ${name} --main ${TemplateCodeArgs}
 									#No Program Name Given
 									else
 										${LangRun} ${TemplateCode} --help

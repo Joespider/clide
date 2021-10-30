@@ -36,19 +36,25 @@ declare -A Commands
 #call help shell script
 theHelp()
 {
-	${LibDir}/help.sh ${Head} ${LangsDir} ${RunCplArgs} $@
+	if [ -d ${LibDir} ] && [ -f ${LibDir}/help.sh ]; then
+		${LibDir}/help.sh ${Head} ${LangsDir} ${RunCplArgs} $@
+	fi
 }
 
 #call errorcode shell script
 errorCode()
 {
-	${LibDir}/errorCode.sh $@
+	if [ -d ${LibDir} ] && [ -f ${LibDir}/errorCode.sh ]; then
+		${LibDir}/errorCode.sh $@
+	fi
 }
 
 #Handle Aliases
 AddAlias()
 {
-	${LibDir}/AddAlias.sh $@
+	if [ -d ${LibDir} ] && [ -f ${LibDir}/AddAlias.sh ]; then
+		${LibDir}/AddAlias.sh $@
+	fi
 }
 
 Protect()
@@ -150,21 +156,23 @@ ManageLangs()
 	#Make first letter uppercase
 	shift
 	local Manage=$@
-	if [ -f ${Langs} ]; then
-		case ${TheAction} in
-			runCode)
-				if [ ! -z "${ThePipe}" ]; then
-					cat /dev/stdin | ${Langs} ${PassedVars[@]} ${Manage[@]}
-				else
+	if [ ! -z "${TheAction}" ]; then
+		if [ -d ${LangsDir} ] && [ -f ${Langs} ]; then
+			case ${TheAction} in
+				runCode)
+					if [ ! -z "${ThePipe}" ]; then
+						cat /dev/stdin | ${Langs} ${PassedVars[@]} ${Manage[@]}
+					else
+						${Langs} ${PassedVars[@]} ${Manage[@]}
+					fi
+					;;
+				*)
 					${Langs} ${PassedVars[@]} ${Manage[@]}
-				fi
-				;;
-			*)
-				${Langs} ${PassedVars[@]} ${Manage[@]}
-				;;
-		esac
-	else
-		UseOther ${TheLang} ${Manage[@]}
+					;;
+			esac
+		else
+			UseOther ${TheLang} ${Manage[@]}
+		fi
 	fi
 }
 
@@ -182,37 +190,56 @@ ModeHandler()
 	shift
 	shift
 	local Arg=$@
-	case ${Mode} in
-		${repoTool}|repo)
-			#Use ONLY for Projects
-			if [[ ! "${CodeProject}" == "none" ]]; then
-				chmod -w ${ModesDir}/repo.sh 2> /dev/null
-				${ModesDir}/repo.sh
-				chmod u+w ${ModesDir}/repo.sh 2> /dev/null
-			else
-				errorCode "project" "must-be-active"
-			fi
-			;;
-		pkg)
-			chmod -w ${ModesDir}/pkg.sh 2> /dev/null
-			${ModesDir}/pkg.sh
-			chmod u+w ${ModesDir}/pkg.sh 2> /dev/null
-			;;
-		add)
-			chmod -w ${ModesDir}/add.sh 2> /dev/null
-			${ModesDir}/add.sh ${Head} "${LibDir}" "${LangsDir}" "${ClideProjectDir}" ${Lang} ${cLang} ${Code} ${cCode} ${Arg[@]}
-			chmod u+w ${ModesDir}/add.sh 2> /dev/null
-
-			;;
-		#Provide help page when asked
-		-h|--help)
-			theHelp ModesHelp
-			;;
-		#Provide help page when nothing is asked
-		*)
-			theHelp ModesHelp
-			;;
-	esac
+	if [ -d ${ModesDir} ]; then
+		case ${Mode} in
+			${repoTool}|repo)
+				case ${Mode} in
+					repo)
+						#Use ONLY for Projects
+						case ${CodeProject} in
+							none)
+								errorCode "project" "must-be-active"
+								;;
+							*)
+								if [ -f ${ModesDir}/repo.sh ]; then
+									chmod -w ${ModesDir}/repo.sh 2> /dev/null
+									${ModesDir}/repo.sh
+									chmod u+w ${ModesDir}/repo.sh 2> /dev/null
+								fi
+								;;
+						esac
+						;;
+					${repoTool})
+						ModeHandler repo
+						;;
+					*)
+						;;
+				esac
+				;;
+			pkg)
+				if [ -f ${ModesDir}/pkg.sh ]; then
+					chmod -w ${ModesDir}/pkg.sh 2> /dev/null
+					${ModesDir}/pkg.sh
+					chmod u+w ${ModesDir}/pkg.sh 2> /dev/null
+				fi
+				;;
+			add)
+				if [ -f ${ModesDir}/add.sh ]; then
+					chmod -w ${ModesDir}/add.sh 2> /dev/null
+					${ModesDir}/add.sh ${Head} "${LibDir}" "${LangsDir}" "${ClideProjectDir}" ${Lang} ${cLang} ${Code} ${cCode} ${Arg[@]}
+					chmod u+w ${ModesDir}/add.sh 2> /dev/null
+				fi
+				;;
+			#Provide help page when asked
+			-h|--help)
+				theHelp ModesHelp
+				;;
+			#Provide help page when nothing is asked
+			*)
+				theHelp ModesHelp
+				;;
+		esac
+	fi
 }
 
 #Make sure the propper directories are in place in order for cl[ide] to run
@@ -220,31 +247,51 @@ EnsureDirs()
 {
 	#If missing...create "Programs" dir
 	if [ ! -d "${ProgDir}" ]; then
-		mkdir "${ProgDir}"
+		mkdir -p "${ProgDir}"
 	fi
 
 	if [ ! -d "${ClideDir}" ]; then
-		mkdir "${ClideDir}"
+		mkdir -p "${ClideDir}"
 	fi
 
 	if [ ! -d "${NotesDir}" ]; then
-		mkdir "${NotesDir}"
+		mkdir -p "${NotesDir}"
 	fi
 
 	if [ ! -d "${LangsDir}" ]; then
-		mkdir "${LangDir}"
+		mkdir -p "${LangDir}"
 	fi
 
 	if [ ! -d "${LibDir}" ]; then
-		mkdir "${LibDir}"
+		mkdir -p "${LibDir}"
 	fi
 
 	if [ ! -d "${ClideProjectDir}" ]; then
-		mkdir "${ClideProjectDir}"
-		mkdir "${TemplateProjectDir}"
-		mkdir "${ActiveProjectDir}"
-		mkdir "${ImportProjectDir}"
-		mkdir "${ExportProjectDir}"
+		mkdir -p "${ClideProjectDir}"
+	fi
+
+	if [ ! -d "${TemplateProjectDir}" ]; then
+		mkdir -p "${TemplateProjectDir}"
+	fi
+
+	if [ ! -d "${ActiveProjectDir}" ]; then
+		mkdir -p "${ActiveProjectDir}"
+	fi
+
+	if [ ! -d "${ImportProjectDir}" ]; then
+		mkdir -p "${ImportProjectDir}"
+	fi
+
+	if [ ! -d "${ClideUserProjectDir}" ]; then
+		mkdir -p "${ClideUserProjectDir}"
+	fi
+
+	if [ ! -d "${ClideUserDir}" ]; then
+		mkdir -p "${ClideUserDir}"
+	fi
+
+	if [ ! -d "${ExportProjectDir}" ]; then
+		mkdir -p "${ExportProjectDir}"
 	fi
 
 	#Handle the langauge specific directories
@@ -253,18 +300,22 @@ EnsureDirs()
 	local text
 	for TheLang in ${LangsDir}/Lang.*; do
 		#Select the next langauge
-		TheLang=${TheLang##*/}
-		text=${TheLang#Lang.*}
-		#Make sure language is supported on computer
-		text=$(ManageLangs ${text} "pgLang")
-		case ${text} in
-			no)
-				;;
-			*)
-				#Call the Lang.<language> to ensure directories
-				ManageLangs "${text}" "EnsureDirs"
-				;;
-		esac
+		if [ -f ${TheLang} ]; then
+			TheLang=${TheLang##*/}
+			text=${TheLang#Lang.*}
+			#Make sure language is supported on computer
+			text=$(ManageLangs ${text} "pgLang")
+			if [ ! -z "${text}" ]; then
+				case ${text} in
+					no)
+						;;
+					*)
+						#Call the Lang.<language> to ensure directories
+						ManageLangs "${text}" "EnsureDirs"
+						;;
+				esac
+			fi
+		fi
 	done
 	#}
 }
@@ -304,25 +355,31 @@ CodeSupportVersion()
 		fi
 	#Get ALL support versions
 	else
-		local text
-		local SupportNum
-		for TheLang in ${LangsDir}/Lang.*;
-		do
-			#Select the next langauge
-			TheLang=${TheLang##*/}
-			text=${TheLang#Lang.*}
-			text=$(ManageLangs ${text} "pgLang")
-			case ${text} in
-				no)
-					;;
-				*)
-					SupportNum=$(ManageLangs "${text}" "SupportVersion")
-					if [ ! -z "${SupportNum}" ]; then
-						echo "${text}: ${SupportNum}"
+		if [ -d ${LangsDir} ]; then
+			local text
+			local SupportNum
+			for TheLang in ${LangsDir}/Lang.*;
+			do
+				if [ -f ${TheLang} ]; then
+					#Select the next langauge
+					TheLang=${TheLang##*/}
+					text=${TheLang#Lang.*}
+					text=$(ManageLangs ${text} "pgLang")
+					if [ ! -z "${text}" ]; then
+						case ${text} in
+							no)
+								;;
+							*)
+								SupportNum=$(ManageLangs "${text}" "SupportVersion")
+								if [ ! -z "${SupportNum}" ]; then
+									echo "${text}: ${SupportNum}"
+								fi
+								;;
+						esac
 					fi
-					;;
-			esac
-		done
+				fi
+			done
+		fi
 	fi
 }
 
@@ -335,7 +392,7 @@ CodeTemplateVersion()
 	local LangColor
 	if [ ! -z "${TheLang}" ]; then
 		LangColor=$(ManageLangs ${TheLang} "color-number")
-		TempNum=$(ManageLangs ${TheLang} "TemplateVersion" | sed "s/Version/${text}/g" | grep -v found)
+		TempNum=$(ManageLangs ${TheLang} "TemplateVersion" | sed "s/Version//g" | grep -v found)
 		if [ ! -z "${TempNum}" ]; then
 			echo -e "\e[1;4${LangColor}m[\"New Code\" Template]\e[0m"
 			echo "${TempNum}"
@@ -344,30 +401,39 @@ CodeTemplateVersion()
 	else
 		local CharCount
 		local text
-		for TheLang in ${LangsDir}/Lang.*;
-		do
-			#Select the next langauge
-			TheLang=${TheLang##*/}
-			text=${TheLang#Lang.*}
-			text=$(ManageLangs ${text} "pgLang")
-			case ${text} in
-				no)
-					#do nothing
-					;;
-				*)
-					TempNum=$(ManageLangs "${text}" "TemplateVersion" | sed "s/Version/${text}/g" | grep -v found)
-					if [ ! -z "${TempNum}" ]; then
-						#Tab based on size of chars in lable
-						CharCount=$(echo ${text} | wc -m)
-						if [ ${CharCount} -lt 6 ]; then
-							echo -e "(${text})\t\t{${TempNum}}"
-						else
-							echo -e "(${text})\t{${TempNum}}"
-						fi
+		if [ -d ${LangsDir} ]; then
+			for TheLang in ${LangsDir}/Lang.*;
+			do
+				#Select the next langauge
+				if [ -f ${TheLang} ]; then
+					TheLang=${TheLang##*/}
+					text=${TheLang#Lang.*}
+					text=$(ManageLangs ${text} "pgLang")
+					if [ ! -z "${text}" ]; then
+						case ${text} in
+							no)
+								#do nothing
+								;;
+							*)
+								LangColor=$(ManageLangs ${text} "color-number")
+								TempNum=$(ManageLangs "${text}" "TemplateVersion" | sed "s/Version/${text}/g" | grep -v found)
+								if [ ! -z "${TempNum}" ]; then
+									#Tab based on size of chars in lable
+									CharCount=$(echo ${text} | wc -m)
+									if [ ${CharCount} -lt 8 ]; then
+										echo -e "\e[1;3${LangColor}m${text}\e[0m\t\t\e[1;3${LangColor}m${TempNum}\e[0m"
+										#echo -e "\e[1;4${LangColor}m(\e[0m\e[1;3${LangColor}m${text}\e[0m\e[1;4${LangColor}m)\e[0m\t\t{\e[1;3${LangColor}m${TempNum}\e[0m}"
+									else
+										echo -e "\e[1;3${LangColor}m${text}\e[0m\t\e[1;3${LangColor}m${TempNum}\e[0m"
+										#echo -e "\e[1;4${LangColor}m(\e[0m\e[1;3${LangColor}m${text}\e[0m\e[1;4${LangColor}m)\e[0m\t{\e[1;3${LangColor}m${TempNum}\e[0m}"
+									fi
+								fi
+								;;
+						esac
 					fi
-					;;
-				esac
-		done
+				fi
+			done
+		fi
 	fi
 }
 
@@ -380,22 +446,28 @@ CodeVersion()
 		ManageLangs ${TheLang} "CplVersion"
 	else
 		local text
-		for TheLang in ${LangsDir}/Lang.*;
-		do
-			#Select the next langauge
-			TheLang=${TheLang##*/}
-			text=${TheLang#Lang.*}
-			#Ensure langauge is supported on computer
-			text=$(ManageLangs ${text} "pgLang")
-			case ${text} in
-				no)
-					;;
-				*)
-					#Pull the compiler/interpreter version using Lang.<language>
-					ManageLangs "${text}" "CplVersion" | sed "s/Version:/${text}:/g"
-					;;
-			esac
-		done
+		if [ -d ${LangsDir} ]; then
+			for TheLang in ${LangsDir}/Lang.*;
+			do
+				#Select the next langauge
+				if [ -f ${TheLang} ]; then
+					TheLang=${TheLang##*/}
+					text=${TheLang#Lang.*}
+					#Ensure langauge is supported on computer
+					text=$(ManageLangs ${text} "pgLang")
+					if [ ! -z "${text}" ]; then
+						case ${text} in
+							no)
+								;;
+							*)
+								#Pull the compiler/interpreter version using Lang.<language>
+								ManageLangs "${text}" "CplVersion" | sed "s/Version:/${text}:/g"
+								;;
+						esac
+					fi
+				fi
+			done
+		fi
 	fi
 }
 
@@ -416,41 +488,50 @@ DebugVersion()
 		fi
 	else
 		local text
-		for TheLang in ${LangsDir}/Lang.*;
-		do
-			#Select the next langauge
-			TheLang=${TheLang##*/}
-			text=${TheLang#Lang.*}
-			#Ensure langauge is supported on computer
-			text=$(ManageLangs ${text} "pgLang")
-			case ${text} in
-				no)
-					;;
-				*)
-					#Pull degger version from Lang.<language>
-					DebugV=$(ManageLangs "${text}" "getDebugVersion")
-					if [ ! -z "${DebugV}" ]; then
-						echo -n "${text}: "
-						echo "${DebugV}"
+		if [ -d ${LangsDir} ]; then
+			for TheLang in ${LangsDir}/Lang.*;
+			do
+				if [ -f ${TheLang} ]; then
+					#Select the next langauge
+					TheLang=${TheLang##*/}
+					text=${TheLang#Lang.*}
+					#Ensure langauge is supported on computer
+					text=$(ManageLangs ${text} "pgLang")
+					if [ ! -z "${text}" ]; then
+						case ${text} in
+							no)
+								;;
+							*)
+								LangColor=$(ManageLangs ${text} "color-number")
+								#Pull degger version from Lang.<language>
+								DebugV=$(ManageLangs "${text}" "getDebugVersion")
+								if [ ! -z "${DebugV}" ]; then
+									echo -e "\e[1;4${LangColor}m[${text} Debugger]\e[0m"
+									echo "${DebugV}"
+									echo ""
+								fi
+								;;
+						esac
 					fi
-					;;
-			esac
-		done
+				fi
+			done
+		fi
 	fi
 }
 
 Banner()
 {
 	local Type=$1
-	case ${Type} in
-		main)
-			Art
-			;;
-		*)
-
-			ManageLangs ${Type} "Art"
-			;;
-	esac
+	if [ ! -z "${Type}" ]; then
+		case ${Type} in
+			main)
+				Art
+				;;
+			*)
+				ManageLangs ${Type} "Art"
+				;;
+		esac
+	fi
 	if [ ! -z "${VerColor}" ]; then
 		echo -e "(\e[1;4${VerColor}m${Version}\e[0m)"
 	else
@@ -527,7 +608,8 @@ lookFor()
 GetProjectType()
 {
 	local GetType
-	GetType=$(ManageLangs "${text}" "GetProjectType")
+	local Lang=$1
+	GetType=$(ManageLangs "${Lang}" "GetProjectType")
 	if [ ! -z "${GetType}" ]; then
 		ProjectType=${GetType}
 	fi
@@ -536,26 +618,30 @@ GetProjectType()
 #Save Last Session
 SaveSession()
 {
-	local Session="${ClideDir}/session"
+	local Session="${ClideUserDir}/session"
 	local Project=${CodeProject}
 	local Language=$1
 	local SrcCode=$2
 	#Source Needs to be present
 	if [ ! -z "${SrcCode}" ]; then
-		touch ${Session}
-		echo "${Project};${Language};${SrcCode}" > ${Session}
+		if [ -d ${ClideDir} ] && [ ! -z "${Language}" ]; then
+			touch ${Session}
+			echo "${Project};${Language};${SrcCode}" > ${Session}
+		fi
 	fi
 }
 
 #Load Last Session
 LoadSession()
 {
-	local Session="${ClideDir}/session"
-	#check for clide session
-	if [ ! -f "${Session}" ]; then
-		errorCode "loadSession"
-	else
-		cat ${Session}
+	local Session="${ClideUserDir}/session"
+	if [ -d ${ClideDir} ]; then
+		#check for clide session
+		if [ ! -f "${Session}" ]; then
+			errorCode "loadSession"
+		else
+			cat ${Session}
+		fi
 	fi
 }
 
@@ -565,43 +651,44 @@ recoverProject()
 	local Name=$2
 	local Path=$3
 	local projectType=$4
+	local ProjectFile
 	#If project type is not provided, assume is generic
 	if [ -z "${projectType}" ]; then
 		projectType="${ProjectDefaultType}"
 	fi
 
-	local ProjectFile=${ActiveProjectDir}/${Name}.clide
-	if [ ! -z "${Name}" ]; then
-		if [ ! -f ${ProjectFile} ]; then
-
-			if [ -z "${Path}" ]; then
-				errorCode "project" "recover" "no-path"
+	if [ -d ${ActiveProjectDir} ]; then
+		if [ ! -z "${Name}" ]; then
+			ProjectFile=${ActiveProjectDir}/${Name}.clide
+			if [ ! -f ${ProjectFile} ]; then
+				if [ -z "${Path}" ]; then
+					errorCode "project" "recover" "no-path"
+				else
+					case ${Path} in
+						#Path does not exist and save details
+						*${Name}|*${Name}/)
+							local cName=$(ManageLangs ${Lang} "ProjectColor" "${Name}")
+							local cLang=$(color "${Lang}")
+							#Format and save details into project file
+							echo "name=${Name}" > ${ProjectFile}
+							echo "lang=${Lang}" >> ${ProjectFile}
+							echo "type=${projectType}" >> ${ProjectFile}
+							echo "path=${Path}" >> ${ProjectFile}
+							echo "src=" >> ${ProjectFile}
+							echo "[Imported ${cLang} Project: ${cName}]"
+							;;
+						#Path does not exist
+						*)
+							errorCode "project" "recover" "name-in-path" "${Name}" "${Path}"
+							;;
+					esac
+				fi
 			else
-				case ${Path} in
-					#Path does not exist and save details
-					*${Name}|*${Name}/)
-						local cName=$(ManageLangs ${Lang} "ProjectColor" "${Name}")
-						local cLang=$(color "${Lang}")
-						#Format and save details into project file
-						echo "name=${Name}" > ${ProjectFile}
-						echo "lang=${Lang}" >> ${ProjectFile}
-						echo "type=${projectType}" >> ${ProjectFile}
-						echo "path=${Path}" >> ${ProjectFile}
-						echo "src=" >> ${ProjectFile}
-						echo "[Imported ${cLang} Project: ${cName}]"
-						;;
-					#Path does not exist
-					*)
-						errorCode "project" "recover" "name-in-path" "${Name}" "${Path}"
-						;;
-				esac
+				errorCode "project" "recover" "exists" "${Name}"
 			fi
 		else
-			errorCode "project" "recover" "exists" "${Name}"
+			errorCode "project" "recover" "no-name"
 		fi
-	else
-
-		errorCode "project" "recover" "no-name"
 	fi
 }
 
@@ -623,50 +710,63 @@ exportProject()
 			;;
 		#Is a project
 		*)
-			if [ -f ${ActiveProjectDir}/${project}.clide ]; then
-				if [ -d ${ExportProjectDir} ]; then
-					if [ ! -f ${ExportProjectDir}/${project}.tar.gz ]; then
-						ClideFile=$(loadProject ${project})
-						ProjectLang=$(echo ${ClideFile} | cut -d ';' -f 1)
-						ProjectPath=$(echo ${ClideFile} | cut -d ';' -f 3)
-						ProjectType=$(echo ${ClideFile} | cut -d ';' -f 4)
-						if [ -d ${ProjectPath} ]; then
-							cd ${ExportProjectDir}/
-							case ${ProjectType} in
-								${ProjectDefaultType})
-									cp -pR ${ProjectPath}/ .
-									grep -v "path=" ${ActiveProjectDir}/${project}.clide > ${project}.clide
-									tar -cpzf ${project}.tar.gz ${project}/ ${project}.clide 2> /dev/null
-									rm -rf ${project} ${project}.clide
-									;;
-								*)
-									if [ -f ${TemplateProjectDir}/${ProjectLang}.${ProjectType} ]; then
-										cp -pR ${ProjectPath}/ .
-										cp ${ActiveProjectDir}/${project}.clide .
-										tar -cpzf ${project}.tar.gz ${project}/ ${project}.clide 2> /dev/null
-										rm -rf ${project} ${project}.clide ${ProjectLang}.${ProjectType}
+			if [ ! -z "${project}" ]; then
+				if [ -f ${ActiveProjectDir}/${project}.clide ] && [ -d ${ActiveProjectDir} ]; then
+					if [ -d ${ExportProjectDir} ]; then
+						if [ ! -f ${ExportProjectDir}/${project}.tar.gz ]; then
+							ClideFile=$(loadProject ${project})
+							if [ ! -z "${ClideFile}" ]; then
+								ProjectLang=$(echo ${ClideFile} | cut -d ';' -f 1 2> /dev/null)
+								ProjectPath=$(echo ${ClideFile} | cut -d ';' -f 3 2> /dev/null)
+								ProjectType=$(echo ${ClideFile} | cut -d ';' -f 4 2> /dev/null)
+								if [ ! -z "${ProjectLang}" ] &&	[ ! -z "${ProjectPath}" ] && [ ! -z "${ProjectType}" ]; then
+									if [ -d ${ProjectPath} ]; then
+										cd ${ExportProjectDir}/
+										case ${ProjectType} in
+											${ProjectDefaultType})
+												cp -pR ${ProjectPath}/ .
+												grep -v "path=" ${ActiveProjectDir}/${project}.clide > ${project}.clide
+												tar -cpzf ${project}.tar.gz ${project}/ ${project}.clide 2> /dev/null
+												rm -rf ${project} ${project}.clide 2> /dev/null
+												;;
+											*)
+												if [ -d ${TemplateProjectDir}/${ProjectLang}.${ProjectType} ]; then
+													cp -pR ${ProjectPath}/ .
+													cp -pR ${TemplateProjectDir}/${ProjectLang}.${ProjectType}/ .
+													cp ${ActiveProjectDir}/${project}.clide .
+													tar -cpzf ${project}.tar.gz ${project}/ ${project}.clide 2> /dev/null
+													rm -rf ${project} ${project}.clide ${ProjectLang}.${ProjectType} 2> /dev/null
+												fi
+												;;
+										esac
+										cd - > /dev/null
+										if [ -f ${ExportProjectDir}/${project}.tar.gz ]; then
+											errorCode "HINT" "Exported: ${project}"
+											errorCode "HINT"
+											errorCode "HINT" "File: ${ExportProjectDir}/${project}.tar.gz"
+										else
+											errorCode "project" "export" "not-supported"
+										fi
+									else
+										errorCode "project" "export" "corrupted"
 									fi
-									;;
-							esac
-							cd - > /dev/null
-							if [ -f ${ExportProjectDir}/${project}.tar.gz ]; then
-								errorCode "HINT" "Exported: ${project}"
-								errorCode "HINT"
-								errorCode "HINT" "File: ${ExportProjectDir}/${project}.tar.gz"
+								else
+									errorCode "project" "export" "corrupted"
+								fi
 							else
-								errorCode "project" "export" "not-supported"
+								errorCode "project" "export" "corrupted"
 							fi
 						else
-							errorCode "project" "export" "corrupted"
+							errorCode "project" "export" "already" "${project}"
 						fi
 					else
-						errorCode "project" "export" "already" "${project}"
+						errorCode "project" "export" "not-found" "${project}"
 					fi
 				else
-					errorCode "project" "export" "not-found" "${project}"
+					errorCode "project" "export" "not-project" "${project}"
 				fi
 			else
-				errorCode "project" "export" "not-project" "${project}"
+				errorCode "project" "none" "${Head}"
 			fi
 			;;
 	esac
@@ -676,7 +776,7 @@ importProject()
 {
 	local ProjectLang=$1
 	local project=$2
-	local ProjectFile=${ActiveProjectDir}/${project}.clide
+	local ProjectFile
 	local ClideFile
 	local ProjectType
 	local ProjectPath
@@ -686,9 +786,10 @@ importProject()
 		errorCode "project" "none" "${Head}"
 	else
 		#Make sure Imports dir exists
-		if [ -d ${ImportProjectDir} ]; then
+		if [ -d ${ImportProjectDir} ] && [ -d ${ActiveProjectDir} ]; then
+			ProjectFile=${ActiveProjectDir}/${project}.clide
 			#Make sure project.tar.gz exists and project isn't already installed
-			if [ -f ${ImportProjectDir}/${project}.tar.gz ] && [ ! -f ${ActiveProjectDir}/${project}.clide ]; then
+			if [ -f ${ImportProjectDir}/${project}.tar.gz ] && [ ! -f ${ProjectFile} ]; then
 				#Go to Imports dir
 				cd ${ImportProjectDir}/
 				#Untar file
@@ -702,65 +803,74 @@ importProject()
 						#Get contents of file
 						ClideFile=$(loadProject ${project})
 						#Get Langauge
-						ProjectLang=$(echo ${ClideFile} | cut -d ';' -f 1)
+						ProjectLang=$(echo ${ClideFile} | cut -d ';' -f 1 2> /dev/null)
 					fi
-					#Check if language is supported
-					IsSupported=$(ManageLangs ${ProjectLang} "pgLang")
-					case ${IsSupported} in
-						no)
-							#remove config from clide
-							if [ -f ${ActiveProjectDir}/${project}.clide ]; then
-								rm ${ActiveProjectDir}/${project}.clide
-							fi
-							errorCode "project" "import" "not-supported" "${project}"
-							;;
-						*)
-							#Get the project path from the language
-							ProjectPath=$(ManageLangs ${ProjectLang} "getProjectDir")
-							#Make sure project path was found and project isn't already installed
-							if [ ! -d ${ProjectPath}/${project} ] && [ ! -z "${ProjectPath}" ]; then
-								#make sure tar unziped the project directory
-								if [ -d ${project} ]; then
-									#Copy project to languages project folder
-									cp -pR  ${project}/ ${ProjectPath}/
-									if [ ! -f ${ActiveProjectDir}/${project}.clide ]; then
-										recoverProject ${ProjectLang} ${project} ${ProjectPath}/${project} > /dev/null
-									else
-										#Record path into the config
-										echo  "path=${ProjectPath}/${project}" >> ${ActiveProjectDir}/${project}.clide
-										#Check for the project type
-										ProjectType=$(echo ${ClideFile} | cut -d ';' -f 4)
-										case ${ProjectType} in
-											#if Generic...do nothing
-											${ProjectDefaultType})
-												;;
-											#If specified
-											*)
-												#Make sure project type was included in tar.gz
-												if [ -f ${ProjectLang}.${ProjectType} ] && [ ! -z "${ProjectType}" ]; then
-													#Make sure existing project type doesn't already exist
-													if [ ! -f ${TemplateProjectDir}/${ProjectLang}.${ProjectType} ] && [ -d ${TemplateProjectDir} ]; then
-														mv ${ProjectLang}.${ProjectType} ${TemplateProjectDir}/
-													else
-														rm ${ProjectLang}.${ProjectType}
-													fi
-												fi
-												;;
-										esac
+
+					if [ ! -z "${ProjectLang}" ]; then
+						#Check if language is supported
+						IsSupported=$(ManageLangs ${ProjectLang} "pgLang")
+						if [ ! -z "${IsSupported}" ]; then
+							case ${IsSupported} in
+								no)
+									#remove config from clide
+									if [ -f ${ActiveProjectDir}/${project}.clide ]; then
+										rm ${ActiveProjectDir}/${project}.clide
 									fi
-									rm -rf ${project}/ ${project}.tar.gz
-									errorCode "HINT" "${project} has been imported"
-								fi
-							else
-								if [ -f ${ActiveProjectDir}/${project}.clide ]; then
-									rm ${ActiveProjectDir}/${project}.clide
-								fi
-								errorCode "project" "exists" "${project}"
-							fi
-							;;
-					esac
-				cd - > /dev/null
+									errorCode "project" "import" "not-supported" "${project}"
+									;;
+								*)
+									#Get the project path from the language
+									ProjectPath=$(ManageLangs ${ProjectLang} "getProjectDir")
+									#Make sure project path was found and project isn't already installed
+									if [ ! -d ${ProjectPath}/${project} ] && [ ! -z "${ProjectPath}" ]; then
+										#make sure tar unziped the project directory
+										if [ -d ${project} ]; then
+											#Copy project to languages project folder
+											cp -pR  ${project}/ ${ProjectPath}/
+											if [ ! -f ${ActiveProjectDir}/${project}.clide ]; then
+												recoverProject ${ProjectLang} ${project} ${ProjectPath}/${project} > /dev/null
+											else
+												#Record path into the config
+												echo  "path=${ProjectPath}/${project}" >> ${ActiveProjectDir}/${project}.clide
+												#Check for the project type
+												ProjectType=$(echo ${ClideFile} | cut -d ';' -f 4 2> /dev/null)
+												case ${ProjectType} in
+													#if Generic...do nothing
+													${ProjectDefaultType})
+														;;
+													#If specified
+													*)
+														#Make sure project type was included in tar.gz
+														if [ -f ${ProjectLang}.${ProjectType} ] && [ ! -z "${ProjectType}" ]; then
+															#Make sure existing project type doesn't already exist
+															if [ ! -f ${TemplateProjectDir}/${ProjectLang}.${ProjectType} ] && [ -d ${TemplateProjectDir} ]; then
+																mv ${ProjectLang}.${ProjectType} ${TemplateProjectDir}/ 2> /dev/null
+															else
+																rm ${ProjectLang}.${ProjectType}  2> /dev/null
+															fi
+														fi
+														;;
+												esac
+											fi
+											rm -rf ${project}/ ${project}.tar.gz 2> /dev/null
+											errorCode "HINT" "${project} has been imported"
+										fi
+									else
+										if [ -f ${ActiveProjectDir}/${project}.clide ]; then
+											rm ${ActiveProjectDir}/${project}.clide 2> /dev/null
+										fi
+										errorCode "project" "exists" "${project}"
+									fi
+									;;
+							esac
+						else
+							errorCode "project" "import" "corrupted"
+						fi
+					else
+						errorCode "project" "import" "corrupted"
+					fi
 				fi
+				cd - > /dev/null
 			else
 				errorCode "ERROR"
 				errorCode "ERROR" "Please make this file exists"
@@ -829,6 +939,7 @@ updateProject()
 	local src=$1
 	local project=${CodeProject}
 	local ProjectFile=${ActiveProjectDir}/${project}.clide
+	local SrcLine
 	#No Project is found
 	if [ ! -z "${src}" ]; then
 		#Locate Project Directory
@@ -836,7 +947,7 @@ updateProject()
 			errorCode "project" "NotAProject" ${project}
 		else
 			#Incorperate sed instead of what you're doing
-			local SrcLine=$(grep "src=" ${ProjectFile})
+			SrcLine=$(grep "src=" ${ProjectFile})
 			sed -i "s/${SrcLine}/src=${src}/g" ${ProjectFile}
 		fi
 	fi
@@ -844,14 +955,14 @@ updateProject()
 
 linkProjects()
 {
+	local Already
 	local Lang=$1
+	local Langs
 	local LinkLang=$2
 	local ThePath
 	local LinkPath
-	local project
-	if [ ! -z "${3}" ]; then
-		project=$3
-	else
+	local project=$3
+	if [  -z "${project}" ]; then
 		project=${CodeProject}
 	fi
 	local ProjectFile=${ActiveProjectDir}/${project}.clide
@@ -859,40 +970,44 @@ linkProjects()
 	LinkLang="${LinkLang^}"
 
 	if [ ! -z "${LinkLang}" ]; then
-		local Already=$(grep "link=" ${ProjectFile})
-		local Langs=$(ls ${LangsDir}/ | sed "s/Lang./|/g" | tr -d '\n')
-		ThePath=$(ManageLangs ${LinkLang} "getProjDir")
-		LinkPath=$(ManageLangs ${Lang} "getProjDir")
-		Langs="${Langs}|"
-		case ${Langs} in
-			*"|${LinkLang}|"*)
-				if [ -z "${Already}" ]; then
-					echo "link=${Lang},${LinkLang}," >> ${ProjectFile}
-					if [ ! -f ${LinkPath}/${project} ]; then
-						cd ${ThePath}
-						ln -s ${LinkPath}/${project} 2> /dev/null
-						cd - > /dev/null
-					fi
-					echo ${LinkLang}
-				else
-					case ${Already} in
-						*"${LinkLang},"*)
-							;;
-						*)
-							sed -i "s/${Already}/${Already}${LinkLang},/g" ${ProjectFile}
+		Already=$(grep "link=" ${ProjectFile})
+		Langs=$(ls ${LangsDir}/ | sed "s/Lang./|/g" | tr -d '\n')
+		if [ ! -f "${Langs}" ]; then
+			ThePath=$(ManageLangs ${LinkLang} "getProjDir")
+			LinkPath=$(ManageLangs ${Lang} "getProjDir")
+			if [ -d ${ThePath} ]; then
+				Langs="${Langs}|"
+				case ${Langs} in
+					*"|${LinkLang}|"*)
+						if [ -z "${Already}" ]; then
+							echo "link=${Lang},${LinkLang}," >> ${ProjectFile}
 							if [ ! -f ${LinkPath}/${project} ]; then
 								cd ${ThePath}
 								ln -s ${LinkPath}/${project} 2> /dev/null
 								cd - > /dev/null
 							fi
 							echo ${LinkLang}
-							;;
-					esac
-				fi
-				;;
-			*)
-				;;
-		esac
+						else
+							case ${Already} in
+								*"${LinkLang},"*)
+									;;
+								*)
+									sed -i "s/${Already}/${Already}${LinkLang},/g" ${ProjectFile}
+									if [ ! -f ${LinkPath}/${project} ]; then
+										cd ${ThePath}
+										ln -s ${LinkPath}/${project} 2> /dev/null
+										cd - > /dev/null
+									fi
+									echo ${LinkLang}
+									;;
+							esac
+						fi
+						;;
+					*)
+						;;
+				esac
+			fi
+		fi
 	fi
 }
 
@@ -901,6 +1016,7 @@ swapProjects()
 {
 	local Lang=$1
 	local LinkLang=$2
+	local Langs
 	local ThePath
 	local LinkPath
 	#ALL Lowercase
@@ -909,26 +1025,29 @@ swapProjects()
 	LinkLang="${LinkLang^}"
 	local project=${CodeProject}
 	local ProjectFile=${ActiveProjectDir}/${project}.clide
-	local Already=$(grep "link=" ${ProjectFile})
+	local Already
 
 	if [ ! -z "${LinkLang}" ]; then
-		local Langs=$(ls ${LangsDir}/ | sed "s/Lang./|/g" | tr -d '\n')
-		Langs="${Langs}|"
-		case ${Langs} in
-			*"|${LinkLang}|"*)
-				if [ ! -z "${Already}" ]; then
-					case ${Already} in
-						*"${LinkLang},"*)
-							echo ${LinkLang}
-							;;
-						*)
-							;;
-					esac
-				fi
-				;;
-			*)
-				;;
-		esac
+		if [ -f ${ProjectFile} ]; then
+			Already=$(grep "link=" ${ProjectFile})
+			Langs=$(ls ${LangsDir}/ | sed "s/Lang./|/g" | tr -d '\n')
+			Langs="${Langs}|"
+			case ${Langs} in
+				*"|${LinkLang}|"*)
+					if [ ! -z "${Already}" ]; then
+						case ${Already} in
+							*"${LinkLang},"*)
+								echo ${LinkLang}
+								;;
+							*)
+								;;
+						esac
+					fi
+					;;
+				*)
+					;;
+			esac
+		fi
 	fi
 }
 
@@ -936,9 +1055,11 @@ swapProjects()
 listProjects()
 {
 	#Get list of active prijects from .clide files
-	cd ${ActiveProjectDir}/
-	ls *.clide 2> /dev/null | sed "s/.clide//g"
-	cd - > /dev/null
+	if [ -d ${ActiveProjectDir} ]; then
+		cd ${ActiveProjectDir}/
+		ls *.clide 2> /dev/null | sed "s/.clide//g"
+		cd - > /dev/null
+	fi
 }
 
 #Discover Project in clide
@@ -956,52 +1077,55 @@ discoverProject()
 	local Path
 	local ChosenLangs=""
 
-	for TheLang in ${LangsDir}/Lang.*;
-	do
-		#Select the next langauge
-		TheLang=${TheLang##*/}
-		TheLang=${TheLang#Lang.*}
-		Path=$(ManageLangs ${TheLang} "discoverProject")
-		if [ ! -z "${Path}" ]; then
-			for Name in ${Path}/*;
-			do
-				if [ -d "${Name}" ]; then
-					Name=$(echo ${Name} | sed "s/projects\//|/g" | cut -d '|' -f 2)
-					case ${Action} in
-						relink)
-							#Ignore anything that isn't a symbolic link
-							if [ -L ${Path}/${Name} ]; then
-								case ${TheProjName} in
-									${Name})
-										cTheLang=$(color "${TheLang}")
-										cLinkLang=$(color "${LinkLang}")
-										echo -e "\tLinking ${cLinkLang} ---> ${cTheLang}"
-										linkProjects ${LinkLang} ${TheLang} ${Name} > /dev/null
-										;;
-									*)
-										;;
-								esac
-							fi
-							;;
-						*)
-							#Ignore anything that isn't a symbolic link
-							if [ ! -L ${Path}/${Name} ]; then
-								if [ ! -f ${ActiveProjectDir}/${Name}.clide ]; then
-									cName=$(ManageLangs ${TheLang} "ProjectColor" "${Name}")
-									cTheLang=$(color "${TheLang}")
-									cLinkLang=$(color "${LinkLang}")
-									echo "[Project: ${cTheLang}{${cName}}]"
-									recoverProject ${TheLang} ${Name} ${Path}/${Name} > /dev/null
-									discoverProject "relink" ${TheLang} ${Name} "Not Done"
-								fi
-							fi
-							;;
-					esac
+	if [ -d ${LangsDir} ]; then
+		for TheLang in ${LangsDir}/Lang.*;
+		do
+			#Select the next langauge
+			if [ -f ${TheLang} ]; then
+				TheLang=${TheLang##*/}
+				TheLang=${TheLang#Lang.*}
+				Path=$(ManageLangs ${TheLang} "discoverProject")
+				if [ ! -z "${Path}" ]; then
+					for Name in ${Path}/*;
+					do
+						if [ -d "${Name}" ]; then
+							Name=$(echo ${Name} | sed "s/projects\//|/g" | cut -d '|' -f 2)
+							case ${Action} in
+								relink)
+									#Ignore anything that isn't a symbolic link
+									if [ -L ${Path}/${Name} ]; then
+										case ${TheProjName} in
+											${Name})
+												cTheLang=$(color "${TheLang}")
+												cLinkLang=$(color "${LinkLang}")
+												echo -e "\tLinking ${cLinkLang} ---> ${cTheLang}"
+												linkProjects ${LinkLang} ${TheLang} ${Name} > /dev/null
+												;;
+											*)
+												;;
+										esac
+									fi
+									;;
+								*)
+									#Ignore anything that isn't a symbolic link
+									if [ ! -L ${Path}/${Name} ]; then
+										if [ ! -f ${ActiveProjectDir}/${Name}.clide ]; then
+											cName=$(ManageLangs ${TheLang} "ProjectColor" "${Name}")
+											cTheLang=$(color "${TheLang}")
+											cLinkLang=$(color "${LinkLang}")
+											echo "[Project: ${cTheLang}{${cName}}]"
+											recoverProject ${TheLang} ${Name} ${Path}/${Name} > /dev/null
+											discoverProject "relink" ${TheLang} ${Name} "Not Done"
+										fi
+									fi
+									;;
+							esac
+						fi
+					done
 				fi
-			done
-
-		fi
-	done
+			fi
+		done
+	fi
 	if [ -z "${NotDone}" ]; then
 		echo ""
 		errorCode "HINT" "${Head} is all caught up"
@@ -1663,6 +1787,7 @@ Actions()
 				;;
 			*)
 				if [ -z "${ThePipe}" ]; then
+					VerColor=$(ManageLangs ${Lang} "color-number")
 					Banner ${Lang}
 				fi
 				;;
@@ -1761,8 +1886,31 @@ Actions()
 						;;
 					#Unset code for session
 					unset)
-						Code=""
-						refresh="yes"
+						local TheNewChosen
+						if [ ! -z "${UserIn[1]}" ]; then
+							TheNewChosen=$(preSelectSrc ${Lang} ${UserIn[1]})
+							if [ ! -z "${TheNewChosen}" ]; then
+								case ${Code} in
+									"${TheNewChosen},"*)
+										Code=${Code//${TheNewChosen},/}
+										refresh="yes"
+										;;
+									*",${TheNewChosen},"*)
+										Code=${Code//,${TheNewChosen},/,}
+										refresh="yes"
+										;;
+									*",${TheNewChosen}")
+										Code=${Code//,${TheNewChosen}/}
+										refresh="yes"
+										;;
+									*)
+										;;
+								esac
+							fi
+						else
+							Code=""
+							refresh="yes"
+						fi
 						;;
 					#Delete source code and binary
 					rm|remove|delete)
@@ -3609,7 +3757,7 @@ CLI()
 				local Code=$2
 				if [ ! -z "${ActionProject}" ]; then
 					case ${ActionProject} in
-						--new)
+						-n|--new)
 							if [ -z "${ThePipe}" ]; then
 								shift
 								local TheLang=$1
@@ -3694,7 +3842,7 @@ CLI()
 								fi
 							fi
 							;;
-						--run|--build)
+						-x|--run|--build)
 							shift
 							local Lang=$1
 							Lang=$(pgLang ${Lang})
@@ -3743,7 +3891,7 @@ CLI()
 												if [ -d ${CodeDir} ]; then
 													cd ${CodeDir}
 													case ${ActionProject} in
-														--run)
+														-x|--run)
 															shift
 															local ArgFlag=$1
 															if [ ! -z "${ArgFlag}" ]; then
@@ -3818,7 +3966,7 @@ CLI()
 								fi
 							fi
 							;;
-						--import)
+						-i|--import)
 							if [ -z "${ThePipe}" ]; then
 								shift
 								local TheLang=$1
@@ -3830,7 +3978,7 @@ CLI()
 								fi
 							fi
 							;;
-						--remove|--delete)
+						-r|--remove|-d|--delete)
 							if [ -z "${ThePipe}" ]; then
 								shift
 								local TheProjectName=$1
@@ -3839,12 +3987,12 @@ CLI()
 										all)
 											case ${GetProject} in
 												#remove project ONLY from record
-												--remove)
+												-r|--remove)
 													rm ${ActiveProjectDir}/*.clide 2> /dev/null
 													echo "ALL projects removed from record"
 													;;
 												#remove project files AND record
-												--delete)
+												-d|--delete)
 													rm ${ActiveProjectDir}/*.clide 2> /dev/null
 													#Handle the langauge specific directories
 													#{
@@ -3879,12 +4027,12 @@ CLI()
 											if [ -f "${ActiveProjectDir}/${TheProjectName}.clide" ]; then
 												case ${GetProject} in
 													#remove project ONLY from record
-													--remove)
+													-r|--remove)
 														rm ${ActiveProjectDir}/${TheProjectName}.clide 2> /dev/null
 														echo "The project \"${TheProjectName}\" removed from record"
 														;;
 													#remove project files AND record
-													--delete)
+													-d|--delete)
 														local TheProject=$(loadProject ${TheProjectName})
 														if [ "${TheProject}" != "no" ]; then
 															Lang=$(echo ${TheProject} | cut -d ";" -f 1)
@@ -4177,7 +4325,7 @@ CLI()
 					fi
 				fi
 				;;
-			--new)
+			-n|--new)
 				if [ -z "${ThePipe}" ]; then
 					shift
 					local Lang
@@ -4464,7 +4612,7 @@ CLI()
 			--debug)
 				;;
 			#run your compiled code
-			--run)
+			-x|--run)
 				#Protect
 				Protect
 				shift
@@ -4473,12 +4621,12 @@ CLI()
 				local CodeDir
 				#Provide the help page
 				if [ -z "${Lang}" ]; then
-					theHelp RunHelp
+					theHelp RunHelp ${UserArg}
 				else
 					case ${Lang} in
 						#Provide the help page
 						-h|--help)
-							theHelp RunHelp
+							theHelp RunHelp ${UserArg}
 							;;
 						*)
 							Lang=$(pgLang ${Lang})
@@ -4719,7 +4867,7 @@ main()
 								local HiddenAction=$1
 								local NextHiddenAction=$2
 								case ${HiddenAction} in
-									--new)
+									-n|--new)
 										shift
 										Args=$@
 										main ${HiddenAction} ${Lang} ${Args[@]}
@@ -4732,7 +4880,7 @@ main()
 											# $ clide <lang> --project --new <ProjectName>
 											#Or
 											# $ clide <lang> --project --new <ProjectName>
-											--new|--import)
+											-n|--new|-i|--import)
 												shift
 												shift
 												Args=$@

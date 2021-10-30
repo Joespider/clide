@@ -55,6 +55,7 @@ MenuHelp()
 			echo -e "lscpl\t\t\t\t: \"list compiled progams\""
 			echo -e "using\t\t\t\t: \"get the language being used\""
 			echo -e "unset\t\t\t\t: \"deselect source code\""
+			echo -e "unset <code>\t\t\t: \"deselect source code\""
 			echo -e "use <language> <code>\t\t: \"choose language\""
 			echo -e "using\t\t\t\t: \"Display what language is being used\""
 			echo -e "save\t\t\t\t: \"Save session\""
@@ -194,30 +195,31 @@ ProjectHelp()
 	echo ""
 	echo "----------------[(${Head}) \"Project\" Help]----------------"
 	echo -e "Purpose: \"handle projects\""
-	echo -e "new <project>\t\t\t: \"Create a new project\""
-	echo -e "import <project> <path>\t\t: \"Import projects\""
-	echo -e "update, save\t\t\t: \"Update the active project\""
-	echo -e "export\t\t\t\t: \"Export the active project to a tar.gz\""
-	echo -e "load <project>\t\t\t: \"Choose a project to make active\""
-	echo -e "load <project> <lang>\t\t: \"Choose a project to make active with a given language\""
-	echo -e "set <project>\t\t\t: \"Choose a project to make active\""
-	echo -e "set <project> <lang>\t\t: \"Choose a project to make active with a given langauge\""
-	echo -e "select <project>\t\t: \"Choose a project to make active\""
-	echo -e "select <project> <lang>\t\t: \"Choose a project to make active with a given langauge\""
-	echo -e "title\t\t\t\t: \"Make a title for a project\""
-	echo -e "remove, delete <project>\t: \"Choose a project to remove or delete\""
-	echo -e "type\t\t\t\t: \"display the type of project\""
-	echo -e "\tlist\t\t\t: \"Show list of possible project types\""
-	echo -e "list\t\t\t\t: \"List ALL projects\""
-	echo -e "link <lang>\t\t\t: \"Link a language to an active project\""
-	echo -e "\t--list, list\t\t: \"list the linked languages in an active project\""
-	echo -e "swap <lang>\t\t\t: \"swap to a language in an active project\""
-	echo -e "\t--list, list\t\t: \"list the linked languages in an active project\""
-	echo -e "active\t\t\t\t: \"Display the name of the current project\""
-	echo -e "files\t\t\t\t: \"List the files under the active project\""
-	echo -e "files src\t\t\t: \"List the source code paths only in an active project\""
-	echo -e "types\t\t\t\t: \"Display the types of projects under ${Lang}\""
-	echo -e "discover\t\t\t: \"Discover project on system (creates project profile)"
+	echo -e "project <action>\t\t\t: \"handle projects\""
+	echo -e "\tnew <project>\t\t\t: \"Create a new project\""
+	echo -e "\timport <project> <path>\t\t: \"Import projects\""
+	echo -e "\tupdate, save\t\t\t: \"Update the active project\""
+	echo -e "\texport\t\t\t\t: \"Export the active project to a tar.gz\""
+	echo -e "\tload <project>\t\t\t: \"Choose a project to make active\""
+	echo -e "\tload <project> <lang>\t\t: \"Choose a project to make active with a given language\""
+	echo -e "\tset <project>\t\t\t: \"Choose a project to make active\""
+	echo -e "\tset <project> <lang>\t\t: \"Choose a project to make active with a given langauge\""
+	echo -e "\tselect <project>\t\t: \"Choose a project to make active\""
+	echo -e "\tselect <project> <lang>\t\t: \"Choose a project to make active with a given langauge\""
+	echo -e "\ttitle\t\t\t\t: \"Make a title for a project\""
+	echo -e "\tremove, delete <project>\t: \"Choose a project to remove or delete\""
+	echo -e "\ttype\t\t\t\t: \"display the type of project\""
+	echo -e "\t\tlist\t\t\t: \"Show list of possible project types\""
+	echo -e "\tlist\t\t\t\t: \"List ALL projects\""
+	echo -e "\tlink <lang>\t\t\t: \"Link a language to an active project\""
+	echo -e "\t\t--list, list\t\t: \"list the linked languages in an active project\""
+	echo -e "\tswap <lang>\t\t\t: \"swap to a language in an active project\""
+	echo -e "\t\t--list, list\t\t: \"list the linked languages in an active project\""
+	echo -e "\tactive\t\t\t\t: \"Display the name of the current project\""
+	echo -e "\tfiles\t\t\t\t: \"List the files under the active project\""
+	echo -e "\tfiles src\t\t\t: \"List the source code paths only in an active project\""
+	echo -e "\ttypes\t\t\t\t: \"Display the types of projects under ${Lang}\""
+	echo -e "\tdiscover\t\t\t: \"Discover project on system (creates project profile)"
 	ManageLangs ${Lang} "ProjectHelp"
 	echo "----------------------------------------------------------"
 	echo ""
@@ -320,7 +322,7 @@ CliHelp()
 			;;
 		function)
 			case ${example} in
-				--new)
+				-n|--new)
 					NewHelp
 					;;
 				--edit)
@@ -335,8 +337,8 @@ CliHelp()
 				--find)
 					FindHelp
 					;;
-				--run)
-					RunHelp
+				-x|--run)
+					RunHelp ${example}
 					;;
 				--install)
 					installHelp
@@ -368,6 +370,7 @@ CliHelp()
 					echo -e "--install <args>\t\t\t\t: \"install program (.bash_aliases)\""
 					echo -e "--debug <args>\t\t\t\t\t: \"Debug compiled code\""
 					echo -e "--run <args>\t\t\t\t\t: \"Run compiled code\""
+					echo -e "-x <args>\t\t\t\t\t\t: \"Run compiled code\""
 					echo -e "--read <args>\t\t\t\t\t: \"Read out (cat) source code\""
 					echo -e "--list <lang>\t\t\t\t\t: \"List source code\""
 					echo -e "--list-cpl <lang>\t\t\t\t: \"List compiled code\""
@@ -491,7 +494,7 @@ FindHelp()
 
 RunHelp()
 {
-	local cli="--run"
+	local cli="$1"
 	local cmd="\$ clide ${cli}"
 	echo ""
 	echo "----------------[(${Head}) cli {${cli}}]----------------"
@@ -611,9 +614,13 @@ ProjectCliHelp()
 	echo -e "${cmd} --new <language> <project> <type>\t: \"Create a new project using the given language\""
 	echo -e "${cmd} --run <project>\t\t\t: \"Run compiled project\""
 	echo -e "${cmd} --run <language> <project>\t\t: \"Run compoled code from given langauge inside project\""
+	echo -e "${cmd} -x <project>\t\t\t\t: \"Run compiled project\""
+	echo -e "${cmd} -x <language> <project>\t\t\t: \"Run compoled code from given langauge inside project\""
 	echo -e "${cmd} --build <project>\t\t\t: \"Build a ${Head} Project\""
 	echo -e "${cmd} --remove <project>\t\t\t: \"Remove a ${Head} Project\""
 	echo -e "${cmd} --remove all\t\t\t\t: \"Remove ALL ${Head} Projects\""
+	echo -e "${cmd} -r <project>\t\t\t\t: \"Remove a ${Head} Project\""
+	echo -e "${cmd} -r all\t\t\t\t\t: \"Remove ALL ${Head} Projects\""
 	echo -e "${cmd} --export <project>\t\t\t: \"package a ${Head} Project into a <project>.tar.gz\""
 	echo -e "${cmd} --import <lang> <project>\t\t: \"install a ${Head} Project <project>.tar.gz file (if <project>.clide is not present)\""
 	echo -e "${cmd} --import <project>\t\t\t: \"install a ${Head} Project <project>.tar.gz file\""

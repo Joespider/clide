@@ -8,7 +8,7 @@
 static void help()
 {
 	std::string ProgName = "newC++";
-	std::string Version = "0.1.12";
+	std::string Version = "0.1.14";
 	print("Author: Joespider");
 	print("Program: \"" << ProgName << "\"");
 	print("Version: " << Version);
@@ -28,22 +28,22 @@ static void help()
 }
 
 //create import listing
-static std::string getImports(bool write, bool read, bool random, bool shell)
+static std::string getImports(bool* write, bool* read, bool* random, bool* shell)
 {
 	std::string Imports = "";
 	std::string standard = "#include <iostream>\n#include <string>\n";
 	std::string readWrite = "";
 	std::string ForRandom = "";
 	std::string ForShell = "";
-	if ((read == true) || (write == true))
+	if ((*read == true) || (*write == true))
 	{
 		readWrite = "#include <fstream>\n";
 	}
-	if (random == true)
+	if (*random == true)
 	{
 		ForRandom = "#include <stdlib.h>\n#include <time.h>\n";
 	}
-	if (shell == true)
+	if (*shell == true)
 	{
 		ForShell = "#include <stdexcept>\n#include <stdio.h>\n";
 	}
@@ -54,7 +54,7 @@ static std::string getImports(bool write, bool read, bool random, bool shell)
 }
 
 //create base methods
-static std::string getMethods(bool rawinput, bool rand, bool write, bool read, bool isin, bool shell)
+static std::string getMethods(bool* rawinput, bool* rand, bool* write, bool* read, bool* isin, bool* shell)
 {
 	std::string Methods = "";
 	std::string Random = "";
@@ -64,27 +64,27 @@ static std::string getMethods(bool rawinput, bool rand, bool write, bool read, b
 	std::string IsIn = "";
 	std::string TheShell = "";
 
-	if (rawinput == true)
+	if (*rawinput == true)
 	{
 		RawInput = "//User Input\nstd::string raw_input(std::string message)\n{\n\tstd::string UserIn;\n\tstd::cout << message;\n\tgetline (std::cin,UserIn);\n\treturn UserIn;\n}\n\n";
 	}
-	if (write == true)
+	if (*write == true)
 	{
 		WriteFile = "//Write file\nstatic void Write(std::string filename, std::string content)\n{\n\tstd::ofstream myfile;\n\tmyfile.open(filename.c_str());\n\tmyfile << content;\n\tmyfile.close();\n}\n\n";
 	}
-	if (read == true)
+	if (*read == true)
 	{
 		ReadFile = "//Read file\nstatic void Read(std::string File)\n{\n\tstd::string line;\n\tstd::ifstream myFile(File.c_str());\n\tif (myFile.is_open())\n\t{\n\t\twhile (getline (myFile,line))\n\t\t{\n\t\t\tstd::cout << line << \"\\n\";\n\t\t}\n\t\tmyFile.close();\n\t}\n\telse\n\t{\n\t\tstd::cout << \"file not found\\n\";\n\t}\n}\n\n";
 	}
-	if (rand == true)
+	if (*rand == true)
 	{
 		Random = "//Get Random int\nint random(int min, int max)\n{\n\tint Val;\n\tVal = rand()%max+min;\n\treturn Val;\n}\n\n";
 	}
-	if (isin == true)
+	if (*isin == true)
 	{
 		IsIn = "//Check if sub-string is in string\nbool IsIn(std::string Str, std::string Sub)\n{\n\tbool found = false;\n\tif (Str.find(Sub) != std::string::npos)\n\t{\n\t\tfound = true;\n\t}\n\treturn found;\n}\n\n";
 	}
-	if (shell == true)
+	if (*shell == true)
 	{
 		TheShell = "std::string shell(std::string command)\n{\n\tchar buffer[128];\n\tstd::string result = \"\";\n\n\t// Open pipe to file\n\tFILE* pipe = popen(command.c_str(), \"r\");\n\tif (!pipe)\n\t{\n\t\treturn \"popen failed!\";\n\t}\n\n\t// read till end of process:\n\twhile (!feof(pipe))\n\t{\n\t\t// use buffer to read and add to result\n\t\tif (fgets(buffer, 128, pipe) != NULL)\n\t\t{\n\t\t\tresult += buffer;\n\t\t}\n\t}\n\n\tpclose(pipe);\n\treturn result;\n}\n\n";
 	}
@@ -95,19 +95,19 @@ static std::string getMethods(bool rawinput, bool rand, bool write, bool read, b
 }
 
 //build main function
-static std::string getMain(bool Args, bool getRandom)
+static std::string getMain(bool* Args, bool* getRandom)
 {
 	std::string Main = "";
 	std::string StartRandom = "";
 
-	if (getRandom == true)
+	if (*getRandom == true)
 	{
 		StartRandom = "\t//Enable Random\n\tsrand(time(NULL));\n";
 	}
 
-	if (Args == true)
+	if (*Args == true)
 	{
-		Main = "//C++ Main...with cli arguments\nint main(int argc, char** argv)\n{\n"+StartRandom+"\tstd::string out = \"\";\n\t//Args were given\n\tif (argc > 1)\n\t{\n\t\t//Loop through Args\n\t\tfor (int i = 1; i < argc; i++)\n\t\t{\n\t\t\tout = std::string(argv[i]);\n\t\t\tif (out == \"find\")\n\t\t\t{\n\t\t\t\tprint(\"Found\");\n\t\t\t\tbreak;\n\t\t\t}\n\t\t}\n\t}\n\n\treturn 0;\n}\n";
+		Main = "//C++ Main...with cli arguments\nint main(int argc, char** argv)\n{\n"+StartRandom+"\tstd::string out = \"\";\n\t//Args were given\n\tif (argc > 1)\n\t{\n\t\t//Loop through Args\n\t\tfor (int i = 1; i < argc; i++)\n\t\t{\n\t\t\tout = std::string(argv[i]);\n\t\t\tif (out == \"find\")\n\t\t\t{\n\t\t\t\tprint(\"Found\");\n\t\t\t\tbreak;\n\t\t\t}\n\t\t}\n\t}\n\telse\n\t{\n\t\tprint(\"Give me some cli arguments\");\n\t}\n\n\treturn 0;\n}\n";
 	}
 	else
 	{
@@ -250,14 +250,14 @@ int main(int argc, char** argv)
 		//Ensure program name is given
 		if (CName != "")
 		{
-			Imports = getImports(getWrite,getRead,getRand,getShell);
+			Imports = getImports(&getWrite, &getRead, &getRand, &getShell);
 			MarcoPrint = "//print marco for cout\n#define print(x); std::cout << x << std::endl\n";
 			//MarcoLen = "//len marco for sizeof\n#define len(item) (sizeof(item))\n";
 			Marcos = MarcoPrint+MarcoLen+"\n";
-			Methods =  getMethods(getRawIn,getRand,getWrite,getRead,getIsIn,getShell);
+			Methods =  getMethods(&getRawIn, &getRand, &getWrite, &getRead, &getIsIn, &getShell);
 			if (IsMain == true)
 			{
-				Main = getMain(getArgs,getRand);
+				Main = getMain(&getArgs, &getRand);
 			}
 			else
 			{

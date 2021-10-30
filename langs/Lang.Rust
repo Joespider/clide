@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.24"
+SupportV="0.1.25"
 Lang=Rust
 LangExt=".rs"
 ColorNum=1
@@ -19,13 +19,17 @@ shift
 
 errorCode()
 {
-	${LibDir}/errorCode.sh $@
+	if [ -d ${LibDir} ] && [ -f ${LibDir}/errorCode.sh ]; then
+		${LibDir}/errorCode.sh $@
+	fi
 }
 
 #Handle Aliases
 AddAlias()
 {
-	${LibDir}/AddAlias.sh $@
+	if [ -d ${LibDir} ] && [ -f ${LibDir}/AddAlias.sh ]; then
+		${LibDir}/AddAlias.sh $@
+	fi
 }
 
 OtherColor()
@@ -37,7 +41,9 @@ OtherColor()
 
 ProjectTemplateHandler()
 {
-	${LibDir}/ProjectTemplateHandler.sh ${Lang} $@
+	if [ -d ${LibDir} ] && [ -f ${LibDir}/ProjectTemplateHandler.sh ]; then
+		${LibDir}/ProjectTemplateHandler.sh ${Lang} $@
+	fi
 }
 
 UseRust()
@@ -54,6 +60,7 @@ UseRust()
 	TemplateCode=${LangBin}/${TemplateCode%${LangExt}}
 
 	local TemplateCodeSrc=${NewRust%${LangExt}}${LangExt}
+	local TemplateCodeArgs=${NewRustArgs}
 
 	local EnvVars=( ${LangCpl} ${LangHome} ${LangSrc} ${LangBin} ${LangExt} )
 	local Type=$1
@@ -981,7 +988,7 @@ UseRust()
 								if [ -f ${TemplateCode} ]; then
 									#Program Name Given
 									if [ ! -z "${name}" ]; then
-										${TemplateCode} -n ${name} --cli --main --shell --write-file --read-file --os --random
+										${TemplateCode} --name ${name} --main ${TemplateCodeArgs}
 									#No Program Name Given
 									else
 										${TemplateCode} --help
@@ -1007,7 +1014,7 @@ UseRust()
 								if [ -f ${TemplateCode} ]; then
 									#Program Name Given
 									if [ ! -z "${name}" ]; then
-										${TemplateCode} -n "${name}"
+										${TemplateCode} --name "${name}"
 									#No Program Name Given
 									else
 										#Help Page
