@@ -1,10 +1,12 @@
 Shell=$(which bash)
 #!${Shell}
 
+unset LS_COLORS
+
 #https://stackoverflow.com/questions/10339637/java-import-cannot-find-symbol
 #https://www.codejava.net/java-core/tools/how-to-compile-package-and-run-a-java-program-using-command-line-tools-javac-jar-and-java
 
-SupportV="0.2.14"
+SupportV="0.2.15"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -1228,7 +1230,7 @@ UseJava()
 					;;
 			esac
 			if [ -d ${path} ]; then
-				ls ${path}
+				ls --color=auto ${path}
 			fi
 			;;
 		Install|exe-string)

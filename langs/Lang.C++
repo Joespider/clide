@@ -1,11 +1,13 @@
 Shell=$(which bash)
 #!${Shell}
 
+unset LS_COLORS
+
 #make files: https://www3.ntu.edu.sg/home/ehchua/programming/cpp/gcc_make.html
 #Link Libs: https://gist.github.com/gubatron/32f82053596c24b6bec6
 #both https://avikdas.com/2019/12/16/makefiles-for-c-cpp-projects.html
 
-SupportV="0.2.16"
+SupportV="0.2.17"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -1727,7 +1729,7 @@ UseC++()
 					;;
 			esac
 			if [ -d ${path} ]; then
-				ls ${path}
+				ls --color=auto ${path}
 			fi
 			;;
 		Install|exe-string)

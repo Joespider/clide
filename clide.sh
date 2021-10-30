@@ -1,6 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
+unset LS_COLORS
 #Handle Pipes
 #{
 ThePipe=""
@@ -1814,7 +1815,7 @@ Actions()
 				case ${UserArg} in
 					#List files
 					ls)
-						ls ${UserIn[1]}
+						ls --color=auto ${UserIn[1]}
 						;;
 					lscpl)
 						#list compiled code using Lang.<language>

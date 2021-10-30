@@ -1,7 +1,9 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.77"
+unset LS_COLORS
+
+SupportV="0.1.78"
 Lang=Perl
 LangExt=".pl"
 #Color Purple
@@ -725,7 +727,7 @@ UsePerl()
 					;;
 			esac
 			if [ -d ${path} ]; then
-				ls ${path}
+				ls --color=auto ${path}
 			fi
 			;;
 		Install|exe-string)

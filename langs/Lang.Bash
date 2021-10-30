@@ -1,7 +1,9 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.74"
+unset LS_COLORS
+
+SupportV="0.1.75"
 Lang=Bash
 LangExt=".sh"
 ColorNum=2
@@ -805,7 +807,7 @@ UseBash()
 					;;
 			esac
 			if [ -d ${path} ]; then
-				ls ${path}
+				ls --color=auto ${path}
 			fi
 			;;
 		Install|exe-string)

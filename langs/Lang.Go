@@ -1,7 +1,9 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.61"
+unset LS_COLORS
+
+SupportV="0.1.62"
 Lang=Go
 LangExt=".go"
 #Color Green
@@ -990,7 +992,7 @@ UseGo()
 					;;
 			esac
 			if [ -d ${path} ]; then
-				ls ${path}
+				ls --color=auto ${path}
 			fi
 			;;
 		Install|exe-string)
