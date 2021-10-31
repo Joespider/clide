@@ -4678,6 +4678,14 @@ CLI()
 							--config)
 								cat ${root}/var/clide.conf
 								;;
+							--lang)
+								Lang=$2
+								Lang=${Lang,,}
+								Lang=${Lang^}
+								if [ -f ${LangsDir}/Lang.${Lang} ]; then
+									cat ${LangsDir}/Lang.${Lang}
+								fi
+								;;
 							*)
 								Lang=$(SelectLangByCode $1)
 								Code=$1
@@ -4692,6 +4700,14 @@ CLI()
 						case ${Action} in
 							--config)
 								${ReadBy} ${root}/var/clide.conf
+								;;
+							--lang)
+								Lang=$2
+								Lang=${Lang,,}
+								Lang=${Lang^}
+								if [ -f ${LangsDir}/Lang.${Lang} ]; then
+									${ReadBy} ${LangsDir}/Lang.${Lang}
+								fi
 								;;
 							*)
 								case ${Lang} in

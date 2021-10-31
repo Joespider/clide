@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.26"
+SupportV="0.1.27"
 Lang=Rust
 LangExt=".rs"
 ColorNum=1
@@ -50,6 +50,7 @@ UseRust()
 {
 	local LangConfig=${cplRust}
 	local LangCpl=${LangConfig}
+	local UseDebugger=${debugRust}
 
 	local LangHome=${ProgDir}/${Lang}
 	local LangSrc=${LangHome}/src
@@ -149,6 +150,12 @@ UseRust()
 			local TheSrcDir=${LangProject}/${project}/src
 			if [ ! -z "${name}" ]; then
 				find ${TheSrcDir} -name "${name}" 2> /dev/null
+			fi
+			;;
+		getDebugVersion)
+			local debugV=$(${UseDebugger} --version 2> /dev/null | head -n 1)
+			if [ ! -z "${debugV}" ]; then
+				echo "${debugV}"
 			fi
 			;;
 		pgLang)
