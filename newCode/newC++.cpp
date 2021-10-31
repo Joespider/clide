@@ -8,7 +8,7 @@
 static void help()
 {
 	std::string ProgName = "newC++";
-	std::string Version = "0.1.14";
+	std::string Version = "0.1.15";
 	print("Author: Joespider");
 	print("Program: \"" << ProgName << "\"");
 	print("Version: " << Version);
@@ -25,6 +25,18 @@ static void help()
 	print("\t--read-file : enable \"read\" file method");
 	print("\t--is-in : enable \"IsIn\" file method");
 	print("\t--user-input : enable \"Raw_Input\" file method");
+}
+
+static std::string getMarcos()
+{
+	std::string Marcos = "";
+	std::string MarcoPrint = "//print marco for cout\n#define print(x); std::cout << x << std::endl\n";
+/*
+	std::string MarcoLen = "//len marco for sizeof\n#define len(item) (sizeof(item))\n";
+	Marcos = MarcoPrint+MarcoLen+"\n";
+*/
+	Marcos = MarcoPrint+"\n";
+	return Marcos;
 }
 
 //create import listing
@@ -154,8 +166,6 @@ int main(int argc, char** argv)
 	std::string TheExt = ".cpp";
 	std::string CName = "";
 	std::string Imports = "";
-	std::string MarcoPrint = "";
-	std::string MarcoLen = "";
 	std::string Marcos = "";
 	std::string Methods = "";
 	std::string Main = "";
@@ -251,9 +261,7 @@ int main(int argc, char** argv)
 		if (CName != "")
 		{
 			Imports = getImports(&getWrite, &getRead, &getRand, &getShell);
-			MarcoPrint = "//print marco for cout\n#define print(x); std::cout << x << std::endl\n";
-			//MarcoLen = "//len marco for sizeof\n#define len(item) (sizeof(item))\n";
-			Marcos = MarcoPrint+MarcoLen+"\n";
+			Marcos = getMarcos();
 			Methods =  getMethods(&getRawIn, &getRand, &getWrite, &getRead, &getIsIn, &getShell);
 			if (IsMain == true)
 			{
