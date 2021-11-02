@@ -8,7 +8,7 @@
 static void help()
 {
 	std::string ProgName = "newC++";
-	std::string Version = "0.1.15";
+	std::string Version = "0.1.16";
 	print("Author: Joespider");
 	print("Program: \"" << ProgName << "\"");
 	print("Version: " << Version);
@@ -24,7 +24,7 @@ static void help()
 	print("\t--write-file : enable \"write\" file method");
 	print("\t--read-file : enable \"read\" file method");
 	print("\t--is-in : enable \"IsIn\" file method");
-	print("\t--user-input : enable \"Raw_Input\" file method");
+	print("\t--user-input : enable \"raw_input\" method");
 }
 
 static std::string getMarcos()
