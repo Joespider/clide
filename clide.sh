@@ -370,9 +370,10 @@ CodeSupportVersion()
 							no)
 								;;
 							*)
+								LangColor=$(ManageLangs ${text} "color-number")
 								SupportNum=$(ManageLangs "${text}" "SupportVersion")
 								if [ ! -z "${SupportNum}" ]; then
-									echo "${text}: ${SupportNum}"
+									echo -e "\e[1;3${LangColor}m${text}: ${SupportNum}\e[0m"
 								fi
 								;;
 						esac

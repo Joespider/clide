@@ -5,7 +5,7 @@ Shell=$(which bash)
 #Link Libs: https://gist.github.com/gubatron/32f82053596c24b6bec6
 #both https://avikdas.com/2019/12/16/makefiles-for-c-cpp-projects.html
 
-SupportV="0.2.17"
+SupportV="0.2.18"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -1154,7 +1154,7 @@ UseC++()
 			case ${project} in
 				none)
 					if [ ! -z "${src}" ]; then
-						HasAutoInFunction=$(grep -E \(*auto*\) ${src} 2> /dev/null)
+						HasAutoInFunction=$(grep -E \(*auto*\) ${src} 2> /dev/null | grep -v ";")
 						NeedThreads=$(grep "#include <thread>" ${src} 2> /dev/null)
 						HasXlib=$(grep "#include <X11/Xlib.h>" ${src} 2> /dev/null)
 						HasXutil=$(grep "#include <X11/Xutil.h>" ${src} 2> /dev/null)
@@ -1168,7 +1168,7 @@ UseC++()
 
 					#Check headers for ALL values
 					if [ ! -z "${GetHeaders}" ]; then
-						HasAutoInFunction=$(grep -E \(*auto*\) "${GetHeaders}" 2> /dev/null)
+						HasAutoInFunction=$(grep -E \(*auto*\) "${GetHeaders}" 2> /dev/null | grep -v ";")
 						NeedThreads=$(grep "#include <thread>" "${GetHeaders}" 2> /dev/null)
 						HasXlib=$(grep "#include <X11/Xlib.h>" "${GetHeaders}" 2> /dev/null)
 						HasXutil=$(grep "#include <X11/Xutil.h>" "${GetHeaders}" 2> /dev/null)
@@ -1178,7 +1178,7 @@ UseC++()
 					#Nothing found
 					if [ ! -z "${GetSrc}" ]; then
 						if [ -z "${HasAutoInFunction}" ]; then
-							HasAutoInFunction=$(grep -E \(*auto*\) "${GetHeaders}" 2> /dev/null)
+							HasAutoInFunction=$(grep -E \(*auto*\) "${GetHeaders}" 2> /dev/null | grep -v ";")
 						fi
 
 						if [ -z "${NeedThreads}" ]; then

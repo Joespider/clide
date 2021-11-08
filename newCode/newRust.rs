@@ -9,7 +9,7 @@ fn help()
 {
 	print("Author: Joespider");
 	print("Program: \"newRust\"");
-	print("Version: 0.0.1");
+	print("Version: 0.0.2");
 	print("Purpose: make new Rust programs");
 	print("Usage: newRust <args>");
 	print("\t-n <name> : program name");
@@ -23,20 +23,20 @@ fn help()
 	print("\t--user-input : enable \"Raw_Input\" file method");
 }
 
-fn raw_input(message: &str)
+fn raw_input(message: &str) -> String
 {
-    use std::io::{stdin,stdout,Write};
-    let mut s=String::new();
-    print!("{}: ",message);
-    let _=stdout().flush();
-    stdin().read_line(&mut s).expect("Did not enter a correct string");
-    if let Some('\n')=s.chars().next_back() {
-        s.pop();
-    }
-    if let Some('\r')=s.chars().next_back() {
-        s.pop();
-    }
-    println!("{}",s);
+	use std::io::{stdin,stdout,Write};
+	let mut s=String::new();
+	print!("{} ",message);
+	let _=stdout().flush();
+	stdin().read_line(&mut s).expect("Did not enter a correct string");
+	if let Some('\n')=s.chars().next_back() {
+		s.pop();
+	}
+	if let Some('\r')=s.chars().next_back() {
+		s.pop();
+	}
+	return s;
 }
 
 fn main()
@@ -54,8 +54,8 @@ fn main()
 
 	if arg_count > 1
 	{
-		raw_input("What is your name");
-		print("yeah!");
+		let userin = raw_input("What is your name");
+		println!("Hi \"{}\"!", userin);
 	}
 	else
 	{
