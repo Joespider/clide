@@ -454,6 +454,10 @@ errorCode()
 					;;
 			esac
 			;;
+		C++Version)
+			errorCode "HINT" "command"
+			errorCode "HINT" "${sec}"
+			;;
 		runCode)
 			shift
 			local thr=$1

@@ -254,7 +254,7 @@ debuggerHelp()
 {
 	case ${Debugger} in
 		gdb)
-			echo "GDB is best suited for C, C++, and Java code"
+			echo "GDB is best suited for C, C++, Rust, and Java code"
 			echo ""
 			echo -e "Command\t\tDescription"
 			echo -e "r\t\tStart running program until a breakpoint or end of program"

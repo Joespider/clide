@@ -5,7 +5,7 @@ Shell=$(which bash)
 #Link Libs: https://gist.github.com/gubatron/32f82053596c24b6bec6
 #both https://avikdas.com/2019/12/16/makefiles-for-c-cpp-projects.html
 
-SupportV="0.2.18"
+SupportV="0.2.19"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -540,7 +540,7 @@ UseC++()
 			;;
 		CreateHelp)
 			echo -e "make\t\t\t\t: create makefile"
-			echo -e "version, -std=<c++#>\t\t: compile with a specific version"
+			echo -e "version, --std=c++<number>\t\t: compile with a specific version"
 			;;
 		shell)
 			;;
@@ -1353,6 +1353,18 @@ UseC++()
 					;;
 			esac
 			;;
+		SuggestC++Version)
+			local cplMessage=$@
+			if [ ! -z "${cplMessage}" ]; then
+				case ${cplMessage} in
+					*"only in C"*)
+						echo ${cplMessage} | tr '|' '\n' | grep "only in C" | tail -n 1 | sed "s/only in C/|C/g" | sed "s/ and /|/g" | cut -d '|' -f 2
+						;;
+					*)
+						;;
+				esac
+			fi
+			;;
 		compileCode-message)
 			echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
 			;;
@@ -1373,6 +1385,7 @@ UseC++()
 			local FoundMain="yes"
 			local NumOfMain
 			local UseProjectTemplate
+			local SuggestedVersion
 
 			#Handle multiple files
 			if [ -z "${name}" ]; then
@@ -1446,8 +1459,21 @@ UseC++()
 						UseC++ compileCodeMake-message
 					#Code compiled did NOT compile
 					else
-						#display the ERROR message
-						errorCode "cpl" "ERROR" "${ERROR}"
+						SuggestedVersion=$(UseC++ "SuggestC++Version" ${ERROR})
+						if [ ! -z "${SuggestedVersion}" ]; then
+							case ${CplArgs} in
+								none)
+									CplArgs=--std=${SuggestedVersion,,}
+									;;
+								*)
+									CplArgs=${CplArgs},--std=${SuggestedVersion,,}
+									;;
+							esac
+							UseC++ compileCode ${src} ${name}
+						else
+							#display the ERROR message
+							errorCode "cpl" "ERROR" "${ERROR}"
+						fi
 					fi
 				#Compile without makefile
 				else
@@ -1474,8 +1500,21 @@ UseC++()
 									if [ -z "${ERROR}" ]; then
 										UseC++ compileCode-message
 									else
-										#display the ERROR message
-										errorCode "cpl" "ERROR" "${ERROR}"
+										SuggestedVersion=$(UseC++ "SuggestC++Version" ${ERROR})
+										if [ ! -z "${SuggestedVersion}" ]; then
+											case ${CplArgs} in
+												none)
+													CplArgs=--std=${SuggestedVersion,,}
+													;;
+												*)
+													CplArgs=${CplArgs},--std=${SuggestedVersion,,}
+													;;
+											esac
+											UseC++ compileCode ${src} ${name}
+										else
+											#display the ERROR message
+											errorCode "cpl" "ERROR" "${ERROR}"
+										fi
 									fi
 								else
 									#compile code and get verbose output
@@ -1490,8 +1529,21 @@ UseC++()
 										UseC++ compileCode-message
 									#Code compiled did NOT compile
 									else
-										#display the ERROR message
-										errorCode "cpl" "ERROR" "${ERROR}"
+										SuggestedVersion=$(UseC++ "SuggestC++Version" ${ERROR})
+										if [ ! -z "${SuggestedVersion}" ]; then
+											case ${CplArgs} in
+												none)
+													CplArgs=--std=${SuggestedVersion,,}
+													;;
+												*)
+													CplArgs=${CplArgs},--std=${SuggestedVersion,,}
+													;;
+											esac
+											UseC++ compileCode ${src} ${name}
+										else
+											#display the ERROR message
+											errorCode "cpl" "ERROR" "${ERROR}"
+										fi
 									fi
 								fi
 								;;
