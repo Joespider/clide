@@ -3053,7 +3053,13 @@ Actions()
 														;;
 													#Append new value to existing compile arguments
 													*)
-														RunCplArgs="${RunCplArgs},${newCplArgs}"
+														case ${newCplArgs} in
+															none)
+																;;
+															*)
+																RunCplArgs="${RunCplArgs},${newCplArgs}"
+																;;
+														esac
 														;;
 												esac
 											fi
@@ -3180,13 +3186,27 @@ Actions()
 						;;
 					#Compile code
 					compile|cpl)
-						ManageLangs ${Lang} "compileCode" ${Code} ${UserIn[1]} ${UserIn[2]}
-						#Jump-in and Jump-out
-						case ${InAndOut} in
-							yes)
-								break
+						case ${UserIn[1]} in
+							--args)
+								case ${RunCplArgs} in
+									none)
+										;;
+									*)
+										echo -n "Compile Arguments: "
+										echo "\"${RunCplArgs//,/ }\""
+										;;
+								esac
 								;;
 							*)
+								ManageLangs ${Lang} "compileCode" ${Code} ${UserIn[1]} ${UserIn[2]}
+								#Jump-in and Jump-out
+								case ${InAndOut} in
+									yes)
+										break
+										;;
+									*)
+										;;
+								esac
 								;;
 						esac
 						;;
@@ -3676,7 +3696,7 @@ loadAuto()
 	comp_list "${ReadBy} read" "non-lang"
 	comp_list "search"
 	comp_list "create" "args cpl cpl-args make newCodeTemp reset version"
-	comp_list "compile cpl car car-a"
+	comp_list "compile cpl car car-a" "--args"
 	comp_list "execute exe run" "-a --args"
 	comp_list "version"
 	comp_list "help"

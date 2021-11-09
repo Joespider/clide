@@ -5,7 +5,7 @@ Shell=$(which bash)
 #Link Libs: https://gist.github.com/gubatron/32f82053596c24b6bec6
 #both https://avikdas.com/2019/12/16/makefiles-for-c-cpp-projects.html
 
-SupportV="0.2.20"
+SupportV="0.2.21"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -540,7 +540,7 @@ UseC++()
 			;;
 		CreateHelp)
 			echo -e "make\t\t\t\t: create makefile"
-			echo -e "version, -std=c++<number>\t\t: compile with a specific version"
+			echo -e "version, -std=c++<number>\t: compile with a specific version"
 			;;
 		shell)
 			;;
@@ -1302,7 +1302,14 @@ UseC++()
 								-std=)
 									;;
 								*)
-									Item=${stdVal}
+									case ${CplArgs} in
+										#Prevent multiple c++ versions from being in compile arguments
+										*"-std="*)
+											;;
+										*)
+											Item=${stdVal}
+											;;
+									esac
 									;;
 							esac
 							;;
@@ -1337,7 +1344,7 @@ UseC++()
 			echo -e "-t, --thread\t\t: \"Set Threading (-lpthread)\""
 			echo -e "-x, --gui\t\t: \"Set GUI (-I /usr/X11/include -L /usr/X11/lib -lX11)\""
 			echo -e "-w, --warnings\t\t: \"Show ALL warnings (-Wall)\""
-			echo -e "-std=<version>\t\t: \"Set C++ version (-std=c++17)\""
+			echo -e "-std=c++<version>\t: \"Set C++ version (-std=c++17)\""
 			case ${LangCpl} in
 				g++)
 					echo "Here are SOME of the ${LangCpl} versions"
