@@ -3009,19 +3009,19 @@ Actions()
 											if [ -z "${options}" ]; then
 												errorCode "cpl" "cpl-args"
 											else
+												echo -e "${options//|/\\n}"
 												case ${OldVal} in
 													none)
 														;;
 													*)
 														echo ""
-														echo -n "Current: \""
+														echo -n "Current Args: \""
 														echo -ne "${OldVal//,/ }"
 														echo "\""
 														echo ""
 														;;
 												esac
 
-												echo -e "${options//|/\\n}"
 												#User input
 												echo -n "${cLang}\$ "
 												read -a NewVal
