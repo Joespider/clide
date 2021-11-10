@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.62"
+SupportV="0.1.63"
 Lang=Go
 LangExt=".go"
 #Color Green
@@ -133,6 +133,12 @@ UseGo()
 			local TheSrcDir=${LangProject}/${project}/src
 			if [ ! -z "${name}" ]; then
 				find ${TheSrcDir} -name "${name}" 2> /dev/null
+			fi
+			;;
+		getDebugVersion)
+			local debugV=$(${UseDebugger} --version 2> /dev/null | head -n 1)
+			if [ ! -z "${debugV}" ]; then
+				echo "${debugV}"
 			fi
 			;;
 		getExt)

@@ -5,7 +5,7 @@ Shell=$(which bash)
 #Link Libs: https://gist.github.com/gubatron/32f82053596c24b6bec6
 #both https://avikdas.com/2019/12/16/makefiles-for-c-cpp-projects.html
 
-SupportV="0.2.17"
+SupportV="0.2.21"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -540,7 +540,7 @@ UseC++()
 			;;
 		CreateHelp)
 			echo -e "make\t\t\t\t: create makefile"
-			echo -e "version, -std=<c++#>\t\t: compile with a specific version"
+			echo -e "version, -std=c++<number>\t: compile with a specific version"
 			;;
 		shell)
 			;;
@@ -1154,7 +1154,7 @@ UseC++()
 			case ${project} in
 				none)
 					if [ ! -z "${src}" ]; then
-						HasAutoInFunction=$(grep -E \(*auto*\) ${src} 2> /dev/null)
+						HasAutoInFunction=$(grep -E \(*auto*\) ${src} 2> /dev/null | grep -v ";")
 						NeedThreads=$(grep "#include <thread>" ${src} 2> /dev/null)
 						HasXlib=$(grep "#include <X11/Xlib.h>" ${src} 2> /dev/null)
 						HasXutil=$(grep "#include <X11/Xutil.h>" ${src} 2> /dev/null)
@@ -1168,7 +1168,7 @@ UseC++()
 
 					#Check headers for ALL values
 					if [ ! -z "${GetHeaders}" ]; then
-						HasAutoInFunction=$(grep -E \(*auto*\) "${GetHeaders}" 2> /dev/null)
+						HasAutoInFunction=$(grep -E \(*auto*\) "${GetHeaders}" 2> /dev/null | grep -v ";")
 						NeedThreads=$(grep "#include <thread>" "${GetHeaders}" 2> /dev/null)
 						HasXlib=$(grep "#include <X11/Xlib.h>" "${GetHeaders}" 2> /dev/null)
 						HasXutil=$(grep "#include <X11/Xutil.h>" "${GetHeaders}" 2> /dev/null)
@@ -1178,7 +1178,7 @@ UseC++()
 					#Nothing found
 					if [ ! -z "${GetSrc}" ]; then
 						if [ -z "${HasAutoInFunction}" ]; then
-							HasAutoInFunction=$(grep -E \(*auto*\) "${GetHeaders}" 2> /dev/null)
+							HasAutoInFunction=$(grep -E \(*auto*\) "${GetHeaders}" 2> /dev/null | grep -v ";")
 						fi
 
 						if [ -z "${NeedThreads}" ]; then
@@ -1296,13 +1296,20 @@ UseC++()
 						-w|--warnings)
 							Item="-Wall"
 							;;
-						--std=*)
+						-std=*)
 							local stdVal=${TheItem}
 							case ${stdVal} in
-								--std=)
+								-std=)
 									;;
 								*)
-									Item=${stdVal}
+									case ${CplArgs} in
+										#Prevent multiple c++ versions from being in compile arguments
+										*"-std="*)
+											;;
+										*)
+											Item=${stdVal}
+											;;
+									esac
 									;;
 							esac
 							;;
@@ -1327,7 +1334,7 @@ UseC++()
 			echo ${Vals// /,}
 			;;
 		setCplArgs-help)
-			echo -e "--speed\t\t: \"Optomize speed over standards (-Ofast)\""
+			echo -e "--speed\t\t\t: \"Optomize speed over standards (-Ofast)\""
 			echo -e "--opt=<num>\t\t: \"Set optimization level to <num> (-O<num>)\""
 			echo -e "--opt-debug\t\t: \"Optimize debugging over speed or size (-Og)\""
 			echo -e "--opt-space\t\t: \"Optimize space over speed (-Os)\""
@@ -1337,10 +1344,10 @@ UseC++()
 			echo -e "-t, --thread\t\t: \"Set Threading (-lpthread)\""
 			echo -e "-x, --gui\t\t: \"Set GUI (-I /usr/X11/include -L /usr/X11/lib -lX11)\""
 			echo -e "-w, --warnings\t\t: \"Show ALL warnings (-Wall)\""
-			echo -e "--std=<version>\t\t: \"Set C++ version\""
+			echo -e "-std=c++<version>\t: \"Set C++ version (-std=c++17)\""
 			case ${LangCpl} in
 				g++)
-					echo "These are ALL the ${LangCpl} versions"
+					echo "Here are SOME of the ${LangCpl} versions"
 					echo -e "\t\tc++98"
 					echo -e "\t\tc++11"
 					echo -e "\t\tc++14"
@@ -1352,6 +1359,34 @@ UseC++()
 				*)
 					;;
 			esac
+			;;
+		SuggestC++Version)
+			local cplMessage=$@
+			cplMessage=${cplMessage,,}
+			if [ ! -z "${cplMessage}" ]; then
+				case ${cplMessage} in
+					*"c++98"*)
+						echo "Use \"c++98\" or later"
+						;;
+					*"c++11"*)
+						echo "Use \"c++11\" or later"
+						;;
+					*"c++14"*)
+						echo "Use \"c++14\" or later"
+						;;
+					*"c++17"*)
+						echo "Use \"c++17\" or later"
+						;;
+					*"c++2a"*)
+						echo "Use \"c++2a\" or later"
+						;;
+					*"only in c++"*|*"-std=c++"*)
+						echo ${cplMessage} | tr '|' '\n' | grep "c++" | sed "s/-std=//g" | sed "s/c++/|c++/g" | sort | uniq
+						;;
+					*)
+						;;
+				esac
+			fi
 			;;
 		compileCode-message)
 			echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
@@ -1373,6 +1408,7 @@ UseC++()
 			local FoundMain="yes"
 			local NumOfMain
 			local UseProjectTemplate
+			local SuggestedVersion
 
 			#Handle multiple files
 			if [ -z "${name}" ]; then
@@ -1446,8 +1482,14 @@ UseC++()
 						UseC++ compileCodeMake-message
 					#Code compiled did NOT compile
 					else
-						#display the ERROR message
-						errorCode "cpl" "ERROR" "${ERROR}"
+						SuggestedVersion=$(UseC++ "SuggestC++Version" ${ERROR})
+						if [ ! -z "${SuggestedVersion}" ]; then
+							errorCode "cpl" "C++Version" ${SuggestedVersion}
+						else
+							#display the ERROR message
+							errorCode "cpl" "ERROR" "${ERROR}"
+						fi
+
 					fi
 				#Compile without makefile
 				else
@@ -1474,8 +1516,13 @@ UseC++()
 									if [ -z "${ERROR}" ]; then
 										UseC++ compileCode-message
 									else
-										#display the ERROR message
-										errorCode "cpl" "ERROR" "${ERROR}"
+										SuggestedVersion=$(UseC++ "SuggestC++Version" ${ERROR})
+										if [ ! -z "${SuggestedVersion}" ]; then
+											errorCode "cpl" "C++Version" ${SuggestedVersion}
+										else
+											#display the ERROR message
+											errorCode "cpl" "ERROR" "${ERROR}"
+										fi
 									fi
 								else
 									#compile code and get verbose output
@@ -1490,8 +1537,13 @@ UseC++()
 										UseC++ compileCode-message
 									#Code compiled did NOT compile
 									else
-										#display the ERROR message
-										errorCode "cpl" "ERROR" "${ERROR}"
+										SuggestedVersion=$(UseC++ "SuggestC++Version" ${ERROR})
+										if [ ! -z "${SuggestedVersion}" ]; then
+											errorCode "cpl" "C++Version" ${SuggestedVersion}
+										else
+											#display the ERROR message
+											errorCode "cpl" "ERROR" "${ERROR}"
+										fi
 									fi
 								fi
 								;;

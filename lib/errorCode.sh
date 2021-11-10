@@ -777,6 +777,21 @@ errorCode()
 					errorCode "HINT" "command"
 					errorCode "HINT" "set <code>"
 					;;
+				C++Version)
+					shift
+					local thr=$@
+					errorCode "cpl" "ERROR" "${thr[@]}"
+					echo ""
+					errorCode "HINT"
+					errorCode "HINT" "Set C++ version with the following command"
+					errorCode "HINT" "command"
+					errorCode "HINT" "create cpl"
+					echo ""
+					errorCode "HINT"
+					errorCode "HINT" "In case a C++ version is already chosen, please reset"
+					errorCode "HINT" "command"
+					errorCode "HINT" "create reset cpl"
+					;;
 				cpl-args)
 					errorCode "WARNING"
 					errorCode "WARNING" "No compile/interpeter flags at this moment"

@@ -25,11 +25,12 @@ public class newJava {
 	private static boolean getWriteFile = false;
 	private static boolean getShell = false;
 	private static boolean getArrays = false;
+	private static boolean getPipe = false;
 
 	private static void Help()
 	{
 		String program = "newJava";
-		String version = "0.1.09";
+		String version = "0.1.10";
 		print("Author: Joespider");
 		print("Program: \""+program+"\"");
 		print("Version: "+version);
@@ -44,6 +45,7 @@ public class newJava {
 		print("\t--package <package> : package name");
 		print("\t-m : main file");
 		print("\t--main : main file");
+		print("\t--pipe : enable piping");
 		print("\t--shell : unix shell");
 		print("\t--write-file : enable \"write\" file method");
 		print("\t--read-file : enable \"read\" file method");
@@ -168,6 +170,11 @@ public class newJava {
 			{
 				getShell = true;
 			}
+			//enable unix piping
+			else if (now.equals("--pipe"))
+			{
+				getPipe = true;
+			}
 			//enable Write file Method
 			else if (now.equals("--write-file"))
 			{
@@ -221,7 +228,7 @@ public class newJava {
 			NeedBufferedReader = true;
 			//import java.io.BufferedReader;
 		}
-		if (getUserIn == true)
+		if ((getUserIn == true) || (getPipe == true))
 		{
 			NeedScanner = true;
 			//import java.util.Scanner;;
@@ -354,7 +361,14 @@ public class newJava {
 			if (IsMain == true)
 			{
 				Comments[2] ="/**\n\t* @param args the command line arguments\n\t*/";
-				JavaMain = "\tpublic static void main(String[] args) {\n\n\t}";
+				if (getPipe == true)
+				{
+					JavaMain = "\tpublic static void main(String[] args)\n\t{\n\t\ttry\n\t\t{\n\t\t\tint numBytesWaiting = System.in.available();\n\t\t\tif (numBytesWaiting > 0)\n\t\t\t{\n\t\t\t\tprint(\"[Pipe]\");\n\t\t\t\tprint(\"{\");\n\t\t\t\tScanner pipe = new Scanner(System.in);\n\t\t\t\t// Read and print out each line.\n\t\t\t\twhile (pipe.hasNextLine())\n\t\t\t\t{\n\t\t\t\t\tString lineOfInput = pipe.nextLine();\n\t\t\t\t\tprint(lineOfInput);\n\t\t\t\t}\n\t\t\t\tpipe.close();\n\t\t\t\tprint(\"}\");\n\t\t\t}\n\t\t\telse\n\t\t\t{\n\t\t\t\tprint(\"nothing was piped in\");\n\t\t\t}\n\t\t}\n\t\tcatch (Exception e)\n\t\t{\n\t\t\tSystem.err.println(\"Failed read in\");\n\t\t}\n\t}";
+				}
+				else
+				{
+					JavaMain = "\tpublic static void main(String[] args)\n\t{\n\n\t}";
+				}
 				Java = JavaPackage+JavaImports+"\n\n"+Comments[0]+"\n\n"+Comments[1]+"\npublic class "+Class+" {\n\n"+JavaMethods+"\n\t"+Comments[2]+"\n"+JavaMain+"\n}\n";
 			}
 			else

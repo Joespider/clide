@@ -370,9 +370,10 @@ CodeSupportVersion()
 							no)
 								;;
 							*)
+								LangColor=$(ManageLangs ${text} "color-number")
 								SupportNum=$(ManageLangs "${text}" "SupportVersion")
 								if [ ! -z "${SupportNum}" ]; then
-									echo "${text}: ${SupportNum}"
+									echo -e "\e[1;3${LangColor}m${text}: ${SupportNum}\e[0m"
 								fi
 								;;
 						esac
@@ -1822,7 +1823,7 @@ Actions()
 						;;
 					ll)
 						shift
-						ls -lh ${UserIn[1]}
+						ls -lh --color=auto ${UserIn[1]}
 						;;
 					#Clear screen
 					clear)
@@ -2057,7 +2058,9 @@ Actions()
 						;;
 					#List source code
 					src|source)
-						echo -e "${Code//,/\\n}"
+						if [ ! -z "${Code}" ]; then
+							echo -e "${Code//,/\\n}"
+						fi
 						;;
 					make)
 						case ${CodeProject} in
@@ -2904,37 +2907,53 @@ Actions()
 						esac
 						refresh="yes"
 						;;
-					#Edit new source code
-					${editor}|edit|ed)
+					#Edit new source code...Read code without editing
+					${editor}|edit|ed|${ReadBy}|read)
 						case ${UserIn[1]} in
 							#edit non-langugage source files
 							non-lang)
 								if [ ! -z "${UserIn[2]}" ]; then
-									${editor} ${UserIn[2]}
+									case ${UserArg} in
+										#Edit new source code
+										${editor}|edit|ed)
+											${editor} ${UserIn[2]}
+											;;
+										#Read code without editing
+										${ReadBy}|read)
+											${ReadBy} ${UserIn[2]}
+											;;
+										*)
+											;;
+									esac
 								else
-									errorCode "selectCode"
+									case ${UserArg} in
+										#Edit new source code
+										${editor}|edit|ed)
+											errorCode "selectCode"
+											;;
+										#Read code without editing
+										${ReadBy}|read)
+											errorCode "readCode"
+											;;
+										*)
+											;;
+									esac
 								fi
 								;;
 							#edit language source code
 							*)
-								ManageLangs ${Lang} "editCode" ${Code} ${UserIn[1]}
-								;;
-						esac
-						;;
-					#Read code without editing
-					${ReadBy}|read)
-						case ${UserIn[1]} in
-							#edit non-langugage source files
-							non-lang)
-								if [ ! -z "${UserIn[2]}" ]; then
-									${ReadBy} ${UserIn[2]}
-								else
-									errorCode "readCode"
-								fi
-								;;
-							#edit language source code
-							*)
-								ManageLangs ${Lang} "readCode" ${Code} ${UserIn[1]}
+								case ${UserArg} in
+									#Edit new source code
+									${editor}|edit|ed)
+										ManageLangs ${Lang} "editCode" ${Code} ${UserIn[1]}
+										;;
+									#Read code without editing
+									${ReadBy}|read)
+										ManageLangs ${Lang} "readCode" ${Code} ${UserIn[1]}
+										;;
+									*)
+										;;
+								esac
 								;;
 						esac
 						;;
@@ -3008,19 +3027,19 @@ Actions()
 											if [ -z "${options}" ]; then
 												errorCode "cpl" "cpl-args"
 											else
+												echo -e "${options//|/\\n}"
 												case ${OldVal} in
 													none)
 														;;
 													*)
 														echo ""
-														echo -n "Current: \""
+														echo -n "Current Args: \""
 														echo -ne "${OldVal//,/ }"
 														echo "\""
 														echo ""
 														;;
 												esac
 
-												echo -e "${options//|/\\n}"
 												#User input
 												echo -n "${cLang}\$ "
 												read -a NewVal
@@ -3052,7 +3071,13 @@ Actions()
 														;;
 													#Append new value to existing compile arguments
 													*)
-														RunCplArgs="${RunCplArgs},${newCplArgs}"
+														case ${newCplArgs} in
+															none)
+																;;
+															*)
+																RunCplArgs="${RunCplArgs},${newCplArgs}"
+																;;
+														esac
 														;;
 												esac
 											fi
@@ -3179,13 +3204,27 @@ Actions()
 						;;
 					#Compile code
 					compile|cpl)
-						ManageLangs ${Lang} "compileCode" ${Code} ${UserIn[1]} ${UserIn[2]}
-						#Jump-in and Jump-out
-						case ${InAndOut} in
-							yes)
-								break
+						case ${UserIn[1]} in
+							--args)
+								case ${RunCplArgs} in
+									none)
+										;;
+									*)
+										echo -n "Compile Arguments: "
+										echo "\"${RunCplArgs//,/ }\""
+										;;
+								esac
 								;;
 							*)
+								ManageLangs ${Lang} "compileCode" ${Code} ${UserIn[1]} ${UserIn[2]}
+								#Jump-in and Jump-out
+								case ${InAndOut} in
+									yes)
+										break
+										;;
+									*)
+										;;
+								esac
 								;;
 						esac
 						;;
@@ -3291,22 +3330,49 @@ Actions()
 						;;
 					#load last session
 					last|load)
+						local SavedLang=${Lang}
+						local SavedCode=${Code}
+						local SavedProject=${CodeProject}
+						local SavedCodeDir=${CodeDir}
 						Dir=""
 						session=$(LoadSession)
-						Lang=$(echo ${session} | cut -d ";" -f 1)
-						CodeProject=$(echo ${session} | cut -d ";" -f 2)
-						Code=$(echo ${session} | cut -d ";" -f 3)
-						if [[ "${CodeProject}" != "none" ]]; then
-							Dir="${CodeProject}"
-						fi
-						#Determine Language
-						CodeDir=$(ManageLangs "${Lang}" "pgDir")
-						if [ ! -z "${CodeDir}" ]; then
-							CodeDir=${CodeDir}/${Dir}
-							#Go to dir
-							cd ${CodeDir}
-						fi
-						refresh="yes"
+						case ${session} in
+							*"ERROR"*"No Session to load"*)
+								echo ${session}
+								;;
+							*)
+								Lang=$(echo ${session} | cut -d ";" -f 2)
+								CodeProject=$(echo ${session} | cut -d ";" -f 1)
+								Code=$(echo ${session} | cut -d ";" -f 3)
+								case ${CodeProject} in
+									none)
+										;;
+									*)
+										Dir="${CodeProject}"
+										;;
+								esac
+								#Determine Language
+								CodeDir=$(ManageLangs "${Lang}" "pgDir")
+								if [ ! -z "${CodeDir}" ]; then
+									CodeDir=${CodeDir}/${Dir}
+									#Go to dir
+									if [ -d ${CodeDir} ]; then
+										cd ${CodeDir}
+									else
+										Lang=${SavedLang}
+										Code=${SavedCode}
+										CodeProject=${SavedProject}
+										CodeDir=${SavedCodeDir}
+									fi
+								else
+									Lang=${SavedLang}
+									Code=${SavedCode}
+									CodeProject=${SavedProject}
+									CodeDir=${SavedCodeDir}
+								fi
+								refresh="yes"
+								;;
+						esac
 						;;
 					#List supported languages
 					langs|languages)
@@ -3675,7 +3741,7 @@ loadAuto()
 	comp_list "${ReadBy} read" "non-lang"
 	comp_list "search"
 	comp_list "create" "args cpl cpl-args make newCodeTemp reset version"
-	comp_list "compile cpl car car-a"
+	comp_list "compile cpl car car-a" "--args"
 	comp_list "execute exe run" "-a --args"
 	comp_list "version"
 	comp_list "help"
@@ -4232,11 +4298,18 @@ CLI()
 			-l|--load|--last)
 				if [ -z "${ThePipe}" ]; then
 					session=$(LoadSession)
-					Lang=$(echo ${session} | cut -d ";" -f 1)
-					Code=$(echo ${session} | cut -d ";" -f 3)
-					CodeProject=$(echo ${session} | cut -d ";" -f 2)
-					#Start IDE
-					Actions ${Lang} ${Code} ${CodeProject}
+					case ${session} in
+						*"ERROR"*"No Session to load"*)
+							echo ${session}
+							;;
+						*)
+							Lang=$(echo ${session} | cut -d ";" -f 2)
+							Code=$(echo ${session} | cut -d ";" -f 3)
+							CodeProject=$(echo ${session} | cut -d ";" -f 1)
+							#Start IDE
+							Actions ${Lang} ${Code} ${CodeProject}
+							;;
+					esac
 				fi
 				;;
 			#Search for source code path OR langauge and source code name
@@ -4678,6 +4751,14 @@ CLI()
 							--config)
 								cat ${root}/var/clide.conf
 								;;
+							--lang)
+								Lang=$2
+								Lang=${Lang,,}
+								Lang=${Lang^}
+								if [ -f ${LangsDir}/Lang.${Lang} ]; then
+									cat ${LangsDir}/Lang.${Lang}
+								fi
+								;;
 							*)
 								Lang=$(SelectLangByCode $1)
 								Code=$1
@@ -4692,6 +4773,14 @@ CLI()
 						case ${Action} in
 							--config)
 								${ReadBy} ${root}/var/clide.conf
+								;;
+							--lang)
+								Lang=$2
+								Lang=${Lang,,}
+								Lang=${Lang^}
+								if [ -f ${LangsDir}/Lang.${Lang} ]; then
+									${ReadBy} ${LangsDir}/Lang.${Lang}
+								fi
 								;;
 							*)
 								case ${Lang} in

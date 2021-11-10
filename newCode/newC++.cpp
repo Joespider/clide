@@ -8,7 +8,7 @@
 static void help()
 {
 	std::string ProgName = "newC++";
-	std::string Version = "0.1.14";
+	std::string Version = "0.1.17";
 	print("Author: Joespider");
 	print("Program: \"" << ProgName << "\"");
 	print("Version: " << Version);
@@ -19,21 +19,35 @@ static void help()
 	print("\t--ext <extension> : choose an extension (.cpp is default)");
 	print("\t--cli : enable command line (Main file ONLY)");
 	print("\t--main : main file");
+	print("\t--pipe : enable piping");
 	print("\t--shell : unix shell");
 	print("\t--random : enable \"random\" int method");
 	print("\t--write-file : enable \"write\" file method");
 	print("\t--read-file : enable \"read\" file method");
 	print("\t--is-in : enable \"IsIn\" file method");
-	print("\t--user-input : enable \"Raw_Input\" file method");
+	print("\t--user-input : enable \"raw_input\" method");
+}
+
+static std::string getMarcos()
+{
+	std::string Marcos = "";
+	std::string MarcoPrint = "//print marco for cout\n#define print(x); std::cout << x << std::endl\n";
+/*
+	std::string MarcoLen = "//len marco for sizeof\n#define len(item) (sizeof(item))\n";
+	Marcos = MarcoPrint+MarcoLen+"\n";
+*/
+	Marcos = MarcoPrint+"\n";
+	return Marcos;
 }
 
 //create import listing
-static std::string getImports(bool* write, bool* read, bool* random, bool* shell)
+static std::string getImports(bool* write, bool* read, bool* random, bool* pipe, bool* shell)
 {
 	std::string Imports = "";
 	std::string standard = "#include <iostream>\n#include <string>\n";
 	std::string readWrite = "";
 	std::string ForRandom = "";
+	std::string ForPiping = "";
 	std::string ForShell = "";
 	if ((*read == true) || (*write == true))
 	{
@@ -43,12 +57,16 @@ static std::string getImports(bool* write, bool* read, bool* random, bool* shell
 	{
 		ForRandom = "#include <stdlib.h>\n#include <time.h>\n";
 	}
+	if (*pipe == true)
+	{
+		ForPiping = "#include <unistd.h>\n";
+	}
 	if (*shell == true)
 	{
 		ForShell = "#include <stdexcept>\n#include <stdio.h>\n";
 	}
 
-	Imports = standard+readWrite+ForRandom+ForShell+"\n";
+	Imports = standard+readWrite+ForRandom+ForPiping+ForShell+"\n";
 
 	return Imports;
 }
@@ -95,23 +113,28 @@ static std::string getMethods(bool* rawinput, bool* rand, bool* write, bool* rea
 }
 
 //build main function
-static std::string getMain(bool* Args, bool* getRandom)
+static std::string getMain(bool* Args, bool* getRandom, bool* pipe)
 {
 	std::string Main = "";
 	std::string StartRandom = "";
+	std::string UsePipe = "";
 
 	if (*getRandom == true)
 	{
-		StartRandom = "\t//Enable Random\n\tsrand(time(NULL));\n";
+		StartRandom = "\t//Enable Random\n\tsrand(time(NULL));\n\n";
+	}
+	if (*pipe == true)
+	{
+		UsePipe = "\t//C++ Unix Piping\n\tif(!isatty(fileno(stdin)))\n\t{\n\t\tprint(\"[Pipe]\");\n\t\tprint(\"{\");\n\t\tfor (std::string line; std::getline(std::cin, line);)\n\t\t{\n\t\t\tprint(line);\n\t\t}\n\t\tprint(\"}\");\n\t}\n\telse\n\t{\n\t\tprint(\"nothing was piped in\");\n\t}\n\n";
 	}
 
 	if (*Args == true)
 	{
-		Main = "//C++ Main...with cli arguments\nint main(int argc, char** argv)\n{\n"+StartRandom+"\tstd::string out = \"\";\n\t//Args were given\n\tif (argc > 1)\n\t{\n\t\t//Loop through Args\n\t\tfor (int i = 1; i < argc; i++)\n\t\t{\n\t\t\tout = std::string(argv[i]);\n\t\t\tif (out == \"find\")\n\t\t\t{\n\t\t\t\tprint(\"Found\");\n\t\t\t\tbreak;\n\t\t\t}\n\t\t}\n\t}\n\telse\n\t{\n\t\tprint(\"Give me some cli arguments\");\n\t}\n\n\treturn 0;\n}\n";
+		Main = "//C++ Main...with cli arguments\nint main(int argc, char** argv)\n{\n"+StartRandom+"\tstd::string out = \"\";\n\t//Args were given\n\tif (argc > 1)\n\t{\n\t\t//Loop through Args\n\t\tfor (int i = 1; i < argc; i++)\n\t\t{\n\t\t\tout = std::string(argv[i]);\n\t\t\tif (out == \"find\")\n\t\t\t{\n\t\t\t\tprint(\"Found\");\n\t\t\t\tbreak;\n\t\t\t}\n\t\t}\n\t}\n\telse\n\t{\n\t\tprint(\"Give me some cli arguments\");\n\t}\n\n"+UsePipe+"\treturn 0;\n}\n";
 	}
 	else
 	{
-		Main = "//C++ Main\nint main()\n{\n"+StartRandom+"\n\treturn 0;\n}\n";
+		Main = "//C++ Main\nint main()\n{\n"+StartRandom+UsePipe+"\n\treturn 0;\n}\n";
 	}
 	return Main;
 }
@@ -148,14 +171,13 @@ int main(int argc, char** argv)
 	bool getRead = false;
 	bool getIsIn = false;
 	bool getRawIn = false;
+	bool getPipe = false;
 	bool getShell = false;
 	bool IsMain = false;
 	std::string UserIn = "";
 	std::string TheExt = ".cpp";
 	std::string CName = "";
 	std::string Imports = "";
-	std::string MarcoPrint = "";
-	std::string MarcoLen = "";
 	std::string Marcos = "";
 	std::string Methods = "";
 	std::string Main = "";
@@ -224,6 +246,11 @@ int main(int argc, char** argv)
 			{
 				getShell = true;
 			}
+			//Enable Piping
+			else if (UserIn == "--pipe")
+			{
+				getPipe = true;
+			}
 			//capture new C++ program name
 			else if (getName == true)
 			{
@@ -250,14 +277,12 @@ int main(int argc, char** argv)
 		//Ensure program name is given
 		if (CName != "")
 		{
-			Imports = getImports(&getWrite, &getRead, &getRand, &getShell);
-			MarcoPrint = "//print marco for cout\n#define print(x); std::cout << x << std::endl\n";
-			//MarcoLen = "//len marco for sizeof\n#define len(item) (sizeof(item))\n";
-			Marcos = MarcoPrint+MarcoLen+"\n";
+			Imports = getImports(&getWrite, &getRead, &getRand, &getPipe, &getShell);
+			Marcos = getMarcos();
 			Methods =  getMethods(&getRawIn, &getRand, &getWrite, &getRead, &getIsIn, &getShell);
 			if (IsMain == true)
 			{
-				Main = getMain(&getArgs, &getRand);
+				Main = getMain(&getArgs, &getRand, &getPipe);
 			}
 			else
 			{
