@@ -1823,7 +1823,7 @@ Actions()
 						;;
 					ll)
 						shift
-						ls -lh ${UserIn[1]}
+						ls -lh --color=auto ${UserIn[1]}
 						;;
 					#Clear screen
 					clear)
@@ -2058,7 +2058,9 @@ Actions()
 						;;
 					#List source code
 					src|source)
-						echo -e "${Code//,/\\n}"
+						if [ ! -z "${Code}" ]; then
+							echo -e "${Code//,/\\n}"
+						fi
 						;;
 					make)
 						case ${CodeProject} in
@@ -2905,37 +2907,53 @@ Actions()
 						esac
 						refresh="yes"
 						;;
-					#Edit new source code
-					${editor}|edit|ed)
+					#Edit new source code...Read code without editing
+					${editor}|edit|ed|${ReadBy}|read)
 						case ${UserIn[1]} in
 							#edit non-langugage source files
 							non-lang)
 								if [ ! -z "${UserIn[2]}" ]; then
-									${editor} ${UserIn[2]}
+									case ${UserArg} in
+										#Edit new source code
+										${editor}|edit|ed)
+											${editor} ${UserIn[2]}
+											;;
+										#Read code without editing
+										${ReadBy}|read)
+											${ReadBy} ${UserIn[2]}
+											;;
+										*)
+											;;
+									esac
 								else
-									errorCode "selectCode"
+									case ${UserArg} in
+										#Edit new source code
+										${editor}|edit|ed)
+											errorCode "selectCode"
+											;;
+										#Read code without editing
+										${ReadBy}|read)
+											errorCode "readCode"
+											;;
+										*)
+											;;
+									esac
 								fi
 								;;
 							#edit language source code
 							*)
-								ManageLangs ${Lang} "editCode" ${Code} ${UserIn[1]}
-								;;
-						esac
-						;;
-					#Read code without editing
-					${ReadBy}|read)
-						case ${UserIn[1]} in
-							#edit non-langugage source files
-							non-lang)
-								if [ ! -z "${UserIn[2]}" ]; then
-									${ReadBy} ${UserIn[2]}
-								else
-									errorCode "readCode"
-								fi
-								;;
-							#edit language source code
-							*)
-								ManageLangs ${Lang} "readCode" ${Code} ${UserIn[1]}
+								case ${UserArg} in
+									#Edit new source code
+									${editor}|edit|ed)
+										ManageLangs ${Lang} "editCode" ${Code} ${UserIn[1]}
+										;;
+									#Read code without editing
+									${ReadBy}|read)
+										ManageLangs ${Lang} "readCode" ${Code} ${UserIn[1]}
+										;;
+									*)
+										;;
+								esac
 								;;
 						esac
 						;;
@@ -3312,22 +3330,49 @@ Actions()
 						;;
 					#load last session
 					last|load)
+						local SavedLang=${Lang}
+						local SavedCode=${Code}
+						local SavedProject=${CodeProject}
+						local SavedCodeDir=${CodeDir}
 						Dir=""
 						session=$(LoadSession)
-						Lang=$(echo ${session} | cut -d ";" -f 1)
-						CodeProject=$(echo ${session} | cut -d ";" -f 2)
-						Code=$(echo ${session} | cut -d ";" -f 3)
-						if [[ "${CodeProject}" != "none" ]]; then
-							Dir="${CodeProject}"
-						fi
-						#Determine Language
-						CodeDir=$(ManageLangs "${Lang}" "pgDir")
-						if [ ! -z "${CodeDir}" ]; then
-							CodeDir=${CodeDir}/${Dir}
-							#Go to dir
-							cd ${CodeDir}
-						fi
-						refresh="yes"
+						case ${session} in
+							*"ERROR"*"No Session to load"*)
+								echo ${session}
+								;;
+							*)
+								Lang=$(echo ${session} | cut -d ";" -f 2)
+								CodeProject=$(echo ${session} | cut -d ";" -f 1)
+								Code=$(echo ${session} | cut -d ";" -f 3)
+								case ${CodeProject} in
+									none)
+										;;
+									*)
+										Dir="${CodeProject}"
+										;;
+								esac
+								#Determine Language
+								CodeDir=$(ManageLangs "${Lang}" "pgDir")
+								if [ ! -z "${CodeDir}" ]; then
+									CodeDir=${CodeDir}/${Dir}
+									#Go to dir
+									if [ -d ${CodeDir} ]; then
+										cd ${CodeDir}
+									else
+										Lang=${SavedLang}
+										Code=${SavedCode}
+										CodeProject=${SavedProject}
+										CodeDir=${SavedCodeDir}
+									fi
+								else
+									Lang=${SavedLang}
+									Code=${SavedCode}
+									CodeProject=${SavedProject}
+									CodeDir=${SavedCodeDir}
+								fi
+								refresh="yes"
+								;;
+						esac
 						;;
 					#List supported languages
 					langs|languages)
@@ -4253,11 +4298,18 @@ CLI()
 			-l|--load|--last)
 				if [ -z "${ThePipe}" ]; then
 					session=$(LoadSession)
-					Lang=$(echo ${session} | cut -d ";" -f 1)
-					Code=$(echo ${session} | cut -d ";" -f 3)
-					CodeProject=$(echo ${session} | cut -d ";" -f 2)
-					#Start IDE
-					Actions ${Lang} ${Code} ${CodeProject}
+					case ${session} in
+						*"ERROR"*"No Session to load"*)
+							echo ${session}
+							;;
+						*)
+							Lang=$(echo ${session} | cut -d ";" -f 2)
+							Code=$(echo ${session} | cut -d ";" -f 3)
+							CodeProject=$(echo ${session} | cut -d ";" -f 1)
+							#Start IDE
+							Actions ${Lang} ${Code} ${CodeProject}
+							;;
+					esac
 				fi
 				;;
 			#Search for source code path OR langauge and source code name

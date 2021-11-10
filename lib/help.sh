@@ -57,7 +57,6 @@ MenuHelp()
 			echo -e "unset\t\t\t\t: \"deselect source code\""
 			echo -e "unset <code>\t\t\t: \"deselect source code\""
 			echo -e "use <language> <code>\t\t: \"choose language\""
-			echo -e "using\t\t\t\t: \"Display what language is being used\""
 			echo -e "save\t\t\t\t: \"Save session\""
 			echo -e "create <arg>\t\t\t: \"create compile and runtime arguments"
 			echo -e "\thelp\t\t\t: \"create help page"
