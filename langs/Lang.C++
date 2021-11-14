@@ -5,7 +5,7 @@ Shell=$(which bash)
 #Link Libs: https://gist.github.com/gubatron/32f82053596c24b6bec6
 #both https://avikdas.com/2019/12/16/makefiles-for-c-cpp-projects.html
 
-SupportV="0.2.21"
+SupportV="0.2.22"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -2046,35 +2046,31 @@ UseC++()
 		runCode|debug)
 			local name=$1
 			local UseProjectTemplate
-
-			#Handle Extension
-			case ${name} in
-				*${LangExt})
-					;;
-				*)
-					name="${name}${LangExt}"
-					;;
-			esac
-
 			shift
 			shift
 			local Args=$@
-			local TheBin="${name%.*}"
+			local TheBin
 			local project=${CodeProject}
 			local TheBinDir
+			local TheSrcDir
 
 			#Handle Project Dir
 			case ${project} in
 				none)
 					project=""
 					TheBinDir=${LangBin}
-					cd ${LangSrc}/
+					TheSrcDir=${LangSrc}
+					TheBin=$(UseC++ "removeExt" ${name})
 					;;
 				*)
-					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
-					TheBinDir="${LangProject}/${project}/bin"
-					cd ${LangProject}/${project}/src/
-					TheBin="${project}"
+					if [ ! -z "${project}" ]; then
+						UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
+						TheBinDir="${LangProject}/${project}/bin"
+						TheSrcDir="${LangProject}/${project}/src"
+						TheBin="${project}"
+					else
+						TheBin=""
+					fi
 					;;
 			esac
 
@@ -2084,15 +2080,22 @@ UseC++()
 					none)
 						#Find the main file
 						if [ ! -z "${name}" ]; then
-							name=${name//,/ }
-							name=$(grep -l "int main(" ${name} 2> /dev/null)
-							TheBin="${name%.*}"
+							if [ -d "${TheSrcDir}" ]; then
+								cd ${TheSrcDir}
+								name=${name//,/ }
+								name=$(grep -l "int main(" ${name} 2> /dev/null)
+								if [ ! -z "${name}" ]; then
+									TheBin=$(UseC++ "removeExt" ${name})
+								else
+									TheBin=""
+								fi
+								cd - > /dev/null
+							else
+								TheBin=""
+							fi
 						fi
 						;;
 					*)
-						TheBinDir="${LangProject}/${project}/bin"
-						TheBin="${project}"
-						cd ${LangProject}/${project}/src
 						;;
 				esac
 			fi
@@ -2101,9 +2104,11 @@ UseC++()
 			if [ -f ${TheBinDir}/${TheBin} ]; then
 				case ${Type} in
 					debug)
-						cd ${TheBinDir}
-						${UseDebugger} ${TheBin}
-						cd - > /dev/null
+						if [ ! -z "${ThePipe}" ]; then
+							cat /dev/stdin | ${UseDebugger} ${TheBinDir}/${TheBin} ${Args[@]}
+						else
+							${UseDebugger} ${TheBinDir}/${TheBin} ${Args[@]}
+						fi
 						;;
 					runCode)
 						if [ ! -z "${ThePipe}" ]; then

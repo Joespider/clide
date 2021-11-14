@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.89"
+SupportV="0.1.90"
 Lang=Python
 LangExt=".py"
 #Color Yellow
@@ -1034,7 +1034,9 @@ UsePython()
 			;;
 		runCode|debug)
 			local name=$1
-			local TheBin="${name%.*}${LangExt}"
+			local TheBin
+			name=$(UsePython "removeExt" ${name})
+			TheBin="${name}${LangExt}"
 			local project=${CodeProject}
 			local TheBinDir
 			local UseProjectTemplate
@@ -1046,7 +1048,19 @@ UsePython()
 				none)
 					project=""
 					TheBinDir=${LangBin}
-					cd ${LangSrc}/
+					#Handle multiple files
+					if [[ "${name}" == *","* ]]; then
+						cd ${LangSrc}/
+						name=${name//,/ }
+						name=$(grep -l "if __name__ == '__main__':" ${name} 2> /dev/null)
+						if [ -z "${name}" ]; then
+							echo "Unable to find the \"main\" file"
+							echo -n "Please choose: "
+							read name
+						fi
+						cd - /dev/null
+						TheBin="${name}"
+					fi
 					;;
 				*)
 					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
@@ -1054,18 +1068,6 @@ UsePython()
 					cd ${LangProject}/${project}/src/
 					;;
 			esac
-
-			#Handle multiple files
-			if [[ "${name}" == *","* ]]; then
-				name=${name//,/ }
-				name=$(grep -l "if __name__ == '__main__':" ${name} 2> /dev/null)
-				if [ -z "${name}" ]; then
-					echo "Unable to find the \"main\" file"
-					echo -n "Please choose: "
-					read name
-				fi
-				TheBin="${name}"
-			fi
 
 			#Check if Python Bin exists
 			if [ -f ${TheBinDir}/${TheBin} ]; then

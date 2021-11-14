@@ -4,7 +4,7 @@ Shell=$(which bash)
 #https://stackoverflow.com/questions/10339637/java-import-cannot-find-symbol
 #https://www.codejava.net/java-core/tools/how-to-compile-package-and-run-a-java-program-using-command-line-tools-javac-jar-and-java
 
-SupportV="0.2.15"
+SupportV="0.2.16"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -219,8 +219,14 @@ UseJava()
 			local SourceFile=$1
 			if [ ! -z "${SourceFile}" ]; then
 				case ${SourceFile} in
-					*${LangExt}|*.class|*.jar)
+					*${LangExt})
 						echo ${SourceFile%${LangExt}}
+						;;
+					*.class)
+						echo ${SourceFile%.class}
+						;;
+					*.jar)
+						echo ${SourceFile%.jar}
 						;;
 					*)
 						echo ${SourceFile}
@@ -1662,8 +1668,8 @@ UseJava()
 			;;
 		runCode|debug)
 			local name=$1
-			local TheBin="${name%.*}.class"
-			local TheJar="${name%.*}.jar"
+			local TheBin
+			local TheJar
 			local project=${CodeProject}
 			local package
 			local TheClassDir
@@ -1674,23 +1680,28 @@ UseJava()
 			shift
 			local Args=$@
 
-			#Handle multiple files
-			if [[ "${name}" == *","* ]]; then
-				name=${name//,/ }
-				name=$(grep -l "public static void main" ${name})
-				if [ -z "${name}" ]; then
-					echo "Unable to find the \"main\" file"
-					echo -n "Please choose: "
-					read name
-				fi
-				TheBin="${name%.*}.class"
-				TheJar="${name%.*}.jar"
-			fi
-
 			#Run Compiled Code
 			if [ ! -z "${name}" ]; then
 				case ${project} in
 					none)
+						#Handle multiple files
+						if [[ "${name}" == *","* ]]; then
+							cd ${LangSrc}
+							name=${name//,/ }
+							name=$(grep -l "public static void main" ${name})
+							if [ ! -z "${name}" ]; then
+								TheBin=$(UseJava "removeExt" "${name}")
+								TheBin="${TheBin}.class"
+								TheJar=$(UseJava "removeExt" "${name}")
+								TheJar="${TheJar}.jar"
+							fi
+							cd - > /dev/null
+						else
+							TheBin=$(UseJava "removeExt" "${name}")
+							TheBin="${TheBin}.class"
+							TheJar=$(UseJava "removeExt" "${name}")
+							TheJar="${TheJar}.jar"
+						fi
 						project=""
 						TheClassDir=${LangBin}/
 						TheJarDir=${LangBin}
@@ -1707,6 +1718,7 @@ UseJava()
 						TheJarDir="${LangProject}/${project}/bin"
 						;;
 				esac
+
 				#Check if Java Class exists
 				if [ -f ${TheClassDir}${package}${TheBin} ]; then
 					TheBin=${TheBin%.*}

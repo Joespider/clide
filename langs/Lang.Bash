@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.75"
+SupportV="0.1.76"
 Lang=Bash
 LangExt=".sh"
 ColorNum=2
@@ -910,24 +910,40 @@ UseBash()
 			;;
 		runCode)
 			local name=$1
-			local TheBin="${name%.*}${LangExt}"
-			local project=${CodeProject}
-			local TheBinDir
 			local UseProjectTemplate
 			shift
 			shift
 			local Args=$@
+			local TheBin
+			local project=${CodeProject}
+			local TheBinDir
+			local TheSrcDir
+
 			#Handle Project Dir
 			case ${project} in
 				none)
 					project=""
 					TheBinDir=${LangBin}
-					cd ${LangSrc}/
+					TheSrcDir=${LangSrc}
+					#Handle multiple files
+					if [[ "${name}" == *","* ]]; then
+						if [ -z "${name}" ]; then
+							echo "Unable to find the \"main\" file"
+							echo -n "Please choose: "
+							read name
+						fi
+					fi
+					TheBin=${name}
 					;;
 				*)
-					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
-					TheBinDir="${LangProject}/${project}/bin"
-					cd ${LangProject}/${project}/src
+					if [ ! -z "${project}" ]; then
+						UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
+						TheBinDir="${LangProject}/${project}/bin"
+						TheSrcDir="${LangProject}/${project}/src"
+						TheBin="${project}"
+					else
+						TheBin=""
+					fi
 					;;
 			esac
 

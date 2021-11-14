@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.27"
+SupportV="0.1.28"
 Lang=Rust
 LangExt=".rs"
 ColorNum=1
@@ -1104,26 +1104,32 @@ UseRust()
 			;;
 		runCode|debug)
 			local name=$1
+			local UseProjectTemplate
 			shift
 			shift
 			local Args=$@
-			local TheBin=$(UseRust "removeExt" ${name})
+			local TheBin
 			local project=${CodeProject}
 			local TheBinDir
-			local UseProjectTemplate
+			local TheSrcDir
 
 			#Handle Project Dir
 			case ${project} in
 				none)
 					project=""
 					TheBinDir=${LangBin}
-					cd ${LangSrc}/
+					TheSrcDir=${LangSrc}
+					TheBin=$(UseRust "removeExt" ${name})
 					;;
 				*)
-					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
-					TheBinDir="${LangProject}/${project}/bin"
-					cd ${LangProject}/${project}/src/
-					TheBin="${project}"
+					if [ ! -z "${project}" ]; then
+						UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
+						TheBinDir="${LangProject}/${project}/bin"
+						TheSrcDir="${LangProject}/${project}/src"
+						TheBin="${project}"
+					else
+						TheBin=""
+					fi
 					;;
 			esac
 
@@ -1133,15 +1139,22 @@ UseRust()
 					none)
 						#Find the main file
 						if [ ! -z "${name}" ]; then
-							name=${name//,/ /}
-							name=$(grep -l "fn main(" ${name} 2> /dev/null)
-							TheBin=$(UseRust "removeExt" ${name})
+							if [ -d "${TheSrcDir}" ]; then
+								cd ${TheSrcDir}
+								name=${name//,/ }
+								name=$(grep -l "fn main(" ${name} 2> /dev/null)
+								if [ ! -z "${name}" ]; then
+									TheBin=$(UseRust "removeExt" ${name})
+								else
+									TheBin=""
+								fi
+								cd - > /dev/null
+							else
+								TheBin=""
+							fi
 						fi
 						;;
 					*)
-						TheBinDir="${LangProject}/${project}/bin"
-						TheBin="${project}"
-						cd ${LangProject}/${project}/src
 						;;
 				esac
 			fi
@@ -1150,9 +1163,11 @@ UseRust()
 			if [ -f ${TheBinDir}/${TheBin} ]; then
 				case ${Type} in
 					debug)
-						cd ${TheBinDir}
-						${UseDebugger} ${TheBin}
-						cd - > /dev/null
+						if [ ! -z "${ThePipe}" ]; then
+							cat /dev/stdin | ${UseDebugger} ${TheBinDir}/${TheBin} ${Args[@]}
+						else
+							${UseDebugger} ${TheBinDir}/${TheBin} ${Args[@]}
+						fi
 						;;
 					runCode)
 						if [ ! -z "${ThePipe}" ]; then

@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.78"
+SupportV="0.1.79"
 Lang=Perl
 LangExt=".pl"
 #Color Purple
@@ -938,12 +938,12 @@ UsePerl()
 				none)
 					project=""
 					TheBinDir=${LangBin}
-					cd ${LangSrc}/
+					#cd ${LangSrc}/
 					;;
 				*)
 					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					TheBinDir="${LangProject}/${project}/bin"
-					cd ${LangProject}/${project}/src
+					#cd ${LangProject}/${project}/src
 					;;
 			esac
 
