@@ -4,10 +4,12 @@ Shell=$(which bash)
 #https://stackoverflow.com/questions/10339637/java-import-cannot-find-symbol
 #https://www.codejava.net/java-core/tools/how-to-compile-package-and-run-a-java-program-using-command-line-tools-javac-jar-and-java
 
-SupportV="0.2.16"
+SupportV="0.2.17"
 Lang=Java
 LangExt=".java"
 ColorNum=1
+
+UseTypeOfCpl=${TypeOfCpl}
 
 #Handle Pipes
 #{
@@ -342,8 +344,8 @@ UseJava()
 			echo ${LangSrc}
 			;;
 		CreateHelp)
-			echo -e "prop, properties, -D\t: create custome ${Lang} properties"
-			echo -e "jar, manifest\t\t: create ${Lang} Manifest Jar builds"
+			echo -e "prop, properties, -D\t\t: create custome ${Lang} properties"
+			echo -e "jar, manifest\t\t\t: create ${Lang} Manifest Jar builds"
 			;;
 		shell)
 			;;
@@ -713,6 +715,26 @@ UseJava()
 			;;
 		setCplArgs-help)
 			;;
+		compileType-list)
+			echo -e "--jar\t\t: \"build code as a jar\""
+			echo -e "--class\t\t: \"build code as a class\""
+			;;
+		compileType)
+			local GetCplType=$1
+			case ${GetCplType,,} in
+                                --jar|--class)
+					echo ${GetCplType}
+					;;
+				class)
+					echo "--class"
+					;;
+				jar)
+					echo "--jar"
+					;;
+				*)
+					;;
+			esac
+			;;
 		compileCode-message)
 			local cplType=$1
 			case ${cplType} in
@@ -768,7 +790,7 @@ UseJava()
 							ERROR=$(${LangCpl} -d ${TheSrcDir}/ ${src} 2>&1 | tr '\n' '|')
 							if [ -z "${ERROR}" ]; then
 								#Compile as jar or class
-								case ${name} in
+								case ${UseTypeOfCpl} in
 									#Compile as Jar
 									--jar)
 										NumOfMain=$(echo -e "${TheMainClass// /\\n}" | wc -l)
@@ -896,11 +918,12 @@ UseJava()
 					esac
 
 					#Compile as jar or class
-					case ${name} in
+					case ${UseTypeOfCpl} in
 						#Compile as Jar
 						--jar)
 							cd ${ProjectModeDir}
-							UseJava ${Type} ${src} --class ${keep} | grep -v "(CLASS)"
+							UseTypeOfCpl="--class"
+							UseJava ${Type} ${src} ${name} ${keep} | grep -v "(CLASS)"
 							#Compile to Class
 							ERROR=$(find ${ThePWD} -name "*.class")
 							#Convert Class files to Jar

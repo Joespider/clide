@@ -9,7 +9,7 @@ fn help()
 {
 	print("Author: Joespider");
 	print("Program: \"newRust\"");
-	print("Version: 0.0.2");
+	print("Version: 0.0.3");
 	print("Purpose: make new Rust programs");
 	print("Usage: newRust <args>");
 	print("\t-n <name> : program name");
@@ -47,12 +47,47 @@ fn main()
 	{
 		if arg_count > 0
 		{
-			println!("{}", args);
+			if args == "-n" || args == "--name"
+			{
+				println!("{}", args);
+			}
+			else if args == "--cli"
+			{
+				println!("{}", args);
+			}
+			else if args == "--main"
+			{
+				println!("{}", args);
+			}
+			else if args == "--random"
+			{
+				println!("{}", args);
+			}
+			else if args == "--write-file"
+			{
+				println!("{}", args);
+			}
+			else if args == "--read-file"
+			{
+				println!("{}", args);
+			}
+			else if args == "--is-in"
+			{
+				println!("{}", args);
+			}
+			else if args == "--user-input"
+			{
+				println!("{}", args);
+			}
+			else
+			{
+				println!("nope");
+			}
 		}
 		arg_count += 1;
 	}
 
-	if arg_count > 1
+	if arg_count == 0
 	{
 		let userin = raw_input("What is your name");
 		println!("Hi \"{}\"!", userin);

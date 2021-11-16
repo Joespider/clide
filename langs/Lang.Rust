@@ -1,10 +1,11 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.28"
+SupportV="0.1.29"
 Lang=Rust
 LangExt=".rs"
 ColorNum=1
+UseTypeOfCpl=${TypeOfCpl}
 
 #Handle Pipes
 #{
@@ -679,6 +680,19 @@ UseRust()
 				echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
 			fi
 			;;
+		compileType-list)
+			echo -e "--release\t\t: \"build code as release\""
+			;;
+		compileType)
+			local GetCplType=$1
+			case ${GetCplType,,} in
+				--release|release)
+					echo "--release"
+					;;
+				*)
+					;;
+			esac
+			;;
 		compileCode)
 			local src=$1
 			local name=$2
@@ -782,31 +796,17 @@ UseRust()
 					#Go to project root directory
 					cd ${LangProject}/${project}/
 					#--release argument not given
-					if [ ! -z "${name}" ]; then
-						case ${name} in
-							--release)
-								#Build as a release
-								ERROR=$(cargo build --release --quiet 2>&1 | tr '|' '.' | tr '\n' '|')
-								;;
-							*)
-								ERROR="Nothing to compile"
-								;;
-						esac
-					#--release argument not given and/or source code not set
-					else
-						case ${src} in
-							#--release compile argument given
-							--release)
-								#Build as a release
-								ERROR=$(cargo build --release --quiet 2>&1 | tr '|' '.' | tr '\n' '|')
-								;;
-							#Do a normal project build
-							*)
-								#Build as normal
-								ERROR=$(cargo build --quiet 2>&1 | tr '|' '.' | tr '\n' '|')
-								;;
-						esac
-					fi
+					case ${UseTypeOfCpl} in
+						--release)
+							#Build as a release
+							ERROR=$(cargo build --release --quiet 2>&1 | tr '|' '.' | tr '\n' '|')
+							;;
+						#Do a normal project build
+						*)
+							#Build as normal
+							ERROR=$(cargo build --quiet 2>&1 | tr '|' '.' | tr '\n' '|')
+							;;
+					esac
 
 					#Build was successful AND binary found in the 'debug' directory of project
 					if [ -z "${ERROR}" ] && [ -f ${LangProject}/${project}/target/debug/${project} ]; then

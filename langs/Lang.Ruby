@@ -1,10 +1,11 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.76"
+SupportV="0.1.77"
 Lang=Ruby
 LangExt=".rb"
 ColorNum=1
+UseTypeOfCpl=${TypeOfCpl}
 
 #Handle Pipes
 #{

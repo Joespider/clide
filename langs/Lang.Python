@@ -1,11 +1,12 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.90"
+SupportV="0.1.91"
 Lang=Python
 LangExt=".py"
 #Color Yellow
 ColorNum=3
+UseTypeOfCpl=${TypeOfCpl}
 
 #Handle Pipes
 #{

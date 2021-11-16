@@ -18,6 +18,8 @@ root=$(dirname ${ShellPath})
 source ${root}/var/clide.conf
 source ${root}/var/version
 
+export TypeOfCpl
+
 #InAndOut determines if internal functions can run via cli
 InAndOut="no"
 
@@ -3101,6 +3103,37 @@ Actions()
 								echo -n "${cLang}\$ "
 								read -a RunTimeArgs
 								;;
+							type)
+								local NewCplType
+								if [ -z "${UserIn[2]}" ]; then
+									echo "Possible Compile Types"
+									ManageLangs ${Lang} "compileType-list"
+									echo ""
+									echo -n "Active: "
+									if [ ! -z "${TypeOfCpl}" ]; then
+										echo ${TypeOfCpl}
+									else
+										echo "Default"
+									fi
+								else
+									case ${UserIn[2]} in
+										--help)
+											ManageLangs ${Lang} "compileType-list"
+											;;
+										--reset|reset)
+											TypeOfCpl=""
+											errorCode "HINT" "Compile Type reset to default"
+											;;
+										*)
+											NewCplType=$(ManageLangs ${Lang} "compileType" ${UserIn[2]})
+											if [ ! -z "${NewCplType}" ]; then
+												TypeOfCpl="${NewCplType}"
+												errorCode "HINT" "Set to Compile as a \"${TypeOfCpl}\""
+											fi
+											;;
+									esac
+								fi
+								;;
 							#Create new Template
 							newCodeTemp)
 								local NewCode=$(ManageLangs ${Lang} "getNewCode")
@@ -3155,10 +3188,15 @@ Actions()
 										RunTimeArgs=""
 										echo "Run time args reset"
 										;;
+									type)
+										TypeOfCpl=""
+										echo "compile type reset"
+										;;
 									all)
 										#Default values
 										RunTimeArgs=""
 										RunCplArgs="none"
+										TypeOfCpl=""
 										echo "All rest"
 										;;
 									help|*)
@@ -3206,6 +3244,81 @@ Actions()
 					compile|cpl)
 						case ${UserIn[1]} in
 							--args)
+								local options
+								if [ -z "${UserIn[2]}" ]; then
+									#Get help page from language support file
+									options=$(ManageLangs ${Lang} "setCplArgs-help" | tr '\n' '|')
+									if [ -z "${options}" ]; then
+										errorCode "cpl" "cpl-args"
+									else
+										echo -e "${options//|/\\n}"
+									fi
+									#Show Active cpl args
+									case ${RunCplArgs} in
+										none)
+											;;
+										*)
+											echo -n "Compile Arguments: "
+											echo "\"${RunCplArgs//,/ }\""
+											;;
+									esac
+								else
+									case ${UserIn[2]} in
+										#User asks for help page
+										help)
+											#Get help page from language support file
+											options=$(ManageLangs ${Lang} "setCplArgs-help" | tr '\n' '|')
+											if [ -z "${options}" ]; then
+												errorCode "cpl" "cpl-args"
+											else
+												echo -e "${options//|/\\n}"
+											fi
+											;;
+										*)
+											#Keep OLD cpl args
+											local OldCplArgs=${RunCplArgs}
+											#Checking and getting compile arguments
+											local newCplArgs=$(ManageLangs ${Lang} "setCplArgs" ${Code} ${UserIn[@]})
+											#compile argument was given
+											if [ ! -z "${newCplArgs}" ]; then
+												#Checks of returned values
+												case ${RunCplArgs} in
+													#Nothing previously given or was reset
+													none)
+														RunCplArgs="${newCplArgs}"
+														;;
+													#Value was already given
+													*${newCplArgs}*)
+														;;
+													#Append new value to existing compile arguments
+													*)
+														case ${newCplArgs} in
+															none)
+																;;
+															*)
+																RunCplArgs="${RunCplArgs},${newCplArgs}"
+																;;
+														esac
+														;;
+												esac
+											fi
+											#CompileCode
+											ManageLangs ${Lang} "compileCode" ${Code}
+											#Jump-in and Jump-out
+											case ${InAndOut} in
+												yes)
+													break
+													;;
+												*)
+													;;
+											esac
+											#Reset to OLD cpl args
+											RunCplArgs=${OldCplArgs}
+											;;
+									esac
+								fi
+								;;
+							--get-args)
 								case ${RunCplArgs} in
 									none)
 										;;
@@ -3214,6 +3327,46 @@ Actions()
 										echo "\"${RunCplArgs//,/ }\""
 										;;
 								esac
+								;;
+							--type)
+								local NewCplType
+								if [ -z "${UserIn[2]}" ]; then
+									echo "Possible Compile Types"
+									ManageLangs ${Lang} "compileType-list"
+									echo ""
+									echo -n "Active: "
+									if [ ! -z "${TypeOfCpl}" ]; then
+										echo ${TypeOfCpl}
+									else
+										echo "Default"
+									fi
+								else
+									case ${UserIn[2]} in
+										--help)
+											ManageLangs ${Lang} "compileType-list"
+											;;
+										--reset|reset)
+											TypeOfCpl=""
+											errorCode "HINT" "Compile Type reset to default"
+											;;
+										*)
+											NewCplType=$(ManageLangs ${Lang} "compileType" ${UserIn[2]})
+											if [ ! -z "${NewCplType}" ]; then
+												TypeOfCpl="${NewCplType}"
+												errorCode "HINT" "Set to Compile as a \"${TypeOfCpl}\""
+											fi
+											;;
+									esac
+								fi
+								;;
+							--*)
+								local NewCplType=$(ManageLangs ${Lang} "compileType" ${UserIn[1]})
+								if [ ! -z "${NewCplType}" ]; then
+									TypeOfCpl="${NewCplType}"
+									ManageLangs ${Lang} "compileCode" ${Code} ${UserIn[2]} ${UserIn[3]}
+								else
+									ManageLangs ${Lang} "compileCode" ${Code} ${UserIn[1]} ${UserIn[2]}
+								fi
 								;;
 							*)
 								ManageLangs ${Lang} "compileCode" ${Code} ${UserIn[1]} ${UserIn[2]}
@@ -3236,10 +3389,12 @@ Actions()
 							*)
 								case ${Lang} in
 									Java)
-										ManageLangs ${Lang} "compileCode" "--jar" ${UserIn[1]} ${UserIn[2]}
+										TypeOfCpl="--jar"
+										ManageLangs ${Lang} "compileCode" ${UserIn[1]} ${UserIn[2]}
 										;;
 									Rust)
-										ManageLangs ${Lang} "compileCode" "--release" ${UserIn[1]} ${UserIn[2]}
+										TypeOfCpl="--release"
+										ManageLangs ${Lang} "compileCode" ${UserIn[1]} ${UserIn[2]}
 										;;
 									*)
 										ManageLangs ${Lang} "compileCode" ${Code} ${UserIn[1]} ${UserIn[2]}
@@ -3326,7 +3481,7 @@ Actions()
 						;;
 					#Display help page
 					help)
-						theHelp MenuHelp ${Lang}
+						theHelp MenuHelp ${Lang} ${UserIn[1]}
 						;;
 					#load last session
 					last|load)
@@ -3740,8 +3895,8 @@ loadAuto()
 	comp_list "add"
 	comp_list "${ReadBy} read" "non-lang"
 	comp_list "search"
-	comp_list "create" "args cpl cpl-args make newCodeTemp reset version"
-	comp_list "compile cpl car car-a" "--args"
+	comp_list "create" "args cpl cpl-args make newCodeTemp reset version type"
+	comp_list "compile cpl car car-a" "--args --get-args --type"
 	comp_list "execute exe run" "-a --args"
 	comp_list "version"
 	comp_list "help"
@@ -3974,7 +4129,8 @@ CLI()
 																		if [ -z "${Code}" ]; then
 																			ManageLangs ${Lang} "compileCode" ${Code}
 																		else
-																			ManageLangs ${Lang} "compileCode" "--jar"
+																			TypeOfCpl="--jar"
+																			ManageLangs ${Lang} "compileCode"
 																		fi
 																		;;
 																	C|C++)
@@ -3994,7 +4150,8 @@ CLI()
 																		if [ -z "${Code}" ]; then
 																			ManageLangs ${Lang} "compileCode" ${Code}
 																		else
-																			ManageLangs ${Lang} "compileCode" "--release"
+																			TypeOfCpl="--release"
+																			ManageLangs ${Lang} "compileCode"
 																		fi
 																		;;
 																	*)
@@ -4423,9 +4580,7 @@ CLI()
 									fi
 									;;
 							esac
-#							else
-#								theHelp cplHelp
-							fi
+						fi
 					else
 						case ${Code} in
 							--*)
@@ -4575,21 +4730,24 @@ CLI()
 				fi
 				;;
 			#compile code without entering cl[ide]
+			#clide --cpl <lang> <code> <args>
 			--cpl|--compile)
 				if [ -z "${ThePipe}" ]; then
+					local NewCplType
 					shift
 					local Lang
 					local Code=$2
 					local Args
+					#clide --cpl <code>.<ext>
 					if [ -z "${Code}" ]; then
 						Lang=$(SelectLangByCode $1)
 						if [ ! -z "${Lang}" ]; then
 							Code=$1
 							shift
-							local Args=$@
+							Args=$@
 							case ${Code} in
 								-h|--help)
-									theHelp cplHelp
+									theHelp cplCliHelp
 									;;
 								*)
 									if [ ! -z "${Code}" ]; then
@@ -4598,41 +4756,62 @@ CLI()
 									;;
 							esac
 						else
-							theHelp cplHelp
+							theHelp cplCliHelp
 						fi
+					# $ clide --cpl <lang> <code> or $ clide --cpl <lang>
 					else
-						case ${Code} in
+						case ${1} in
+							# $ clide --cpl --<cplType> <lang> <code> or $ clide --cpl --<cplType> <code>
 							--*)
-								Lang=$(SelectLangByCode $1)
-								Code=$1
+								TypeOfCpl=$1
 								shift
-								Args=$@
+								main --cpl $@
 								;;
 							*)
-								Lang=$(pgLang $1)
-								shift
-								shift
-								Args=$@
+								case ${Code} in
+									#clide --cpl <code> --args <args>
+									--*)
+										Lang=$(SelectLangByCode $1)
+										Code=$1
+										shift
+										Args=$@
+										;;
+									# $ clide --cpl <lang> <code> <args> or $ clide --cpl <code> <args>
+									*)
+										Lang=$(pgLang $1)
+										shift
+										shift
+										Args=$@
+										;;
+								esac
+
+								case ${Lang} in
+									no)
+										errorCode "lang" "cli-not-supported" "$1"
+										;;
+									*)
+										local CodeDir=$(pgDir ${Lang})
+										if [ ! -z "${CodeDir}" ] && [ -d "${CodeDir}" ]; then
+											cd ${CodeDir}
+											Code=$(selectCode ${Lang} ${Code})
+											if [ ! -z "${Code}" ]; then
+												if [ ! -z "${TypeOfCpl}" ]; then
+													NewCplType=$(ManageLangs ${Lang} "compileType" ${TypeOfCpl})
+													if [ ! -z "${NewCplType}" ]; then
+														TypeOfCpl="${NewCplType}"
+													fi
+												fi
+												InAndOut="yes"
+												Actions ${Lang} "code" "cpl" ${Code} ${Args[@]}
+											else
+												errorCode "cli-cpl" "none"
+											fi
+										else
+											errorCode "cli-cpl" "none"
+										fi
+										;;
+								esac
 								;;
-						esac
-						case ${Lang} in
-							no)
-								errorCode "lang" "cli-not-supported" "$1"
-								;;
-							*)
-								local CodeDir=$(pgDir ${Lang})
-								if [ ! -z "${CodeDir}" ]; then
-									cd ${CodeDir}
-									Code=$(selectCode ${Lang} ${Code})
-									if [ ! -z "${Code}" ]; then
-										InAndOut="yes"
-										Actions ${Lang} "code" "cpl" ${Code} ${Args[@]}
-									else
-										errorCode "cli-cpl" "none"
-									fi
-								else
-									errorCode "cli-cpl" "none"
-								fi
 						esac
 					fi
 				fi

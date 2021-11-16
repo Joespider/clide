@@ -1,11 +1,12 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.64"
+SupportV="0.1.65"
 Lang=Go
 LangExt=".go"
 #Color Green
 ColorNum=2
+UseTypeOfCpl=${TypeOfCpl}
 
 #Handle Pipes
 #{

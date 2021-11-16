@@ -1,10 +1,11 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.76"
+SupportV="0.1.77"
 Lang=Bash
 LangExt=".sh"
 ColorNum=2
+UseTypeOfCpl=${TypeOfCpl}
 
 #Handle Pipes
 #{
