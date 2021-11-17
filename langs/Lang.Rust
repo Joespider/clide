@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.29"
+SupportV="0.1.30"
 Lang=Rust
 LangExt=".rs"
 ColorNum=1
@@ -614,8 +614,8 @@ UseRust()
 			fi
 			;;
 		setCplArgs)
-			shift
-			shift
+#			shift
+#			shift
 			local Vals="none"
 			local Item=""
 			local str=$@

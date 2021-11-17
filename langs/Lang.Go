@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.65"
+SupportV="0.1.66"
 Lang=Go
 LangExt=".go"
 #Color Green
@@ -696,8 +696,8 @@ UseGo()
 		make)
 			;;
 		setCplArgs)
-			shift
-			shift
+#			shift
+#			shift
 			Vals="none"
 			Item=""
 			str=$@

@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.62"
+SupportV="0.1.63"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
@@ -962,8 +962,8 @@ UseC()
 			echo ${cplArgs// /,}
 			;;
 		setCplArgs)
-			shift
-			shift
+#			shift
+#			shift
 			local Vals="none"
 			local Item=""
 			local str=$@

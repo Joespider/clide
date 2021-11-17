@@ -160,6 +160,7 @@ ManageLangs()
 	local Manage=$@
 	if [ ! -z "${TheAction}" ]; then
 		if [ -d ${LangsDir} ] && [ -f ${Langs} ]; then
+			chmod -w ${Langs} 2> /dev/null
 			case ${TheAction} in
 				runCode)
 					if [ ! -z "${ThePipe}" ]; then
@@ -172,6 +173,7 @@ ManageLangs()
 					${Langs} ${PassedVars[@]} ${Manage[@]}
 					;;
 			esac
+			chmod u+w ${Langs} 2> /dev/null
 		else
 			UseOther ${TheLang} ${Manage[@]}
 		fi
@@ -3059,7 +3061,7 @@ Actions()
 										#User Value was given
 										if [ ! -z "${NewVal}" ]; then
 											#Checking and getting compile arguments
-											local newCplArgs=$(ManageLangs ${Lang} "setCplArgs" ${Code} ${NewVal[@]})
+											local newCplArgs=$(ManageLangs ${Lang} "setCplArgs" ${NewVal[@]})
 											#compile argument was given
 											if [ ! -z "${newCplArgs}" ]; then
 												#Checks of returned values
@@ -3242,10 +3244,22 @@ Actions()
 						;;
 					#Compile code
 					compile|cpl)
-						case ${UserIn[1]} in
-							--args)
+						local CplFlag
+						local CplInputs=( ${UserIn[@]} )
+						CplInputs[0]=""
+						CplFlag=${CplInputs[1]}
+						case ${CplInputs[1]} in
+							-a|--args|--get-args|--type)
+								CplInputs[1]=""
+								;;
+							*)
+								;;
+						esac
+
+						case ${CplFlag} in
+							-a|--args)
 								local options
-								if [ -z "${UserIn[2]}" ]; then
+								if [ -z "${CplInputs[2]}" ]; then
 									#Get help page from language support file
 									options=$(ManageLangs ${Lang} "setCplArgs-help" | tr '\n' '|')
 									if [ -z "${options}" ]; then
@@ -3263,7 +3277,7 @@ Actions()
 											;;
 									esac
 								else
-									case ${UserIn[2]} in
+									case ${CplInputs[2]} in
 										#User asks for help page
 										help)
 											#Get help page from language support file
@@ -3278,7 +3292,7 @@ Actions()
 											#Keep OLD cpl args
 											local OldCplArgs=${RunCplArgs}
 											#Checking and getting compile arguments
-											local newCplArgs=$(ManageLangs ${Lang} "setCplArgs" ${Code} ${UserIn[@]})
+											local newCplArgs=$(ManageLangs ${Lang} "setCplArgs" ${CplInputs[@]})
 											#compile argument was given
 											if [ ! -z "${newCplArgs}" ]; then
 												#Checks of returned values
@@ -3330,7 +3344,7 @@ Actions()
 								;;
 							--type)
 								local NewCplType
-								if [ -z "${UserIn[2]}" ]; then
+								if [ -z "${CplInputs[2]}" ]; then
 									echo "Possible Compile Types"
 									ManageLangs ${Lang} "compileType-list"
 									echo ""
@@ -3341,7 +3355,7 @@ Actions()
 										echo "Default"
 									fi
 								else
-									case ${UserIn[2]} in
+									case ${CplInputs[2]} in
 										--help)
 											ManageLangs ${Lang} "compileType-list"
 											;;
@@ -3350,7 +3364,7 @@ Actions()
 											errorCode "HINT" "Compile Type reset to default"
 											;;
 										*)
-											NewCplType=$(ManageLangs ${Lang} "compileType" ${UserIn[2]})
+											NewCplType=$(ManageLangs ${Lang} "compileType" ${CplInputs[2]})
 											if [ ! -z "${NewCplType}" ]; then
 												TypeOfCpl="${NewCplType}"
 												errorCode "HINT" "Set to Compile as a \"${TypeOfCpl}\""
@@ -3360,16 +3374,15 @@ Actions()
 								fi
 								;;
 							--*)
-								local NewCplType=$(ManageLangs ${Lang} "compileType" ${UserIn[1]})
+								local NewCplType=$(ManageLangs ${Lang} "compileType" ${CplInputs[1]})
 								if [ ! -z "${NewCplType}" ]; then
 									TypeOfCpl="${NewCplType}"
-									ManageLangs ${Lang} "compileCode" ${Code} ${UserIn[2]} ${UserIn[3]}
-								else
-									ManageLangs ${Lang} "compileCode" ${Code} ${UserIn[1]} ${UserIn[2]}
+									CplInputs[1]=""
 								fi
+								ManageLangs ${Lang} "compileCode" ${Code} ${CplInputs[@]}
 								;;
 							*)
-								ManageLangs ${Lang} "compileCode" ${Code} ${UserIn[1]} ${UserIn[2]}
+								ManageLangs ${Lang} "compileCode" ${Code} ${CplInputs[@]}
 								#Jump-in and Jump-out
 								case ${InAndOut} in
 									yes)
@@ -3380,6 +3393,7 @@ Actions()
 								esac
 								;;
 						esac
+						CplFlag=""
 						;;
 					build)
 						case ${CodeProject} in
@@ -4770,7 +4784,7 @@ CLI()
 							*)
 								case ${Code} in
 									#clide --cpl <code> --args <args>
-									--*)
+									-*)
 										Lang=$(SelectLangByCode $1)
 										Code=$1
 										shift
@@ -4802,7 +4816,7 @@ CLI()
 													fi
 												fi
 												InAndOut="yes"
-												Actions ${Lang} "code" "cpl" ${Code} ${Args[@]}
+												Actions ${Lang} ${Code} "cpl" ${Args[@]}
 											else
 												errorCode "cli-cpl" "none"
 											fi

@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.80"
+SupportV="0.1.81"
 Lang=Perl
 LangExt=".pl"
 #Color Purple
@@ -521,8 +521,8 @@ UsePerl()
 			esac
 			;;
 		setCplArgs)
-			shift
-			shift
+#			shift
+#			shift
 			local Vals="none"
 			local Item=""
 			local str=$@
