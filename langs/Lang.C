@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.63"
+SupportV="0.1.64"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
@@ -16,8 +16,8 @@ if readlink /proc/$$/fd/0 | grep -q "^pipe:"; then
 fi
 #}
 
-CplArgs=$1
-shift
+CplArgs=${RunCplArgs}
+TheCode=${TheSrcCode}
 
 errorCode()
 {
@@ -1068,7 +1068,7 @@ UseC()
 			echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled (MAKE)]\e[0m"
 			;;
 		compileCode)
-			local src=$1
+			local src=${TheCode}
 			local name=$2
 			local cplArgs=${CplArgs//,/ }
 			local IsVerbose

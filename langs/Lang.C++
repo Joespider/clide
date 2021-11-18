@@ -5,7 +5,7 @@ Shell=$(which bash)
 #Link Libs: https://gist.github.com/gubatron/32f82053596c24b6bec6
 #both https://avikdas.com/2019/12/16/makefiles-for-c-cpp-projects.html
 
-SupportV="0.2.25"
+SupportV="0.2.26"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -45,8 +45,8 @@ esac
 
 ColorNum=4
 
-CplArgs=$1
-shift
+CplArgs=${RunCplArgs}
+TheCode=${TheSrcCode}
 
 errorCode()
 {
@@ -1396,7 +1396,7 @@ UseC++()
 			echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled (MAKE)]\e[0m"
 			;;
 		compileCode)
-			local src=$1
+			local src=${TheCode}
 			local name=$2
 			local cplArgs=${CplArgs//,/ }
 			local IsVerbose

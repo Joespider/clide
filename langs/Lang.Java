@@ -4,7 +4,7 @@ Shell=$(which bash)
 #https://stackoverflow.com/questions/10339637/java-import-cannot-find-symbol
 #https://www.codejava.net/java-core/tools/how-to-compile-package-and-run-a-java-program-using-command-line-tools-javac-jar-and-java
 
-SupportV="0.2.17"
+SupportV="0.2.20"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -19,8 +19,8 @@ if readlink /proc/$$/fd/0 | grep -q "^pipe:"; then
 fi
 #}
 
-CplArgs=$1
-shift
+CplArgs=${RunCplArgs}
+TheCode=${TheSrcCode}
 
 errorCode()
 {
@@ -511,16 +511,6 @@ UseJava()
 			local theSrc
 			local project=${CodeProject}
 
-			if [ -z "${name}" ]; then
-				case ${project} in
-					none)
-						;;
-					*)
-						name=${project}
-						;;
-				esac
-			fi
-
 			case ${Type} in
 				rmBin)
 					case ${project} in
@@ -529,6 +519,7 @@ UseJava()
 							ThePath=${LangBin}
 							;;
 						*)
+							name=${project}
 							ThePath="${LangProject}/${project}/bin"
 							;;
 					esac
@@ -759,7 +750,7 @@ UseJava()
 			esac
 			;;
 		compileCode)
-			local src=$1
+			local src=${TheCode}
 			local name=$2
 			local keep=$3
 			local project=${CodeProject}
@@ -908,15 +899,6 @@ UseJava()
 						ProjectModeDir=${TheSrcDir}
 					fi
 
-					case ${src} in
-						--*)
-							name=${src}
-							src=${LangExt}
-							;;
-						*)
-							;;
-					esac
-
 					#Compile as jar or class
 					case ${UseTypeOfCpl} in
 						#Compile as Jar
@@ -985,14 +967,7 @@ UseJava()
 						#compile class
 						--class)
 							cd ${ProjectModeDir}
-							case ${src} in
-								${LangExt})
-									TheJavaSrc=$(find . -name "*${LangExt}")
-									;;
-								*)
-									TheJavaSrc=$(find . -name "${src}")
-									;;
-							esac
+							TheJavaSrc=$(find . -name "*${LangExt}")
 							if [ ! -z "${TheJavaSrc}" ]; then
 								#Compile java code with lib jars
 								if [ -d "${TheLibDir}" ]; then
@@ -1030,7 +1005,8 @@ UseJava()
 							if [ -z "${src}" ]; then
 								src=${LangExt}
 							fi
-							UseJava ${Type} ${src} --jar ${keep}
+							UseTypeOfCpl="--jar"
+							UseJava ${Type} ${src} ${keep}
 							;;
 					esac
 					;;

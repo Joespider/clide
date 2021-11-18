@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.30"
+SupportV="0.1.31"
 Lang=Rust
 LangExt=".rs"
 ColorNum=1
@@ -15,8 +15,8 @@ if readlink /proc/$$/fd/0 | grep -q "^pipe:"; then
 fi
 #}
 
-CplArgs=$1
-shift
+CplArgs=${RunCplArgs}
+TheCode=${TheSrcCode}
 
 errorCode()
 {
@@ -694,7 +694,7 @@ UseRust()
 			esac
 			;;
 		compileCode)
-			local src=$1
+			local src=${TheCode}
 			local name=$2
 			local keep=$3
 			local cplArgs=${CplArgs//,/ }

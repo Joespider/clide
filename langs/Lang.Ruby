@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.77"
+SupportV="0.1.78"
 Lang=Ruby
 LangExt=".rb"
 ColorNum=1
@@ -15,8 +15,8 @@ if readlink /proc/$$/fd/0 | grep -q "^pipe:"; then
 fi
 #}
 
-CplArgs=$1
-shift
+CplArgs=${RunCplArgs}
+TheCode=${TheSrcCode}
 
 errorCode()
 {
@@ -639,7 +639,7 @@ UseRuby()
 			echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
 			;;
 		compileCode)
-			local src=$1
+			local src=${TheCode}
 			local name=$2
 			local keep=$3
 			local project=${CodeProject}

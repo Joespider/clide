@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.81"
+SupportV="0.1.82"
 Lang=Perl
 LangExt=".pl"
 #Color Purple
@@ -16,8 +16,8 @@ if readlink /proc/$$/fd/0 | grep -q "^pipe:"; then
 fi
 #}
 
-CplArgs=$1
-shift
+CplArgs=${RunCplArgs}
+TheCode=${TheSrcCode}
 
 errorCode()
 {
@@ -571,7 +571,7 @@ UsePerl()
 			echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
 			;;
 		compileCode)
-			local src=$1
+			local src=${TheCode}
 			local name=$2
 			local keep=$3
 			local project=${CodeProject}
