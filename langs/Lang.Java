@@ -4,7 +4,7 @@ Shell=$(which bash)
 #https://stackoverflow.com/questions/10339637/java-import-cannot-find-symbol
 #https://www.codejava.net/java-core/tools/how-to-compile-package-and-run-a-java-program-using-command-line-tools-javac-jar-and-java
 
-SupportV="0.2.20"
+SupportV="0.2.21"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -559,8 +559,8 @@ UseJava()
 			esac
 			;;
 		editCode|readCode)
-			local src=$1
-			local num=$2
+			local src=${TheCode}
+			local num=$1
 			local TheFile
 			local project=${CodeProject}
 			local newName
@@ -751,8 +751,8 @@ UseJava()
 			;;
 		compileCode)
 			local src=${TheCode}
-			local name=$2
-			local keep=$3
+			local name=$1
+			local keep=$2
 			local project=${CodeProject}
 			local cplArgs=""
 			local TheSrcDir
@@ -905,7 +905,7 @@ UseJava()
 						--jar)
 							cd ${ProjectModeDir}
 							UseTypeOfCpl="--class"
-							UseJava ${Type} ${src} ${name} ${keep} | grep -v "(CLASS)"
+							UseJava ${Type} ${name} ${keep} | grep -v "(CLASS)"
 							#Compile to Class
 							ERROR=$(find ${ThePWD} -name "*.class")
 							#Convert Class files to Jar

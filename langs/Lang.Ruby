@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.78"
+SupportV="0.1.79"
 Lang=Ruby
 LangExt=".rb"
 ColorNum=1
@@ -485,8 +485,8 @@ UseRuby()
 			fi
 			;;
 		editCode|readCode)
-			local src=$1
-			local num=$2
+			local src=${TheCode}
+			local num=$1
 			local project=${CodeProject}
 			local UseProjectTemplate
 			local newName
@@ -640,8 +640,8 @@ UseRuby()
 			;;
 		compileCode)
 			local src=${TheCode}
-			local name=$2
-			local keep=$3
+			local name=$1
+			local keep=$2
 			local project=${CodeProject}
 			local cplArgs=""
 			local TheBinDir

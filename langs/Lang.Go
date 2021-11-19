@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.67"
+SupportV="0.1.69"
 Lang=Go
 LangExt=".go"
 #Color Green
@@ -547,8 +547,8 @@ UseGo()
 			fi
 			;;
 		editCode|readCode)
-			local src=$1
-			local num=$2
+			local src=${TheCode}
+			local num=$1
 			local project=${CodeProject}
 			local newName
 			local DirPath
@@ -748,7 +748,7 @@ UseGo()
 			;;
 		compileCode)
 			local src=${TheCode}
-			local name=$2
+			local name=$1
 			local cplArgs=${CplArgs//,/ }
 			local project=${CodeProject}
 			local ReplaceTheSrcDir

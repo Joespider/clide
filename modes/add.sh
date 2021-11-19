@@ -229,8 +229,7 @@ Add()
 {
 	local Lang=$1
 	local cLang=$2
-	local Code=$3
-	local cCode=$4
+	local cCode=$3
 	local FirstAction=$5
 	local UserIn
 	local prompt
@@ -270,7 +269,7 @@ Add()
 			create|import|change|correct)
 				case ${component} in
 					shortcut)
-						AddShortcut ${Lang} ${Code} ${CodeProject} ${UserIn[@]}
+						AddShortcut ${Lang} ${TheSrcCode} ${CodeProject} ${UserIn[@]}
 						;;
 					project)
 						AddProjectTemplate ${Lang} ${UserArg}
@@ -284,7 +283,7 @@ Add()
 				;;
 			using)
 				echo "Language: \"${cLang}\""
-				case ${Code} in
+				case ${TheSrcCode} in
 					none)
 						;;
 					*)

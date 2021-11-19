@@ -5,7 +5,7 @@ Shell=$(which bash)
 #Link Libs: https://gist.github.com/gubatron/32f82053596c24b6bec6
 #both https://avikdas.com/2019/12/16/makefiles-for-c-cpp-projects.html
 
-SupportV="0.2.26"
+SupportV="0.2.27"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -992,8 +992,8 @@ UseC++()
 			fi
 			;;
 		editCode|readCode)
-			local src=$1
-			local num=$2
+			local src=${TheCode}
+			local num=$1
 			local project=${CodeProject}
 			local newName
 			local DirPath
@@ -1397,7 +1397,7 @@ UseC++()
 			;;
 		compileCode)
 			local src=${TheCode}
-			local name=$2
+			local name=$1
 			local cplArgs=${CplArgs//,/ }
 			local IsVerbose
 			local project=${CodeProject}

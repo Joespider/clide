@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.64"
+SupportV="0.1.65"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
@@ -723,8 +723,8 @@ UseC()
 			fi
 			;;
 		editCode|readCode)
-			local src=$1
-			local num=$2
+			local src=${TheCode}
+			local num=$1
 			local project=${CodeProject}
 			local newName
 			local DirPath
@@ -1069,7 +1069,7 @@ UseC()
 			;;
 		compileCode)
 			local src=${TheCode}
-			local name=$2
+			local name=$1
 			local cplArgs=${CplArgs//,/ }
 			local IsVerbose
 			local project=${CodeProject}

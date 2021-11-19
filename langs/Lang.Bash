@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.79"
+SupportV="0.1.80"
 Lang=Bash
 LangExt=".sh"
 ColorNum=2
@@ -482,8 +482,8 @@ UseBash()
 			fi
 			;;
 		editCode|readCode)
-			local src=$1
-			local num=$2
+			local src=${TheCode}
+			local num=$1
 			local project=${CodeProject}
 			local newName
 			local DirPath
@@ -637,8 +637,8 @@ UseBash()
 			;;
 		compileCode)
 			local src=${TheCode}
-			local name=$2
-			local keep=$3
+			local name=$1
+			local keep=$2
 			local project=${CodeProject}
 			local cplArgs=""
 			local TheBinDir

@@ -7,7 +7,6 @@ End="\e[0m"
 
 Head=$1
 LangsDir=$2
-RunCplArgs=$3
 project=${CodeProject}
 shift
 shift
@@ -18,12 +17,11 @@ ManageLangs()
 {
 	local TheLang=$1
 	local Langs=${LangsDir}/Lang.${TheLang^}
-	local PassedVars=( "${RunCplArgs}" )
 	#Make first letter uppercase
 	shift
 	local Manage=$@
 	if [ -f ${Langs} ]; then
-		${Langs} ${PassedVars[@]} ${Manage[@]}
+		${Langs} ${Manage[@]}
 	fi
 }
 

@@ -42,7 +42,7 @@ declare -A Commands
 theHelp()
 {
 	if [ -d ${LibDir} ] && [ -f ${LibDir}/help.sh ]; then
-		${LibDir}/help.sh ${Head} ${LangsDir} ${RunCplArgs} $@
+		${LibDir}/help.sh ${Head} ${LangsDir} $@
 	fi
 }
 
@@ -188,7 +188,6 @@ ModeHandler()
 	local Mode=$1
 	local Lang=$2
 	local cLang=$3
-	local Code=$4
 	local cCode=$5
 	shift
 	shift
@@ -232,7 +231,7 @@ ModeHandler()
 			add)
 				if [ -f ${ModesDir}/add.sh ]; then
 					chmod -w ${ModesDir}/add.sh 2> /dev/null
-					${ModesDir}/add.sh ${Head} "${LibDir}" "${LangsDir}" "${ClideProjectDir}" ${Lang} ${cLang} ${Code} ${cCode} ${Arg[@]}
+					${ModesDir}/add.sh ${Head} "${LibDir}" "${LangsDir}" "${ClideProjectDir}" ${Lang} ${cLang} ${cCode} ${Arg[@]}
 					chmod u+w ${ModesDir}/add.sh 2> /dev/null
 				fi
 				;;
@@ -2953,11 +2952,11 @@ Actions()
 								case ${UserArg} in
 									#Edit new source code
 									${editor}|edit|ed)
-										ManageLangs ${Lang} "editCode" ${TheSrcCode} ${UserIn[1]}
+										ManageLangs ${Lang} "editCode" ${UserIn[1]}
 										;;
 									#Read code without editing
 									${ReadBy}|read)
-										ManageLangs ${Lang} "readCode" ${TheSrcCode} ${UserIn[1]}
+										ManageLangs ${Lang} "readCode" ${UserIn[1]}
 										;;
 									*)
 										;;
@@ -2967,16 +2966,12 @@ Actions()
 						;;
 					#Modes
 					mode)
-						local passCode=${TheSrcCode}
 						local passcCode=${cCode}
-						if [ -z "${passCode}" ]; then
-							passCode="none"
-						fi
 						if [ -z "${passcCode}" ]; then
 							passcCode="none"
 						fi
 						#Swap cl[ide] to a given mode
-						ModeHandler ${UserIn[1]} ${Lang} ${cLang} ${passCode} ${passcCode} ${UserIn[2]}
+						ModeHandler ${UserIn[1]} ${Lang} ${cLang} ${passcCode} ${UserIn[2]}
 						;;
 					#search for element in project
 					search)
@@ -3230,7 +3225,7 @@ Actions()
 						;;
 					#(c)ompile (a)nd (r)un
 					car|car-a)
-						ManageLangs ${Lang} "compileCode" ${TheSrcCode} ${UserIn[1]} ${UserIn[2]}
+						ManageLangs ${Lang} "compileCode" ${UserIn[1]} ${UserIn[2]}
 						if [ ! -z "${TheSrcCode}" ]; then
 							case ${UserArg} in
 								#Run without args
@@ -3321,7 +3316,7 @@ Actions()
 												esac
 											fi
 											#CompileCode
-											ManageLangs ${Lang} "compileCode" ${TheSrcCode}
+											ManageLangs ${Lang} "compileCode"
 											#Jump-in and Jump-out
 											case ${InAndOut} in
 												yes)
@@ -3383,11 +3378,11 @@ Actions()
 									TypeOfCpl="${NewCplType}"
 									CplInputs[1]=""
 								fi
-								ManageLangs ${Lang} "compileCode" ${TheSrcCode} ${CplInputs[@]}
+								ManageLangs ${Lang} "compileCode" ${CplInputs[@]}
 								TypeOfCpl=""
 								;;
 							*)
-								ManageLangs ${Lang} "compileCode" ${TheSrcCode} ${CplInputs[@]}
+								ManageLangs ${Lang} "compileCode" ${CplInputs[@]}
 								#Jump-in and Jump-out
 								case ${InAndOut} in
 									yes)
@@ -3416,7 +3411,7 @@ Actions()
 										ManageLangs ${Lang} "compileCode" ${UserIn[1]} ${UserIn[2]}
 										;;
 									*)
-										ManageLangs ${Lang} "compileCode" ${TheSrcCode} ${UserIn[1]} ${UserIn[2]}
+										ManageLangs ${Lang} "compileCode" ${UserIn[1]} ${UserIn[2]}
 										;;
 								esac
 								;;
@@ -4122,7 +4117,7 @@ CLI()
 
 											#If no source code is found, look in project file
 											if [ -z "${Code}" ]; then
-												Code=$(echo ${TheProject} | cut -d ";" -f 2)
+												TheSrcCode=$(echo ${TheProject} | cut -d ";" -f 2)
 											fi
 
 											local CodeDir=$(echo ${TheProject} | cut -d ";" -f 3)
@@ -4145,8 +4140,8 @@ CLI()
 																#Determine action based on language
 																case ${Lang} in
 																	Java)
-																		if [ -z "${Code}" ]; then
-																			ManageLangs ${Lang} "compileCode" ${Code}
+																		if [ -z "${TheSrcCode}" ]; then
+																			ManageLangs ${Lang} "compileCode"
 																		else
 																			TypeOfCpl="--jar"
 																			ManageLangs ${Lang} "compileCode"
@@ -4159,23 +4154,23 @@ CLI()
 																		if [ ! -z "${TheMakeFile}" ]; then
 																			ManageLangs ${Lang} "compileCode"
 																		#Compile with selected code
-																		elif [ ! -z "${Code}" ]; then
-																			ManageLangs ${Lang} "compileCode" ${Code}
+																		elif [ ! -z "${TheSrcCode}" ]; then
+																			ManageLangs ${Lang} "compileCode"
 																		else
 																			errorCode "cli-cpl" "none"
 																		fi
 																		;;
 																	Rust)
-																		if [ -z "${Code}" ]; then
-																			ManageLangs ${Lang} "compileCode" ${Code}
+																		if [ -z "${TheSrcCode}" ]; then
+																			ManageLangs ${Lang} "compileCode"
 																		else
 																			TypeOfCpl="--release"
 																			ManageLangs ${Lang} "compileCode"
 																		fi
 																		;;
 																	*)
-																		if [ ! -z "${Code}" ]; then
-																			ManageLangs ${Lang} "compileCode" ${Code}
+																		if [ ! -z "${TheSrcCode}" ]; then
+																			ManageLangs ${Lang} "compileCode"
 																		else
 																			errorCode "cli-cpl" "none"
 																		fi
@@ -4434,14 +4429,11 @@ CLI()
 														Code=$(echo ${TheProject} | cut -d ";" -f 2)
 														local passCode=${Code}
 														local passcCode=$(color "${Code}")
-														if [ -z "${passCode}" ]; then
-															passCode="none"
-														fi
 														if [ -z "${passcCode}" ]; then
 															passcCode="none"
 														fi
 														#Swap cl[ide] to a given mode
-														ModeHandler ${ModeType} ${Lang} ${cLang} ${passCode} ${passcCode} $@
+														ModeHandler ${ModeType} ${Lang} ${cLang} ${passcCode} $@
 													fi
 													;;
 												*)
@@ -4731,8 +4723,8 @@ CLI()
 													local CodeDir=$(pgDir ${Lang})
 													if [ ! -z "${CodeDir}" ]; then
 														cd ${CodeDir}
-														Code=$(selectCode ${Lang} ${Code})
-														ManageLangs ${Lang} "editCode" ${Code}
+														TheSrcCode=$(selectCode ${Lang} ${Code})
+														ManageLangs ${Lang} "editCode"
 												else
 														errorCode "cli-cpl" "none"
 													fi
@@ -4989,9 +4981,9 @@ CLI()
 										local CodeDir=$(pgDir ${Lang})
 										if [ ! -z "${CodeDir}" ]; then
 											cd ${CodeDir}
-											Code=$(selectCode ${Lang} ${Code})
-											if [ ! -z "${Code}" ]; then
-												cat ${Code}
+											TheSrcCode=$(selectCode ${Lang} ${Code})
+											if [ ! -z "${TheSrcCode}" ]; then
+												cat ${TheSrcCode}
 											else
 												errorCode "lang" "readCode"
 											fi

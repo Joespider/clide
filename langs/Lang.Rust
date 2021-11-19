@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.31"
+SupportV="0.1.32"
 Lang=Rust
 LangExt=".rs"
 ColorNum=1
@@ -473,8 +473,8 @@ UseRust()
 			fi
 			;;
 		editCode|readCode)
-			local src=$1
-			local num=$2
+			local src=${TheCode}
+			local num=$1
 			local project=${CodeProject}
 			local newName
 			local DirPath
@@ -695,8 +695,8 @@ UseRust()
 			;;
 		compileCode)
 			local src=${TheCode}
-			local name=$2
-			local keep=$3
+			local name=$1
+			local keep=$2
 			local cplArgs=${CplArgs//,/ }
 			local project=${CodeProject}
 			local UseProjectTemplate

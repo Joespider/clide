@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.82"
+SupportV="0.1.83"
 Lang=Perl
 LangExt=".pl"
 #Color Purple
@@ -454,8 +454,8 @@ UsePerl()
 			fi
 			;;
 		editCode|readCode)
-			local src=$1
-			local num=$2
+			local src=${TheCode}
+			local num=$1
 			local ReadOrEdit
 
 			#Select the tool
@@ -572,8 +572,8 @@ UsePerl()
 			;;
 		compileCode)
 			local src=${TheCode}
-			local name=$2
-			local keep=$3
+			local name=$1
+			local keep=$2
 			local project=${CodeProject}
 			local cplArgs=""
 			local TheBinDir
