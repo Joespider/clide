@@ -2554,8 +2554,8 @@ Actions()
 							cd ${CodeDir}
 							#Rest
 							#{
-							TheSrcCode=$(preSelectSrc ${Lang} ${TheSrcCode})
 							CodeProject="none"
+							TheSrcCode=$(preSelectSrc ${Lang} ${TheSrcCode})
 							ProjectType="${ProjectDefaultType}"
 							RunTimeArgs=""
 							TypeOfCpl=""
