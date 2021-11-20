@@ -1060,12 +1060,82 @@ swapProjects()
 #list active projects
 listProjects()
 {
-	#Get list of active prijects from .clide files
-	if [ -d ${ActiveProjectDir} ]; then
-		cd ${ActiveProjectDir}/
-		ls *.clide 2> /dev/null | sed "s/.clide//g"
-		cd - > /dev/null
-	fi
+	local options=$1
+	local TheName=$2
+	case ${options} in
+		-i|--info)
+			local Name
+			local Lang
+			local Linked
+			local TheColor
+			local TheProject
+			if [ ! -z "${TheName}" ]; then
+				TheProject=${ActiveProjectDir}/${TheName}.clide
+				if [ -f ${TheProject} ]; then
+					Name=$(grep "name=" ${TheProject} | sed "s/name=//1")
+					Lang=$(grep "lang=" ${TheProject} | sed "s/lang=//1")
+					Linked=$(grep "link=" ${TheProject} | sed "s/link=//1")
+					TheColor=$(ManageLangs ${Lang} "color-number")
+					echo -e "\e[1;4${TheColor}mProject:\e[0m \e[1;3${TheColor}m${Name}\e[0m"
+					echo -e "\e[1;4${TheColor}mLanguage:\e[0m \e[1;3${TheColor}m${Lang}\e[0m"
+					if [ ! -z "${Linked}" ]; then
+						echo -en "\e[1;4${TheColor}mLinked:\e[0m"
+						echo -n " "
+						for TheLang in ${Linked//,/ };
+						do
+							case ${TheLang} in
+								${Lang})
+									;;
+								*)
+									TheColor=$(ManageLangs ${TheLang} "color-number")
+									echo -en "\e[1;3${TheColor}m${TheLang}\e[0m"
+									echo -n " "
+									;;
+							esac
+						done
+						echo ""
+					fi
+					echo ""
+				fi
+			else
+				for TheProject in ${ActiveProjectDir}/*.clide;
+				do
+					Name=$(grep "name=" ${TheProject} | sed "s/name=//1")
+					Lang=$(grep "lang=" ${TheProject} | sed "s/lang=//1")
+					Linked=$(grep "link=" ${TheProject} | sed "s/link=//1")
+					TheColor=$(ManageLangs ${Lang} "color-number")
+					echo -e "\e[1;4${TheColor}mProject:\e[0m \e[1;3${TheColor}m${Name}\e[0m"
+					echo -e "\e[1;4${TheColor}mLanguage:\e[0m \e[1;3${TheColor}m${Lang}\e[0m"
+					if [ ! -z "${Linked}" ]; then
+						echo -en "\e[1;4${TheColor}mLinked:\e[0m"
+						echo -n " "
+						for TheLang in ${Linked//,/ };
+						do
+							case ${TheLang} in
+								${Lang})
+									;;
+								*)
+									TheColor=$(ManageLangs ${TheLang} "color-number")
+									echo -en "\e[1;3${TheColor}m${TheLang}\e[0m"
+									echo -n " "
+									;;
+							esac
+						done
+						echo ""
+					fi
+					echo ""
+				done
+			fi
+			;;
+		*)
+			#Get list of active prijects from .clide files
+			if [ -d ${ActiveProjectDir} ]; then
+				cd ${ActiveProjectDir}/
+				ls *.clide 2> /dev/null | sed "s/.clide//g"
+				cd - > /dev/null
+			fi
+			;;
+	esac
 }
 
 #Discover Project in clide
@@ -4295,6 +4365,12 @@ CLI()
 								fi
 							fi
 							;;
+						--info)
+							if [ -z "${ThePipe}" ]; then
+								GetProject=$2
+								listProjects --info ${GetProject}
+							fi
+							;;
 						--list)
 							if [ -z "${ThePipe}" ]; then
 								shift
@@ -4308,20 +4384,28 @@ CLI()
 									listProjects
 								#list the entire project
 								else
-									TheProject=$(loadProject ${GetProject})
-									if [ "${TheProject}" != "no" ]; then
-										Lang=$(echo ${TheProject} | cut -d ";" -f 1)
-										Lang=$(pgLang ${Lang})
-										CodeDir=$(echo ${TheProject} | cut -d ";" -f 3)
-										if [ ! -z "${CodeDir}" ]; then
-											RemoveDirs=${CodeDir//\//|}
-											find ${CodeDir} -print | tr '/' '|' | sed "s/${RemoveDirs}//g" | tr '|' '/'
-										else
-											errorCode "cli-cpl" "none"
-										fi
-									else
-										errorCode "project" "not-valid" "${GetProject}"
-									fi
+									case ${GetProject} in
+										-i|--info)
+											GetProject=$2
+											listProjects --info ${GetProject}
+											;;
+										*)
+											TheProject=$(loadProject ${GetProject})
+											if [ "${TheProject}" != "no" ]; then
+												Lang=$(echo ${TheProject} | cut -d ";" -f 1)
+												Lang=$(pgLang ${Lang})
+												CodeDir=$(echo ${TheProject} | cut -d ";" -f 3)
+												if [ ! -z "${CodeDir}" ]; then
+													RemoveDirs=${CodeDir//\//|}
+													find ${CodeDir} -print | tr '/' '|' | sed "s/${RemoveDirs}//g" | tr '|' '/'
+												else
+													errorCode "cli-cpl" "none"
+												fi
+											else
+												errorCode "project" "not-valid" "${GetProject}"
+											fi
+											;;
+									esac
 								fi
 							fi
 							;;
