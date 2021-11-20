@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.80"
+SupportV="0.1.81"
 Lang=Bash
 LangExt=".sh"
 ColorNum=2
@@ -263,7 +263,7 @@ UseBash()
 			;;
 		newCodeHelp)
 			if [ -f ${TemplateCode} ]; then
-				echo -e "-c, --custom\t\t\t: \"Custom src file using ${Lang} template\""
+				echo -e "\t-c, --custom\t\t\t: \"Custom src file using ${Lang} template\""
 			fi
 			;;
 		EnsureDirs)

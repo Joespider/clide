@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.83"
+SupportV="0.1.84"
 Lang=Perl
 LangExt=".pl"
 #Color Purple
@@ -255,7 +255,7 @@ UsePerl()
 			;;
 		newCodeHelp)
 			if [ -f ${TemplateCode} ]; then
-				echo -e "-c, --custom\t\t\t: \"Custom src file using ${Lang} template\""
+				echo -e "\t-c, --custom\t\t\t: \"Custom src file using ${Lang} template\""
 			fi
 			;;
 		EnsureDirs)

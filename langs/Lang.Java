@@ -4,7 +4,7 @@ Shell=$(which bash)
 #https://stackoverflow.com/questions/10339637/java-import-cannot-find-symbol
 #https://www.codejava.net/java-core/tools/how-to-compile-package-and-run-a-java-program-using-command-line-tools-javac-jar-and-java
 
-SupportV="0.2.21"
+SupportV="0.2.23"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -190,9 +190,14 @@ UseJava()
 			echo -e "\t--jar --keep-manifest\t: \"keep manifest.mf\""
 			;;
 		ProjectHelp)
-			echo ""
-			echo -e "${Lang} specific project help"
-			echo ""
+			#local Action=$1
+			#case ${Action} in
+			#	newCode)
+			#		echo -e "new <name> --package <package>"
+			#		;;
+			#	*)
+			#		;;
+			#esac
 			;;
 		getProjectDir)
 			local project=${CodeProject}
@@ -350,9 +355,18 @@ UseJava()
 		shell)
 			;;
 		newCodeHelp)
+			local project=${CodeProject}
 			if [ -f ${TemplateCodeJar} ] || [ -f ${TemplateCodeClass} ]; then
-				echo -e "--custom|-c\t\t\t: \"Custom src file using ${Lang} template\""
+				echo -e "\t--custom|-c\t\t\t: \"Custom src file using ${Lang} template\""
+				case ${project} in
+					none)
+						;;
+					*)
+						echo -e "\t<name> --package <package>\t: \"New source code with package"
+						;;
+				esac
 			fi
+
 			;;
 		EnsureDirs)
 			if [ ! -z "${LangCpl}" ] && [ ! -z "${LangRun}" ]; then
@@ -1930,10 +1944,10 @@ UseJava()
 											;;
 									esac
 								done
-								mv ${TheSrcPath}/${TheOld} ${TheSrcPath}/${TheNew}
+								mv ${TheSrcPath}/${TheOld} ${TheSrcPath}/${TheNew} 2> /dev/null
 								;;
 							copy)
-								cp ${TheOld} ${TheNew}
+								cp ${TheSrcPath}/${TheOld} ${TheSrcPath}/${TheNew} 2> /dev/null
 								;;
 							*)
 								;;

@@ -5,7 +5,7 @@ Shell=$(which bash)
 #Link Libs: https://gist.github.com/gubatron/32f82053596c24b6bec6
 #both https://avikdas.com/2019/12/16/makefiles-for-c-cpp-projects.html
 
-SupportV="0.2.27"
+SupportV="0.2.28"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -545,9 +545,9 @@ UseC++()
 			;;
 		shell)
 			;;
-		newCodewHelp)
+		newCodeHelp)
 			if [ -f ${TemplateCode} ]; then
-				echo -e "-c, --custom\t\t\t: \"Custom src file using ${Lang} template\""
+				echo -e "\t-c, --custom\t\t\t: \"Custom src file using ${Lang} template\""
 			fi
 			;;
 		#Make sure directories in place
