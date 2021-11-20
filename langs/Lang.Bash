@@ -1,10 +1,11 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.75"
+SupportV="0.1.80"
 Lang=Bash
 LangExt=".sh"
 ColorNum=2
+UseTypeOfCpl=${TypeOfCpl}
 
 #Handle Pipes
 #{
@@ -14,8 +15,8 @@ if readlink /proc/$$/fd/0 | grep -q "^pipe:"; then
 fi
 #}
 
-CplArgs=$1
-shift
+CplArgs=${RunCplArgs}
+TheCode=${TheSrcCode}
 
 errorCode()
 {
@@ -481,8 +482,8 @@ UseBash()
 			fi
 			;;
 		editCode|readCode)
-			local src=$1
-			local num=$2
+			local src=${TheCode}
+			local num=$1
 			local project=${CodeProject}
 			local newName
 			local DirPath
@@ -635,9 +636,9 @@ UseBash()
 			echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
 			;;
 		compileCode)
-			local src=$1
-			local name=$2
-			local keep=$3
+			local src=${TheCode}
+			local name=$1
+			local keep=$2
 			local project=${CodeProject}
 			local cplArgs=""
 			local TheBinDir
@@ -910,24 +911,40 @@ UseBash()
 			;;
 		runCode)
 			local name=$1
-			local TheBin="${name%.*}${LangExt}"
-			local project=${CodeProject}
-			local TheBinDir
 			local UseProjectTemplate
 			shift
 			shift
 			local Args=$@
+			local TheBin
+			local project=${CodeProject}
+			local TheBinDir
+			local TheSrcDir
+
 			#Handle Project Dir
 			case ${project} in
 				none)
 					project=""
 					TheBinDir=${LangBin}
-					cd ${LangSrc}/
+					TheSrcDir=${LangSrc}
+					#Handle multiple files
+					if [[ "${name}" == *","* ]]; then
+						if [ -z "${name}" ]; then
+							echo "Unable to find the \"main\" file"
+							echo -n "Please choose: "
+							read name
+						fi
+					fi
+					TheBin=${name}
 					;;
 				*)
-					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
-					TheBinDir="${LangProject}/${project}/bin"
-					cd ${LangProject}/${project}/src
+					if [ ! -z "${project}" ]; then
+						UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
+						TheBinDir="${LangProject}/${project}/bin"
+						TheSrcDir="${LangProject}/${project}/src"
+						TheBin="${project}"
+					else
+						TheBin=""
+					fi
 					;;
 			esac
 

@@ -1,11 +1,12 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.60"
+SupportV="0.1.65"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
 ColorNum=3
+UseTypeOfCpl=${TypeOfCpl}
 
 #Handle Pipes
 #{
@@ -15,8 +16,8 @@ if readlink /proc/$$/fd/0 | grep -q "^pipe:"; then
 fi
 #}
 
-CplArgs=$1
-shift
+CplArgs=${RunCplArgs}
+TheCode=${TheSrcCode}
 
 errorCode()
 {
@@ -722,8 +723,8 @@ UseC()
 			fi
 			;;
 		editCode|readCode)
-			local src=$1
-			local num=$2
+			local src=${TheCode}
+			local num=$1
 			local project=${CodeProject}
 			local newName
 			local DirPath
@@ -961,8 +962,8 @@ UseC()
 			echo ${cplArgs// /,}
 			;;
 		setCplArgs)
-			shift
-			shift
+#			shift
+#			shift
 			local Vals="none"
 			local Item=""
 			local str=$@
@@ -1067,8 +1068,8 @@ UseC()
 			echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled (MAKE)]\e[0m"
 			;;
 		compileCode)
-			local src=$1
-			local name=$2
+			local src=${TheCode}
+			local name=$1
 			local cplArgs=${CplArgs//,/ }
 			local IsVerbose
 			local project=${CodeProject}
@@ -1694,39 +1695,34 @@ UseC()
 					;;
 			esac
 			;;
-		#Run the compiled code
 		runCode|debug)
 			local name=$1
-
-			#Handle Extension
-			case ${name} in
-				*${LangExt})
-					;;
-				*)
-					name="${name}${LangExt}"
-					;;
-			esac
-
+			local UseProjectTemplate
 			shift
 			shift
 			local Args=$@
-			local TheBin="${name%.*}"
+			local TheBin
 			local project=${CodeProject}
 			local TheBinDir
-			local UseProjectTemplate
+			local TheSrcDir
 
 			#Handle Project Dir
 			case ${project} in
 				none)
 					project=""
 					TheBinDir=${LangBin}
-					cd ${LangSrc}/
+					TheSrcDir=${LangSrc}
+					TheBin=$(UseC "removeExt" ${name})
 					;;
 				*)
-					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
-					TheBinDir="${LangProject}/${project}/bin"
-					cd ${LangProject}/${project}/src/
-					TheBin="${project}"
+					if [ ! -z "${project}" ]; then
+						UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
+						TheBinDir="${LangProject}/${project}/bin"
+						TheSrcDir="${LangProject}/${project}/src"
+						TheBin="${project}"
+					else
+						TheBin=""
+					fi
 					;;
 			esac
 
@@ -1736,15 +1732,22 @@ UseC()
 					none)
 						#Find the main file
 						if [ ! -z "${name}" ]; then
-							name=${name//,/ }
-							name=$(grep -l "int main(" ${name} 2> /dev/null)
-							TheBin="${name%.*}"
+							if [ -d "${TheSrcDir}" ]; then
+								cd ${TheSrcDir}
+								name=${name//,/ }
+								name=$(grep -l "int main(" ${name} 2> /dev/null)
+								if [ ! -z "${name}" ]; then
+									TheBin=$(UseC "removeExt" ${name})
+								else
+									TheBin=""
+								fi
+								cd - > /dev/null
+							else
+								TheBin=""
+							fi
 						fi
 						;;
 					*)
-						TheBinDir="${LangProject}/${project}/bin"
-						TheBin="${project}"
-						cd ${LangProject}/${project}/src
 						;;
 				esac
 			fi
@@ -1753,9 +1756,11 @@ UseC()
 			if [ -f ${TheBinDir}/${TheBin} ]; then
 				case ${Type} in
 					debug)
-						cd ${TheBinDir}
-						${UseDebugger} ${TheBin}
-						cd - > /dev/null
+						if [ ! -z "${ThePipe}" ]; then
+							cat /dev/stdin | ${UseDebugger} ${TheBinDir}/${TheBin} ${Args[@]}
+						else
+							${UseDebugger} ${TheBinDir}/${TheBin} ${Args[@]}
+						fi
 						;;
 					runCode)
 						if [ ! -z "${ThePipe}" ]; then

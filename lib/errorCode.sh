@@ -791,6 +791,11 @@ errorCode()
 					errorCode "HINT" "In case a C++ version is already chosen, please reset"
 					errorCode "HINT" "command"
 					errorCode "HINT" "create reset cpl"
+					echo ""
+					errorCode "HINT"
+					errorCode "HINT" "Compile C++ with a one-time argument"
+					errorCode "HINT" "command"
+					errorCode "HINT" "cpl --args -std=c++<version>"
 					;;
 				cpl-args)
 					errorCode "WARNING"

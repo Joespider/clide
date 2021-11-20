@@ -1,11 +1,12 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.78"
+SupportV="0.1.83"
 Lang=Perl
 LangExt=".pl"
 #Color Purple
 ColorNum=5
+UseTypeOfCpl=${TypeOfCpl}
 
 #Handle Pipes
 #{
@@ -15,8 +16,8 @@ if readlink /proc/$$/fd/0 | grep -q "^pipe:"; then
 fi
 #}
 
-CplArgs=$1
-shift
+CplArgs=${RunCplArgs}
+TheCode=${TheSrcCode}
 
 errorCode()
 {
@@ -453,8 +454,8 @@ UsePerl()
 			fi
 			;;
 		editCode|readCode)
-			local src=$1
-			local num=$2
+			local src=${TheCode}
+			local num=$1
 			local ReadOrEdit
 
 			#Select the tool
@@ -520,8 +521,8 @@ UsePerl()
 			esac
 			;;
 		setCplArgs)
-			shift
-			shift
+#			shift
+#			shift
 			local Vals="none"
 			local Item=""
 			local str=$@
@@ -570,9 +571,9 @@ UsePerl()
 			echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
 			;;
 		compileCode)
-			local src=$1
-			local name=$2
-			local keep=$3
+			local src=${TheCode}
+			local name=$1
+			local keep=$2
 			local project=${CodeProject}
 			local cplArgs=""
 			local TheBinDir
@@ -938,12 +939,12 @@ UsePerl()
 				none)
 					project=""
 					TheBinDir=${LangBin}
-					cd ${LangSrc}/
+					#cd ${LangSrc}/
 					;;
 				*)
 					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					TheBinDir="${LangProject}/${project}/bin"
-					cd ${LangProject}/${project}/src
+					#cd ${LangProject}/${project}/src
 					;;
 			esac
 

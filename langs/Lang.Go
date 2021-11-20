@@ -1,11 +1,12 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.63"
+SupportV="0.1.69"
 Lang=Go
 LangExt=".go"
 #Color Green
 ColorNum=2
+UseTypeOfCpl=${TypeOfCpl}
 
 #Handle Pipes
 #{
@@ -15,8 +16,8 @@ if readlink /proc/$$/fd/0 | grep -q "^pipe:"; then
 fi
 #}
 
-CplArgs=$1
-shift
+CplArgs=${RunCplArgs}
+TheCode=${TheSrcCode}
 
 errorCode()
 {
@@ -546,8 +547,8 @@ UseGo()
 			fi
 			;;
 		editCode|readCode)
-			local src=$1
-			local num=$2
+			local src=${TheCode}
+			local num=$1
 			local project=${CodeProject}
 			local newName
 			local DirPath
@@ -695,8 +696,8 @@ UseGo()
 		make)
 			;;
 		setCplArgs)
-			shift
-			shift
+#			shift
+#			shift
 			Vals="none"
 			Item=""
 			str=$@
@@ -746,8 +747,8 @@ UseGo()
 			echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
 			;;
 		compileCode)
-			local src=$1
-			local name=$2
+			local src=${TheCode}
+			local name=$1
 			local cplArgs=${CplArgs//,/ }
 			local project=${CodeProject}
 			local ReplaceTheSrcDir
@@ -1227,28 +1228,34 @@ UseGo()
 			esac
 			;;
 		#Run the compiled code
-		runCode)
+		runCode|debug)
 			local name=$1
+			local UseProjectTemplate
 			shift
 			shift
 			local Args=$@
-			local TheBin=$(UseGo "removeExt" ${name})
+			local TheBin
 			local project=${CodeProject}
 			local TheBinDir
-			local UseProjectTemplate
+			local TheSrcDir
 
 			#Handle Project Dir
 			case ${project} in
 				none)
 					project=""
 					TheBinDir=${LangBin}
-					cd ${LangSrc}/
+					TheSrcDir=${LangSrc}
+					TheBin=$(UseGo "removeExt" ${name})
 					;;
 				*)
-					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type}) 
-					TheBinDir="${LangProject}/${project}/bin"
-					cd ${LangProject}/${project}/src/
-					TheBin="${project}"
+					if [ ! -z "${project}" ]; then
+						UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
+						TheBinDir="${LangProject}/${project}/bin"
+						TheSrcDir="${LangProject}/${project}/src"
+						TheBin="${project}"
+					else
+						TheBin=""
+					fi
 					;;
 			esac
 
@@ -1258,26 +1265,44 @@ UseGo()
 					none)
 						#Find the main file
 						if [ ! -z "${name}" ]; then
-							name=${name//,/ }
-							name=$(grep -l "int main(" ${name} 2> /dev/null)
-							TheBin="${name%.*}"
+							if [ -d "${TheSrcDir}" ]; then
+								cd ${TheSrcDir}
+								name=${name//,/ }
+								name=$(grep -l "func main(" ${name} 2> /dev/null)
+								if [ ! -z "${name}" ]; then
+									TheBin=$(UseGo "removeExt" ${name})
+								else
+									TheBin=""
+								fi
+								cd - > /dev/null
+							else
+								TheBin=""
+							fi
 						fi
 						;;
 					*)
-						TheBinDir="${LangProject}/${project}/bin"
-						TheBin="${project}"
-						cd ${LangProject}/${project}/src
 						;;
 				esac
 			fi
 
 			#Find Executable
 			if [ -f ${TheBinDir}/${TheBin} ]; then
-				if [ ! -z "${ThePipe}" ]; then
-					cat /dev/stdin | ${TheBinDir}/${TheBin} ${Args[@]}
-				else
-					${TheBinDir}/${TheBin} ${Args[@]}
-				fi
+				case ${Type} in
+					debug)
+						if [ ! -z "${ThePipe}" ]; then
+							cat /dev/stdin | ${UseDebugger} ${TheBinDir}/${TheBin} ${Args[@]}
+						else
+							${UseDebugger} ${TheBinDir}/${TheBin} ${Args[@]}
+						fi
+						;;
+					runCode)
+						if [ ! -z "${ThePipe}" ]; then
+							cat /dev/stdin | ${TheBinDir}/${TheBin} ${Args[@]}
+						else
+							${TheBinDir}/${TheBin} ${Args[@]}
+						fi
+						;;
+				esac
 			else
 				case ${project} in
 					none)

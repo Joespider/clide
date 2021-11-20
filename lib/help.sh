@@ -7,7 +7,7 @@ End="\e[0m"
 
 Head=$1
 LangsDir=$2
-RunCplArgs=$3
+project=${CodeProject}
 shift
 shift
 shift
@@ -17,12 +17,11 @@ ManageLangs()
 {
 	local TheLang=$1
 	local Langs=${LangsDir}/Lang.${TheLang^}
-	local PassedVars=( "${RunCplArgs}" )
 	#Make first letter uppercase
 	shift
 	local Manage=$@
 	if [ -f ${Langs} ]; then
-		${Langs} ${PassedVars[@]} ${Manage[@]}
+		${Langs} ${Manage[@]}
 	fi
 }
 
@@ -30,7 +29,7 @@ ManageLangs()
 MenuHelp()
 {
 	local Lang=$1
-	local project=$2
+	local Choice=$2
 	case ${Lang} in
 		no-lang)
 			echo ""
@@ -49,72 +48,98 @@ MenuHelp()
 			echo ""
 			;;
 		*)
-			echo ""
-			echo "----------------[(${Head}) Menu]----------------"
-			echo -e "ls\t\t\t\t: \"list progams\""
-			echo -e "lscpl\t\t\t\t: \"list compiled progams\""
-			echo -e "using\t\t\t\t: \"get the language being used\""
-			echo -e "unset\t\t\t\t: \"deselect source code\""
-			echo -e "unset <code>\t\t\t: \"deselect source code\""
-			echo -e "use <language> <code>\t\t: \"choose language\""
-			echo -e "save\t\t\t\t: \"Save session\""
-			echo -e "create <arg>\t\t\t: \"create compile and runtime arguments"
-			echo -e "\thelp\t\t\t: \"create help page"
-			echo -e "debug\t\t\t\t: \"debug your program\""
-			echo ""
-			ManageLangs ${Lang} "MenuHelp"
-			echo -e "cpl, compile --args\t\t: \"show compile arguments\""
-			echo -e "car, car-a\t\t\t: \"compile and run; compile and run with arguments\""
-			echo -e "rm, remove, delete\t\t: \"delete source AND binary file\""
-			echo -e "rmbin, remove-bin, delete-bin\t: \"delete ONLY binary file\""
-			echo -e "set <file>\t\t\t: \"select source code\""
-			echo -e "select <file>\t\t\t: \"select source code\""
-			echo -e "add <file>\t\t\t: \"add new file to project\""
-			echo -e "notes <action>\t\t\t: \"make notes for the ${Lang} language\""
-			echo -e "${editor}, edit, ed\t\t\t: \"edit source code\""
-			echo -e "${ReadBy}, read\t\t\t: \"Read source code\""
-			echo -e "search <find>\t\t\t: \"search for code in project\""
-			case ${project} in
-				none)
-					echo -e "project <action> \t\t: \"handle projects\""
-					echo -e "\tnew\t\t\t: \"create a new project\""
-					echo -e "\tlist\t\t\t: \"list all your projects\""
-					echo -e "\tload\t\t\t: \"load and existing projects\""
-					echo -e "\tset\t\t\t: \"load and existing projects\""
-					echo -e "\tselect\t\t\t: \"load and existing projects\""
+			case ${Choice,,} in
+				create)
+					CreateHelp ${Lang}
+					;;
+				make)
+					makeHelp
+					;;
+				project)
+					ProjectHelp
+					;;
+				package)
+					PackageHelp
+					;;
+				notes)
+					NotesHelp
+					;;
+				debug)
+					debuggerHelp
+					;;
+				search)
+					LookForHelp
 					;;
 				*)
-					echo -e "project <action> \t\t: \"handle projects\""
-					echo -e "\tnew\t\t\t: \"create a new project\""
-					echo -e "\ttype\t\t\t: \"display the type of project\""
-					echo -e "\ttitle\t\t\t: \"give your project a title\""
-					echo -e "\tupdate\t\t\t: \"update your existing project\""
-					echo -e "\tlist\t\t\t: \"list all your projects\""
-					echo -e "\tload\t\t\t: \"load and existing projects\""
-					echo -e "\texport\t\t\t: \"export existing project to tar.gz\""
-					echo -e "\tset\t\t\t: \"load and existing projects\""
-					echo -e "\tselect\t\t\t: \"load and existing projects\""
-					echo -e "\tlink <lang>\t\t: \"Link a language to an active project\""
-					echo -e "\t\t--list, list\t: \"list the linked languages in an active project\""
-					echo -e "\tswap, use <lang>\t: \"swap to a language in an active project\""
-					echo -e "\t\t--list, list\t: \"list the linked languages in an active project\""
-					echo -e "\tdiscover\t\t: \"update the list of projects\""
-					echo -e "${repoTool}, repo\t\t\t: \"handle repos\""
+					echo ""
+					echo "----------------[(${Head}) Menu]----------------"
+					echo -e "ls\t\t\t\t: \"list progams\""
+					echo -e "lscpl\t\t\t\t: \"list compiled progams\""
+					echo -e "using\t\t\t\t: \"get the language being used\""
+					echo -e "unset\t\t\t\t: \"deselect source code\""
+					echo -e "unset <code>\t\t\t: \"deselect source code\""
+					echo -e "use <language> <code>\t\t: \"choose language\""
+					echo -e "save\t\t\t\t: \"Save session\""
+					echo -e "create <arg>\t\t\t: \"create compile type, compile arguments, and runtime arguments"
+					echo -e "\thelp\t\t\t: \"create help page"
+					echo -e "debug\t\t\t\t: \"debug your program\""
+					echo ""
+					ManageLangs ${Lang} "MenuHelp"
+					echo -e "cpl, compile --args <args>\t: \"compile program with one-time-use arguments\""
+					echo -e "cpl, compile --get-args\t\t: \"show compile arguments\""
+					echo -e "car, car-a\t\t\t: \"compile and run; compile and run with arguments\""
+					echo -e "rm, remove, delete\t\t: \"delete source AND binary file\""
+					echo -e "rmbin, remove-bin, delete-bin\t: \"delete ONLY binary file\""
+					echo -e "set <file>\t\t\t: \"select source code\""
+					echo -e "select <file>\t\t\t: \"select source code\""
+					echo -e "add <file>\t\t\t: \"add new file to project\""
+					echo -e "notes <action>\t\t\t: \"make notes for the ${Lang} language\""
+					echo -e "${editor}, edit, ed\t\t\t: \"edit source code\""
+					echo -e "${ReadBy}, read\t\t\t: \"Read source code\""
+					echo -e "search <find>\t\t\t: \"search for code in project\""
+					case ${project} in
+						none)
+							echo -e "project <action> \t\t: \"handle projects\""
+							echo -e "\tnew\t\t\t: \"create a new project\""
+							echo -e "\tlist\t\t\t: \"list all your projects\""
+							echo -e "\tload\t\t\t: \"load and existing projects\""
+							echo -e "\tset\t\t\t: \"load and existing projects\""
+							echo -e "\tselect\t\t\t: \"load and existing projects\""
+							;;
+						*)
+							echo -e "project <action> \t\t: \"handle projects\""
+							echo -e "\tnew\t\t\t: \"create a new project\""
+							echo -e "\ttype\t\t\t: \"display the type of project\""
+							echo -e "\ttitle\t\t\t: \"give your project a title\""
+							echo -e "\tupdate\t\t\t: \"update your existing project\""
+							echo -e "\tlist\t\t\t: \"list all your projects\""
+							echo -e "\tload\t\t\t: \"load and existing projects\""
+							echo -e "\texport\t\t\t: \"export existing project to tar.gz\""
+							echo -e "\tset\t\t\t: \"load and existing projects\""
+							echo -e "\tselect\t\t\t: \"load and existing projects\""
+							echo -e "\tlink <lang>\t\t: \"Link a language to an active project\""
+							echo -e "\t\t--list, list\t: \"list the linked languages in an active project\""
+							echo -e "\tswap, use <lang>\t: \"swap to a language in an active project\""
+							echo -e "\t\t--list, list\t: \"list the linked languages in an active project\""
+							echo -e "\tdiscover\t\t: \"update the list of projects\""
+							echo -e "${repoTool}, repo\t\t\t: \"handle repos\""
+							;;
+					esac
+					echo -e "search\t\t\t\t: \"search project src files for line of code\""
+					echo -e "execute, exe, run <option>\t: \"run active program\""
+					echo -e "\t\t-a, --args\t: \"run program with cli arguments\""
+					echo -e "\t\t-d, --debug\t: \"run program in debug mode\""
+					echo -e "bkup, backup\t\t\t: \"make backup of existing source code\""
+					echo -e "restore\t\t\t\t: \"make backup of existing source code\""
+					echo -e "rename <new>\t\t\t: \"rename the existing source code\""
+					echo -e "src, source\t\t\t: \"list source code\""
+					echo -e "copy <new>\t\t\t: \"copy the existing source code\""
+					echo -e "last, load\t\t\t: \"Load last session\""
+					echo -e "exit, close\t\t\t: \"close ide\""
+					echo "------------------------------------------------"
+					echo ""
 					;;
 			esac
-			echo -e "search\t\t\t\t: \"search project src files for line of code\""
-			echo -e "execute, exe, run <option>\t: \"run active program\""
-			echo -e "\t\t-a, --args\t: \"run program with cli arguments\""
-			echo -e "\t\t-d, --debug\t: \"run program in debug mode\""
-			echo -e "bkup, backup\t\t\t: \"make backup of existing source code\""
-			echo -e "restore\t\t\t\t: \"make backup of existing source code\""
-			echo -e "rename <new>\t\t\t: \"rename the existing source code\""
-			echo -e "src, source\t\t\t: \"list source code\""
-			echo -e "copy <new>\t\t\t: \"copy the existing source code\""
-			echo -e "last, load\t\t\t: \"Load last session\""
-			echo -e "exit, close\t\t\t: \"close ide\""
-			echo "------------------------------------------------"
-			echo ""
 			;;
 	esac
 }
@@ -144,6 +169,9 @@ CreateHelp()
 		cpl|cpl-args)
 			ManageLangs ${Lang} "setCplArgs-help"
 			;;
+		type)
+			ManageLangs ${Lang} "compileType-list"
+			;;
 		*)
 			echo ""
 			echo "----------------[(${Head}) \"Create\" Help]----------------"
@@ -153,7 +181,9 @@ CreateHelp()
 			echo -e "\tcustom\t\t\t: Create template"
 			echo -e "\tdefault\t\t\t: Use the tempalte from ${Head}"
 			ManageLangs ${Lang} "CreateHelp"
+			echo -e "type <args>\t\t\t: Create compile type"
 			echo -e "reset <args>\t\t\t: clear settings"
+			echo -e "\ttype\t\t\t: clear rum time args"
 			echo -e "\targs\t\t\t: clear rum time args"
 			echo -e "\tcpl, cpl-args\t\t: clear compile args"
 			echo "---------------------------------------------------------"
@@ -329,7 +359,7 @@ CliHelp()
 					EditHelp
 					;;
 				--cpl|--compile)
-					cplHelp
+					cplCliHelp
 					;;
 				--read)
 					ReadHelp
@@ -367,6 +397,8 @@ CliHelp()
 					echo -e "--edit --config\t\t\t\t\t: \"Edit ${Head} config\""
 					echo -e "--edit --lang <language>\t\t\t: \"Edit the ${Head} langauge support file\""
 					echo -e "--cpl, --compile <args>\t\t\t\t: \"Compile source code\""
+					echo -e "\t--args <compile args>\t\t: \"Compile with one-time-use args\""
+					echo -e "\t--get-args\t\t\t\t: \"Get the compile args\""
 					echo -e "--install <args>\t\t\t\t: \"install program (.bash_aliases)\""
 					echo -e "--debug <args>\t\t\t\t\t: \"Debug compiled code\""
 					echo -e "--run <args>\t\t\t\t\t: \"Run compiled code\""
@@ -522,7 +554,7 @@ ReadHelp()
 	echo ""
 }
 
-cplHelp()
+cplCliHelp()
 {
 	local cli="--cpl"
 	local cmd="\$ clide ${cli}"
@@ -530,9 +562,11 @@ cplHelp()
 	echo "----------------[(${Head}) cli {${cli}}]----------------"
 	echo -e "\"Compile your code without having a session\""
 	echo ""
-	echo -e "${cmd} <language> <code>"
-	echo -e "${cmd} <code>"
-	echo -e "${cmd} -h, --help\t\t: \"help page\""
+	echo -e "${cmd} <language> <code> <args>"
+	echo -e "${cmd} <code> <args>"
+	echo -e "${cmd} --<type> <language> <code> <args>\t: \"compile language specific binary\""
+	echo -e "${cmd} --<type> <code> <args>\t\t: \"compile language specific binary\""
+	echo -e "${cmd} -h, --help\t\t\t: \"help page\""
 	echo "-----------------------------------------------"
 	echo ""
 }
@@ -856,8 +890,8 @@ main()
 		RunHelp)
 			RunHelp $@
 			;;
-		cplHelp)
-			cplHelp $@
+		cplCliHelp)
+			cplCliHelp $@
 			;;
 		EditHelp)
 			EditHelp $@

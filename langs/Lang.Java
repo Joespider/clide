@@ -4,10 +4,12 @@ Shell=$(which bash)
 #https://stackoverflow.com/questions/10339637/java-import-cannot-find-symbol
 #https://www.codejava.net/java-core/tools/how-to-compile-package-and-run-a-java-program-using-command-line-tools-javac-jar-and-java
 
-SupportV="0.2.15"
+SupportV="0.2.21"
 Lang=Java
 LangExt=".java"
 ColorNum=1
+
+UseTypeOfCpl=${TypeOfCpl}
 
 #Handle Pipes
 #{
@@ -17,8 +19,8 @@ if readlink /proc/$$/fd/0 | grep -q "^pipe:"; then
 fi
 #}
 
-CplArgs=$1
-shift
+CplArgs=${RunCplArgs}
+TheCode=${TheSrcCode}
 
 errorCode()
 {
@@ -219,8 +221,14 @@ UseJava()
 			local SourceFile=$1
 			if [ ! -z "${SourceFile}" ]; then
 				case ${SourceFile} in
-					*${LangExt}|*.class|*.jar)
+					*${LangExt})
 						echo ${SourceFile%${LangExt}}
+						;;
+					*.class)
+						echo ${SourceFile%.class}
+						;;
+					*.jar)
+						echo ${SourceFile%.jar}
 						;;
 					*)
 						echo ${SourceFile}
@@ -336,8 +344,8 @@ UseJava()
 			echo ${LangSrc}
 			;;
 		CreateHelp)
-			echo -e "prop, properties, -D\t: create custome ${Lang} properties"
-			echo -e "jar, manifest\t\t: create ${Lang} Manifest Jar builds"
+			echo -e "prop, properties, -D\t\t: create custome ${Lang} properties"
+			echo -e "jar, manifest\t\t\t: create ${Lang} Manifest Jar builds"
 			;;
 		shell)
 			;;
@@ -503,16 +511,6 @@ UseJava()
 			local theSrc
 			local project=${CodeProject}
 
-			if [ -z "${name}" ]; then
-				case ${project} in
-					none)
-						;;
-					*)
-						name=${project}
-						;;
-				esac
-			fi
-
 			case ${Type} in
 				rmBin)
 					case ${project} in
@@ -521,6 +519,7 @@ UseJava()
 							ThePath=${LangBin}
 							;;
 						*)
+							name=${project}
 							ThePath="${LangProject}/${project}/bin"
 							;;
 					esac
@@ -560,8 +559,8 @@ UseJava()
 			esac
 			;;
 		editCode|readCode)
-			local src=$1
-			local num=$2
+			local src=${TheCode}
+			local num=$1
 			local TheFile
 			local project=${CodeProject}
 			local newName
@@ -707,6 +706,26 @@ UseJava()
 			;;
 		setCplArgs-help)
 			;;
+		compileType-list)
+			echo -e "--jar\t\t: \"build code as a jar\""
+			echo -e "--class\t\t: \"build code as a class\""
+			;;
+		compileType)
+			local GetCplType=$1
+			case ${GetCplType,,} in
+                                --jar|--class)
+					echo ${GetCplType}
+					;;
+				class)
+					echo "--class"
+					;;
+				jar)
+					echo "--jar"
+					;;
+				*)
+					;;
+			esac
+			;;
 		compileCode-message)
 			local cplType=$1
 			case ${cplType} in
@@ -731,9 +750,9 @@ UseJava()
 			esac
 			;;
 		compileCode)
-			local src=$1
-			local name=$2
-			local keep=$3
+			local src=${TheCode}
+			local name=$1
+			local keep=$2
 			local project=${CodeProject}
 			local cplArgs=""
 			local TheSrcDir
@@ -762,7 +781,7 @@ UseJava()
 							ERROR=$(${LangCpl} -d ${TheSrcDir}/ ${src} 2>&1 | tr '\n' '|')
 							if [ -z "${ERROR}" ]; then
 								#Compile as jar or class
-								case ${name} in
+								case ${UseTypeOfCpl} in
 									#Compile as Jar
 									--jar)
 										NumOfMain=$(echo -e "${TheMainClass// /\\n}" | wc -l)
@@ -880,21 +899,13 @@ UseJava()
 						ProjectModeDir=${TheSrcDir}
 					fi
 
-					case ${src} in
-						--*)
-							name=${src}
-							src=${LangExt}
-							;;
-						*)
-							;;
-					esac
-
 					#Compile as jar or class
-					case ${name} in
+					case ${UseTypeOfCpl} in
 						#Compile as Jar
 						--jar)
 							cd ${ProjectModeDir}
-							UseJava ${Type} ${src} --class ${keep} | grep -v "(CLASS)"
+							UseTypeOfCpl="--class"
+							UseJava ${Type} ${name} ${keep} | grep -v "(CLASS)"
 							#Compile to Class
 							ERROR=$(find ${ThePWD} -name "*.class")
 							#Convert Class files to Jar
@@ -956,14 +967,7 @@ UseJava()
 						#compile class
 						--class)
 							cd ${ProjectModeDir}
-							case ${src} in
-								${LangExt})
-									TheJavaSrc=$(find . -name "*${LangExt}")
-									;;
-								*)
-									TheJavaSrc=$(find . -name "${src}")
-									;;
-							esac
+							TheJavaSrc=$(find . -name "*${LangExt}")
 							if [ ! -z "${TheJavaSrc}" ]; then
 								#Compile java code with lib jars
 								if [ -d "${TheLibDir}" ]; then
@@ -1001,7 +1005,8 @@ UseJava()
 							if [ -z "${src}" ]; then
 								src=${LangExt}
 							fi
-							UseJava ${Type} ${src} --jar ${keep}
+							UseTypeOfCpl="--jar"
+							UseJava ${Type} ${src} ${keep}
 							;;
 					esac
 					;;
@@ -1662,8 +1667,8 @@ UseJava()
 			;;
 		runCode|debug)
 			local name=$1
-			local TheBin="${name%.*}.class"
-			local TheJar="${name%.*}.jar"
+			local TheBin
+			local TheJar
 			local project=${CodeProject}
 			local package
 			local TheClassDir
@@ -1674,23 +1679,28 @@ UseJava()
 			shift
 			local Args=$@
 
-			#Handle multiple files
-			if [[ "${name}" == *","* ]]; then
-				name=${name//,/ }
-				name=$(grep -l "public static void main" ${name})
-				if [ -z "${name}" ]; then
-					echo "Unable to find the \"main\" file"
-					echo -n "Please choose: "
-					read name
-				fi
-				TheBin="${name%.*}.class"
-				TheJar="${name%.*}.jar"
-			fi
-
 			#Run Compiled Code
 			if [ ! -z "${name}" ]; then
 				case ${project} in
 					none)
+						#Handle multiple files
+						if [[ "${name}" == *","* ]]; then
+							cd ${LangSrc}
+							name=${name//,/ }
+							name=$(grep -l "public static void main" ${name})
+							if [ ! -z "${name}" ]; then
+								TheBin=$(UseJava "removeExt" "${name}")
+								TheBin="${TheBin}.class"
+								TheJar=$(UseJava "removeExt" "${name}")
+								TheJar="${TheJar}.jar"
+							fi
+							cd - > /dev/null
+						else
+							TheBin=$(UseJava "removeExt" "${name}")
+							TheBin="${TheBin}.class"
+							TheJar=$(UseJava "removeExt" "${name}")
+							TheJar="${TheJar}.jar"
+						fi
 						project=""
 						TheClassDir=${LangBin}/
 						TheJarDir=${LangBin}
@@ -1707,6 +1717,7 @@ UseJava()
 						TheJarDir="${LangProject}/${project}/bin"
 						;;
 				esac
+
 				#Check if Java Class exists
 				if [ -f ${TheClassDir}${package}${TheBin} ]; then
 					TheBin=${TheBin%.*}

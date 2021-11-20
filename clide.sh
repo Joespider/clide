@@ -18,6 +18,11 @@ root=$(dirname ${ShellPath})
 source ${root}/var/clide.conf
 source ${root}/var/version
 
+export TypeOfCpl
+export RunCplArgs
+export TheSrcCode
+
+
 #InAndOut determines if internal functions can run via cli
 InAndOut="no"
 
@@ -37,7 +42,7 @@ declare -A Commands
 theHelp()
 {
 	if [ -d ${LibDir} ] && [ -f ${LibDir}/help.sh ]; then
-		${LibDir}/help.sh ${Head} ${LangsDir} ${RunCplArgs} $@
+		${LibDir}/help.sh ${Head} ${LangsDir} $@
 	fi
 }
 
@@ -152,24 +157,25 @@ ManageLangs()
 	local TheLang=$1
 	local TheAction=$2
 	local Langs=${LangsDir}/Lang.${TheLang^}
-	local PassedVars=( "${RunCplArgs}" )
 	#Make first letter uppercase
 	shift
 	local Manage=$@
 	if [ ! -z "${TheAction}" ]; then
 		if [ -d ${LangsDir} ] && [ -f ${Langs} ]; then
+			chmod -w ${Langs} 2> /dev/null
 			case ${TheAction} in
 				runCode)
 					if [ ! -z "${ThePipe}" ]; then
-						cat /dev/stdin | ${Langs} ${PassedVars[@]} ${Manage[@]}
+						cat /dev/stdin | ${Langs} ${Manage[@]}
 					else
-						${Langs} ${PassedVars[@]} ${Manage[@]}
+						${Langs} ${Manage[@]}
 					fi
 					;;
 				*)
-					${Langs} ${PassedVars[@]} ${Manage[@]}
+					${Langs} ${Manage[@]}
 					;;
 			esac
+			chmod u+w ${Langs} 2> /dev/null
 		else
 			UseOther ${TheLang} ${Manage[@]}
 		fi
@@ -182,7 +188,6 @@ ModeHandler()
 	local Mode=$1
 	local Lang=$2
 	local cLang=$3
-	local Code=$4
 	local cCode=$5
 	shift
 	shift
@@ -226,7 +231,7 @@ ModeHandler()
 			add)
 				if [ -f ${ModesDir}/add.sh ]; then
 					chmod -w ${ModesDir}/add.sh 2> /dev/null
-					${ModesDir}/add.sh ${Head} "${LibDir}" "${LangsDir}" "${ClideProjectDir}" ${Lang} ${cLang} ${Code} ${cCode} ${Arg[@]}
+					${ModesDir}/add.sh ${Head} "${LibDir}" "${LangsDir}" "${ClideProjectDir}" ${Lang} ${cLang} ${cCode} ${Arg[@]}
 					chmod u+w ${ModesDir}/add.sh 2> /dev/null
 				fi
 				;;
@@ -1055,12 +1060,82 @@ swapProjects()
 #list active projects
 listProjects()
 {
-	#Get list of active prijects from .clide files
-	if [ -d ${ActiveProjectDir} ]; then
-		cd ${ActiveProjectDir}/
-		ls *.clide 2> /dev/null | sed "s/.clide//g"
-		cd - > /dev/null
-	fi
+	local options=$1
+	local TheName=$2
+	case ${options} in
+		-i|--info)
+			local Name
+			local Lang
+			local Linked
+			local TheColor
+			local TheProject
+			if [ ! -z "${TheName}" ]; then
+				TheProject=${ActiveProjectDir}/${TheName}.clide
+				if [ -f ${TheProject} ]; then
+					Name=$(grep "name=" ${TheProject} | sed "s/name=//1")
+					Lang=$(grep "lang=" ${TheProject} | sed "s/lang=//1")
+					Linked=$(grep "link=" ${TheProject} | sed "s/link=//1")
+					TheColor=$(ManageLangs ${Lang} "color-number")
+					echo -e "\e[1;4${TheColor}mProject:\e[0m \e[1;3${TheColor}m${Name}\e[0m"
+					echo -e "\e[1;4${TheColor}mLanguage:\e[0m \e[1;3${TheColor}m${Lang}\e[0m"
+					if [ ! -z "${Linked}" ]; then
+						echo -en "\e[1;4${TheColor}mLinked:\e[0m"
+						echo -n " "
+						for TheLang in ${Linked//,/ };
+						do
+							case ${TheLang} in
+								${Lang})
+									;;
+								*)
+									TheColor=$(ManageLangs ${TheLang} "color-number")
+									echo -en "\e[1;3${TheColor}m${TheLang}\e[0m"
+									echo -n " "
+									;;
+							esac
+						done
+						echo ""
+					fi
+					echo ""
+				fi
+			else
+				for TheProject in ${ActiveProjectDir}/*.clide;
+				do
+					Name=$(grep "name=" ${TheProject} | sed "s/name=//1")
+					Lang=$(grep "lang=" ${TheProject} | sed "s/lang=//1")
+					Linked=$(grep "link=" ${TheProject} | sed "s/link=//1")
+					TheColor=$(ManageLangs ${Lang} "color-number")
+					echo -e "\e[1;4${TheColor}mProject:\e[0m \e[1;3${TheColor}m${Name}\e[0m"
+					echo -e "\e[1;4${TheColor}mLanguage:\e[0m \e[1;3${TheColor}m${Lang}\e[0m"
+					if [ ! -z "${Linked}" ]; then
+						echo -en "\e[1;4${TheColor}mLinked:\e[0m"
+						echo -n " "
+						for TheLang in ${Linked//,/ };
+						do
+							case ${TheLang} in
+								${Lang})
+									;;
+								*)
+									TheColor=$(ManageLangs ${TheLang} "color-number")
+									echo -en "\e[1;3${TheColor}m${TheLang}\e[0m"
+									echo -n " "
+									;;
+							esac
+						done
+						echo ""
+					fi
+					echo ""
+				done
+			fi
+			;;
+		*)
+			#Get list of active prijects from .clide files
+			if [ -d ${ActiveProjectDir} ]; then
+				cd ${ActiveProjectDir}/
+				ls *.clide 2> /dev/null | sed "s/.clide//g"
+				cd - > /dev/null
+			fi
+			;;
+	esac
 }
 
 #Discover Project in clide
@@ -1648,6 +1723,7 @@ Actions-NoLang()
 						if [ ! -z "${UserIn[1]}" ]; then
 							Lang=${UserIn[1]}
 							Code=${UserIn[2]}
+							TypeOfCpl=""
 						else
 							Lang=""
 						fi
@@ -1655,6 +1731,7 @@ Actions-NoLang()
 					*)
 						Lang=${UserIn[0]}
 						Code=${UserIn[1]}
+						TypeOfCpl=""
 						;;
 				esac
 
@@ -1683,7 +1760,7 @@ Actions()
 	local Dir=""
 	local ProjectDir=""
 	local Lang="$1"
-	local Code="$2"
+	TheSrcCode="$2"
 	shift
 	shift
 	local CodeDir=$(pgDir ${Lang})
@@ -1703,12 +1780,12 @@ Actions()
 	#Language Chosen
 	if [[ ! "${CodeDir}" == "no" ]]; then
 		cd ${CodeDir}/${Dir}
-		Code=$(preSelectSrc ${Lang} ${Code})
+		TheSrcCode=$(preSelectSrc ${Lang} ${TheSrcCode})
 		#Change Color for Language
 		cLang=$(color ${Lang})
 		#Handle the CLI User Interface
 		#{
-		if [ -z "${Code}" ]; then
+		if [ -z "${TheSrcCode}" ]; then
 			case ${CodeProject} in
 				none)
 					#Menu with no code
@@ -1737,10 +1814,10 @@ Actions()
 			esac
 		else
 			#Change Color for Code
-			cCode=$(color ${Code})
-			case ${Code} in
+			cCode=$(color ${TheSrcCode})
+			case ${TheSrcCode} in
 				*,*)
-					cntSrc=$(echo -e "${Code//,/\\n}" | wc -l)
+					cntSrc=$(echo -e "${TheSrcCode//,/\\n}" | wc -l)
 					case ${cntSrc} in
 						2)
 							listSrc=${cCode}
@@ -1836,7 +1913,7 @@ Actions()
 						local newCode
 						local newCodeWithoutExt
 						local OldCode
-						if [ ! -z "${Code}" ]; then
+						if [ ! -z "${TheSrcCode}" ]; then
 							if [ ! -z "${UserIn[1]}" ]; then
 								theExt=$(ManageLangs ${Lang} "getExt")
 								theOtherExt=$(ManageLangs ${Lang} "getOtherExt")
@@ -1844,11 +1921,11 @@ Actions()
 								do
 									newCodeWithoutExt=$(ManageLangs ${Lang} "removeExt" ${newCode})
 									#Ensure Code is not added twice
-									if [[ ! "${Code}" == *"${newCodeWithoutExt}${theExt}"* ]] || [[ ! "${Code}" == *"${newCodeWithoutExt}${theOtherExt}"* ]]; then
-										OldCode=${Code}
-										Code=$(ManageLangs ${Lang} "addCode" ${Code} ${newCode})
+									if [[ ! "${TheSrcCode}" == *"${newCodeWithoutExt}${theExt}"* ]] || [[ ! "${TheSrcCode}" == *"${newCodeWithoutExt}${theOtherExt}"* ]]; then
+										OldCode=${TheSrcCode}
+										TheSrcCode=$(ManageLangs ${Lang} "addCode" ${TheSrcCode} ${newCode})
 										#make sure code has changed
-										case ${Code} in
+										case ${TheSrcCode} in
 											#Code has not changed...do nothing
 											${OldCode})
 												errorCode "selectCode" "not-found" "${newCode}"
@@ -1871,7 +1948,7 @@ Actions()
 							case ${UserArg} in
 								select|set)
 									if [ ! -z "${UserIn[1]}" ]; then
-										Code=$(preSelectSrc ${Lang} ${UserIn[1]})
+										TheSrcCode=$(preSelectSrc ${Lang} ${UserIn[1]})
 										refresh="yes"
 									else
 										errorCode "selectCode" "nothing"
@@ -1891,17 +1968,17 @@ Actions()
 						if [ ! -z "${UserIn[1]}" ]; then
 							TheNewChosen=$(preSelectSrc ${Lang} ${UserIn[1]})
 							if [ ! -z "${TheNewChosen}" ]; then
-								case ${Code} in
+								case ${TheSrcCode} in
 									"${TheNewChosen},"*)
-										Code=${Code//${TheNewChosen},/}
+										TheSrcCode=${TheSrcCode//${TheNewChosen},/}
 										refresh="yes"
 										;;
 									*",${TheNewChosen},"*)
-										Code=${Code//,${TheNewChosen},/,}
+										TheSrcCode=${TheSrcCode//,${TheNewChosen},/,}
 										refresh="yes"
 										;;
 									*",${TheNewChosen}")
-										Code=${Code//,${TheNewChosen}/}
+										TheSrcCode=${TheSrcCode//,${TheNewChosen}/}
 										refresh="yes"
 										;;
 									*)
@@ -1909,26 +1986,25 @@ Actions()
 								esac
 							fi
 						else
-							Code=""
+							TheSrcCode=""
 							refresh="yes"
 						fi
 						;;
 					#Delete source code and binary
 					rm|remove|delete)
-						Remove "--all" ${Code} ${UserIn[1]} ${UserIn[2]}
-						Code=""
+						Remove "--all" ${TheSrcCode} ${UserIn[1]} ${UserIn[2]}
+						TheSrcCode=""
 						refresh="yes"
 						;;
 					#Delete source code
 					rmsrc)
-						Remove "--src" ${Code} ${UserIn[1]} ${UserIn[2]}
-						Code=""
+						Remove "--src" ${TheSrcCode} ${UserIn[1]} ${UserIn[2]}
+						TheSrcCode=""
 						refresh="yes"
 						;;
 					#Delete binary
 					rmbin)
-						Remove "--bin" ${Code} ${UserIn[1]} ${UserIn[2]}
-						Code=""
+						Remove "--bin" ${TheSrcCode} ${UserIn[1]} ${UserIn[2]}
 						refresh="yes"
 						;;
 					#Display the language being used
@@ -2002,11 +2078,11 @@ Actions()
 										case ${UserIn[1]} in
 											mv|move)
 												TheExt=$(ManageLangs ${Lang} "getExt")
-												case ${Code} in
+												case ${TheSrcCode} in
 													*,*)
-														case ${Code} in
+														case ${TheSrcCode} in
 															*"${UserIn[2]}"*)
-																case ${Code} in
+																case ${TheSrcCode} in
 																	*"${UserIn[3]}"*|*"${UserIn[3]}${TheExt}"*)
 																		errorCode "package" "need-name"
 																		;;
@@ -2021,13 +2097,13 @@ Actions()
 														esac
 														;;
 													*)
-														if [ ! -z "${Code}" ] && [ -z "${UserIn[3]}" ]; then
-															case ${Code} in
+														if [ ! -z "${TheSrcCode}" ] && [ -z "${UserIn[3]}" ]; then
+															case ${TheSrcCode} in
 																${UserIn[2]}|${UserIn[2]}${TheExt})
 																	errorCode "package" "need-name"
 																	;;
 																*)
-																	HandleJavaPackage ${Lang} ${UserIn[1]} ${Code} ${UserIn[2]}
+																	HandleJavaPackage ${Lang} ${UserIn[1]} ${TheSrcCode} ${UserIn[2]}
 																	;;
 															esac
 														else
@@ -2038,7 +2114,7 @@ Actions()
 												;;
 											get)
 												if [ -z "${UserIn[2]}" ]; then
-													HandleJavaPackage ${Lang} ${UserIn[1]} ${Code}
+													HandleJavaPackage ${Lang} ${UserIn[1]} ${TheSrcCode}
 												else
 													HandleJavaPackage ${Lang} ${UserIn[1]} ${UserIn[2]}
 												fi
@@ -2058,8 +2134,8 @@ Actions()
 						;;
 					#List source code
 					src|source)
-						if [ ! -z "${Code}" ]; then
-							echo -e "${Code//,/\\n}"
+						if [ ! -z "${TheSrcCode}" ]; then
+							echo -e "${TheSrcCode//,/\\n}"
 						fi
 						;;
 					make)
@@ -2084,7 +2160,7 @@ Actions()
 												ManageLangs ${Lang} "enable-make"
 												;;
 											create)
-												ManageLangs ${Lang} "create-make" "${Code}"
+												ManageLangs ${Lang} "create-make" "${TheSrcCode}"
 												;;
 											edit)
 												ManageLangs ${Lang} "edit-make"
@@ -2116,8 +2192,8 @@ Actions()
 									else
 										newProject ${Lang} ${ProjectName} ${UserIn[3]} ${UserIn[4]}
 										if [ -f ${ActiveProjectDir}/${ProjectName}.clide ]; then
-											Code=""
-											updateProject ${Code}
+											TheSrcCode=""
+											updateProject ${TheSrcCode}
 											if [ ! -z "${UserIn[2]}" ]; then
 												CodeProject=${ProjectName}
 												errorCode "HINT" "Created \"${CodeProject}\""
@@ -2169,7 +2245,7 @@ Actions()
 							#Update live project
 							update|save)
 								local LangColor=$(ManageLangs ${Lang} "color-number")
-								updateProject ${Code}
+								updateProject ${TheSrcCode}
 								echo -e "\e[1;4${LangColor}m\"${CodeProject}\" updated\e[0m"
 								;;
 							#list the project files
@@ -2199,7 +2275,7 @@ Actions()
 								case ${CodeProject} in
 									${project})
 										CodeProject="none"
-										Code=""
+										TheSrcCode=""
 										refresh="yes"
 										LangSrcDir=$(ManageLangs ${Lang} "getSrcDir")
 										if [ ! -z "${LangSrcDir}" ]; then
@@ -2213,7 +2289,7 @@ Actions()
 								case ${project} in
 									all)
 										CodeProject="none"
-										Code=""
+										TheSrcCode=""
 										refresh="yes"
 										LangSrcDir=$(ManageLangs ${Lang} "getSrcDir")
 										if [ ! -z "${LangSrcDir}" ]; then
@@ -2311,7 +2387,7 @@ Actions()
 										local IsLinked=$(linkProjects ${Lang} ${UserIn[2]})
 										if [ ! -z "${IsLinked}" ]; then
 											Lang=${IsLinked}
-											Code=""
+											TheSrcCode=""
 										else
 											errorCode "project" "link" "unable-link" ${UserIn[2]}
 										fi
@@ -2342,9 +2418,9 @@ Actions()
 											fi
 
 											if [ ! -z "${UserIn[3]}" ]; then
-												Code=$(selectCode ${Lang} ${UserIn[3]})
+												TheSrcCode=$(selectCode ${Lang} ${UserIn[3]})
 											else
-												Code=""
+												TheSrcCode=""
 											fi
 										else
 											echo "Linked Languages:"
@@ -2388,7 +2464,7 @@ Actions()
 
 									if [ -d ${CodeDir} ]; then
 										Lang=$(echo ${project} | cut -d ";" -f 1)
-										Code=$(echo ${project} | cut -d ";" -f 2)
+										TheSrcCode=$(echo ${project} | cut -d ";" -f 2)
 										ProjectType=$(echo ${project} | cut -d ";" -f 4)
 										cd ${CodeDir}/src 2> /dev/null
 										#Read title or project
@@ -2510,7 +2586,7 @@ Actions()
 					#Swap Programming Languages
 					use|bash|c|c++|go|java|python|perl|ruby|rust|no-lang|nl)
 						Old=${Lang}
-						OldCode=${Code}
+						OldCode=${TheSrcCode}
 						case ${UserIn[0]} in
 							use)
 								if [ ! -z "${UserIn[1]}" ]; then
@@ -2521,7 +2597,7 @@ Actions()
 											;;
 										*)
 											Lang=$(pgLang ${UserIn[1]})
-											Code=${UserIn[2]}
+											TheSrcCode=${UserIn[2]}
 											;;
 									esac
 								else
@@ -2536,7 +2612,7 @@ Actions()
 										;;
 									*)
 										Lang=$(pgLang ${UserIn[0]})
-										Code=${UserIn[1]}
+										TheSrcCode=${UserIn[1]}
 										;;
 								esac
 								;;
@@ -2548,10 +2624,11 @@ Actions()
 							cd ${CodeDir}
 							#Rest
 							#{
-							Code=$(preSelectSrc ${Lang} ${Code})
 							CodeProject="none"
+							TheSrcCode=$(preSelectSrc ${Lang} ${TheSrcCode})
 							ProjectType="${ProjectDefaultType}"
 							RunTimeArgs=""
+							TypeOfCpl=""
 							#}
 						else
 							Lang=${Old}
@@ -2562,10 +2639,10 @@ Actions()
 					#backup the selected code
 					bkup|backup)
 						local chosen=${UserIn[1]}
-						case ${Code} in
+						case ${TheSrcCode} in
 							*,*)
 								if [ ! -z "${chosen}" ]; then
-									case ${Code} in
+									case ${TheSrcCode} in
 										*${chosen}*)
 											ManageLangs ${Lang} "backup" ${chosen}
 											;;
@@ -2578,17 +2655,17 @@ Actions()
 								fi
 								;;
 							*)
-								ManageLangs ${Lang} "backup" ${Code}
+								ManageLangs ${Lang} "backup" ${TheSrcCode}
 								;;
 						esac
 						;;
 					#restore the backup made
 					restore)
 						local chosen=${UserIn[1]}
-						case ${Code} in
+						case ${TheSrcCode} in
 							*,*)
 								if [ ! -z "${chosen}" ]; then
-									case ${Code} in
+									case ${TheSrcCode} in
 										*${chosen}*)
 											ManageLangs ${Lang} "restore" ${chosen}
 											;;
@@ -2601,7 +2678,7 @@ Actions()
 								fi
 								;;
 							*)
-								ManageLangs ${Lang} "restore" ${Code}
+								ManageLangs ${Lang} "restore" ${TheSrcCode}
 								;;
 						esac
 						;;
@@ -2611,15 +2688,15 @@ Actions()
 					cp|copy|rename)
 						local chosen=${UserIn[1]}
 						local TheNewChosen=${UserIn[2]}
-						case ${Code} in
+						case ${TheSrcCode} in
 							*,*)
 								if [ ! -z "${TheNewChosen}" ]; then
-									case ${Code} in
+									case ${TheSrcCode} in
 										*${chosen}*)
-											local GetCount=$(echo -e ${Code//,/\\n} | grep ${chosen} | wc -l)
+											local GetCount=$(echo -e ${TheSrcCode//,/\\n} | grep ${chosen} | wc -l)
 											case ${GetCount} in
 												1)
-													chosen=$(echo -e ${Code//,/\\n} | grep ${chosen})
+													chosen=$(echo -e ${TheSrcCode//,/\\n} | grep ${chosen})
 													case ${UserArg} in
 														rename)
 															TheNewChosen=$(ManageLangs ${Lang} "rename" ${chosen} ${TheNewChosen})
@@ -2630,7 +2707,7 @@ Actions()
 														*)
 															;;
 													esac
-													Code=${Code//${chosen}/${TheNewChosen}}
+													TheSrcCode=${TheSrcCode//${chosen}/${TheNewChosen}}
 													refresh="yes"
 													;;
 												*)
@@ -2677,24 +2754,24 @@ Actions()
 								if [ -z "${TheNewChosen}" ]; then
 									case ${UserArg} in
 										rename)
-											Code=$(ManageLangs ${Lang} "rename" ${Code} ${chosen})
+											TheSrcCode=$(ManageLangs ${Lang} "rename" ${TheSrcCode} ${chosen})
 											;;
 										cp|copy)
-											Code=$(ManageLangs ${Lang} "copy" ${Code} ${chosen})
+											TheSrcCode=$(ManageLangs ${Lang} "copy" ${TheSrcCode} ${chosen})
 											;;
 										*)
 											;;
 									esac
 									refresh="yes"
 								else
-									case ${Code} in
+									case ${TheSrcCode} in
 										${chosen})
 											case ${UserArg} in
 												rename)
-													Code=$(ManageLangs ${Lang} "rename" ${chosen} ${TheNewChosen})
+													TheSrcCode=$(ManageLangs ${Lang} "rename" ${chosen} ${TheNewChosen})
 													;;
 												cp|copy)
-													Code=$(ManageLangs ${Lang} "copy" ${chosen} ${TheNewChosen})
+													TheSrcCode=$(ManageLangs ${Lang} "copy" ${chosen} ${TheNewChosen})
 													;;
 												*)
 													;;
@@ -2702,13 +2779,13 @@ Actions()
 											refresh="yes"
 											;;
 										*${chosen}*)
-											chosen=$(echo ${Code} | grep ${chosen})
+											chosen=$(echo ${TheSrcCode} | grep ${chosen})
 											case ${UserArg} in
 												rename)
-													Code=$(ManageLangs ${Lang} "rename" ${chosen} ${TheNewChosen})
+													TheSrcCode=$(ManageLangs ${Lang} "rename" ${chosen} ${TheNewChosen})
 													;;
 												cp|copy)
-													Code=$(ManageLangs ${Lang} "copy" ${chosen} ${TheNewChosen})
+													TheSrcCode=$(ManageLangs ${Lang} "copy" ${chosen} ${TheNewChosen})
 													;;
 												*)
 													;;
@@ -2763,7 +2840,7 @@ Actions()
 								#Check if new code is found
 								if [ ! -z "${NewCode}" ]; then
 									#Select new Code
-									Code=$(selectCode ${Lang} ${NewCode} ${Code})
+									TheSrcCode=$(selectCode ${Lang} ${NewCode} ${TheSrcCode})
 								fi
 								;;
 							#Protect against incorrect file naming
@@ -2854,9 +2931,9 @@ Actions()
 											case ${IsOk} in
 												yes)
 													#Return the name of source code
-													ManageLangs ${Lang} "newCode" ${SrcName} ${SrcType} ${Code}
-													if [ ! -z "${Code}" ]; then
-														local OldCode=${Code}
+													ManageLangs ${Lang} "newCode" ${SrcName} ${SrcType} ${TheSrcCode}
+													if [ ! -z "${TheSrcCode}" ]; then
+														local OldCode=${TheSrcCode}
 														local NewCode=$(ManageLangs ${Lang} "getCode" ${SrcName} ${OldCode})
 														if [ ! -z "${NewCode}" ]; then
 															case ${OldCode} in
@@ -2864,12 +2941,12 @@ Actions()
 																	errorCode "selectCode" "already"
 																	;;
 																*)
-																	Code=$(ManageLangs ${Lang} "addCode" ${OldCode} ${NewCode})
+																	TheSrcCode=$(ManageLangs ${Lang} "addCode" ${OldCode} ${NewCode})
 																	;;
 															esac
 														fi
 													else
-														Code=$(ManageLangs ${Lang} "getCode" ${SrcName} ${OldCode})
+														TheSrcCode=$(ManageLangs ${Lang} "getCode" ${SrcName} ${OldCode})
 													fi
 
 													if [ ! -z "${ThePackageName}" ]; then
@@ -2945,11 +3022,11 @@ Actions()
 								case ${UserArg} in
 									#Edit new source code
 									${editor}|edit|ed)
-										ManageLangs ${Lang} "editCode" ${Code} ${UserIn[1]}
+										ManageLangs ${Lang} "editCode" ${UserIn[1]}
 										;;
 									#Read code without editing
 									${ReadBy}|read)
-										ManageLangs ${Lang} "readCode" ${Code} ${UserIn[1]}
+										ManageLangs ${Lang} "readCode" ${UserIn[1]}
 										;;
 									*)
 										;;
@@ -2959,16 +3036,12 @@ Actions()
 						;;
 					#Modes
 					mode)
-						local passCode=${Code}
 						local passcCode=${cCode}
-						if [ -z "${passCode}" ]; then
-							passCode="none"
-						fi
 						if [ -z "${passcCode}" ]; then
 							passcCode="none"
 						fi
 						#Swap cl[ide] to a given mode
-						ModeHandler ${UserIn[1]} ${Lang} ${cLang} ${passCode} ${passcCode} ${UserIn[2]}
+						ModeHandler ${UserIn[1]} ${Lang} ${cLang} ${passcCode} ${UserIn[2]}
 						;;
 					#search for element in project
 					search)
@@ -3057,7 +3130,7 @@ Actions()
 										#User Value was given
 										if [ ! -z "${NewVal}" ]; then
 											#Checking and getting compile arguments
-											local newCplArgs=$(ManageLangs ${Lang} "setCplArgs" ${Code} ${NewVal[@]})
+											local newCplArgs=$(ManageLangs ${Lang} "setCplArgs" ${NewVal[@]})
 											#compile argument was given
 											if [ ! -z "${newCplArgs}" ]; then
 												#Checks of returned values
@@ -3089,7 +3162,7 @@ Actions()
 								case ${Lang} in
 									#only C and C++ uses make
 									C*)
-										ManageLangs ${Lang} "create-make" "${Code}"
+										ManageLangs ${Lang} "create-make" "${TheSrcCode}"
 										;;
 									*)
 										errorCode "make" "not-for-lang" ${Lang}
@@ -3100,6 +3173,37 @@ Actions()
 							args)
 								echo -n "${cLang}\$ "
 								read -a RunTimeArgs
+								;;
+							type)
+								local NewCplType
+								if [ -z "${UserIn[2]}" ]; then
+									echo "Possible Compile Types"
+									ManageLangs ${Lang} "compileType-list"
+									echo ""
+									echo -n "Active: "
+									if [ ! -z "${TypeOfCpl}" ]; then
+										echo ${TypeOfCpl}
+									else
+										echo "Default"
+									fi
+								else
+									case ${UserIn[2]} in
+										--help)
+											ManageLangs ${Lang} "compileType-list"
+											;;
+										--reset|reset)
+											TypeOfCpl=""
+											errorCode "HINT" "Compile Type reset to default"
+											;;
+										*)
+											NewCplType=$(ManageLangs ${Lang} "compileType" ${UserIn[2]})
+											if [ ! -z "${NewCplType}" ]; then
+												TypeOfCpl="${NewCplType}"
+												errorCode "HINT" "Set to Compile as a \"${TypeOfCpl}\""
+											fi
+											;;
+									esac
+								fi
 								;;
 							#Create new Template
 							newCodeTemp)
@@ -3115,7 +3219,7 @@ Actions()
 											ManageLangs ${Lang} "newCode" ${NewCode}
 										fi
 										#Select code
-										Code=$(selectCode ${Lang} "set" ${NewCode})
+										TheSrcCode=$(selectCode ${Lang} "set" ${NewCode})
 										refresh="yes"
 										;;
 									#Use the template provided but cl[ide]
@@ -3135,7 +3239,7 @@ Actions()
 											LinkError="no"
 										fi
 										if [ -z "${LinkError}" ] && [ -z "${MoveError}" ]; then
-											Code=$(selectCode ${Lang} "set" ${NewCode})
+											TheSrcCode=$(selectCode ${Lang} "set" ${NewCode})
 											refresh="yes"
 										fi
 										;;
@@ -3155,10 +3259,15 @@ Actions()
 										RunTimeArgs=""
 										echo "Run time args reset"
 										;;
+									type)
+										TypeOfCpl=""
+										echo "compile type reset"
+										;;
 									all)
 										#Default values
 										RunTimeArgs=""
 										RunCplArgs="none"
+										TypeOfCpl=""
 										echo "All rest"
 										;;
 									help|*)
@@ -3170,32 +3279,32 @@ Actions()
 							${UserIn[1]}-${UserIn[2]})
 								case ${OldVal} in
 									none)
-										RunCplArgs=$(ManageLangs ${Lang} "${UserIn[1]}-${UserIn[2]}" ${Code} ${UserIn[@]})
+										RunCplArgs=$(ManageLangs ${Lang} "${UserIn[1]}-${UserIn[2]}" ${TheSrcCode} ${UserIn[@]})
 										;;
 									*)
-										RunCplArgs=$(ManageLangs ${Lang} "${UserIn[1]}-${UserIn[2]}" ${Code} ${UserIn[@]})
+										RunCplArgs=$(ManageLangs ${Lang} "${UserIn[1]}-${UserIn[2]}" ${TheSrcCode} ${UserIn[@]})
 										RunCplArgs="${RunCplArgs} ${OldVal}"
 										;;
 								esac
 								;;
 							#Manage Create
 							*)
-								ManageCreate ${Lang} ${Code} ${UserIn[1]} ${UserIn[2]} ${UserIn[3]}
+								ManageCreate ${Lang} ${TheSrcCode} ${UserIn[1]} ${UserIn[2]} ${UserIn[3]}
 								;;
 						esac
 						;;
 					#(c)ompile (a)nd (r)un
 					car|car-a)
-						ManageLangs ${Lang} "compileCode" ${Code} ${UserIn[1]} ${UserIn[2]}
-						if [ ! -z "${Code}" ]; then
+						ManageLangs ${Lang} "compileCode" ${UserIn[1]} ${UserIn[2]}
+						if [ ! -z "${TheSrcCode}" ]; then
 							case ${UserArg} in
 								#Run without args
 								car)
-									runCode ${Lang} ${Code}
+									runCode ${Lang} ${TheSrcCode}
 									;;
 								#Run WITH args
 								car-a)
-									runCode ${Lang} ${Code} "run" "--args"
+									runCode ${Lang} ${TheSrcCode} "run" "--args"
 									;;
 								*)
 									;;
@@ -3204,8 +3313,95 @@ Actions()
 						;;
 					#Compile code
 					compile|cpl)
-						case ${UserIn[1]} in
-							--args)
+						local CplFlag
+						local CplInputs=( ${UserIn[@]} )
+						CplInputs[0]=""
+						CplFlag=${CplInputs[1]}
+						case ${CplInputs[1]} in
+							-a|--args|--get-args|--type)
+								CplInputs[1]=""
+								;;
+							*)
+								;;
+						esac
+
+						case ${CplFlag} in
+							-a|--args)
+								local options
+								if [ -z "${CplInputs[2]}" ]; then
+									#Get help page from language support file
+									options=$(ManageLangs ${Lang} "setCplArgs-help" | tr '\n' '|')
+									if [ -z "${options}" ]; then
+										errorCode "cpl" "cpl-args"
+									else
+										echo -e "${options//|/\\n}"
+									fi
+									#Show Active cpl args
+									case ${RunCplArgs} in
+										none)
+											;;
+										*)
+											echo -n "Compile Arguments: "
+											echo "\"${RunCplArgs//,/ }\""
+											;;
+									esac
+								else
+									case ${CplInputs[2]} in
+										#User asks for help page
+										help)
+											#Get help page from language support file
+											options=$(ManageLangs ${Lang} "setCplArgs-help" | tr '\n' '|')
+											if [ -z "${options}" ]; then
+												errorCode "cpl" "cpl-args"
+											else
+												echo -e "${options//|/\\n}"
+											fi
+											;;
+										*)
+											#Keep OLD cpl args
+											local OldCplArgs=${RunCplArgs}
+											#Checking and getting compile arguments
+											local newCplArgs=$(ManageLangs ${Lang} "setCplArgs" ${CplInputs[@]})
+											#compile argument was given
+											if [ ! -z "${newCplArgs}" ]; then
+												#Checks of returned values
+												case ${RunCplArgs} in
+													#Nothing previously given or was reset
+													none)
+														RunCplArgs="${newCplArgs}"
+														;;
+													#Value was already given
+													*${newCplArgs}*)
+														;;
+													#Append new value to existing compile arguments
+													*)
+														case ${newCplArgs} in
+															none)
+																;;
+															*)
+																RunCplArgs="${RunCplArgs},${newCplArgs}"
+																;;
+														esac
+														;;
+												esac
+											fi
+											#CompileCode
+											ManageLangs ${Lang} "compileCode"
+											#Jump-in and Jump-out
+											case ${InAndOut} in
+												yes)
+													break
+													;;
+												*)
+													;;
+											esac
+											#Reset to OLD cpl args
+											RunCplArgs=${OldCplArgs}
+											;;
+									esac
+								fi
+								;;
+							--get-args)
 								case ${RunCplArgs} in
 									none)
 										;;
@@ -3215,8 +3411,48 @@ Actions()
 										;;
 								esac
 								;;
+							--type)
+								local NewCplType
+								if [ -z "${CplInputs[2]}" ]; then
+									echo "Possible Compile Types"
+									ManageLangs ${Lang} "compileType-list"
+									echo ""
+									echo -n "Active: "
+									if [ ! -z "${TypeOfCpl}" ]; then
+										echo ${TypeOfCpl}
+									else
+										echo "Default"
+									fi
+								else
+									case ${CplInputs[2]} in
+										--help)
+											ManageLangs ${Lang} "compileType-list"
+											;;
+										--reset|reset)
+											TypeOfCpl=""
+											errorCode "HINT" "Compile Type reset to default"
+											;;
+										*)
+											NewCplType=$(ManageLangs ${Lang} "compileType" ${CplInputs[2]})
+											if [ ! -z "${NewCplType}" ]; then
+												TypeOfCpl="${NewCplType}"
+												errorCode "HINT" "Set to Compile as a \"${TypeOfCpl}\""
+											fi
+											;;
+									esac
+								fi
+								;;
+							--*)
+								local NewCplType=$(ManageLangs ${Lang} "compileType" ${CplInputs[1]})
+								if [ ! -z "${NewCplType}" ]; then
+									TypeOfCpl="${NewCplType}"
+									CplInputs[1]=""
+								fi
+								ManageLangs ${Lang} "compileCode" ${CplInputs[@]}
+								TypeOfCpl=""
+								;;
 							*)
-								ManageLangs ${Lang} "compileCode" ${Code} ${UserIn[1]} ${UserIn[2]}
+								ManageLangs ${Lang} "compileCode" ${CplInputs[@]}
 								#Jump-in and Jump-out
 								case ${InAndOut} in
 									yes)
@@ -3227,6 +3463,7 @@ Actions()
 								esac
 								;;
 						esac
+						CplFlag=""
 						;;
 					build)
 						case ${CodeProject} in
@@ -3236,13 +3473,15 @@ Actions()
 							*)
 								case ${Lang} in
 									Java)
-										ManageLangs ${Lang} "compileCode" "--jar" ${UserIn[1]} ${UserIn[2]}
+										TypeOfCpl="--jar"
+										ManageLangs ${Lang} "compileCode" ${UserIn[1]} ${UserIn[2]}
 										;;
 									Rust)
-										ManageLangs ${Lang} "compileCode" "--release" ${UserIn[1]} ${UserIn[2]}
+										TypeOfCpl="--release"
+										ManageLangs ${Lang} "compileCode" ${UserIn[1]} ${UserIn[2]}
 										;;
 									*)
-										ManageLangs ${Lang} "compileCode" ${Code} ${UserIn[1]} ${UserIn[2]}
+										ManageLangs ${Lang} "compileCode" ${UserIn[1]} ${UserIn[2]}
 										;;
 								esac
 								;;
@@ -3250,11 +3489,11 @@ Actions()
 						;;
 					#Install compiled code into aliases
 					install)
-						ManageLangs ${Lang} "Install" ${Code} ${UserIn[1]}
+						ManageLangs ${Lang} "Install" ${TheSrcCode} ${UserIn[1]}
 						;;
 					#Add debugging functionality
 					debug)
-						if [ ! -z "${Code}" ]; then
+						if [ ! -z "${TheSrcCode}" ]; then
 							local DebugEnabled
 							local IsInstalled
 							#Check if debugger is set in clide.conf
@@ -3264,12 +3503,12 @@ Actions()
 								IsInstalled=$(which ${HasDebugger})
 								if [ ! -z "${IsInstalled}" ]; then
 									#Determine of source code has debugging enabled
-									DebugEnabled=$(ManageLangs ${Lang} "IsDebugEnabled" "${Code}")
+									DebugEnabled=$(ManageLangs ${Lang} "IsDebugEnabled" "${TheSrcCode}")
 									case ${DebugEnabled} in
 										#Source code has debugging enabled
 										yes)
 											#Debug code by using Lang.<language>
-											ManageLangs ${Lang} "debug" ${Code}
+											ManageLangs ${Lang} "debug" ${TheSrcCode}
 											;;
 										#Source code NEEDS to enable debugging
 										none|*)
@@ -3293,21 +3532,21 @@ Actions()
 					execute|exe|run)
 						case ${UserIn[1]} in
 							-d|--debug)
-								ManageLangs ${Lang} "debug" ${Code} ${UserIn[1]}
+								ManageLangs ${Lang} "debug" ${TheSrcCode} ${UserIn[1]}
 								;;
 							*)
 								case ${CodeProject} in
 									none)
-										if [ ! -z "${Code}" ]; then
-											runCode ${Lang} ${Code} ${UserIn[@]}
+										if [ ! -z "${TheSrcCode}" ]; then
+											runCode ${Lang} ${TheSrcCode} ${UserIn[@]}
 										else
 											errorCode "cpl" "none"
 										fi
 										;;
 									#It is assumed that the project name is the binary
 									*)
-										if [ ! -z "${Code}" ]; then
-											runCode ${Lang} ${Code} ${UserIn[@]}
+										if [ ! -z "${TheSrcCode}" ]; then
+											runCode ${Lang} ${TheSrcCode} ${UserIn[@]}
 										else
 											#May Cause Prolems
 											runCode ${Lang} ${CodeProject} ${UserIn[@]}
@@ -3326,12 +3565,12 @@ Actions()
 						;;
 					#Display help page
 					help)
-						theHelp MenuHelp ${Lang}
+						theHelp MenuHelp ${Lang} ${UserIn[1]}
 						;;
 					#load last session
 					last|load)
 						local SavedLang=${Lang}
-						local SavedCode=${Code}
+						local SavedCode=${TheSrcCode}
 						local SavedProject=${CodeProject}
 						local SavedCodeDir=${CodeDir}
 						Dir=""
@@ -3343,7 +3582,7 @@ Actions()
 							*)
 								Lang=$(echo ${session} | cut -d ";" -f 2)
 								CodeProject=$(echo ${session} | cut -d ";" -f 1)
-								Code=$(echo ${session} | cut -d ";" -f 3)
+								TheSrcCode=$(echo ${session} | cut -d ";" -f 3)
 								case ${CodeProject} in
 									none)
 										;;
@@ -3360,13 +3599,13 @@ Actions()
 										cd ${CodeDir}
 									else
 										Lang=${SavedLang}
-										Code=${SavedCode}
+										TheSrcCode=${SavedCode}
 										CodeProject=${SavedProject}
 										CodeDir=${SavedCodeDir}
 									fi
 								else
 									Lang=${SavedLang}
-									Code=${SavedCode}
+									TheSrcCode=${SavedCode}
 									CodeProject=${SavedProject}
 									CodeDir=${SavedCodeDir}
 								fi
@@ -3381,7 +3620,7 @@ Actions()
 						;;
 					#Save cl[ide] session
 					save)
-						SaveSession ${Lang} ${Code}
+						SaveSession ${Lang} ${TheSrcCode}
 						echo "session saved"
 						;;
 					#Close cl[ide]
@@ -3421,7 +3660,7 @@ Actions()
 								#Change Color for Language
 								cLang=$(color ${Lang})
 								#Handle the CLI User Interface
-								if [ -z "${Code}" ]; then
+								if [ -z "${TheSrcCode}" ]; then
 									case ${CodeProject} in
 										none)
 											#Menu with no code
@@ -3450,10 +3689,10 @@ Actions()
 									esac
 								else
 									#Change Color for Code
-									cCode=$(color ${Code})
-									case ${Code} in
+									cCode=$(color ${TheSrcCode})
+									case ${TheSrcCode} in
 										*,*)
-											cntSrc=$(echo -e "${Code//,/\\n}" | wc -l)
+											cntSrc=$(echo -e "${TheSrcCode//,/\\n}" | wc -l)
 											case ${cntSrc} in
 												2)
 													listSrc=${cCode}
@@ -3740,8 +3979,8 @@ loadAuto()
 	comp_list "add"
 	comp_list "${ReadBy} read" "non-lang"
 	comp_list "search"
-	comp_list "create" "args cpl cpl-args make newCodeTemp reset version"
-	comp_list "compile cpl car car-a" "--args"
+	comp_list "create" "args cpl cpl-args make newCodeTemp reset version type"
+	comp_list "compile cpl car car-a" "--args --get-args --type"
 	comp_list "execute exe run" "-a --args"
 	comp_list "version"
 	comp_list "help"
@@ -3948,7 +4187,7 @@ CLI()
 
 											#If no source code is found, look in project file
 											if [ -z "${Code}" ]; then
-												Code=$(echo ${TheProject} | cut -d ";" -f 2)
+												TheSrcCode=$(echo ${TheProject} | cut -d ";" -f 2)
 											fi
 
 											local CodeDir=$(echo ${TheProject} | cut -d ";" -f 3)
@@ -3971,10 +4210,11 @@ CLI()
 																#Determine action based on language
 																case ${Lang} in
 																	Java)
-																		if [ -z "${Code}" ]; then
-																			ManageLangs ${Lang} "compileCode" ${Code}
+																		if [ -z "${TheSrcCode}" ]; then
+																			ManageLangs ${Lang} "compileCode"
 																		else
-																			ManageLangs ${Lang} "compileCode" "--jar"
+																			TypeOfCpl="--jar"
+																			ManageLangs ${Lang} "compileCode"
 																		fi
 																		;;
 																	C|C++)
@@ -3984,22 +4224,23 @@ CLI()
 																		if [ ! -z "${TheMakeFile}" ]; then
 																			ManageLangs ${Lang} "compileCode"
 																		#Compile with selected code
-																		elif [ ! -z "${Code}" ]; then
-																			ManageLangs ${Lang} "compileCode" ${Code}
+																		elif [ ! -z "${TheSrcCode}" ]; then
+																			ManageLangs ${Lang} "compileCode"
 																		else
 																			errorCode "cli-cpl" "none"
 																		fi
 																		;;
 																	Rust)
-																		if [ -z "${Code}" ]; then
-																			ManageLangs ${Lang} "compileCode" ${Code}
+																		if [ -z "${TheSrcCode}" ]; then
+																			ManageLangs ${Lang} "compileCode"
 																		else
-																			ManageLangs ${Lang} "compileCode" "--release"
+																			TypeOfCpl="--release"
+																			ManageLangs ${Lang} "compileCode"
 																		fi
 																		;;
 																	*)
-																		if [ ! -z "${Code}" ]; then
-																			ManageLangs ${Lang} "compileCode" ${Code}
+																		if [ ! -z "${TheSrcCode}" ]; then
+																			ManageLangs ${Lang} "compileCode"
 																		else
 																			errorCode "cli-cpl" "none"
 																		fi
@@ -4124,6 +4365,12 @@ CLI()
 								fi
 							fi
 							;;
+						--info)
+							if [ -z "${ThePipe}" ]; then
+								GetProject=$2
+								listProjects --info ${GetProject}
+							fi
+							;;
 						--list)
 							if [ -z "${ThePipe}" ]; then
 								shift
@@ -4137,20 +4384,28 @@ CLI()
 									listProjects
 								#list the entire project
 								else
-									TheProject=$(loadProject ${GetProject})
-									if [ "${TheProject}" != "no" ]; then
-										Lang=$(echo ${TheProject} | cut -d ";" -f 1)
-										Lang=$(pgLang ${Lang})
-										CodeDir=$(echo ${TheProject} | cut -d ";" -f 3)
-										if [ ! -z "${CodeDir}" ]; then
-											RemoveDirs=${CodeDir//\//|}
-											find ${CodeDir} -print | tr '/' '|' | sed "s/${RemoveDirs}//g" | tr '|' '/'
-										else
-											errorCode "cli-cpl" "none"
-										fi
-									else
-										errorCode "project" "not-valid" "${GetProject}"
-									fi
+									case ${GetProject} in
+										-i|--info)
+											GetProject=$2
+											listProjects --info ${GetProject}
+											;;
+										*)
+											TheProject=$(loadProject ${GetProject})
+											if [ "${TheProject}" != "no" ]; then
+												Lang=$(echo ${TheProject} | cut -d ";" -f 1)
+												Lang=$(pgLang ${Lang})
+												CodeDir=$(echo ${TheProject} | cut -d ";" -f 3)
+												if [ ! -z "${CodeDir}" ]; then
+													RemoveDirs=${CodeDir//\//|}
+													find ${CodeDir} -print | tr '/' '|' | sed "s/${RemoveDirs}//g" | tr '|' '/'
+												else
+													errorCode "cli-cpl" "none"
+												fi
+											else
+												errorCode "project" "not-valid" "${GetProject}"
+											fi
+											;;
+									esac
 								fi
 							fi
 							;;
@@ -4258,14 +4513,11 @@ CLI()
 														Code=$(echo ${TheProject} | cut -d ";" -f 2)
 														local passCode=${Code}
 														local passcCode=$(color "${Code}")
-														if [ -z "${passCode}" ]; then
-															passCode="none"
-														fi
 														if [ -z "${passcCode}" ]; then
 															passcCode="none"
 														fi
 														#Swap cl[ide] to a given mode
-														ModeHandler ${ModeType} ${Lang} ${cLang} ${passCode} ${passcCode} $@
+														ModeHandler ${ModeType} ${Lang} ${cLang} ${passcCode} $@
 													fi
 													;;
 												*)
@@ -4423,9 +4675,7 @@ CLI()
 									fi
 									;;
 							esac
-#							else
-#								theHelp cplHelp
-							fi
+						fi
 					else
 						case ${Code} in
 							--*)
@@ -4557,8 +4807,8 @@ CLI()
 													local CodeDir=$(pgDir ${Lang})
 													if [ ! -z "${CodeDir}" ]; then
 														cd ${CodeDir}
-														Code=$(selectCode ${Lang} ${Code})
-														ManageLangs ${Lang} "editCode" ${Code}
+														TheSrcCode=$(selectCode ${Lang} ${Code})
+														ManageLangs ${Lang} "editCode"
 												else
 														errorCode "cli-cpl" "none"
 													fi
@@ -4575,21 +4825,24 @@ CLI()
 				fi
 				;;
 			#compile code without entering cl[ide]
+			#clide --cpl <lang> <code> <args>
 			--cpl|--compile)
 				if [ -z "${ThePipe}" ]; then
+					local NewCplType
 					shift
 					local Lang
 					local Code=$2
 					local Args
+					#clide --cpl <code>.<ext>
 					if [ -z "${Code}" ]; then
 						Lang=$(SelectLangByCode $1)
 						if [ ! -z "${Lang}" ]; then
 							Code=$1
 							shift
-							local Args=$@
+							Args=$@
 							case ${Code} in
 								-h|--help)
-									theHelp cplHelp
+									theHelp cplCliHelp
 									;;
 								*)
 									if [ ! -z "${Code}" ]; then
@@ -4598,41 +4851,62 @@ CLI()
 									;;
 							esac
 						else
-							theHelp cplHelp
+							theHelp cplCliHelp
 						fi
+					# $ clide --cpl <lang> <code> or $ clide --cpl <lang>
 					else
-						case ${Code} in
+						case ${1} in
+							# $ clide --cpl --<cplType> <lang> <code> or $ clide --cpl --<cplType> <code>
 							--*)
-								Lang=$(SelectLangByCode $1)
-								Code=$1
+								TypeOfCpl=$1
 								shift
-								Args=$@
+								main --cpl $@
 								;;
 							*)
-								Lang=$(pgLang $1)
-								shift
-								shift
-								Args=$@
+								case ${Code} in
+									#clide --cpl <code> --args <args>
+									-*)
+										Lang=$(SelectLangByCode $1)
+										Code=$1
+										shift
+										Args=$@
+										;;
+									# $ clide --cpl <lang> <code> <args> or $ clide --cpl <code> <args>
+									*)
+										Lang=$(pgLang $1)
+										shift
+										shift
+										Args=$@
+										;;
+								esac
+
+								case ${Lang} in
+									no)
+										errorCode "lang" "cli-not-supported" "$1"
+										;;
+									*)
+										local CodeDir=$(pgDir ${Lang})
+										if [ ! -z "${CodeDir}" ] && [ -d "${CodeDir}" ]; then
+											cd ${CodeDir}
+											Code=$(selectCode ${Lang} ${Code})
+											if [ ! -z "${Code}" ]; then
+												if [ ! -z "${TypeOfCpl}" ]; then
+													NewCplType=$(ManageLangs ${Lang} "compileType" ${TypeOfCpl})
+													if [ ! -z "${NewCplType}" ]; then
+														TypeOfCpl="${NewCplType}"
+													fi
+												fi
+												InAndOut="yes"
+												Actions ${Lang} ${Code} "cpl" ${Args[@]}
+											else
+												errorCode "cli-cpl" "none"
+											fi
+										else
+											errorCode "cli-cpl" "none"
+										fi
+										;;
+								esac
 								;;
-						esac
-						case ${Lang} in
-							no)
-								errorCode "lang" "cli-not-supported" "$1"
-								;;
-							*)
-								local CodeDir=$(pgDir ${Lang})
-								if [ ! -z "${CodeDir}" ]; then
-									cd ${CodeDir}
-									Code=$(selectCode ${Lang} ${Code})
-									if [ ! -z "${Code}" ]; then
-										InAndOut="yes"
-										Actions ${Lang} "code" "cpl" ${Code} ${Args[@]}
-									else
-										errorCode "cli-cpl" "none"
-									fi
-								else
-									errorCode "cli-cpl" "none"
-								fi
 						esac
 					fi
 				fi
@@ -4791,9 +5065,9 @@ CLI()
 										local CodeDir=$(pgDir ${Lang})
 										if [ ! -z "${CodeDir}" ]; then
 											cd ${CodeDir}
-											Code=$(selectCode ${Lang} ${Code})
-											if [ ! -z "${Code}" ]; then
-												cat ${Code}
+											TheSrcCode=$(selectCode ${Lang} ${Code})
+											if [ ! -z "${TheSrcCode}" ]; then
+												cat ${TheSrcCode}
 											else
 												errorCode "lang" "readCode"
 											fi

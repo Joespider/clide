@@ -1,10 +1,11 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.75"
+SupportV="0.1.79"
 Lang=Ruby
 LangExt=".rb"
 ColorNum=1
+UseTypeOfCpl=${TypeOfCpl}
 
 #Handle Pipes
 #{
@@ -14,8 +15,8 @@ if readlink /proc/$$/fd/0 | grep -q "^pipe:"; then
 fi
 #}
 
-CplArgs=$1
-shift
+CplArgs=${RunCplArgs}
+TheCode=${TheSrcCode}
 
 errorCode()
 {
@@ -484,8 +485,8 @@ UseRuby()
 			fi
 			;;
 		editCode|readCode)
-			local src=$1
-			local num=$2
+			local src=${TheCode}
+			local num=$1
 			local project=${CodeProject}
 			local UseProjectTemplate
 			local newName
@@ -638,9 +639,9 @@ UseRuby()
 			echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
 			;;
 		compileCode)
-			local src=$1
-			local name=$2
-			local keep=$3
+			local src=${TheCode}
+			local name=$1
+			local keep=$2
 			local project=${CodeProject}
 			local cplArgs=""
 			local TheBinDir
@@ -998,9 +999,11 @@ UseRuby()
 			local TheName=$(OtherColor $1)
 			echo "${LangRun} ${TheName}"
 			;;
-		runCode)
+		runCode|debug)
 			local name=$1
-			local TheBin="${name}"
+			local TheBin
+			name=$(UseRuby "removeExt" ${name})
+			TheBin="${name}${LangExt}"
 			local project=${CodeProject}
 			local TheBinDir
 			local UseProjectTemplate
@@ -1012,22 +1015,42 @@ UseRuby()
 				none)
 					project=""
 					TheBinDir=${LangBin}
+					#Handle multiple files
+					if [[ "${name}" == *","* ]]; then
+						cd ${LangSrc}/
+						if [ -z "${name}" ]; then
+							echo "Unable to find the \"main\" file"
+							echo -n "Please choose: "
+							read name
+						fi
+						cd - /dev/null
+						TheBin="${name}"
+					fi
 					;;
 				*)
 					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					TheBinDir="${LangProject}/${project}/bin"
-				;;
+					cd ${LangProject}/${project}/src/
+					;;
 			esac
-			#Check if Ruby Bin exists
+
+			#Check if Python Bin exists
 			if [ -f ${TheBinDir}/${TheBin} ]; then
 				#protect the shell script while running
 				chmod -w ${TheBinDir}/${TheBin} 2> /dev/null
-				if [ ! -z "${ThePipe}" ]; then
-					cat /dev/stdin | ${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
-				else
-					${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
-				fi
-				#Release protection
+				case ${Type} in
+					debug)
+						${LangRun} -m ${UseDebugger} ${TheBinDir}/${TheBin} ${Args[@]}
+						;;
+					runCode)
+						if [ ! -z "${ThePipe}" ]; then
+							cat /dev/stdin | ${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+						else
+							${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+						fi
+						;;
+				esac
+				#release protections
 				chmod u+w ${TheBinDir}/${TheBin} 2> /dev/null
 			else
 				errorCode "cpl" "need" "${name}"
