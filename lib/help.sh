@@ -312,10 +312,11 @@ newCodeHelp()
 	local Lang=$1
 	echo ""
 	echo "----------------[(${Head}) \"new\" Help]----------------"
-	echo -e "-v, --version\t\t\t: \"Get Version for each code template\""
-	echo -e "-h, --help\t\t\t: \"This page\""
+	echo -e "new <args>"
+	echo -e "\t-v, --version\t\t\t: \"Get Version for each code template\""
+	echo -e "\t-h, --help\t\t\t: \"This page\""
 	ManageLangs ${Lang} "newCodeHelp"
-	echo -e "<code>\t\t\t\t: \"provide code name; default settings\""
+	echo -e "\t<code>\t\t\t\t: \"provide code name; default settings\""
 	echo "----------------------------------------------------------"
 	echo ""
 }

@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.65"
+SupportV="0.1.66"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
@@ -390,7 +390,7 @@ UseC()
 			;;
 		newCodeHelp)
 			if [ -f ${TemplateCode} ]; then
-				echo -e "-c, --custom\t\t\t: \"Custom src file using ${Lang} template\""
+				echo -e "\t-c, --custom\t\t\t: \"Custom src file using ${Lang} template\""
 			fi
 			;;
 		#Make sure directories in place
