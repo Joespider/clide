@@ -857,7 +857,6 @@ ModeHandler()
 
 main()
 {
-	echo "$@"
 	local Call=$1
 	shift
 	case ${Call} in
