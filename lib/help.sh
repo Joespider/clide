@@ -48,6 +48,151 @@ MenuHelp()
 			;;
 		*)
 			case ${Choice,,} in
+				ls)
+					echo ""
+					echo "----------------[(${Choice,,}) Menu]----------------"
+					echo -e "Purpose: lists the source code for a given language and/or project"
+					echo ""
+					echo -e "${Choice,,} <args>\t\t: \"list the files you have\""
+					echo "------------------------------------------------"
+					echo ""
+					;;
+				lscpl)
+					echo ""
+					echo "----------------[(${Choice,,}) Menu]----------------"
+					echo -e "Purpose: lists the code compiled, set to run, and build code"
+					echo "------------------------------------------------"
+					echo ""
+					;;
+				using)
+					echo ""
+					echo "----------------[(${Choice,,}) Menu]----------------"
+					echo -e "Purpose: Sometimes the selected language is not shown, '${Choice,,}' displays the active language"
+					echo "------------------------------------------------"
+					echo ""
+					;;
+				unset)
+					echo ""
+					echo "----------------[(${Choice,,}) Menu]----------------"
+					echo -e "Purpose: unselecting source code can help edit/compile source code"
+					echo ""
+					echo -e "${Choice,,} <src>\t\t\t\"deselect source code\""
+					echo -e "${Choice,,}\t\t\t\t\"deselect ALL source code\""
+					echo "------------------------------------------------"
+					echo ""
+					;;
+				use)
+					;;
+				save)
+					;;
+				cpl|compile)
+					;;
+				car|car-a)
+					;;
+				rm|remove|delete)
+					;;
+				rmbin|remove-bin|delete-bin)
+					;;
+				set|select)
+					echo ""
+					echo "----------------[(${Choice,,}) Menu]----------------"
+					echo -e "Purpose: Selecting source code to assist with editing, compiling, and running code"
+					echo ""
+					echo -e "${Choice,,} <src>\t\t\t\"select source code, with or without extentions\""
+					echo -e "${Choice,,} <src>,<src>\t\t\"select multiple source code files\""
+					echo "------------------------------------------------"
+					echo ""
+					;;
+				add)
+					echo ""
+					echo "----------------[(${Choice,,}) Menu]----------------"
+					echo -e "Purpose: Having already selected source code, additional code can be selected"
+					echo ""
+					echo -e "${Choice,,} <src>\t\t\t\"add source code, with or without extentions\""
+					echo -e "${Choice,,} <src>,<src>\t\t\"add multiple source code files\""
+					echo "------------------------------------------------"
+					echo ""
+					;;
+				notes)
+					echo ""
+					echo "----------------[(${Choice,,}) Menu]----------------"
+					echo -e "Purpose: Not everyone remembers everything about a language"
+					echo ""
+					echo -e "${Choice,,} edit\t\t\t\"Edit the notes for a given language\""
+					echo -e "${Choice,,} <src>,<src>\t\t\"Read the notes for a given language\""
+					echo "------------------------------------------------"
+					echo ""
+					;;
+				${editor}|edit)
+					echo ""
+					echo "----------------[(${Choice,,}) Menu]----------------"
+					echo -e "Purpose: Edit your selected code. ONLY selected code will be used"
+					echo ""
+					echo -e "${Choice,,}\t\t\t\t\"Edit a single source file\""
+					echo -e "${Choice,,} <src>\t\t\"Edit a single source file (when multiple source files are selected)\""
+					echo -e "${Choice,,} non-lang <file>\t\t\"Edit a non-selectable file (files that are not language specific)\""
+					echo "------------------------------------------------"
+					echo ""
+					;;
+				${ReadBy}|read)
+					echo ""
+					echo "----------------[(${Choice,,}) Menu]----------------"
+					echo -e "Purpose: read your selected code. ONLY selected code will be used"
+					echo ""
+					echo -e "${Choice,,}\t\t\t\t\"read a single source file\""
+					echo -e "${Choice,,} <src>\t\t\"read a single source file (when multiple source files are selected)\""
+					echo -e "${Choice,,} non-lang <file>\t\t\"read a non-selectable file (files that are not language specific)\""
+					echo "------------------------------------------------"
+					echo ""
+					;;
+				execute|exe|run)
+					echo ""
+					echo "----------------[(${Choice,,}) Menu]----------------"
+					echo -e "Purpose: Run your executable."
+					echo -e "Projects: selected source code not required"
+					echo -e "Non-project: source code MUST be selected"
+					echo ""
+					echo -e "${Choice,,}\t\t\t\t\"run code\""
+					echo -e "${Choice,,} -a <args>\t\t\t\"run code with a cli argument\""
+					echo -e "${Choice,,} --args <args>\t\t\"run code with a cli argument\""
+					echo "------------------------------------------------"
+					echo ""
+					;;
+				bkup|backup)
+					echo ""
+					echo "----------------[(${Choice,,}) Menu]----------------"
+					echo -e "Purpose: Need a quick change or something to test? Backup/restore your code for testing"
+					echo -e "(source code MUST be selected)"
+					echo ""
+					echo -e "${Choice,,}\t\t\t\t\"backup your selected source code\""
+					echo -e "${Choice,,} <src>\t\t\t\"Choose source code, when multiple source code selected\""
+					echo "------------------------------------------------"
+					echo ""
+					;;
+				restore)
+					echo ""
+					echo "----------------[(${Choice,,}) Menu]----------------"
+					echo -e "Purpose: Need a quick change or something to test? Backup/restore your code for testing"
+					echo -e "(source code MUST be selected)"
+					echo ""
+					echo -e "${Choice,,}\t\t\t\t\"restore your selected source code\""
+					echo -e "${Choice,,} <src>\t\t\t\"Choose source code, when multiple source code selected\""
+					echo "------------------------------------------------"
+					echo ""
+					;;
+				rename)
+					;;
+				src|source)
+					echo ""
+					echo "----------------[(${Choice,,}) Menu]----------------"
+					echo -e "Purpose: setting three or more active source files, '${Choice,,}' displays your selected code"
+					echo "------------------------------------------------"
+					echo ""
+					;;
+				copy)
+					;;
+				last|load)
+					;;
 				create)
 					CreateHelp ${Lang}
 					;;
@@ -98,24 +243,24 @@ MenuHelp()
 					echo -e "search <find>\t\t\t: \"search for code in project\""
 					case ${project} in
 						none)
-							echo -e "project <action> \t\t: \"handle projects\""
-							echo -e "\tnew\t\t\t: \"create a new project\""
-							echo -e "\tlist\t\t\t: \"list all your projects\""
-							echo -e "\tload\t\t\t: \"load and existing projects\""
-							echo -e "\tset\t\t\t: \"load and existing projects\""
-							echo -e "\tselect\t\t\t: \"load and existing projects\""
+							echo -e "project <action> <name>\t\t: \"handle projects\""
+							echo -e "\tnew <name>\t\t: \"create a new project\""
+							echo -e "\tlist <name>\t\t: \"list all your projects\""
+							echo -e "\tload <name>\t\t: \"load and existing projects\""
+							echo -e "\tset <name>\t\t: \"load and existing projects\""
+							echo -e "\tselect <name>\t\t: \"load and existing projects\""
 							;;
 						*)
-							echo -e "project <action> \t\t: \"handle projects\""
-							echo -e "\tnew\t\t\t: \"create a new project\""
-							echo -e "\ttype\t\t\t: \"display the type of project\""
-							echo -e "\ttitle\t\t\t: \"give your project a title\""
-							echo -e "\tupdate\t\t\t: \"update your existing project\""
-							echo -e "\tlist\t\t\t: \"list all your projects\""
-							echo -e "\tload\t\t\t: \"load and existing projects\""
-							echo -e "\texport\t\t\t: \"export existing project to tar.gz\""
-							echo -e "\tset\t\t\t: \"load and existing projects\""
-							echo -e "\tselect\t\t\t: \"load and existing projects\""
+							echo -e "project <action> <name>\t\t: \"handle projects\""
+							echo -e "\tnew <name>\t\t\t: \"create a new project\""
+							echo -e "\ttype <name>\t\t\t: \"display the type of project\""
+							echo -e "\ttitle <name>\t\t\t: \"give your project a title\""
+							echo -e "\tupdate <name>\t\t\t: \"update your existing project\""
+							echo -e "\tlist <name>\t\t\t: \"list all your projects\""
+							echo -e "\tload <name>\t\t\t: \"load and existing projects\""
+							echo -e "\texport <name>\t\t\t: \"export existing project to tar.gz\""
+							echo -e "\tset <name>\t\t\t: \"load and existing projects\""
+							echo -e "\tselect <name>\t\t\t: \"load and existing projects\""
 							echo -e "\tlink <lang>\t\t: \"Link a language to an active project\""
 							echo -e "\t\t--list, list\t: \"list the linked languages in an active project\""
 							echo -e "\tswap, use <lang>\t: \"swap to a language in an active project\""
@@ -124,17 +269,19 @@ MenuHelp()
 							echo -e "${repoTool}, repo\t\t\t: \"handle repos\""
 							;;
 					esac
-					echo -e "search\t\t\t\t: \"search project src files for line of code\""
 					echo -e "execute, exe, run <option>\t: \"run active program\""
 					echo -e "\t\t-a, --args\t: \"run program with cli arguments\""
 					echo -e "\t\t-d, --debug\t: \"run program in debug mode\""
 					echo -e "bkup, backup\t\t\t: \"make backup of existing source code\""
-					echo -e "restore\t\t\t\t: \"make backup of existing source code\""
+					echo -e "restore\t\t\t\t: \"restore the backup to original source code\""
 					echo -e "rename <new>\t\t\t: \"rename the existing source code\""
-					echo -e "src, source\t\t\t: \"list source code\""
+					echo -e "src, source\t\t\t: \"list selected source code\""
 					echo -e "copy <new>\t\t\t: \"copy the existing source code\""
 					echo -e "last, load\t\t\t: \"Load last session\""
 					echo -e "exit, close\t\t\t: \"close ide\""
+					echo ""
+					echo -e "help\t\t\t\t: \"This help page\""
+					echo -e "help <command>\t\t\t: \"Get more details on a given command\""
 					echo "------------------------------------------------"
 					echo ""
 					;;
@@ -182,8 +329,8 @@ CreateHelp()
 			ManageLangs ${Lang} "CreateHelp"
 			echo -e "type <args>\t\t\t: Create compile type"
 			echo -e "reset <args>\t\t\t: clear settings"
-			echo -e "\ttype\t\t\t: clear rum time args"
-			echo -e "\targs\t\t\t: clear rum time args"
+			echo -e "\ttype\t\t\t: clear compile type"
+			echo -e "\targs\t\t\t: clear run time args"
 			echo -e "\tcpl, cpl-args\t\t: clear compile args"
 			echo "---------------------------------------------------------"
 			echo ""
@@ -353,25 +500,25 @@ CliHelp()
 		function)
 			case ${example} in
 				-n|--new)
-					NewHelp
+					NewCliHelp
 					;;
 				--edit)
-					EditHelp
+					EditCliHelp
 					;;
 				--cpl|--compile)
 					cplCliHelp
 					;;
 				--read)
-					ReadHelp
+					ReadCliHelp
 					;;
 				--find)
-					FindHelp
+					FindCliHelp
 					;;
 				-x|--run)
-					RunHelp ${example}
+					RunCliHelp ${example}
 					;;
 				--install)
-					installHelp
+					installCliHelp
 					;;
 				--debug)
 					debuggerHelp
@@ -493,22 +640,26 @@ CliHelp()
 	esac
 }
 
-NewHelp()
+NewCliHelp()
 {
 	local cli="--new"
 	local cmd="\$ clide ${cli}"
 	echo ""
 	echo "----------------[(${Head}) cli {${cli}}]----------------"
-	echo -e "Run your compiled code without having a ${Head} session"
+	echo -e "Create new code without having a ${Head} session"
 	echo ""
 	echo -e "${cmd} <language> <code> {arguments}"
 	echo -e "${cmd} <code> {arguments}"
-	echo -e "${cmd} -h, --help\t\t\t: \"help page\""
+	echo -e "${cmd} <language> <code> {arguments}"
+	echo ""
+	echo -e "Pre-create new code AND start a ${Head} session"
+	echo ""
+	echo -e "$ clide <language> ${cli} <code> {arguments}"
 	echo "-----------------------------------------------"
 	echo ""
 }
 
-FindHelp()
+FindCliHelp()
 {
 	local cli="--find"
 	local cmd="\$ clide ${cli}"
@@ -524,7 +675,7 @@ FindHelp()
 	echo ""
 }
 
-RunHelp()
+RunCliHelp()
 {
 	local cli="$1"
 	local cmd="\$ clide ${cli}"
@@ -539,7 +690,7 @@ RunHelp()
 	echo ""
 }
 
-ReadHelp()
+ReadCliHelp()
 {
 	local cli="--read"
 	local cmd="\$ clide ${cli}"
@@ -571,7 +722,7 @@ cplCliHelp()
 	echo ""
 }
 
-installHelp()
+InstallCliHelp()
 {
 	local cli="--install"
 	local cmd="\$ clide ${cli}"
@@ -587,7 +738,7 @@ installHelp()
 	echo ""
 }
 
-EditHelp()
+EditCliHelp()
 {
 	local cli="--edit"
 	local cmd="\$ clide ${cli}"
@@ -739,7 +890,7 @@ RepoHelp()
 	esac
 }
 
-BuildHelp()
+BuildCliHelp()
 {
 	local cli="$1 --build"
 	local cmd="\$ clide ${cli}"
@@ -861,62 +1012,20 @@ main()
 	local Call=$1
 	shift
 	case ${Call} in
-		MenuHelp)
-			MenuHelp $@
+		MenuHelp|makeHelp|NotesHelp)
+			${Call} $@
 			;;
-		LookForHelp)
-			LookForHelp $@
+		debuggerHelp|newCodeHelp|InstallCliHelp)
+			${Call} $@
 			;;
-		CreateHelp)
-			CreateHelp $@
+		CliHelp|RunCliHelp|cplCliHelp|EditCliHelp)
+			${Call} $@
 			;;
-		ProjectHelp)
-			ProjectHelp $@
+		ProjectCliHelp|PackageHelp|BuildCliHelp)
+			${Call} $@
 			;;
-		makeHelp)
-			makeHelp $@
-			;;
-		NotesHelp)
-			NotesHelp $@
-			;;
-		debuggerHelp)
-			debuggerHelp $@
-			;;
-		newCodeHelp)
-			newCodeHelp $@
-			;;
-		installHelp)
-			installHelp $@
-			;;
-		CliHelp)
-			CliHelp $@
-			;;
-		RunHelp)
-			RunHelp $@
-			;;
-		cplCliHelp)
-			cplCliHelp $@
-			;;
-		EditHelp)
-			EditHelp $@
-			;;
-		ProjectCliHelp)
-			ProjectCliHelp $@
-			;;
-		PackageHelp)
-			PackageHelp $@
-			;;
-		BuildHelp)
-			BuildHelp $@
-			;;
-		ModesHelp)
-			ModesHelp $@
-			;;
-		ModeHandler)
-			ModeHandler $@
-			;;
-		RepoHelp)
-			RepoHelp $@
+		ModesHelp|ModeHandler|RepoHelp)
+			${Call} $@
 			;;
 		*)
 			;;

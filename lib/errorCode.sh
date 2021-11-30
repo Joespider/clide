@@ -873,6 +873,10 @@ errorCode()
 					errorCode "ERROR"
 					errorCode "ERROR" "Please choose the correct source file"
 					;;
+				need-ext)
+					errorCode "ERROR"
+					errorCode "ERROR" "Please provide the extension of the file"
+					;;
 				*)
 					;;
 			esac
