@@ -2636,15 +2636,30 @@ Actions()
 						fi
 						refresh="yes"
 						;;
-					#backup the selected code
-					bkup|backup)
+					#backup and restore the selected code
+					bkup|backup|restore)
 						local chosen=${UserIn[1]}
+						local LangByExt
 						case ${TheSrcCode} in
 							*,*)
 								if [ ! -z "${chosen}" ]; then
 									case ${TheSrcCode} in
 										*${chosen}*)
-											ManageLangs ${Lang} "backup" ${chosen}
+											LangByExt=$(ManageLangs ${Lang} "hasExt" "${chosen}")
+											if [ ! -z "${LangByExt}" ]; then
+												case ${UserArg} in
+													bkup|backup)
+	 													ManageLangs ${Lang} "backup" ${chosen}
+														;;
+													restore)
+														ManageLangs ${Lang} "restore" ${chosen}
+														;;
+													*)
+														;;
+												esac
+											else
+												errorCode "backup" "need-ext"
+											fi
 											;;
 										*)
 											errorCode "backup" "wrong"
@@ -2655,30 +2670,16 @@ Actions()
 								fi
 								;;
 							*)
-								ManageLangs ${Lang} "backup" ${TheSrcCode}
-								;;
-						esac
-						;;
-					#restore the backup made
-					restore)
-						local chosen=${UserIn[1]}
-						case ${TheSrcCode} in
-							*,*)
-								if [ ! -z "${chosen}" ]; then
-									case ${TheSrcCode} in
-										*${chosen}*)
-											ManageLangs ${Lang} "restore" ${chosen}
-											;;
-										*)
-											errorCode "backup" "wrong"
-											;;
-									esac
-								else
-									errorCode "backup" "null"
-								fi
-								;;
-							*)
-								ManageLangs ${Lang} "restore" ${TheSrcCode}
+								case ${UserArg} in
+									bkup|backup)
+										ManageLangs ${Lang} "backup" ${TheSrcCode}
+										;;
+									restore)
+										ManageLangs ${Lang} "restore" ${TheSrcCode}
+										;;
+									*)
+										;;
+								esac
 								;;
 						esac
 						;;
@@ -3565,7 +3566,9 @@ Actions()
 						;;
 					#Display help page
 					help)
-						theHelp MenuHelp ${Lang} ${UserIn[1]}
+						local HelpArgs=( ${UserIn[@]} )
+						HelpArgs[0]=""
+						theHelp MenuHelp ${Lang} ${HelpArgs[@]}
 						;;
 					#load last session
 					last|load)
@@ -4166,14 +4169,14 @@ CLI()
 
 							if [ -z "${GetProject}" ]; then
 								if [ -z "${ThePipe}" ]; then
-									theHelp BuildHelp ${UserArg}
+									theHelp BuildCliHelp ${UserArg}
 								fi
 							else
 								case ${GetProject} in
 									#Provide the help page
 									-h|--help)
 										if [ -z "${ThePipe}" ]; then
-											theHelp BuildHelp ${UserArg}
+											theHelp BuildCliHelp ${UserArg}
 										fi
 										;;
 									*)
@@ -4667,7 +4670,7 @@ CLI()
 							local Args=$@
 							case ${Code} in
 								-h|--help)
-#										theHelp installHelp
+#										theHelp InstallCliHelp
 									;;
 								*)
 									if [ ! -z "${Code}" ]; then
@@ -4779,16 +4782,16 @@ CLI()
 									errorCode "ERROR" "\"${Lang}\" is not a supported language"
 								fi
 							else
-								theHelp EditHelp
+								theHelp EditCliHelp
 							fi
 							;;
 						*)
 							if [ -z "${Action}" ]; then
-								theHelp EditHelp
+								theHelp EditCliHelp
 							else
 								case ${Action} in
 									-h|--help)
-										theHelp EditHelp
+										theHelp EditCliHelp
 										;;
 									*)
 										local Lang=$(pgLang $1)
@@ -4924,7 +4927,7 @@ CLI()
 						local Args=$@
 						case ${Code} in
 							-h|--help)
-								theHelp installHelp
+								theHelp InstallCliHelp
 								;;
 							*)
 								if [ ! -z "${Code}" ]; then
@@ -4939,7 +4942,7 @@ CLI()
 						case ${Lang} in
 							no)
 								errorCode "install" "cli-not-supported" "$1"
-								theHelp installHelp
+								theHelp InstallCliHelp
 								;;
 							*)
 								local CodeDir=$(pgDir ${Lang})
@@ -4968,12 +4971,12 @@ CLI()
 				local CodeDir
 				#Provide the help page
 				if [ -z "${Lang}" ]; then
-					theHelp RunHelp ${UserArg}
+					theHelp RunCliHelp ${UserArg}
 				else
 					case ${Lang} in
 						#Provide the help page
 						-h|--help)
-							theHelp RunHelp ${UserArg}
+							theHelp RunCliHelp ${UserArg}
 							;;
 						*)
 							Lang=$(pgLang ${Lang})

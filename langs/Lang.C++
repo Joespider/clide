@@ -2144,7 +2144,7 @@ UseC++()
 						case ${Type} in
 							restore)
 								if [ -f "${LangSrc}/${name}.bak" ]; then
-									mv ${LangSrc}/${name}.bak ${LangSrc}/${name}
+									mv ${LangSrc}/${name}.bak ${LangSrc}/${name} 2> /dev/null
 									echo "\"${name}\" restored"
 								else
 									errorCode "restore" "exists"
