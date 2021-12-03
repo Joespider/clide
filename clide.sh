@@ -4891,7 +4891,7 @@ CLI()
 										local CodeDir=$(pgDir ${Lang})
 										if [ ! -z "${CodeDir}" ] && [ -d "${CodeDir}" ]; then
 											cd ${CodeDir}
-											Code=$(selectCode ${Lang} ${Code})
+											TheSrcCode=$(selectCode ${Lang} ${Code})
 											if [ ! -z "${Code}" ]; then
 												if [ ! -z "${TypeOfCpl}" ]; then
 													NewCplType=$(ManageLangs ${Lang} "compileType" ${TypeOfCpl})
@@ -5084,7 +5084,7 @@ CLI()
 				fi
 				;;
 			#List source code from given language
-			--list)
+			--list|--ls|--src)
 				if [ -z "${ThePipe}" ]; then
 					shift
 					local Lang=$(pgLang $1)
@@ -5101,7 +5101,7 @@ CLI()
 					esac
 				fi
 				;;
-			--list-cpl|--lscpl)
+			--list-cpl|--lscpl|--bin)
 				if [ -z "${ThePipe}" ]; then
 					shift
 					local Lang=$(pgLang $1)
