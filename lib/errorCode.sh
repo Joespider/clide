@@ -796,6 +796,14 @@ errorCode()
 					errorCode "HINT" "Compile C++ with a one-time argument"
 					errorCode "HINT" "command"
 					errorCode "HINT" "cpl --args -std=c++<version>"
+					echo ""
+					errorCode "HINT"
+					errorCode "HINT" "Compile C++ from cli"
+					errorCode "HINT" "command"
+					errorCode "HINT" "clide --cpl C++ <code> --args -std=c++<version>"
+					errorCode "HINT" "or"
+					errorCode "HINT" "command"
+					errorCode "HINT" "clide --cpl <code> --args -std=c++<version>"
 					;;
 				cpl-args)
 					errorCode "WARNING"

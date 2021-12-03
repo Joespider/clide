@@ -86,6 +86,21 @@ MenuHelp()
 				save)
 					;;
 				cpl|compile)
+					echo ""
+					echo "----------------[(${Choice,,}) Menu]----------------"
+					echo -e "Purpose: Compile the selected code"
+					echo ""
+					echo -e "${Choice,,}\t\t\t\t\"compile with default settings\""
+					echo -e "${Choice,,} -a <args>\t\t\t\"compile with the given argumentss\""
+					echo -e "${Choice,,} --args <args>\t\t\"compile with the given arguments\""
+					echo -e "${Choice,,} --get-args\t\t\t\"get the compile arguments\""
+					echo -e "${Choice,,} --type <args>\t\t\"pre-set compile type\""
+					echo -e "\t\t--help\t\t\"get the language specific compile type(s)\""
+					echo -e "\t\t--reset\t\t\"reset compile type\""
+					echo -e "\t\treset\t\t\"reset compile type\""
+					echo -e "${Choice,,} --<type>\t\t\t\"pre-set compile type\""
+					echo "------------------------------------------------"
+					echo ""
 					;;
 				car|car-a)
 					;;
@@ -523,7 +538,7 @@ CliHelp()
 				--debug)
 					debuggerHelp
 					;;
-				--list|--list-cpl|--lscpl)
+				--list|--ls|--src|--list-cpl|--lscpl|--bin)
 					listHelp ${example}
 					;;
 				-p|--project)
@@ -762,7 +777,7 @@ listHelp()
 	echo ""
 	echo "----------------[(${Head}) cli {${cli}}]----------------"
 	case ${cli} in
-		--list)
+		--list|--ls|--src)
 			echo -e "\"List your source code without having a session\""
 			echo ""
 			echo -e "${cmd} <language>"
@@ -770,7 +785,7 @@ listHelp()
 			echo "-----------------------------------------------"
 			echo ""
 			;;
-		--list-cpl)
+		--list-cpl|--lscpl|--bin)
 			echo -e "\"List your compiled code without having a session\""
 			echo ""
 			echo -e "${cmd} <language>"
