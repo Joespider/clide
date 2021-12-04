@@ -5016,6 +5016,36 @@ CLI()
 				#Done protecting
 				Protect "done"
 				;;
+			--notes)
+				if [ -z "${ThePipe}" ]; then
+					shift
+					local Action=$1
+					local Lang=$(pgLang $2)
+					if [ ! -z "${Lang}" ]; then
+						case ${Lang} in
+							no)
+								theHelp CliNotes
+								;;
+							*)
+								case ${Action} in
+									--edit|--add)
+										InAndOut="yes"
+										Actions ${Lang} "none" "notes" "edit"
+										;;
+									--read)
+										InAndOut="yes"
+										Actions ${Lang} "none" "notes" "read"
+										;;
+									*)
+										;;
+								esac
+								;;
+						esac
+					else
+						theHelp CliNotes
+					fi
+				fi
+				;;
 			#cat out source code
 			--read)
 				if [ -z "${ThePipe}" ]; then

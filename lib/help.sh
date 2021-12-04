@@ -431,7 +431,6 @@ PackageHelp()
 
 NotesHelp()
 {
-	local Lang=$1
 	echo ""
 	echo "----------------[(${Head}) \"Notes\" Help]----------------"
 	echo -e "edit, add\t: \"edit notes\""
@@ -523,6 +522,9 @@ CliHelp()
 				--cpl|--compile)
 					cplCliHelp
 					;;
+				--notes)
+					CliNotes
+					;;
 				--read)
 					ReadCliHelp
 					;;
@@ -565,6 +567,7 @@ CliHelp()
 					echo -e "--debug <args>\t\t\t\t\t: \"Debug compiled code\""
 					echo -e "--run <args>\t\t\t\t\t: \"Run compiled code\""
 					echo -e "-x <args>\t\t\t\t\t\t: \"Run compiled code\""
+					echo -e "--notes <args>\t\t\t\t\t: \"Manage the notes for a given language\""
 					echo -e "--read <args>\t\t\t\t\t: \"Read out (cat) source code\""
 					echo -e "--list <lang>\t\t\t\t\t: \"List source code\""
 					echo -e "--list-cpl <lang>\t\t\t\t: \"List compiled code\""
@@ -654,6 +657,21 @@ CliHelp()
 			;;
 	esac
 }
+
+CliNotes()
+{
+	local cli="--notes"
+	local cmd="\$ clide ${cli}"
+	echo ""
+	echo "----------------[(${Head}) \"Notes\" Help]----------------"
+	echo "${cmd} <args> <lang>"
+	echo -e "\t\t--edit \t\t\t: \"edit notes\""
+	echo -e "\t\t--add \t\t\t: \"edit notes\""
+	echo -e "\t\t--read \t\t\t: \"read notes\""
+	echo "----------------------------------------------------------"
+	echo ""
+}
+
 
 NewCliHelp()
 {
@@ -1034,6 +1052,9 @@ main()
 			${Call} $@
 			;;
 		CliHelp|RunCliHelp|cplCliHelp|EditCliHelp)
+			${Call} $@
+			;;
+		CliNotes)
 			${Call} $@
 			;;
 		ProjectCliHelp|PackageHelp|BuildCliHelp)
