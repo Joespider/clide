@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.66"
+SupportV="0.1.67"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
@@ -1220,7 +1220,7 @@ UseC()
 			fi
 			;;
 		create-make)
-			local src=$1
+			local src=${TheCode}
 			local UseProjectTemplate
 
 			src="${src//,/ /}"
