@@ -1906,6 +1906,9 @@ Actions()
 					clear)
 						clear
 						;;
+					whoami)
+						echo "${USER}"
+						;;
 					#Set for session or add code to session
 					select|set|add)
 						local theExt
@@ -3223,8 +3226,11 @@ Actions()
 										TheSrcCode=$(selectCode ${Lang} "set" ${NewCode})
 										refresh="yes"
 										;;
+									help)
+										theHelp CreateHelp ${Lang}
+										;;
 									#Use the template provided but cl[ide]
-									default)
+									*)
 										#Create new souce code in newCode/
 										if [ ! -f ${NewCodeDir}/${NewCode} ]; then
 											if [ ! -f ${LangSrcDir}/${NewCode} ]; then
@@ -3243,9 +3249,6 @@ Actions()
 											TheSrcCode=$(selectCode ${Lang} "set" ${NewCode})
 											refresh="yes"
 										fi
-										;;
-									help|*)
-										theHelp CreateHelp ${Lang}
 										;;
 								esac
 								;;
@@ -3960,6 +3963,7 @@ loadAuto()
 	bind -x '"\t":autocomp'
 	bind -x '"\C-l":clear'
 	comp_list "ls"
+	comp_list "whoami"
 	comp_list "save"
 	comp_list "lscpl"
 	comp_list "using"
@@ -4400,7 +4404,7 @@ CLI()
 												CodeDir=$(echo ${TheProject} | cut -d ";" -f 3)
 												if [ ! -z "${CodeDir}" ]; then
 													RemoveDirs=${CodeDir//\//|}
-													find ${CodeDir} -print | tr '/' '|' | sed "s/${RemoveDirs}//g" | tr '|' '/'
+													find -L ${CodeDir} -print | tr '/' '|' | sed "s/${RemoveDirs}//g" | tr '|' '/'
 												else
 													errorCode "cli-cpl" "none"
 												fi
@@ -4444,6 +4448,36 @@ CLI()
 								fi
 							fi
 							;;
+						--read)
+							if [ -z "${ThePipe}" ]; then
+								shift
+								local Lang
+								local CodeDir
+								local TheProject
+								local RemoveDirs
+								GetProject=$1
+								local TheSrc=$2
+								#Just list the projects
+								if [ ! -z "${GetProject}" ]; then
+									TheProject=$(loadProject ${GetProject})
+									if [ "${TheProject}" != "no" ]; then
+										Lang=$(echo ${TheProject} | cut -d ";" -f 1)
+										Lang=$(pgLang ${Lang})
+										CodeDir=$(echo ${TheProject} | cut -d ";" -f 3)
+										if [ ! -z "${CodeDir}" ]; then
+											if [ ! -z "${TheSrc}" ]; then
+												TheSrc=$(find ${CodeDir} -name ${TheSrc})
+												if [ ! -z "${TheSrc}" ]; then
+													cat "${TheSrc}"
+												fi
+											else
+												CLI --project --list ${GetProject} | grep "\."
+											fi
+										fi
+									fi
+								fi
+							fi
+							;;
 						-h|--help)
 							if [ -z "${ThePipe}" ]; then
 								theHelp ProjectCliHelp ${UserArg}
@@ -4457,6 +4491,7 @@ CLI()
 								local SaveProject=$1
 								local ModeAction
 								local ModeType
+								local TheSrc
 								local IsLang=$(pgLang ${GetProject})
 
 								if [ ! -z "${ChosenLang}" ]; then
@@ -4523,6 +4558,10 @@ CLI()
 														ModeHandler ${ModeType} ${Lang} ${cLang} ${passcCode} $@
 													fi
 													;;
+												--*)
+													shift
+													CLI --project ${ModeAction} ${GetProject} $@
+													;;
 												*)
 													theHelp ProjectCliHelp ${UserArg}
 													;;
@@ -4568,15 +4607,17 @@ CLI()
 				fi
 				;;
 			#Search for source code path OR langauge and source code name
-			--find)
+			--find|--path)
 				if [ -z "${ThePipe}" ]; then
 					shift
 					local Lang=$1
 					local TheSrc=$2
 					local CodeDir
+					local srcPath
 					local src
 					local Found
 					local ColorCode
+					local TypeOfCode
 					#Language not provided...but source code is
 					if [ -z "${TheSrc}" ]; then
 						TheSrc=${Lang}
@@ -4590,66 +4631,70 @@ CLI()
 
 					#incorrect characters given in source code
 					case ${TheSrc} in
-						.*|*/*)
+						*/*)
 							#reset search
 							TheSrc=""
 							;;
 						*)
 							;;
 					esac
-
 					#source code provided
 					if [ ! -z "${TheSrc}" ]; then
 						#Language not provided
 						if [ -z "${Lang}" ]; then
 							case ${TheSrc} in
+								.*)
+									;;
 								*.*)
-									#Attempt to locatelanguage using source code
+									#Attempt to locate language using source code
 									Lang=$(SelectLangByCode ${TheSrc})
 									;;
 								*)
 									;;
 							esac
 						fi
-
-						#remove extension
-						TheSrc=${TheSrc%%.*}
-
 						#Langauge provided or found
 						if [ ! -z "${Lang}" ]; then
-							#Find lanaguge directory
-							CodeDir=$(pgDir ${Lang})
-							if [ ! -z "${CodeDir}" ]; then
-								#Go to source code path
-								cd ${CodeDir}
-								#check if source code exists
-								src=$(selectCode ${Lang} ${TheSrc})
-								if [ ! -z "${src}" ]; then
-									#Find fill path of source code
-									find ${ProgDir} -name ${src} | grep "/src/"
-								fi
+							if [ ! -z "${TheSrc}" ]; then
+								find -L ${ProgDir} -name ${TheSrc} | grep "/src/"
+							else
+								theHelp PathCliHelp ${UserArg}
 							fi
 						#No Language found
 						else
+							#remove extension
+							#TheSrc=${TheSrc%%.*}
 							#Search for source code via name
-							Found=$(find ${ProgDir} -name *${TheSrc}* | grep "/src/" | sort)
+							Found=$(find -L ${ProgDir} -name *${TheSrc}* | grep "/src/" | sort)
 							#Code has been founs
 							if [ ! -z "${Found}" ]; then
-								echo -e "\e[1;40m{Language}\t\t{source code}\e[0m"
+								echo -e "\e[1;40m{Language}\t\t{Source Code}\t\t{Project}\e[0m"
 								for src in ${Found};
 								do
+									srcPath=${src}
 									src=${src##*/}
 									#Get language by source code
 									Lang=$(SelectLangByCode ${src})
 									if [ ! -z "${Lang}" ]; then
+										case ${srcPath} in
+											*/${Lang}/projects/*)
+												srcPath=$(echo ${srcPath} | sed "s/\/${Lang}\/projects\//|/g" | cut -d '|' -f 2)
+												TypeOfCode="${srcPath%%/*}"
+												;;
+											*)
+												TypeOfCode=""
+												;;
+										esac
 										#get langauge color
 										ColorCode=$(ManageLangs ${Lang} "color-number")
 										#Display language and code
-										echo -e "\e[1;3${ColorCode}m${Lang}\t\t\t${src}\e[0m"
+										echo -e "\e[1;3${ColorCode}m${Lang}\t\t\t${src}\t\t${TypeOfCode}\e[0m"
 									fi
 								done
 							fi
 						fi
+					else
+						theHelp PathCliHelp ${UserArg}
 					fi
 				fi
 				;;

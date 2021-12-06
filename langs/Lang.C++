@@ -5,7 +5,7 @@ Shell=$(which bash)
 #Link Libs: https://gist.github.com/gubatron/32f82053596c24b6bec6
 #both https://avikdas.com/2019/12/16/makefiles-for-c-cpp-projects.html
 
-SupportV="0.2.28"
+SupportV="0.2.29"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -1557,7 +1557,7 @@ UseC++()
 			fi
 			;;
 		create-make)
-			local src=$1
+			local src=${TheCode}
 			src="${src//,/ /}"
 			local UseProjectTemplate
 			case ${CodeProject} in

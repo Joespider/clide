@@ -82,8 +82,23 @@ MenuHelp()
 					echo ""
 					;;
 				use)
+					echo ""
+					echo "----------------[(${Choice,,}) Menu]----------------"
+					echo -e "Purpose: selecting a different langauge while in a clide session"
+					echo ""
+					echo -e "<lang> <src>\t\t\t\"Choose a langauge and preselect code\""
+					echo -e "${Choice,,} <lang> <src>\t\t\"Choose a langauge and preselect code\""
+					echo -e "${Choice,,}\t\t\t\t\"list supported lanugages\""
+					echo "------------------------------------------------"
+					echo ""
 					;;
 				save)
+					echo ""
+					echo "----------------[(${Choice,,}) Menu]----------------"
+					echo -e "Purpose: Save your active session"
+					echo -e "${Choice,,}\t\t\t\t\"Save your active session\""
+					echo "------------------------------------------------"
+					echo ""
 					;;
 				cpl|compile)
 					echo ""
@@ -103,6 +118,28 @@ MenuHelp()
 					echo ""
 					;;
 				car|car-a)
+					case ${Choice,,} in
+						car)
+							echo ""
+							echo "----------------[(${Choice,,}) Menu]----------------"
+							echo -e "Purpose: Compile and run code"
+							echo ""
+							echo -e "${Choice,,}\t\t\t\t\"compile and run\""
+							echo "------------------------------------------------"
+							echo ""
+							;;
+						car-a)
+							echo ""
+							echo "----------------[(${Choice,,}) Menu]----------------"
+							echo -e "Purpose: Compile and run code with argument prompt"
+							echo ""
+							echo -e "${Choice,,}\t\t\t\t\"compile and run with argument prompt\""
+							echo "------------------------------------------------"
+							echo ""
+							;;
+						*)
+							;;
+					esac
 					;;
 				rm|remove|delete)
 					;;
@@ -528,8 +565,8 @@ CliHelp()
 				--read)
 					ReadCliHelp
 					;;
-				--find)
-					FindCliHelp
+				--path|--find)
+					PathCliHelp ${example}
 					;;
 				-x|--run)
 					RunCliHelp ${example}
@@ -573,6 +610,7 @@ CliHelp()
 					echo -e "--list-cpl <lang>\t\t\t\t: \"List compiled code\""
 					echo -e "--lscpl <lang>\t\t\t\t\t: \"List compiled code\""
 					echo -e "--find <args>\t\t\t\t\t: \"Find the souce code\""
+					echo -e "--path <args>\t\t\t\t\t: \"Find the souce code\""
 					echo -e "-p, --project <args>\t\t\t\t: \"List or Load Clide Projects\""
 					echo ""
 					echo "\"Still want a session?\""
@@ -692,13 +730,13 @@ NewCliHelp()
 	echo ""
 }
 
-FindCliHelp()
+PathCliHelp()
 {
-	local cli="--find"
+	local cli="--path"
 	local cmd="\$ clide ${cli}"
 	echo ""
 	echo "----------------[(${Head}) cli {${cli}}]----------------"
-	echo -e "Find your source code without having a ${Head} session"
+	echo -e "Get the path of your source code without having a ${Head} session"
 	echo ""
 	echo -e "${cmd} <language> <code>\t\t\t: \"display the path of your source code\""
 	echo -e "${cmd} <code>\t\t\t\t\t: \"lists language and source code\""
@@ -848,6 +886,9 @@ ProjectCliHelp()
 	echo -e "${cmd} --import <project>\t\t\t: \"install a ${Head} Project <project>.tar.gz file\""
 	echo -e "${cmd} --discover\t\t\t\t: \"Discover ${Head} Projects\""
 	echo -e "${cmd} -h, --help\t\t\t\t: \"help page\""
+	echo ""
+	echo -e "\t\"These arguments could be as follows\""
+	echo -e "$ clide ${cli} <project> <action> <type>"
 	echo ""
 	echo -e "\t\"Alternativly, a ${Head} session can held after performing a given action\""
 	echo ""
@@ -1054,7 +1095,7 @@ main()
 		CliHelp|RunCliHelp|cplCliHelp|EditCliHelp)
 			${Call} $@
 			;;
-		CliNotes)
+		CliNotes|PathCliHelp)
 			${Call} $@
 			;;
 		ProjectCliHelp|PackageHelp|BuildCliHelp)
