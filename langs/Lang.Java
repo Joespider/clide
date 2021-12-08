@@ -1397,7 +1397,7 @@ UseJava()
 									if [ -z "${UseProjectTemplate}" ]; then
 										#echo "main"
 										cd ${LangBin}
-										${LangRun} ${TemplateC} --name ${name} --user $USER --main ${TemplateCodeArgs} ${PackageNameJava}
+										${LangRun} ${TemplateC} --name ${name} --main ${TemplateCodeArgs} ${PackageNameJava}
 										cd - > /dev/null
 										mv "${LangBin}/${name}${LangExt}" .
 									else
@@ -1409,7 +1409,7 @@ UseJava()
 									if [ -z "${UseProjectTemplate}" ]; then
 										#echo "component"
 										cd ${LangBin}
-										${LangRun} ${TemplateC} --name ${name} --user $USER ${TemplateCodeArgs} ${PackageNameJava}
+										${LangRun} ${TemplateC} --name ${name} ${TemplateCodeArgs} ${PackageNameJava}
 										cd - > /dev/null
 										mv "${LangBin}/${name}${LangExt}" . 2> /dev/null
 									else
@@ -1481,7 +1481,7 @@ UseJava()
 								main)
 									if [ -z "${UseProjectTemplate}" ]; then
 										#echo "main"
-										${LangRun} -jar ${TemplateCodeJar} --name ${name} --user $USER --main ${TemplateCodeArgs} ${PackageNameJava}
+										${LangRun} -jar ${TemplateCodeJar} --name ${name} --main ${TemplateCodeArgs} ${PackageNameJava}
 									else
 										ProjectTemplateHandler ${ProjectType} ${Type} ${name}${LangExt} ${CodeType}
 									fi
@@ -1490,7 +1490,7 @@ UseJava()
 								component)
 									if [ -z "${UseProjectTemplate}" ]; then
 										#echo "component"
-										${LangRun} -jar ${TemplateCodeJar} --name ${name} --user $USER ${TemplateCodeArgs} ${PackageNameJava}
+										${LangRun} -jar ${TemplateCodeJar} --name ${name} ${TemplateCodeArgs} ${PackageNameJava}
 									else
 										ProjectTemplateHandler ${ProjectType} ${Type} ${name}${LangExt} ${CodeType}
 									fi

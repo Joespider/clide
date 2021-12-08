@@ -1,11 +1,25 @@
 [Java Notes]
 Date: (12/14/2020)
 
->>>		---[Dos/Unix]---
-	//Line Separator
-		Windows(Dos): \r\n
-		Linux/Mac(Unix): \n
-	String lineSeparator = System.getProperty("line.separator");
+>>>		---[Java System Properties]---
+	System.getProperty(propKey);
+
+	"file.separator"			[String]			//UNIX("/") vs Windows("\")
+	"java.class.path"			[String]			//Path used to find directories and JAR archives containing class files.
+										//Elements of the class path are separated by a platform-specific character specified in the path.separator property.
+	"java.home"				[String]			//Installation directory for Java Runtime Environment (JRE)
+	"java.vendor"				[String]			//JRE vendor name
+	"java.vendor.url"			[String]			//JRE vendor URL
+	"java.version"				[String]			//JRE version number
+	"line.separator"			[String]			//Sequence used by operating system to separate lines in text files
+	"os.arch"				[String]			//Operating system architecture
+	"os.name"				[String]			//Operating system name
+	"os.version"				[String]			//Operating system version
+	"path.separator"			[String]			//Path separator character used in java.class.path
+	"user.dir"				[String]			//User working directory
+	"user.home"				[String]			//User home directory
+	"user.name"				[String]			//User account name
+
 
 >>>		---[Data Types]---
 	byte					[8-bit]				//*TBD*
