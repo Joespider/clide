@@ -14,7 +14,7 @@ import java.io.DataInputStream;
 
 //class name
 public class newJava {
-	private static String user = "";
+	private static String user = System.getProperty("user.name");
 	private static String Class = "";
 	private static String Parent = "";
 	private static String Package = "";
@@ -26,11 +26,12 @@ public class newJava {
 	private static boolean getShell = false;
 	private static boolean getArrays = false;
 	private static boolean getPipe = false;
+	private static boolean getJavaProp = false;
 
 	private static void Help()
 	{
 		String program = "newJava";
-		String version = "0.1.12";
+		String version = "0.1.14";
 		print("Author: Joespider");
 		print("Program: \""+program+"\"");
 		print("Version: "+version);
@@ -45,6 +46,7 @@ public class newJava {
 		print("\t--package <package> : package name");
 		print("\t-m : main file");
 		print("\t--main : main file");
+		print("\t--prop : enable custom system property");
 		print("\t--pipe : enable piping");
 		print("\t--shell : unix shell");
 		print("\t--write-file : enable \"write\" file method");
@@ -169,6 +171,11 @@ public class newJava {
 			else if (now.equals("--shell"))
 			{
 				getShell = true;
+			}
+			//enable unix piping
+			else if (now.equals("--prop"))
+			{
+				getJavaProp = true;
 			}
 			//enable unix piping
 			else if (now.equals("--pipe"))
@@ -302,9 +309,10 @@ public class newJava {
 	{
 		String TheMethods = "";
 		String MethodUserIn = "";
-		String MethodPrint = "";
+		String MethodPrint = "\t//Print Output\n\tprivate static void print(Object out)\n\t{\n\t\tSystem.out.println(out);\n\t}\n\n";
 		String MethodLength = "";
 		String MethodArrays = "";
+		String MethodProp = "";
 		String MethodReadFile = "";
 		String MethodWriteFile = "";
 		String MethodShell = "";
@@ -314,11 +322,14 @@ public class newJava {
 		{
 			MethodUserIn = "\t//Get User input\n\tprivate static String raw_input(String Message)\n\t{\n\t\tString input = \"\";\n\t\t//User input from terminal\n\t\tScanner UserIn = new Scanner(System.in);\n\t\tSystem.out.print(Message);\n\t\tinput = UserIn.nextLine();\n\t\treturn input;\n\t}\n\n";
 		}
-		MethodPrint = "\t//Print Output\n\tprivate static void print(Object out)\n\t{\n\t\tSystem.out.println(out);\n\t}\n\n";
 		if (getArrays == true)
 		{
 			MethodLength = "\t//get array length\n\tprivate static int len(String[] array)\n\t{\n\t\tint length = array.length;\n\t\treturn length;\n\t}\n\n\t//get array length\n\tprivate static int len(int[] array)\n\t{\n\t\tint length = array.length;\n\t\treturn length;\n\t}\n\n\t//get array length\n\tprivate static int len(float[] array)\n\t{\n\t\tint length = array.length;\n\t\treturn length;\n\t}\n\n\t//get array length\n\tprivate static int len(double[] array)\n\t{\n\t\tint length = array.length;\n\t\treturn length;\n\t}\n\n\t//get string length\n\tprivate static int len(String word)\n\t{\n\t\tint length = word.length();\n\t\treturn length;\n\t}\n\n";
-			MethodArrays = "\t//Append content to array\n\tprivate static String[] Append(String[] ArrayName, String content)\n\t{\n\t\tint i = ArrayName.length;\n\t\t//growing temp array\n\t\tString[] temp = new String[i];\n\t\t//copying ArrayName array into temp array.\n\t\tSystem.arraycopy(ArrayName, 0, temp, 0, i);\n\t\t//creating a new array\n\t\tArrayName = new String[i+1];\n\t\t//copying temp array into ArrayName\n\t\tSystem.arraycopy(temp, 0, ArrayName, 0, i);\n\t\t//storing user input in the arrayn\t\tArrayName[i] = content;\n\t\treturn ArrayName;\n\t}\n\n\t//Append content to array\n\tprivate static int[] Append(int[] ArrayName, int content)\n\t{\n\t\tint i = ArrayName.length;\n\t\t//growing temp array\n\t\tint[] temp = new int[i];\n\t\t//copying ArrayName array into temp array.\n\t\tSystem.arraycopy(ArrayName, 0, temp, 0, i);\n\t\t//creating a new array\n\t\tArrayName = new int[i+1];\n\t\t//copying temp array into ArrayName\n\t\tSystem.arraycopy(temp, 0, ArrayName, 0, i);\n\t\t//storing user input in the arrayn\t\tArrayName[i] = content;\n\t\treturn ArrayName;\n\t}\n\n\t//Append content to array\n\tprivate static float[] Append(float[] ArrayName, float content)\n\t{\n\t\tint i = ArrayName.length;\n\t\t//growing temp array\n\t\tfloat[] temp = new float[i];\n\t\t//copying ArrayName array into temp array.\n\t\tSystem.arraycopy(ArrayName, 0, temp, 0, i);\n\t\t//creating a new array\n\t\tArrayName = new float[i+1];\n\t\t//copying temp array into ArrayName\n\t\tSystem.arraycopy(temp, 0, ArrayName, 0, i);\n\t\t//storing user input in the array\n\t\tArrayName[i] = content;\n\t\treturn ArrayName;\n\t}\n\n\t//Append content to array\n\tprivate static double[] Append(double[] ArrayName, double content)\n\t{\n\t\tint i = ArrayName.length;\n\t\t//growing temp array\n\t\tdouble[] temp = new double[i];\n\t\t//copying ArrayName array into temp array.\n\t\tSystem.arraycopy(ArrayName, 0, temp, 0, i);\n\t\t//creating a new array\n\t\tArrayName = new double[i+1];\n\t\t//copying temp array into ArrayName\n\t\tSystem.arraycopy(temp, 0, ArrayName, 0, i);\n\t\t//storing user input in the arrayn\t\tArrayName[i] = content;\n\t\treturn ArrayName;\n\t}\n\n";
+			MethodArrays = "\t//Append content to array\n\tprivate static String[] Append(String[] ArrayName, String content)\n\t{\n\t\tint i = ArrayName.length;\n\t\t//growing temp array\n\t\tString[] temp = new String[i];\n\t\t//copying ArrayName array into temp array.\n\t\tSystem.arraycopy(ArrayName, 0, temp, 0, i);\n\t\t//creating a new array\n\t\tArrayName = new String[i+1];\n\t\t//copying temp array into ArrayName\n\t\tSystem.arraycopy(temp, 0, ArrayName, 0, i);\n\t\t//storing user input in the arrayn\n\t\tArrayName[i] = content;\n\t\treturn ArrayName;\n\t}\n\n\t//Append content to array\n\tprivate static int[] Append(int[] ArrayName, int content)\n\t{\n\t\tint i = ArrayName.length;\n\t\t//growing temp array\n\t\tint[] temp = new int[i];\n\t\t//copying ArrayName array into temp array.\n\t\tSystem.arraycopy(ArrayName, 0, temp, 0, i);\n\t\t//creating a new array\n\t\tArrayName = new int[i+1];\n\t\t//copying temp array into ArrayName\n\t\tSystem.arraycopy(temp, 0, ArrayName, 0, i);\n\t\t//storing user input in the arrayn\n\t\tArrayName[i] = content;\n\t\treturn ArrayName;\n\t}\n\n\t//Append content to array\n\tprivate static float[] Append(float[] ArrayName, float content)\n\t{\n\t\tint i = ArrayName.length;\n\t\t//growing temp array\n\t\tfloat[] temp = new float[i];\n\t\t//copying ArrayName array into temp array.\n\t\tSystem.arraycopy(ArrayName, 0, temp, 0, i);\n\t\t//creating a new array\n\t\tArrayName = new float[i+1];\n\t\t//copying temp array into ArrayName\n\t\tSystem.arraycopy(temp, 0, ArrayName, 0, i);\n\t\t//storing user input in the array\n\t\tArrayName[i] = content;\n\t\treturn ArrayName;\n\t}\n\n\t//Append content to array\n\tprivate static double[] Append(double[] ArrayName, double content)\n\t{\n\t\tint i = ArrayName.length;\n\t\t//growing temp array\n\t\tdouble[] temp = new double[i];\n\t\t//copying ArrayName array into temp array.\n\t\tSystem.arraycopy(ArrayName, 0, temp, 0, i);\n\t\t//creating a new array\n\t\tArrayName = new double[i+1];\n\t\t//copying temp array into ArrayName\n\t\tSystem.arraycopy(temp, 0, ArrayName, 0, i);\n\t\t//storing user input in the arrayn\n\t\tArrayName[i] = content;\n\t\treturn ArrayName;\n\t}\n\n";
+		}
+		if (getJavaProp == true)
+		{
+			MethodProp = "\tprivate static String GetSysProp(String PleaseGet)\n\t{\n\t\tString PropVal;\n\t\tif (PleaseGet.equals(\"\"))\n\t\t{\n\t\t\tPropVal = \"\";\n\t\t}\n\t\telse if (PleaseGet.equals(\"pwd\"))\n\t\t{\n\t\t\tPropVal = System.getProperty(\"user.dir\");\n\t\t}\n\t\telse if (PleaseGet.equals(\"user\"))\n\t\t{\n\t\t\tPropVal = System.getProperty(\"user.name\");\n\t\t}\n\t\telse if (PleaseGet.equals(\"home\"))\n\t\t{\n\t\t\tPropVal = System.getProperty(\"user.home\");\n\t\t}\n\t\telse if (PleaseGet.equals(\"jhome\"))\n\t\t{\n\t\t\tPropVal = System.getProperty(\"java.home\");\n\t\t}\n\t\telse if (PleaseGet.equals(\"os\"))\n\t\t{\n\t\t\tPropVal = System.getProperty(\"os.name\");\n\t\t}\n\t\telse if (PleaseGet.equals(\"fileSep\"))\n\t\t{\n\t\t\tPropVal = System.getProperty(\"file.separator\");\n\t\t}\n\t\telse if (PleaseGet.equals(\"sysPathSep\"))\n\t\t{\n\t\t\tPropVal = System.getProperty(\"path.separator\");\n\t\t}\n\t\telse if (PleaseGet.equals(\"kernel\"))\n\t\t{\n\t\t\tPropVal = System.getProperty(\"os.version\");\n\t\t}\n\t\telse if (PleaseGet.equals(\"osname\"))\n\t\t{\n\t\t\tPropVal = System.getProperty(\"java.vendor\");\n\t\t}\n\t\telse if (PleaseGet.equals(\"version\"))\n\t\t{\n\t\t\tPropVal = System.getProperty(\"java.version\");\n\t\t}\n\t\telse if (PleaseGet.equals(\"ossite\"))\n\t\t{\n\t\t\tPropVal = System.getProperty(\"java.vendor.url\");\n\t\t}\n\t\telse if (PleaseGet.equals(\"cpu\"))\n\t\t{\n\t\t\tPropVal = System.getProperty(\"os.arch\");\n\t\t}\n\t\telse if (PleaseGet.equals(\"bin\"))\n\t\t{\n\t\t\tPropVal = System.getProperty(\"java.class.path\");\n\t\t}\n\t\telse if (PleaseGet.equals(\"newline\"))\n\t\t{\n\t\t\tPropVal = System.getProperty(\"line.separator\");\n\t\t}\n\t\telse\n\t\t{\n\t\t\tPropVal = System.getProperty(PleaseGet);\n\t\t}\n\t\treturn PropVal;\n\t}\n\n";
 		}
 		if (getReadFile == true)
 		{
@@ -332,7 +343,7 @@ public class newJava {
 		{
 			MethodShell = "\tprivate static String Shell(String command)\n\t{\n\t\tString ShellOut = \"\";\n\t\tRuntime r = Runtime.getRuntime();\n\t\ttry\n\t\t{\n\t\t\tProcess p = r.exec(command);\n\t\t\tInputStream in = p.getInputStream();\n\t\t\tBufferedInputStream buf = new BufferedInputStream(in);\n\t\t\tInputStreamReader inread = new InputStreamReader(buf);\n\t\t\tBufferedReader bufferedreader = new BufferedReader(inread);\n\t\t\t// Read the ls output\n\t\t\tString line;\n\t\t\twhile ((line = bufferedreader.readLine()) != null)\n\t\t\t{\n\t\t\t\tif (ShellOut.equals(\"\"))\n\t\t\t\t{\n\t\t\t\t\t// Print the content on the console\n\t\t\t\t\tShellOut = line;\n\t\t\t\t}\n\t\t\t\telse\n\t\t\t\t{\n\t\t\t\t\tShellOut = ShellOut+\"\\n\"+line;\n\t\t\t\t}\n\t\t\t}\n\t\t\t// Check for ls failure\n\t\t\ttry\n\t\t\t{\n\t\t\t\tif (p.waitFor() != 0)\n\t\t\t\t{\n\t\t\t\t\tSystem.err.println(\"exit value = \" + p.exitValue());\n\t\t\t\t}\n\t\t\t}\n\t\t\tcatch (InterruptedException e)\n\t\t\t{\n\t\t\t\tSystem.err.println(e);\n\t\t\t}\n\t\t\tfinally\n\t\t\t{\n\t\t\t\t// Close the InputStream\n\t\t\t\tbufferedreader.close();\n\t\t\t\tinread.close();\n\t\t\t\tbuf.close();\n\t\t\t\tin.close();\n\t\t\t}\n\t\t}\n\t\tcatch (IOException e)\n\t\t{\n\t\t\tSystem.err.println(e.getMessage());\n\t\t}\n\t\treturn ShellOut;\n\t}\n";
 		}
-		TheMethods = MethodUserIn+MethodPrint+MethodLength+MethodArrays+MethodReadFile+MethodWriteFile+MethodShell;
+		TheMethods = MethodProp+MethodUserIn+MethodPrint+MethodLength+MethodArrays+MethodReadFile+MethodWriteFile+MethodShell;
 		return TheMethods;
 	}
 
