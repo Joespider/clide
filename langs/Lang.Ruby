@@ -70,6 +70,10 @@ UseRuby()
 	shift
 	case ${Type} in
 		Art)
+			#https://textkool.com/en/ascii-art-generator
+			#Font: Roman
+			#Width: default
+			#height: default
 			local srt="\e[1;3${ColorNum}m"
 			local end="\e[0m"
 			echo -e "${srt}ooooooooo.${end}                ${srt}.o8${end}"
@@ -82,6 +86,15 @@ UseRuby()
 			echo -e "                                    ${srt}.o..P'${end}"
 			echo -e "                                    ${srt}\`Y8P'${end}"
 			echo ""
+			;;
+		Lang-Type)
+			local Get=$1
+			case ${Get} in
+				*)
+					echo "Type: Scripting/Programming"
+					echo "Run: Interpreted"
+					;;
+			esac
 			;;
 		color)
 		#Return Red

@@ -66,6 +66,10 @@ UseBash()
 	shift
 	case ${Type} in
 		Art)
+			#https://textkool.com/en/ascii-art-generator
+			#Font: Roman
+			#Width: default
+			#height: default
 			local srt="\e[1;3${ColorNum}m"
 			local end="\e[0m"
 			echo -e "${srt}oooooooooo.${end}                     ${srt}oooo${end}"
@@ -76,6 +80,15 @@ UseBash()
 			echo -e " ${srt}888${end}    ${srt}.88P${end} ${srt}d8(${end}  ${srt}888${end}  ${srt}o.${end}  ${srt})88b${end}  ${srt}888${end}   ${srt}888${end}"
 			echo -e "${srt}o888bood8P'${end}  ${srt}\`Y888\"\"8o${end} ${srt}8\"\"888P'${end} ${srt}o888o${end} ${srt}o888o${end}"
 			echo ""
+			;;
+		Lang-Type)
+			local Get=$1
+			case ${Get} in
+				*)
+					echo "Type: Shell/Scripting"
+					echo "Run: Interpreter"
+					;;
+			esac
 			;;
 		color)
 			#Return Green

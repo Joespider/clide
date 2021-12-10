@@ -9,7 +9,7 @@ fn help()
 {
 	print("Author: Joespider");
 	print("Program: \"newRust\"");
-	print("Version: 0.0.3");
+	print("Version: 0.0.4");
 	print("Purpose: make new Rust programs");
 	print("Usage: newRust <args>");
 	print("\t-n <name> : program name");
@@ -23,6 +23,7 @@ fn help()
 	print("\t--user-input : enable \"Raw_Input\" file method");
 }
 
+/*
 fn raw_input(message: &str) -> String
 {
 	use std::io::{stdin,stdout,Write};
@@ -38,18 +39,29 @@ fn raw_input(message: &str) -> String
 	}
 	return s;
 }
+*/
 
 fn main()
 {
+	let mut program_name = String::new();
+	let mut is_name = false;
+	let mut name_set = false;
 	let mut arg_count = 0;
 	//CLI arguments
 	for args in env::args()
 	{
 		if arg_count > 0
 		{
-			if args == "-n" || args == "--name"
+			if is_name == true
 			{
-				println!("{}", args);
+				//program_name = &args;
+				program_name.push_str(&args);
+				name_set = true;
+				is_name = false;
+			}
+			else if args == "-n" || args == "--name"
+			{
+				is_name = true;
 			}
 			else if args == "--cli"
 			{
@@ -87,13 +99,12 @@ fn main()
 		arg_count += 1;
 	}
 
-	if arg_count == 0
+	if name_set == false
 	{
-		let userin = raw_input("What is your name");
-		println!("Hi \"{}\"!", userin);
+		help();
 	}
 	else
 	{
-		help();
+		println!("Program : \"{}\"", program_name);
 	}
 }

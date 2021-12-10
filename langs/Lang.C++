@@ -105,6 +105,10 @@ UseC++()
 	case ${Type} in
 		#C++ artwork
 		Art)
+			#https://textkool.com/en/ascii-art-generator
+			#Font: Roman
+			#Width: default
+			#height: default
 			local srt="\e[1;3${ColorNum}m"
 			local end="\e[0m"
 			echo -e "  ${srt}.oooooo.${end}"
@@ -115,6 +119,15 @@ UseC++()
 			echo -e "${srt}\`88b${end}    ${srt}ooo${end}      ${srt}88${end}         ${srt}88${end}"
 			echo -e " ${srt}\`Y8bood8P'${end}      ${srt}88${end}         ${srt}88${end}"
 			echo ""
+			;;
+		Lang-Type)
+			local Get=$1
+			case ${Get} in
+				*)
+					echo "Type: Compiled/Programming"
+					echo "Run: Binary"
+					;;
+			esac
 			;;
 		color)
 			#Return Blue

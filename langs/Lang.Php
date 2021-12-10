@@ -1,19 +1,15 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.70"
-Lang=Go
-LangExt=".go"
-#Color Green
-ColorNum=2
+SupportV="0.0.01"
+Lang=Php
+LangExt=".php"
+ColorNum=5
 UseTypeOfCpl=${TypeOfCpl}
 
 #Handle Pipes
 #{
 ThePipe=""
-if readlink /proc/$$/fd/0 | grep -q "^pipe:"; then
-	ThePipe="Pipe"
-fi
 #}
 
 CplArgs=${RunCplArgs}
@@ -48,32 +44,24 @@ ProjectTemplateHandler()
 	fi
 }
 
-UseGo()
+UsePhp()
 {
-	#Get the enviornment variables for Go
-	#{
-	local LangCpl=${cplGo}
-	local UseDebugger=${debugGo}
+	local LangRun=${cplPhp}
 
 	local LangHome=${ProgDir}/${Lang}
 	local LangSrc=${LangHome}/src
 	local LangBin=${LangHome}/bin
 	local LangProject=${LangHome}/projects
 
-	local TemplateCode=${NewGo}
-	TemplateCode=${LangBin}/${TemplateCode%${LangExt}}
+	local TemplateCode=${NewBash}
+	TemplateCode=${LangBin}/${TemplateCode%${LangExt}}${LangExt}
 
-	local TemplateCodeSrc=${NewGo%${LangExt}}${LangExt}
-	local TemplateCodeArgs=${NewGoArgs}
+	local TemplateCodeSrc=${NewBash%${LangExt}}${LangExt}
 
 	local EnvVars=( ${LangRun} ${LangHome} ${LangSrc} ${LangBin} ${LangExt} )
-	#}
-
-	#Get action for from cl[ide]
 	local Type=$1
 	shift
 	case ${Type} in
-		#Go artwork
 		Art)
 			#https://textkool.com/en/ascii-art-generator
 			#Font: Roman
@@ -81,26 +69,28 @@ UseGo()
 			#height: default
 			local srt="\e[1;3${ColorNum}m"
 			local end="\e[0m"
-			echo -e "  ${srt}.oooooo.${end}"
-			echo -e " ${srt}d8P'${end}  ${srt}\`Y8b${end}"
-			echo -e "${srt}888${end}            ${srt}.ooooo.${end}"
-			echo -e "${srt}888${end}           ${srt}d88'${end} ${srt}\`88b${end}"
-			echo -e "${srt}888${end}     ${srt}ooooo${end} ${srt}888${end}   ${srt}888${end}"
-			echo -e "${srt}\`88.${end}    ${srt}.88'${end}  ${srt}888${end}   ${srt}888${end}"
-			echo -e " ${srt}\`Y8bood8P'${end}   ${srt}\`Y8bod8P'${end}"
+			echo -e "${srt}ooooooooo.${end}   ${srt}oooo${end}"
+			echo -e "${srt}\`888${end}   ${srt}\`Y88. ${srt}\`888${end}"
+			echo -e " ${srt}888${end}   ${srt}.d88'  ${srt}888${end} ${srt}.oo.${end}   ${srt}oo.ooooo.${end}"
+			echo -e " ${srt}888ooo88P'${end}   ${srt}888P\"Y88b${end}   ${srt}888'${end} ${srt}\`88b${end}"
+			echo -e " ${srt}888${end}          ${srt}888${end}   ${srt}888${end}   ${srt}888${end}   ${srt}888${end}"
+			echo -e " ${srt}888${end}          ${srt}888${end}   ${srt}888${end}   ${srt}888${end}   ${srt}888${end}"
+			echo -e "${srt}o888o${end}        ${srt}o888o${end} ${srt}o888o${end}  ${srt}888bod8P'${end}"
+			echo -e "                          ${srt}888${end}"
+			echo -e "                         ${srt}o888o${end}"
 			echo ""
 			;;
 		Lang-Type)
 			local Get=$1
 			case ${Get} in
 				*)
-					echo "Type: Compiled/Programming"
-					echo "Run: Binary"
+					echo "Type: Web Services/Scripting"
+					echo "Run: Interpreted"
 					;;
 			esac
 			;;
 		color)
-			#Return Blue
+			#Return Green
 			echo -e "\e[1;3${ColorNum}m${Lang}\e[0m"
 			;;
 		color-number)
@@ -114,24 +104,14 @@ UseGo()
 				echo -e "\e[1;4${ColorNum}m${TheText}\e[0m"
 			fi
 			;;
+		SupportVersion)
+			echo ${SupportV}
+			;;
 		getNewCode)
 			echo ${TemplateCodeSrc}
 			;;
-		#source code directory
 		getSrcDir)
-			local project=${CodeProject}
-			local UseProjectTemplate
-			case ${project} in
-				#not a project
-				none)
-					echo ${LangSrc}
-					;;
-				#is a project
-				*)
-					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
-					pwd
-					;;
-			esac
+			echo ${LangSrc}
 			;;
 		getProjDir)
 			echo ${LangProject}
@@ -149,26 +129,11 @@ UseGo()
 				find ${TheSrcDir} -name "${name}" 2> /dev/null
 			fi
 			;;
-		getDebugVersion)
-			local debugV=$(${UseDebugger} --version 2> /dev/null | head -n 1)
-			if [ ! -z "${debugV}" ]; then
-				echo "${debugV}"
-			fi
-			;;
 		getExt)
 			echo ${LangExt}
 			;;
-		getOtherExt)
-			;;
-		SupportVersion)
-			echo ${SupportV}
-			;;
 		MenuHelp)
-			echo -e "new <file> <type>\t\t: \"create new ${Lang} source file\""
-			echo -e "\t<file> main\t\t: \"create 'main' source file\""
-			echo -e "\t<file> component\t: \"create 'component' source file\""
-			echo -e "\t<file> header\t\t: \"create 'header' source file\""
-			echo -e "\t\t\t\t: \"if no type is provide, cl[ide] will assume for you\""
+			echo -e "new <file>\t\t\t: \"create new ${Lang} script\""
 			echo -e "cpl, compile\t\t\t: \"make code executable\""
 			;;
 		ProjectHelp)
@@ -178,28 +143,33 @@ UseGo()
 			;;
 		getProjectDir)
 			local project=${CodeProject}
+			local UseProjectTemplate
 			case ${project} in
 				none)
 					echo ${LangProject}
 					;;
 				*)
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					echo ${LangProject}/${project}
 					;;
 			esac
 			;;
-		IsDebugEnabled)
-#			local DebugFlag=$(echo ${CplArgs//,/ } | grep -w "\-g")
-#			if [ ! -z "${DebugFlag}" ]; then
-#				echo "yes"
-#			fi
+		getProjSrc)
+			local name=$1
+			local project=${CodeProject}
+			local TheSrcDir=${LangProject}/${project}/src
+			if [ ! -z "${name}" ]; then
+				find ${TheSrcDir} -name "${name}" 2> /dev/null
+			fi
 			;;
-		getDebugger)
-			echo "${UseDebugger}"
-			;;
-		getDebugVersion)
-			local debugV=$(${UseDebugger} --version 2> /dev/null | head -n 1)
-			if [ ! -z "${debugV}" ]; then
-				echo "${debugV}"
+		pgLang)
+			HasLang=$(which ${LangRun} 2> /dev/null)
+			if [ ! -z "${HasLang}" ]; then
+				#Return Php tag
+				echo "${Lang}"
+			else
+				#Return rejection
+				echo "no"
 			fi
 			;;
 		hasExt)
@@ -227,24 +197,14 @@ UseGo()
 				esac
 			fi
 			;;
-		#Look for binary from set code
 		getBin)
-			local setCode=$1
-			#if no code is set
-			if [ ! -z "${setCode}" ]; then
-				#Remove the extension
-				local srcCode=${setCode}
+			local srcCode=$1
+			if [ ! -z "${srcCode}" ]; then
 				local TheCpl
 				local TheItem
-				#Get list of compiled code
-				local CplList=$(UseGo lscpl | tr '\n' '|')
-				#Get the number of set source code
+				local CplList=$(UsePhp lscpl | tr '\n' '|')
 				for TheItem in ${srcCode//,/ };
 				do
-					#Choose one item
-
-					TheItem=$(UseGo "removeExt" ${TheItem})
-					#Look for binary from list of compiled
 					TheCpl=$(echo -e "${CplList//|/\\n}" | grep -w ${TheItem})
 					if [ ! -z "${TheCpl}" ]; then
 						break
@@ -255,25 +215,20 @@ UseGo()
 			;;
 		getCode)
 			local name=$1
-			name=$(UseGo "removeExt" ${name})
-			local oldCode=$2
+			name=$(UsePhp "removeExt" ${name})
 			local project=${CodeProject}
 			local newName
 			local DirPath
 			local TheSrcDir
 			local UseProjectTemplate
 			case ${project} in
-				#Is not a project
 				none)
 					TheSrcDir=${LangSrc}
 					;;
-				#Is a project
 				*)
 					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					case ${ProjectType} in
-						#Is a generic project
 						${ProjectDefaultType})
-							#handle path
 							case ${name} in
 								*.*)
 									newName=${name##*.}
@@ -292,74 +247,39 @@ UseGo()
 									;;
 							esac
 							;;
-						#Is a specalized project
 						*)
-							#get source code from project template
 							TheSrcDir=$(ProjectTemplateHandler ${EnvVars[@]} ${Type} ${mode})
 							;;
 					esac
 					;;
 			esac
 
-			#Account for extension based on set code
-			case ${oldCode} in
-				#set code has source code with default extension
-				*"${name}${LangExt}"*)
-					#normal source file exists
-					#
-					#if [ -f ${TheSrcDir}/${name}${LangExt} ]; then
-					if [ -f ${name}${LangExt} ]; then
-						#return default source file
-						echo ${name}${LangExt}
-					fi
-					;;
-				#no code as been set
-				*)
-					#normal source file exists
-					#
-					#if [ -f ${TheSrcDir}/${name}${LangExt} ]; then
-					if [ -f ${name}${LangExt} ]; then
-						echo ${name}${LangExt}
-					#Extension is accounted for and is a file
-					#
-					#elif [ -f ${TheSrcDir}/${name} ]; then
-					elif [ -f ${name} ]; then
-						echo ${name}
-					fi
-					;;
-			esac
-			;;
-		#check if compiler is installed
-		pgLang)
-			local HasLang=$(which ${LangCpl} 2> /dev/null)
-			if [ ! -z "${HasLang}" ]; then
-				#Return Go tag
-				echo "${Lang}"
-			else
-				#Return rejection
-				echo "no"
+			if [ -f ${TheSrcDir}/${name}${LangExt} ]; then
+				echo ${name}${LangExt}
+			elif [ -f ${TheSrcDir}/${name} ]; then
+				echo ${name}
 			fi
 			;;
-		#Look for source code before and after new source code created
 		BeforeFiles|AfterFiles)
 			ls *${LangExt} 2> /dev/null
 			;;
 		pgDir)
-			#Return Go src Dir
+			#Return Bash src Dir
 			echo ${LangSrc}
 			;;
 		CreateHelp)
 			;;
 		shell)
+			cd
+			${Shell}
 			;;
 		newCodeHelp)
 			if [ -f ${TemplateCode} ]; then
 				echo -e "\t-c, --custom\t\t\t: \"Custom src file using ${Lang} template\""
 			fi
 			;;
-		#Make sure directories in place
 		EnsureDirs)
-			if [ ! -z "${LangCpl}" ]; then
+			if [ ! -z "${LangRun}" ]; then
 				#Home
 				if [ ! -d "${LangHome}" ]; then
 					mkdir "${LangHome}"
@@ -378,19 +298,17 @@ UseGo()
 				fi
 			fi
 			;;
-		#Pull version from new template code
 		TemplateVersion)
 			if [ -f ${TemplateCode} ]; then
-				echo -n "${TemplateCode##*/} "
+				echo "${TemplateCode##*/} "
 				${TemplateCode} 2> /dev/null | grep Version | sed "s/Version//g"
 			else
 				echo "no ${TemplateCode##*/} found"
 			fi
 			;;
-		#compiler version
 		CplVersion)
-			echo -e "\e[1;4${ColorNum}m[${Lang} Compiler]\e[0m"
-			${LangCpl} version | head -n 1
+			echo -e "\e[1;4${ColorNum}m[${Lang} Shell]\e[0m"
+			${LangRun} --version | head -n 1
 			echo ""
 			;;
 		selectCode|addCode)
@@ -512,8 +430,9 @@ UseGo()
 			;;
 		rmBin|rmSrc)
 			local name=$1
-			name=$(UseGo "removeExt" ${name})
+			name=$(UsePhp "removeExt" ${name})
 			local ThePath
+			local theSrc
 			local project=${CodeProject}
 			local UseProjectTemplate
 
@@ -550,13 +469,28 @@ UseGo()
 							ThePath="${LangProject}/${project}/src"
 							;;
 					esac
-					name=${name}${LangExt}
 					;;
 				*)
 					;;
 			esac
-			if [ -f ${ThePath}/${name} ]; then
-				echo ${ThePath}/${name}
+	
+			if [ -f ${ThePath}/${name}${LangExt} ] ; then
+				echo ${ThePath}/${name}${LangExt}
+			elif [ -f ${ThePath}/${project}${LangExt} ]; then
+				echo ${ThePath}/${project}${LangExt}
+			else
+				case ${Type} in
+					rmSrc)
+						cd ${ThePath}/
+						theSrc=$(UsePhp "getProjSrc" ${name}${LangExt})
+						cd -> /dev/null
+						if [ ! -z "${theSrc}" ]; then
+							echo ${theSrc}
+						fi
+						;;
+					*)
+						;;
+				esac
 			fi
 			;;
 		editCode|readCode)
@@ -706,55 +640,9 @@ UseGo()
 					;;
 			esac
 			 ;;
-		make)
-			;;
 		setCplArgs)
-#			shift
-#			shift
-			Vals="none"
-			Item=""
-			str=$@
-			IFS=' '         # space is set as delimiter
-			read -ra arg <<< "${str}"
-			for TheItem in "${arg[@]}"; do
-				if [ ! -z "${TheItem}" ]; then
-					case ${TheItem} in
-						--warnings)
-							Item="-Wall -g"
-							;;
-						--std=*)
-							local stdVal=${TheItem}
-							case ${stdVal} in
-								--std=)
-									;;
-								*)
-									Item=${stdVal}
-									;;
-							esac
-							;;
-						*)
-							;;
-					esac
-				fi
-				if [ ! -z "${Item}" ]; then
-					case ${Vals} in
-						none)
-							Vals=${Item}
-							;;
-						*${Item}*)
-							;;
-						*)
-							Vals="${Vals} ${Item}"
-							;;
-					esac
-				fi
-				Item=""
-			done
-			echo ${Vals// /,}
 			;;
 		setCplArgs-help)
-			echo -e "--warnings\t\t: \"Show ALL warnings (-Wall -g)\""
-			echo -e "--std=<version>\t\t: \"Set Go version\""
 			;;
 		compileCode-message)
 			echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
@@ -762,222 +650,140 @@ UseGo()
 		compileCode)
 			local src=${TheCode}
 			local name=$1
-			local cplArgs=${CplArgs//,/ }
+			local keep=$2
 			local project=${CodeProject}
-			local ReplaceTheSrcDir
-			local TheSrcDir
+			local cplArgs=""
 			local TheBinDir
 			local ERROR
-			local FoundMain="yes"
-			local NumOfMain
 			local UseProjectTemplate
-
 			#Handle Project Dir
 			case ${project} in
 				none)
-					TheSrcDir=${LangSrc}
 					project=""
 					TheBinDir=${LangBin}
-					#Handle multiple files
-					if [ -z "${name}" ]; then
-						case ${src} in
-							*,*)
-								src=${src//,/ }
-								name=$(grep -l "func main(" ${src} 2> /dev/null)
-								if [ -z "${name}" ]; then
-									FoundMain="no"
-								else
-									NumOfMain=$(echo -e "${name// /\\n}" | wc -l)
-									case ${NumOfMain} in
-										1)
-											name=$(UseGo "removeExt" ${name})
-											;;
-										*)
-											FoundMain="no"
-											errorCode "cpl" "ERROR" "More than one \"main\" files were found"
-											;;
-									esac
-								fi
-								;;
-							*)
-								name=$(UseGo "removeExt" ${src})
-								;;
-						esac
-					fi
 					;;
 				*)
 					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
-					TheSrcDir="${LangProject}/${project}/src"
-					ReplaceTheSrcDir=$(echo "${LangProject}/${project}src/" | tr '/' '|')
-					src=$(find ${TheSrcDir} -type f -name "*${LangExt}" | tr '/' '|' | sed "s/${ReplaceTheSrcDir}//g" | tr '|' '/')
-					name=$(grep -l "func main(" ${src} 2> /dev/null)
-					if [ -z "${name}" ]; then
-						FoundMain="no"
-					else
-						NumOfMain=$(echo -e "${name// /\\n}" | wc -l)
-						case ${NumOfMain} in
-							1)
-								name=${name##*/}
-								name=$(UseGo "removeExt" ${name})
-								;;
-							*)
-								FoundMain="no"
-								errorCode "cpl" "ERROR" "More than one \"main\" files were found"
-								;;
-						esac
-					fi
 					TheBinDir="${LangProject}/${project}/bin"
 					;;
 			esac
 
-			#Compile ONLY if source code is selected OR makefile is present
-			if [[ "${src}" == *"${LangExt}"* ]] || [ -f ${LangProject}/${project}makefile ]; then
-				cd ${TheSrcDir}
-				case ${cplArgs} in
-					none)
-						cplArgs=${LangCplVersion}
-						;;
-					*)
-						cplArgs="${cplArgs} ${LangCplVersion}"
-						;;
-				esac
-				#Compile with makefile
-				if [ -f ${LangProject}/${project}makefile ]; then
-					cd ${LangProject}/${project}
-					echo "make"
-					cd - > /dev/null
-					UseGo compileCode-message
-				#Compile without makefile
-				else
-					#source file is empty
+			#Handle multiple files
+			if [[ "${src}" == *","* ]]; then
+				if [ -z "${name}" ]; then
+					src=""
 					if [ -z "${name}" ]; then
-						errorCode "cpl" "choose"
-					else
-						case ${FoundMain} in
-							yes)
-								#Compile and check for errors
-								ERROR=$(${LangCpl} build ${src} 2>&1 | tr '\n' '|')
-								#Code compiled successfully
-								if [ -z "${ERROR}" ]; then
-									case ${project} in
-										none)
-											mv ${name} ${TheBinDir}/
-											;;
-										*)
-											mv ${name} ${TheBinDir}/${project}
-											;;
-									esac
-									UseGo compileCode-message
-								else
-									errorCode "cpl" "ERROR" "${ERROR}"
+						echo "Unable to find the \"main\" file"
+						echo -n "Please choose: "
+						read name
+						case ${CodeProject} in
+							none)
+								if [ ! -f ${LangSrc}/${name%.*}${LangExt} ]; then
+									name=""
 								fi
 								;;
 							*)
+								GetCount=$(UsePhp "getProjSrc" ${src} | wc -l)
+								case ${GetCount} in
+									0)
+										;;
+									1)
+										src=$(UsePhp "getProjSrc" ${src})
+										src="..${src##*${CodeProject}}"
+										ERROR=$(ln -s ${src} ${CodeProject}${LangExt} 2>&1 | tr '\n' '|')
+										;;
+									*)
+										;;
+								esac
 								;;
 						esac
 					fi
-					cd - > /dev/null
+
+					if [ ! -z "${name}" ]; then
+						src="${name%.*}${LangExt}"
+					fi
 				fi
 			fi
-			;;
-		create-make)
-			case ${CodeProject} in
-				#No Project
-				none)
-					echo "Project ${Lang} ONLY"
-					;;
-				#Is a project
-				*)
-					#makefile already exists
-					if [ -f ${LangSrc}/${CodeProject}/makefile ]; then
-						echo "makefile Already made for \"${CodeProject}\""
-						#makefile already made
+
+			#Set Code to executable
+			case ${src} in
+				*${LangExt})
+					#Check if Bash Script does NOT exist
+					if [ ! -f "${TheBinDir}/${src}" ]; then
+						#Change to Bash Binary dir
+						cd ${TheBinDir}
+						case ${CodeProject} in
+							none)
+								#Create Symbolic Link to Bash Script
+								ERROR=$(ln -s ../src/${src} 2>&1 | tr '\n' '|')
+								;;
+							*)
+								local GetCount=$(UsePhp "getProjSrc" ${src} | wc -l)
+								case ${GetCount} in
+									0)
+										;;
+									1)
+										src=$(UsePhp "getProjSrc" ${src})
+										src="..${src##*${CodeProject}}"
+										ERROR=$(ln -s ${src} ${CodeProject}${LangExt} 2>&1 | tr '\n' '|')
+										;;
+									*)
+										;;
+								esac
+								;;
+						esac
+						#Change to Bash Source dir
+						cd - > /dev/null
+						if [ -f "${TheBinDir}/${src}" ]; then
+							UsePhp compileCode-message
+						else
+							errorCode "cpl" "ERROR" "${ERROR}"
+						fi
+						#Code is already found
 					else
-						touch ${LangSrc}/${CodeProject}/makefile
-						echo "makefile Created"
+						errorCode "cpl" "already" ${src}
 					fi
 					;;
-			esac
-			;;
-		create-version|create-std=*)
-			Type=${Type#create-}
-			local cLang=$(UseGo color)
-			case ${UserIn[1]} in
-				-std=*)
-					CplArgs="${UserIn[1]}"
-					;;
 				*)
-					CplArgs="${UserIn[2]}"
+					errorCode "cpl" "choose"
 					;;
 			esac
-			if [ -z "${CplArgs}" ]; then
-				echo -n "${cLang}\$ -std="
-				read -a CplArgs
-			fi
-			if [ ! -z "${CplArgs}" ]; then
-				case ${CplArgs} in
-					-std=*)
-						CplArgs=${CplArgs#-std=}
-						;;
-					*)
-						;;
-				esac
-				if [ ! -z "${CplArgs}" ] && [[ "${CplArgs}" == *"Go"* ]]; then
-					CplArgs="-std=${CplArgs}"
-				else
-					CplArgs="none"
-				fi
-			fi
-			echo ${CplArgs}
 			;;
 		discoverProject)
 			echo ${LangProject}
 			;;
 		newProject)
-			local ProjectType=$1
+			local TheProjectType=$1
 			local project=$2
 			local path=${LangProject}/${project}
 			local UseProjectTemplate
-			#create and cd to project dir
 			if [ ! -d ${path} ]; then
 				case ${ProjectType} in
 					${ProjectDefaultType})
-						mkdir -p ${path}/bin
-						mkdir -p ${path}/build
-						mkdir -p ${path}/doc
-						mkdir -p ${path}/include
-						mkdir -p ${path}/lib
-						mkdir -p ${path}/spike
-						mkdir -p ${path}/src
-						mkdir -p ${path}/test
-						cd ${path}/src
+						mkdir ${path}
+						mkdir ${path}/bin
+						mkdir ${path}/src
 						;;
 					*)
-						UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type}) 
-						mkdir -p ${path}
+						UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
+						mkdir ${path}
 						if [ ! -z "${UseProjectTemplate}" ]; then
 							ProjectTemplateHandler ${EnvVars[@]} ${Type} ${project}
-							if [ ! -d "${path}/bin/" ]; then
-								mkdir -p ${path}/bin
+							if [ ! -d ${path}/bin ]; then
+								mkdir ${path}/bin
 							fi
-							if [ ! -d "${path}/src/" ]; then
-								mkdir -p ${path}/src
+							if [ ! -d ${path}/src ]; then
+								mkdir ${path}/src
 							fi
 						else
-							mkdir -p ${path}/bin
-							mkdir -p ${path}/build
-							mkdir -p ${path}/doc
-							mkdir -p ${path}/include
-							mkdir -p ${path}/lib
-							mkdir -p ${path}/spike
-							mkdir -p ${path}/src
-							mkdir -p ${path}/test
+							mkdir ${path}/bin
+							mkdir ${path}/src
 						fi
-						cd ${path}/src
 						;;
 				esac
-			else
 				cd ${path}/src
+			else
+				cd ${path}/srs
 			fi
 			echo ${path}
 			;;
@@ -988,7 +794,7 @@ UseGo()
 				${ProjectDefaultType})
 					;;
 				*)
-					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type}) 
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					if [ ! -z "${UseProjectTemplate}" ]; then
 						ProjectTemplateHandler ${EnvVars[@]} ${Type} ${mode}
 					fi
@@ -1004,9 +810,9 @@ UseGo()
 					path=${LangBin}/
 					;;
 				*)
-					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type}) 
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					project=${CodeProject}
-					path=${LangProject}/${project}/bin
+					path=${LangProject}/${project}/bin/
 					;;
 			esac
 			if [ -d ${path} ]; then
@@ -1026,20 +832,18 @@ UseGo()
 					TheBinDir=${LangBin}
 					;;
 				*)
-					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type}) 
-					project="${project}/"
-					TheBinDir="${LangProject}/${project}bin"
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
+					TheBinDir="${LangProject}/${project}/bin"
 					;;
 			esac
 
 			case ${Type} in
 				Install)
 					#Make sure Binary exists
-					if [ -f "${TheBinDir}/${BinFile}" ]; then
+					if [ -f "${TheBinDir}/${bin}" ]; then
 						#Add command to Aliases
-						AddAlias "${BinFile}" "${TheBinDir}/${BinFile}"
-					elif [ ! -f "${TheBinDir}/${BinFile}" ]; then
-						#compile or swap to binary
+						AddAlias "${BinFile}" "${TheBinDir}/${bin}"
+					elif [ ! -f "${TheBinDir}/${bin}" ]; then
 						errorCode "install" "${bin}"
 					else
 						errorCode "noCode"
@@ -1047,8 +851,9 @@ UseGo()
 					;;
 				exe-string)
 					#Make sure Binary exists
-					if [ -f "${TheBinDir}/${BinFile}" ]; then
-						echo "${TheBinDir}/${BinFile}"
+					if [ -f "${TheBinDir}/${bin}" ]; then
+						#Add command to Aliases
+						echo "${TheBinDir}/${bin}"
 					fi
 					;;
 				*)
@@ -1056,18 +861,18 @@ UseGo()
 			esac
 			;;
 		customCode)
-			local cLang=$(UseGo "color")
+			local cLang=$(UsePhp "color")
 			local cTemplate=$(OtherColor ${TemplateCode##*/})
+			local Type=${Type,,}
 			#Check for Custom Code Template
 			if [ -f ${TemplateCode} ]; then
 				echo -n "${cLang}\$ ./${cTemplate} "
 				read -a Args
-				#Program Args Given
+				#Template Args Given
 				if [ ! -z "${Args}" ]; then
 					${TemplateCode} ${Args[@]}
-				#No Program Name Given
+				#No Template Args Given
 				else
-					#Help Page
 					${TemplateCode} --help
 				fi
 			else
@@ -1075,173 +880,46 @@ UseGo()
 				errorCode "customCode" "notemp" "${Lang}"
 			fi
 			;;
-		#Create new src files
 		newCode)
 			local name=$1
-			local CodeType=$2
+			local Type=$2
 			local oldCode=$3
-			local TheName
 			local project=${CodeProject}
 			local UseProjectTemplate
 
-			#Sometimes "oldCode" gets passed as "Type"
-			if [ -z "${oldCode}" ]; then
-				case ${CodeType} in
-					*${LangExt})
-						oldCode=${Type}
-						;;
-					*)
-						;;
-				esac
-			fi
-
-			case ${project} in
-				none)
-					;;
-				*)
-					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type}) 
-					;;
-			esac
-
-			CodeType=${CodeType,,}
-			name=$(UseGo "removeExt" ${name})
-
+			Type=${Type,,}
+			name=$(UsePhp "removeExt" ${name})
 			if [ ! -f ${name}${LangExt} ]; then
-				case ${CodeType} in
-					#create main file
-					main)
-						if [ ! -f ${name}${LangExt} ]; then
-							if [ -z "${UseProjectTemplate}" ]; then
-								#Check for Custom Code Template
-								if [ -f ${TemplateCode} ]; then
-									#Program Name Given
-									if [ ! -z "${name}" ]; then
-										${TemplateCode} --name ${name} ${TemplateCodeArgs}
-									#No Program Name Given
-									else
-										#Help Page
-										${TemplateCode} --help
-									fi
-								else
-									#Program Name Given
-									if [ ! -z "${name}" ]; then
-										local Content="package main\n\nimport (\n\t\"fmt\"\n\t\"os\"\n)\n\nfunc main() {\n\targs := os.Args[1:]\n\n\tfor arg := range args {\n\t\tfmt.Println(arg,args[arg])\n\t}\n\tfmt.Println(\"And thats it!\")\n}"
-										touch ${name}${LangExt}
-										echo -e "${Content}" > ${name}${LangExt}
-									else
-										errorCode "newCode"
-									fi
-								fi
-							else
-								ProjectTemplateHandler ${ProjectType} ${Type} ${name}${LangExt} ${CodeType}
-							fi
+				UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
+				if [ -z "${UseProjectTemplate}" ]; then
+					#Check for Custom Code Template
+					if [ -f ${TemplateCode} ]; then
+						#Program Name Given
+						if [ ! -z "${name}" ]; then
+							${TemplateCode} ${name} > ${name}${LangExt}
+						#No Program Name Given
+						else
+							${TemplateCode} --help
 						fi
-						;;
-					#create component file
-					component)
-						if [ ! -f ${name}${LangExt} ]; then
-							if [ -z "${UseProjectTemplate}" ]; then
-								if [ -f ${TemplateCode} ]; then
-									#Program Name Given
-									if [ ! -z "${name}" ]; then
-										${TemplateCode} -n "${name}"
-									#No Program Name Given
-									else
-										#Help Page
-										${TemplateCode} --help
-									fi
-								else
-									#Program Name Given
-									if [ ! -z "${name}" ]; then
-										local Content="package main\n\nimport (\n\t"fmt"\n\t"os"\n)\n\nfunc main() {\n\targs := os.Args[1:]\n\n\tfor arg := range args {\n\tfmt.Println(arg,args[arg])\n\t}\n\tfmt.Println(\"And thats it!\")\n}"
-										touch ${name}${LangExt}
-										echo -e "${Content}" > ${name}${LangExt}
-									else
-										errorCode "newCode"
-									fi
-								fi
-							else
-								ProjectTemplateHandler ${ProjectType} ${Type} ${name}${LangExt} ${CodeType}
-							fi
+					else
+						#Program Name Given
+						if [ ! -z "${name}" ]; then
+							touch ${name}${LangExt}
+							echo -e "<html>\n\t<?php\n\t\t\$hello = 'hi there';\n\t\techo \$hello;\n\t?>\n\n</html>" > ${name}${LangExt}
+						else
+							errorCode "newCode"
 						fi
-						;;
-					#cl[ide] knows best
-					*)
-						#Because projects are walled off from the rest of your source code,while non-project code is shared,
-						#Source code creation must be handled differently.
-						#(non-project) accounts for what is "set"
-						#(project) accounts for source code living in the directories
-						case ${project} in
-							#Is not a project
-							none)
-								#Looks like you have source code already set
-								if [ ! -z "${oldCode}" ]; then
-									TheName=$(UseGo "removeExt" ${name})
-									case ${TheName}${LangExt} in
-										*"${oldCode}"*)
-											;;
-										#In the event you already have a main file, create a component
-										*)
-											#echo "component"
-											UseGo "newCode" ${name} "component" ${oldCode}
-											;;
-									esac
-								#No source code has been made, create a main file
-								else
-									#echo "main"
-									UseGo "newCode" ${name} "main"
-								fi
-								;;
-							#Is a project
-							*)
-								#Because a project can have source code scattered in different directories,
-								#make sure you have one main component
-								#Figure out how to account for headers
-								local TheSrcDir="${LangProject}/${project}/src/"
-								local HasSrcCode=$(find ${TheSrcDir} -type f -name "*${LangExt}")
-								#Has Source Code
-								if [ ! -z "${HasSrcCode}" ]; then
-									TheName=$(UseGo "removeExt" ${name})
-									local NumFound=$(find ${TheSrcDir} -name ${TheName}${LangExt} 2> /dev/null | wc -l)
-									case ${NumFound} in
-										#No other source code was found...make your main file
-										0)
-											UseGo "newCode" ${name} "component" ${oldCode}
-											;;
-										#Source code was found...make a component
-										1)
-											UseGo "newCode" ${name} "header" ${oldCode}
-											;;
-										*)
-											;;
-									esac
-								#Make first source file
-								else
-									UseGo "newCode" ${name} "main" ${oldCode}
-								fi
-								;;
-						esac
-						;;
-				esac
+					fi
+				else
+					echo ProjectTemplateHandler
+				fi
 			fi
 			;;
 		cli)
-			local TheName=$1
-			local project=${CodeProject}
-			#Handle Project Dir
-			case ${project} in
-				none)
-					TheName=$(OtherColor "${TheName%.*}")
-					echo "./${TheName}"
-					;;
-				*)
-					TheName=$(OtherColor "${project}")
-					echo "./${TheName}"
-					;;
-			esac
+			local TheName=$(OtherColor $1)
+			echo "./${TheName}"
 			;;
-		#Run the compiled code
-		runCode|debug)
+		runCode)
 			local name=$1
 			local UseProjectTemplate
 			shift
@@ -1258,7 +936,15 @@ UseGo()
 					project=""
 					TheBinDir=${LangBin}
 					TheSrcDir=${LangSrc}
-					TheBin=$(UseGo "removeExt" ${name})
+					#Handle multiple files
+					if [[ "${name}" == *","* ]]; then
+						if [ -z "${name}" ]; then
+							echo "Unable to find the \"main\" file"
+							echo -n "Please choose: "
+							read name
+						fi
+					fi
+					TheBin=${name}
 					;;
 				*)
 					if [ ! -z "${project}" ]; then
@@ -1272,70 +958,26 @@ UseGo()
 					;;
 			esac
 
-			#Handle multiple src files
-			if [[ "${name}" == *","* ]]; then
-				case ${project} in
-					none)
-						#Find the main file
-						if [ ! -z "${name}" ]; then
-							if [ -d "${TheSrcDir}" ]; then
-								cd ${TheSrcDir}
-								name=${name//,/ }
-								name=$(grep -l "func main(" ${name} 2> /dev/null)
-								if [ ! -z "${name}" ]; then
-									TheBin=$(UseGo "removeExt" ${name})
-								else
-									TheBin=""
-								fi
-								cd - > /dev/null
-							else
-								TheBin=""
-							fi
-						fi
-						;;
-					*)
-						;;
-				esac
-			fi
-
-			#Find Executable
+			#Check if Bash Bin exists
 			if [ -f ${TheBinDir}/${TheBin} ]; then
-				case ${Type} in
-					debug)
-						if [ ! -z "${ThePipe}" ]; then
-							cat /dev/stdin | ${UseDebugger} ${TheBinDir}/${TheBin} ${Args[@]}
-						else
-							${UseDebugger} ${TheBinDir}/${TheBin} ${Args[@]}
-						fi
-						;;
-					runCode)
-						if [ ! -z "${ThePipe}" ]; then
-							cat /dev/stdin | ${TheBinDir}/${TheBin} ${Args[@]}
-						else
-							${TheBinDir}/${TheBin} ${Args[@]}
-						fi
-						;;
-				esac
+				#protect the shell script while running
+				chmod -w ${TheBinDir}/${TheBin} 2> /dev/null
+				${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+				#release protection
+				chmod u+w ${TheBinDir}/${TheBin} 2> /dev/null
 			else
-				case ${project} in
-					none)
-						errorCode "cpl" "need" "${name}"
-						;;
-					*)
-						errorCode "cpl" "need" "${TheBin}"
-						;;
-				esac
+				errorCode "cpl" "need" "${name}"
 			fi
 			;;
 		backup|restore)
 			local name=$1
-			name=$(UseGo "removeExt" ${name})
+			name=$(UsePhp "removeExt" ${name})
 			name="${name}${LangExt}"
 			local project=${CodeProject}
+			local UseProjectTemplate
 			local TheDir
 			local TheCount
 			local TheFound
-			local UseProjectTemplate
 
 			case ${project} in
 				none)
@@ -1374,20 +1016,20 @@ UseGo()
 					fi
 					;;
 				*)
-					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type}) 
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					case ${Type} in
 						restore)
 							if [ -f "${name}.bak" ]; then
 								mv ${name}.bak ${name}
 								echo "\"${name}\" restored"
 							else
-								TheCount=$(UseGo "getProjSrc" "${name}.bak" | wc -l)
+								TheCount=$(UsePhp "getProjSrc" "${name}.bak" | wc -l)
 								case ${TheCount} in
 									0)
 										errorCode "restore" "null"
 										;;
 									1)
-										TheFound=$(UseGo "getProjSrc" "${name}.bak")
+										TheFound=$(UsePhp "getProjSrc" "${name}.bak")
 										mv ${TheFound} ${TheFound%.bak}
 										echo "\"${name}\" restored"
 										;;
@@ -1401,13 +1043,13 @@ UseGo()
 								cp ${name} ${name}.bak
 								echo "\"${name}\" backed-up"
 							else
-								TheCount=$(UseGo "getProjSrc" "${name}" | wc -l)
+								TheCount=$(UsePhp "getProjSrc" "${name}" | wc -l)
 								case ${TheCount} in
 									0)
 										errorCode "backup" "null"
 										;;
 									1)
-										TheFound=$(UseGo "getProjSrc" "${name}")
+										TheFound=$(UsePhp "getProjSrc" "${name}")
 										cp ${TheFound} ${TheFound}.bak
 										echo "\"${name}\" backed-up"
 										;;
@@ -1432,9 +1074,9 @@ UseGo()
 			local UseProjectTemplate
 			case ${project} in
 				none)
-					if [ ! -z "${New}" ]; then
-						TheOld=$(UseGo "removeExt" ${Src})
-						TheNew=$(UseGo "removeExt" ${New})
+					if [ ! -f ${New} ]; then
+						TheOld=$(UsePhp "removeExt" ${Src})
+						TheNew=$(UsePhp "removeExt" ${New})
 
 						#Remove old file for "rename"
 						case ${Type} in
@@ -1453,22 +1095,22 @@ UseGo()
 					fi
 					;;
 				*)
-					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type}) 
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					#Check if extenion is given
 					local HasAnExt
 					local CheckForSrc
 					local ThePath
 
-					HasAnExt=$(UseGo "hasExt" ${Src})
+					HasAnExt=$(UsePhp "hasExt" ${Src})
 					if [ ! -f ${Src} ]; then
 						#Extension is NOT given
 						if [ -z "${HasAnExt}" ]; then
 							#Find src
-							CheckForSrc=$(UseGo "getProjSrc" ${Src}${LangExt} 2> /dev/null)
+							CheckForSrc=$(UsePhp "getProjSrc" ${Src}${LangExt} 2> /dev/null)
 							ThePath=${CheckForSrc%/*}
 							Src=${CheckForSrc##*/}
 						else
-							CheckForFile=$(UseGo "getProjSrc" ${Src} 2> /dev/null)
+							CheckForFile=$(UsePhp "getProjSrc" ${Src} 2> /dev/null)
 							if [ ! -z "${CheckForFile}" ]; then
 								ThePath=${CheckForFile%/*}
 							fi
@@ -1476,7 +1118,7 @@ UseGo()
 					fi
 
 					TheOld=${Src}
-					HasAnExt=$(UseGo "hasExt" ${New})
+					HasAnExt=$(UsePhp "hasExt" ${New})
 					if [ -z "${HasAnExt}" ]; then
 						TheNew="${New}${LangExt}"
 					else
@@ -1520,4 +1162,4 @@ UseGo()
 	esac
 }
 
-UseGo $@
+UsePhp $@

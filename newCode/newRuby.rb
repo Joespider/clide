@@ -3,7 +3,7 @@
 #Program Details
 User = "Joespider"
 ProgramName = "newRuby"
-VersionName = "0.1.02"
+VersionName = "0.1.03"
 Purpose = "Purpose: make new Ruby Scripts"
 
 #Help Page
@@ -16,6 +16,7 @@ def help
 	puts "\t-n <name> : program name"
 	puts "\t--name <name> : program name"
 	puts "\t--cli : enable command line (Main file ONLY)"
+	puts "\t--pipe : enable command line (Main file ONLY)"
 	puts "\t--main : main file"
 	puts "\t-w : enable \"write\" file method"
 	puts "\t-r : enable \"read\" file method"
@@ -36,6 +37,7 @@ def getArgs
 		"theName" => "",
 		"theUser" => "",
 		"isCli" => false,
+		"isPipe" => false,
 		"isMain" => false,
 		"readFile" => false,
 		"writeFile" => false,
@@ -56,6 +58,10 @@ def getArgs
 			getUser = false
 		elsif theArg == "--cli"
 			userArgs["isCli"] = true
+			userArgs["isMain"] = true
+		elsif theArg == "--pipe"
+			userArgs["isPipe"] = true
+			userArgs["isMain"] = true
 		elsif theArg == "--main"
 			userArgs["isMain"] = true
 		elsif theArg == "-w"
@@ -105,14 +111,18 @@ def getMethods(getHelp,getRead,getWrite,getRawInput,getCLI)
 end
 
 #Handle Ruby Main
-def getMain(yes,cli)
+def getMain(yes,cli,pipe)
 	theMain = ""
 	if yes
+		theMain = "#Main\n# {\n"
 		if cli
-			theMain = "#Main\n# {\nUserInput = getArgs\n# }"
-		else
-			theMain = "#Main\n# {\n\n# }"
+			theMain = theMain+"\nUserInput = getArgs\n"
 		end
+
+		if pipe
+			theMain = theMain+"\nif $stdin.tty?\n\t	puts \"nothing was piped in\"\nelse\n\tputs \"[Pipe]\"\n\tputs \"{\"\n\t$stdin.each_line do |line|\n\t\tputs \"\#{line}\"\n\tend\n\tputs \"}\"n"
+		end
+		theMain = theMain+"\n# }"
 	end
 	return theMain	
 end
@@ -130,7 +140,7 @@ if UserInput["theName"] != ""
 	#Pull the imports for program
 	TheImports = getImports
 	#Pull the Main function
-	TheMain = getMain(UserInput["isMain"],UserInput["isCli"])
+	TheMain = getMain(UserInput["isMain"],UserInput["isCli"],UserInput["isPipe"])
 	#Pull the Methods for the program
 	TheMethods = getMethods(UserInput["isMain"],UserInput["readFile"],UserInput["writeFile"],UserInput["raw_input"],UserInput["isCli"])
 	#Organize Program content

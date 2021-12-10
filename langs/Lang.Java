@@ -81,6 +81,10 @@ UseJava()
 	shift
 	case ${Type} in
 		Art)
+			#https://textkool.com/en/ascii-art-generator
+			#Font: Roman
+			#Width: default
+			#height: default
 			local srt="\e[1;3${ColorNum}m"
 			local end="\e[0m"
 			echo -e "   ${srt}oooo${end}"
@@ -92,6 +96,15 @@ UseJava()
 			echo -e "${srt}.o. ${srt}88P${end} ${srt}\`Y888\"\"8o${end}     ${srt}\`8'${end}     ${srt}\`Y888\"\"8o${end}"
 			echo -e "${srt}\`Y888P${end}"
 			echo ""
+			;;
+		Lang-Type)
+			local Get=$1
+			case ${Get} in
+				*)
+					echo "Type: Compiled/Programming"
+					echo "Run: Interpreted"
+					;;
+			esac
 			;;
 		color)
 			#Return Red

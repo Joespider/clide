@@ -1501,7 +1501,7 @@ runCode()
 			-a|--args)
 				TheLang=$(color "${Lang}")
 				CLIout=$(ManageLangs ${Lang} "cli" "${TheBin}")
-				CLIout="$USER@${Name}:~${TheLang}\$ ${CLIout}"
+				CLIout="$USER@${Name}:~/${TheLang}\$ ${CLIout}"
 				#User Args not Pre-done'
 				if [ -z "${First}" ]; then
 					if [ -z "${RunTimeArgs}" ]; then
@@ -1715,7 +1715,7 @@ Actions-NoLang()
 				main "--repo-version"
 				;;
 			#jump out of No-Lang session and into a language session
-			use|bash|c|c++|go|java|python|perl|ruby|rust)
+			use|bash|c|c++|go|java|python|perl|php|ruby|rust)
 				local Lang
 				local Code
 				case ${UserIn[0],,} in
@@ -1908,6 +1908,9 @@ Actions()
 						;;
 					whoami)
 						echo "${USER}"
+						;;
+					type)
+						ManageLangs ${Lang} "Lang-Type"
 						;;
 					#Set for session or add code to session
 					select|set|add)
@@ -2587,7 +2590,7 @@ Actions()
 						refresh="yes"
 						;;
 					#Swap Programming Languages
-					use|bash|c|c++|go|java|python|perl|ruby|rust|no-lang|nl)
+					use|bash|c|c++|go|java|python|perl|php|ruby|rust|no-lang|nl)
 						Old=${Lang}
 						OldCode=${TheSrcCode}
 						case ${UserIn[0]} in
@@ -3968,6 +3971,7 @@ loadAuto()
 	comp_list "lscpl"
 	comp_list "using"
 	comp_list "ll"
+	comp_list "type"
 	comp_list "clear"
 	comp_list "debug"
 	comp_list "set select"
@@ -4588,6 +4592,23 @@ CLI()
 					theHelp CliHelp ${UserArg} $2 $3
 				fi
 				;;
+			#Get the type of language
+			--type)
+				if [ -z "${ThePipe}" ]; then
+					shift
+					local Lang=$(pgLang $1)
+					if [ ! -z "${Lang}" ]; then
+						case ${Lang} in
+							no)
+								;;
+							*)
+								InAndOut="yes"
+								Actions ${Lang} "none" "type"
+								;;
+						esac
+					fi
+				fi
+				;;
 			#Load last saved session
 			-l|--load|--last)
 				if [ -z "${ThePipe}" ]; then
@@ -5020,7 +5041,7 @@ CLI()
 				else
 					case ${Lang} in
 						#Provide the help page
-						-h|--help)
+						-h|--help|-*)
 							theHelp RunCliHelp ${UserArg}
 							;;
 						*)

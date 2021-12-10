@@ -68,6 +68,10 @@ UsePerl()
 	shift
 	case ${Type} in
 		Art)
+			#https://textkool.com/en/ascii-art-generator
+			#Font: Roman
+			#Width: default
+			#height: default
 			local srt="\e[1;3${ColorNum}m"
 			local end="\e[0m"
 			echo -e "${srt}ooooooooo.${end}                      ${srt}oooo${end}"
@@ -78,6 +82,15 @@ UsePerl()
 			echo -e " ${srt}888${end}         ${srt}888${end}    ${srt}.o${end}  ${srt}888${end}      ${srt}888${end}" 
 			echo -e "${srt}o888o${end}        ${srt}\`Y8bod8P'${end} ${srt}d888b${end}    ${srt}o888o${end}"
 			echo ""
+			;;
+		Lang-Type)
+			local Get=$1
+			case ${Get} in
+				*)
+					echo "Type: Shell/Scripting/Programming"
+					echo "Run: Interpreted"
+					;;
+			esac
 			;;
 		color)
 			#Return Purple
