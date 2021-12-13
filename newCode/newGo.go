@@ -7,11 +7,8 @@ import (
 	)
 
 func help() {
-	var ProgName string
-	ProgName = "newGo"
-
-	var Version string
-	Version = "0.1.0"
+	var ProgName string = "newGo"
+	var Version string = "0.1.0"
 
 	fmt.Println("Author: Joespider")
 	fmt.Println("Program: \""+ProgName+"\"")
@@ -35,23 +32,12 @@ func getPackage(ThePackage string) string {
 
 //create import listing
 func getImports(UserInput bool, write bool, read bool, random bool, cli bool) string {
-	var Imports string
-	Imports = ""
-
-	var standard string
-	standard = "\"fmt\"\n"
-
-	var readWrite string
-	readWrite = ""
-
-	var ForRandom string
-	ForRandom = ""
-
-	var ForCLI string
-	ForCLI = ""
-
-	var ForUserInput string
-	ForUserInput = ""
+	var Imports string = ""
+	var standard string = "\"fmt\"\n"
+	var readWrite string = ""
+	var ForRandom string = ""
+	var ForCLI string = ""
+	var ForUserInput string = ""
 
 	if read == true || write == true {
 		readWrite = "\t\"io/ioutil\"\n\t\"io\"\n"
@@ -80,20 +66,11 @@ func getImports(UserInput bool, write bool, read bool, random bool, cli bool) st
 }
 
 func getMethods(getRawIn bool, getRand bool, getWrite bool, getRead bool, getIsIn bool) string {
-	var TheMethods string
-	TheMethods = ""
-
-	var ReadMethod string
-	ReadMethod = ""
-
-	var WriteMethod string
-	WriteMethod = ""
-
-	var RandMethod string
-	RandMethod = ""
-
-	var UserInput string
-	UserInput = ""
+	var TheMethods string = ""
+	var ReadMethod string = ""
+	var WriteMethod string = ""
+	var RandMethod string = ""
+	var UserInput string = ""
 
 	if getRawIn == true {
 		UserInput = "func raw_input(Message string) string {\n\tvar UserIn string\n\tfmt.Print(Message)\n\treader := bufio.NewReader(os.Stdin)\n\tUserIn, _ = reader.ReadString('\\n')\n\treturn UserIn\n}\n\n"
@@ -117,12 +94,8 @@ func getMethods(getRawIn bool, getRand bool, getWrite bool, getRead bool, getIsI
 
 //build main function
 func getMain(Args bool, getRandom bool) string {
-	var Main string
-	Main = ""
-
-	var RandStart string
-	RandStart = ""
-
+	var Main string = ""
+	var RandStart string = ""
 
 	if getRandom == true {
 		RandStart = "\trand.Seed(time.Now().UnixNano())\n"
@@ -155,50 +128,21 @@ func CreateNew(filename string, content string) error {
 
 //Go main
 func main() {
-	var getName bool
-	getName = false
-
-	var getArgs bool
-	getArgs = false
-
-	var getWrite bool
-	getWrite = false
-
-	var getRead bool
-	getRead = false
-
-	var getIsIn bool
-	getIsIn = false
-
-	var getRawIn bool
-	getRawIn = false
-
-	var getRand bool
-	getRand = false
-
-	var IsMain bool
-	IsMain = false
-
-	var UserIn string
-	UserIn = ""
-
-	var ThePackage string
-	ThePackage = ""
-
-	var CName string
-	CName = ""
-
-	var Imports string
-	Imports = ""
-
-	var Methods string
-	Methods = ""
-
-	var Main string
-	Main = ""
-
-	var Content string
-	Content = ""
+	var getName bool = false
+	var getArgs bool = false
+	var getWrite bool = false
+	var getRead bool = false
+	var getIsIn bool = false
+	var getRawIn bool = false
+	var getRand bool = false
+	var IsMain bool = false
+	var UserIn string = ""
+	var ThePackage string = ""
+	var CName string = ""
+	var Imports string = ""
+	var Methods string = ""
+	var Main string = ""
+	var Content string = ""
 
 	//Get User CLI Args
 	args := os.Args[1:]

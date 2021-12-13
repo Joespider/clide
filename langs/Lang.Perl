@@ -87,7 +87,7 @@ UsePerl()
 			local Get=$1
 			case ${Get} in
 				*)
-					echo "Type: Shell/Scripting/Programming"
+					echo "Type: Scripting/Programming"
 					echo "Run: Interpreted"
 					;;
 			esac

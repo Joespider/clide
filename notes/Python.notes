@@ -116,6 +116,7 @@ Date: (08/23/2021)
 >>>		---[OS commands]---
 	import os
 	os.system("command")
+	os.chdir("/home/")
 
 	Output = ""
 	TheShell = os.popen(cmd)

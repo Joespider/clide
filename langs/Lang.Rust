@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.33"
+SupportV="0.1.34"
 Lang=Rust
 LangExt=".rs"
 ColorNum=1
@@ -310,7 +310,7 @@ UseRust()
 		TemplateVersion)
 			if [ -f ${TemplateCode} ]; then
 				echo -n "${TemplateCode##*/} "
-				${LangCpl} ${TemplateCode} 2> /dev/null | grep Version | sed "s/Version//g"
+				${TemplateCode} 2> /dev/null | grep Version | sed "s/Version//g"
 			else
 				echo "no ${TemplateCode##*/} found"
 			fi
