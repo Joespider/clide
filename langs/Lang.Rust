@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.34"
+SupportV="0.1.37"
 Lang=Rust
 LangExt=".rs"
 ColorNum=1
@@ -953,14 +953,14 @@ UseRust()
 			local cTemplate=$(OtherColor ${TemplateCode##*/})
 			#Check for Custom Code Template
 			if [ -f ${TemplateCode} ]; then
-				echo -n "${cLang}\$ ${LangCpl} ${cTemplate} "
+				echo -n "${cLang}\$ ./${cTemplate} "
 				read -a Args
 				#Program Args Given
 				if [ ! -z "${Args}" ]; then
-					${LangCpl} ${TemplateCode} ${Args[@]}
+					${TemplateCode} ${Args[@]}
 				#No Program Name Given
 				else
-					${LangCpl} ${TemplateCode} --help
+					${TemplateCode} --help
 				fi
 			else
 				#Program Name Given
@@ -1034,7 +1034,7 @@ UseRust()
 								if [ -f ${TemplateCode} ]; then
 									#Program Name Given
 									if [ ! -z "${name}" ]; then
-										${TemplateCode} --name "${name}"
+										${TemplateCode} --name "${name}" ${TemplateCodeArgs}
 									#No Program Name Given
 									else
 										#Help Page

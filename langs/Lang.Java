@@ -102,7 +102,7 @@ UseJava()
 			case ${Get} in
 				*)
 					echo "Type: Compiled/Programming"
-					echo "Run: Interpreted"
+					echo "Run: Binary/Interpreted"
 					;;
 			esac
 			;;

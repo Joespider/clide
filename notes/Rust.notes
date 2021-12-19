@@ -55,3 +55,21 @@ site: https://doc.rust-lang.org/reference/introduction.html
 			arg_count += 1;
 		}
 	}
+
+//String contains
+	if a.contains("string")
+	{
+		println!("yes");
+	}
+	else
+	{
+		println!("no");
+	}
+
+//Return value from a function
+
+	fn a_function(var: bool) -> bool
+	{
+		return var;
+	}
+

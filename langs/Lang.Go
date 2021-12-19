@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.70"
+SupportV="0.1.71"
 Lang=Go
 LangExt=".go"
 #Color Green
@@ -1116,7 +1116,7 @@ UseGo()
 								if [ -f ${TemplateCode} ]; then
 									#Program Name Given
 									if [ ! -z "${name}" ]; then
-										${TemplateCode} --name ${name} ${TemplateCodeArgs}
+										${TemplateCode} --name ${name} --main ${TemplateCodeArgs}
 									#No Program Name Given
 									else
 										#Help Page

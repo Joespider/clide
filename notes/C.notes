@@ -1,0 +1,28 @@
+[C Notes]
+
+//Write files
+FILE *fp;
+fp = fopen ("file_name", "mode");
+
+//File Mode			Description
+r				Open a file for reading. If a file is in reading mode, then no data is deleted if a file is already present on a system.
+w				Open a file for writing. If a file is in writing mode, then a new file is created if a file doesn’t exist at all. If a file is already present on a system, then all the data inside the file is truncated, and it is opened for writing purposes.
+a				Open a file in append mode. If a file is in append mode, then the file is opened. The content within the file doesn’t change.
+r+				open for reading and writing from beginning
+w+				open for reading and writing, overwriting a file
+a+				open for reading and writing, appending to file
+
+
+//function			purpose	
+fopen(file,mode)		Creating a file or opening an existing file
+fclose(filePointer)		Closing a file
+fprintf()			Criting a block of data to a file
+fscanf()			Reading a block data from a file
+getc()				Reads a single character from a file
+putc()				Writes a single character to a file
+puts(string,filePointer)	Writes a single character to a file
+getw()				Reads an integer from a file
+putw()				Writing an integer to a file
+fseek()				Sets the position of a file pointer to a specified location
+ftell()				Returns the current position of a file pointer
+rewind()			Sets the file pointer at the beginning of a file
