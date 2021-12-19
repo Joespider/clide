@@ -1,25 +1,24 @@
 import sys
 
-ProgramName = "newPython"
 ProgramName = sys.argv[0].rsplit("/",1)[1]
 VersionName = "0.1.06"
 
 def Help():
-	print "Author: Joespider"
-	print "Program: \""+ProgramName.rsplit(".",1)[0]+"\""
-	print "Version: "+VersionName
-	print "Purpose: make new Python Scripts"
-	print "Usage: "+ProgramName+" <args>"
-	print "\t-n <name> : program name"
-	print "\t--name <name> : program name"
-	print "\t--cli : enable command line (Main file ONLY)"
-	print "\t--main : main file"
-	print "\t--shell : unix shell"
-	print "\t--pipe : enable piping"
-	print "\t--write-file : enable \"write\" file method"
-	print "\t--read-file : enable \"read\" file method"
-	print "\t--random : enable \"random\" method"
-	print "\t--os : import OS"
+	print("Author: Joespider")
+	print("Program: \""+ProgramName.rsplit(".",1)[0]+"\"")
+	print("Version: "+VersionName)
+	print("Purpose: make new Python Scripts")
+	print("Usage: "+ProgramName+" <args>")
+	print("\t-n <name> : program name")
+	print("\t--name <name> : program name")
+	print("\t--cli : enable command line (Main file ONLY)")
+	print("\t--main : main file")
+	print("\t--shell : unix shell")
+	print("\t--pipe : enable piping")
+	print("\t--write-file : enable \"write\" file method")
+	print("\t--read-file : enable \"read\" file method")
+	print("\t--random : enable \"random\" method")
+	print("\t--os : import OS")
 
 def GetArgs():
 	Args = sys.argv
@@ -94,7 +93,7 @@ def Methods(getMain, getShell, getCLI, getWrite, getRead, getRandom, getPipe):
 	if getCLI == True:
 		MainMethod = "def Main():\n\t#Get User CLI Input\n\tUserArgs = Args()\n\nif __name__ == '__main__':\n\tMain()"
 	else:
-		MainMethod = "def Main():\n\tprint \"main\"\n\nif __name__ == '__main__':\n\tMain()"
+		MainMethod = "def Main():\n\tprint(\"main\")\n\nif __name__ == '__main__':\n\tMain()"
 	#}
 	#Get Write Method
 	if getWrite == True:
