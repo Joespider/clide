@@ -772,7 +772,7 @@ TypeCliHelp()
 	echo -e "\t\t\tclassified\t: \"Get the type of Language\""
 	echo -e "\t\t\texecutable\t: \"Get the executable of Language\""
 	echo -e "\t\t\truntime\t\t: \"Get how the code is run\""
-	echo -e "${cmd} -h, --help\t: \"help page\""
+	echo -e "${cmd} -h, --help\t\t: \"help page\""
 	echo "-----------------------------------------------"
 	echo ""
 }

@@ -4601,6 +4601,7 @@ CLI()
 					if [ ! -z "${Lang}" ]; then
 						case ${Lang} in
 							no)
+								theHelp TypeCliHelp ${UserArg}
 								;;
 							*)
 								InAndOut="yes"
