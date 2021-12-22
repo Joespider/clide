@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.81"
+SupportV="0.1.82"
 Lang=Bash
 LangExt=".sh"
 ColorNum=2
@@ -84,9 +84,22 @@ UseBash()
 		Lang-Type)
 			local Get=$1
 			case ${Get} in
+				classified)
+					echo "Scripting"
+					;;
+				executable)
+					echo "Script"
+					;;
+				runtime)
+					echo "Interpreted"
+					;;
 				*)
-					echo "Type: Shell/Scripting"
-					echo "Run: Interpreter"
+					local Classified=$(UseBash ${Type} classified)
+					local Exe=$(UseBash ${Type} executable)
+					local RunTime=$(UseBash ${Type} runtime)
+					echo -e "Classified:\t${Classified}"
+					echo -e "Executable:\t${Exe}"
+					echo -e "Runtime:\t${RunTime}"
 					;;
 			esac
 			;;

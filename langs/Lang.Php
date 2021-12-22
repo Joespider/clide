@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.0.01"
+SupportV="0.0.02"
 Lang=Php
 LangExt=".php"
 ColorNum=5
@@ -83,9 +83,22 @@ UsePhp()
 		Lang-Type)
 			local Get=$1
 			case ${Get} in
+				classified)
+					echo "Web Services"
+					;;
+				executable)
+					echo "Script"
+					;;
+				runtime)
+					echo "Interpreted"
+					;;
 				*)
-					echo "Type: Web Services/Scripting"
-					echo "Run: Interpreted"
+					local Classified=$(UsePhp ${Type} classified)
+					local Exe=$(UsePhp ${Type} executable)
+					local RunTime=$(UsePhp ${Type} runtime)
+					echo -e "Classified:\t${Classified}"
+					echo -e "Executable:\t${Exe}"
+					echo -e "Runtime:\t${RunTime}"
 					;;
 			esac
 			;;

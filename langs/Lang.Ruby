@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.80"
+SupportV="0.1.81"
 Lang=Ruby
 LangExt=".rb"
 ColorNum=1
@@ -90,9 +90,22 @@ UseRuby()
 		Lang-Type)
 			local Get=$1
 			case ${Get} in
+				classified)
+					echo "Scripting"
+					;;
+				executable)
+					echo "Script"
+					;;
+				runtime)
+					echo "Interpreted"
+					;;
 				*)
-					echo "Type: Scripting/Programming"
-					echo "Run: Interpreted"
+					local Classified=$(UseRuby ${Type} classified)
+					local Exe=$(UseRuby ${Type} executable)
+					local RunTime=$(UseRuby ${Type} runtime)
+					echo -e "Classified:\t${Classified}"
+					echo -e "Executable:\t${Exe}"
+					echo -e "Runtime:\t${RunTime}"
 					;;
 			esac
 			;;

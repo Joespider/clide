@@ -1910,7 +1910,7 @@ Actions()
 						echo "${USER}"
 						;;
 					type)
-						ManageLangs ${Lang} "Lang-Type"
+						ManageLangs ${Lang} "Lang-Type" ${UserIn[1]}
 						;;
 					#Set for session or add code to session
 					select|set|add)
@@ -3971,7 +3971,7 @@ loadAuto()
 	comp_list "lscpl"
 	comp_list "using"
 	comp_list "ll"
-	comp_list "type"
+	comp_list "type" "classified executable runtime"
 	comp_list "clear"
 	comp_list "debug"
 	comp_list "set select"
@@ -4597,15 +4597,18 @@ CLI()
 				if [ -z "${ThePipe}" ]; then
 					shift
 					local Lang=$(pgLang $1)
+					local TypeInfo=$2
 					if [ ! -z "${Lang}" ]; then
 						case ${Lang} in
 							no)
 								;;
 							*)
 								InAndOut="yes"
-								Actions ${Lang} "none" "type"
+								Actions ${Lang} "none" "type" "${TypeInfo}"
 								;;
 						esac
+					else
+						theHelp TypeCliHelp ${UserArg}
 					fi
 				fi
 				;;

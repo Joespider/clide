@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.71"
+SupportV="0.1.72"
 Lang=Go
 LangExt=".go"
 #Color Green
@@ -93,9 +93,22 @@ UseGo()
 		Lang-Type)
 			local Get=$1
 			case ${Get} in
+				classified)
+					echo "Programming"
+					;;
+				executable)
+					echo "Binary"
+					;;
+				runtime)
+					echo "Compiled"
+					;;
 				*)
-					echo "Type: Compiled/Programming"
-					echo "Run: Binary"
+					local Classified=$(UseGo ${Type} classified)
+					local Exe=$(UseGo ${Type} executable)
+					local RunTime=$(UseGo ${Type} runtime)
+					echo -e "Classified:\t${Classified}"
+					echo -e "Executable:\t${Exe}"
+					echo -e "Runtime:\t${RunTime}"
 					;;
 			esac
 			;;

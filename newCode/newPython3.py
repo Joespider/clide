@@ -1,7 +1,7 @@
 import sys
 
 ProgramName = sys.argv[0].rsplit("/",1)[1]
-VersionName = "0.1.06"
+VersionName = "0.1.07"
 
 def Help():
 	print("Author: Joespider")
@@ -69,9 +69,9 @@ def GetArgs():
 	return Returns
 
 #Get Imports
-def Imports(getOS, getSys, getRand, getPipe):
+def Imports(getOS, getShell, getSys, getRand, getPipe):
 	TheImports = ""
-	if getOS == True:
+	if getOS == True or getShell == True:
 		TheImports = "import os\n"
 	if getSys == True or getPipe == True:
 		TheImports = TheImports+"import sys\n"
@@ -139,7 +139,7 @@ def Main():
 	GetRand = UserArgs["random"]
 	GetPipe = UserArgs["pipe"]
 	GetOS = UserArgs["os"]
-	GetShell = UserArgs["os"]
+	GetShell = UserArgs["shell"]
 	#}
 	#Ensure Name of program
 	if TheName != "":

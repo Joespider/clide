@@ -4,7 +4,7 @@ Shell=$(which bash)
 #https://stackoverflow.com/questions/10339637/java-import-cannot-find-symbol
 #https://www.codejava.net/java-core/tools/how-to-compile-package-and-run-a-java-program-using-command-line-tools-javac-jar-and-java
 
-SupportV="0.2.23"
+SupportV="0.2.24"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -100,9 +100,22 @@ UseJava()
 		Lang-Type)
 			local Get=$1
 			case ${Get} in
+				classified)
+					echo "Programming"
+					;;
+				executable)
+					echo "Binary"
+					;;
+				runtime)
+					echo "Compiled/Interpreted"
+					;;
 				*)
-					echo "Type: Compiled/Programming"
-					echo "Run: Binary/Interpreted"
+					local Classified=$(UseJava ${Type} classified)
+					local Exe=$(UseJava ${Type} executable)
+					local RunTime=$(UseJava ${Type} runtime)
+					echo -e "Classified:\t${Classified}"
+					echo -e "Executable:\t${Exe}"
+					echo -e "Runtime:\t${RunTime}"
 					;;
 			esac
 			;;

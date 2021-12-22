@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.84"
+SupportV="0.1.85"
 Lang=Perl
 LangExt=".pl"
 #Color Purple
@@ -86,9 +86,22 @@ UsePerl()
 		Lang-Type)
 			local Get=$1
 			case ${Get} in
+				classified)
+					echo "Scripting"
+					;;
+				executable)
+					echo "Script"
+					;;
+				runtime)
+					echo "Interpreted"
+					;;
 				*)
-					echo "Type: Scripting/Programming"
-					echo "Run: Interpreted"
+					local Classified=$(UsePerl ${Type} classified)
+					local Exe=$(UsePerl ${Type} executable)
+					local RunTime=$(UsePerl ${Type} runtime)
+					echo -e "Classified:\t${Classified}"
+					echo -e "Executable:\t${Exe}"
+					echo -e "Runtime:\t${RunTime}"
 					;;
 			esac
 			;;
@@ -1187,4 +1200,3 @@ UsePerl()
 }
 
 UsePerl $@
-

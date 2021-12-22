@@ -5,7 +5,7 @@ Shell=$(which bash)
 #Link Libs: https://gist.github.com/gubatron/32f82053596c24b6bec6
 #both https://avikdas.com/2019/12/16/makefiles-for-c-cpp-projects.html
 
-SupportV="0.2.29"
+SupportV="0.2.30"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -123,9 +123,22 @@ UseC++()
 		Lang-Type)
 			local Get=$1
 			case ${Get} in
+				classified)
+					echo "Programming"
+					;;
+				executable)
+					echo "Binary"
+					;;
+				runtime)
+					echo "Compiled"
+					;;
 				*)
-					echo "Type: Compiled/Programming"
-					echo "Run: Binary"
+					local Classified=$(UseC++ ${Type} classified)
+					local Exe=$(UseC++ ${Type} executable)
+					local RunTime=$(UseC++ ${Type} runtime)
+					echo -e "Classified:\t${Classified}"
+					echo -e "Executable:\t${Exe}"
+					echo -e "Runtime:\t${RunTime}"
 					;;
 			esac
 			;;
