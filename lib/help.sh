@@ -770,6 +770,7 @@ TypeCliHelp()
 	echo -e "Get the type of programming language"
 	echo ""
 	echo -e "${cmd} <language> <arg>\t\t: \"get info about a give langauge\""
+	echo -e "${cmd} all <arg>\t\t\t: \"get info about ALL langauges\""
 	echo -e "\t\t\tclassified\t: \"Get the type of Language\""
 	echo -e "\t\t\texecutable\t: \"Get the executable of Language\""
 	echo -e "\t\t\truntime\t\t: \"Get how the code is run\""
