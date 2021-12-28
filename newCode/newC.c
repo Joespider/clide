@@ -25,7 +25,7 @@ void help()
 {
 	print("Author: Joespider");
 	print("Program: \"newC\"");
-	print("Version: 0.0.09");
+	print("Version: 0.0.10");
 	print("Purpose: make new C programs");
 	print("Usage: newC <args>");
 	print("\t-n <name> : program name");
@@ -49,6 +49,7 @@ void getImports(FILE *file)
 
 void getMethods(FILE *file, int getRawIn, int getRand, int getWrite, int getRead, int getIsIn)
 {
+	fputs("void print(char *Out)\n{\n\tprintf(\"%s\\n\",Out);\n}\n\n",file);
 	if (getIsIn == 0)
 	{
 		fputs("int IsIn(char Str[], char Sub[])\n{\n\tint found = 1;\n\tif (strstr(Str,Sub) != NULL)\n\t{\n\t\tfound = 0;\n\t}\n\treturn found;\n}\n", file);

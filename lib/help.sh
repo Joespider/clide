@@ -554,6 +554,7 @@ CliHelp()
 			echo -e "-rv, --repo-version\t\t\t: \"The ${repoTool} Version\""
 			echo -e "-c, --config\t\t\t\t: \"Read my configuration\""
 			echo -e "-ll, --languages\t\t\t: \"List the languages I know\""
+			echo -e "--type <args>\t\t\t\t: \"Show Language Info\""
 			echo -e "-h, --help\t\t\t\t: \"Get to know me better\""
 			echo -e "-l, --last, --load\t\t\t: \"Lets start back where we left; that is if you saved it\""
 			echo ""

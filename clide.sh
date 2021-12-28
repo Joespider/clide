@@ -4596,21 +4596,70 @@ CLI()
 			--type)
 				if [ -z "${ThePipe}" ]; then
 					shift
-					local Lang=$(pgLang $1)
+					local TheLang
+					local text
+					local ColorCode
+					local Lang=$1
 					local TypeInfo=$2
-					if [ ! -z "${Lang}" ]; then
-						case ${Lang} in
-							no)
+					case ${Lang} in
+						all)
+							for TheLang in ${LangsDir}/Lang.*;
+							do
+								#Select the next langauge
+								TheLang=${TheLang##*/}
+								Lang=${TheLang#Lang.*}
+								text=$(pgLang ${Lang})
+								if [ ! -z "${text}" ]; then
+									case ${text} in
+										no)
+											#do nothing
+											;;
+										*)
+											#get langauge color
+											ColorCode=$(ManageLangs ${Lang} "color-number")
+											#Display language and code
+											if [ -z "${TypeInfo}" ]; then
+												echo -e "\e[1;3${ColorCode}m{${Lang}}"
+												echo "{"
+												CLI ${UserArg} ${Lang}
+												echo "}"
+												echo -e "\e[0m"
+											else
+												TypeInfo=${TypeInfo,,}
+												case ${TypeInfo} in
+													classified|executable|runtime)
+														echo -en "\e[1;3${ColorCode}m${Lang}: "
+														CLI ${UserArg} ${Lang} ${TypeInfo}
+														echo -en "\e[0m"
+														;;
+													*)
+														theHelp TypeCliHelp ${UserArg}
+														break
+														;;
+												esac
+											fi
+											;;
+									esac
+								fi
+							done
+							;;
+						*)
+							Lang=$(pgLang ${Lang})
+							if [ ! -z "${Lang}" ]; then
+								case ${Lang} in
+									no)
+										theHelp TypeCliHelp ${UserArg}
+										;;
+									*)
+										InAndOut="yes"
+										Actions ${Lang} "none" "type" "${TypeInfo}"
+										;;
+								esac
+							else
 								theHelp TypeCliHelp ${UserArg}
-								;;
-							*)
-								InAndOut="yes"
-								Actions ${Lang} "none" "type" "${TypeInfo}"
-								;;
-						esac
-					else
-						theHelp TypeCliHelp ${UserArg}
-					fi
+							fi
+							;;
+					esac
 				fi
 				;;
 			#Load last saved session
