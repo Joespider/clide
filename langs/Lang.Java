@@ -4,7 +4,7 @@ Shell=$(which bash)
 #https://stackoverflow.com/questions/10339637/java-import-cannot-find-symbol
 #https://www.codejava.net/java-core/tools/how-to-compile-package-and-run-a-java-program-using-command-line-tools-javac-jar-and-java
 
-SupportV="0.2.24"
+SupportV="0.2.25"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -1773,9 +1773,9 @@ UseJava()
 								runCode)
 									#Execute without
 									if [ ! -z "${ThePipe}" ]; then
-										cat /dev/stdin | ${LangRun} ${package}${TheBin} ${Args[@]}
+										cat /dev/stdin | ${TimeRun} ${LangRun} ${package}${TheBin} ${Args[@]}
 									else
-										${LangRun} ${package}${TheBin} ${Args[@]}
+										${TimeRun} ${LangRun} ${package}${TheBin} ${Args[@]}
 									fi
 									;;
 								*)
@@ -1790,9 +1790,9 @@ UseJava()
 								runCode)
 									#Execute without
 									if [ ! -z "${ThePipe}" ]; then
-										cat /dev/stdin | ${LangRun} "${JavaProp}" ${package}${TheBin} ${Args[@]}
+										cat /dev/stdin | ${TimeRun} ${LangRun} "${JavaProp}" ${package}${TheBin} ${Args[@]}
 									else
-										${LangRun} "${JavaProp}" ${package}${TheBin} ${Args[@]}
+										${TimeRun} ${LangRun} "${JavaProp}" ${package}${TheBin} ${Args[@]}
 									fi
 									;;
 								*)
@@ -1804,9 +1804,9 @@ UseJava()
 				#Check if Java Jar exists
 				elif [ -f ${TheJarDir}/${TheJar} ]; then
 					if [ ! -z "${ThePipe}" ]; then
-						cat /dev/stdin | ${LangRun} -jar ${TheJarDir}/${TheJar} ${Args[@]}
+						cat /dev/stdin | ${TimeRun} ${LangRun} -jar ${TheJarDir}/${TheJar} ${Args[@]}
 					else
-						${LangRun} -jar ${TheJarDir}/${TheJar} ${Args[@]}
+						${TimeRun} ${LangRun} -jar ${TheJarDir}/${TheJar} ${Args[@]}
 					fi
 				else
 					errorCode "cpl" "need" "${name}"

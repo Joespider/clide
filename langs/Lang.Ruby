@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.81"
+SupportV="0.1.82"
 Lang=Ruby
 LangExt=".rb"
 ColorNum=1
@@ -1070,9 +1070,9 @@ UseRuby()
 						;;
 					runCode)
 						if [ ! -z "${ThePipe}" ]; then
-							cat /dev/stdin | ${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+							cat /dev/stdin | ${TimeRun} ${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
 						else
-							${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+							${TimeRun} ${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
 						fi
 						;;
 				esac

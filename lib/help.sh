@@ -393,6 +393,7 @@ CreateHelp()
 			echo -e "\tdefault\t\t\t: Use the tempalte from ${Head}"
 			ManageLangs ${Lang} "CreateHelp"
 			echo -e "type <args>\t\t\t: Create compile type"
+			echo -e "time\t\t\t\t: set runtime of program"
 			echo -e "reset <args>\t\t\t: clear settings"
 			echo -e "\ttype\t\t\t: clear compile type"
 			echo -e "\targs\t\t\t: clear run time args"
@@ -582,7 +583,7 @@ CliHelp()
 				--path|--find)
 					PathCliHelp ${example}
 					;;
-				-x|--run)
+				-x|--run|--time)
 					RunCliHelp ${example}
 					;;
 				--install)
@@ -619,6 +620,7 @@ CliHelp()
 					echo -e "\t--debug <args>\t\t\t\t\t: \"Debug compiled code\""
 					echo -e "\t--run <args>\t\t\t\t\t: \"Run compiled code\""
 					echo -e "\t-x <args>\t\t\t\t\t: \"Run compiled code\""
+					echo -e "\t--time <args>\t\t\t\t\t: \"Run and time compiled code\""
 					echo -e "\t--notes <args>\t\t\t\t\t: \"Manage the notes for a given language\""
 					echo -e "\t--read <args>\t\t\t\t\t: \"Read out (cat) source code\""
 					echo -e "\t--list <lang>\t\t\t\t\t: \"List source code\""
@@ -909,6 +911,8 @@ ProjectCliHelp()
 	echo -e "${cmd} --run <language> <project>\t\t: \"Run compoled code from given langauge inside project\""
 	echo -e "${cmd} -x <project>\t\t\t\t: \"Run compiled project\""
 	echo -e "${cmd} -x <language> <project>\t\t\t: \"Run compoled code from given langauge inside project\""
+	echo -e "${cmd} --time <project>\t\t\t: \"Run and time compiled project\""
+	echo -e "${cmd} --time <language> <project>\t\t: \"Run and time compoled code from given langauge inside project\""
 	echo -e "${cmd} --build <project>\t\t\t: \"Build a ${Head} Project\""
 	echo -e "${cmd} --remove <project>\t\t\t: \"Remove a ${Head} Project\""
 	echo -e "${cmd} --remove all\t\t\t\t: \"Remove ALL ${Head} Projects\""

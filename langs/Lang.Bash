@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.82"
+SupportV="0.1.83"
 Lang=Bash
 LangExt=".sh"
 ColorNum=2
@@ -979,9 +979,9 @@ UseBash()
 				#protect the shell script while running
 				chmod -w ${TheBinDir}/${TheBin} 2> /dev/null
 				if [ ! -z "${ThePipe}" ]; then
-					cat /dev/stdin | ${TheBinDir}/${TheBin} ${Args[@]}
+					cat /dev/stdin | ${TimeRun} ${TheBinDir}/${TheBin} ${Args[@]}
 				else
-					${TheBinDir}/${TheBin} ${Args[@]}
+					${TimeRun} ${TheBinDir}/${TheBin} ${Args[@]}
 				fi
 				#release protection
 				chmod u+w ${TheBinDir}/${TheBin} 2> /dev/null

@@ -21,7 +21,7 @@ source ${root}/var/version
 export TypeOfCpl
 export RunCplArgs
 export TheSrcCode
-
+export TimeRun
 
 #InAndOut determines if internal functions can run via cli
 InAndOut="no"
@@ -1501,7 +1501,11 @@ runCode()
 			-a|--args)
 				TheLang=$(color "${Lang}")
 				CLIout=$(ManageLangs ${Lang} "cli" "${TheBin}")
-				CLIout="$USER@${Name}:~/${TheLang}\$ ${CLIout}"
+				if [ -z "${TimeRun}" ]; then
+					CLIout="$USER@${Name}:~/${TheLang}\$ ${CLIout}"
+				else
+					CLIout="$USER@${Name}:~/${TheLang}\$ ${TimeRun} ${CLIout}"
+				fi
 				#User Args not Pre-done'
 				if [ -z "${First}" ]; then
 					if [ -z "${RunTimeArgs}" ]; then
@@ -3212,6 +3216,10 @@ Actions()
 									esac
 								fi
 								;;
+							time)
+								TimeRun="time -p"
+								errorCode "HINT" "Set to record runtime of a program"
+								;;
 							#Create new Template
 							newCodeTemp)
 								local NewCode=$(ManageLangs ${Lang} "getNewCode")
@@ -3270,11 +3278,15 @@ Actions()
 										TypeOfCpl=""
 										echo "compile type reset"
 										;;
+									time)
+										TimeRun=""
+										;;
 									all)
 										#Default values
 										RunTimeArgs=""
 										RunCplArgs="none"
 										TypeOfCpl=""
+										TimeRun=""
 										echo "All rest"
 										;;
 									help|*)
@@ -3990,7 +4002,7 @@ loadAuto()
 	comp_list "add"
 	comp_list "${ReadBy} read" "non-lang"
 	comp_list "search"
-	comp_list "create" "args cpl cpl-args make newCodeTemp reset version type"
+	comp_list "create" "args cpl cpl-args make newCodeTemp reset version type time"
 	comp_list "compile cpl car car-a" "--args --get-args --type"
 	comp_list "execute exe run" "-a --args"
 	comp_list "version"
@@ -4158,7 +4170,7 @@ CLI()
 								fi
 							fi
 							;;
-						-x|--run|--build)
+						-x|--run|--time|--build)
 							shift
 							local Lang=$1
 							Lang=$(pgLang ${Lang})
@@ -4207,6 +4219,16 @@ CLI()
 												if [ -d ${CodeDir} ]; then
 													cd ${CodeDir}
 													case ${ActionProject} in
+														--time)
+															TimeRun="time -p"
+															shift
+															local ArgFlag=$1
+															if [ ! -z "${ArgFlag}" ]; then
+																runCode ${Lang} "none" "none" "none" $@
+															else
+																runCode ${Lang} "none"
+															fi
+															;;
 														-x|--run)
 															shift
 															local ArgFlag=$1
@@ -5081,7 +5103,7 @@ CLI()
 			--debug)
 				;;
 			#run your compiled code
-			-x|--run)
+			-x|--run|--time)
 				#Protect
 				Protect
 				shift
@@ -5122,6 +5144,13 @@ CLI()
 							else
 								local TheBin=$(ManageLangs ${Lang} "getBin" "${Code}")
 								if [ ! -z "${TheBin}" ]; then
+									case ${UserArg} in
+										--time)
+											TimeRun="time -p"
+											;;
+										*)
+											;;
+									esac
 									local Args=$@
 									#run the code..."none" "none" is to provide the needed padding to run
 									runCode ${Lang} ${Code} "none" "none" ${Args[@]}
