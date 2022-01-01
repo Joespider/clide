@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.73"
+SupportV="0.1.75"
 Lang=Go
 LangExt=".go"
 #Color Green
@@ -1323,9 +1323,17 @@ UseGo()
 						;;
 					runCode)
 						if [ ! -z "${ThePipe}" ]; then
-							cat /dev/stdin | ${TimeRun} ${TheBinDir}/${TheBin} ${Args[@]}
+							if [ ! -z "${TimeRun}" ]; then
+								time cat /dev/stdin | ${TheBinDir}/${TheBin} ${Args[@]}
+							else
+								cat /dev/stdin | ${TheBinDir}/${TheBin} ${Args[@]}
+							fi
 						else
-							${TimeRun} ${TheBinDir}/${TheBin} ${Args[@]}
+							if [ ! -z "${TimeRun}" ]; then
+								time ${TheBinDir}/${TheBin} ${Args[@]}
+							else
+								${TheBinDir}/${TheBin} ${Args[@]}
+							fi
 						fi
 						;;
 				esac

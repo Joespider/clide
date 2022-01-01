@@ -5,7 +5,7 @@ Shell=$(which bash)
 #Link Libs: https://gist.github.com/gubatron/32f82053596c24b6bec6
 #both https://avikdas.com/2019/12/16/makefiles-for-c-cpp-projects.html
 
-SupportV="0.2.31"
+SupportV="0.2.32"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -2139,9 +2139,17 @@ UseC++()
 						;;
 					runCode)
 						if [ ! -z "${ThePipe}" ]; then
-							cat /dev/stdin | ${TimeRun} ${TheBinDir}/${TheBin} ${Args[@]}
+							if [ ! -z "${TimeRun}" ]; then
+								time cat /dev/stdin | ${TheBinDir}/${TheBin} ${Args[@]}
+							else
+								cat /dev/stdin | ${TheBinDir}/${TheBin} ${Args[@]}
+							fi
 						else
-							${TimeRun} ${TheBinDir}/${TheBin} ${Args[@]}
+							if [ ! -z "${TimeRun}" ]; then
+								time ${TheBinDir}/${TheBin} ${Args[@]}
+							else
+								${TimeRun} ${TheBinDir}/${TheBin} ${Args[@]}
+							fi
 						fi
 						;;
 				esac

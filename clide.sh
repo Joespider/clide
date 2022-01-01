@@ -3217,7 +3217,7 @@ Actions()
 								fi
 								;;
 							time)
-								TimeRun="time -p"
+								TimeRun="time"
 								errorCode "HINT" "Set to record runtime of a program"
 								;;
 							#Create new Template
@@ -4220,7 +4220,7 @@ CLI()
 													cd ${CodeDir}
 													case ${ActionProject} in
 														--time)
-															TimeRun="time -p"
+															TimeRun="time"
 															shift
 															local ArgFlag=$1
 															if [ ! -z "${ArgFlag}" ]; then
@@ -5146,7 +5146,7 @@ CLI()
 								if [ ! -z "${TheBin}" ]; then
 									case ${UserArg} in
 										--time)
-											TimeRun="time -p"
+											TimeRun="time"
 											;;
 										*)
 											;;

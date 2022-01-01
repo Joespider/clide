@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.87"
+SupportV="0.1.88"
 Lang=Perl
 LangExt=".pl"
 #Color Purple
@@ -995,9 +995,17 @@ UsePerl()
 						;;
 					runCode)
 						if [ ! -z "${ThePipe}" ]; then
-							cat /dev/stdin | ${TimeRun} ${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+							if [ ! -z "${TimeRun}" ]; then
+								time cat /dev/stdin | ${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+							else
+								cat /dev/stdin | ${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+							fi
 						else
-							${TimeRun} ${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+							if [ ! -z "${TimeRun}" ]; then
+								time ${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+							else
+								${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+							fi
 						fi
 						;;
 				esac

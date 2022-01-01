@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.69"
+SupportV="0.1.70"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
@@ -1790,9 +1790,17 @@ UseC()
 						;;
 					runCode)
 						if [ ! -z "${ThePipe}" ]; then
-							cat /dev/stdin | ${TimeRun} ${TheBinDir}/${TheBin} ${Args[@]}
+							if [ ! -z "${TimeRun}" ]; then
+								time cat /dev/stdin | ${TheBinDir}/${TheBin} ${Args[@]}
+							else
+								cat /dev/stdin | ${TheBinDir}/${TheBin} ${Args[@]}
+							fi
 						else
-							${TimeRun} ${TheBinDir}/${TheBin} ${Args[@]}
+							if [ ! -z "${TimeRun}" ]; then
+								time ${TheBinDir}/${TheBin} ${Args[@]}
+							else
+								${TheBinDir}/${TheBin} ${Args[@]}
+							fi
 						fi
 						;;
 				esac
