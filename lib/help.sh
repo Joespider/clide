@@ -337,6 +337,8 @@ MenuHelp()
 					echo -e "execute, exe, run <option>\t: \"run active program\""
 					echo -e "\t\t-a, --args\t: \"run program with cli arguments\""
 					echo -e "\t\t-d, --debug\t: \"run program in debug mode\""
+					echo -e "time <options>\t\t\t: \"runime of an active program\""
+					echo -e "\t-a, --args\t\t: \"run program with cli arguments\""
 					echo -e "bkup, backup\t\t\t: \"make backup of existing source code\""
 					echo -e "restore\t\t\t\t: \"restore the backup to original source code\""
 					echo -e "rename <new>\t\t\t: \"rename the existing source code\""
@@ -572,7 +574,10 @@ CliHelp()
 					EditCliHelp
 					;;
 				--cpl|--compile)
-					cplCliHelp
+					cplCliHelp ${example}
+					;;
+				--cpl-run|--car)
+					cplAndRunCliHelp ${example}
 					;;
 				--notes)
 					CliNotes
@@ -616,6 +621,7 @@ CliHelp()
 					echo -e "\t--cpl, --compile <args>\t\t\t\t: \"Compile source code\""
 					echo -e "\t\t--args <compile args>\t\t\t: \"Compile with one-time-use args\""
 					echo -e "\t\t--get-args\t\t\t\t: \"Get the compile args\""
+					echo -e "\t--cpl-run, --car <args>\t\t\t\t: \"Compile and run source code\""
 					echo -e "\t--install <args>\t\t\t\t: \"install program (.bash_aliases)\""
 					echo -e "\t--debug <args>\t\t\t\t\t: \"Debug compiled code\""
 					echo -e "\t--run <args>\t\t\t\t\t: \"Run compiled code\""
@@ -813,7 +819,7 @@ ReadCliHelp()
 
 cplCliHelp()
 {
-	local cli="--cpl"
+	local cli="$1"
 	local cmd="\$ clide ${cli}"
 	echo ""
 	echo "----------------[(${Head}) cli {${cli}}]----------------"
@@ -823,6 +829,23 @@ cplCliHelp()
 	echo -e "${cmd} <code> <args>"
 	echo -e "${cmd} --<type> <language> <code> <args>\t: \"compile language specific binary\""
 	echo -e "${cmd} --<type> <code> <args>\t\t: \"compile language specific binary\""
+	echo -e "${cmd} -h, --help\t\t\t: \"help page\""
+	echo "-----------------------------------------------"
+	echo ""
+}
+
+cplAndRunCliHelp()
+{
+	local cli="$1"
+	local cmd="\$ clide ${cli}"
+	echo ""
+	echo "----------------[(${Head}) cli {${cli}}]----------------"
+	echo -e "\"Compile and run your code without having a session\""
+	echo ""
+	echo -e "${cmd} <language> <code> <args>"
+	echo -e "${cmd} <code> <args>"
+	echo -e "${cmd} --<type> <language> <code> <args>\t: \"compile and run language specific binary\""
+	echo -e "${cmd} --<type> <code> <args>\t\t: \"compile and run language specific binary\""
 	echo -e "${cmd} -h, --help\t\t\t: \"help page\""
 	echo "-----------------------------------------------"
 	echo ""
