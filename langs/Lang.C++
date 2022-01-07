@@ -5,7 +5,7 @@ Shell=$(which bash)
 #Link Libs: https://gist.github.com/gubatron/32f82053596c24b6bec6
 #both https://avikdas.com/2019/12/16/makefiles-for-c-cpp-projects.html
 
-SupportV="0.2.29"
+SupportV="0.2.32"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -105,6 +105,10 @@ UseC++()
 	case ${Type} in
 		#C++ artwork
 		Art)
+			#https://textkool.com/en/ascii-art-generator
+			#Font: Roman
+			#Width: default
+			#height: default
 			local srt="\e[1;3${ColorNum}m"
 			local end="\e[0m"
 			echo -e "  ${srt}.oooooo.${end}"
@@ -115,6 +119,28 @@ UseC++()
 			echo -e "${srt}\`88b${end}    ${srt}ooo${end}      ${srt}88${end}         ${srt}88${end}"
 			echo -e " ${srt}\`Y8bood8P'${end}      ${srt}88${end}         ${srt}88${end}"
 			echo ""
+			;;
+		Lang-Type)
+			local Get=$1
+			case ${Get} in
+				classified)
+					echo "Programming"
+					;;
+				executable)
+					echo "Binary"
+					;;
+				runtime)
+					echo "Compiled"
+					;;
+				*)
+					local Classified=$(UseC++ ${Type} classified)
+					local Exe=$(UseC++ ${Type} executable)
+					local RunTime=$(UseC++ ${Type} runtime)
+					echo -e "Classified:\t${Classified}"
+					echo -e "Executable:\t${Exe}"
+					echo -e "Runtime:\t${RunTime}"
+					;;
+			esac
 			;;
 		color)
 			#Return Blue
@@ -2113,9 +2139,17 @@ UseC++()
 						;;
 					runCode)
 						if [ ! -z "${ThePipe}" ]; then
-							cat /dev/stdin | ${TheBinDir}/${TheBin} ${Args[@]}
+							if [ ! -z "${TimeRun}" ]; then
+								time cat /dev/stdin | ${TheBinDir}/${TheBin} ${Args[@]}
+							else
+								cat /dev/stdin | ${TheBinDir}/${TheBin} ${Args[@]}
+							fi
 						else
-							${TheBinDir}/${TheBin} ${Args[@]}
+							if [ ! -z "${TimeRun}" ]; then
+								time ${TheBinDir}/${TheBin} ${Args[@]}
+							else
+								${TimeRun} ${TheBinDir}/${TheBin} ${Args[@]}
+							fi
 						fi
 						;;
 				esac

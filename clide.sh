@@ -21,7 +21,7 @@ source ${root}/var/version
 export TypeOfCpl
 export RunCplArgs
 export TheSrcCode
-
+export TimeRun
 
 #InAndOut determines if internal functions can run via cli
 InAndOut="no"
@@ -1472,6 +1472,147 @@ Remove()
 	fi
 }
 
+compileCode()
+{
+	local Lang=$1
+	shift
+	local options
+	local CplFlag
+	local CplInputs=( $@ )
+	CplInputs[0]=""
+	CplFlag=${CplInputs[1]}
+	case ${CplInputs[1]} in
+		-a|--args|--get-args|--type)
+			CplInputs[1]=""
+			;;
+		*)
+			;;
+	esac
+
+	case ${CplFlag} in
+		-a|--args)
+			if [ -z "${CplInputs[2]}" ]; then
+				#Get help page from language support file
+				options=$(ManageLangs ${Lang} "setCplArgs-help" | tr '\n' '|')
+				if [ -z "${options}" ]; then
+					errorCode "cpl" "cpl-args"
+				else
+					echo -e "${options//|/\\n}"
+				fi
+				#Show Active cpl args
+				case ${RunCplArgs} in
+					none)
+						;;
+					*)
+						echo -n "Compile Arguments: "
+						echo "\"${RunCplArgs//,/ }\""
+						;;
+				esac
+			else
+				case ${CplInputs[2]} in
+					#User asks for help page
+					help)
+						#Get help page from language support file
+						options=$(ManageLangs ${Lang} "setCplArgs-help" | tr '\n' '|')
+						if [ -z "${options}" ]; then
+							errorCode "cpl" "cpl-args"
+						else
+							echo -e "${options//|/\\n}"
+						fi
+						;;
+					*)
+						#Keep OLD cpl args
+						local OldCplArgs=${RunCplArgs}
+						#Checking and getting compile arguments
+						local newCplArgs=$(ManageLangs ${Lang} "setCplArgs" ${CplInputs[@]})
+						#compile argument was given
+						if [ ! -z "${newCplArgs}" ]; then
+							#Checks of returned values
+							case ${RunCplArgs} in
+								#Nothing previously given or was reset
+								none)
+									RunCplArgs="${newCplArgs}"
+									;;
+								#Value was already given
+								*${newCplArgs}*)
+									;;
+								#Append new value to existing compile arguments
+								*)
+									case ${newCplArgs} in
+										none)
+											;;
+										*)
+											RunCplArgs="${RunCplArgs},${newCplArgs}"
+											;;
+									esac
+									;;
+							esac
+						fi
+						#CompileCode
+						ManageLangs ${Lang} "compileCode"
+						#Reset to OLD cpl args
+						RunCplArgs=${OldCplArgs}
+						;;
+				esac
+			fi
+			;;
+		--get-args)
+			case ${RunCplArgs} in
+				none)
+					;;
+				*)
+					echo -n "Compile Arguments: "
+					echo "\"${RunCplArgs//,/ }\""
+					;;
+			esac
+			;;
+		--type)
+			local NewCplType
+			if [ -z "${CplInputs[2]}" ]; then
+				echo "Possible Compile Types"
+				ManageLangs ${Lang} "compileType-list"
+				echo ""
+				echo -n "Active: "
+				if [ ! -z "${TypeOfCpl}" ]; then
+					echo ${TypeOfCpl}
+				else
+					echo "Default"
+				fi
+			else
+				case ${CplInputs[2]} in
+					--help)
+						ManageLangs ${Lang} "compileType-list"
+						;;
+					--reset|reset)
+						TypeOfCpl=""
+						errorCode "HINT" "Compile Type reset to default"
+						;;
+					*)
+						NewCplType=$(ManageLangs ${Lang} "compileType" ${CplInputs[2]})
+						if [ ! -z "${NewCplType}" ]; then
+							TypeOfCpl="${NewCplType}"
+							errorCode "HINT" "Set to Compile as a \"${TypeOfCpl}\""
+						fi
+						;;
+				esac
+			fi
+			;;
+		--*)
+			local NewCplType=$(ManageLangs ${Lang} "compileType" ${CplInputs[1]})
+			if [ ! -z "${NewCplType}" ]; then
+				TypeOfCpl="${NewCplType}"
+				CplInputs[1]=""
+			fi
+			ManageLangs ${Lang} "compileCode" ${CplInputs[@]}
+			TypeOfCpl=""
+			;;
+		*)
+			ManageLangs ${Lang} "compileCode" ${CplInputs[@]}
+			;;
+	esac
+	CplFlag=""
+}
+
 runCode()
 {
 	local Lang=$1
@@ -1501,7 +1642,11 @@ runCode()
 			-a|--args)
 				TheLang=$(color "${Lang}")
 				CLIout=$(ManageLangs ${Lang} "cli" "${TheBin}")
-				CLIout="$USER@${Name}:~${TheLang}\$ ${CLIout}"
+				if [ -z "${TimeRun}" ]; then
+					CLIout="$USER@${Name}:~/${TheLang}\$ ${CLIout}"
+				else
+					CLIout="$USER@${Name}:~/${TheLang}\$ ${TimeRun} ${CLIout}"
+				fi
 				#User Args not Pre-done'
 				if [ -z "${First}" ]; then
 					if [ -z "${RunTimeArgs}" ]; then
@@ -1715,7 +1860,7 @@ Actions-NoLang()
 				main "--repo-version"
 				;;
 			#jump out of No-Lang session and into a language session
-			use|bash|c|c++|go|java|python|perl|ruby|rust)
+			use|bash|c|c++|go|java|python|perl|php|ruby|rust)
 				local Lang
 				local Code
 				case ${UserIn[0],,} in
@@ -1908,6 +2053,9 @@ Actions()
 						;;
 					whoami)
 						echo "${USER}"
+						;;
+					type)
+						ManageLangs ${Lang} "Lang-Type" ${UserIn[1]}
 						;;
 					#Set for session or add code to session
 					select|set|add)
@@ -2587,7 +2735,7 @@ Actions()
 						refresh="yes"
 						;;
 					#Swap Programming Languages
-					use|bash|c|c++|go|java|python|perl|ruby|rust|no-lang|nl)
+					use|bash|c|c++|go|java|python|perl|php|ruby|rust|no-lang|nl)
 						Old=${Lang}
 						OldCode=${TheSrcCode}
 						case ${UserIn[0]} in
@@ -3209,6 +3357,10 @@ Actions()
 									esac
 								fi
 								;;
+							time)
+								TimeRun="time"
+								errorCode "HINT" "Set to record runtime of a program"
+								;;
 							#Create new Template
 							newCodeTemp)
 								local NewCode=$(ManageLangs ${Lang} "getNewCode")
@@ -3267,11 +3419,15 @@ Actions()
 										TypeOfCpl=""
 										echo "compile type reset"
 										;;
+									time)
+										TimeRun=""
+										;;
 									all)
 										#Default values
 										RunTimeArgs=""
 										RunCplArgs="none"
 										TypeOfCpl=""
+										TimeRun=""
 										echo "All rest"
 										;;
 									help|*)
@@ -3299,7 +3455,8 @@ Actions()
 						;;
 					#(c)ompile (a)nd (r)un
 					car|car-a)
-						ManageLangs ${Lang} "compileCode" ${UserIn[1]} ${UserIn[2]}
+						#Lets Compile
+						compileCode ${Lang} ${UserIn[@]}
 						if [ ! -z "${TheSrcCode}" ]; then
 							case ${UserArg} in
 								#Run without args
@@ -3317,157 +3474,17 @@ Actions()
 						;;
 					#Compile code
 					compile|cpl)
-						local CplFlag
-						local CplInputs=( ${UserIn[@]} )
-						CplInputs[0]=""
-						CplFlag=${CplInputs[1]}
-						case ${CplInputs[1]} in
-							-a|--args|--get-args|--type)
-								CplInputs[1]=""
-								;;
-							*)
-								;;
-						esac
+						#Lets Compile
+						compileCode ${Lang} ${UserIn[@]}
 
-						case ${CplFlag} in
-							-a|--args)
-								local options
-								if [ -z "${CplInputs[2]}" ]; then
-									#Get help page from language support file
-									options=$(ManageLangs ${Lang} "setCplArgs-help" | tr '\n' '|')
-									if [ -z "${options}" ]; then
-										errorCode "cpl" "cpl-args"
-									else
-										echo -e "${options//|/\\n}"
-									fi
-									#Show Active cpl args
-									case ${RunCplArgs} in
-										none)
-											;;
-										*)
-											echo -n "Compile Arguments: "
-											echo "\"${RunCplArgs//,/ }\""
-											;;
-									esac
-								else
-									case ${CplInputs[2]} in
-										#User asks for help page
-										help)
-											#Get help page from language support file
-											options=$(ManageLangs ${Lang} "setCplArgs-help" | tr '\n' '|')
-											if [ -z "${options}" ]; then
-												errorCode "cpl" "cpl-args"
-											else
-												echo -e "${options//|/\\n}"
-											fi
-											;;
-										*)
-											#Keep OLD cpl args
-											local OldCplArgs=${RunCplArgs}
-											#Checking and getting compile arguments
-											local newCplArgs=$(ManageLangs ${Lang} "setCplArgs" ${CplInputs[@]})
-											#compile argument was given
-											if [ ! -z "${newCplArgs}" ]; then
-												#Checks of returned values
-												case ${RunCplArgs} in
-													#Nothing previously given or was reset
-													none)
-														RunCplArgs="${newCplArgs}"
-														;;
-													#Value was already given
-													*${newCplArgs}*)
-														;;
-													#Append new value to existing compile arguments
-													*)
-														case ${newCplArgs} in
-															none)
-																;;
-															*)
-																RunCplArgs="${RunCplArgs},${newCplArgs}"
-																;;
-														esac
-														;;
-												esac
-											fi
-											#CompileCode
-											ManageLangs ${Lang} "compileCode"
-											#Jump-in and Jump-out
-											case ${InAndOut} in
-												yes)
-													break
-													;;
-												*)
-													;;
-											esac
-											#Reset to OLD cpl args
-											RunCplArgs=${OldCplArgs}
-											;;
-									esac
-								fi
-								;;
-							--get-args)
-								case ${RunCplArgs} in
-									none)
-										;;
-									*)
-										echo -n "Compile Arguments: "
-										echo "\"${RunCplArgs//,/ }\""
-										;;
-								esac
-								;;
-							--type)
-								local NewCplType
-								if [ -z "${CplInputs[2]}" ]; then
-									echo "Possible Compile Types"
-									ManageLangs ${Lang} "compileType-list"
-									echo ""
-									echo -n "Active: "
-									if [ ! -z "${TypeOfCpl}" ]; then
-										echo ${TypeOfCpl}
-									else
-										echo "Default"
-									fi
-								else
-									case ${CplInputs[2]} in
-										--help)
-											ManageLangs ${Lang} "compileType-list"
-											;;
-										--reset|reset)
-											TypeOfCpl=""
-											errorCode "HINT" "Compile Type reset to default"
-											;;
-										*)
-											NewCplType=$(ManageLangs ${Lang} "compileType" ${CplInputs[2]})
-											if [ ! -z "${NewCplType}" ]; then
-												TypeOfCpl="${NewCplType}"
-												errorCode "HINT" "Set to Compile as a \"${TypeOfCpl}\""
-											fi
-											;;
-									esac
-								fi
-								;;
-							--*)
-								local NewCplType=$(ManageLangs ${Lang} "compileType" ${CplInputs[1]})
-								if [ ! -z "${NewCplType}" ]; then
-									TypeOfCpl="${NewCplType}"
-									CplInputs[1]=""
-								fi
-								ManageLangs ${Lang} "compileCode" ${CplInputs[@]}
-								TypeOfCpl=""
+						#Jump-in and Jump-out
+						case ${InAndOut} in
+							yes)
+								break
 								;;
 							*)
-								ManageLangs ${Lang} "compileCode" ${CplInputs[@]}
-								#Jump-in and Jump-out
-								case ${InAndOut} in
-									yes)
-										break
-										;;
-									*)
-										;;
-								esac
 								;;
 						esac
-						CplFlag=""
 						;;
 					build)
 						case ${CodeProject} in
@@ -3560,6 +3577,28 @@ Actions()
 								;;
 						esac
 						;;
+					time)
+						TimeRun="time"
+						case ${CodeProject} in
+							none)
+								if [ ! -z "${TheSrcCode}" ]; then
+									runCode ${Lang} ${TheSrcCode} ${UserIn[@]}
+								else
+									errorCode "cpl" "none"
+								fi
+								;;
+							#It is assumed that the project name is the binary
+							*)
+								if [ ! -z "${TheSrcCode}" ]; then
+									runCode ${Lang} ${TheSrcCode} ${UserIn[@]}
+								else
+									#May Cause Prolems
+									runCode ${Lang} ${CodeProject} ${UserIn[@]}
+								fi
+								;;
+						esac
+						TimeRun=""
+						;;
 					#Display cl[ide] version
 					version|v)
 						CodeSupportVersion ${Lang}
@@ -3631,6 +3670,7 @@ Actions()
 						;;
 					#Close cl[ide]
 					exit|close)
+						#cd - > /dev/null
 						break
 						;;
 					#ignore all other commands
@@ -3641,6 +3681,7 @@ Actions()
 				#Jump-in and Jump-out
 				case ${InAndOut} in
 					yes)
+						#cd - > /dev/null
 						break
 						;;
 					*)
@@ -3968,6 +4009,7 @@ loadAuto()
 	comp_list "lscpl"
 	comp_list "using"
 	comp_list "ll"
+	comp_list "type" "classified executable runtime"
 	comp_list "clear"
 	comp_list "debug"
 	comp_list "set select"
@@ -3981,12 +4023,13 @@ loadAuto()
 	comp_list "project" "build delete discover export files import load list link mode new remove swap select src use save title type update"
 	comp_list "package" "get new set list mv move"
 	comp_list "shell"
+	comp_list "time"
 	comp_list "new" "--version -v --help -h --custom -c"
 	comp_list "${editor} ed edit" "non-lang"
 	comp_list "add"
 	comp_list "${ReadBy} read" "non-lang"
 	comp_list "search"
-	comp_list "create" "args cpl cpl-args make newCodeTemp reset version type"
+	comp_list "create" "args cpl cpl-args make newCodeTemp reset version type time"
 	comp_list "compile cpl car car-a" "--args --get-args --type"
 	comp_list "execute exe run" "-a --args"
 	comp_list "version"
@@ -4154,7 +4197,7 @@ CLI()
 								fi
 							fi
 							;;
-						-x|--run|--build)
+						-x|--run|--time|--build)
 							shift
 							local Lang=$1
 							Lang=$(pgLang ${Lang})
@@ -4203,6 +4246,16 @@ CLI()
 												if [ -d ${CodeDir} ]; then
 													cd ${CodeDir}
 													case ${ActionProject} in
+														--time)
+															TimeRun="time"
+															shift
+															local ArgFlag=$1
+															if [ ! -z "${ArgFlag}" ]; then
+																runCode ${Lang} "none" "none" "none" $@
+															else
+																runCode ${Lang} "none"
+															fi
+															;;
 														-x|--run)
 															shift
 															local ArgFlag=$1
@@ -4588,6 +4641,76 @@ CLI()
 					theHelp CliHelp ${UserArg} $2 $3
 				fi
 				;;
+			#Get the type of language
+			--type)
+				if [ -z "${ThePipe}" ]; then
+					shift
+					local TheLang
+					local text
+					local ColorCode
+					local Lang=$1
+					local TypeInfo=$2
+					case ${Lang} in
+						all)
+							for TheLang in ${LangsDir}/Lang.*;
+							do
+								#Select the next langauge
+								TheLang=${TheLang##*/}
+								Lang=${TheLang#Lang.*}
+								text=$(pgLang ${Lang})
+								if [ ! -z "${text}" ]; then
+									case ${text} in
+										no)
+											#do nothing
+											;;
+										*)
+											#get langauge color
+											ColorCode=$(ManageLangs ${Lang} "color-number")
+											#Display language and code
+											if [ -z "${TypeInfo}" ]; then
+												echo -e "\e[1;3${ColorCode}m{${Lang}}"
+												echo "{"
+												CLI ${UserArg} ${Lang}
+												echo "}"
+												echo -e "\e[0m"
+											else
+												TypeInfo=${TypeInfo,,}
+												case ${TypeInfo} in
+													classified|executable|runtime)
+														echo -en "\e[1;3${ColorCode}m${Lang}: "
+														CLI ${UserArg} ${Lang} ${TypeInfo}
+														echo -en "\e[0m"
+														;;
+													*)
+														theHelp TypeCliHelp ${UserArg}
+														break
+														;;
+												esac
+											fi
+											;;
+									esac
+								fi
+							done
+							;;
+						*)
+							Lang=$(pgLang ${Lang})
+							if [ ! -z "${Lang}" ]; then
+								case ${Lang} in
+									no)
+										theHelp TypeCliHelp ${UserArg}
+										;;
+									*)
+										InAndOut="yes"
+										Actions ${Lang} "none" "type" "${TypeInfo}"
+										;;
+								esac
+							else
+								theHelp TypeCliHelp ${UserArg}
+							fi
+							;;
+					esac
+				fi
+				;;
 			#Load last saved session
 			-l|--load|--last)
 				if [ -z "${ThePipe}" ]; then
@@ -4715,7 +4838,7 @@ CLI()
 							local Args=$@
 							case ${Code} in
 								-h|--help)
-#										theHelp InstallCliHelp
+									#theHelp InstallCliHelp
 									;;
 								*)
 									if [ ! -z "${Code}" ]; then
@@ -4872,6 +4995,23 @@ CLI()
 					Protect "done"
 				fi
 				;;
+			--cpl-run|--car)
+				if [ -z "${ThePipe}" ]; then
+					local TheOldPWD="${PWD}"
+					shift
+					local cplArg=$1
+					CLI --cpl $@
+					case ${cplArg} in
+						-*)
+							shift
+							;;
+						*)
+							;;
+					esac
+					cd "${TheOldPWD}"
+					CLI --run $@
+				fi
+				;;
 			#compile code without entering cl[ide]
 			#clide --cpl <lang> <code> <args>
 			--cpl|--compile)
@@ -5007,7 +5147,7 @@ CLI()
 			--debug)
 				;;
 			#run your compiled code
-			-x|--run)
+			-x|--run|--time)
 				#Protect
 				Protect
 				shift
@@ -5020,7 +5160,7 @@ CLI()
 				else
 					case ${Lang} in
 						#Provide the help page
-						-h|--help)
+						-h|--help|-*)
 							theHelp RunCliHelp ${UserArg}
 							;;
 						*)
@@ -5048,6 +5188,13 @@ CLI()
 							else
 								local TheBin=$(ManageLangs ${Lang} "getBin" "${Code}")
 								if [ ! -z "${TheBin}" ]; then
+									case ${UserArg} in
+										--time)
+											TimeRun="time"
+											;;
+										*)
+											;;
+									esac
 									local Args=$@
 									#run the code..."none" "none" is to provide the needed padding to run
 									runCode ${Lang} ${Code} "none" "none" ${Args[@]}

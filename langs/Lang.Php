@@ -1,19 +1,15 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.97"
-Lang=Python
-LangExt=".py"
-#Color Yellow
-ColorNum=3
+SupportV="0.0.02"
+Lang=Php
+LangExt=".php"
+ColorNum=5
 UseTypeOfCpl=${TypeOfCpl}
 
 #Handle Pipes
 #{
 ThePipe=""
-if readlink /proc/$$/fd/0 | grep -q "^pipe:"; then
-	ThePipe="Pipe"
-fi
 #}
 
 CplArgs=${RunCplArgs}
@@ -48,22 +44,19 @@ ProjectTemplateHandler()
 	fi
 }
 
-UsePython()
+UsePhp()
 {
-	local LangRun=${cplPython}
-	local UseDebugger=${debugPython}
+	local LangRun=${cplPhp}
 
 	local LangHome=${ProgDir}/${Lang}
 	local LangSrc=${LangHome}/src
 	local LangBin=${LangHome}/bin
 	local LangProject=${LangHome}/projects
 
-	local TemplateCode=${NewPython}
+	local TemplateCode=${NewBash}
 	TemplateCode=${LangBin}/${TemplateCode%${LangExt}}${LangExt}
 
-	local TemplateCodeSrc=${NewPython%${LangExt}}${LangExt}
-
-	local TemplateCodeArgs=${NewPythonArgs}
+	local TemplateCodeSrc=${NewBash%${LangExt}}${LangExt}
 
 	local EnvVars=( ${LangRun} ${LangHome} ${LangSrc} ${LangBin} ${LangExt} )
 	local Type=$1
@@ -76,22 +69,22 @@ UsePython()
 			#height: default
 			local srt="\e[1;3${ColorNum}m"
 			local end="\e[0m"
-			echo -e "${srt}ooooooooo.${end}                   ${srt}.${end}   ${srt}oooo${end}"
-			echo -e "${srt}\`888${end}   ${srt}\`Y88.${end}               ${srt}.o8${end}   ${srt}\`888${end}"
-			echo -e " ${srt}888${end}   ${srt}.d88'${end} ${srt}oooo${end}    ${srt}ooo${end} ${srt}.o888oo${end}  ${srt}888${end} ${srt}.oo.${end}    ${srt}.ooooo.${end}  ${srt}#ooo.${end} ${srt}.oo.${end}"
-			echo -e " ${srt}888ooo88P'${end}   ${srt}\`88.${end}  ${srt}.8'${end}    ${srt}888${end}    ${srt}888P\"Y88b${end}  ${srt}d88'${end} ${srt}\`88b${end} ${srt}#\`888P\"Y88b${end}"
-			echo -e " ${srt}888${end}           ${srt}\`88..8'${end}     ${srt}888${end}    ${srt}888${end}   ${srt}888${end}  ${srt}888${end}   ${srt}888${end}  ${srt}888${end}   ${srt}#888${end}"
-			echo -e " ${srt}888${end}            ${srt}\`888'${end}      ${srt}888${end} ${srt}.${end}  ${srt}888${end}   ${srt}888${end}  ${srt}888${end}   ${srt}888${end}  ${srt}888${end}   ${srt}#888${end}"
-			echo -e "${srt}o888o${end}            ${srt}.8'${end}       ${srt}\"888\"${end} ${srt}o888o${end} ${srt}o888o${end} ${srt}\`Y8bod8P'${end} ${srt}#o888o${end} ${srt}o888o${end}"
-			echo -e "             ${srt}.o..P'${end}"
-			echo -e "             ${srt}\`Y8P'${end}"
-			echo ""	
+			echo -e "${srt}ooooooooo.${end}   ${srt}oooo${end}"
+			echo -e "${srt}\`888${end}   ${srt}\`Y88. ${srt}\`888${end}"
+			echo -e " ${srt}888${end}   ${srt}.d88'  ${srt}888${end} ${srt}.oo.${end}   ${srt}oo.ooooo.${end}"
+			echo -e " ${srt}888ooo88P'${end}   ${srt}888P\"Y88b${end}   ${srt}888'${end} ${srt}\`88b${end}"
+			echo -e " ${srt}888${end}          ${srt}888${end}   ${srt}888${end}   ${srt}888${end}   ${srt}888${end}"
+			echo -e " ${srt}888${end}          ${srt}888${end}   ${srt}888${end}   ${srt}888${end}   ${srt}888${end}"
+			echo -e "${srt}o888o${end}        ${srt}o888o${end} ${srt}o888o${end}  ${srt}888bod8P'${end}"
+			echo -e "                          ${srt}888${end}"
+			echo -e "                         ${srt}o888o${end}"
+			echo ""
 			;;
 		Lang-Type)
 			local Get=$1
 			case ${Get} in
 				classified)
-					echo "Scripting"
+					echo "Web Services"
 					;;
 				executable)
 					echo "Script"
@@ -100,9 +93,9 @@ UsePython()
 					echo "Interpreted"
 					;;
 				*)
-					local Classified=$(UsePython ${Type} classified)
-					local Exe=$(UsePython ${Type} executable)
-					local RunTime=$(UsePython ${Type} runtime)
+					local Classified=$(UsePhp ${Type} classified)
+					local Exe=$(UsePhp ${Type} executable)
+					local RunTime=$(UsePhp ${Type} runtime)
 					echo -e "Classified:\t${Classified}"
 					echo -e "Executable:\t${Exe}"
 					echo -e "Runtime:\t${RunTime}"
@@ -110,7 +103,7 @@ UsePython()
 			esac
 			;;
 		color)
-			#Return Yellow
+			#Return Green
 			echo -e "\e[1;3${ColorNum}m${Lang}\e[0m"
 			;;
 		color-number)
@@ -123,6 +116,9 @@ UsePython()
 			else
 				echo -e "\e[1;4${ColorNum}m${TheText}\e[0m"
 			fi
+			;;
+		SupportVersion)
+			echo ${SupportV}
 			;;
 		getNewCode)
 			echo ${TemplateCodeSrc}
@@ -146,48 +142,12 @@ UsePython()
 				find ${TheSrcDir} -name "${name}" 2> /dev/null
 			fi
 			;;
-		IsDebugEnabled)
-			local TheCode=$1
-			local TheBinDir
-			local project=${CodeProject}
-			#Handle Project Dir
-			case ${project} in
-				none)
-					TheBinDir=${LangBin}
-					;;
-				*)
-					TheBinDir="${LangProject}/${project}/bin"
-					;;
-			esac
-			if [ -d ${TheBinDir} ]; then
-				cd "${TheBinDir}"
-				TheCode=${TheCode//,/ }
-				local DebugFlag=$(grep "import ${UseDebugger}" ${TheCode} 2> /dev/null | grep -v "#")
-				if [ ! -z "${DebugFlag}" ]; then
-					echo "yes"
-				fi
-				cd - > /dev/null
-			fi
-			;;
-		getDebugger)
-			echo ${UseDebugger}
-			;;
-		getDebugVersion)
-			local debugV=$(${LangRun} --version 2>&1 | sed "s/${Lang}/${UseDebugger}/g")
-			if [ ! -z "${debugV}" ]; then
-				echo ${debugV}	
-			fi
-			;;
 		getExt)
 			echo ${LangExt}
-			;;
-		SupportVersion)
-			echo ${SupportV}
 			;;
 		MenuHelp)
 			echo -e "new <file>\t\t\t: \"create new ${Lang} script\""
 			echo -e "cpl, compile\t\t\t: \"make code executable\""
-			echo -e "shell\t\t\t\t: run shell for testing"
 			;;
 		ProjectHelp)
 			echo ""
@@ -196,14 +156,34 @@ UsePython()
 			;;
 		getProjectDir)
 			local project=${CodeProject}
+			local UseProjectTemplate
 			case ${project} in
 				none)
 					echo ${LangProject}
 					;;
 				*)
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					echo ${LangProject}/${project}
 					;;
 			esac
+			;;
+		getProjSrc)
+			local name=$1
+			local project=${CodeProject}
+			local TheSrcDir=${LangProject}/${project}/src
+			if [ ! -z "${name}" ]; then
+				find ${TheSrcDir} -name "${name}" 2> /dev/null
+			fi
+			;;
+		pgLang)
+			HasLang=$(which ${LangRun} 2> /dev/null)
+			if [ ! -z "${HasLang}" ]; then
+				#Return Php tag
+				echo "${Lang}"
+			else
+				#Return rejection
+				echo "no"
+			fi
 			;;
 		hasExt)
 			local SourceFile=$1
@@ -235,11 +215,9 @@ UsePython()
 			if [ ! -z "${srcCode}" ]; then
 				local TheCpl
 				local TheItem
-				local CplList=$(UsePython lscpl | tr '\n' '|')
+				local CplList=$(UsePhp lscpl | tr '\n' '|')
 				for TheItem in ${srcCode//,/ };
 				do
-					TheItem=$(UsePython "removeExt" ${TheItem})
-					TheItem=${TheItem}${LangExt}
 					TheCpl=$(echo -e "${CplList//|/\\n}" | grep -w ${TheItem})
 					if [ ! -z "${TheCpl}" ]; then
 						break
@@ -250,7 +228,7 @@ UsePython()
 			;;
 		getCode)
 			local name=$1
-			name=$(UsePython "removeExt" ${name})
+			name=$(UsePhp "removeExt" ${name})
 			local project=${CodeProject}
 			local newName
 			local DirPath
@@ -262,21 +240,28 @@ UsePython()
 					;;
 				*)
 					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
-					case ${name} in
-						*.*)
-							newName=${name##*.}
-							DirPath=$(echo ${name%${newName}} | tr '.' '/')
-							TheSrcDir="${LangProject}/${project}/src/${DirPath}"
-							name=${newName}
-							;;
-						*/*)
-							newName=${name##*/}
-							DirPath=${name%${newName}}
-							TheSrcDir="${LangProject}/${project}/src/${DirPath}"
-							name=${newName}
+					case ${ProjectType} in
+						${ProjectDefaultType})
+							case ${name} in
+								*.*)
+									newName=${name##*.}
+									DirPath=$(echo ${name%${newName}} | tr '.' '/')
+									TheSrcDir="${LangProject}/${project}/src/${DirPath}"
+									name=${newName}
+									;;
+								*/*)
+									newName=${name##*/}
+									DirPath=${name%${newName}}
+									TheSrcDir="${LangProject}/${project}/src/${DirPath}"
+									name=${newName}
+									;;
+								*)
+									TheSrcDir="$(pwd)/"
+									;;
+							esac
 							;;
 						*)
-							TheSrcDir="$(pwd)/"
+							TheSrcDir=$(ProjectTemplateHandler ${EnvVars[@]} ${Type} ${mode})
 							;;
 					esac
 					;;
@@ -291,24 +276,15 @@ UsePython()
 		BeforeFiles|AfterFiles)
 			ls *${LangExt} 2> /dev/null
 			;;
-		pgLang)
-			local HasLang=$(which ${LangRun} 2> /dev/null)
-			if [ ! -z "${HasLang}" ]; then
-				#Return Python tag
-				echo "${Lang}"
-			else
-				#Return rejection
-				echo "no"
-			fi
-			;;
 		pgDir)
-			#Return Python src Dir
+			#Return Bash src Dir
 			echo ${LangSrc}
 			;;
 		CreateHelp)
 			;;
 		shell)
-			${LangRun}
+			cd
+			${Shell}
 			;;
 		newCodeHelp)
 			if [ -f ${TemplateCode} ]; then
@@ -337,15 +313,15 @@ UsePython()
 			;;
 		TemplateVersion)
 			if [ -f ${TemplateCode} ]; then
-				echo -n "${TemplateCode##*/} "
-				${LangRun} ${TemplateCode} 2> /dev/null | grep Version | sed "s/Version//g"
+				echo "${TemplateCode##*/} "
+				${TemplateCode} 2> /dev/null | grep Version | sed "s/Version//g"
 			else
 				echo "no ${TemplateCode##*/} found"
 			fi
 			;;
 		CplVersion)
 			echo -e "\e[1;4${ColorNum}m[${Lang} Shell]\e[0m"
-			${LangRun} --version
+			${LangRun} --version | head -n 1
 			echo ""
 			;;
 		selectCode|addCode)
@@ -355,6 +331,7 @@ UsePython()
 			local newName
 			local DirPath
 			local TheSrcDir
+			local UseProjectTemplate
 
 			#Correct filename
 			if [ ! -z "${name}" ]; then
@@ -408,6 +385,7 @@ UsePython()
 						;;
 					#is a project
 					*)
+						UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 						TheSrcDir="${LangProject}/${project}/src/"
 						local LookFor
 						case ${Type} in
@@ -457,12 +435,6 @@ UsePython()
 								esac
 								;;
 							*)
-#								find ${TheSrcDir} -name ${name} 2> /dev/null | nl
-#								if [ -f ${name} ]; then
-#									name=${name%${LangExt}}
-#									newName=${name##*/}
-#									echo ${newName}${LangExt}
-#								fi
 								;;
 						esac
 						;;
@@ -471,16 +443,18 @@ UsePython()
 			;;
 		rmBin|rmSrc)
 			local name=$1
-			name=$(UsePython "removeExt" ${name})
+			name=$(UsePhp "removeExt" ${name})
 			local ThePath
 			local theSrc
 			local project=${CodeProject}
+			local UseProjectTemplate
 
 			if [ -z "${name}" ]; then
 				case ${project} in
 					none)
 						;;
 					*)
+						UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 						name=${project}
 						;;
 				esac
@@ -513,13 +487,15 @@ UsePython()
 					;;
 			esac
 	
-			if [ -f ${ThePath}/${name}${LangExt} ]; then
+			if [ -f ${ThePath}/${name}${LangExt} ] ; then
 				echo ${ThePath}/${name}${LangExt}
+			elif [ -f ${ThePath}/${project}${LangExt} ]; then
+				echo ${ThePath}/${project}${LangExt}
 			else
 				case ${Type} in
 					rmSrc)
 						cd ${ThePath}/
-						theSrc=$(UsePython "getProjSrc" ${name}${LangExt})
+						theSrc=$(UsePhp "getProjSrc" ${name}${LangExt})
 						cd -> /dev/null
 						if [ ! -z "${theSrc}" ]; then
 							echo ${theSrc}
@@ -539,7 +515,6 @@ UsePython()
 			local TheSrcDir
 			local ReadOrEdit
 			local UseProjectTemplate
-
 
 			#Select the tool
 			#{
@@ -692,7 +667,6 @@ UsePython()
 			local project=${CodeProject}
 			local cplArgs=""
 			local TheBinDir
-			local GetCount
 			local ERROR
 			local UseProjectTemplate
 			#Handle Project Dir
@@ -710,8 +684,6 @@ UsePython()
 			#Handle multiple files
 			if [[ "${src}" == *","* ]]; then
 				if [ -z "${name}" ]; then
-					name=${src//,/ }
-					name=$(grep -l "if __name__ == '__main__':" ${name} 2> /dev/null)
 					src=""
 					if [ -z "${name}" ]; then
 						echo "Unable to find the \"main\" file"
@@ -724,12 +696,12 @@ UsePython()
 								fi
 								;;
 							*)
-								GetCount=$(UsePython "getProjSrc" ${src} | wc -l)
+								GetCount=$(UsePhp "getProjSrc" ${src} | wc -l)
 								case ${GetCount} in
 									0)
 										;;
 									1)
-										src=$(UsePython "getProjSrc" ${src})
+										src=$(UsePhp "getProjSrc" ${src})
 										src="..${src##*${CodeProject}}"
 										ERROR=$(ln -s ${src} ${CodeProject}${LangExt} 2>&1 | tr '\n' '|')
 										;;
@@ -749,22 +721,22 @@ UsePython()
 			#Set Code to executable
 			case ${src} in
 				*${LangExt})
-					#Check if Python Script does NOT exist
+					#Check if Bash Script does NOT exist
 					if [ ! -f "${TheBinDir}/${src}" ]; then
-						#Change to Python Binary dir
+						#Change to Bash Binary dir
 						cd ${TheBinDir}
 						case ${CodeProject} in
 							none)
-								#Create Symbolic Link to Python Script
+								#Create Symbolic Link to Bash Script
 								ERROR=$(ln -s ../src/${src} 2>&1 | tr '\n' '|')
 								;;
 							*)
-								GetCount=$(UsePython "getProjSrc" ${src} | wc -l)
+								local GetCount=$(UsePhp "getProjSrc" ${src} | wc -l)
 								case ${GetCount} in
 									0)
 										;;
 									1)
-										src=$(UsePython "getProjSrc" ${src})
+										src=$(UsePhp "getProjSrc" ${src})
 										src="..${src##*${CodeProject}}"
 										ERROR=$(ln -s ${src} ${CodeProject}${LangExt} 2>&1 | tr '\n' '|')
 										;;
@@ -776,11 +748,11 @@ UsePython()
 						#Change to Bash Source dir
 						cd - > /dev/null
 						if [ -f "${TheBinDir}/${src}" ]; then
-							UsePython compileCode-message
+							UsePhp compileCode-message
 						else
 							errorCode "cpl" "ERROR" "${ERROR}"
 						fi
-					#Code is already found
+						#Code is already found
 					else
 						errorCode "cpl" "already" ${src}
 					fi
@@ -798,28 +770,33 @@ UsePython()
 			local project=$2
 			local path=${LangProject}/${project}
 			local UseProjectTemplate
-
 			if [ ! -d ${path} ]; then
-				UseProjectTemplate=$(ProjectTemplateHandler ${TheProjectType} --check ${Type})
-				if [ -z "${UseProjectTemplate}" ]; then
-					mkdir ${path}
-					mkdir ${path}/src
-					mkdir ${path}/bin
-				else
-					mkdir ${path}
-					ProjectTemplateHandler ${TheProjectType} ${Type} ${path}
-					if [ ! -d ${path}/src/ ] && [ ! -d ${path}/bin/ ]; then
+				case ${ProjectType} in
+					${ProjectDefaultType})
+						mkdir ${path}
 						mkdir ${path}/bin
 						mkdir ${path}/src
-					elif [ -d ${path}/src/ ] && [ ! -d ${path}/bin/ ]; then
-						mkdir ${path}/bin
-					elif [ ! -d ${path}/src/ ] && [ -d ${path}/bin/ ]; then
-						mkdir ${path}/src
-					fi
-				fi
+						;;
+					*)
+						UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
+						mkdir ${path}
+						if [ ! -z "${UseProjectTemplate}" ]; then
+							ProjectTemplateHandler ${EnvVars[@]} ${Type} ${project}
+							if [ ! -d ${path}/bin ]; then
+								mkdir ${path}/bin
+							fi
+							if [ ! -d ${path}/src ]; then
+								mkdir ${path}/src
+							fi
+						else
+							mkdir ${path}/bin
+							mkdir ${path}/src
+						fi
+						;;
+				esac
 				cd ${path}/src
 			else
-				cd ${path}
+				cd ${path}/srs
 			fi
 			echo ${path}
 			;;
@@ -831,21 +808,24 @@ UsePython()
 					;;
 				*)
 					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
-					ProjectTemplateHandler ${EnvVars[@]} ${Type} ${mode}
+					if [ ! -z "${UseProjectTemplate}" ]; then
+						ProjectTemplateHandler ${EnvVars[@]} ${Type} ${mode}
+					fi
 					;;
 			esac
 			;;
 		lscpl)
-			local project=${CodeProject}
+			local project
 			local path
 			local UseProjectTemplate
-			case ${project} in
+			case ${CodeProject} in
 				none)
 					path=${LangBin}/
 					;;
 				*)
 					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
-					path=${LangProject}/${project}/bin
+					project=${CodeProject}
+					path=${LangProject}/${project}/bin/
 					;;
 			esac
 			if [ -d ${path} ]; then
@@ -854,10 +834,10 @@ UsePython()
 			;;
 		Install|exe-string)
 			local bin=$1
-			local BinFile=$(UsePython "removeExt" ${bin})
+			local BinFile="${bin%.*}"
 			local project=${CodeProject}
-			local UseProjectTemplate
 			local TheBinDir
+			local UseProjectTemplate
 			#Handle Project Dir
 			case ${project} in
 				none)
@@ -875,7 +855,7 @@ UsePython()
 					#Make sure Binary exists
 					if [ -f "${TheBinDir}/${bin}" ]; then
 						#Add command to Aliases
-						AddAlias "${BinFile}" "${LangRun} ${TheBinDir}/${bin}"
+						AddAlias "${BinFile}" "${TheBinDir}/${bin}"
 					elif [ ! -f "${TheBinDir}/${bin}" ]; then
 						errorCode "install" "${bin}"
 					else
@@ -885,7 +865,8 @@ UsePython()
 				exe-string)
 					#Make sure Binary exists
 					if [ -f "${TheBinDir}/${bin}" ]; then
-						echo "${LangRun} ${TheBinDir}/${bin}"
+						#Add command to Aliases
+						echo "${TheBinDir}/${bin}"
 					fi
 					;;
 				*)
@@ -893,18 +874,19 @@ UsePython()
 			esac
 			;;
 		customCode)
-			local cLang=$(UsePython "color")
+			local cLang=$(UsePhp "color")
 			local cTemplate=$(OtherColor ${TemplateCode##*/})
+			local Type=${Type,,}
 			#Check for Custom Code Template
 			if [ -f ${TemplateCode} ]; then
-				echo -n "${cLang}\$ ${LangRun} ${cTemplate} "
+				echo -n "${cLang}\$ ./${cTemplate} "
 				read -a Args
-				#Program Args Given
+				#Template Args Given
 				if [ ! -z "${Args}" ]; then
-					${LangRun} ${TemplateCode} ${Args[@]}
-				#No Program Name Given
+					${TemplateCode} ${Args[@]}
+				#No Template Args Given
 				else
-					${LangRun} ${TemplateCode} --help
+					${TemplateCode} --help
 				fi
 			else
 				#Program Name Given
@@ -913,214 +895,88 @@ UsePython()
 			;;
 		newCode)
 			local name=$1
-			local CodeType=$2
+			local Type=$2
 			local oldCode=$3
-			local TheName
-			local UseProjectTemplate
 			local project=${CodeProject}
 			local UseProjectTemplate
 
-			case ${project} in
-				none)
-					;;
-				*)
-					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
-					;;
-			esac
-
-			#Sometimes "oldCode" gets passed as "CodeType"
-			if [ -z "${oldCode}" ]; then
-				case ${CodeType} in
-					*${LangExt})
-						oldCode=${CodeType}
-						;;
-					*)
-						;;
-				esac
-			fi
-
-			CodeType=${CodeType,,}
-			name=$(UsePython "removeExt" ${name})
-
+			Type=${Type,,}
+			name=$(UsePhp "removeExt" ${name})
 			if [ ! -f ${name}${LangExt} ]; then
-				case ${CodeType} in
-					#create main file
-					main)
-						if [ ! -f ${name}${LangExt} ]; then
-							if [ -z "${UseProjectTemplate}" ]; then
-								#Check for Custom Code Template
-								if [ -f ${TemplateCode} ]; then
-									#Program Name Given
-									if [ ! -z "${name}" ]; then
-										${LangRun} ${TemplateCode} -n ${name} --main ${TemplateCodeArgs}
-									#No Program Name Given
-									else
-										${LangRun} ${TemplateCode} --help
-									fi
-								else
-									#Program Name Given
-									if [ ! -z "${name}" ]; then
-										local Content
-										case ${LangRun,,} in
-											python)
-												Content="\n\n#${Lang} main\ndef main():\n\tprint \"python main\"\n\nif __name__ == '__main__':\n\tmain()"
-												;;
-											python3)
-												Content="\n\n#${Lang} main\ndef main():\n\tprint(\"python main\")\n\nif __name__ == \'__main__\':\n\tmain()"
-												;;
-											*)
-												;;
-										esac
-										touch ${name}${LangExt}
-										echo -e "${Content}" > ${name}${LangExt}
-									else
-										errorCode "newCode"
-									fi
-								fi
-							else
-								ProjectTemplateHandler ${ProjectType} ${Type} ${name}${LangExt} ${CodeType}
-							fi
+				UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
+				if [ -z "${UseProjectTemplate}" ]; then
+					#Check for Custom Code Template
+					if [ -f ${TemplateCode} ]; then
+						#Program Name Given
+						if [ ! -z "${name}" ]; then
+							${TemplateCode} ${name} > ${name}${LangExt}
+						#No Program Name Given
+						else
+							${TemplateCode} --help
 						fi
-						;;
-					#create component file
-					component)
-						if [ ! -f ${name}${LangExt} ]; then
-							if [ -z "${UseProjectTemplate}" ]; then
-								if [ -f ${TemplateCode} ]; then
-									#Program Name Given
-									if [ ! -z "${name}" ]; then
-										${LangRun} ${TemplateCode} -n "${name}"
-									#No Program Name Given
-									else
-										#Help Page
-										${LangRun} ${TemplateCode} --help
-									fi
-								else
-									#Program Name Given
-									if [ ! -z "${name}" ]; then
-										touch ${name}${LangExt}
-									else
-										errorCode "newCode"
-									fi
-								fi
-							else
-								ProjectTemplateHandler ${ProjectType} ${Type} ${name}${LangExt} ${CodeType}
-							fi
+					else
+						#Program Name Given
+						if [ ! -z "${name}" ]; then
+							touch ${name}${LangExt}
+							echo -e "<html>\n\t<?php\n\t\t\$hello = 'hi there';\n\t\techo \$hello;\n\t?>\n\n</html>" > ${name}${LangExt}
+						else
+							errorCode "newCode"
 						fi
-						;;
-					#cl[ide] knows best
-					*)
-						#Because projects are walled off from the rest of your source code,while non-project code is shared,
-						#Source code creation must be handled differently.
-						#(non-project) accounts for what is "set"
-						#(project) accounts for source code living in the directories
-						case ${project} in
-							#Is not a project
-							none)
-								#Looks like you have source code already set
-								TheName=$(UsePython "removeExt" ${name})
-								if [ ! -z "${oldCode}" ]; then
-									UsePython "newCode" ${name} "component" ${oldCode}
-								#No source code has been made, create a main file
-								else
-									UsePython "newCode" ${name} "main"
-								fi
-								;;
-							#Is a project
-							*)
-								#Because a project can have source code scattered in different directories,
-								#make sure you have one main component
-								#Figure out how to account for headers
-								local TheSrcDir="${LangProject}/${project}/src/"
-								local HasSrcCode=$(find ${TheSrcDir} -type f -name "*${LangExt}")
-								#Has Source Code
-								if [ ! -z "${HasSrcCode}" ]; then
-									TheName=$(UsePython "removeExt" ${name})
-									local NumFound=$(find ${TheSrcDir} -name ${TheName}}${LangExt} 2> /dev/null | wc -l)
-									case ${NumFound} in
-										#No other source code was found...make your main file
-										0)
-											UsePython "newCode" ${name} "component" ${oldCode}
-											;;
-										*)
-											;;
-									esac
-								#Make first source file
-								else
-									UsePython "newCode" ${name} "main" ${oldCode}
-								fi
-								;;
-						esac
-						;;
-				esac
+					fi
+				else
+					echo ProjectTemplateHandler
+				fi
 			fi
 			;;
 		cli)
 			local TheName=$(OtherColor $1)
-			echo "${LangRun} ${TheName}"
+			echo "./${TheName}"
 			;;
-		runCode|debug)
+		runCode)
 			local name=$1
-			local TheBin
-			name=$(UsePython "removeExt" ${name})
-			TheBin="${name}${LangExt}"
-			local project=${CodeProject}
-			local TheBinDir
 			local UseProjectTemplate
 			shift
 			shift
 			local Args=$@
+			local TheBin
+			local project=${CodeProject}
+			local TheBinDir
+			local TheSrcDir
+
 			#Handle Project Dir
 			case ${project} in
 				none)
 					project=""
 					TheBinDir=${LangBin}
+					TheSrcDir=${LangSrc}
 					#Handle multiple files
 					if [[ "${name}" == *","* ]]; then
-						cd ${LangSrc}/
-						name=${name//,/ }
-						name=$(grep -l "if __name__ == '__main__':" ${name} 2> /dev/null)
 						if [ -z "${name}" ]; then
 							echo "Unable to find the \"main\" file"
 							echo -n "Please choose: "
 							read name
 						fi
-						cd - /dev/null
-						TheBin="${name}"
 					fi
+					TheBin=${name}
 					;;
 				*)
-					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
-					TheBinDir="${LangProject}/${project}/bin"
-					cd ${LangProject}/${project}/src/
+					if [ ! -z "${project}" ]; then
+						UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
+						TheBinDir="${LangProject}/${project}/bin"
+						TheSrcDir="${LangProject}/${project}/src"
+						TheBin="${project}"
+					else
+						TheBin=""
+					fi
 					;;
 			esac
 
-			#Check if Python Bin exists
+			#Check if Bash Bin exists
 			if [ -f ${TheBinDir}/${TheBin} ]; then
 				#protect the shell script while running
 				chmod -w ${TheBinDir}/${TheBin} 2> /dev/null
-				case ${Type} in
-					debug)
-						${LangRun} -m ${UseDebugger} ${TheBinDir}/${TheBin} ${Args[@]}
-						;;
-					runCode)
-						if [ ! -z "${ThePipe}" ]; then
-							if [ ! -z "${TimeRun}" ]; then
-								time cat /dev/stdin | ${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
-							else
-								cat /dev/stdin | ${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
-							fi
-						else
-							if [ ! -z "${TimeRun}" ]; then
-								time ${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
-							else
-								${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
-							fi
-						fi
-						;;
-				esac
-				#release protections
+				${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+				#release protection
 				chmod u+w ${TheBinDir}/${TheBin} 2> /dev/null
 			else
 				errorCode "cpl" "need" "${name}"
@@ -1128,13 +984,13 @@ UsePython()
 			;;
 		backup|restore)
 			local name=$1
-			name=$(UsePython "removeExt" ${name})
+			name=$(UsePhp "removeExt" ${name})
 			name="${name}${LangExt}"
 			local project=${CodeProject}
+			local UseProjectTemplate
 			local TheDir
 			local TheCount
 			local TheFound
-			local UseProjectTemplate
 
 			case ${project} in
 				none)
@@ -1180,13 +1036,13 @@ UsePython()
 								mv ${name}.bak ${name}
 								echo "\"${name}\" restored"
 							else
-								TheCount=$(UsePython "getProjSrc" "${name}.bak" | wc -l)
+								TheCount=$(UsePhp "getProjSrc" "${name}.bak" | wc -l)
 								case ${TheCount} in
 									0)
 										errorCode "restore" "null"
 										;;
 									1)
-										TheFound=$(UsePython "getProjSrc" "${name}.bak")
+										TheFound=$(UsePhp "getProjSrc" "${name}.bak")
 										mv ${TheFound} ${TheFound%.bak}
 										echo "\"${name}\" restored"
 										;;
@@ -1200,13 +1056,13 @@ UsePython()
 								cp ${name} ${name}.bak
 								echo "\"${name}\" backed-up"
 							else
-								TheCount=$(UsePython "getProjSrc" "${name}" | wc -l)
+								TheCount=$(UsePhp "getProjSrc" "${name}" | wc -l)
 								case ${TheCount} in
 									0)
 										errorCode "backup" "null"
 										;;
 									1)
-										TheFound=$(UsePython "getProjSrc" "${name}")
+										TheFound=$(UsePhp "getProjSrc" "${name}")
 										cp ${TheFound} ${TheFound}.bak
 										echo "\"${name}\" backed-up"
 										;;
@@ -1229,12 +1085,11 @@ UsePython()
 			local TheNew
 			local project=${CodeProject}
 			local UseProjectTemplate
-
 			case ${project} in
 				none)
-					if [ ! -z "${New}" ]; then
-						TheOld=$(UsePython "removeExt" ${Src})
-						TheNew=$(UsePython "removeExt" ${New})
+					if [ ! -f ${New} ]; then
+						TheOld=$(UsePhp "removeExt" ${Src})
+						TheNew=$(UsePhp "removeExt" ${New})
 
 						#Remove old file for "rename"
 						case ${Type} in
@@ -1253,22 +1108,22 @@ UsePython()
 					fi
 					;;
 				*)
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					#Check if extenion is given
 					local HasAnExt
 					local CheckForSrc
 					local ThePath
-					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 
-					HasAnExt=$(UsePython "hasExt" ${Src})
+					HasAnExt=$(UsePhp "hasExt" ${Src})
 					if [ ! -f ${Src} ]; then
 						#Extension is NOT given
 						if [ -z "${HasAnExt}" ]; then
 							#Find src
-							CheckForSrc=$(UsePython "getProjSrc" ${Src}${LangExt} 2> /dev/null)
+							CheckForSrc=$(UsePhp "getProjSrc" ${Src}${LangExt} 2> /dev/null)
 							ThePath=${CheckForSrc%/*}
 							Src=${CheckForSrc##*/}
 						else
-							CheckForFile=$(UsePython "getProjSrc" ${Src} 2> /dev/null)
+							CheckForFile=$(UsePhp "getProjSrc" ${Src} 2> /dev/null)
 							if [ ! -z "${CheckForFile}" ]; then
 								ThePath=${CheckForFile%/*}
 							fi
@@ -1276,7 +1131,7 @@ UsePython()
 					fi
 
 					TheOld=${Src}
-					HasAnExt=$(UsePython "hasExt" ${New})
+					HasAnExt=$(UsePhp "hasExt" ${New})
 					if [ -z "${HasAnExt}" ]; then
 						TheNew="${New}${LangExt}"
 					else
@@ -1320,4 +1175,4 @@ UsePython()
 	esac
 }
 
-UsePython $@
+UsePhp $@

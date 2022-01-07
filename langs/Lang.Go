@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.70"
+SupportV="0.1.75"
 Lang=Go
 LangExt=".go"
 #Color Green
@@ -75,6 +75,10 @@ UseGo()
 	case ${Type} in
 		#Go artwork
 		Art)
+			#https://textkool.com/en/ascii-art-generator
+			#Font: Roman
+			#Width: default
+			#height: default
 			local srt="\e[1;3${ColorNum}m"
 			local end="\e[0m"
 			echo -e "  ${srt}.oooooo.${end}"
@@ -85,6 +89,28 @@ UseGo()
 			echo -e "${srt}\`88.${end}    ${srt}.88'${end}  ${srt}888${end}   ${srt}888${end}"
 			echo -e " ${srt}\`Y8bood8P'${end}   ${srt}\`Y8bod8P'${end}"
 			echo ""
+			;;
+		Lang-Type)
+			local Get=$1
+			case ${Get} in
+				classified)
+					echo "Programming"
+					;;
+				executable)
+					echo "Binary"
+					;;
+				runtime)
+					echo "Compiled"
+					;;
+				*)
+					local Classified=$(UseGo ${Type} classified)
+					local Exe=$(UseGo ${Type} executable)
+					local RunTime=$(UseGo ${Type} runtime)
+					echo -e "Classified:\t${Classified}"
+					echo -e "Executable:\t${Exe}"
+					echo -e "Runtime:\t${RunTime}"
+					;;
+			esac
 			;;
 		color)
 			#Return Blue
@@ -1103,7 +1129,7 @@ UseGo()
 								if [ -f ${TemplateCode} ]; then
 									#Program Name Given
 									if [ ! -z "${name}" ]; then
-										${TemplateCode} --name ${name} ${TemplateCodeArgs}
+										${TemplateCode} --name ${name} --main ${TemplateCodeArgs}
 									#No Program Name Given
 									else
 										#Help Page
@@ -1297,9 +1323,17 @@ UseGo()
 						;;
 					runCode)
 						if [ ! -z "${ThePipe}" ]; then
-							cat /dev/stdin | ${TheBinDir}/${TheBin} ${Args[@]}
+							if [ ! -z "${TimeRun}" ]; then
+								time cat /dev/stdin | ${TheBinDir}/${TheBin} ${Args[@]}
+							else
+								cat /dev/stdin | ${TheBinDir}/${TheBin} ${Args[@]}
+							fi
 						else
-							${TheBinDir}/${TheBin} ${Args[@]}
+							if [ ! -z "${TimeRun}" ]; then
+								time ${TheBinDir}/${TheBin} ${Args[@]}
+							else
+								${TheBinDir}/${TheBin} ${Args[@]}
+							fi
 						fi
 						;;
 				esac

@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.84"
+SupportV="0.1.88"
 Lang=Perl
 LangExt=".pl"
 #Color Purple
@@ -68,6 +68,10 @@ UsePerl()
 	shift
 	case ${Type} in
 		Art)
+			#https://textkool.com/en/ascii-art-generator
+			#Font: Roman
+			#Width: default
+			#height: default
 			local srt="\e[1;3${ColorNum}m"
 			local end="\e[0m"
 			echo -e "${srt}ooooooooo.${end}                      ${srt}oooo${end}"
@@ -78,6 +82,28 @@ UsePerl()
 			echo -e " ${srt}888${end}         ${srt}888${end}    ${srt}.o${end}  ${srt}888${end}      ${srt}888${end}" 
 			echo -e "${srt}o888o${end}        ${srt}\`Y8bod8P'${end} ${srt}d888b${end}    ${srt}o888o${end}"
 			echo ""
+			;;
+		Lang-Type)
+			local Get=$1
+			case ${Get} in
+				classified)
+					echo "Scripting"
+					;;
+				executable)
+					echo "Script"
+					;;
+				runtime)
+					echo "Interpreted"
+					;;
+				*)
+					local Classified=$(UsePerl ${Type} classified)
+					local Exe=$(UsePerl ${Type} executable)
+					local RunTime=$(UsePerl ${Type} runtime)
+					echo -e "Classified:\t${Classified}"
+					echo -e "Executable:\t${Exe}"
+					echo -e "Runtime:\t${RunTime}"
+					;;
+			esac
 			;;
 		color)
 			#Return Purple
@@ -969,9 +995,17 @@ UsePerl()
 						;;
 					runCode)
 						if [ ! -z "${ThePipe}" ]; then
-							cat /dev/stdin | ${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+							if [ ! -z "${TimeRun}" ]; then
+								time cat /dev/stdin | ${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+							else
+								cat /dev/stdin | ${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+							fi
 						else
-							${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+							if [ ! -z "${TimeRun}" ]; then
+								time ${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+							else
+								${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+							fi
 						fi
 						;;
 				esac
@@ -1174,4 +1208,3 @@ UsePerl()
 }
 
 UsePerl $@
-

@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.81"
+SupportV="0.1.84"
 Lang=Bash
 LangExt=".sh"
 ColorNum=2
@@ -66,6 +66,10 @@ UseBash()
 	shift
 	case ${Type} in
 		Art)
+			#https://textkool.com/en/ascii-art-generator
+			#Font: Roman
+			#Width: default
+			#height: default
 			local srt="\e[1;3${ColorNum}m"
 			local end="\e[0m"
 			echo -e "${srt}oooooooooo.${end}                     ${srt}oooo${end}"
@@ -76,6 +80,28 @@ UseBash()
 			echo -e " ${srt}888${end}    ${srt}.88P${end} ${srt}d8(${end}  ${srt}888${end}  ${srt}o.${end}  ${srt})88b${end}  ${srt}888${end}   ${srt}888${end}"
 			echo -e "${srt}o888bood8P'${end}  ${srt}\`Y888\"\"8o${end} ${srt}8\"\"888P'${end} ${srt}o888o${end} ${srt}o888o${end}"
 			echo ""
+			;;
+		Lang-Type)
+			local Get=$1
+			case ${Get} in
+				classified)
+					echo "Scripting"
+					;;
+				executable)
+					echo "Script"
+					;;
+				runtime)
+					echo "Interpreted"
+					;;
+				*)
+					local Classified=$(UseBash ${Type} classified)
+					local Exe=$(UseBash ${Type} executable)
+					local RunTime=$(UseBash ${Type} runtime)
+					echo -e "Classified:\t${Classified}"
+					echo -e "Executable:\t${Exe}"
+					echo -e "Runtime:\t${RunTime}"
+					;;
+			esac
 			;;
 		color)
 			#Return Green
@@ -953,9 +979,17 @@ UseBash()
 				#protect the shell script while running
 				chmod -w ${TheBinDir}/${TheBin} 2> /dev/null
 				if [ ! -z "${ThePipe}" ]; then
-					cat /dev/stdin | ${TheBinDir}/${TheBin} ${Args[@]}
+					if [ ! -z "${TimeRun}" ]; then
+						time cat /dev/stdin | ${TheBinDir}/${TheBin} ${Args[@]}
+					else
+						cat /dev/stdin | ${TheBinDir}/${TheBin} ${Args[@]}
+					fi
 				else
-					${TheBinDir}/${TheBin} ${Args[@]}
+					if [ ! -z "${TimeRun}" ]; then
+						time ${TheBinDir}/${TheBin} ${Args[@]}
+					else
+						${TheBinDir}/${TheBin} ${Args[@]}
+					fi
 				fi
 				#release protection
 				chmod u+w ${TheBinDir}/${TheBin} 2> /dev/null

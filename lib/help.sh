@@ -38,7 +38,7 @@ MenuHelp()
 			echo -e "version\t\t\t\t: \"Get ${Head} Version\""
 			echo -e "cv, code-version\t\t: \"Get compile/interpreter version of supported languages\""
 			echo -e "dv, debug-version\t\t: \"Get debugger version of supported languages\""
-			echo -e "sv, support-version\t\t: \"#Get compile/interpreter version of supported languages\""
+			echo -e "sv, support-version\t\t: \"Get compile/interpreter version of supported languages\""
 			echo -e "tv, temp-version\t\t: \"Get version of templates\""
 			echo -e "rv, repo-version\t\t: \"Get version control version\""
 			echo -e "use <language> <code>\t\t: \"choose language\""
@@ -61,6 +61,19 @@ MenuHelp()
 					echo ""
 					echo "----------------[(${Choice,,}) Menu]----------------"
 					echo -e "Purpose: lists the code compiled, set to run, and build code"
+					echo "------------------------------------------------"
+					echo ""
+					;;
+				type)
+					echo ""
+					echo "----------------[(${Choice,,}) Menu]----------------"
+					echo -e "Purpose: Get the type of programming language"
+
+					echo ""
+					echo -e "${Choice,,} <type>"
+					echo -e "\tclassified\t\t: \"Get the type of Language\""
+					echo -e "\texecutable\t\t: \"Get the executable of Language\""
+					echo -e "\truntime\t\t\t: \"Get how the code is run\""
 					echo "------------------------------------------------"
 					echo ""
 					;;
@@ -324,6 +337,8 @@ MenuHelp()
 					echo -e "execute, exe, run <option>\t: \"run active program\""
 					echo -e "\t\t-a, --args\t: \"run program with cli arguments\""
 					echo -e "\t\t-d, --debug\t: \"run program in debug mode\""
+					echo -e "time <options>\t\t\t: \"runime of an active program\""
+					echo -e "\t-a, --args\t\t: \"run program with cli arguments\""
 					echo -e "bkup, backup\t\t\t: \"make backup of existing source code\""
 					echo -e "restore\t\t\t\t: \"restore the backup to original source code\""
 					echo -e "rename <new>\t\t\t: \"rename the existing source code\""
@@ -380,6 +395,7 @@ CreateHelp()
 			echo -e "\tdefault\t\t\t: Use the tempalte from ${Head}"
 			ManageLangs ${Lang} "CreateHelp"
 			echo -e "type <args>\t\t\t: Create compile type"
+			echo -e "time\t\t\t\t: set runtime of program"
 			echo -e "reset <args>\t\t\t: clear settings"
 			echo -e "\ttype\t\t\t: clear compile type"
 			echo -e "\targs\t\t\t: clear run time args"
@@ -390,7 +406,7 @@ CreateHelp()
 	esac
 }
 
-makeHelp()
+MakeHelp()
 {
 	local Lang=$1
 	echo ""
@@ -541,6 +557,7 @@ CliHelp()
 			echo -e "-rv, --repo-version\t\t\t: \"The ${repoTool} Version\""
 			echo -e "-c, --config\t\t\t\t: \"Read my configuration\""
 			echo -e "-ll, --languages\t\t\t: \"List the languages I know\""
+			echo -e "--type <args>\t\t\t\t: \"Show Language Info\""
 			echo -e "-h, --help\t\t\t\t: \"Get to know me better\""
 			echo -e "-l, --last, --load\t\t\t: \"Lets start back where we left; that is if you saved it\""
 			echo ""
@@ -557,7 +574,10 @@ CliHelp()
 					EditCliHelp
 					;;
 				--cpl|--compile)
-					cplCliHelp
+					cplCliHelp ${example}
+					;;
+				--cpl-run|--car)
+					cplAndRunCliHelp ${example}
 					;;
 				--notes)
 					CliNotes
@@ -568,11 +588,11 @@ CliHelp()
 				--path|--find)
 					PathCliHelp ${example}
 					;;
-				-x|--run)
+				-x|--run|--time)
 					RunCliHelp ${example}
 					;;
 				--install)
-					installCliHelp
+					InstallCliHelp ${example}
 					;;
 				--debug)
 					debuggerHelp
@@ -593,25 +613,28 @@ CliHelp()
 					echo "\"Here is how I can help\""
 					echo ""
 					echo -e "\t[Without a session]"
-					echo -e "--new <args>\t\t\t\t\t: \"New source code\""
-					echo -e "--edit <args>\t\t\t\t\t: \"Edit source code\""
-					echo -e "--edit --config\t\t\t\t\t: \"Edit ${Head} config\""
-					echo -e "--edit --lang <language>\t\t\t: \"Edit the ${Head} langauge support file\""
-					echo -e "--cpl, --compile <args>\t\t\t\t: \"Compile source code\""
-					echo -e "\t--args <compile args>\t\t: \"Compile with one-time-use args\""
-					echo -e "\t--get-args\t\t\t\t: \"Get the compile args\""
-					echo -e "--install <args>\t\t\t\t: \"install program (.bash_aliases)\""
-					echo -e "--debug <args>\t\t\t\t\t: \"Debug compiled code\""
-					echo -e "--run <args>\t\t\t\t\t: \"Run compiled code\""
-					echo -e "-x <args>\t\t\t\t\t\t: \"Run compiled code\""
-					echo -e "--notes <args>\t\t\t\t\t: \"Manage the notes for a given language\""
-					echo -e "--read <args>\t\t\t\t\t: \"Read out (cat) source code\""
-					echo -e "--list <lang>\t\t\t\t\t: \"List source code\""
-					echo -e "--list-cpl <lang>\t\t\t\t: \"List compiled code\""
-					echo -e "--lscpl <lang>\t\t\t\t\t: \"List compiled code\""
-					echo -e "--find <args>\t\t\t\t\t: \"Find the souce code\""
-					echo -e "--path <args>\t\t\t\t\t: \"Find the souce code\""
-					echo -e "-p, --project <args>\t\t\t\t: \"List or Load Clide Projects\""
+					echo "$ clide <args>"
+					echo -e "\t--new <args>\t\t\t\t\t: \"New source code\""
+					echo -e "\t--edit <args>\t\t\t\t\t: \"Edit source code\""
+					echo -e "\t--edit --config\t\t\t\t\t: \"Edit ${Head} config\""
+					echo -e "\t--edit --lang <language>\t\t\t: \"Edit the ${Head} langauge support file\""
+					echo -e "\t--cpl, --compile <args>\t\t\t\t: \"Compile source code\""
+					echo -e "\t\t--args <compile args>\t\t\t: \"Compile with one-time-use args\""
+					echo -e "\t\t--get-args\t\t\t\t: \"Get the compile args\""
+					echo -e "\t--cpl-run, --car <args>\t\t\t\t: \"Compile and run source code\""
+					echo -e "\t--install <args>\t\t\t\t: \"install program (.bash_aliases)\""
+					echo -e "\t--debug <args>\t\t\t\t\t: \"Debug compiled code\""
+					echo -e "\t--run <args>\t\t\t\t\t: \"Run compiled code\""
+					echo -e "\t-x <args>\t\t\t\t\t: \"Run compiled code\""
+					echo -e "\t--time <args>\t\t\t\t\t: \"Run and time compiled code\""
+					echo -e "\t--notes <args>\t\t\t\t\t: \"Manage the notes for a given language\""
+					echo -e "\t--read <args>\t\t\t\t\t: \"Read out (cat) source code\""
+					echo -e "\t--list <lang>\t\t\t\t\t: \"List source code\""
+					echo -e "\t--list-cpl <lang>\t\t\t\t: \"List compiled code\""
+					echo -e "\t--lscpl <lang>\t\t\t\t\t: \"List compiled code\""
+					echo -e "\t--find <args>\t\t\t\t\t: \"Find the souce code\""
+					echo -e "\t--path <args>\t\t\t\t\t: \"Find the souce code\""
+					echo -e "\t-p, --project <args>\t\t\t\t: \"List or Load Clide Projects\""
 					echo ""
 					echo "\"Still want a session?\""
 					echo "\"Want me to setup your session before entering one?\""
@@ -746,6 +769,24 @@ PathCliHelp()
 	echo ""
 }
 
+TypeCliHelp()
+{
+	local cli="$1"
+	local cmd="\$ clide ${cli}"
+	echo ""
+	echo "----------------[(${Head}) cli {${cli}}]----------------"
+	echo -e "Get the type of programming language"
+	echo ""
+	echo -e "${cmd} <language> <arg>\t\t: \"get info about a give langauge\""
+	echo -e "${cmd} all <arg>\t\t\t: \"get info about ALL langauges\""
+	echo -e "\t\t\tclassified\t: \"Get the type of Language\""
+	echo -e "\t\t\texecutable\t: \"Get the executable of Language\""
+	echo -e "\t\t\truntime\t\t: \"Get how the code is run\""
+	echo -e "${cmd} -h, --help\t\t: \"help page\""
+	echo "-----------------------------------------------"
+	echo ""
+}
+
 RunCliHelp()
 {
 	local cli="$1"
@@ -778,7 +819,7 @@ ReadCliHelp()
 
 cplCliHelp()
 {
-	local cli="--cpl"
+	local cli="$1"
 	local cmd="\$ clide ${cli}"
 	echo ""
 	echo "----------------[(${Head}) cli {${cli}}]----------------"
@@ -788,6 +829,23 @@ cplCliHelp()
 	echo -e "${cmd} <code> <args>"
 	echo -e "${cmd} --<type> <language> <code> <args>\t: \"compile language specific binary\""
 	echo -e "${cmd} --<type> <code> <args>\t\t: \"compile language specific binary\""
+	echo -e "${cmd} -h, --help\t\t\t: \"help page\""
+	echo "-----------------------------------------------"
+	echo ""
+}
+
+cplAndRunCliHelp()
+{
+	local cli="$1"
+	local cmd="\$ clide ${cli}"
+	echo ""
+	echo "----------------[(${Head}) cli {${cli}}]----------------"
+	echo -e "\"Compile and run your code without having a session\""
+	echo ""
+	echo -e "${cmd} <language> <code> <args>"
+	echo -e "${cmd} <code> <args>"
+	echo -e "${cmd} --<type> <language> <code> <args>\t: \"compile and run language specific binary\""
+	echo -e "${cmd} --<type> <code> <args>\t\t: \"compile and run language specific binary\""
 	echo -e "${cmd} -h, --help\t\t\t: \"help page\""
 	echo "-----------------------------------------------"
 	echo ""
@@ -876,6 +934,8 @@ ProjectCliHelp()
 	echo -e "${cmd} --run <language> <project>\t\t: \"Run compoled code from given langauge inside project\""
 	echo -e "${cmd} -x <project>\t\t\t\t: \"Run compiled project\""
 	echo -e "${cmd} -x <language> <project>\t\t\t: \"Run compoled code from given langauge inside project\""
+	echo -e "${cmd} --time <project>\t\t\t: \"Run and time compiled project\""
+	echo -e "${cmd} --time <language> <project>\t\t: \"Run and time compoled code from given langauge inside project\""
 	echo -e "${cmd} --build <project>\t\t\t: \"Build a ${Head} Project\""
 	echo -e "${cmd} --remove <project>\t\t\t: \"Remove a ${Head} Project\""
 	echo -e "${cmd} --remove all\t\t\t\t: \"Remove ALL ${Head} Projects\""
@@ -1092,7 +1152,7 @@ main()
 		debuggerHelp|newCodeHelp|InstallCliHelp)
 			${Call} $@
 			;;
-		CliHelp|RunCliHelp|cplCliHelp|EditCliHelp)
+		CliHelp|TypeCliHelp|RunCliHelp|cplCliHelp|EditCliHelp)
 			${Call} $@
 			;;
 		CliNotes|PathCliHelp)

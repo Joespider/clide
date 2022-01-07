@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.80"
+SupportV="0.1.83"
 Lang=Ruby
 LangExt=".rb"
 ColorNum=1
@@ -70,6 +70,10 @@ UseRuby()
 	shift
 	case ${Type} in
 		Art)
+			#https://textkool.com/en/ascii-art-generator
+			#Font: Roman
+			#Width: default
+			#height: default
 			local srt="\e[1;3${ColorNum}m"
 			local end="\e[0m"
 			echo -e "${srt}ooooooooo.${end}                ${srt}.o8${end}"
@@ -82,6 +86,28 @@ UseRuby()
 			echo -e "                                    ${srt}.o..P'${end}"
 			echo -e "                                    ${srt}\`Y8P'${end}"
 			echo ""
+			;;
+		Lang-Type)
+			local Get=$1
+			case ${Get} in
+				classified)
+					echo "Scripting"
+					;;
+				executable)
+					echo "Script"
+					;;
+				runtime)
+					echo "Interpreted"
+					;;
+				*)
+					local Classified=$(UseRuby ${Type} classified)
+					local Exe=$(UseRuby ${Type} executable)
+					local RunTime=$(UseRuby ${Type} runtime)
+					echo -e "Classified:\t${Classified}"
+					echo -e "Executable:\t${Exe}"
+					echo -e "Runtime:\t${RunTime}"
+					;;
+			esac
 			;;
 		color)
 		#Return Red
@@ -1044,9 +1070,17 @@ UseRuby()
 						;;
 					runCode)
 						if [ ! -z "${ThePipe}" ]; then
-							cat /dev/stdin | ${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+							if [ ! -z "${TimeRun}" ]; then
+								time cat /dev/stdin | ${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+							else
+								cat /dev/stdin | ${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+							fi
 						else
-							${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+							if [ ! -z "${TimeRun}" ]; then
+								time ${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+							else
+								${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+							fi
 						fi
 						;;
 				esac

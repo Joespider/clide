@@ -4,7 +4,7 @@ Shell=$(which bash)
 #https://stackoverflow.com/questions/10339637/java-import-cannot-find-symbol
 #https://www.codejava.net/java-core/tools/how-to-compile-package-and-run-a-java-program-using-command-line-tools-javac-jar-and-java
 
-SupportV="0.2.23"
+SupportV="0.2.26"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -81,6 +81,10 @@ UseJava()
 	shift
 	case ${Type} in
 		Art)
+			#https://textkool.com/en/ascii-art-generator
+			#Font: Roman
+			#Width: default
+			#height: default
 			local srt="\e[1;3${ColorNum}m"
 			local end="\e[0m"
 			echo -e "   ${srt}oooo${end}"
@@ -92,6 +96,28 @@ UseJava()
 			echo -e "${srt}.o. ${srt}88P${end} ${srt}\`Y888\"\"8o${end}     ${srt}\`8'${end}     ${srt}\`Y888\"\"8o${end}"
 			echo -e "${srt}\`Y888P${end}"
 			echo ""
+			;;
+		Lang-Type)
+			local Get=$1
+			case ${Get} in
+				classified)
+					echo "Programming"
+					;;
+				executable)
+					echo "Binary"
+					;;
+				runtime)
+					echo "Compiled/Interpreted"
+					;;
+				*)
+					local Classified=$(UseJava ${Type} classified)
+					local Exe=$(UseJava ${Type} executable)
+					local RunTime=$(UseJava ${Type} runtime)
+					echo -e "Classified:\t${Classified}"
+					echo -e "Executable:\t${Exe}"
+					echo -e "Runtime:\t${RunTime}"
+					;;
+			esac
 			;;
 		color)
 			#Return Red
@@ -1747,9 +1773,17 @@ UseJava()
 								runCode)
 									#Execute without
 									if [ ! -z "${ThePipe}" ]; then
-										cat /dev/stdin | ${LangRun} ${package}${TheBin} ${Args[@]}
+										if [ ! -z "${TimeRun}" ]; then
+											time cat /dev/stdin | ${LangRun} ${package}${TheBin} ${Args[@]}
+										else
+											cat /dev/stdin | ${LangRun} ${package}${TheBin} ${Args[@]}
+										fi
 									else
-										${LangRun} ${package}${TheBin} ${Args[@]}
+										if [ ! -z "${TimeRun}" ]; then
+											time ${LangRun} ${package}${TheBin} ${Args[@]}
+										else
+											${LangRun} ${package}${TheBin} ${Args[@]}
+										fi
 									fi
 									;;
 								*)
@@ -1764,9 +1798,17 @@ UseJava()
 								runCode)
 									#Execute without
 									if [ ! -z "${ThePipe}" ]; then
-										cat /dev/stdin | ${LangRun} "${JavaProp}" ${package}${TheBin} ${Args[@]}
+										if [ ! -z "${TimeRun}" ]; then
+											time cat /dev/stdin | ${LangRun} "${JavaProp}" ${package}${TheBin} ${Args[@]}
+										else
+											cat /dev/stdin | ${LangRun} "${JavaProp}" ${package}${TheBin} ${Args[@]}
+										fi
 									else
-										${LangRun} "${JavaProp}" ${package}${TheBin} ${Args[@]}
+										if [ ! -z "${TimeRun}" ]; then
+											time ${LangRun} "${JavaProp}" ${package}${TheBin} ${Args[@]}
+										else
+											${LangRun} "${JavaProp}" ${package}${TheBin} ${Args[@]}
+										fi
 									fi
 									;;
 								*)
@@ -1778,9 +1820,17 @@ UseJava()
 				#Check if Java Jar exists
 				elif [ -f ${TheJarDir}/${TheJar} ]; then
 					if [ ! -z "${ThePipe}" ]; then
-						cat /dev/stdin | ${LangRun} -jar ${TheJarDir}/${TheJar} ${Args[@]}
+						if [ ! -z "${TimeRun}" ]; then
+							time cat /dev/stdin | ${LangRun} -jar ${TheJarDir}/${TheJar} ${Args[@]}
+						else
+							cat /dev/stdin | ${LangRun} -jar ${TheJarDir}/${TheJar} ${Args[@]}
+						fi
 					else
-						${LangRun} -jar ${TheJarDir}/${TheJar} ${Args[@]}
+						if [ ! -z "${TimeRun}" ]; then
+							time ${LangRun} -jar ${TheJarDir}/${TheJar} ${Args[@]}
+						else
+							${TimeRun} ${LangRun} -jar ${TheJarDir}/${TheJar} ${Args[@]}
+						fi
 					fi
 				else
 					errorCode "cpl" "need" "${name}"
