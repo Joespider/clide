@@ -4411,7 +4411,7 @@ CLI()
 								fi
 							fi
 							;;
-						-x|--run|--time|--build)
+						-x|--run|--time|--build|--edit)
 							shift
 							local Lang=$1
 							Lang=$(pgLang ${Lang})
@@ -4469,6 +4469,10 @@ CLI()
 															else
 																runCode ${Lang} "none"
 															fi
+															;;
+														--edit)
+															TheSrcCode=$(selectCode ${Lang} ${Code})
+															ManageLangs ${Lang} "editCode"
 															;;
 														-x|--run)
 															shift
@@ -5228,19 +5232,70 @@ CLI()
 				;;
 			--cpl-run|--car)
 				if [ -z "${ThePipe}" ]; then
+					local RunLang
+					local TheSrcCplAndRun
+					local Item=0
+					local ThisTime
 					local TheOldPWD="${PWD}"
 					shift
 					local cplArg=$1
-					CLI --cpl $@
+
 					case ${cplArg} in
 						-*)
+							cplArg=$1
 							shift
 							;;
 						*)
+							cplArg=""
 							;;
 					esac
+
+					local CplArgs=( )
+					local RunArgs=( )
+					for ThisTime in $@; do
+
+						if [ ! -z "${TheSrcCplAndRun}" ]; then
+							break
+						fi
+
+						if [ ! -z "${RunLang}" ]; then
+							TheSrcCplAndRun=${ThisTime}
+							shift
+							break
+						fi
+
+						if [ ! -z "${ThisTime}" ]; then
+							case ${ThisTime} in
+								-*)
+									CplArgs+=(${ThisTime})
+									shift
+									;;
+								*)
+									RunLang=$(pgLang ${ThisTime})
+									case ${RunLang} in
+										no)
+											RunLang=$(SelectLangByCode ${ThisTime})
+											if [ ! -z "${RunLang}" ]; then
+												TheSrcCplAndRun="${ThisTime}"
+											else
+												CplArgs+=(${ThisTime})
+											fi
+											;;
+										${ThisTime})
+											;;
+										*)
+											;;
+									esac
+									shift
+									;;
+							esac
+						fi
+					done
+					RunArgs=( $@ )
+
+					CLI --cpl ${cplArg} ${RunLang} ${TheSrcCplAndRun} ${CplArgs[@]}
 					cd "${TheOldPWD}"
-					CLI --run $@
+					 CLI --run ${RunLang} ${TheSrcCplAndRun} ${RunArgs[@]}
 				fi
 				;;
 			#compile code without entering cl[ide]
@@ -5276,6 +5331,10 @@ CLI()
 					else
 						case ${1} in
 							# $ clide --cpl --<cplType> <lang> <code> or $ clide --cpl --<cplType> <code>
+							--)
+								shift
+								main --cpl $@
+								;;
 							--*)
 								TypeOfCpl=$1
 								shift
