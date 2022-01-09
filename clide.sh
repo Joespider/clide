@@ -4413,12 +4413,14 @@ CLI()
 							;;
 						-x|--run|--time|--build|--edit)
 							shift
+							local CheckSrc
 							local Lang=$1
 							Lang=$(pgLang ${Lang})
 
 							case ${Lang} in
 								no)
 									Lang=""
+									CheckSrc="Please"
 									GetProject=$1
 									Code=$2
 									;;
@@ -4471,7 +4473,24 @@ CLI()
 															fi
 															;;
 														--edit)
-															TheSrcCode=$(selectCode ${Lang} ${Code})
+															local LinkedLangs
+															local TheSrcFound
+															if [ ! -z "${CheckSrc}" ]; then
+																LinkedLangs=$(echo ${TheProject} | cut -d ";" -f 5)
+																if [ ! -z "${LinkedLangs}" ]; then
+																	for Link in ${LinkedLangs//,/ }; do
+
+																		TheSrcFound=$(selectCode ${Link} ${Code})
+																		if [ ! -z "${TheSrcFound}" ]; then
+																			Lang=${Link}
+																			TheSrcCode=${TheSrcFound}
+																			break
+																		fi
+																	done
+																fi
+															else
+																TheSrcCode=$(selectCode ${Lang} ${Code})
+															fi
 															ManageLangs ${Lang} "editCode"
 															;;
 														-x|--run)
@@ -4831,7 +4850,26 @@ CLI()
 													;;
 												--*)
 													shift
-													CLI --project ${ModeAction} ${GetProject} $@
+													case ${ModeAction} in
+														--edit)
+															local CheckForLang=$1
+															if [ ! -z "${CheckForLang}" ]; then
+																CheckForLang=$(pgLang ${CheckForLang})
+																case ${CheckForLang} in
+																	no)
+																		CheckForLang=""
+																		;;
+																	*)
+																		shift
+																		;;
+																esac
+															fi
+															CLI --project ${ModeAction} ${CheckForLang} ${GetProject} $@
+															;;
+														*)
+															CLI --project ${ModeAction} ${GetProject} $@
+															;;
+													esac
 													;;
 												*)
 													theHelp ProjectCliHelp ${UserArg}
