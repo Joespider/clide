@@ -1,5 +1,4 @@
-{File Name}:
-README
+{File Name}: README
                 ____                       ____
                |  __|                     |__  |
    ___   _     | |  _______   _____    ____  | |
@@ -44,6 +43,105 @@ OR
 
 cl[ide](C++):$ Java
 cl[ide](Java):$
+
+create a source file before entering a session
+$ ./clide.sh C++ --new MyFile
+or multiple files
+$ ./clide.sh C++ --new MyFile,MySecond
+
+
+cl[ide] can also handle projects
+
+$ ./clide.sh C++
+cl[ide](C++):~$ project new MyFirstProject
+Created "MyFirstProject"
+cl[ide](MyFirstProject):~/src$ using
+C++
+
+projects are subject to one language, but can be linked to multiple langauges
+[WARNING: linking some langauges can cause issues]
+
+cl[ide](MyFirstProject):~/src$ using
+C++
+cl[ide](MyFirstProject):~/src$ project link bash
+cl[ide](MyFirstProject):~/src$ using
+Bash
+
+Language swapping is also easy enough to do
+
+cl[ide](MyFirstProject):~/src$ project swap C++
+cl[ide](MyFirstProject):~/src$ using
+C++
+
+project languages can be listed
+cl[ide](MyFirstProject):~/src$ project swap list
+C++
+Bash
+
+A project can be loaded
+
+$ ./clide.sh --project MyFirstProject
+Project "MyFirstProject" loaded
+cl[ide](MyFirstProject):~/src$
+
+By default, the language, when the project was created, will be defaulted.
+In order to pre-swap, just provide the language
+
+$ ./clide.sh --project Bash MyFirstProject
+Project "MyFirstProject" loaded
+cl[ide](MyFirstProject):~/src$ using
+Bash
+
+$ ./clide.sh --project C++ MyFirstProject
+Project "MyFirstProject" loaded
+cl[ide](MyFirstProject):~/src$ using
+C++
+
+{CLI Mode}:
+ALL of cl[ide] commands are accessable outside of a session.
+This can be useful for using cl[ide] as a wrapper or quick edits, execution, and piping.
+
+list the source files
+$ ./clide.sh --list C++ MyFile
+
+list the executable files
+$ ./clide.sh --lscpl C++ MyFile
+
+create a new source file
+$ ./clide.sh --new C++ MyFile
+$ ./clide.sh --new MyFile.cpp
+
+or multiple files
+$ ./clide.sh --new C++ MyFile,MySecond
+$ ./clide.sh --new MyFile.cpp,MySecond.cpp
+
+edit an existing files
+$ ./clide.sh --edit C++ MyFile
+$ ./clide.sh --edit MyFile.cpp
+
+run an existing binary/script (MUST BE COMPILED/ALLOWED TO RUN)
+$ ./clide.sh --run C++ MyFile <arguments>
+$ ./clide.sh --run MyFile.cpp <arguments>
+
+compile and run code
+$ ./clide.sh --car C++ MyFile <arguments>
+$ ./clide.sh --car MyFile.cpp <arguments>
+
+compile with a jar instead of a class file, and run jar
+$ ./clide.sh --car --jar Java MyFile <arguments>
+$ ./clide.sh --car --jar MyFile.java <arguments>
+
+compile, provide compile arguments, and run code
+$ ./clide.sh --car -- <cpl_args> C++ MyFile <arguments>
+$ ./clide.sh --car -- <cpl_args> MyFile.cpp <arguments>
+
+$ ./clide.sh --car --jar <cpl_args> Java MyFile <arguments>
+$ ./clide.sh --car --jar <cpl_args> MyFile.java <arguments>
+
+Similar functions are done for cl[ide] projects
+To see project options
+$ ./clide.sh --project --help
+
 
 {Other}:
 Always ask cl[ide] for "help"
