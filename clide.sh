@@ -1797,6 +1797,62 @@ preSelectSrc()
 	echo ${Code}
 }
 
+#Choose Lang by code
+SelectLangByCode()
+{
+	local GetExt=$1
+	local Langs
+	local NumOfLangs
+	local look
+	local text
+	local LangExt
+	local LangByExt
+	local ChosenLangs
+	if [ ! -z "${GetExt}" ]; then
+		case ${GetExt} in
+			*,*)
+				local CodeDir
+				local Lang
+				local WantedCode=${GetExt}
+				local newCode
+				local look=1
+				local NumOfSrc=$(echo -e "${GetExt//,/\\n}" | wc -l)
+				while [ ${look} -le ${NumOfSrc} ];
+				do
+					#Get the next file
+					newCode=$(echo ${WantedCode} | cut -d ',' -f ${look})
+					#Get language by extension from source file
+					Lang=$(SelectLangByCode ${newCode})
+					if [ ! -z "${Lang}" ]; then
+						echo ${Lang}
+						break
+					fi
+					look=$((${look}+1))
+				done
+				;;
+			*)
+				for TheLang in ${LangsDir}/Lang.*;
+				do
+					#Select the next langauge
+					TheLang=${TheLang##*/}
+					text=${TheLang#Lang.*}
+					text=$(ManageLangs ${text} "pgLang")
+					case ${text} in
+						no)
+							;;
+						*)
+							LangByExt=$(ManageLangs ${text} "hasExt" "${GetExt}")
+							if [ ! -z "${LangByExt}" ]; then
+								pgLang ${text}
+							fi
+							;;
+					esac
+				done
+				;;
+		esac
+	fi
+}
+
 #No-Lang IDE
 Actions-NoLang()
 {
@@ -1938,22 +1994,16 @@ Actions()
 					;;
 				*)
 					ThePWD=${PWD}
-					#ProjectDir=${ThePWD#*${CodeProject}}
 					ProjectDir=${ThePWD##*/}
-					#ProjectDir=${ProjectDir/\//:}
 					cCodeProject=$(ManageLangs ${Lang} "ProjectColor")
 					#Menu with no code
-					#ProjectPrompt=$(ColorPrompt ${ProjectType:0:1}:${ProjectDir})
 					case ${ProjectDir} in
 						${CodeProject})
-							#ProjectDir="/"
 							ProjectDir=""
 							;;
 						*)
 							;;
 					esac
-					#ProjectPrompt=$(ColorPrompt ${ProjectDir})
-					#prompt="${Name}(${cCodeProject}):${ProjectPrompt}$ "
 					prompt="${Name}(${cCodeProject}):~/${ProjectDir}$ "
 					;;
 			esac
@@ -1984,12 +2034,9 @@ Actions()
 					;;
 				*)
 					ThePWD=${PWD}
-					#ProjectDir=${ThePWD#*${CodeProject}}
 					ProjectDir=${ThePWD##*/}
-					#ProjectDir=${ProjectDir/\//:}
 					#Menu with no code
 					cCodeProject=$(ManageLangs ${Lang} "ProjectColor")
-					#ProjectPrompt=$(ColorPrompt ${ProjectType:0:1}:${ProjectDir})
 					case ${ProjectDir} in
 						${CodeProject})
 							#ProjectDir="/"
@@ -1998,8 +2045,6 @@ Actions()
 						*)
 							;;
 					esac
-					#ProjectPrompt=$(ColorPrompt ${ProjectDir})
-					#prompt="${Name}(${cCodeProject}{${listSrc}}):${ProjectPrompt}$ "
 					prompt="${Name}(${cCodeProject}{${listSrc}}):~/${ProjectDir}$ "
 					;;
 			esac
@@ -3730,7 +3775,6 @@ Actions()
 											esac
 											#ProjectPrompt=$(ColorPrompt ${ProjectDir})
 											#Menu with no code
-											#prompt="${Name}(${cCodeProject}):${ProjectPrompt}$ "
 											prompt="${Name}(${cCodeProject}):~/${ProjectDir}$ "
 											;;
 									esac
@@ -3774,8 +3818,6 @@ Actions()
 												*)
 													;;
 											esac
-											#ProjectPrompt=$(ColorPrompt ${ProjectDir})
-											#prompt="${Name}(${cCodeProject}{${listSrc}}):${ProjectPrompt}$ "
 											prompt="${Name}(${cCodeProject}{${listSrc}}):~/${ProjectDir}$ "
 											;;
 									esac
@@ -3799,63 +3841,6 @@ Actions()
 		Protect "done"
 	fi
 }
-
-#Choose Lang by code
-SelectLangByCode()
-{
-	local GetExt=$1
-	local Langs
-	local NumOfLangs
-	local look
-	local text
-	local LangExt
-	local LangByExt
-	local ChosenLangs
-	if [ ! -z "${GetExt}" ]; then
-		case ${GetExt} in
-			*,*)
-				local CodeDir
-				local Lang
-				local WantedCode=${GetExt}
-				local newCode
-				local look=1
-				local NumOfSrc=$(echo -e "${GetExt//,/\\n}" | wc -l)
-				while [ ${look} -le ${NumOfSrc} ];
-				do
-					#Get the next file
-					newCode=$(echo ${WantedCode} | cut -d ',' -f ${look})
-					#Get language by extension from source file
-					Lang=$(SelectLangByCode ${newCode})
-					if [ ! -z "${Lang}" ]; then
-						echo ${Lang}
-						break
-					fi
-					look=$((${look}+1))
-				done
-				;;
-			*)
-				for TheLang in ${LangsDir}/Lang.*;
-				do
-					#Select the next langauge
-					TheLang=${TheLang##*/}
-					text=${TheLang#Lang.*}
-					text=$(ManageLangs ${text} "pgLang")
-					case ${text} in
-						no)
-							;;
-						*)
-							LangByExt=$(ManageLangs ${text} "hasExt" "${GetExt}")
-							if [ ! -z "${LangByExt}" ]; then
-								pgLang ${text}
-							fi
-							;;
-					esac
-				done
-				;;
-		esac
-	fi
-}
-
 
 #Autocomplete Function
 autocomp()
@@ -4099,7 +4084,7 @@ CLI()
 			-ll|--languages|--langs)
 				if [ -z "${ThePipe}" ]; then
 					local pg=$(ColorCodes)
-					echo "Supported Languages: ${pg}"
+					echo "${pg}"
 				fi
 				;;
 			#List projects from cli
@@ -4786,7 +4771,6 @@ CLI()
 						#No Language found
 						else
 							#remove extension
-							#TheSrc=${TheSrc%%.*}
 							#Search for source code via name
 							Found=$(find -L ${ProgDir} -name *${TheSrc}* | grep "/src/" | sort)
 							#Code has been founs
@@ -4898,18 +4882,14 @@ CLI()
 					shift
 					local Action=$1
 					local Lang=$2
+					local confirm=$3
 					case ${Action} in
 						--config)
-							local YourAnswer
-							errorCode "WARNING"
-							errorCode "WARNING" "Editing this file incorrectly could render ${Head} unusable"
-							echo ""
-							errorCode "WARNING" "Do you wish to continue (y/n)"
-							echo -n "> "
-							read YourAnswer
-							YourAnswer=${YourAnswer,,}
-							case ${YourAnswer} in
-								y)
+							if [ -z "${confirm}" ]; then
+								confirm=${Lang}
+							fi
+							case ${confirm,,} in
+								y|yes|-y|--yes)
 									${editor} ${root}/var/clide.conf
 									clear
 									errorCode "WARNING" "Please restart ${Head} for changes to take affect"
@@ -4917,6 +4897,21 @@ CLI()
 									echo ""
 									;;
 								*)
+									local YourAnswer
+									errorCode "WARNING"
+									errorCode "WARNING" "Editing this file incorrectly could render ${Head} unusable"
+									echo ""
+									errorCode "WARNING" "Do you wish to continue (y/n)"
+									echo -n "> "
+									read YourAnswer
+									YourAnswer=${YourAnswer,,}
+									case ${YourAnswer} in
+										y|yes|-y|--yes)
+											CLI ${UserArg} ${Action} "--yes"
+											;;
+										*)
+											;;
+									esac
 									;;
 							esac
 							;;
@@ -4927,22 +4922,29 @@ CLI()
 								local TheLang=${LangsDir}/Lang.${Lang}
 
 								if [ -f "${TheLang}" ]; then
-									local YourAnswer
-									errorCode "WARNING"
-									errorCode "WARNING" "Editing this file incorrectly could render ${Lang} unusable"
-									echo ""
-									errorCode "WARNING" "Do you wish to continue (y/n)"
-									echo -n "> "
-									read YourAnswer
-									YourAnswer=${YourAnswer,,}
-									case ${YourAnswer} in
-										y)
+									case ${confirm,,} in
+										y|yes|-y|--yes)
 											${editor} ${TheLang}
 											clear
 											errorCode "WARNING" "May God have mercy on your ${Head}"
 											echo ""
 											;;
 										*)
+											local YourAnswer
+											errorCode "WARNING"
+											errorCode "WARNING" "Editing this file incorrectly could render ${Lang} unusable"
+											echo ""
+											errorCode "WARNING" "Do you wish to continue (y/n)"
+											echo -n "> "
+											read YourAnswer
+											YourAnswer=${YourAnswer,,}
+											case ${YourAnswer} in
+												y|yes|-y|--yes)
+													CLI ${UserArg} ${Action} ${Lang} "--yes"
+													;;
+												*)
+													;;
+											esac
 											;;
 									esac
 								else
