@@ -155,8 +155,38 @@ MenuHelp()
 					esac
 					;;
 				rm|remove|delete)
+					echo ""
+					echo "----------------[(${Choice,,}) Menu]----------------"
+					echo -e "Purpose: Deleting binary and source code files"
+					echo ""
+					echo -e "${Choice,,} <src>\t\t\t\t\"delete source code with extentions, and binary\""
+					echo -e "${Choice,,} -f <src>\t\t\t\t\"forcably delete source code with extentions, and binary\""
+					echo -e "${Choice,,} --src <src>\t\t\t\"forcably delete source code with extentions\""
+					echo -e "${Choice,,} --src -f <src>\t\t\t\"forcably delete source code with extentions, and binary\""
+					echo -e "${Choice,,} --bin <src>\t\t\t\"delete binary\""
+					echo -e "${Choice,,} --bin -f <src>\t\t\t\"forcably dekete binary\""
+					echo "------------------------------------------------"
+					echo ""
+					;;
+				rmsrc)
+					echo ""
+					echo "----------------[(${Choice,,}) Menu]----------------"
+					echo -e "Purpose: Deleting source code files"
+					echo ""
+					echo -e "${Choice,,} <src>\t\t\t\t\"delete source code with extentions\""
+					echo -e "${Choice,,} -f <src>\t\t\t\t\"forcably delete source code with extentions\""
+					echo "------------------------------------------------"
+					echo ""
 					;;
 				rmbin|remove-bin|delete-bin)
+					echo ""
+					echo "----------------[(${Choice,,}) Menu]----------------"
+					echo -e "Purpose: Deleting binary"
+					echo ""
+					echo -e "${Choice,,} <src>\t\t\t\t\"delete binary\""
+					echo -e "${Choice,,} -f <src>\t\t\t\t\"forcably delete binary\""
+					echo "------------------------------------------------"
+					echo ""
 					;;
 				set|select)
 					echo ""
@@ -164,7 +194,7 @@ MenuHelp()
 					echo -e "Purpose: Selecting source code to assist with editing, compiling, and running code"
 					echo ""
 					echo -e "${Choice,,} <src>\t\t\t\"select source code, with or without extentions\""
-					echo -e "${Choice,,} <src>,<src>\t\t\"select multiple source code files\""
+					echo -e "${Choice,,} <src>,<src>\t\t\t\"select multiple source code files\""
 					echo "------------------------------------------------"
 					echo ""
 					;;
@@ -207,6 +237,19 @@ MenuHelp()
 					echo -e "${Choice,,}\t\t\t\t\"read a single source file\""
 					echo -e "${Choice,,} <src>\t\t\"read a single source file (when multiple source files are selected)\""
 					echo -e "${Choice,,} non-lang <file>\t\t\"read a non-selectable file (files that are not language specific)\""
+					echo "------------------------------------------------"
+					echo ""
+					;;
+				time)
+					echo ""
+					echo "----------------[(${Choice,,}) Menu]----------------"
+					echo -e "Purpose: Run and time your executable."
+					echo -e "Projects: selected source code not required"
+					echo -e "Non-project: source code MUST be selected"
+					echo ""
+					echo -e "${Choice,,}\t\t\t\t\"run and time code\""
+					echo -e "${Choice,,} -a <args>\t\t\t\"run code with a cli argument\""
+					echo -e "${Choice,,} --args <args>\t\t\"run code with a cli argument\""
 					echo "------------------------------------------------"
 					echo ""
 					;;
