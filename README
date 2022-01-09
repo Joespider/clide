@@ -84,7 +84,7 @@ $ ./clide.sh --project MyFirstProject
 Project "MyFirstProject" loaded
 cl[ide](MyFirstProject):~/src$
 
-By default, the language, when the project was created, will be defaulted.
+The language, when the project was created, will be defaulted.
 In order to pre-swap, just provide the language
 
 $ ./clide.sh --project Bash MyFirstProject
@@ -102,10 +102,10 @@ ALL of cl[ide] commands are accessable outside of a session.
 This can be useful for using cl[ide] as a wrapper or quick edits, execution, and piping.
 
 list the source files
-$ ./clide.sh --list C++ MyFile
+$ ./clide.sh --list C++
 
 list the executable files
-$ ./clide.sh --lscpl C++ MyFile
+$ ./clide.sh --lscpl C++
 
 create a new source file
 $ ./clide.sh --new C++ MyFile
