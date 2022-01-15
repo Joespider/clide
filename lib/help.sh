@@ -650,7 +650,7 @@ CliHelp()
 				--cpl|--compile)
 					cplCliHelp ${example}
 					;;
-				--cpl-run|--car)
+				--cpl-run|--car|--cat|--cpl-time)
 					cplAndRunCliHelp ${example}
 					;;
 				--notes)
@@ -696,6 +696,7 @@ CliHelp()
 					echo -e "\t\t--args <compile args>\t\t\t: \"Compile with one-time-use args\""
 					echo -e "\t\t--get-args\t\t\t\t: \"Get the compile args\""
 					echo -e "\t--cpl-run, --car <args>\t\t\t\t: \"Compile and run source code\""
+					echo -e "\t--cpl-time, --cat <args>\t\t\t: \"Compile and time source code\""
 					echo -e "\t--install <args>\t\t\t\t: \"install program (.bash_aliases)\""
 					echo -e "\t--debug <args>\t\t\t\t\t: \"Debug compiled code\""
 					echo -e "\t--run <args>\t\t\t\t\t: \"Run compiled code\""

@@ -5461,7 +5461,7 @@ CLI()
 					Protect "done"
 				fi
 				;;
-			--cpl-run|--car)
+			--cpl-run|--car|--cat|--cpl-time)
 				if [ -z "${ThePipe}" ]; then
 					local RunLang
 					local TheSrcCplAndRun
@@ -5529,7 +5529,14 @@ CLI()
 
 					CLI --cpl ${cplArg} ${RunLang} ${TheSrcCplAndRun} ${CplArgs[@]}
 					cd "${TheOldPWD}"
-					CLI --run ${RunLang} ${TheSrcCplAndRun} ${RunArgs[@]}
+					case ${UserArg} in
+						--cat|--cpl-time)
+							CLI --time ${RunLang} ${TheSrcCplAndRun} ${RunArgs[@]}
+							;;
+						*)
+							CLI --run ${RunLang} ${TheSrcCplAndRun} ${RunArgs[@]}
+							;;
+					esac
 				fi
 				;;
 			#compile code without entering cl[ide]
