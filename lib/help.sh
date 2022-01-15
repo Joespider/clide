@@ -105,14 +105,6 @@ MenuHelp()
 					echo "------------------------------------------------"
 					echo ""
 					;;
-				save)
-					echo ""
-					echo "----------------[(${Choice,,}) Menu]----------------"
-					echo -e "Purpose: Save your active session"
-					echo -e "${Choice,,}\t\t\t\t\"Save your active session\""
-					echo "------------------------------------------------"
-					echo ""
-					;;
 				cpl|compile)
 					echo ""
 					echo "----------------[(${Choice,,}) Menu]----------------"
@@ -285,6 +277,8 @@ MenuHelp()
 					echo ""
 					echo -e "${Choice,,}\t\t\t\t\"restore your selected source code\""
 					echo -e "${Choice,,} <src>\t\t\t\"Choose source code, when multiple source code selected\""
+					echo ""
+					echo -e "${Choice,,} --help\t\t\t\"This Help Page\""
 					echo "------------------------------------------------"
 					echo ""
 					;;
@@ -299,7 +293,45 @@ MenuHelp()
 					;;
 				copy)
 					;;
+				session)
+					echo ""
+					echo "----------------[(${Choice,,}) Menu]----------------"
+					echo -e "Purpose: Manage Sessions"
+					echo ""
+					echo -e "${Choice,,} save <session>\t\t\"choose session by name\""
+					echo -e "${Choice,,} save\t\t\t\"save your session as default\""
+					echo -e "${Choice,,} load <session>\t\t\"choose your session by name\""
+					echo -e "${Choice,,} load\t\t\t\"load your default session\""
+					echo -e "${Choice,,} list\t\t\t\"Get the list of your saved sessions\""
+					echo ""
+					echo -e "${Choice,,} --help\t\t\t\"This Help Page\""
+					echo "------------------------------------------------"
+					echo ""
+					;;
+				save)
+					echo ""
+					echo "----------------[(${Choice,,}) Menu]----------------"
+					echo -e "Purpose: Save your active session"
+					echo ""
+					echo -e "${Choice,,} <session>\t\t\t\"save session by name\""
+					echo -e "${Choice,,}\t\t\t\t\"save your session as default\""
+					echo ""
+					echo -e "${Choice,,} --help\t\t\t\"This Help Page\""
+					echo "------------------------------------------------"
+					echo ""
+					;;
 				last|load)
+					echo ""
+					echo "----------------[(${Choice,,}) Menu]----------------"
+					echo -e "Purpose: Load your saved session to pick up where you left off"
+					echo -e "(saved sessions MUST exist)"
+					echo ""
+					echo -e "${Choice,,} <session>\t\t\t\"choose your session by name\""
+					echo -e "${Choice,,}\t\t\t\t\"load your default session\""
+					echo ""
+					echo -e "${Choice,,} --help\t\t\t\"This Help Page\""
+					echo "------------------------------------------------"
+					echo ""
 					;;
 				create)
 					CreateHelp ${Lang}
@@ -602,7 +634,6 @@ CliHelp()
 			echo -e "-ll, --languages\t\t\t: \"List the languages I know\""
 			echo -e "--type <args>\t\t\t\t: \"Show Language Info\""
 			echo -e "-h, --help\t\t\t\t: \"Get to know me better\""
-			echo -e "-l, --last, --load\t\t\t: \"Lets start back where we left; that is if you saved it\""
 			echo ""
 			echo "\"I hope this helps\""
 			echo "-----------------------------------------------"
@@ -678,6 +709,7 @@ CliHelp()
 					echo -e "\t--find <args>\t\t\t\t\t: \"Find the souce code\""
 					echo -e "\t--path <args>\t\t\t\t\t: \"Find the souce code\""
 					echo -e "\t-p, --project <args>\t\t\t\t: \"List or Load Clide Projects\""
+					echo -e "\t-l, --last, --load, --session <name>\t\t: \"Lets start back where we left; that is if you saved it\""
 					echo ""
 					echo "\"Still want a session?\""
 					echo "\"Want me to setup your session before entering one?\""
