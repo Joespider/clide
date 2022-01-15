@@ -5472,8 +5472,11 @@ CLI()
 					local cplArg=$1
 
 					case ${cplArg} in
+						--args)
+							cplArg=""
+							shift
+							;;
 						-*)
-							cplArg=$1
 							shift
 							;;
 						*)
@@ -5526,7 +5529,7 @@ CLI()
 
 					CLI --cpl ${cplArg} ${RunLang} ${TheSrcCplAndRun} ${CplArgs[@]}
 					cd "${TheOldPWD}"
-					 CLI --run ${RunLang} ${TheSrcCplAndRun} ${RunArgs[@]}
+					CLI --run ${RunLang} ${TheSrcCplAndRun} ${RunArgs[@]}
 				fi
 				;;
 			#compile code without entering cl[ide]
@@ -5567,7 +5570,13 @@ CLI()
 								main --cpl $@
 								;;
 							--*)
-								TypeOfCpl=$1
+								case $1 in
+									--args)
+										;;
+									*)
+										TypeOfCpl=$1
+										;;
+								esac
 								shift
 								main --cpl $@
 								;;
@@ -5606,7 +5615,18 @@ CLI()
 													fi
 												fi
 												InAndOut="yes"
-												Actions ${Lang} ${Code} "cpl" ${Args[@]}
+												if [ ! -z "${Args[@]}" ]; then
+													case ${Args[@]} in
+														--args*)
+															Actions ${Lang} ${Code} "cpl" ${Args[@]}
+															;;
+														*)
+															Actions ${Lang} ${Code} "cpl" --args ${Args[@]}
+															;;
+													esac
+												else
+													Actions ${Lang} ${Code} "cpl"
+												fi
 											else
 												errorCode "cli-cpl" "none"
 											fi
