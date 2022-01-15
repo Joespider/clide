@@ -25,6 +25,7 @@ export TimeRun
 
 #InAndOut determines if internal functions can run via cli
 InAndOut="no"
+SessionName="clide"
 
 #Name of the program
 Head="cl[ide]"
@@ -646,15 +647,27 @@ GetProjectType()
 #Save Last Session
 SaveSession()
 {
-	local Session="${ClideUserDir}/session"
-	local Project=${CodeProject}
 	local Language=$1
-	local SrcCode=$2
+	local TheFileName=$2
+	local Session
+
+	if [ -z "${TheFileName}" ]; then
+		Session="${ClideUserDir}/${SessionName}.session"
+	else
+		Session="${ClideUserDir}/${TheFileName}.session"
+		SessionName="${TheFileName}"
+	fi
+
 	#Source Needs to be present
-	if [ ! -z "${SrcCode}" ]; then
-		if [ -d ${ClideDir} ] && [ ! -z "${Language}" ]; then
+	if [ ! -z "${TheSrcCode}" ]; then
+		if [ -d ${ClideUserDir} ] && [ -d ${ClideDir} ] && [ ! -z "${Language}" ]; then
 			touch ${Session}
-			echo "${Project};${Language};${SrcCode}" > ${Session}
+			echo "${CodeProject};${Language};${TheSrcCode}" > ${Session}
+			if [ -z "${TheFileName}" ]; then
+				echo "Session saved"
+			else
+				echo "\"${TheFileName}\" Session saved"
+			fi
 		fi
 	fi
 }
@@ -662,14 +675,34 @@ SaveSession()
 #Load Last Session
 LoadSession()
 {
-	local Session="${ClideUserDir}/session"
-	if [ -d ${ClideDir} ]; then
+	local TheFileName=$1
+	local Session
+	if [ -d ${ClideUserDir} ] && [ -d ${ClideDir} ]; then
+		if [ -z "${TheFileName}" ]; then
+			Session="${ClideUserDir}/${SessionName}.session"
+
+		else
+			Session="${ClideUserDir}/${TheFileName}.session"
+			SessionName="${TheFileName}"
+		fi
+
 		#check for clide session
 		if [ ! -f "${Session}" ]; then
 			errorCode "loadSession"
 		else
 			cat ${Session}
 		fi
+	fi
+}
+
+#Load Last Session
+ListSession()
+{
+	local Session
+	if [ -d ${ClideUserDir} ] && [ -d ${ClideDir} ]; then
+		cd ${ClideUserDir}
+		ls *.session 2> /dev/null | grep -v "clide.session" | sed "s/.session//g"
+		cd - > /dev/null
 	fi
 }
 
@@ -3884,7 +3917,7 @@ Actions()
 								local SavedProject=${CodeProject}
 								local SavedCodeDir=${CodeDir}
 								Dir=""
-								session=$(LoadSession)
+								session=$(LoadSession ${UserIn[1]})
 								case ${session} in
 									*"ERROR"*"No Session to load"*)
 										echo ${session}
@@ -3919,6 +3952,12 @@ Actions()
 											CodeProject=${SavedProject}
 											CodeDir=${SavedCodeDir}
 										fi
+
+										if [ ! -z "${UserIn[1]}" ]; then
+											echo "Session \"${UserIn[1]}\" is loaded"
+										else
+											echo "Session loaded"
+										fi
 										refresh="yes"
 										;;
 								esac
@@ -3937,8 +3976,92 @@ Actions()
 								HelpMenu ${Lang} ${UserIn[@]}
 								;;
 							*)
-								SaveSession ${Lang} ${TheSrcCode}
-								echo "session saved"
+								SaveSession ${Lang} ${UserIn[1]}
+								;;
+						esac
+						;;
+					session)
+						local NewArgs=( ${UserIn[@]} )
+						NewArgs[0]=""
+						case ${UserIn[1]} in
+							--help)
+								HelpMenu ${Lang} ${UserIn[@]}
+								;;
+							list)
+								ListSession
+								;;
+							#Save cl[ide] session
+							save)
+								case ${UserIn[2]} in
+									--help)
+										HelpMenu ${Lang} ${NewArgs[@]}
+										;;
+									*)
+										SaveSession ${Lang} ${UserIn[2]}
+										;;
+								esac
+								;;
+							#load last session
+							last|load)
+								case ${UserIn[2]} in
+									--help)
+										HelpMenu ${Lang} ${NewArgs[@]}
+										;;
+									*)
+										local SavedLang=${Lang}
+										local SavedCode=${TheSrcCode}
+										local SavedProject=${CodeProject}
+										local SavedCodeDir=${CodeDir}
+										Dir=""
+										session=$(LoadSession ${UserIn[2]})
+										case ${session} in
+											*"ERROR"*"No Session to load"*)
+												echo ${session}
+												;;
+											*)
+												Lang=$(echo ${session} | cut -d ";" -f 2)
+												CodeProject=$(echo ${session} | cut -d ";" -f 1)
+												TheSrcCode=$(echo ${session} | cut -d ";" -f 3)
+												case ${CodeProject} in
+													none)
+														;;
+													*)
+														Dir="${CodeProject}"
+														;;
+												esac
+												#Determine Language
+												CodeDir=$(ManageLangs "${Lang}" "pgDir")
+												if [ ! -z "${CodeDir}" ]; then
+													CodeDir=${CodeDir}/${Dir}
+													#Go to dir
+													if [ -d ${CodeDir} ]; then
+														cd ${CodeDir}
+													else
+														Lang=${SavedLang}
+														TheSrcCode=${SavedCode}
+														CodeProject=${SavedProject}
+														CodeDir=${SavedCodeDir}
+													fi
+												else
+													Lang=${SavedLang}
+													TheSrcCode=${SavedCode}
+													CodeProject=${SavedProject}
+													CodeDir=${SavedCodeDir}
+												fi
+
+												if [ ! -z "${UserIn[2]}" ]; then
+													echo "Session \"${UserIn[2]}\" is loaded"
+												else
+													echo "Session loaded"
+												fi
+												refresh="yes"
+												;;
+										esac
+										;;
+								esac
+								;;
+							*)
+								ListSession
 								;;
 						esac
 						;;
@@ -4220,6 +4343,7 @@ loadAuto()
 	comp_list "ls"
 	comp_list "whoami"
 	comp_list "save"
+	comp_list "session" "save load"
 	comp_list "lscpl"
 	comp_list "using" "--help"
 	comp_list "ll"
@@ -4411,7 +4535,7 @@ CLI()
 								fi
 							fi
 							;;
-						-x|--run|--time|--build|--edit)
+						-x|--run|--time|--build|--edit|--files)
 							shift
 							local CheckSrc
 							local Lang=$1
@@ -4462,6 +4586,57 @@ CLI()
 												if [ -d ${CodeDir} ]; then
 													cd ${CodeDir}
 													case ${ActionProject} in
+														--files)
+															local FileType
+															local ChosenLang=$1
+															local LinkedLangs
+															local TheSrcFound
+															local RemoveDirs=${CodeDir//\//|}
+
+															ChosenLang=$(pgLang ${ChosenLang})
+															case ${ChosenLang} in
+																no)
+																	;;
+																*)
+																	LinkedLangs=$(echo ${TheProject} | cut -d ";" -f 5)
+																	if [ ! -z "${LinkedLangs}" ]; then
+																		case ${ChosenLang} in
+																			*"${LinkedLangs},"*)
+																				Lang=${ChosenLang}
+																				;;
+																			*)
+																				Lang=""
+																				;;
+																		esac
+																	fi
+																	;;
+															esac
+
+															case $# in
+																#Name "src"
+																2)
+																	FileType=$2
+																	;;
+																#Lang Name "src"
+																3)
+																	FileType=$3
+																	;;
+																*)
+																	;;
+															esac
+
+															#Make sure Langauge is not empty
+															if [ ! -z "${Lang}" ]; then
+																case ${FileType} in
+																	src)
+																		ManageLangs ${Lang} "getAllProjSrc" | tr '/' '|' | sed "s/${RemoveDirs}//g" | tr '|' '/'
+																		;;
+																	*)
+																		find ${CodeDir} -print | tr '/' '|' | sed "s/${RemoveDirs}//g" | tr '|' '/'
+																		;;
+																esac
+															fi
+															;;
 														--time)
 															TimeRun="time"
 															shift
@@ -4478,8 +4653,8 @@ CLI()
 															if [ ! -z "${CheckSrc}" ]; then
 																LinkedLangs=$(echo ${TheProject} | cut -d ";" -f 5)
 																if [ ! -z "${LinkedLangs}" ]; then
-																	for Link in ${LinkedLangs//,/ }; do
-
+																	for Link in ${LinkedLangs//,/ };
+																	do
 																		TheSrcFound=$(selectCode ${Link} ${Code})
 																		if [ ! -z "${TheSrcFound}" ]; then
 																			Lang=${Link}
@@ -4851,7 +5026,7 @@ CLI()
 												--*)
 													shift
 													case ${ModeAction} in
-														--edit)
+														--edit|--files)
 															local CheckForLang=$1
 															if [ ! -z "${CheckForLang}" ]; then
 																CheckForLang=$(pgLang ${CheckForLang})
@@ -4968,21 +5143,39 @@ CLI()
 				fi
 				;;
 			#Load last saved session
-			-l|--load|--last)
+			-l|--load|--last|--session)
 				if [ -z "${ThePipe}" ]; then
-					session=$(LoadSession)
-					case ${session} in
-						*"ERROR"*"No Session to load"*)
-							echo ${session}
-							;;
-						*)
-							Lang=$(echo ${session} | cut -d ";" -f 2)
-							Code=$(echo ${session} | cut -d ";" -f 3)
-							CodeProject=$(echo ${session} | cut -d ";" -f 1)
-							#Start IDE
-							Actions ${Lang} ${Code} ${CodeProject}
-							;;
-					esac
+					shift
+					local Name=$1
+					if [ ! -z "${Name}" ]; then
+						case ${Name} in
+							--list)
+								ListSession
+								;;
+							*)
+								session=$(LoadSession ${Name})
+								case ${session} in
+									*"ERROR"*"No Session to load"*)
+										echo ${session}
+										;;
+									*)
+										Lang=$(echo ${session} | cut -d ";" -f 2)
+										Code=$(echo ${session} | cut -d ";" -f 3)
+										CodeProject=$(echo ${session} | cut -d ";" -f 1)
+										if [ ! -z "${Name}" ]; then
+											echo "Session \"${Name}\" is loaded"
+										else
+											echo "Session loaded"
+										fi
+										#Start IDE
+										Actions ${Lang} ${Code} ${CodeProject}
+										;;
+								esac
+								;;
+						esac
+					else
+						ListSession
+					fi
 				fi
 				;;
 			#Search for source code path OR langauge and source code name

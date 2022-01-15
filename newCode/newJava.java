@@ -25,13 +25,14 @@ public class newJava {
 	private static boolean getWriteFile = false;
 	private static boolean getShell = false;
 	private static boolean getArrays = false;
+	private static boolean getLengths = false;
 	private static boolean getPipe = false;
 	private static boolean getJavaProp = false;
 
 	private static void Help()
 	{
 		String program = "newJava";
-		String version = "0.1.14";
+		String version = "0.1.15";
 		print("Author: Joespider");
 		print("Program: \""+program+"\"");
 		print("Version: "+version);
@@ -52,7 +53,8 @@ public class newJava {
 		print("\t--write-file : enable \"write\" file method");
 		print("\t--read-file : enable \"read\" file method");
 		print("\t--user-input : enable \"raw_input\" method");
-		print("\t--append-array : enable \"append\" array method");
+		print("\t--append-array : enable \"append\" array methods");
+		print("\t--get-length : enable \"length\" methods");
 	}
 
 	private static void print(Object out)
@@ -202,6 +204,11 @@ public class newJava {
 			{
 				getArrays = true;
 			}
+			//enable length methods
+			else if (now.equals("--get-length"))
+			{
+				getLengths = true;
+			}
 
 			lp++;
 			NextPos++;
@@ -324,8 +331,11 @@ public class newJava {
 		}
 		if (getArrays == true)
 		{
-			MethodLength = "\t//get array length\n\tprivate static int len(String[] array)\n\t{\n\t\tint length = array.length;\n\t\treturn length;\n\t}\n\n\t//get array length\n\tprivate static int len(int[] array)\n\t{\n\t\tint length = array.length;\n\t\treturn length;\n\t}\n\n\t//get array length\n\tprivate static int len(float[] array)\n\t{\n\t\tint length = array.length;\n\t\treturn length;\n\t}\n\n\t//get array length\n\tprivate static int len(double[] array)\n\t{\n\t\tint length = array.length;\n\t\treturn length;\n\t}\n\n\t//get string length\n\tprivate static int len(String word)\n\t{\n\t\tint length = word.length();\n\t\treturn length;\n\t}\n\n";
 			MethodArrays = "\t//Append content to array\n\tprivate static String[] Append(String[] ArrayName, String content)\n\t{\n\t\tint i = ArrayName.length;\n\t\t//growing temp array\n\t\tString[] temp = new String[i];\n\t\t//copying ArrayName array into temp array.\n\t\tSystem.arraycopy(ArrayName, 0, temp, 0, i);\n\t\t//creating a new array\n\t\tArrayName = new String[i+1];\n\t\t//copying temp array into ArrayName\n\t\tSystem.arraycopy(temp, 0, ArrayName, 0, i);\n\t\t//storing user input in the arrayn\n\t\tArrayName[i] = content;\n\t\treturn ArrayName;\n\t}\n\n\t//Append content to array\n\tprivate static int[] Append(int[] ArrayName, int content)\n\t{\n\t\tint i = ArrayName.length;\n\t\t//growing temp array\n\t\tint[] temp = new int[i];\n\t\t//copying ArrayName array into temp array.\n\t\tSystem.arraycopy(ArrayName, 0, temp, 0, i);\n\t\t//creating a new array\n\t\tArrayName = new int[i+1];\n\t\t//copying temp array into ArrayName\n\t\tSystem.arraycopy(temp, 0, ArrayName, 0, i);\n\t\t//storing user input in the arrayn\n\t\tArrayName[i] = content;\n\t\treturn ArrayName;\n\t}\n\n\t//Append content to array\n\tprivate static float[] Append(float[] ArrayName, float content)\n\t{\n\t\tint i = ArrayName.length;\n\t\t//growing temp array\n\t\tfloat[] temp = new float[i];\n\t\t//copying ArrayName array into temp array.\n\t\tSystem.arraycopy(ArrayName, 0, temp, 0, i);\n\t\t//creating a new array\n\t\tArrayName = new float[i+1];\n\t\t//copying temp array into ArrayName\n\t\tSystem.arraycopy(temp, 0, ArrayName, 0, i);\n\t\t//storing user input in the array\n\t\tArrayName[i] = content;\n\t\treturn ArrayName;\n\t}\n\n\t//Append content to array\n\tprivate static double[] Append(double[] ArrayName, double content)\n\t{\n\t\tint i = ArrayName.length;\n\t\t//growing temp array\n\t\tdouble[] temp = new double[i];\n\t\t//copying ArrayName array into temp array.\n\t\tSystem.arraycopy(ArrayName, 0, temp, 0, i);\n\t\t//creating a new array\n\t\tArrayName = new double[i+1];\n\t\t//copying temp array into ArrayName\n\t\tSystem.arraycopy(temp, 0, ArrayName, 0, i);\n\t\t//storing user input in the arrayn\n\t\tArrayName[i] = content;\n\t\treturn ArrayName;\n\t}\n\n";
+		}
+		if (getLengths == true)
+		{
+			MethodLength = "\t//get array length\n\tprivate static int len(String[] array)\n\t{\n\t\tint length = array.length;\n\t\treturn length;\n\t}\n\n\t//get array length\n\tprivate static int len(int[] array)\n\t{\n\t\tint length = array.length;\n\t\treturn length;\n\t}\n\n\t//get array length\n\tprivate static int len(float[] array)\n\t{\n\t\tint length = array.length;\n\t\treturn length;\n\t}\n\n\t//get array length\n\tprivate static int len(double[] array)\n\t{\n\t\tint length = array.length;\n\t\treturn length;\n\t}\n\n\t//get string length\n\tprivate static int len(String word)\n\t{\n\t\tint length = word.length();\n\t\treturn length;\n\t}\n\n";
 		}
 		if (getJavaProp == true)
 		{
