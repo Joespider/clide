@@ -665,6 +665,9 @@ CliHelp()
 				-x|--run|--time)
 					RunCliHelp ${example}
 					;;
+				--rm|--rm-bin|--rm-src)
+					RmCliHelp ${example}
+					;;
 				--install)
 					InstallCliHelp ${example}
 					;;
@@ -701,6 +704,9 @@ CliHelp()
 					echo -e "\t--debug <args>\t\t\t\t\t: \"Debug compiled code\""
 					echo -e "\t--run <args>\t\t\t\t\t: \"Run compiled code\""
 					echo -e "\t-x <args>\t\t\t\t\t: \"Run compiled code\""
+					echo -e "\t--rm <args>\t\t\t\t\t: \"Remove binary and source code\""
+					echo -e "\t--rm-bin <args>\t\t\t\t: \"Remove binary code\""
+					echo -e "\t--rm-src <args>\t\t\t\t: \"Remove source code\""
 					echo -e "\t--time <args>\t\t\t\t\t: \"Run and time compiled code\""
 					echo -e "\t--notes <args>\t\t\t\t\t: \"Manage the notes for a given language\""
 					echo -e "\t--read <args>\t\t\t\t\t: \"Read out (cat) source code\""
@@ -873,6 +879,33 @@ RunCliHelp()
 	echo ""
 	echo -e "${cmd} <language> <code> {arguments}"
 	echo -e "${cmd} <code> {arguments}"
+	echo -e "${cmd} -h, --help\t\t\t: \"help page\""
+	echo "-----------------------------------------------"
+	echo ""
+}
+
+RmCliHelp()
+{
+	local cli="$1"
+	local cmd="\$ clide ${cli}"
+	echo ""
+	echo "----------------[(${Head}) cli {${cli}}]----------------"
+	case ${cli} in
+		--rm)
+			echo -e "Remove your source and compiled code without having a ${Head} session"
+			;;
+		--rm-src)
+			echo -e "Remove your source code without having a ${Head} session"
+			;;
+		--rm-bin)
+			echo -e "Remove your compiled code without having a ${Head} session"
+			;;
+		*)
+			;;
+	esac
+	echo ""
+	echo -e "${cmd} <language> <code>"
+	echo -e "${cmd} <code>"
 	echo -e "${cmd} -h, --help\t\t\t: \"help page\""
 	echo "-----------------------------------------------"
 	echo ""

@@ -25,6 +25,7 @@ export TimeRun
 
 #InAndOut determines if internal functions can run via cli
 InAndOut="no"
+MessageOverride="no"
 SessionName="clide"
 
 #Name of the program
@@ -1439,6 +1440,7 @@ Remove()
 	local src=$3
 	local option=$4
 	local TheFile
+
 	if [ ! -z "${src}" ]; then
 		case ${src} in
 			-f)
@@ -1720,10 +1722,62 @@ runCode()
 			*)
 				;;
 		esac
+
+		runCodeMessage ${Lang} ${TheBin} "started"
 		#Get the Lang.<language> to handle running the code
 		ManageLangs ${Lang} "runCode" "${TheBin}" "${JavaProp}" ${Args[@]}
+		runCodeMessage ${Lang} ${TheBin} "finished"
+
 	else
 		errorCode "cpl" "need" ${Lang}
+	fi
+}
+
+runCodeMessage()
+{
+	local Lang=$1
+	local TheCode=$2
+	local TheColor
+	local Status=$3
+	Status=${Status,,}
+	if [ ! -z "${Lang}" ]; then
+		case ${InAndOut} in
+			yes)
+				case ${MessageOverride} in
+					yes)
+						TheColor=$(ManageLangs ${Lang} "color-number")
+						case ${Status} in
+							started)
+								echo -e "\e[1;3${TheColor}m{[${Lang}: ${TheCode}] *${Status^}*}\e[0m"
+								;;
+							finished)
+								echo -e "\e[1;3${TheColor}m{[${Lang}: ${TheCode}] *${Status^}*}\e[0m"
+								;;
+							*)
+								;;
+						esac
+						;;
+					*)
+						;;
+				esac
+				;;
+			*)
+				case ${Lang} in
+					no)
+						;;
+					*)
+						TheColor=$(ManageLangs ${Lang} "color-number")
+						case ${Status} in
+							started|finished)
+								echo -e "\e[1;3${TheColor}m[${TheCode}] *${Status^}*\e[0m"
+								;;
+							*)
+								;;
+						esac
+						;;
+				esac
+				;;
+		esac
 	fi
 }
 
@@ -4669,6 +4723,7 @@ CLI()
 															ManageLangs ${Lang} "editCode"
 															;;
 														-x|--run)
+															InAndOut="yes"
 															shift
 															local ArgFlag=$1
 															if [ ! -z "${ArgFlag}" ]; then
@@ -5142,6 +5197,62 @@ CLI()
 					esac
 				fi
 				;;
+			#Remove Src Or Bin
+			--rm|--rm-bin|--rm-src)
+				if [ -z "${ThePipe}" ]; then
+					shift
+					local Lang=$1
+					local LangSrc=$2
+					if [ ! -z "${Lang}" ]; then
+						Lang=$(pgLang ${Lang})
+						case ${Lang} in
+							no)
+								LangSrc=$1
+								Lang=$(SelectLangByCode ${LangSrc})
+								case ${Lang} in
+									no)
+										Lang=""
+										LangSrc=""
+										;;
+									*)
+										;;
+								esac
+								;;
+							*)
+								;;
+						esac
+						if [ ! -z "${Lang}" ]; then
+							case ${UserArg} in
+								--rm)
+									CLI --rm-bin $@
+									CLI --rm-src $@
+									;;
+								--rm-bin)
+									#Get the binary path
+									TheFile=$(ManageLangs ${Lang} "rmBin" ${LangSrc})
+									if [ ! -z "${TheFile}" ]; then
+										#remove file
+										rm ${TheFile}
+										TheFile=${TheFile##*/}
+										echo "Binary \"${TheFile}\" Removed"
+									fi
+									;;
+								--rm-src)
+									#Get the source code path
+									TheFile=$(ManageLangs ${Lang} "rmSrc" ${LangSrc})
+									if [ ! -z "${TheFile}" ]; then
+										rm ${TheFile}
+										TheFile=${TheFile##*/}
+										echo "Source \"${TheFile}\" Removed"
+									fi
+									;;
+								*)
+									;;
+							esac
+						fi
+					fi
+				fi
+				;;
 			#Load last saved session
 			-l|--load|--last|--session)
 				if [ -z "${ThePipe}" ]; then
@@ -5548,6 +5659,7 @@ CLI()
 					local Lang
 					local Code=$2
 					local Args
+
 					#clide --cpl <code>.<ext>
 					if [ -z "${Code}" ]; then
 						Lang=$(SelectLangByCode $1)
@@ -5702,54 +5814,111 @@ CLI()
 				local Lang=$1
 				local Code=$2
 				local CodeDir
+				local IsLang
+				local TheLang
+				local TheCode
+				local LangColor
+
 				#Provide the help page
 				if [ -z "${Lang}" ]; then
 					theHelp RunCliHelp ${UserArg}
 				else
-					case ${Lang} in
-						#Provide the help page
-						-h|--help|-*)
-							theHelp RunCliHelp ${UserArg}
+					InAndOut="yes"
+					case ${Code} in
+						*","*)
+							shift
+							shift
+							for TheCode in ${Code//,/ };
+							do
+								case ${Lang} in
+									*","*)
+										;;
+									*)
+										MessageOverride="yes"
+										;;
+								esac
+								CLI ${UserArg} ${Lang} ${TheCode} $@
+							done
 							;;
 						*)
-							Lang=$(pgLang ${Lang})
 							case ${Lang} in
-								no)
-									Lang=$(SelectLangByCode $1)
-									Code=$1
+								#Run multiple languages
+								*","*)
+									MessageOverride="yes"
+									local TheCode
 									shift
-									if [ -z "${Lang}" ]; then
-										errorCode "runCode" "no-lang"
-										Code=""
-									else
-										CodeDir=$(pgDir ${Lang})
-									fi
+									for TheLang in ${Lang//,/ };
+									do
+										IsLang=$(pgLang ${TheLang})
+										case ${IsLang} in
+											no)
+												IsLang=$(SelectLangByCode ${TheLang})
+												if [ ! -z "${IsLang}" ]; then
+													Code=${TheLang}
+													TheLang=${IsLang}
+													CLI ${UserArg} ${TheLang} ${Code} $@
+												fi
+												;;
+											*)
+												CodeDir=$(pgDir ${TheLang})
+												case ${CodeDir} in
+													no)
+														;;
+													*)
+														if [ ! -z "${CodeDir}" ]; then
+															CLI ${UserArg} ${TheLang} $@
+														fi
+														;;
+												esac
+												;;
+										esac
+									done
+									;;
+								#Provide the help page
+								-h|--help|-*)
+									theHelp RunCliHelp ${UserArg}
 									;;
 								*)
-									shift
-									shift
-									;;
-							esac
-
-							if [ -z "${Code}" ]; then
-								errorCode "selectCode" "not-found"
-							else
-								local TheBin=$(ManageLangs ${Lang} "getBin" "${Code}")
-								if [ ! -z "${TheBin}" ]; then
-									case ${UserArg} in
-										--time)
-											TimeRun="time"
+									Lang=$(pgLang ${Lang})
+									case ${Lang} in
+										no)
+											Lang=$(SelectLangByCode $1)
+											Code=$1
+											shift
+											if [ -z "${Lang}" ]; then
+												errorCode "runCode" "no-lang"
+												Code=""
+											else
+												CodeDir=$(pgDir ${Lang})
+											fi
 											;;
 										*)
+											shift
+											shift
 											;;
 									esac
-									local Args=$@
-									#run the code..."none" "none" is to provide the needed padding to run
-									runCode ${Lang} ${Code} "none" "none" ${Args[@]}
-								else
-									errorCode "cpl" "cli-need" "${Lang}"
-								fi
-							fi
+
+									if [ -z "${Code}" ]; then
+										errorCode "selectCode" "not-found"
+									else
+										local TheBin=$(ManageLangs ${Lang} "getBin" "${Code}")
+										if [ ! -z "${TheBin}" ]; then
+											case ${UserArg} in
+												--time)
+													TimeRun="time"
+													;;
+												*)
+													;;
+											esac
+											local Args=$@
+											#run the code..."none" "none" is to provide the needed padding to run
+											runCode ${Lang} ${Code} "none" "none" ${Args[@]}
+										else
+											errorCode "cpl" "cli-need" "${Lang}"
+										fi
+									fi
+									;;
+							esac
 							;;
 					esac
 				fi
