@@ -878,8 +878,9 @@ RunCliHelp()
 	echo -e "Run your compiled code without having a ${Head} session"
 	echo ""
 	echo -e "${cmd} <language> <code> {arguments}"
-	echo -e "${cmd} <code> {arguments}"
-	echo -e "${cmd} -h, --help\t\t\t: \"help page\""
+	echo -e "${cmd} <language>,<language>,<language> <code> {arguments}\t: \"Run same programs in different langaugaes\""
+	echo -e "${cmd} <code>,<code>,<code> {arguments}\t\t\t\t: \"Run multiple programs\""
+	echo -e "${cmd} -h, --help\t\t\t\t\t\t: \"help page\""
 	echo "-----------------------------------------------"
 	echo ""
 }

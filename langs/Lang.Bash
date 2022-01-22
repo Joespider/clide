@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.84"
+SupportV="0.1.85"
 Lang=Bash
 LangExt=".sh"
 ColorNum=2
@@ -659,7 +659,7 @@ UseBash()
 		setCplArgs-help)
 			;;
 		compileCode-message)
-			echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
+			echo -e "\e[1;4${ColorNum}m[${Lang} Code Set To Execute]\e[0m"
 			;;
 		compileCode)
 			local src=${TheCode}
