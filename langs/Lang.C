@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.70"
+SupportV="0.1.71"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
@@ -1074,7 +1074,7 @@ UseC()
 			echo -e "--std=<version>\t\t: \"Set C version\""
 			case ${LangCpl} in
 				gcc)
-					echo "These are ALL the ${LangCpl} versions"
+					echo "These are SOME of the ${LangCpl} versions"
 					echo "\tc98"
 					echo "\tc11"
 					echo "\tc14"
@@ -1210,12 +1210,14 @@ UseC()
 								IsVerbose=$(echo ${cplArgs} | grep -w "\-v" 2> /dev/null)
 								if [ -z "${IsVerbose}" ]; then
 									#Compile and check for errors...and put into binary directory
-									ERROR=$(${LangCpl} ${src} -o ${TheBinDir}/${name} ${cplArgs} 2>&1 | tr '\n' '|')
+									ERROR=$(${LangCpl} ${src} -o ${TheBinDir}/${name}.tmp ${cplArgs} 2>&1 | tr '\n' '|')
 
 									#Code compiled successfully
 									if [ -z "${ERROR}" ]; then
+										mv ${TheBinDir}/${name}.tmp ${TheBinDir}/${name}
 										UseC compileCode-message
 									else
+										rm ${TheBinDir}/${name}.tmp
 										#display the ERROR message
 										errorCode "cpl" "ERROR" "${ERROR}"
 									fi
@@ -1232,6 +1234,7 @@ UseC()
 										UseC compileCode-message
 									#Code compiled did NOT compile
 									else
+										rm ${TheBinDir}/${name}.tmp
 										#display the ERROR message
 										errorCode "cpl" "ERROR" "${ERROR}"
 									fi

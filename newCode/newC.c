@@ -25,7 +25,7 @@ void help()
 {
 	print("Author: Joespider");
 	print("Program: \"newC\"");
-	print("Version: 0.0.10");
+	print("Version: 0.0.12");
 	print("Purpose: make new C programs");
 	print("Usage: newC <args>");
 	print("\t-n <name> : program name");
@@ -91,6 +91,8 @@ int main(int argc, char *argv[])
 	int getIsIn = 1;
 	int getRawIn = 1;
 	int IsMain = 1;
+	int LenOfName = 0;
+	char TheExt[2];
 
 	char *CName;
 
@@ -105,7 +107,7 @@ int main(int argc, char *argv[])
 				NameIsNotOk = IsIn(argv[i],"--");
 				if (NameIsNotOk == 1)
 				{
-//					strcat(argv[i],".c");
+					LenOfName = strlen(argv[i]);
 					CName = argv[i];
 				}
 				getName = 1;
@@ -149,7 +151,22 @@ int main(int argc, char *argv[])
 		if (strcmp(CName,"") != 0)
 		{
 			FILE * fp;
-			fp = fopen(CName, "w");
+			if (LenOfName >= 3)
+			{
+				strncpy(TheExt,&CName[LenOfName-2], 2);
+				if (strcmp(TheExt,".c") == 0)
+				{
+					fp = fopen(CName, "w");
+				}
+				else
+				{
+					fp = fopen(strcat(CName,".c"), "w");
+				}
+			}
+			else
+			{
+				fp = fopen(strcat(CName,".c"), "w");
+			}
 			getImports(fp);
 			getMethods(fp, getRawIn, getRand, getWrite, getRead, getIsIn);
 			if (IsMain == 0)
