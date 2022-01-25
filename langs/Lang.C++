@@ -5,7 +5,7 @@ Shell=$(which bash)
 #Link Libs: https://gist.github.com/gubatron/32f82053596c24b6bec6
 #both https://avikdas.com/2019/12/16/makefiles-for-c-cpp-projects.html
 
-SupportV="0.2.32"
+SupportV="0.2.33"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -1424,6 +1424,7 @@ UseC++()
 		compileCode)
 			local src=${TheCode}
 			local name=$1
+			local TheBinFile
 			local cplArgs=${CplArgs//,/ }
 			local IsVerbose
 			local project=${CodeProject}
@@ -1490,7 +1491,6 @@ UseC++()
 			HasAnExt=$(UseC++ "hasExtForCpl" ${src})
 			#Compile ONLY if source code is selected OR makefile is present
 			if [ ! -z "${HasAnExt}" ] || [ -f ${LangProject}/${project}makefile ]; then
-				cd ${TheSrcDir}
 				case ${cplArgs} in
 					none)
 						cplArgs=${LangCplVersion}
@@ -1503,9 +1503,10 @@ UseC++()
 				if [ -f ${LangProject}/${project}makefile ]; then
 					cd ${LangProject}/${project}
 					ERROR=$(make 1> /dev/null 2>&1 | tr '\n' '|')
+					TheBinFile=$(ls bin/${name} 2> /dev/null)
 					cd - > /dev/null
 					#Code compiled did compile
-					if [ -z "${ERROR}" ]; then
+					if [ -z "${ERROR}" ] && [ ! -z "${TheBinFile}" ]; then
 						UseC++ compileCodeMake-message
 					#Code compiled did NOT compile
 					else
@@ -1513,6 +1514,9 @@ UseC++()
 						if [ ! -z "${SuggestedVersion}" ]; then
 							errorCode "cpl" "C++Version" ${SuggestedVersion}
 						else
+							if [ -z "${ERROR}" ]; then
+								ERROR="Please Check makefile for issues"
+							fi
 							#display the ERROR message
 							errorCode "cpl" "ERROR" "${ERROR}"
 						fi
@@ -1520,6 +1524,7 @@ UseC++()
 					fi
 				#Compile without makefile
 				else
+					cd ${TheSrcDir}
 					#source file is empty
 					if [ -z "${name}" ]; then
 						errorCode "cpl" "choose"
@@ -1577,8 +1582,8 @@ UseC++()
 							*)
 								;;
 						esac
+						cd - > /dev/null
 					fi
-					cd - > /dev/null
 				fi
 			fi
 			;;

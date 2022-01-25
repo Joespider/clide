@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.88"
+SupportV="0.1.89"
 Lang=Perl
 LangExt=".pl"
 #Color Purple
@@ -594,7 +594,7 @@ UsePerl()
 			echo -e "--warnings\t\t: \"Show ALL warnings (-W)\""
 			;;
 		compileCode-message)
-			echo -e "\e[1;4${ColorNum}m[${Lang} Code Compiled]\e[0m"
+			echo -e "\e[1;4${ColorNum}m[${Lang} Code Set To Execute]\e[0m"
 			;;
 		compileCode)
 			local src=${TheCode}
