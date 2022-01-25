@@ -481,7 +481,7 @@ CreateHelp()
 	esac
 }
 
-MakeHelp()
+makeHelp()
 {
 	local Lang=$1
 	echo ""
@@ -491,7 +491,7 @@ MakeHelp()
 	echo -e "edit\t\t\t\t: \"Edit an existing makefile in a ${Lang} Project\""
 	echo -e "enable\t\t\t\t: \"Enable previously disabled makefile in a ${Lang} Project\""
 	echo -e "disable\t\t\t\t: \"Disable makefile in a ${Lang} Project\""
-	echo -e "\t\t\t\t\t(Can be used to create a new makefile)"
+	echo -e "(Can be used to create a new makefile)"
 	echo -e "(To run make, just tell ${Head} to compile)"
 #	ManageLangs ${Lang} "makeHelp"
 	echo "---------------------------------------------------------"
@@ -665,6 +665,9 @@ CliHelp()
 				-x|--run|--time)
 					RunCliHelp ${example}
 					;;
+				--rm|--rm-bin|--rm-src)
+					RmCliHelp ${example}
+					;;
 				--install)
 					InstallCliHelp ${example}
 					;;
@@ -701,6 +704,9 @@ CliHelp()
 					echo -e "\t--debug <args>\t\t\t\t\t: \"Debug compiled code\""
 					echo -e "\t--run <args>\t\t\t\t\t: \"Run compiled code\""
 					echo -e "\t-x <args>\t\t\t\t\t: \"Run compiled code\""
+					echo -e "\t--rm <args>\t\t\t\t\t: \"Remove binary and source code\""
+					echo -e "\t--rm-bin <args>\t\t\t\t: \"Remove binary code\""
+					echo -e "\t--rm-src <args>\t\t\t\t: \"Remove source code\""
 					echo -e "\t--time <args>\t\t\t\t\t: \"Run and time compiled code\""
 					echo -e "\t--notes <args>\t\t\t\t\t: \"Manage the notes for a given language\""
 					echo -e "\t--read <args>\t\t\t\t\t: \"Read out (cat) source code\""
@@ -872,7 +878,35 @@ RunCliHelp()
 	echo -e "Run your compiled code without having a ${Head} session"
 	echo ""
 	echo -e "${cmd} <language> <code> {arguments}"
-	echo -e "${cmd} <code> {arguments}"
+	echo -e "${cmd} <language>,<language>,<language> <code> {arguments}\t: \"Run same programs in different langaugaes\""
+	echo -e "${cmd} <code>,<code>,<code> {arguments}\t\t\t\t: \"Run multiple programs\""
+	echo -e "${cmd} -h, --help\t\t\t\t\t\t: \"help page\""
+	echo "-----------------------------------------------"
+	echo ""
+}
+
+RmCliHelp()
+{
+	local cli="$1"
+	local cmd="\$ clide ${cli}"
+	echo ""
+	echo "----------------[(${Head}) cli {${cli}}]----------------"
+	case ${cli} in
+		--rm)
+			echo -e "Remove your source and compiled code without having a ${Head} session"
+			;;
+		--rm-src)
+			echo -e "Remove your source code without having a ${Head} session"
+			;;
+		--rm-bin)
+			echo -e "Remove your compiled code without having a ${Head} session"
+			;;
+		*)
+			;;
+	esac
+	echo ""
+	echo -e "${cmd} <language> <code>"
+	echo -e "${cmd} <code>"
 	echo -e "${cmd} -h, --help\t\t\t: \"help page\""
 	echo "-----------------------------------------------"
 	echo ""
