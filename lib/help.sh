@@ -481,7 +481,7 @@ CreateHelp()
 	esac
 }
 
-MakeHelp()
+makeHelp()
 {
 	local Lang=$1
 	echo ""
@@ -491,7 +491,7 @@ MakeHelp()
 	echo -e "edit\t\t\t\t: \"Edit an existing makefile in a ${Lang} Project\""
 	echo -e "enable\t\t\t\t: \"Enable previously disabled makefile in a ${Lang} Project\""
 	echo -e "disable\t\t\t\t: \"Disable makefile in a ${Lang} Project\""
-	echo -e "\t\t\t\t\t(Can be used to create a new makefile)"
+	echo -e "(Can be used to create a new makefile)"
 	echo -e "(To run make, just tell ${Head} to compile)"
 #	ManageLangs ${Lang} "makeHelp"
 	echo "---------------------------------------------------------"
