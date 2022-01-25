@@ -702,7 +702,8 @@ errorCode()
 							if [ ! -z "${four}" ]; then
 								errorCode "ERROR"
 								errorCode "ERROR" "Unable to link \"${four}\""
-								errorCode "ERROR" "May have already been linked"
+								errorCode "WARNING"
+								errorCode "WARNING" "May have already been linked"
 							else
 								errorCode "ERROR"
 								errorCode "ERROR" "Please provide language"
@@ -724,6 +725,15 @@ errorCode()
 								errorCode "HINT" "command"
 								errorCode "HINT" "project swap <lang>"
 							fi
+							;;
+						cli-link)
+								errorCode "ERROR"
+								errorCode "ERROR" "Project not found"
+								errorCode "HINT" "command"
+								errorCode "HINT" "clide ${four} --link <lang> <project>"
+								echo "OR"
+								errorCode "HINT" "command"
+								errorCode "HINT" "clide ${four} <project> --link <lang>"
 							;;
 						*)
 							;;
@@ -856,8 +866,28 @@ errorCode()
 		cli-cpl)
 			case ${sec} in
 				none)
-					errorCode "ERROR"
-					errorCode "ERROR" "Source code not found"
+					shift
+					local thr=$1
+					case ${thr} in
+						project)
+							shift
+							local four=$@
+							if [ ! -z "${four}" ]; then
+								errorCode "ERROR"
+								errorCode "ERROR" "Source code not found"
+								echo ""
+								errorCode "HINT"
+								errorCode "HINT" "${four}"
+							else
+								errorCode "ERROR"
+								errorCode "ERROR" "Source code not found"
+							fi
+							;;
+						*)
+							errorCode "ERROR"
+							errorCode "ERROR" "Source code not found"
+							;;
+					esac
 					;;
 				*)
 					;;

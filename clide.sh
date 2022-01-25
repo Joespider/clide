@@ -4578,11 +4578,14 @@ CLI()
 																;;
 														esac
 														;;
+													*)
+														;;
 												esac
 												;;
 										esac
 									else
-										errorCode "project" "load" "no-path" "${TheProjectName}"
+										errorCode "project" "link" "cli-link" ${UserArg}
+
 									fi
 								else
 									theHelp ProjectCliHelp ${UserArg}
@@ -4605,6 +4608,7 @@ CLI()
 								*)
 									GetProject=$2
 									Code=$3
+									shift
 									;;
 							esac
 
@@ -4750,11 +4754,11 @@ CLI()
 																		#Compile with makefile
 																		if [ ! -z "${TheMakeFile}" ]; then
 																			ManageLangs ${Lang} "compileCode"
-																		#Compile with selected code
+																			#Compile with selected code
 																		elif [ ! -z "${TheSrcCode}" ]; then
 																			ManageLangs ${Lang} "compileCode"
 																		else
-																			errorCode "cli-cpl" "none"
+																			errorCode "cli-cpl" "none" "project" "Please provide source code or create a make file"
 																		fi
 																		;;
 																	Rust)
@@ -4806,9 +4810,9 @@ CLI()
 								local TheLang=$1
 								local TheProjectName=$2
 								if [ ! -z "${TheLang}" ] && [ ! -z "${TheProjectName}" ]; then
-										importProject ${TheLang} ${TheProjectName}
+									importProject ${TheLang} ${TheProjectName}
 								elif [ ! -z "${TheLang}" ] && [ -z "${TheProjectName}" ]; then
-										importProject "none" ${TheLang}
+									importProject "none" ${TheLang}
 								fi
 							fi
 							;;
@@ -4898,7 +4902,7 @@ CLI()
 								listProjects --info ${GetProject}
 							fi
 							;;
-						--list)
+						--list|--lscpl)
 							if [ -z "${ThePipe}" ]; then
 								shift
 								local Lang
@@ -4911,26 +4915,49 @@ CLI()
 									listProjects
 								#list the entire project
 								else
-									case ${GetProject} in
-										-i|--info)
-											GetProject=$2
-											listProjects --info ${GetProject}
-											;;
-										*)
+									case ${ActionProject} in
+										--lscpl)
 											TheProject=$(loadProject ${GetProject})
 											if [ "${TheProject}" != "no" ]; then
 												Lang=$(echo ${TheProject} | cut -d ";" -f 1)
 												Lang=$(pgLang ${Lang})
 												CodeDir=$(echo ${TheProject} | cut -d ";" -f 3)
 												if [ ! -z "${CodeDir}" ]; then
-													RemoveDirs=${CodeDir//\//|}
-													find -L ${CodeDir} -print | tr '/' '|' | sed "s/${RemoveDirs}//g" | tr '|' '/'
+													CodeProject=${GetProject}
+													#list compiled code using Lang.<language>
+													ManageLangs ${Lang} "lscpl"
 												else
 													errorCode "cli-cpl" "none"
 												fi
 											else
 												errorCode "project" "not-valid" "${GetProject}"
 											fi
+											;;
+										--list)
+											case ${GetProject} in
+												-i|--info)
+													GetProject=$2
+													listProjects --info ${GetProject}
+													;;
+												*)
+													TheProject=$(loadProject ${GetProject})
+													if [ "${TheProject}" != "no" ]; then
+														Lang=$(echo ${TheProject} | cut -d ";" -f 1)
+														Lang=$(pgLang ${Lang})
+														CodeDir=$(echo ${TheProject} | cut -d ";" -f 3)
+														if [ ! -z "${CodeDir}" ]; then
+															RemoveDirs=${CodeDir//\//|}
+															find -L ${CodeDir} -print | tr '/' '|' | sed "s/${RemoveDirs}//g" | tr '|' '/'
+														else
+															errorCode "cli-cpl" "none"
+														fi
+													else
+														errorCode "project" "not-valid" "${GetProject}"
+													fi
+													;;
+											esac
+											;;
+										*)
 											;;
 									esac
 								fi
@@ -5078,10 +5105,11 @@ CLI()
 														ModeHandler ${ModeType} ${Lang} ${cLang} ${passcCode} $@
 													fi
 													;;
-												--*)
+												-*|--*)
 													shift
 													case ${ModeAction} in
-														--edit|--files)
+														#Swap arguments from "--<arg> <project> <arg>" to "<project> --<arg> <args>"
+														--edit|--files|--link)
 															local CheckForLang=$1
 															if [ ! -z "${CheckForLang}" ]; then
 																CheckForLang=$(pgLang ${CheckForLang})

@@ -1,7 +1,7 @@
 Shell=$(which bash)
 #!${Shell}
 
-SupportV="0.1.71"
+SupportV="0.1.72"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
@@ -1096,6 +1096,7 @@ UseC()
 		compileCode)
 			local src=${TheCode}
 			local name=$1
+			local TheBinFile
 			local cplArgs=${CplArgs//,/ }
 			local IsVerbose
 			local project=${CodeProject}
@@ -1169,7 +1170,6 @@ UseC()
 
 			#Compile ONLY if source code is selected OR makefile is present
 			if [ ! -z "${HasAnExt}" ] || [ -f ${LangProject}/${project}makefile ]; then
-				cd ${TheSrcDir}
 
 				case ${cplArgs} in
 					none)
@@ -1184,18 +1184,23 @@ UseC()
 				if [ -f ${LangProject}/${project}makefile ]; then
 					cd ${LangProject}/${project}
 					ERROR=$(make 1> /dev/null 2>&1 | tr '\n' '|')
+					TheBinFile=$(ls bin/${name} 2> /dev/null)
 					cd - > /dev/null
 
 					#Code compiled did compile
-					if [ -z "${ERROR}" ]; then
+					if [ -z "${ERROR}" ] && [ ! -z "${TheBinFile}" ]; then
 						UseC compileCodeMake-message
 					#Code compiled did NOT compile
 					else
+						if [ -z "${ERROR}" ]; then
+							ERROR="Please Check makefile for issues"
+						fi
 						#display the ERROR message
 						errorCode "cpl" "ERROR" "${ERROR}"
 					fi
 				#Compile without makefile
 				else
+					cd ${TheSrcDir}
 					#source file is empty
 					if [ -z "${name}" ]; then
 						errorCode "cpl" "choose"
