@@ -1,5 +1,4 @@
-Shell=$(which bash)
-#!${Shell}
+#!/usr/bin/env bash
 
 #Handle Pipes
 #{
@@ -2548,7 +2547,7 @@ Actions()
 														ManageLangs ${Lang} "enable-make"
 														;;
 													create)
-														ManageLangs ${Lang} "create-make" "${TheSrcCode}"
+														ManageLangs ${Lang} "create-make"
 														;;
 													edit)
 														ManageLangs ${Lang} "edit-make"
@@ -3609,7 +3608,7 @@ Actions()
 										case ${Lang} in
 											#only C and C++ uses make
 											C*)
-												ManageLangs ${Lang} "create-make" "${TheSrcCode}"
+												ManageLangs ${Lang} "create-make"
 												;;
 											*)
 												errorCode "make" "not-for-lang" ${Lang}
@@ -4902,10 +4901,11 @@ CLI()
 								listProjects --info ${GetProject}
 							fi
 							;;
-						--list|--lscpl)
+						--list|--lscpl|--make)
 							if [ -z "${ThePipe}" ]; then
 								shift
 								local Lang
+								local Code
 								local CodeDir
 								local TheProject
 								local RemoveDirs
@@ -4916,6 +4916,52 @@ CLI()
 								#list the entire project
 								else
 									case ${ActionProject} in
+										--make)
+											local MakeAction=$2
+											TheProject=$(loadProject ${GetProject})
+											if [ "${TheProject}" != "no" ]; then
+												Lang=$(echo ${TheProject} | cut -d ";" -f 1)
+												TheSrcCode=$(echo ${TheProject} | cut -d ";" -f 2)
+												Lang=$(pgLang ${Lang})
+												CodeDir=$(echo ${TheProject} | cut -d ";" -f 3)
+												if [ ! -z "${CodeDir}" ]; then
+													CodeProject=${GetProject}
+													case ${Lang} in
+														C|C++)
+															#Make Actions
+															case ${MakeAction} in
+																--delete|delete)
+																	ManageLangs ${Lang} "delete-make"
+																	;;
+																--disable|disable)
+																	ManageLangs ${Lang} "disable-make"
+																	;;
+																--enable|enable)
+																	ManageLangs ${Lang} "enable-make"
+																	;;
+																--create|create)
+																	ManageLangs ${Lang} "create-make"
+																	;;
+																--edit|edit)
+																	ManageLangs ${Lang} "edit-make"
+																	;;
+																*|--help|help)
+																	theHelp makeCliHelp ${Lang}
+																	;;
+															esac
+															;;
+														*)
+															errorCode "ERROR"
+															errorCode "ERROR" "The Language for \"${GetProject}\" must be C or C++"
+															;;
+													esac
+												else
+													errorCode "cli-cpl" "none"
+												fi
+											else
+												errorCode "project" "not-valid" "${GetProject}"
+											fi
+											;;
 										--lscpl)
 											TheProject=$(loadProject ${GetProject})
 											if [ "${TheProject}" != "no" ]; then

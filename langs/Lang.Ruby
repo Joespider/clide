@@ -1,5 +1,4 @@
-Shell=$(which bash)
-#!${Shell}
+#!/usr/bin/env bash
 
 SupportV="0.1.84"
 Lang=Ruby

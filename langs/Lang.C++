@@ -1,5 +1,4 @@
-Shell=$(which bash)
-#!${Shell}
+#!/usr/bin/env bash
 
 #make files: https://www3.ntu.edu.sg/home/ehchua/programming/cpp/gcc_make.html
 #Link Libs: https://gist.github.com/gubatron/32f82053596c24b6bec6

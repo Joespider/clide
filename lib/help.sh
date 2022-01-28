@@ -1,5 +1,4 @@
-Shell=$(which bash)
-#!${Shell}
+#!/usr/bin/env bash
 
 #Start="\e[1;45m"
 Start="\e[1;35m"
@@ -491,6 +490,23 @@ makeHelp()
 	echo -e "edit\t\t\t\t: \"Edit an existing makefile in a ${Lang} Project\""
 	echo -e "enable\t\t\t\t: \"Enable previously disabled makefile in a ${Lang} Project\""
 	echo -e "disable\t\t\t\t: \"Disable makefile in a ${Lang} Project\""
+	echo -e "(Can be used to create a new makefile)"
+	echo -e "(To run make, just tell ${Head} to compile)"
+#	ManageLangs ${Lang} "makeHelp"
+	echo "---------------------------------------------------------"
+	echo ""
+}
+
+makeCliHelp()
+{
+	local Lang=$1
+	echo ""
+	echo "----------------[(${Head}) \"Make\" Help]----------------"
+	echo -e "Purpose: \"create and handle makefiles\""
+	echo -e "--create\t\t\t\t: \"Create a makefile in a ${Lang} Project\""
+	echo -e "--edit\t\t\t\t: \"Edit an existing makefile in a ${Lang} Project\""
+	echo -e "--enable\t\t\t\t: \"Enable previously disabled makefile in a ${Lang} Project\""
+	echo -e "--disable\t\t\t\t: \"Disable makefile in a ${Lang} Project\""
 	echo -e "(Can be used to create a new makefile)"
 	echo -e "(To run make, just tell ${Head} to compile)"
 #	ManageLangs ${Lang} "makeHelp"
@@ -1046,7 +1062,7 @@ ProjectCliHelp()
 	echo -e "${cmd} --files <project>\t\t\t: \"List the contents of a project's files\""
 	echo -e "${cmd} --list\t\t\t\t: \"List ${Head} Projects\""
 	echo -e "${cmd} --list <project>\t\t\t: \"List the contents of a given project\""
-	echo -e "${cmd} --list --info\t\t\t: \"List ${Head} Project's info\""
+	echo -e "${cmd} --list --info\t\t\t\t: \"List ${Head} Project's info\""
 	echo -e "${cmd} --list --info <project>\t\t: \"List ${Head} Project's info\""
 	echo -e "${cmd} --link <lang> <project>\t\t: \"Link a language to a given project\""
 	echo -e "${cmd} --link --list <project>\t\t: \"List the linked languages in a given project\""
@@ -1057,14 +1073,15 @@ ProjectCliHelp()
 	echo -e "${cmd} --run <project>\t\t\t: \"Run compiled project\""
 	echo -e "${cmd} --run <language> <project>\t\t: \"Run compoled code from given langauge inside project\""
 	echo -e "${cmd} -x <project>\t\t\t\t: \"Run compiled project\""
-	echo -e "${cmd} -x <language> <project>\t\t\t: \"Run compiled code from given langauge inside project\""
+	echo -e "${cmd} -x <language> <project>\t\t: \"Run compiled code from given langauge inside project\""
 	echo -e "${cmd} --time <project>\t\t\t: \"Run and time compiled project\""
 	echo -e "${cmd} --time <language> <project>\t\t: \"Run and time compoled code from given langauge inside project\""
 	echo -e "${cmd} --build <project>\t\t\t: \"Build a ${Head} Project\""
 	echo -e "${cmd} --remove <project>\t\t\t: \"Remove a ${Head} Project\""
 	echo -e "${cmd} --remove all\t\t\t\t: \"Remove ALL ${Head} Projects\""
 	echo -e "${cmd} -r <project>\t\t\t\t: \"Remove a ${Head} Project\""
-	echo -e "${cmd} -r all\t\t\t\t\t: \"Remove ALL ${Head} Projects\""
+	echo -e "${cmd} -r all\t\t\t\t: \"Remove ALL ${Head} Projects\""
+	echo -e "${cmd} --make <project> <action>\t\t: \"For C/C++ Projects, handle make files\""
 	echo -e "${cmd} --export <project>\t\t\t: \"package a ${Head} Project into a <project>.tar.gz\""
 	echo -e "${cmd} --import <lang> <project>\t\t: \"install a ${Head} Project <project>.tar.gz file (if <project>.clide is not present)\""
 	echo -e "${cmd} --import <project>\t\t\t: \"install a ${Head} Project <project>.tar.gz file\""
@@ -1270,7 +1287,7 @@ main()
 	local Call=$1
 	shift
 	case ${Call} in
-		MenuHelp|makeHelp|NotesHelp)
+		MenuHelp|makeHelp|makeCliHelp|NotesHelp)
 			${Call} $@
 			;;
 		debuggerHelp|newCodeHelp|InstallCliHelp)

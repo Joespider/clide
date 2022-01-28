@@ -1,5 +1,4 @@
-Shell=$(which bash)
-#!${Shell}
+#!/usr/bin/env bash
 
 SupportV="0.1.85"
 Lang=Bash
@@ -285,7 +284,7 @@ UseBash()
 			;;
 		shell)
 			cd
-			${Shell}
+			${cplBash}
 			;;
 		newCodeHelp)
 			if [ -f ${TemplateCode} ]; then

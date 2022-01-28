@@ -1,5 +1,4 @@
-Shell=$(which bash)
-#!${Shell}
+#!/usr/bin/env bash
 
 SupportV="0.0.02"
 Lang=Php
@@ -283,8 +282,6 @@ UsePhp()
 		CreateHelp)
 			;;
 		shell)
-			cd
-			${Shell}
 			;;
 		newCodeHelp)
 			if [ -f ${TemplateCode} ]; then
