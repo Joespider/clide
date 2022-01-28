@@ -1,5 +1,4 @@
-Shell=$(which bash)
-#!${Shell}
+#!/usr/bin/env bash
 
 ThePath=$1
 if [ ! -z "${ThePath}" ] && [ -d "${ThePath}" ]; then

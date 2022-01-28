@@ -1,5 +1,4 @@
-Shell=$(which bash)
-#!${Shell}
+#!/usr/bin/env bash
 
 #Start="\e[1;45m"
 Start="\e[1;35m"

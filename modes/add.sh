@@ -1,5 +1,5 @@
-Shell=$(which bash)
-#!${Shell}
+#!/usr/bin/env bash
+
 ThisFile=$0
 
 ShellPath=$(realpath ${ThisFile})
