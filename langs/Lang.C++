@@ -4,7 +4,7 @@
 #Link Libs: https://gist.github.com/gubatron/32f82053596c24b6bec6
 #both https://avikdas.com/2019/12/16/makefiles-for-c-cpp-projects.html
 
-SupportV="0.2.33"
+SupportV="0.2.34"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -224,20 +224,22 @@ UseC++()
 		getAllProjSrc)
 			local project=${CodeProject}
 			local TheSrcDir=${LangProject}/${project}/src
+			local TheHeaderDir=${LangProject}/${project}/include
 			find ${TheSrcDir} -name *".cpp" 2> /dev/null
 			find ${TheSrcDir} -name *".cc" 2> /dev/null
 			find ${TheSrcDir} -name *".cxx" 2> /dev/null
 			find ${TheSrcDir} -name *".c++" 2> /dev/null
-			find ${TheSrcDir} -name *".h" 2> /dev/null
-			find ${TheSrcDir} -name *".hh" 2> /dev/null
-			find ${TheSrcDir} -name *".hpp" 2> /dev/null
-			find ${TheSrcDir} -name *".hxx" 2> /dev/null
-			find ${TheSrcDir} -name *".h++" 2> /dev/null
+			find ${TheHeaderDir} -name *".h" 2> /dev/null
+			find ${TheHeaderDir} -name *".hh" 2> /dev/null
+			find ${TheHeaderDir} -name *".hpp" 2> /dev/null
+			find ${TheHeaderDir} -name *".hxx" 2> /dev/null
+			find ${TheHeaderDir} -name *".h++" 2> /dev/null
 			;;
 		getProjSrc)
 			local name=$1
 			local project=${CodeProject}
 			local TheSrcDir=${LangProject}/${project}/src
+			local TheHeaderDir=${LangProject}/${project}/include
 			if [ ! -z "${name}" ]; then
 				case ${name} in
 					${LangExt})
@@ -247,14 +249,15 @@ UseC++()
 						find ${TheSrcDir} -name *".c++" 2> /dev/null
 						;;
 					${LangOtherExt})
-						find ${TheSrcDir} -name *".h" 2> /dev/null
-						find ${TheSrcDir} -name *".hh" 2> /dev/null
-						find ${TheSrcDir} -name *".hpp" 2> /dev/null
-						find ${TheSrcDir} -name *".hxx" 2> /dev/null
-						find ${TheSrcDir} -name *".h++" 2> /dev/null
+						find ${TheHeaderDir} -name *".h" 2> /dev/null
+						find ${TheHeaderDir} -name *".hh" 2> /dev/null
+						find ${TheHeaderDir} -name *".hpp" 2> /dev/null
+						find ${TheHeaderDir} -name *".hxx" 2> /dev/null
+						find ${TheHeaderDir} -name *".h++" 2> /dev/null
 						;;
 					*)
 						find ${TheSrcDir} -name "${name}" 2> /dev/null
+						find ${TheHeaderDir} -name "${name}" 2> /dev/null
 						;;
 				esac
 			fi
@@ -462,14 +465,17 @@ UseC++()
 			local newName
 			local DirPath
 			local TheSrcDir
+			local TheHeaderDir
 			local UseProjectTemplate
 			case ${project} in
 				#Is not a project
 				none)
 					TheSrcDir=${LangSrc}
+					TheHeaderDir=${LangSrc}
 					;;
 				#Is a project
 				*)
+					TheHeaderDir=${LangProject}/${project}/include
 					case ${ProjectType} in
 						#Is a generic project
 						${ProjectDefaultType})
@@ -500,49 +506,44 @@ UseC++()
 							;;
 					esac
 					;;
-			esac
 
-			#Account for extension based on set code
-			case ${oldCode} in
-				#set code has source code with default extension
-				*"${name}${LangExt}"*)
-					#header file exists
-					#
-					#if [ -f ${TheSrcDir}/${name}${LangOtherExt} ]; then
-					if [ -f ${name}${LangOtherExt} ]; then
-						#return header file
-						echo ${name}${LangOtherExt}
-					fi
-					;;
-				#set code if source file is a header
-				*"${name}${LangOtherExt}"*)
-					#normal source file exists
-					#
-					#if [ -f ${TheSrcDir}/${name}${LangExt} ]; then
-					if [ -f ${name}${LangExt} ]; then
-						#return default source file
-						echo ${name}${LangExt}
-					fi
-					;;
-				#no code as been set
-				*)
-					#normal source file exists
-					#
-					#if [ -f ${TheSrcDir}/${name}${LangExt} ]; then
-					if [ -f ${name}${LangExt} ]; then
-						echo ${name}${LangExt}
-					#header file exists
-					#
-					#elif [ -f ${TheSrcDir}/${name}${LangOtherExt} ]; then
-					elif [ -f ${name}${LangOtherExt} ]; then
-						echo ${name}${LangOtherExt}
-					#Extension is accounted for and is a file
-					#
-					#elif [ -f ${TheSrcDir}/${name} ]; then
-					elif [ -f ${name} ]; then
-						echo ${name}
-					fi
-					;;
+					#Account for extension based on set code
+					case ${oldCode} in
+						#set code has source code with default extension
+						*"${name}${LangExt}"*)
+							#header file exists
+							#
+							if [ -f ${TheHeaderDir}/${name}${LangOtherExt} ]; then
+								#return header file
+								echo ${name}${LangOtherExt}
+							fi
+							;;
+						#set code if source file is a header
+						*"${name}${LangOtherExt}"*)
+							#normal source file exists
+							#
+							if [ -f ${name}${LangExt} ]; then
+								#return default source file
+								echo ${name}${LangExt}
+							fi
+							;;
+						#no code as been set
+						*)
+							#normal source file exists
+							#
+							if [ -f ${name}${LangExt} ]; then
+								echo ${name}${LangExt}
+							#header file exists
+							#
+							elif [ -f ${TheHeaderDir}/${name}${LangOtherExt} ]; then
+								echo ${name}${LangOtherExt}
+							#Extension is accounted for and is a file
+							#
+							elif [ -f ${TheSrcDir}/${name} ]; then
+								echo ${name}
+							fi
+							;;
+					esac
 			esac
 			;;
 		#check if compiler is installed
@@ -558,7 +559,16 @@ UseC++()
 			;;
 		#Look for source code before and after new source code created
 		BeforeFiles|AfterFiles)
-			ls *${LangExt} *${LangOtherExt} 2> /dev/null
+			local project=${CodeProject}
+			case ${project} in
+				none)
+					ls *${LangExt} *${LangOtherExt} 2> /dev/null
+					;;
+				*)
+					find ${TheSrcDir} -name *${LangExt} 2> /dev/null
+					find ${TheHeaderDir} -name *${LangOtherExt} 2> /dev/null
+					;;
+			esac
 			;;
 		pgDir)
 			#Return C++ src Dir
@@ -618,6 +628,7 @@ UseC++()
 			local newName
 			local DirPath
 			local TheSrcDir
+			local TheHeaderDir
 			local HasAnExt
 			local HasAnExtSrc
 			local HasAnExtHeader
@@ -836,7 +847,8 @@ UseC++()
 										fi
 									#default header
 									elif [ -z "${HasAnExtHeader}" ]; then
-										CheckForHeader=$(UseC++ "getProjSrc" ${new}${LangOtherExt} 2> /dev/null)
+										echo ${name}${LangOtherExt}
+										CheckForHeader=$(UseC++ "getProjSrc" ${name}${LangOtherExt} 2> /dev/null)
 										#Using default header
 										if [ ! -z "${CheckForHeader}" ]; then
 											name="${name}${LangOtherExt}"
@@ -1023,6 +1035,7 @@ UseC++()
 			local newName
 			local DirPath
 			local TheSrcDir
+			local TheHeaderDir
 			local ReadOrEdit
 			local HasAnExt
 
@@ -1090,6 +1103,7 @@ UseC++()
 							;;
 						*)
 							TheSrcDir="${LangProject}/${project}/src/"
+							TheHeaderDir="${LangProject}/${project}/include/"
 							local NumFound
 							if [[ "${src}" == *","* ]]; then
 								if [ -z "${num}" ]; then
@@ -1102,7 +1116,7 @@ UseC++()
 										else
 											src=${num}${LangExt}
 										fi
-										NumFound=$(find ${TheSrcDir} -name ${src} 2> /dev/null | wc -l)
+										NumFound=$(find ${TheSrcDir} ${TheHeaderDir} -name ${src} 2> /dev/null | wc -l)
 									else
 										#Error
 										#{
@@ -1121,14 +1135,14 @@ UseC++()
 									fi
 								fi
 							else
-								NumFound=$(find ${TheSrcDir} -name ${src} 2> /dev/null | wc -l)
+								NumFound=$(find ${TheSrcDir} ${TheHeaderDir} -name ${src} 2> /dev/null | wc -l)
 							fi
 
 							case ${NumFound} in
 								0)
 									;;
 								1)
-									src=$(find ${TheSrcDir} -name ${src} 2> /dev/null)
+									src=$(find ${TheSrcDir} ${TheHeaderDir} -name ${src} 2> /dev/null)
 									if [ -f ${src} ]; then
 										#Read or Write Code
 										#{
@@ -1138,13 +1152,13 @@ UseC++()
 									;;
 								*)
 									local Select
-									find ${TheSrcDir} -name ${src} 2> /dev/null | sed "s/\/${project}\/src\//|/1" | cut -d '|' -f 2 | nl
+									find ${TheSrcDir} ${TheHeaderDir} -name ${src} 2> /dev/null | sed "s/\/${project}\/src\//|/1" | cut -d '|' -f 2 | nl
 									echo -n "> "
 									read Select
 									Select=$(echo ${Select} | grep "^-\?[0-9]*$")
 									if [ ! -z "${Select}" ]; then
 										if [ ${Select} -le ${NumFound} ] && [ ${Select} -gt 0 ]; then
-											src=$(find ${TheSrcDir} -name ${src} 2> /dev/null | tr '\n' '|' | cut -d '|' -f ${Select})
+											src=$(find ${TheSrcDir} ${TheHeaderDir} -name ${src} 2> /dev/null | tr '\n' '|' | cut -d '|' -f ${Select})
 											#Read or Write Code
 											#{
 											${ReadOrEdit} ${src}
@@ -1882,6 +1896,7 @@ UseC++()
 			local oldCode=$3
 			local project=${CodeProject}
 			local HasAHeaderExt
+			local TheHeaderDir
 			local IsNotAType
 			local UseProjectTemplate
 
@@ -1903,6 +1918,7 @@ UseC++()
 				none)
 					;;
 				*)
+					TheHeaderDir=${LangProject}/${project}/include/
 					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					;;
 			esac
@@ -1924,12 +1940,12 @@ UseC++()
 				case ${CodeType} in
 					#create header file
 					header)
-						if [ ! -f ${name}${LangOtherExt} ]; then
+						if [ ! -f "${TheHeaderDir}${name}${LangOtherExt}" ]; then
 							if [ -z "${UseProjectTemplate}" ]; then
 								#Program Name Given
 								if [ ! -z "${name}" ]; then
-									touch "${name}${LangOtherExt}"
-									echo "#pragma once" > "${name}${LangOtherExt}"
+									touch "${TheHeaderDir}${name}${LangOtherExt}"
+									echo "#pragma once" > "${TheHeaderDir}${name}${LangOtherExt}"
 								else
 									errorCode "newCode"
 								fi
