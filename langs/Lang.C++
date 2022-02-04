@@ -4,7 +4,7 @@
 #Link Libs: https://gist.github.com/gubatron/32f82053596c24b6bec6
 #both https://avikdas.com/2019/12/16/makefiles-for-c-cpp-projects.html
 
-SupportV="0.2.34"
+SupportV="0.2.35"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -505,8 +505,6 @@ UseC++()
 							TheSrcDir=$(ProjectTemplateHandler ${EnvVars[@]} ${Type} ${mode})
 							;;
 					esac
-					;;
-
 					#Account for extension based on set code
 					case ${oldCode} in
 						#set code has source code with default extension
@@ -544,6 +542,7 @@ UseC++()
 							fi
 							;;
 					esac
+					;;
 			esac
 			;;
 		#check if compiler is installed
