@@ -2,7 +2,7 @@ import sys
 
 ProgramName = "newPython"
 ProgramName = sys.argv[0].rsplit("/",1)[1]
-VersionName = "0.1.07"
+VersionName = "0.1.08"
 
 def Help():
 	print "Author: Joespider"
@@ -84,7 +84,7 @@ def Imports(getOS, getShell, getSys, getRand, getPipe):
 def Methods(getMain, getShell, getCLI, getWrite, getRead, getRandom, getPipe):
 	TheMethods = ""
 	#{
-	OSshellMethod = "def Shell(cmd):\n\tOutput = \"\"\n\tTheShell = os.popen(cmd)\n\tOutput = TheShell.read()\n\tTheShell.close()\n\treturn Output\n"
+	OSshellMethod = "def Shell(cmd):\n\tOutput = \"\"\n\tTheShell = os.popen(cmd)\n\tOutput = TheShell.read()\n\tTheShell.close()\n\treturn Output\n\ndef Exe(cmd):\n\tos.system(cmd)\n"
 	CLImethod = "def Args():\n\tTheArgs = sys.argv\n\tTheArgs.pop(0)\n\treturn TheArgs\n"
 	WriteMethod = "def Write(FileName,content):\n\tTheFile = open(FileName,\"w\")\n\tTheFile.write(content)\n\tTheFile.close()\n"
 	ReadMethod = "def Read(FileName):\n\tOutput = \"\"\n\tTheFile = open(FileName,\"r\")\n\tOutput = TheFile.read()\n\tTheFile.close()\n\treturn Output\n"

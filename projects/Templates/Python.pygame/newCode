@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 errorCode()
 {
         ${LibDir}/errorCode.sh $@

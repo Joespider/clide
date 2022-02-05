@@ -283,7 +283,7 @@ UseBash()
 		CreateHelp)
 			;;
 		shell)
-			cd ~/
+			cd
 			${cplBash}
 			;;
 		newCodeHelp)
