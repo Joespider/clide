@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.73"
+SupportV="0.1.74"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
@@ -320,7 +320,6 @@ UseC()
 				#Is a project
 				*)
 					TheHeaderDir=${LangProject}/${project}/include
-					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					case ${ProjectType} in
 						#Is a generic project
 						${ProjectDefaultType})
@@ -345,48 +344,48 @@ UseC()
 							;;
 						#Is a specalized project
 						*)
+							UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 							#get source code from project template
 							TheSrcDir=$(ProjectTemplateHandler ${EnvVars[@]} ${Type} ${mode})
 							;;
 					esac
-
-					#Account for extension based on set code
-					case ${oldCode} in
-						#set code has source code with default extension
-						*"${name}${LangExt}"*)
-							#header file exists
-							#
-							if [ -f ${TheHeaderDir}/${name}${LangOtherExt} ]; then
-								#return header file
-								echo ${name}${LangOtherExt}
-							fi
-							;;
-						#set code if source file is a header
-						*"${name}${LangOtherExt}"*)
-							#normal source file exists
-							#
-							if [ -f ${TheSrcDir}/${name}${LangExt} ]; then
-								#return default source file
-								echo ${name}${LangExt}
-							fi
-							;;
-						#no code as been set
-						*)
-							#normal source file exists
-							#
-							if [ -f ${TheSrcDir}/${name}${LangExt} ]; then
-								echo ${name}${LangExt}
-							#header file exists
-							#
-							elif [ -f ${TheHeaderDir}/${name}${LangOtherExt} ]; then
-								echo ${name}${LangOtherExt}
-							#Extension is accounted for and is a file
-							#
-							elif [ -f ${TheSrcDir}/${name} ]; then
-								echo ${name}
-							fi
-							;;
-					esac
+					;;
+			esac
+			#Account for extension based on set code
+			case ${oldCode} in
+				#set code has source code with default extension
+				*"${name}${LangExt}"*)
+					#header file exists
+					#
+					if [ -f ${TheHeaderDir}/${name}${LangOtherExt} ]; then
+						#return header file
+						echo ${name}${LangOtherExt}
+					fi
+					;;
+				#set code if source file is a header
+				*"${name}${LangOtherExt}"*)
+					#normal source file exists
+					#
+					if [ -f ${name}${LangExt} ]; then
+						#return default source file
+						echo ${name}${LangExt}
+					fi
+					;;
+				#no code as been set
+				*)
+					#normal source file exists
+					#
+					if [ -f ${name}${LangExt} ]; then
+						echo ${name}${LangExt}
+					#header file exists
+					#
+					elif [ -f ${TheHeaderDir}/${name}${LangOtherExt} ]; then
+						echo ${name}${LangOtherExt}
+					#Extension is accounted for and is a file
+					#
+					elif [ -f ${TheSrcDir}/${name} ]; then
+						echo ${name}
+					fi
 					;;
 			esac
 			;;
@@ -1108,27 +1107,23 @@ UseC()
 			;;
 		compileCode)
 			local src=${TheCode}
+			local TheHeaders
 			local name=$1
 			local TheBinFile
 			local cplArgs=${CplArgs//,/ }
 			local IsVerbose
 			local project=${CodeProject}
-			local UseProjectTemplate
 			local HasAnExt
-			local ReplaceTheSrcDir
+			local ReplaceThiscDir
+			local ProjectDir
 			local TheSrcDir
+			local TheHeaderDir
 			local TheBinDir
 			local ERROR
 			local FoundMain="yes"
 			local NumOfMain
-
-			case ${project} in
-				none)
-					;;
-				*)
-					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
-					;;
-			esac
+			local UseProjectTemplate
+			local SuggestedVersion
 
 			#Handle multiple files
 			if [ -z "${name}" ]; then
@@ -1161,29 +1156,32 @@ UseC()
 			case ${project} in
 				none)
 					TheSrcDir=${LangSrc}
+					ProjectDir="${TheSrcDir}"
 					project=""
 					TheBinDir=${LangBin}
 					;;
 				*)
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					name=${project}
 					project="${project}/"
-					TheSrcDir="${LangProject}/${project}src"
+					ProjectDir="${LangProject}/${project}"
+					TheSrcDir="${ProjectDir}src"
+					TheHeaderDir="${ProjectDir}include"
 					#if NO code is selected, then select ALL
 					#{
 					#if [ -z "${src}" ]; then
-						ReplaceTheSrcDir=$(echo "${LangProject}/${project}src/" | tr '/' '|')
-						src=$(find ${TheSrcDir} -type f -name "*${LangExt}" | tr '/' '|' | sed "s/${ReplaceTheSrcDir}//g" | tr '|' '/')
+					ReplaceThiscDir=$(echo "${ProjectDir}" | tr '/' '|')
+					src=$(find ${TheSrcDir} -type f -name "*${LangExt}" | tr '/' '|' | sed "s/${ReplaceThiscDir}//g" | tr '|' '/')
+					TheHeaders=$(find ${TheHeaderDir} -type f -name "*${LangOtherExt}" | tr '/' '|' | sed "s/${ReplaceThiscDir}//g" | tr '|' '/')
 					#fi
 					#}
-					TheBinDir="${LangProject}/${project}bin"
+					TheBinDir="${ProjectDir}bin"
 					;;
 			esac
 
-			HasAnExt=$(UseC "hasExt" ${src})
-
+			HasAnExt=$(UseC "hasExtForCpl" ${src})
 			#Compile ONLY if source code is selected OR makefile is present
 			if [ ! -z "${HasAnExt}" ] || [ -f ${LangProject}/${project}makefile ]; then
-
 				case ${cplArgs} in
 					none)
 						cplArgs=${LangCplVersion}
@@ -1192,28 +1190,32 @@ UseC()
 						cplArgs="${cplArgs} ${LangCplVersion}"
 						;;
 				esac
-
 				#Compile with makefile
 				if [ -f ${LangProject}/${project}makefile ]; then
-					cd ${LangProject}/${project}
+					cd ${ProjectDir}
 					ERROR=$(make 1> /dev/null 2>&1 | tr '\n' '|')
 					TheBinFile=$(ls bin/${name} 2> /dev/null)
 					cd - > /dev/null
-
 					#Code compiled did compile
 					if [ -z "${ERROR}" ] && [ ! -z "${TheBinFile}" ]; then
 						UseC compileCodeMake-message
 					#Code compiled did NOT compile
 					else
-						if [ -z "${ERROR}" ]; then
-							ERROR="Please Check makefile for issues"
+						SuggestedVersion=$(UseC "SuggestCVersion" ${ERROR})
+						if [ ! -z "${SuggestedVersion}" ]; then
+							errorCode "cpl" "CVersion" ${SuggestedVersion}
+						else
+							if [ -z "${ERROR}" ]; then
+								ERROR="Please Check makefile for issues"
+							fi
+							#display the ERROR message
+							errorCode "cpl" "ERROR" "${ERROR}"
 						fi
-						#display the ERROR message
-						errorCode "cpl" "ERROR" "${ERROR}"
+
 					fi
 				#Compile without makefile
 				else
-					cd ${TheSrcDir}
+					cd ${ProjectDir}
 					#source file is empty
 					if [ -z "${name}" ]; then
 						errorCode "cpl" "choose"
@@ -1225,23 +1227,29 @@ UseC()
 								cplArgs=$(UseC "handleCplArgs" ${CheckSrc} ${cplArgs})
 								cplArgs=${cplArgs//,/ }
 
+								#Handle Verbose
+								#{
 								IsVerbose=$(echo ${cplArgs} | grep -w "\-v" 2> /dev/null)
+								#}
 								if [ -z "${IsVerbose}" ]; then
 									#Compile and check for errors...and put into binary directory
-									ERROR=$(${LangCpl} ${src} -o ${TheBinDir}/${name}.tmp ${cplArgs} 2>&1 | tr '\n' '|')
+									ERROR=$(${LangCpl} ${src} ${TheHeaders} -o ${TheBinDir}/${name} ${cplArgs} 2>&1 | tr '\n' '|')
 
 									#Code compiled successfully
 									if [ -z "${ERROR}" ]; then
-										mv ${TheBinDir}/${name}.tmp ${TheBinDir}/${name}
 										UseC compileCode-message
 									else
-										rm ${TheBinDir}/${name}.tmp
-										#display the ERROR message
-										errorCode "cpl" "ERROR" "${ERROR}"
+										SuggestedVersion=$(UseC "SuggestCVersion" ${ERROR})
+										if [ ! -z "${SuggestedVersion}" ]; then
+											errorCode "cpl" "CVersion" ${SuggestedVersion}
+										else
+											#display the ERROR message
+											errorCode "cpl" "ERROR" "${ERROR}"
+										fi
 									fi
 								else
 									#compile code and get verbose output
-									ERROR=$(${LangCpl} ${src} -o ${name} ${cplArgs} 2>&1 | tr '\n' '|')
+									ERROR=$(${LangCpl} ${src} ${TheHeaders} -o ${name} ${cplArgs} 2>&1 | tr '\n' '|')
 									#Code compiled successfully because binary exists
 									if [ -f ${name} ]; then
 										#display the verbose GOOD output
@@ -1252,17 +1260,21 @@ UseC()
 										UseC compileCode-message
 									#Code compiled did NOT compile
 									else
-										rm ${TheBinDir}/${name}.tmp
-										#display the ERROR message
-										errorCode "cpl" "ERROR" "${ERROR}"
+										SuggestedVersion=$(UseC "SuggestCVersion" ${ERROR})
+										if [ ! -z "${SuggestedVersion}" ]; then
+											errorCode "cpl" "CVersion" ${SuggestedVersion}
+										else
+											#display the ERROR message
+											errorCode "cpl" "ERROR" "${ERROR}"
+										fi
 									fi
 								fi
 								;;
 							*)
 								;;
 						esac
+						cd - > /dev/null
 					fi
-					cd - > /dev/null
 				fi
 			fi
 			;;
@@ -1294,7 +1306,7 @@ UseC()
 						cplArgs=${cplArgs//,/ }
 						if [ -z "${cplArgs}" ]; then
 							if [ ! -z "${src}" ]; then
-								TheMakeArgs="CC = ${LangCpl}\n\nVPATH=src\n\nall: ${CodeProject}\n\n${CodeProject}: ${src}\n\t\$(CC) -o bin/\$@ \$<"
+								TheMakeArgs="CC = ${LangCpl}\n\nVPATH = src include\n\nall: ${CodeProject}\n\n${CodeProject}: ${src}\n\t\$(CC) -o bin/\$@ \$<"
 							else
 								TheMakeArgs="CC = ${LangCpl}\n\nall: ${CodeProject}\n\n${CodeProject}:\n\t\$(CC) -o bin/${CodeProject} src/"
 							fi

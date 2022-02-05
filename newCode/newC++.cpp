@@ -8,7 +8,7 @@
 static void help()
 {
 	std::string ProgName = "newC++";
-	std::string Version = "0.1.17";
+	std::string Version = "0.1.18";
 	print("Author: Joespider");
 	print("Program: \"" << ProgName << "\"");
 	print("Version: " << Version);
@@ -92,7 +92,7 @@ static std::string getMethods(bool* rawinput, bool* rand, bool* write, bool* rea
 	}
 	if (*read == true)
 	{
-		ReadFile = "//Read file\nstatic void Read(std::string File)\n{\n\tstd::string line;\n\tstd::ifstream myFile(File.c_str());\n\tif (myFile.is_open())\n\t{\n\t\twhile (getline (myFile,line))\n\t\t{\n\t\t\tstd::cout << line << \"\\n\";\n\t\t}\n\t\tmyFile.close();\n\t}\n\telse\n\t{\n\t\tstd::cout << \"file not found\\n\";\n\t}\n}\n\n";
+		ReadFile = "//Read file\nstatic void Read(std::string File)\n{\n\tstd::string line;\n\tstd::ifstream myFile(File.c_str());\n\tif (myFile.is_open())\n\t{\n\t\twhile (getline (myFile,line))\n\t\t{\n\t\t\tstd::cout << line << std::endl;\n\t\t}\n\t\tmyFile.close();\n\t}\n\telse\n\t{\n\t\tstd::cout << \"file not found\\n\";\n\t}\n}\n\n";
 	}
 	if (*rand == true)
 	{

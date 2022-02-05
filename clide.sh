@@ -5512,9 +5512,18 @@ CLI()
 										AlreadyCode=$(ManageLangs ${Lang} "getCode" ${NewCode})
 										if [ -z "${AlreadyCode}" ]; then
 											Actions ${Lang} "code" "new" ${NewCode} ${Args[@]}
-											FindCode=$(ManageLangs ${Lang} "getCode" ${NewCode})
+											FindCode=$(ManageLangs ${Lang} "getCode" ${NewCode} ${AlreadyCode})
 											if [ ! -z "${FindCode}" ]; then
 												echo -e "\e[1;4${ColorCode}m[${Lang} (${FindCode}) Created]\e[0m"
+											fi
+										else
+											local SecondTry=$(ManageLangs ${Lang} "getCode" ${NewCode} ${AlreadyCode})
+											if [ -z "${SecondTry}" ]; then
+												Actions ${Lang} "code" "new" ${NewCode} ${Args[@]}
+												FindCode=$(ManageLangs ${Lang} "getCode" ${NewCode} ${AlreadyCode})
+												if [ ! -z "${FindCode}" ]; then
+													echo -e "\e[1;4${ColorCode}m[${Lang} (${FindCode}) Created]\e[0m"
+												fi
 											fi
 										fi
 									done
