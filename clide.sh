@@ -3252,6 +3252,7 @@ Actions()
 								#Look ALL files for new for new file
 								NewCode=$(echo -e "${AllFiles// /\\n}" | sort | uniq -u | tr -d '\n')
 								#Check if new code is found
+								NewCode="${NewCode#*/}"
 								if [ ! -z "${NewCode}" ]; then
 									#Select new Code
 									TheSrcCode=$(selectCode ${Lang} ${NewCode} ${TheSrcCode})
@@ -4749,17 +4750,22 @@ CLI()
 																		fi
 																		;;
 																	C|C++)
-																		#Get Make file
-																		local TheMakeFile=$(ManageLangs ${Lang} "getMakeFile" ${GetProject})
-																		#Compile with makefile
-																		if [ ! -z "${TheMakeFile}" ]; then
-																			ManageLangs ${Lang} "compileCode"
-																			#Compile with selected code
-																		elif [ ! -z "${TheSrcCode}" ]; then
-																			ManageLangs ${Lang} "compileCode"
-																		else
-																			errorCode "cli-cpl" "none" "project" "Please provide source code or create a make file"
-																		fi
+																		ManageLangs ${Lang} "compileCode"
+																		#Keep this for future features
+																		#{
+
+																		##Get Make file
+																		#local TheMakeFile=$(ManageLangs ${Lang} "getMakeFile" ${GetProject})
+																		##Compile with makefile
+																		#if [ ! -z "${TheMakeFile}" ] || [ ! -z "${TheSrcCode}" ]; then
+																		#	ManageLangs ${Lang} "compileCode"
+																		#	#Compile with selected code
+																		#	ManageLangs ${Lang} "compileCode"
+																		#else
+																		#	errorCode "cli-cpl" "none" "project" "Please provide source code or create a make file"
+																		#fi
+
+																		#}
 																		;;
 																	Rust)
 																		if [ -z "${TheSrcCode}" ]; then
