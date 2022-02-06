@@ -564,8 +564,8 @@ UseC++()
 					ls *${LangExt} *${LangOtherExt} 2> /dev/null
 					;;
 				*)
-					find ${TheSrcDir} -name *${LangExt} 2> /dev/null
-					find ${TheHeaderDir} -name *${LangOtherExt} 2> /dev/null
+					find ${TheSrcDir} -name "*${LangExt}" 2> /dev/null
+					find ${TheHeaderDir} -name "*${LangOtherExt}" 2> /dev/null
 					;;
 			esac
 			;;
