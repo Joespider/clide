@@ -6307,10 +6307,26 @@ main()
 	fi
 }
 
-#Ignore if program resolves to alias
-AliasTest=$(echo $@ | grep "/")
-if [ -z "${AliasTest}" ]; then
+FirstArg=$1
+if [ -z "${FirstArg}" ]; then
 	history -c
 	#Run clide
 	main $@
+else
+	case $# in
+		1)
+			#Ignore if program resolves to aliases
+			AliasTest=$(echo $@ | grep "/")
+			if [ -z "${AliasTest}" ]; then
+				history -c
+				#Run clide
+				main $@
+			fi
+			;;
+		*)
+			history -c
+			#Run clide
+			main $@
+			;;
+	esac
 fi
