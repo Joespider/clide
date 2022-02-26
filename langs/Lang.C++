@@ -4,7 +4,7 @@
 #Link Libs: https://gist.github.com/gubatron/32f82053596c24b6bec6
 #both https://avikdas.com/2019/12/16/makefiles-for-c-cpp-projects.html
 
-SupportV="0.2.36"
+SupportV="0.2.38"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -225,15 +225,8 @@ UseC++()
 			local project=${CodeProject}
 			local TheSrcDir=${LangProject}/${project}/src
 			local TheHeaderDir=${LangProject}/${project}/include
-			find ${TheSrcDir} -name *".cpp" 2> /dev/null
-			find ${TheSrcDir} -name *".cc" 2> /dev/null
-			find ${TheSrcDir} -name *".cxx" 2> /dev/null
-			find ${TheSrcDir} -name *".c++" 2> /dev/null
-			find ${TheHeaderDir} -name *".h" 2> /dev/null
-			find ${TheHeaderDir} -name *".hh" 2> /dev/null
-			find ${TheHeaderDir} -name *".hpp" 2> /dev/null
-			find ${TheHeaderDir} -name *".hxx" 2> /dev/null
-			find ${TheHeaderDir} -name *".h++" 2> /dev/null
+			find ${TheSrcDir} -type f -print 2> /dev/null | egrep -i ".cpp|.cc|.cxx|.c++"
+			find ${TheHeaderDir} -type f -print 2> /dev/null | egrep -i ".h|.hpp|.hxx|.h++"
 			;;
 		getProjSrc)
 			local name=$1
@@ -243,17 +236,10 @@ UseC++()
 			if [ ! -z "${name}" ]; then
 				case ${name} in
 					${LangExt})
-						find ${TheSrcDir} -name *".cpp" 2> /dev/null
-						find ${TheSrcDir} -name *".cc" 2> /dev/null
-						find ${TheSrcDir} -name *".cxx" 2> /dev/null
-						find ${TheSrcDir} -name *".c++" 2> /dev/null
+						find ${TheSrcDir} -type f -print 2> /dev/null | egrep -i ".cpp|.cc|.cxx|.c++"
 						;;
 					${LangOtherExt})
-						find ${TheHeaderDir} -name *".h" 2> /dev/null
-						find ${TheHeaderDir} -name *".hh" 2> /dev/null
-						find ${TheHeaderDir} -name *".hpp" 2> /dev/null
-						find ${TheHeaderDir} -name *".hxx" 2> /dev/null
-						find ${TheHeaderDir} -name *".h++" 2> /dev/null
+						find ${TheHeaderDir} -type f -print 2> /dev/null | egrep -i ".h|.hpp|.hxx|.h++"
 						;;
 					*)
 						find ${TheSrcDir} -name "${name}" 2> /dev/null
@@ -1500,7 +1486,11 @@ UseC++()
 					#if [ -z "${src}" ]; then
 					ReplaceThiscDir=$(echo "${ProjectDir}" | tr '/' '|')
 					src=$(find ${TheSrcDir} -type f -name "*${LangExt}" | tr '/' '|' | sed "s/${ReplaceThiscDir}//g" | tr '|' '/')
-					TheHeaders=$(find ${TheHeaderDir} -type f -name "*${LangOtherExt}" | tr '/' '|' | sed "s/${ReplaceThiscDir}//g" | tr '|' '/')
+					#TheHeaders=$(find ${TheHeaderDir} -type f -name "*${LangOtherExt}" | tr '/' '|' | sed "s/${ReplaceThiscDir}//g" | tr '|' '/')
+					TheHeaders=$(find ${TheHeaderDir} -type f -name "*${LangOtherExt}")
+					if [ ! -z "${TheHeaders}" ]; then
+						TheHeaders="-I include/"
+					fi
 					#fi
 					#}
 					TheBinDir="${ProjectDir}bin"
@@ -1561,7 +1551,7 @@ UseC++()
 								#}
 								if [ -z "${IsVerbose}" ]; then
 									#Compile and check for errors...and put into binary directory
-									ERROR=$(${LangCpl} ${src} ${TheHeaders} -o ${TheBinDir}/${name} ${cplArgs} 2>&1 | tr '\n' '|')
+									ERROR=$(${LangCpl} ${TheHeaders} ${src} -o ${TheBinDir}/${name} ${cplArgs} 2>&1 | tr '\n' '|')
 
 									#Code compiled successfully
 									if [ -z "${ERROR}" ]; then
@@ -1577,7 +1567,7 @@ UseC++()
 									fi
 								else
 									#compile code and get verbose output
-									ERROR=$(${LangCpl} ${src} ${TheHeaders} -o ${name} ${cplArgs} 2>&1 | tr '\n' '|')
+									ERROR=$(${LangCpl} ${TheHeaders} ${src} -o ${name} ${cplArgs} 2>&1 | tr '\n' '|')
 									#Code compiled successfully because binary exists
 									if [ -f ${name} ]; then
 										#display the verbose GOOD output

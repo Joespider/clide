@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.74"
+SupportV="0.1.75"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
@@ -1173,6 +1173,9 @@ UseC()
 					ReplaceThiscDir=$(echo "${ProjectDir}" | tr '/' '|')
 					src=$(find ${TheSrcDir} -type f -name "*${LangExt}" | tr '/' '|' | sed "s/${ReplaceThiscDir}//g" | tr '|' '/')
 					TheHeaders=$(find ${TheHeaderDir} -type f -name "*${LangOtherExt}" | tr '/' '|' | sed "s/${ReplaceThiscDir}//g" | tr '|' '/')
+					if [ ! -z "${TheHeaders}" ]; then
+						TheHeaders="-I include/"
+					fi
 					#fi
 					#}
 					TheBinDir="${ProjectDir}bin"
@@ -1233,7 +1236,7 @@ UseC()
 								#}
 								if [ -z "${IsVerbose}" ]; then
 									#Compile and check for errors...and put into binary directory
-									ERROR=$(${LangCpl} ${src} ${TheHeaders} -o ${TheBinDir}/${name} ${cplArgs} 2>&1 | tr '\n' '|')
+									ERROR=$(${LangCpl} ${TheHeaders} ${src} -o ${TheBinDir}/${name} ${cplArgs} 2>&1 | tr '\n' '|')
 
 									#Code compiled successfully
 									if [ -z "${ERROR}" ]; then
@@ -1249,7 +1252,7 @@ UseC()
 									fi
 								else
 									#compile code and get verbose output
-									ERROR=$(${LangCpl} ${src} ${TheHeaders} -o ${name} ${cplArgs} 2>&1 | tr '\n' '|')
+									ERROR=$(${LangCpl} ${TheHeaders} ${src} -o ${name} ${cplArgs} 2>&1 | tr '\n' '|')
 									#Code compiled successfully because binary exists
 									if [ -f ${name} ]; then
 										#display the verbose GOOD output
