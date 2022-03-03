@@ -8,7 +8,7 @@
 static void help()
 {
 	std::string ProgName = "newC++";
-	std::string Version = "0.1.18";
+	std::string Version = "0.1.20";
 	print("Author: Joespider");
 	print("Program: \"" << ProgName << "\"");
 	print("Version: " << Version);
@@ -26,6 +26,8 @@ static void help()
 	print("\t--read-file : enable \"read\" file method");
 	print("\t--is-in : enable \"IsIn\" file method");
 	print("\t--user-input : enable \"raw_input\" method");
+	print("\t--user-input : enable \"raw_input\" method");
+	print("\t--thread : enable threading");
 }
 
 static std::string getMarcos()
@@ -41,7 +43,7 @@ static std::string getMarcos()
 }
 
 //create import listing
-static std::string getImports(bool* write, bool* read, bool* random, bool* pipe, bool* shell)
+static std::string getImports(bool* write, bool* read, bool* random, bool* pipe, bool* shell, bool* threads)
 {
 	std::string Imports = "";
 	std::string standard = "#include <iostream>\n#include <string>\n";
@@ -49,6 +51,7 @@ static std::string getImports(bool* write, bool* read, bool* random, bool* pipe,
 	std::string ForRandom = "";
 	std::string ForPiping = "";
 	std::string ForShell = "";
+	std::string ForThreading = "";
 	if ((*read == true) || (*write == true))
 	{
 		readWrite = "#include <fstream>\n";
@@ -65,8 +68,12 @@ static std::string getImports(bool* write, bool* read, bool* random, bool* pipe,
 	{
 		ForShell = "#include <stdexcept>\n#include <stdio.h>\n";
 	}
+	if (*threads == true)
+	{
+		ForThreading = "#include <thread>\n";
+	}
 
-	Imports = standard+readWrite+ForRandom+ForPiping+ForShell+"\n";
+	Imports = standard+readWrite+ForRandom+ForPiping+ForShell+ForThreading+"\n";
 
 	return Imports;
 }
@@ -92,7 +99,7 @@ static std::string getMethods(bool* rawinput, bool* rand, bool* write, bool* rea
 	}
 	if (*read == true)
 	{
-		ReadFile = "//Read file\nstatic void Read(std::string File)\n{\n\tstd::string line;\n\tstd::ifstream myFile(File.c_str());\n\tif (myFile.is_open())\n\t{\n\t\twhile (getline (myFile,line))\n\t\t{\n\t\t\tstd::cout << line << std::endl;\n\t\t}\n\t\tmyFile.close();\n\t}\n\telse\n\t{\n\t\tstd::cout << \"file not found\\n\";\n\t}\n}\n\n";
+		ReadFile = "//Read file\nstatic void Read(std::string File)\n{\n\tstd::string line;\n\tstd::ifstream myFile(File.c_str());\n\tif (myFile.is_open())\n\t{\n\t\twhile (getline (myFile,line))\n\t\t{\n\t\t\tstd::cout << line << std::endl;\n\t\t}\n\t\tmyFile.close();\n\t}\n\telse\n\t{\n\t\tstd::cout << \"file not found\" << std::endl;\n\t}\n}\n\n";
 	}
 	if (*rand == true)
 	{
@@ -113,28 +120,35 @@ static std::string getMethods(bool* rawinput, bool* rand, bool* write, bool* rea
 }
 
 //build main function
-static std::string getMain(bool* Args, bool* getRandom, bool* pipe)
+static std::string getMain(bool* Args, bool* getRandom, bool* pipe, bool* threads)
 {
 	std::string Main = "";
 	std::string StartRandom = "";
 	std::string UsePipe = "";
+	std::string UseThreads = "";
 
 	if (*getRandom == true)
 	{
 		StartRandom = "\t//Enable Random\n\tsrand(time(NULL));\n\n";
 	}
+
 	if (*pipe == true)
 	{
 		UsePipe = "\t//C++ Unix Piping\n\tif(!isatty(fileno(stdin)))\n\t{\n\t\tprint(\"[Pipe]\");\n\t\tprint(\"{\");\n\t\tfor (std::string line; std::getline(std::cin, line);)\n\t\t{\n\t\t\tprint(line);\n\t\t}\n\t\tprint(\"}\");\n\t}\n\telse\n\t{\n\t\tprint(\"nothing was piped in\");\n\t}\n\n";
 	}
 
+	if (*threads == true)
+	{
+		UseThreads = "\t//spawn new thread\n\t//std::thread ThreadName(function,params);\n\t//synchronize threads\n\t//ThreadName.join();\n\n";
+	}
+
 	if (*Args == true)
 	{
-		Main = "//C++ Main...with cli arguments\nint main(int argc, char** argv)\n{\n"+StartRandom+"\tstd::string out = \"\";\n\t//Args were given\n\tif (argc > 1)\n\t{\n\t\t//Loop through Args\n\t\tfor (int i = 1; i < argc; i++)\n\t\t{\n\t\t\tout = std::string(argv[i]);\n\t\t\tif (out == \"find\")\n\t\t\t{\n\t\t\t\tprint(\"Found\");\n\t\t\t\tbreak;\n\t\t\t}\n\t\t}\n\t}\n\telse\n\t{\n\t\tprint(\"Give me some cli arguments\");\n\t}\n\n"+UsePipe+"\treturn 0;\n}\n";
+		Main = "//C++ Main...with cli arguments\nint main(int argc, char** argv)\n{\n"+StartRandom+"\tstd::string out = \"\";\n\t//Args were given\n\tif (argc > 1)\n\t{\n\t\t//Loop through Args\n\t\tfor (int i = 1; i < argc; i++)\n\t\t{\n\t\t\tout = std::string(argv[i]);\n\t\t\tif (out == \"find\")\n\t\t\t{\n\t\t\t\tprint(\"Found\");\n\t\t\t\tbreak;\n\t\t\t}\n\t\t}\n\t}\n\telse\n\t{\n\t\tprint(\"Give me some cli arguments\");\n\t}\n\n"+UsePipe+UseThreads+"\treturn 0;\n}\n";
 	}
 	else
 	{
-		Main = "//C++ Main\nint main()\n{\n"+StartRandom+UsePipe+"\n\treturn 0;\n}\n";
+		Main = "//C++ Main\nint main()\n{\n"+StartRandom+UsePipe+UseThreads+"\n\treturn 0;\n}\n";
 	}
 	return Main;
 }
@@ -173,6 +187,7 @@ int main(int argc, char** argv)
 	bool getRawIn = false;
 	bool getPipe = false;
 	bool getShell = false;
+	bool getThreads = false;
 	bool IsMain = false;
 	std::string UserIn = "";
 	std::string TheExt = ".cpp";
@@ -251,6 +266,11 @@ int main(int argc, char** argv)
 			{
 				getPipe = true;
 			}
+			//Enable Threads
+			else if (UserIn == "--thread")
+			{
+				getThreads = true;
+			}
 			//capture new C++ program name
 			else if (getName == true)
 			{
@@ -277,12 +297,12 @@ int main(int argc, char** argv)
 		//Ensure program name is given
 		if (CName != "")
 		{
-			Imports = getImports(&getWrite, &getRead, &getRand, &getPipe, &getShell);
+			Imports = getImports(&getWrite, &getRead, &getRand, &getPipe, &getShell, &getThreads);
 			Marcos = getMarcos();
 			Methods =  getMethods(&getRawIn, &getRand, &getWrite, &getRead, &getIsIn, &getShell);
 			if (IsMain == true)
 			{
-				Main = getMain(&getArgs, &getRand, &getPipe);
+				Main = getMain(&getArgs, &getRand, &getPipe, &getThreads);
 			}
 			else
 			{

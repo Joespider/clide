@@ -5391,6 +5391,12 @@ CLI()
 						#adjust letter
 						Lang=${Lang,,}
 						Lang=${Lang^}
+						CodeDir=$(pgDir ${Lang})
+						if [ ! -z "${CodeDir}" ]; then
+							cd ${CodeDir}
+							TheSrc=$(selectCode ${Lang} ${TheSrc})
+							cd - > /dev/null
+						fi
 					fi
 
 					#incorrect characters given in source code
