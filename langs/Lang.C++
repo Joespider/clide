@@ -4,7 +4,7 @@
 #Link Libs: https://gist.github.com/gubatron/32f82053596c24b6bec6
 #both https://avikdas.com/2019/12/16/makefiles-for-c-cpp-projects.html
 
-SupportV="0.2.38"
+SupportV="0.2.39"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -1180,10 +1180,10 @@ UseC++()
 				none)
 					if [ ! -z "${src}" ]; then
 						HasAutoInFunction=$(grep -E \(*auto*\) ${src} 2> /dev/null | grep -v ";")
-						NeedThreads=$(grep "#include <thread>" ${src} 2> /dev/null)
-						HasXlib=$(grep "#include <X11/Xlib.h>" ${src} 2> /dev/null)
-						HasXutil=$(grep "#include <X11/Xutil.h>" ${src} 2> /dev/null)
-						HasXos=$(grep "#include <X11/Xos.h>" ${src} 2> /dev/null)
+						NeedThreads=$(grep "#include <thread>" ${src} 2> /dev/null | egrep -v "//|=|\"")
+						HasXlib=$(grep "#include <X11/Xlib.h>" ${src} 2> /dev/null | egrep -v "//|=|\"")
+						HasXutil=$(grep "#include <X11/Xutil.h>" ${src} 2> /dev/null | egrep -v "//|=|\"")
+						HasXos=$(grep "#include <X11/Xos.h>" ${src} 2> /dev/null | egrep -v "//|=|\"")
 					fi
 					;;
 				*)
@@ -1194,10 +1194,10 @@ UseC++()
 					#Check headers for ALL values
 					if [ ! -z "${GetHeaders}" ]; then
 						HasAutoInFunction=$(grep -E \(*auto*\) "${GetHeaders}" 2> /dev/null | grep -v ";")
-						NeedThreads=$(grep "#include <thread>" "${GetHeaders}" 2> /dev/null)
-						HasXlib=$(grep "#include <X11/Xlib.h>" "${GetHeaders}" 2> /dev/null)
-						HasXutil=$(grep "#include <X11/Xutil.h>" "${GetHeaders}" 2> /dev/null)
-						HasXos=$(grep "#include <X11/Xos.h>" "${GetHeaders}" 2> /dev/null)
+						NeedThreads=$(grep "#include <thread>" "${GetHeaders}" 2> /dev/null | egrep -v "//|=|\"")
+						HasXlib=$(grep "#include <X11/Xlib.h>" "${GetHeaders}" 2> /dev/null | egrep -v "//|=|\"")
+						HasXutil=$(grep "#include <X11/Xutil.h>" "${GetHeaders}" 2> /dev/null | egrep -v "//|=|\"")
+						HasXos=$(grep "#include <X11/Xos.h>" "${GetHeaders}" 2> /dev/null | egrep -v "//|=|\"")
 					fi
 
 					#Nothing found
@@ -1208,13 +1208,13 @@ UseC++()
 
 						if [ -z "${NeedThreads}" ]; then
 							#Look in source code
-							NeedThreads=$(grep "#include <thread>" "${GetSrc}" 2> /dev/null)
+							NeedThreads=$(grep "#include <thread>" "${GetSrc}" 2> /dev/null | egrep -v "//|=|\"")
 						fi
 
 						if [ -z "${HasXlib}" ] && [ -z "${HasXutil}" ] && [ -z "${HasXos}" ]; then
-							HasXlib=$(grep "#include <X11/Xlib.h>" "${GetSrc}" 2> /dev/null)
-							HasXutil=$(grep "#include <X11/Xutil.h>" "${GetSrc}" 2> /dev/null)
-							HasXos=$(grep "#include <X11/Xos.h>" "${GetSrc}" 2> /dev/null)
+							HasXlib=$(grep "#include <X11/Xlib.h>" "${GetSrc}" 2> /dev/null | egrep -v "//|=|\"")
+							HasXutil=$(grep "#include <X11/Xutil.h>" "${GetSrc}" 2> /dev/null | egrep -v "//|=|\"")
+							HasXos=$(grep "#include <X11/Xos.h>" "${GetSrc}" 2> /dev/null | egrep -v "//|=|\"")
 						fi
 					fi
 
