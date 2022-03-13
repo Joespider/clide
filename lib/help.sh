@@ -121,23 +121,18 @@ MenuHelp()
 					echo "------------------------------------------------"
 					echo ""
 					;;
-				car|car-a)
+				car)
 					case ${Choice,,} in
 						car)
 							echo ""
 							echo "----------------[(${Choice,,}) Menu]----------------"
 							echo -e "Purpose: Compile and run code"
 							echo ""
-							echo -e "${Choice,,}\t\t\t\t\"compile and run\""
-							echo "------------------------------------------------"
-							echo ""
-							;;
-						car-a)
-							echo ""
-							echo "----------------[(${Choice,,}) Menu]----------------"
-							echo -e "Purpose: Compile and run code with argument prompt"
-							echo ""
-							echo -e "${Choice,,}\t\t\t\t\"compile and run with argument prompt\""
+							echo -e "${Choice,,}\t\t\t\t\t\"compile and run\""
+							echo -e "${Choice,,} -a <cpl>\t\t\t\t\"compile with compile args and run\""
+							echo -e "${Choice,,} --args <cpls>\t\t\t\"compile with compile args and run\""
+							echo -e "${Choice,,} --args <cpl> --run <run>\t\t\"compile and run with args\""
+							echo -e "${Choice,,} --run <runs>\t\t\t\"compile and run wwith runtime args\""
 							echo "------------------------------------------------"
 							echo ""
 							;;
@@ -370,7 +365,7 @@ MenuHelp()
 					ManageLangs ${Lang} "MenuHelp"
 					echo -e "cpl, compile --args <args>\t: \"compile program with one-time-use arguments\""
 					echo -e "cpl, compile --get-args\t\t: \"show compile arguments\""
-					echo -e "car, car-a\t\t\t: \"compile and run; compile and run with arguments\""
+					echo -e "car\t\t\t\t: \"compile and run; compile and run with arguments\""
 					echo -e "rm, remove, delete\t\t: \"delete source AND binary file\""
 					echo -e "rmbin, remove-bin, delete-bin\t: \"delete ONLY binary file\""
 					echo -e "set <file>\t\t\t: \"select source code\""
@@ -721,8 +716,8 @@ CliHelp()
 					echo -e "\t--run <args>\t\t\t\t\t: \"Run compiled code\""
 					echo -e "\t-x <args>\t\t\t\t\t: \"Run compiled code\""
 					echo -e "\t--rm <args>\t\t\t\t\t: \"Remove binary and source code\""
-					echo -e "\t--rm-bin <args>\t\t\t\t: \"Remove binary code\""
-					echo -e "\t--rm-src <args>\t\t\t\t: \"Remove source code\""
+					echo -e "\t--rm-bin <args>\t\t\t\t\t: \"Remove binary code\""
+					echo -e "\t--rm-src <args>\t\t\t\t\t: \"Remove source code\""
 					echo -e "\t--time <args>\t\t\t\t\t: \"Run and time compiled code\""
 					echo -e "\t--notes <args>\t\t\t\t\t: \"Manage the notes for a given language\""
 					echo -e "\t--read <args>\t\t\t\t\t: \"Read out (cat) source code\""
@@ -739,8 +734,8 @@ CliHelp()
 					echo "\"I can pre-setup an action before providing you with a session\""
 					echo ""
 					echo -e "\t[With a session]"
-					echo -e "$ clide <language> --new <code>\t\t\t: \"New source code\""
-					echo -e "$ clide <language> --new <code>,<code>\t\t: \"New source code\""
+					echo -e "$ clide <language> --new <code>\t\t\t\t: \"New source code\""
+					echo -e "$ clide <language> --new <code>,<code>\t\t\t: \"New source code\""
 					echo ""
 					echo -e "\"Need more information? Just ask!\""
 					echo ""
@@ -751,7 +746,7 @@ CliHelp()
 					fi
 					case ${calledBy} in
 						--help)
-							echo -e "${cmd}<function>\t\t: \"Learn more about a given function\""
+							echo -e "${cmd}<function>\t\t\t: \"Learn more about a given function\""
 							;;
 						-h)
 							echo -e "${cmd}<function>\t\t\t: \"Learn more about a given function\""

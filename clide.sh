@@ -3759,27 +3759,58 @@ Actions()
 						esac
 						;;
 					#(c)ompile (a)nd (r)un
-					car|car-a)
+					car)
+						local CarArgs=( ${UserIn[@]} )
+						local CplArgs=( )
+						local RunArgs=( )
+						local GetRun
+						CarArgs[0]=""
 						case ${UserIn[1]} in
 							--help)
 								HelpMenu ${Lang} ${UserIn[@]}
 								;;
 							*)
-								#Lets Compile
-								compileCode ${Lang} ${UserIn[@]}
 								if [ ! -z "${TheSrcCode}" ]; then
-									case ${UserArg} in
-										#Run without args
-										car)
-											runCode ${Lang} ${TheSrcCode}
+									case ${CarArgs[1]} in
+										-a|--args)
+											CarArgs[1]=""
+											for ThisTime in ${CarArgs[@]};
+											do
+												if [ ! -z "${ThisTime}" ]; then
+													case ${ThisTime} in
+														--run)
+															GetRun="--run"
+															ThisTime=""
+															;;
+														*)
+															;;
+													esac
+
+													if [ ! -z "${ThisTime}" ] && [ -z "${GetRun}" ]; then
+														CplArgs+=(${ThisTime})
+													else
+														RunArgs+=(${ThisTime})
+													fi
+												fi
+											done
+											#Lets Compile
+											compileCode ${Lang} ${CplArgs[@]}
 											;;
-										#Run WITH args
-										car-a)
-											runCode ${Lang} ${TheSrcCode} "run" "--args"
+										--run)
+											CarArgs[1]=""
+											RunArgs=( ${CarArgs[@]} )
+											compileCode ${Lang}
 											;;
 										*)
+											#Lets Compile
+											compileCode ${Lang}
 											;;
 									esac
+									if [ -z "${RunArgs}" ]; then
+										runCode ${Lang} ${TheSrcCode} "run" "--args"
+									else
+										runCode ${Lang} ${TheSrcCode} ${RunArgs[@]}
+									fi
 								fi
 								;;
 						esac
@@ -5693,8 +5724,8 @@ CLI()
 
 					local CplArgs=( )
 					local RunArgs=( )
-					for ThisTime in $@; do
-
+					for ThisTime in $@;
+					do
 						if [ ! -z "${TheSrcCplAndRun}" ]; then
 							break
 						fi
