@@ -3779,8 +3779,10 @@ Actions()
 												if [ ! -z "${ThisTime}" ]; then
 													case ${ThisTime} in
 														--run)
-															GetRun="--run"
-															ThisTime=""
+															if [ -z "${GetRun}" ]; then
+																GetRun="--run"
+																ThisTime=""
+															fi
 															;;
 														*)
 															;;
