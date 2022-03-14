@@ -3773,14 +3773,14 @@ Actions()
 								if [ ! -z "${TheSrcCode}" ]; then
 									case ${CarArgs[1]} in
 										-a|--args)
-											CarArgs[1]=""
+#											CarArgs[1]=""
 											for ThisTime in ${CarArgs[@]};
 											do
 												if [ ! -z "${ThisTime}" ]; then
 													case ${ThisTime} in
 														--run)
 															if [ -z "${GetRun}" ]; then
-																GetRun="--run"
+																GetRun="-a"
 																ThisTime=""
 															fi
 															;;
@@ -3796,26 +3796,32 @@ Actions()
 												fi
 											done
 											#Lets Compile
-											compileCode ${Lang} ${CplArgs[@]}
+											compileCode ${Lang} "cpl" ${CplArgs[@]}
 											;;
 										--run)
+											GetRun="-a"
 											CarArgs[1]=""
 											RunArgs=( ${CarArgs[@]} )
-											compileCode ${Lang}
+											compileCode ${Lang} "cpl"
 											;;
 										*)
 											#Lets Compile
-											compileCode ${Lang}
+											compileCode ${Lang} "cpl"
 											;;
 									esac
-									if [ -z "${RunArgs}" ]; then
-										runCode ${Lang} ${TheSrcCode} "run" "--args"
+
+									if [ ! -z "${GetRun}" ]; then
+										runCode ${Lang} ${TheSrcCode} "run" "--args"  ${RunArgs[@]}
 									else
-										runCode ${Lang} ${TheSrcCode} ${RunArgs[@]}
+										runCode ${Lang} ${TheSrcCode}
 									fi
 								fi
 								;;
 						esac
+						CarArgs=""
+						CplArgs=""
+						RunArgs=""
+						GetRun=""
 						;;
 					#Compile code
 					compile|cpl)
