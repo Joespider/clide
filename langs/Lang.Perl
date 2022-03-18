@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.89"
+SupportV="0.1.90"
 Lang=Perl
 LangExt=".pl"
 #Color Purple
@@ -280,7 +280,7 @@ UsePerl()
 			;;
 		newCodeHelp)
 			if [ -f ${TemplateCode} ]; then
-				echo -e "\t-c, --custom\t\t\t: \"Custom src file using ${Lang} template\""
+				echo -e "\t-c, --custom <args>\t\t: \"Custom src file using ${Lang} template\""
 			fi
 			;;
 		EnsureDirs)
@@ -799,8 +799,15 @@ UsePerl()
 			local cLang=$(UsePerl "color")
 			local cTemplate=$(OtherColor ${TemplateCode##*/})
 			if [ -f ${TemplateCode} ]; then
-				echo -n "${cLang}\$ ${LangRun} ${cTemplate} "
-				read -a Args
+				shift
+				shift
+				shift
+				shift
+				Args=$@
+				if [ -z "${1}" ]; then
+					echo -n "${cLang}\$ ${LangRun} ${cTemplate} "
+					read -a Args
+				fi
 				#Program Args Given
 				if [ ! -z "${Args}" ]; then
 					${LangRun} ${TemplateCode} ${Args[@]}

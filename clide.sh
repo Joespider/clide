@@ -3246,7 +3246,7 @@ Actions()
 								local NewCode
 								BeforeFiles=$(ManageLangs ${Lang} "BeforeFiles")
 								#Create new code
-								ManageLangs ${Lang} "customCode" ${Lang} ${cLang}
+								ManageLangs ${Lang} "customCode" ${Lang} ${cLang} ${UserIn[@]}
 								AfterFiles=$(ManageLangs ${Lang} "AfterFiles")
 								AllFiles="${BeforeFiles} ${AfterFiles}"
 								#Look ALL files for new for new file
@@ -5506,17 +5506,33 @@ CLI()
 					fi
 				fi
 				;;
+			#clide --new <args>
+			#or
+			#clide -n <args>
 			-n|--new)
 				if [ -z "${ThePipe}" ]; then
 					shift
+					local NoSupportLang
 					local Lang
 					local Code=$2
 					local Args
 					local FindCode
 					local AlreadyCode
 					local ColorCode
+					local BeforeFiles
+					local AfterFiles
+					local AllFiles
+					local NewCode
+
+					#clide --new <src>.<ext>
+					#or
+					#clide --new --help
+					#or
+					#clide --new <lang>
 					if [ -z "${Code}" ]; then
+						#Identify the language by code
 						Lang=$(SelectLangByCode $1)
+						#Langauge has been found
 						if [ ! -z "${Lang}" ]; then
 							Code=$1
 							shift
@@ -5531,60 +5547,131 @@ CLI()
 									fi
 									;;
 							esac
+						#clide --new <lang>
+						else
+							Lang=$1
+							case ${Lang} in
+								#clide --new <lang> --help
+								-h|--help)
+									main --help function --new
+									;;
+								#clide --new <lang>
+								*)
+									#assume the user wants to create a custom tempalte
+									main --new "${Lang}" "-c"
+									;;
+							esac
 						fi
+					#clide --new <lang> <src>.<ext> <args>
 					else
 						case ${Code} in
+							#clide --new <lang> --help
+							-h|--help)
+								NoSupportLang=$1
+								Lang=$1
+								;;
+							#clide --new <lang> --custom <args>
+							--custom)
+								NoSupportLang=$1
+								#check if language is supported
+								Lang=$(pgLang $1)
+								shift
+								shift
+								Args=$@
+								;;
+							#clide --new <src> --<other>
 							--*)
+								NoSupportLang=$1
 								Lang=$(SelectLangByCode $1)
 								Code=$1
 								shift
 								Args=$@
 								;;
+							#clide --new <lang> <code> <flag> <args>
 							*)
+								NoSupportLang=$1
+								#check if language is supported
 								Lang=$(pgLang $1)
 								shift
 								shift
 								Args=$@
 								;;
 						esac
-						case ${Lang} in
-							no)
-								errorCode "install" "cli-not-supported" "$1"
-								;;
-							*)
-								local CodeDir=$(pgDir ${Lang})
-								if [ ! -z "${CodeDir}" ]; then
-									ColorCode=$(ManageLangs ${Lang} "color-number")
-									cd ${CodeDir}
-									InAndOut="yes"
-									IFS=',' read -ra ADDR <<< "${Code}"
-									for NewCode in "${ADDR[@]}";
-									do
-										AlreadyCode=$(ManageLangs ${Lang} "getCode" ${NewCode})
-										if [ -z "${AlreadyCode}" ]; then
-											Actions ${Lang} "code" "new" ${NewCode} ${Args[@]}
-											FindCode=$(ManageLangs ${Lang} "getCode" ${NewCode} ${AlreadyCode})
-											if [ ! -z "${FindCode}" ]; then
-												echo -e "\e[1;4${ColorCode}m[${Lang} (${FindCode}) Created]\e[0m"
-											fi
-										else
-											local SecondTry=$(ManageLangs ${Lang} "getCode" ${NewCode} ${AlreadyCode})
-											if [ -z "${SecondTry}" ]; then
-												Actions ${Lang} "code" "new" ${NewCode} ${Args[@]}
-												FindCode=$(ManageLangs ${Lang} "getCode" ${NewCode} ${AlreadyCode})
-												if [ ! -z "${FindCode}" ]; then
-													echo -e "\e[1;4${ColorCode}m[${Lang} (${FindCode}) Created]\e[0m"
+						if [ ! -z "${Lang}" ]; then
+							case ${Lang} in
+								no)
+									errorCode "install" "cli-not-supported" "${NoSupportLang}"
+									;;
+								*)
+									local CodeDir=$(pgDir ${Lang})
+									if [ ! -z "${CodeDir}" ]; then
+										ColorCode=$(ManageLangs ${Lang} "color-number")
+										cd ${CodeDir}
+										InAndOut="yes"
+										case ${Code} in
+											#clide --new <lang> --help
+											#or
+											#clide --new <lang> -h
+											-h|--help)
+												main --help function --new
+												;;
+											#clide --new <lang> --custom <args>
+											#or
+											#clide --new <lang> -c <args>
+											-c|--custom)
+												#Get list of files  BEFORE creation
+												BeforeFiles=$(ManageLangs ${Lang} "BeforeFiles")
+												#Create new code
+												Actions ${Lang} "code" "new" "-c" ${Args[@]}
+												#Get list of files  AFTER creation
+												AfterFiles=$(ManageLangs ${Lang} "AfterFiles")
+												#Combine BEFORE and AFTER
+												AllFiles="${BeforeFiles} ${AfterFiles}"
+												#Look ALL files for new for new file
+												NewCode=$(echo -e "${AllFiles// /\\n}" | sort | uniq -u | tr -d '\n')
+												#Check if new code is found
+												if [ ! -z "${NewCode}" ]; then
+													echo -e "\e[1;4${ColorCode}m[${Lang} (${NewCode}) Created]\e[0m"
 												fi
-											fi
-										fi
-									done
-#								else
-#									errorCode "cli-cpl" "none"
-								fi
-						esac
+												;;
+											*)
+												#clide --new <lang> <src>
+												#or
+												#clide --new <lang> <src>,<src>
+												IFS=',' read -ra ADDR <<< "${Code}"
+												for NewCode in "${ADDR[@]}";
+												do
+													AlreadyCode=$(ManageLangs ${Lang} "getCode" ${NewCode})
+													if [ -z "${AlreadyCode}" ]; then
+														Actions ${Lang} "code" "new" ${NewCode} ${Args[@]}
+														FindCode=$(ManageLangs ${Lang} "getCode" ${NewCode} ${AlreadyCode})
+														if [ ! -z "${FindCode}" ]; then
+															echo -e "\e[1;4${ColorCode}m[${Lang} (${FindCode}) Created]\e[0m"
+														fi
+													else
+														local SecondTry=$(ManageLangs ${Lang} "getCode" ${NewCode} ${AlreadyCode})
+														if [ -z "${SecondTry}" ]; then
+															Actions ${Lang} "code" "new" ${NewCode} ${Args[@]}
+															FindCode=$(ManageLangs ${Lang} "getCode" ${NewCode} ${AlreadyCode})
+															if [ ! -z "${FindCode}" ]; then
+																echo -e "\e[1;4${ColorCode}m[${Lang} (${FindCode}) Created]\e[0m"
+															fi
+														fi
+													fi
+												done
+												;;
+										esac
+#									else
+#										errorCode "cli-cpl" "none"
+									fi
+							esac
+						else
+								errorCode "install" "cli-not-supported" "${NoSupportLang}"
+						fi
 					fi
 				fi
 				;;
+			#clide --edit <args>
 			--edit)
 				if [ -z "${ThePipe}" ]; then
 					#Protecting
@@ -5592,8 +5679,10 @@ CLI()
 					shift
 					local Action=$1
 					local Lang=$2
+					local Code
 					local confirm=$3
 					case ${Action} in
+						#clide --edit --config <arg>
 						--config)
 							if [ -z "${confirm}" ]; then
 								confirm=${Lang}
@@ -5625,6 +5714,7 @@ CLI()
 									;;
 							esac
 							;;
+						#clide --edit --lang <lang> <args>
 						--lang)
 							if [ ! -z "${Lang}" ]; then
 								Lang=${Lang,,}
@@ -5665,17 +5755,19 @@ CLI()
 								theHelp EditCliHelp
 							fi
 							;;
+						#clide --edit <lang> <src>
 						*)
 							if [ -z "${Action}" ]; then
 								theHelp EditCliHelp
 							else
 								case ${Action} in
+									#clide --edit --help
 									-h|--help)
 										theHelp EditCliHelp
 										;;
 									*)
-										local Lang=$(pgLang $1)
-										local Code=$2
+										Lang=$(pgLang $1)
+										Code=$2
 										if [ -z "${Code}" ]; then
 											Lang=$(SelectLangByCode $1)
 											Code=$1
@@ -6306,11 +6398,44 @@ main()
 								shift
 								local HiddenAction=$1
 								local NextHiddenAction=$2
+								local CodeDir
+								local BeforeFiles
+								local AfterFiles
+								local AllFiles
+								local NewCode
+
 								case ${HiddenAction} in
 									-n|--new)
 										shift
-										Args=$@
-										main ${HiddenAction} ${Lang} ${Args[@]}
+										Args=( $@ )
+										if [ ! -z "${Args[0]}" ]; then
+											case ${Args[0]} in
+												--custom|-c)
+													CodeDir=$(pgDir ${Lang})
+													if [ ! -z "${CodeDir}" ]; then
+														cd ${CodeDir}
+														BeforeFiles=$(ManageLangs ${Lang} "BeforeFiles")
+														main ${HiddenAction} ${Lang} ${Args[@]}
+														AfterFiles=$(ManageLangs ${Lang} "AfterFiles")
+														#Combine BEFORE and AFTER
+														AllFiles="${BeforeFiles} ${AfterFiles}"
+														#Look ALL files for new for new file
+														NewCode=$(echo -e "${AllFiles// /\\n}" | sort | uniq -u | tr -d '\n')
+														#Check if new code is found
+														Args=( "" )
+														if [ ! -z "${NewCode}" ]; then
+															Args="${NewCode}"
+														else
+															Args=""
+														fi
+														cd - > /dev/null
+													fi
+													;;
+												*)
+													main ${HiddenAction} ${Lang} ${Args[@]}
+													;;
+											esac
+										fi
 										InAndOut="no"
 										Actions ${Lang} ${Args[@]}
 										;;

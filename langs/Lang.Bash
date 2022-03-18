@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.85"
+SupportV="0.1.86"
 Lang=Bash
 LangExt=".sh"
 ColorNum=2
@@ -288,7 +288,7 @@ UseBash()
 			;;
 		newCodeHelp)
 			if [ -f ${TemplateCode} ]; then
-				echo -e "\t-c, --custom\t\t\t: \"Custom src file using ${Lang} template\""
+				echo -e "\t-c, --custom <args>\t\t: \"Custom src file using ${Lang} template\""
 			fi
 			;;
 		EnsureDirs)
@@ -881,8 +881,15 @@ UseBash()
 			local Type=${Type,,}
 			#Check for Custom Code Template
 			if [ -f ${TemplateCode} ]; then
-				echo -n "${cLang}\$ ./${cTemplate} "
-				read -a Args
+				shift
+				shift
+				shift
+				shift
+				Args=$@
+				if [ -z "${1}" ]; then
+					echo -n "${cLang}\$ ./${cTemplate} "
+					read -a Args
+				fi
 				#Template Args Given
 				if [ ! -z "${Args}" ]; then
 					${TemplateCode} ${Args[@]}

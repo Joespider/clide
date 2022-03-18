@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.84"
+SupportV="0.1.85"
 Lang=Ruby
 LangExt=".rb"
 ColorNum=1
@@ -288,7 +288,7 @@ UseRuby()
 			;;
 		newCodeHelp)
 			if [ -f ${TemplateCode} ]; then
-				echo -e "\t-c, --custom\t\t\t: \"Custom src file using ${Lang} template\""
+				echo -e "\t-c, --custom <args>\t\t: \"Custom src file using ${Lang} template\""
 			fi
 			;;
 		EnsureDirs)
@@ -874,8 +874,15 @@ UseRuby()
 			local cTemplate=$(OtherColor ${TemplateCode##*/})
 			#Check for Custom Code Template
 			if [ -f ${TemplateCode} ]; then
-				echo -n "${cLang}\$ ${LangRun} ${cTemplate} "
-				read -a Args
+				shift
+				shift
+				shift
+				shift
+				Args=$@
+				if [ -z "${1}" ]; then
+					echo -n "${cLang}\$ ${LangRun} ${cTemplate} "
+					read -a Args
+				fi
 				#Program Args Given
 				if [ ! -z "${Args}" ]; then
 					${LangRun} ${TemplateCode} ${Args[@]}

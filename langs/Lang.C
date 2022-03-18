@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.76"
+SupportV="0.1.77"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
@@ -425,7 +425,7 @@ UseC()
 			;;
 		newCodeHelp)
 			if [ -f ${TemplateCode} ]; then
-				echo -e "\t-c, --custom\t\t\t: \"Custom src file using ${Lang} template\""
+				echo -e "\t-c, --custom <args>\t\t: \"Custom src file using ${Lang} template\""
 			fi
 			;;
 		#Make sure directories in place
@@ -1552,8 +1552,15 @@ UseC()
 			local cTemplate=$(OtherColor ${TemplateCode##*/})
 			#Check for Custom Code Template
 			if [ -f ${TemplateCode} ]; then
-				echo -n "${cLang}\$ ./${cTemplate} "
-				read -a Args
+				shift
+				shift
+				shift
+				shift
+				Args=$@
+				if [ -z "${1}" ]; then
+					echo -n "${cLang}\$ ./${cTemplate} "
+					read -a Args
+				fi
 				#Program Args Given
 				if [ ! -z "${Args}" ]; then
 					${TemplateCode} ${Args[@]}

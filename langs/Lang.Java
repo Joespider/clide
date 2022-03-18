@@ -3,7 +3,7 @@
 #https://stackoverflow.com/questions/10339637/java-import-cannot-find-symbol
 #https://www.codejava.net/java-core/tools/how-to-compile-package-and-run-a-java-program-using-command-line-tools-javac-jar-and-java
 
-SupportV="0.2.26"
+SupportV="0.2.28"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -382,7 +382,7 @@ UseJava()
 		newCodeHelp)
 			local project=${CodeProject}
 			if [ -f ${TemplateCodeJar} ] || [ -f ${TemplateCodeClass} ]; then
-				echo -e "\t--custom|-c\t\t\t: \"Custom src file using ${Lang} template\""
+				echo -e "\t--custom|-c <args>\t\t: \"Custom src file using ${Lang} template\""
 				case ${project} in
 					none)
 						;;
@@ -1334,8 +1334,16 @@ UseJava()
 			Type=${Type,,}
 			#Check for Custom Code Template...is class
 			if [ -f ${TemplateCodeClass} ]; then
-				echo -n "${cLang}\$ java ${cTemplateC} "
-				read -a Args
+				shift
+				shift
+				shift
+				shift
+				Args=$@
+				if [ -z "${1}" ]; then
+					echo -n "${cLang}\$ java ${cTemplateC} "
+					read -a Args
+				fi
+
 				#Program Args Given
 				if [ ! -z "${Args}" ]; then
 					cd ${LangBin}
