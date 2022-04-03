@@ -1780,6 +1780,178 @@ runCodeMessage()
 	fi
 }
 
+InstallCode()
+{
+	local Lang=$1
+	shift
+	local InstallType=$2
+	shift
+	local UserIn=( $@ )
+	case ${InstallType} in
+		--alias)
+			ManageLangs ${Lang} "Install-alias" ${TheSrcCode} ${UserIn[@]}
+			;;
+		--bin)
+			ManageLangs ${Lang} "Install-bin" ${TheSrcCode} ${UserIn[@]}
+			;;
+		--check)
+			ManageLangs ${Lang} "Install-check" ${TheSrcCode} ${UserIn[@]}
+			;;
+		--root-bin)
+			ManageLangs ${Lang} "Install-root" ${TheSrcCode} ${UserIn[@]}
+			;;
+		--user-bin)
+			ManageLangs ${Lang} "Install-user" ${TheSrcCode} ${UserIn[@]}
+			;;
+		--help)
+			HelpMenu ${Lang} "install"
+			;;
+		*)
+			HelpMenu ${Lang} "install"
+			;;
+	esac
+}
+
+CopyOrRename()
+{
+	local Lang=$1
+	local UserArg=$2
+	local chosen
+	local TheNewChosen
+	local GetCount
+	shift
+	local UserIn=( $@ )
+	case ${UserIn[1]} in
+		--help)
+			HelpMenu ${Lang} ${UserIn[@]}
+				;;
+		*)
+			chosen=${UserIn[1]}
+			TheNewChosen=${UserIn[2]}
+			case ${TheSrcCode} in
+				*,*)
+					if [ ! -z "${TheNewChosen}" ]; then
+						case ${TheSrcCode} in
+							*${chosen}*)
+								GetCount=$(echo -e ${TheSrcCode//,/\\n} | grep ${chosen} | wc -l)
+								case ${GetCount} in
+									1)
+										chosen=$(echo -e ${TheSrcCode//,/\\n} | grep ${chosen})
+										case ${UserArg} in
+											rename)
+												TheNewChosen=$(ManageLangs ${Lang} "rename" ${chosen} ${TheNewChosen})
+												;;
+											cp|copy)
+												TheNewChosen=$(ManageLangs ${Lang} "copy" ${chosen} ${TheNewChosen})
+												;;
+											*)
+												;;
+										esac
+										TheSrcCode=${TheSrcCode//${chosen}/${TheNewChosen}}
+										refresh="yes"
+										;;
+									*)
+										case ${UserArg} in
+											rename)
+												errorCode "rename" "wrong" ${chosen}
+												;;
+											cp|copy)
+												errorCode "copy" "wrong" ${chosen}
+												;;
+											*)
+												;;
+										esac
+										;;
+								esac
+								;;
+							*)
+								case ${UserArg} in
+									rename)
+										errorCode "rename" "wrong" ${chosen}
+										;;
+									cp|copy)
+										errorCode "copy" "wrong" ${chosen}
+										;;
+									*)
+										;;
+								esac
+								;;
+						esac
+					else
+						case ${UserArg} in
+							rename)
+								errorCode "rename" "null"
+								;;
+							cp|copy)
+								errorCode "backup" "null"
+								;;
+							*)
+								;;
+						esac
+					fi
+					;;
+				*)
+					if [ -z "${TheNewChosen}" ]; then
+						case ${UserArg} in
+							rename)
+								TheSrcCode=$(ManageLangs ${Lang} "rename" ${TheSrcCode} ${chosen})
+								;;
+							cp|copy)
+								TheSrcCode=$(ManageLangs ${Lang} "copy" ${TheSrcCode} ${chosen})
+								;;
+							*)
+								;;
+						esac
+						refresh="yes"
+					else
+						case ${TheSrcCode} in
+							${chosen})
+								case ${UserArg} in
+									rename)
+										TheSrcCode=$(ManageLangs ${Lang} "rename" ${chosen} ${TheNewChosen})
+										;;
+									cp|copy)
+										TheSrcCode=$(ManageLangs ${Lang} "copy" ${chosen} ${TheNewChosen})
+										;;
+									*)
+										;;
+								esac
+								refresh="yes"
+								;;
+							*${chosen}*)
+								chosen=$(echo ${TheSrcCode} | grep ${chosen})
+								case ${UserArg} in
+									rename)
+										TheSrcCode=$(ManageLangs ${Lang} "rename" ${chosen} ${TheNewChosen})
+										;;
+									cp|copy)
+										TheSrcCode=$(ManageLangs ${Lang} "copy" ${chosen} ${TheNewChosen})
+										;;
+									*)
+										;;
+								esac
+								refresh="yes"
+								;;
+							*)
+								case ${UserArg} in
+									rename)
+										errorCode "rename" "wrong" ${chosen}
+										;;
+									cp|copy)
+										errorCode "copy" "wrong" ${chosen}
+										;;
+									*)
+										;;
+ 								esac
+								;;
+						esac
+					fi
+					;;
+			esac
+			;;
+	esac
+}
+
 ManageCreate()
 {
 	local Lang=$1
@@ -3086,135 +3258,8 @@ Actions()
 					#OR
 					#Make a copy of your selected code...similar to backup...but nothing to restore
 					cp|copy|rename)
-						case ${UserIn[1]} in
-							--help)
-								HelpMenu ${Lang} ${UserIn[@]}
-								;;
-							*)
-								local chosen=${UserIn[1]}
-								local TheNewChosen=${UserIn[2]}
-								case ${TheSrcCode} in
-									*,*)
-										if [ ! -z "${TheNewChosen}" ]; then
-											case ${TheSrcCode} in
-												*${chosen}*)
-													local GetCount=$(echo -e ${TheSrcCode//,/\\n} | grep ${chosen} | wc -l)
-													case ${GetCount} in
-														1)
-															chosen=$(echo -e ${TheSrcCode//,/\\n} | grep ${chosen})
-															case ${UserArg} in
-																rename)
-																	TheNewChosen=$(ManageLangs ${Lang} "rename" ${chosen} ${TheNewChosen})
-																	;;
-																cp|copy)
-																	TheNewChosen=$(ManageLangs ${Lang} "copy" ${chosen} ${TheNewChosen})
-																	;;
-																*)
-																	;;
-															esac
-															TheSrcCode=${TheSrcCode//${chosen}/${TheNewChosen}}
-															refresh="yes"
-															;;
-														*)
-															case ${UserArg} in
-																rename)
-																	errorCode "rename" "wrong" ${chosen}
-																	;;
-																cp|copy)
-																	errorCode "copy" "wrong" ${chosen}
-																	;;
-																*)
-																	;;
-															esac
-															;;
-													esac
-													;;
-												*)
-													case ${UserArg} in
-														rename)
-															errorCode "rename" "wrong" ${chosen}
-															;;
-														cp|copy)
-															errorCode "copy" "wrong" ${chosen}
-															;;
-														*)
-															;;
-													esac
-													;;
-											esac
-										else
-											case ${UserArg} in
-												rename)
-													errorCode "rename" "null"
-													;;
-												cp|copy)
-													errorCode "backup" "null"
-													;;
-												*)
-													;;
-											esac
-										fi
-										;;
-									*)
-										if [ -z "${TheNewChosen}" ]; then
-											case ${UserArg} in
-												rename)
-													TheSrcCode=$(ManageLangs ${Lang} "rename" ${TheSrcCode} ${chosen})
-													;;
-												cp|copy)
-													TheSrcCode=$(ManageLangs ${Lang} "copy" ${TheSrcCode} ${chosen})
-													;;
-												*)
-													;;
-											esac
-											refresh="yes"
-										else
-											case ${TheSrcCode} in
-												${chosen})
-													case ${UserArg} in
-														rename)
-															TheSrcCode=$(ManageLangs ${Lang} "rename" ${chosen} ${TheNewChosen})
-															;;
-														cp|copy)
-															TheSrcCode=$(ManageLangs ${Lang} "copy" ${chosen} ${TheNewChosen})
-															;;
-														*)
-															;;
-														esac
-														refresh="yes"
-														;;
-												*${chosen}*)
-													chosen=$(echo ${TheSrcCode} | grep ${chosen})
-													case ${UserArg} in
-														rename)
-															TheSrcCode=$(ManageLangs ${Lang} "rename" ${chosen} ${TheNewChosen})
-															;;
-														cp|copy)
-															TheSrcCode=$(ManageLangs ${Lang} "copy" ${chosen} ${TheNewChosen})
-															;;
-														*)
-															;;
-													esac
-													refresh="yes"
-													;;
-												*)
-													case ${UserArg} in
-														rename)
-															errorCode "rename" "wrong" ${chosen}
-															;;
-														cp|copy)
-															errorCode "copy" "wrong" ${chosen}
-															;;
-														*)
-															;;
- 													esac
-													;;
-											esac
-										fi
-										;;
-								esac
-								;;
-						esac
+						CopyOrRename ${Lang} ${UserIn[@]}
+						refresh="yes"
 						;;
 					#use the shell of a given language
 					shell)
@@ -3875,14 +3920,7 @@ Actions()
 						;;
 					#Install compiled code into aliases
 					install)
-						case ${UserIn[1]} in
-							--help)
-								HelpMenu ${Lang} ${UserIn[@]}
-								;;
-							*)
-								ManageLangs ${Lang} "Install" ${TheSrcCode} ${UserIn[1]}
-								;;
-						esac
+						InstallCode ${Lang} ${UserIn[@]}
 						;;
 					#Add debugging functionality
 					debug)
@@ -4468,7 +4506,7 @@ loadAuto()
 	comp_list "help"
 	comp_list "notes" "edit add read --help"
 	comp_list "last load" "--help"
-	comp_list "install" "--help"
+	comp_list "install" "--help --alias --bin --check --root-bin --user-bin"
 	comp_list "bkup backup" "--help"
 	comp_list "restore" "--help"
 	comp_list "rename" "--help"
@@ -5799,6 +5837,83 @@ CLI()
 					Protect "done"
 				fi
 				;;
+			--cp|--copy|--rename)
+				if [ -z "${ThePipe}" ]; then
+					#Protecting
+					Protect
+					shift
+					local DoAction
+					local NotLang
+					local Lang
+					local TheSrc
+					local TheNew
+
+					case $# in
+						2)
+							Lang=$(SelectLangByCode $1)
+							TheSrc=$1
+							TheNew=$2
+							if [ ! -z "${Lang}" ]; then
+								CodeDir=$(pgDir ${Lang})
+								if [ ! -z "${CodeDir}" ]; then
+									cd ${CodeDir}
+									TheSrcCode=$(selectCode ${Lang} ${TheSrc})
+									cd - > /dev/null
+								fi
+								DoAction="do"
+							else
+								DoAction="dont"
+							fi
+							;;
+						3)
+							NotLang=$1
+							Lang=$(pgLang $1)
+							TheSrc=$2
+							TheNew=$3
+							case ${Lang} in
+								no)
+									DoAction="dont"
+									;;
+								*)
+									CodeDir=$(pgDir ${Lang})
+									if [ ! -z "${CodeDir}" ]; then
+										cd ${CodeDir}
+										TheSrcCode=$(selectCode ${Lang} ${TheSrc})
+										cd - > /dev/null
+										DoAction="do"
+									else
+										DoAction="dont"
+									fi
+									;;
+							esac
+							;;
+						*)
+							DoAction="dont"
+							;;
+					esac
+
+					case ${DoAction} in
+						do)
+							case ${UserArg} in
+								--cp|--copy)
+									CopyOrRename ${Lang} "cp" ${TheNew}
+									;;
+								--rename)
+									CopyOrRename ${Lang} "rename" ${TheNew}
+									;;
+								*)
+									;;
+							esac
+							;;
+						*)
+							theHelp CliCopyOrRename ${UserArg}
+							;;
+					esac
+
+					#Done protecting
+					Protect "done"
+				fi
+				;;
 			--cpl-run|--car|--cat|--cpl-time)
 				if [ -z "${ThePipe}" ]; then
 					local RunLang
@@ -5990,8 +6105,21 @@ CLI()
 			--install)
 				if [ -z "${ThePipe}" ]; then
 					shift
+					local NotSupported=$1
 					local Lang=$(pgLang $1)
 					local Code=$2
+
+					case ${NotSupported} in
+						--*)
+							NotSupported=$2
+							Lang=$(pgLang $2)
+							Code=$3
+							;;
+						*)
+							Lang=$(pgLang $1)
+							Code=$2
+							;;
+					esac
 					if [ -z "${Code}" ]; then
 						Lang=$(SelectLangByCode $1)
 						Code=$1
@@ -6003,7 +6131,11 @@ CLI()
 								;;
 							*)
 								if [ ! -z "${Code}" ]; then
-									main --install "${Lang}" "${Code}" ${Args[@]}
+									if [ ! -z "${Args[@]}" ]; then
+										main --install "${Lang}" "${Code}" ${Args[@]}
+									else
+										theHelp InstallCliHelp
+									fi
 								fi
 								;;
 						esac
@@ -6013,15 +6145,15 @@ CLI()
 						local Args=$@
 						case ${Lang} in
 							no)
-								errorCode "install" "cli-not-supported" "$1"
+								errorCode "install" "cli-not-supported" "${NotSupported}"
 								theHelp InstallCliHelp
 								;;
 							*)
 								local CodeDir=$(pgDir ${Lang})
 								if [ ! -z "${CodeDir}" ]; then
 									cd ${CodeDir}
-									Code=$(selectCode ${Lang} ${Code})
-									ManageLangs ${Lang} "Install" ${Code} ${Args[@]}
+									TheSrcCode=$(selectCode ${Lang} ${Code})
+									InstallCode ${Lang} "install" ${Args[@]}
 									cd - > /dev/null
 								else
 									errorCode "cli-cpl" "none"

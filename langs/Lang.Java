@@ -3,7 +3,7 @@
 #https://stackoverflow.com/questions/10339637/java-import-cannot-find-symbol
 #https://www.codejava.net/java-core/tools/how-to-compile-package-and-run-a-java-program-using-command-line-tools-javac-jar-and-java
 
-SupportV="0.2.28"
+SupportV="0.2.30"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -1275,12 +1275,13 @@ UseJava()
 				ls --color=auto ${path}
 			fi
 			;;
-		Install|exe-string)
+		Install*)
 			local bin=$1
 			local BinFile="${bin%.*}"
 			local project=${CodeProject}
 			local TheBinDir
 			local UseProjectTemplate
+			local ExeString
 			#Handle Project Dir
 			case ${project} in
 				none)
@@ -1293,7 +1294,7 @@ UseJava()
 					;;
 			esac
 			case ${Type} in
-				Install)
+				Install-alias)
 					#Java binary
 					if [[ "${bin}" == *"${LangExt}" ]]; then
 						#Check for Jar file
@@ -1311,13 +1312,153 @@ UseJava()
 						errorCode "noCode"
 					fi
 					;;
-				exe-string)
-					#Java binary
-					if [[ "${bin}" == *"${LangExt}" ]]; then
-						#Check for Jar file
-						if [ -f "${TheBinDir}/${BinFile}.jar" ]; then
-							echo "${LangRun} -jar ${TheBinDir}/${BinFile}.jar"
+				Install-bin)
+					ThePath="/bin"
+					#Make sure Binary exists
+					if [ -f "${TheBinDir}/${BinFile}.jar" ]; then
+						ExeString=$(UseJava "exe-string" ${bin})
+						if [ -f ${ThePath}/${BinFile} ]; then
+							errorCode "install" "already" "${BinFile}" "${ThePath}/"
+						else
+							case ${USER} in
+								root)
+									touch ${ThePath}/${BinFile}
+									echo -e "#!/bin/bash\n${ExeString}" > ${BinFile}
+									mv ${BinFile} ${ThePath}/${BinFile}
+									chmod +x ${ThePath}/${BinFile}
+									;;
+								*)
+									sudo touch ${ThePath}/${BinFile}
+									echo -e "#!/bin/bash\n${ExeString}" > ${BinFile}
+									sudo mv ${BinFile} ${ThePath}/${BinFile}
+									sudo chmod +x ${ThePath}/${BinFile}
+									;;
+							esac
 						fi
+					elif [ ! -f "${TheBinDir}/${BinFile}.jar" ]; then
+						#compile or swap to binary
+						errorCode "install" "${BinFile}"
+					else
+						errorCode "noCode"
+					fi
+					;;
+				Install-check)
+					local IsAlias
+					echo -n "Install-alias (~/.bash_aliases): "
+					if [ -f ~/.bash_aliases ]; then
+						IsAlias=$(grep "alias ${BinFile}=\"" ~/.bash_aliases)
+						if [ ! -z "${IsAlias}" ]; then
+							errorCode "HINT" "INSTALLED"
+						else
+							errorCode "ERROR" "NOT-INSTALLED"
+						fi
+					else
+						errorCode "ERROR" "NOT-INSTALLED"
+					fi
+
+					echo -n "Install-bin (/bin): "
+					if [ -f /bin/${BinFile} ]; then
+						errorCode "HINT" "INSTALLED"
+					else
+						errorCode "ERROR" "NOT-INSTALLED"
+					fi
+
+					echo -n "Install-root (/usr/sbin): "
+					if [ -f /usr/sbin/${BinFile} ]; then
+						errorCode "HINT" "INSTALLED"
+					else
+						errorCode "ERROR" "NOT-INSTALLED"
+					fi
+
+					echo -n "Install-user (~/bin): "
+					if [ -f ~/bin/${BinFile} ]; then
+						errorCode "HINT" "INSTALLED"
+					else
+						errorCode "ERROR" "NOT-INSTALLED"
+					fi
+					;;
+				Install-root)
+					ThePath="/usr/sbin"
+					#Make sure Binary exists
+					if [ -f "${TheBinDir}/${BinFile}.jar" ]; then
+						ExeString=$(UseJava "exe-string" ${bin})
+						if [ -f ${ThePath}/${BinFile} ]; then
+							errorCode "install" "already" "${BinFile}" "${ThePath}/"
+						else
+							case ${USER} in
+								root)
+									touch ${ThePath}/${BinFile}
+									echo -e "#!/bin/bash\n${ExeString}" > ${BinFile}
+									mv ${BinFile} ${ThePath}/${BinFile}
+									chmod +x ${ThePath}/${BinFile}
+									;;
+								*)
+									touch ${ThePath}/${BinFile}
+									echo -e "#!/bin/bash\n${ExeString}" > ${BinFile}
+									sudo mv ${BinFile} ${ThePath}/${BinFile}
+									sudo chmod +x ${ThePath}/${BinFile}
+									;;
+							esac
+						fi
+					elif [ ! -f "${TheBinDir}/${BinFile}.jar" ]; then
+						#compile or swap to binary
+						errorCode "install" "${BinFile}"
+					else
+						errorCode "noCode"
+					fi
+					;;
+				Install-user)
+					ThePath="~/bin"
+					#Make sure Binary exists
+					if [ -f "${TheBinDir}/${BinFile}.jar" ]; then
+						ExeString=$(UseJava "exe-string" ${bin})
+						if [ -f ${ThePath}/${BinFile} ]; then
+							errorCode "install" "already" "${BinFile}" "${ThePath}/"
+						else
+							if [ -d ${ThePath} ]; then
+								touch ${ThePath}/${BinFile}
+								echo -e "#!/bin/bash\n${ExeString}" > ${BinFile}
+								mv ${BinFile} ${ThePath}/${BinFile}
+								chmod +x ${ThePath}/${BinFile}
+							else
+								errorCode "ERROR"
+								errorCode "ERROR" "${ThePath}/ does not exist"
+							fi
+						fi
+					elif [ ! -f "${TheBinDir}/${BinFile}.jar" ]; then
+						#compile or swap to binary
+						errorCode "install" "${BinFile}"
+					else
+						errorCode "noCode"
+					fi
+					;;
+				*)
+					;;
+			esac
+			;;
+		exe-string)
+			local bin=$1
+			local BinFile="${bin%.*}"
+			local project=${CodeProject}
+			local TheBinDir
+			local UseProjectTemplate
+			#Handle Project Dir
+			case ${project} in
+				none)
+					project=""
+					TheBinDir=${LangBin}
+					;;
+				*)
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
+					TheBinDir="${LangProject}/${project}/bin"
+					;;
+			esac
+			#Java binary
+			case ${bin} in
+				*"${LangExt}")
+					#Check for Jar file
+					if [ -f "${TheBinDir}/${BinFile}.jar" ]; then
+						echo "${LangRun} -jar ${TheBinDir}/${BinFile}.jar"
 					fi
 					;;
 				*)

@@ -129,10 +129,10 @@ MenuHelp()
 							echo -e "Purpose: Compile and run code"
 							echo ""
 							echo -e "${Choice,,}\t\t\t\t\t\"compile and run\""
-							echo -e "${Choice,,} -a <cpl>\t\t\t\t\"compile with compile args and run\""
-							echo -e "${Choice,,} --args <cpls>\t\t\t\"compile with compile args and run\""
-							echo -e "${Choice,,} --args <cpl> --run <run>\t\t\"compile and run with args\""
-							echo -e "${Choice,,} --run <runs>\t\t\t\"compile and run wwith runtime args\""
+							echo -e "${Choice,,} -a <cpl>\t\t\t\t\"compile with args and run\""
+							echo -e "${Choice,,} --args <cpls>\t\t\t\"compile with args and run\""
+							echo -e "${Choice,,} --args <cpl> --run <run>\t\t\"compile with args and run with args\""
+							echo -e "${Choice,,} --run <runs>\t\t\t\"compile and run wwith args\""
 							echo "------------------------------------------------"
 							echo ""
 							;;
@@ -277,6 +277,15 @@ MenuHelp()
 					echo ""
 					;;
 				rename)
+					echo ""
+					echo "----------------[(${Choice,,}) Menu]----------------"
+					echo -e "Purpose: Rename your code"
+					echo ""
+					echo -e "${Choice,,} <new code>\t\t\"rename selected code\""
+					echo ""
+					echo -e "${Choice,,} --help\t\t\t\"This Help Page\""
+					echo "------------------------------------------------"
+					echo ""
 					;;
 				src|source)
 					echo ""
@@ -285,7 +294,32 @@ MenuHelp()
 					echo "------------------------------------------------"
 					echo ""
 					;;
-				copy)
+				install)
+					echo ""
+					echo "----------------[(${Choice,,}) Menu]----------------"
+					echo "Purpose: install your code"
+					echo "code MUST be compiled"
+					echo "------------------------------------------------"
+					echo ""
+					echo -e "${Choice,,} --alias\t\t\t: \"Install your code into ~/.bash_aliases\""
+					echo -e "${Choice,,} --bin\t\t\t: \"Install your code into /bin/\""
+					echo -e "${Choice,,} --check\t\t\t: \"Check the install location of your code\""
+					echo -e "${Choice,,} --root-bin\t\t: \"Install your code into /usr/sbin/\""
+					echo -e "${Choice,,} --user-bin\t\t: \"Install your code into ~/bin/\""
+					echo -e "${Choice,,} --help\t\t\t: \"help page\""
+					echo "-----------------------------------------------"
+					echo ""
+					;;
+				cp|copy)
+					echo ""
+					echo "----------------[(${Choice,,}) Menu]----------------"
+					echo -e "Purpose: Make a new copy of your code"
+					echo ""
+					echo -e "${Choice,,} <new code>\t\t\"create a copy of selected code\""
+					echo ""
+					echo -e "${Choice,,} --help\t\t\t\"This Help Page\""
+					echo "------------------------------------------------"
+					echo ""
 					;;
 				session)
 					echo ""
@@ -667,6 +701,9 @@ CliHelp()
 				--notes)
 					CliNotes
 					;;
+				--cp|--copy|--rename)
+					CliCopyOrRename ${example}
+					;;
 				--read)
 					ReadCliHelp
 					;;
@@ -703,6 +740,9 @@ CliHelp()
 					echo -e "\t[Without a session]"
 					echo "$ clide <args>"
 					echo -e "\t--new <args>\t\t\t\t\t: \"New source code\""
+					echo -e "\t--cp <args>\t\t\t\t\t: \"Copy source code\""
+					echo -e "\t--copy <args>\t\t\t\t\t: \"Copy source code\""
+					echo -e "\t--rename <args>\t\t\t\t\t: \"Rename source code\""
 					echo -e "\t--edit <args>\t\t\t\t\t: \"Edit source code\""
 					echo -e "\t--edit --config\t\t\t\t\t: \"Edit ${Head} config\""
 					echo -e "\t--edit --lang <language>\t\t\t: \"Edit the ${Head} langauge support file\""
@@ -850,6 +890,34 @@ NewCliHelp()
 	echo ""
 }
 
+CliCopyOrRename()
+{
+	local cli="$1"
+	local cmd="\$ clide ${cli}"
+	echo ""
+	echo "----------------[(${Head}) cli {${cli}}]----------------"
+	case ${cli} in
+		--cp|--copy)
+			echo -e "Create a copy of some code without having a ${Head} session"
+			echo ""
+			echo -e "${cmd} <language> <code> <new>"
+			echo -e "${cmd} <code> <new>"
+			echo ""
+			;;
+		--rename)
+			echo -e "Rename some code without having a ${Head} session"
+			echo ""
+			echo -e "${cmd} <language> <code> <new>"
+			echo -e "${cmd} <code> <new>"
+			echo ""
+			;;
+		*)
+			;;
+	esac
+	echo "-----------------------------------------------"
+	echo ""
+}
+
 PathCliHelp()
 {
 	local cli="--path"
@@ -991,12 +1059,18 @@ InstallCliHelp()
 	local cmd="\$ clide ${cli}"
 	echo ""
 	echo "----------------[(${Head}) cli {${cli}}]----------------"
-	echo -e "\"Add your code to your ~/.bash_aliases without having a session\""
+	echo -e "\"Install your code without having a session\""
 	echo -e "\"code MUST be compiled\""
 	echo ""
-	echo -e "${cmd} <language> <code>"
-	echo -e "${cmd} <code>"
-	echo -e "${cmd} -h, --help\t\t: \"help p2age\""
+	echo -e "${cmd} <language> <code> <args>"
+	echo -e "${cmd} <code> <args>"
+	echo "args:"
+	echo -e "\t--alias\t\t\t\t: \"Install your code into ~/.bash_aliases\""
+	echo -e "\t--check\t\t\t\t: \"check where your code has been installed\""
+	echo -e "\t--bin\t\t\t\t: \"Install your code into /bin/\""
+	echo -e "\t--root-bin\t\t\t: \"Install your code into /usr/sbin/\""
+	echo -e "\t--user-bin\t\t\t: \"Install your code into ~/bin/\""
+	echo -e "${cmd} -h, --help\t\t: \"help page\""
 	echo "-----------------------------------------------"
 	echo ""
 }
@@ -1295,7 +1369,7 @@ main()
 		CliHelp|TypeCliHelp|RunCliHelp|cplCliHelp|EditCliHelp)
 			${Call} $@
 			;;
-		CliNotes|PathCliHelp)
+		CliNotes|PathCliHelp|CliCopyOrRename)
 			${Call} $@
 			;;
 		ProjectCliHelp|PackageHelp|BuildCliHelp)

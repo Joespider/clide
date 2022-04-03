@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.85"
+SupportV="0.1.87"
 Lang=Ruby
 LangExt=".rb"
 ColorNum=1
@@ -828,7 +828,182 @@ UseRuby()
 				ls --color=auto ${path}
 			fi
 			;;
-		Install|exe-string)
+		Install*)
+			local bin=$1
+			local BinFile="${bin%.*}"
+			local project=${CodeProject}
+			local TheBinDir
+			local UseProjectTemplate
+			local ThePath
+			#Handle Project Dir
+			case ${project} in
+				none)
+					project=""
+					TheBinDir=${LangBin}
+					;;
+				*)
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
+					project="${project}/"
+					TheBinDir="${LangProject}/${project}bin"
+					;;
+			esac
+
+			case ${Type} in
+				Install-alias)
+					#Make sure Binary exists
+					if [ -f "${TheBinDir}/${bin}" ]; then
+						HasTheTag=$(head ${TheBinDir}/${bin} | egrep "#\!/usr/bin/${LangRun}|#\! /usr/bin/${LangRun}|#\!/usr/bin/env ${LangRun}")
+						if [ ! -z "${HasTheTag}" ]; then
+							#Add command to Aliases
+							AddAlias "${BinFile}" "${TheBinDir}/${bin}"
+						else
+							#Add command to Aliases
+							AddAlias "${BinFile}" "${LangRun} ${TheBinDir}/${bin}"
+						fi
+					elif [ ! -f "${TheBinDir}/${bin}" ]; then
+						errorCode "install" "${bin}"
+					else
+						errorCode "noCode"
+					fi
+					;;
+				Install-check)
+					local IsAlias
+					echo -n "Install-alias (~/.bash_aliases): "
+					if [ -f ~/.bash_aliases ]; then
+						IsAlias=$(grep "alias ${BinFile}=\"" ~/.bash_aliases)
+						if [ ! -z "${IsAlias}" ]; then
+							errorCode "HINT" "INSTALLED"
+						else
+							errorCode "ERROR" "NOT-INSTALLED"
+						fi
+					else
+						errorCode "ERROR" "NOT-INSTALLED"
+					fi
+
+					echo -n "Install-bin (/bin): "
+					if [ -f /bin/${BinFile} ]; then
+						errorCode "HINT" "INSTALLED"
+					else
+						errorCode "ERROR" "NOT-INSTALLED"
+					fi
+
+					echo -n "Install-root (/usr/sbin): "
+					if [ -f /usr/sbin/${BinFile} ]; then
+						errorCode "HINT" "INSTALLED"
+					else
+						errorCode "ERROR" "NOT-INSTALLED"
+					fi
+
+					echo -n "Install-user (~/bin): "
+					if [ -f ~/bin/${BinFile} ]; then
+						errorCode "HINT" "INSTALLED"
+					else
+						errorCode "ERROR" "NOT-INSTALLED"
+					fi
+					;;
+				Install-bin)
+					ThePath="/bin"
+					#Make sure Binary exists
+					if [ -f "${TheBinDir}/${bin}" ]; then
+						HasTheTag=$(head ${TheBinDir}/${bin} | egrep "#\!/usr/bin/${LangRun}|#\! /usr/bin/${LangRun}|#\!/usr/bin/env ${LangRun}")
+						if [ ! -z "${HasTheTag}" ]; then
+							if [ -f ${ThePath}/${BinFile} ]; then
+								errorCode "install" "already" "${BinFile}" "${ThePath}/"
+								echo ""
+								errorCode "HINT" "This must be done manually to protect from unwanted over-written binaries"
+								errorCode "HINT" "command"
+								case ${USER} in
+									root)
+										errorCode "HINT" "cp ${TheBinDir}/${bin} ${ThePath}/${BinFile}"
+										;;
+									*)
+										errorCode "HINT" "sudo cp ${TheBinDir}/${bin} ${ThePath}/${BinFile}"
+										;;
+								esac
+							else
+								case ${USER} in
+									root)
+										cp ${TheBinDir}/${bin} ${ThePath}/${BinFile}
+										chmod +x ${ThePath}/${BinFile}
+										;;
+									*)
+										sudo cp ${TheBinDir}/${bin} ${ThePath}/${BinFile}
+										sudo chmod +x ${ThePath}/${BinFile}
+										;;
+								esac
+							fi
+						else
+							errorCode "install" "missing-env" "\n\t#!/usr/bin/${LangRun}\n\t#! /usr/bin/${LangRun}\n\t#!/usr/bin/env ${LangRun}"
+						fi
+					elif [ ! -f "${TheBinDir}/${bin}" ]; then
+						#compile or swap to binary
+						errorCode "install" "${BinFile}"
+					else
+						errorCode "noCode"
+					fi
+					;;
+				Install-root)
+					ThePath="/usr/sbin"
+					#Make sure Binary exists
+					if [ -f "${TheBinDir}/${bin}" ]; then
+						HasTheTag=$(head ${TheBinDir}/${bin} | egrep "#\!/usr/bin/${LangRun}|#\! /usr/bin/${LangRun}|#\!/usr/bin/env ${LangRun}")
+						if [ ! -z "${HasTheTag}" ]; then
+							if [ -f ${ThePath}/${BinFile} ]; then
+								errorCode "install" "already" "${BinFile}" "${ThePath}/"
+							else
+								case ${USER} in
+									root)
+										cp ${TheBinDir}/${bin} ${ThePath}/${BinFile}
+										chmod +x ${ThePath}/${BinFile}
+										;;
+									*)
+										sudo cp ${TheBinDir}/${bin} ${ThePath}/${BinFile}
+										sudo chmod +x ${ThePath}/${BinFile}
+										;;
+								esac
+							fi
+						else
+							errorCode "install" "missing-env" "\n\t#!/usr/bin/${LangRun}\n\t#! /usr/bin/${LangRun}\n\t#!/usr/bin/env ${LangRun}"
+						fi
+					elif [ ! -f "${TheBinDir}/${bin}" ]; then
+						#compile or swap to binary
+						errorCode "install" "${BinFile}"
+					else
+						errorCode "noCode"
+					fi
+					;;
+				Install-user)
+					ThePath="~/bin"
+					#Make sure Binary exists
+					if [ -f "${TheBinDir}/${bin}" ]; then
+						HasTheTag=$(head ${TheBinDir}/${bin} | egrep "#\!/usr/bin/${LangRun}|#\! /usr/bin/${LangRun}|#\!/usr/bin/env ${LangRun}")
+						if [ ! -z "${HasTheTag}" ]; then
+							if [ -f ${ThePath}/${BinFile} ]; then
+								errorCode "install" "already" "${BinFile}" "${ThePath}/"
+							else
+								if [ -d ${ThePath} ]; then
+									cp ${TheBinDir}/${bin} ${ThePath}/${BinFile}
+									chmod +x ${ThePath}/${BinFile}
+								else
+									errorCode "ERROR"
+									errorCode "ERROR" "${ThePath}/ does not exist"
+								fi
+							fi
+						else
+							errorCode "install" "missing-env" "\n\t#!/usr/bin/${LangRun}\n\t#! /usr/bin/${LangRun}\n\t#!/usr/bin/env ${LangRun}"
+						fi
+					elif [ ! -f "${TheBinDir}/${bin}" ]; then
+						#compile or swap to binary
+						errorCode "install" "${BinFile}"
+					else
+						errorCode "noCode"
+					fi
+					;;
+				*)
+					;;
+			esac
+			;;
+		exe-string)
 			local bin=$1
 			local BinFile="${bin%.*}"
 			local project=${CodeProject}
@@ -847,27 +1022,10 @@ UseRuby()
 					;;
 			esac
 
-			case ${Type} in
-				Install)
-					#Make sure Binary exists
-					if [ -f "${TheBinDir}/${bin}" ]; then
-						#Add command to Aliases
-						AddAlias "${BinFile}" "${LangRun} ${TheBinDir}/${bin}"
-					elif [ ! -f "${TheBinDir}/${bin}" ]; then
-						errorCode "install" "${bin}"
-					else
-						errorCode "noCode"
-					fi
-					;;
-				exe-string)
-					#Make sure Binary exists
-					if [ -f "${TheBinDir}/${bin}" ]; then
-						echo "${LangRun} ${TheBinDir}/${bin}"
-					fi
-					;;
-				*)
-					;;
-			esac
+			#Make sure Binary exists
+			if [ -f "${TheBinDir}/${bin}" ]; then
+				echo "${LangRun} ${TheBinDir}/${bin}"
+			fi
 			;;
 		customCode)
 			local cLang=$(UseRuby "color")

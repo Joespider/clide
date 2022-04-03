@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.77"
+SupportV="0.1.79"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
@@ -1507,7 +1507,7 @@ UseC()
 				ls --color=auto ${path}
 			fi
 			;;
-		Install|exe-string)
+		exe-string)
 			local bin=$1
 			local BinFile=$(UseC "removeExt" ${bin})
 			local project=${CodeProject}
@@ -1525,22 +1525,154 @@ UseC()
 					TheBinDir="${LangProject}/${project}/bin"
 					;;
 			esac
-			#Make sure Binary exists
+			if [ -f "${TheBinDir}/${BinFile}" ]; then
+				echo "${TheBinDir}/${BinFile}"
+			fi
+			;;
+
+		Install*)
+			local bin=$1
+			local BinFile=$(UseC "removeExt" ${bin%.*})
+			local project=${CodeProject}
+			local TheBinDir
+			local UseProjectTemplate
+			local ThePath
+			#Handle Project Dir
+			case ${project} in
+				none)
+					project=""
+					TheBinDir=${LangBin}
+					;;
+				*)
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
+					TheBinDir="${LangProject}/${project}/bin"
+					;;
+			esac
+
 			case ${Type} in
-				Install)
+				Install-alias)
+					#Make sure Binary exists
 					if [ -f "${TheBinDir}/${BinFile}" ]; then
 						#Add command to Aliases
 						AddAlias "${BinFile}" "${TheBinDir}/${BinFile}"
 					elif [ ! -f "${TheBinDir}/${BinFile}" ]; then
 						#compile or swap to binary
-						errorCode "install" "${bin}"
+						errorCode "install" "${BinFile}"
 					else
 						errorCode "noCode"
 					fi
 					;;
-				exe-string)
+				Install-check)
+					local IsAlias
+					echo -n "Install-alias (~/.bash_aliases): "
+					if [ -f ~/.bash_aliases ]; then
+						IsAlias=$(grep "alias ${BinFile}=\"" ~/.bash_aliases)
+						if [ ! -z "${IsAlias}" ]; then
+							errorCode "HINT" "INSTALLED"
+						else
+							errorCode "ERROR" "NOT-INSTALLED"
+						fi
+					else
+						errorCode "ERROR" "NOT-INSTALLED"
+					fi
+
+					echo -n "Install-bin (/bin): "
+					if [ -f /bin/${BinFile} ]; then
+						errorCode "HINT" "INSTALLED"
+					else
+						errorCode "ERROR" "NOT-INSTALLED"
+					fi
+
+					echo -n "Install-root (/usr/sbin): "
+					if [ -f /usr/sbin/${BinFile} ]; then
+						errorCode "HINT" "INSTALLED"
+					else
+						errorCode "ERROR" "NOT-INSTALLED"
+					fi
+
+					echo -n "Install-user (~/bin): "
+					if [ -f ~/bin/${BinFile} ]; then
+						errorCode "HINT" "INSTALLED"
+					else
+						errorCode "ERROR" "NOT-INSTALLED"
+					fi
+					;;
+				Install-bin)
+					ThePath="/bin"
+					#Make sure Binary exists
 					if [ -f "${TheBinDir}/${BinFile}" ]; then
-						echo "${TheBinDir}/${BinFile}"
+						if [ -f ${ThePath}/${BinFile} ]; then
+							errorCode "install" "already" "${BinFile}" "${ThePath}/"
+							echo ""
+							errorCode "HINT" "This must be done manually to protect from unwanted over-written binaries"
+							errorCode "HINT" "command"
+							case ${USER} in
+								root)
+									errorCode "HINT" "cp ${TheBinDir}/${BinFile} ${ThePath}/${BinFile}"
+									;;
+								*)
+									errorCode "HINT" "sudo cp ${TheBinDir}/${BinFile} ${ThePath}/${BinFile}"
+									;;
+							esac
+						else
+							case ${USER} in
+								root)
+									cp ${TheBinDir}/${BinFile} ${ThePath}/${BinFile}
+									;;
+								*)
+									sudo cp ${TheBinDir}/${BinFile} ${ThePath}/${BinFile}
+									;;
+							esac
+						fi
+					elif [ ! -f "${TheBinDir}/${BinFile}" ]; then
+						#compile or swap to binary
+						errorCode "install" "${BinFile}"
+					else
+						errorCode "noCode"
+					fi
+					;;
+				Install-root)
+					ThePath="/usr/sbin"
+					#Make sure Binary exists
+					if [ -f "${TheBinDir}/${BinFile}" ]; then
+						if [ -f ${ThePath}/${BinFile} ]; then
+							errorCode "install" "already" "${BinFile}" "${ThePath}/"
+						else
+							case ${USER} in
+								root)
+									cp ${TheBinDir}/${BinFile} ${ThePath}/${BinFile}
+									;;
+								*)
+									sudo cp ${TheBinDir}/${BinFile} ${ThePath}/${BinFile}
+									;;
+							esac
+						fi
+					elif [ ! -f "${TheBinDir}/${BinFile}" ]; then
+						#compile or swap to binary
+						errorCode "install" "${BinFile}"
+					else
+						errorCode "noCode"
+					fi
+					;;
+				Install-user)
+					ThePath="~/bin"
+					#Make sure Binary exists
+					if [ -f "${TheBinDir}/${BinFile}" ]; then
+						if [ -f ${ThePath}/${BinFile} ]; then
+							errorCode "install" "already" "${BinFile}" "${ThePath}/"
+						else
+							if [ -d ${ThePath} ]; then
+								cp ${TheBinDir}/${BinFile} ${ThePath}/${BinFile}
+							else
+								errorCode "ERROR"
+								errorCode "ERROR" "${ThePath}/ does not exist"
+							fi
+						fi
+					elif [ ! -f "${TheBinDir}/${BinFile}" ]; then
+						#compile or swap to binary
+						errorCode "install" "${BinFile}"
+					else
+						errorCode "noCode"
 					fi
 					;;
 				*)
