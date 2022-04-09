@@ -3,7 +3,7 @@
 #https://stackoverflow.com/questions/10339637/java-import-cannot-find-symbol
 #https://www.codejava.net/java-core/tools/how-to-compile-package-and-run-a-java-program-using-command-line-tools-javac-jar-and-java
 
-SupportV="0.2.30"
+SupportV="0.2.31"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -1323,13 +1323,13 @@ UseJava()
 							case ${USER} in
 								root)
 									touch ${ThePath}/${BinFile}
-									echo -e "#!/bin/bash\n${ExeString}" > ${BinFile}
+									echo -e "#!/bin/bash\n${ExeString} \$@" > ${BinFile}
 									mv ${BinFile} ${ThePath}/${BinFile}
 									chmod +x ${ThePath}/${BinFile}
 									;;
 								*)
 									sudo touch ${ThePath}/${BinFile}
-									echo -e "#!/bin/bash\n${ExeString}" > ${BinFile}
+									echo -e "#!/bin/bash\n${ExeString} \$@" > ${BinFile}
 									sudo mv ${BinFile} ${ThePath}/${BinFile}
 									sudo chmod +x ${ThePath}/${BinFile}
 									;;
@@ -1388,13 +1388,13 @@ UseJava()
 							case ${USER} in
 								root)
 									touch ${ThePath}/${BinFile}
-									echo -e "#!/bin/bash\n${ExeString}" > ${BinFile}
+									echo -e "#!/bin/bash\n${ExeString} \$@" > ${BinFile}
 									mv ${BinFile} ${ThePath}/${BinFile}
 									chmod +x ${ThePath}/${BinFile}
 									;;
 								*)
 									touch ${ThePath}/${BinFile}
-									echo -e "#!/bin/bash\n${ExeString}" > ${BinFile}
+									echo -e "#!/bin/bash\n${ExeString} \$@" > ${BinFile}
 									sudo mv ${BinFile} ${ThePath}/${BinFile}
 									sudo chmod +x ${ThePath}/${BinFile}
 									;;
@@ -1417,7 +1417,7 @@ UseJava()
 						else
 							if [ -d ${ThePath} ]; then
 								touch ${ThePath}/${BinFile}
-								echo -e "#!/bin/bash\n${ExeString}" > ${BinFile}
+								echo -e "#!/bin/bash\n${ExeString} \$@" > ${BinFile}
 								mv ${BinFile} ${ThePath}/${BinFile}
 								chmod +x ${ThePath}/${BinFile}
 							else

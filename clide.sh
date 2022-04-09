@@ -6104,60 +6104,87 @@ CLI()
 			#Install compiled code into aliases
 			--install)
 				if [ -z "${ThePipe}" ]; then
+					local TypeOfInstall
+					local NotSupported
 					shift
-					local NotSupported=$1
-					local Lang=$(pgLang $1)
+					local Lang
 					local Code=$2
+					local Args
 
-					case ${NotSupported} in
-						--*)
-							NotSupported=$2
-							Lang=$(pgLang $2)
-							Code=$3
-							;;
-						*)
-							Lang=$(pgLang $1)
-							Code=$2
-							;;
-					esac
+					#clide --install <code>.<ext>
 					if [ -z "${Code}" ]; then
+						NotSupported=$1
 						Lang=$(SelectLangByCode $1)
-						Code=$1
-						shift
-						local Args=$@
-						case ${Code} in
-							-h|--help)
-								theHelp InstallCliHelp
-								;;
-							*)
-								if [ ! -z "${Code}" ]; then
-									if [ ! -z "${Args[@]}" ]; then
+						if [ ! -z "${Lang}" ]; then
+							Code=$1
+							shift
+							Args=$@
+							case ${Code} in
+								-h|--help)
+									theHelp InstallCliHelp
+									;;
+								*)
+									if [ ! -z "${Code}" ]; then
 										main --install "${Lang}" "${Code}" ${Args[@]}
-									else
-										theHelp InstallCliHelp
 									fi
-								fi
-								;;
-						esac
+									;;
+							esac
+						else
+							theHelp InstallCliHelp
+						fi
+					# $ clide --install <lang> <code> or $ clide --install <lang>
 					else
-						shift
-						shift
-						local Args=$@
-						case ${Lang} in
-							no)
-								errorCode "install" "cli-not-supported" "${NotSupported}"
-								theHelp InstallCliHelp
+						case ${1} in
+							# $ clide --install --<installType> <lang> <code> or $ clide --install --<installType> <code>
+							--*)
+								TypeOfInstall=$1
+								shift
+								main --install $@ ${TypeOfInstall}
 								;;
 							*)
-								local CodeDir=$(pgDir ${Lang})
-								if [ ! -z "${CodeDir}" ]; then
-									cd ${CodeDir}
-									TheSrcCode=$(selectCode ${Lang} ${Code})
-									InstallCode ${Lang} "install" ${Args[@]}
-									cd - > /dev/null
-								else
-									errorCode "cli-cpl" "none"
-								fi
+								case ${Code} in
+									#clide --install <code> --<args>
+									-*)
+										Lang=$(SelectLangByCode $1)
+										Code=$1
+										shift
+										Args=$@
+										;;
+									# $ clide --install <lang> <code> <args> or $ clide --install <code> <args>
+									*)
+										Lang=$(pgLang $1)
+										shift
+										shift
+										Args=$@
+										;;
+								esac
+
+								case ${Lang} in
+									no)
+										errorCode "install" "cli-not-supported" "${NotSupported}"
+										;;
+									*)
+										local CodeDir=$(pgDir ${Lang})
+										if [ ! -z "${CodeDir}" ] && [ -d "${CodeDir}" ]; then
+											cd ${CodeDir}
+											TheSrcCode=$(selectCode ${Lang} ${Code})
+											if [ ! -z "${TheSrcCode}" ]; then
+												InAndOut="yes"
+												if [ ! -z "${Args[@]}" ]; then
+													InstallCode ${Lang} "install" ${Args[@]}
+												else
+													InstallCode ${Lang} "install"
+												fi
+											else
+												errorCode "cli-cpl" "none"
+											fi
+											cd - > /dev/null
+										else
+											errorCode "cli-cpl" "none"
+										fi
+										;;
+								esac
+								;;
 						esac
 					fi
 				fi

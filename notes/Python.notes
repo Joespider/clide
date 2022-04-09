@@ -41,6 +41,7 @@ Date: (08/23/2021)
 	int(<item> [,base])	[int]			#Converts <item> to an integer. base specifies the base if x is a string.
 	long(<item> [,base] )	[long]			#Converts <item> to a long integer. base specifies the base if x is a string.
 	float(<item>)		[float]			#Converts <item> to a floating-point number.
+	abs(int)		[int]			#Get Absolute value
 	complex(real [,imag])	[complex int]		#Creates a complex number.
 	str(<item>)		[string]		#Converts object <item> to a string representation.
 	repr(<item>)		[string]		#Converts object <item> to an expression string.
@@ -56,25 +57,54 @@ Date: (08/23/2021)
 	hex(<item>)		[hex string]		#Converts an integer to a hexadecimal string.
 	oct(<item>)		[oct string]		#Converts an integer to an octal string
 
->>>		---[Get CLI Args]---
-	import sys
-	Args = sys.argv		[array]
 
 >>>		---[String: operations]---
 
-	#String Starts with and Ends with
-	str.startswith(sub)	[bool]
-	str.endswith(sub)	[bool]
-
-	#Split String
-	str.split(sub)		[array]			#Split ALL where 'sub' found
-	str.split(sub,num)	[array]			#Split where 'num' 'sub' found
-	str.rsplit(sub,num)	[array]			#Split string in reverse
+	str.capitalize()				#Convert aBc to Abc
+	str.center(size,char)				#pad out string, string on center
+	str.endswith(sub)				#returns true of ends
+	str.find(sub)					#int location if found
+	str.isalnum()					#ALL numbbers, including "ABCDEF"
+	str.isalpha()					#ALL letters
+	str.isspace()					#if contains any space, tab, or whitespace
+	str.ljust(size,char)				#Pad out string, string on left
 
 	#Upper and Lower case
 	str.lower()		[string]
 	str.upper()		[string]
 
+	str.replace(old,new)				#replace text
+	#Split String
+	str.split(sub)		[array]			#Split ALL where 'sub' found
+	str.split(sub,num)	[array]			#Split where 'num' 'sub' found
+	str.rsplit(sub,num)	[array]			#Split string in reverse
+	str.rsplit(args)				#split string in reverse
+	str.splitlines()				#split string on linebreak
+	str.strip()					#remove ending space/tab/break
+
+	#String Starts with and Ends with
+	str.startswith(sub)	[bool]
+	str.endswith(sub)	[bool]
+
+>>>		---[Dictionary: operations]---
+	len(dict)					#Get number of keys
+	del(dict[key])					#Delete dictionary key
+	key in dict					#returns true/fase
+	dict.clear()					#remove all entries
+	
+>>>		---[Array: operations]---
+	del(ary(0:10)					#Delete entries 0 to 10
+	ary.append(item)				#Append entry
+	ary.index(item)					#Return entry of item
+	ary.insert(plc,item)				#Insert at a position
+	ary.remove(item)				#Remove item
+	ary.reverse()					#reverse array
+	ary.pop()					#take last item out
+	ary.sort()					#Sort list
+
+>>>		---[Get CLI Args]---
+	import sys
+	Args = sys.argv		[array]
 
 >>>		---[Logic: if/else]---
 	if <condition>:
