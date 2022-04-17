@@ -1669,6 +1669,25 @@ compileCode()
 	CplFlag=""
 }
 
+MultiPipe()
+{
+	local PipeAction=$1
+	if [ ! -z "${ThePipe}" ]; then
+		if [ ! -z "${PipeAction}" ]; then
+			case ${PipeAction} in
+				--save)
+					cp /dev/stdin ${MultiPipeFile}
+					;;
+				--remove)
+					rm ${MultiPipeFile}
+					;;
+				*)
+					;;
+			esac
+		fi
+	fi
+}
+
 runCode()
 {
 	local Lang=$1
@@ -3754,10 +3773,67 @@ Actions()
 										;;
 								esac
 								;;
+							version)
+								case ${Lang} in
+									#only C and C++ uses make
+									C*)
+										case ${RunCplArgs} in
+											*-std=c*)
+												echo -e ${RunCplArgs//,/\\n} | grep "std"
+												;;
+											*)
+												if [ ! -z "${UserIn[2]}" ]; then
+													case ${UserIn[2]} in
+														*-std=c*)
+															case ${RunCplArgs} in
+																none)
+																	RunCplArgs="${UserIn[2]}"
+																	;;
+																*)
+																	RunCplArgs="${RunCplArgs},${UserIn[2]}"
+																	;;
+															esac
+															;;
+														*)
+															ManageLangs ${Lang} "setCplArgs-help" | grep "c++"
+															;;
+													esac
+												else
+													ManageLangs ${Lang} "setCplArgs-help" | grep "c++"
+													#User input
+													echo -n "${cLang}\$ "
+													read -a NewVal
+
+													#User provided a value
+													if [ ! -z "${NewVal}" ]; then
+														case ${NewVal} in
+															*-std=c*)
+																case ${RunCplArgs} in
+																	none)
+																		RunCplArgs="${NewVal},mw"
+																		;;
+																	*)
+																		RunCplArgs="${RunCplArgs},${NewVal}"
+																		;;
+																esac
+																;;
+															*)
+																ManageLangs ${Lang} "setCplArgs-help" | grep "c++"
+																;;
+														esac
+													fi
+												fi
+												;;
+										esac
+										;;
+									*)
+										;;
+								esac
+								;;
 							#Clear all
 							reset)
 								case ${UserIn[2]} in
-									cpl|cpl-args)
+									cpl|cpl-args|version)
 										RunCplArgs="none"
 										echo "Compile args reset"
 										;;
@@ -4474,6 +4550,7 @@ loadAuto()
 	bind -x '"\C-l":clear'
 	comp_list "ls"
 	comp_list "whoami"
+	comp_list "build" "--help"
 	comp_list "save"
 	comp_list "session" "save load"
 	comp_list "lscpl"
@@ -6212,6 +6289,7 @@ CLI()
 					InAndOut="yes"
 					case ${Code} in
 						*","*)
+							MultiPipe --save
 							shift
 							shift
 							for TheCode in ${Code//,/ };
@@ -6225,11 +6303,13 @@ CLI()
 								esac
 								CLI ${UserArg} ${Lang} ${TheCode} $@
 							done
+							MultiPipe --remove
 							;;
 						*)
 							case ${Lang} in
 								#Run multiple languages
 								*","*)
+									MultiPipe --save
 									MessageOverride="yes"
 									local TheCode
 									shift
@@ -6259,6 +6339,7 @@ CLI()
 												;;
 										esac
 									done
+									MultiPipe --remove
 									;;
 								#Provide the help page
 								-h|--help|-*)

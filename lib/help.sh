@@ -104,6 +104,15 @@ MenuHelp()
 					echo "------------------------------------------------"
 					echo ""
 					;;
+				build)
+					echo ""
+					echo "----------------[(${Choice,,}) Menu]----------------"
+					echo -e "Purpose: Compile and build project"
+					echo ""
+					ManageLangs ${Lang} "BuildHelp"
+					echo "------------------------------------------------"
+					echo ""
+					;;
 				cpl|compile)
 					echo ""
 					echo "----------------[(${Choice,,}) Menu]----------------"
@@ -942,8 +951,8 @@ TypeCliHelp()
 	echo "----------------[(${Head}) cli {${cli}}]----------------"
 	echo -e "Get the type of programming language"
 	echo ""
-	echo -e "${cmd} <language> <arg>\t\t: \"Get info about a give langauge\""
-	echo -e "${cmd} all <arg>\t\t: \"Get info about ALL langauges\""
+	echo -e "${cmd} <language> <arg>\t\t: \"get info about a give langauge\""
+	echo -e "${cmd} all <arg>\t\t\t: \"get info about ALL langauges\""
 	echo -e "\t\t\tclassified\t: \"Get the type of Language\""
 	echo -e "\t\t\texecutable\t: \"Get the executable of Language\""
 	echo -e "\t\t\truntime\t\t: \"Get how the code is run\""
@@ -1153,8 +1162,10 @@ ProjectCliHelp()
 	echo -e "${cmd} --time <project>\t\t\t: \"Run and time compiled project\""
 	echo -e "${cmd} --time <language> <project>\t\t: \"Run and time compoled code from given langauge inside project\""
 	echo -e "${cmd} --build <project>\t\t\t: \"Build a ${Head} Project\""
-	echo -e "${cmd} --remove <project>\t\t\t: \"Remove a ${Head} Project\""
-	echo -e "${cmd} --remove all\t\t\t\t: \"Remove ALL ${Head} Projects\""
+	echo -e "${cmd} --remove <project>\t\t\t: \"Remove a ${Head} Project Record\""
+	echo -e "${cmd} --remove all\t\t\t\t: \"Remove ALL ${Head} Project Records\""
+	echo -e "${cmd} --delete <project>\t\t\t: \"Remove a ${Head} Project\""
+	echo -e "${cmd} --delete all\t\t\t\t: \"Remove ALL ${Head} Projects\""
 	echo -e "${cmd} -r <project>\t\t\t\t: \"Remove a ${Head} Project\""
 	echo -e "${cmd} -r all\t\t\t\t: \"Remove ALL ${Head} Projects\""
 	echo -e "${cmd} --make <project> <action>\t\t: \"For C/C++ Projects, handle make files\""
@@ -1169,13 +1180,13 @@ ProjectCliHelp()
 	echo ""
 	echo -e "\t\"Alternativly, a ${Head} session can held after performing a given action\""
 	echo ""
-	echo -e "$ clide <language> ${cli} --new <project> <type>\t: \"Create, Select and Load project\""
+	echo -e "$ clide <language> ${cli} --new <lang> <project> <type>\t: \"Create, Select and Load project\""
 	case ${cli} in
 		-p)
-			echo -e "$ clide <language> ${cli} --import <project>\t: \"Import, Select and Load project\""
+			echo -e "$ clide <language> ${cli} --import <project>\t\t: \"Import, Select and Load project\""
 			;;
 		--project)
-			echo -e "$ clide <language> ${cli} --import <project>\t\t: \"Import, Select and Load project\""
+			echo -e "$ clide <language> ${cli} --import <project>\t\t\t: \"Import, Select and Load project\""
 			;;
 		*)
 			;;

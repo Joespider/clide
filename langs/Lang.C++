@@ -4,7 +4,7 @@
 #Link Libs: https://gist.github.com/gubatron/32f82053596c24b6bec6
 #both https://avikdas.com/2019/12/16/makefiles-for-c-cpp-projects.html
 
-SupportV="0.2.42"
+SupportV="0.2.43"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -2286,7 +2286,11 @@ UseC++()
 				case ${Type} in
 					debug)
 						if [ ! -z "${ThePipe}" ]; then
-							cat /dev/stdin | ${UseDebugger} ${TheBinDir}/${TheBin} ${Args[@]}
+							if [ -f "${MultiPipeFile}" ]; then
+								cat ${MultiPipeFile} | ${UseDebugger} ${TheBinDir}/${TheBin} ${Args[@]}
+							else
+								cat /dev/stdin | ${UseDebugger} ${TheBinDir}/${TheBin} ${Args[@]}
+							fi
 						else
 							${UseDebugger} ${TheBinDir}/${TheBin} ${Args[@]}
 						fi
@@ -2294,9 +2298,17 @@ UseC++()
 					runCode)
 						if [ ! -z "${ThePipe}" ]; then
 							if [ ! -z "${TimeRun}" ]; then
-								time cat /dev/stdin | ${TheBinDir}/${TheBin} ${Args[@]}
+								if [ -f "${MultiPipeFile}" ]; then
+									time cat ${MultiPipeFile} | ${TheBinDir}/${TheBin} ${Args[@]}
+								else
+									time cat /dev/stdin | ${TheBinDir}/${TheBin} ${Args[@]}
+								fi
 							else
-								cat /dev/stdin | ${TheBinDir}/${TheBin} ${Args[@]}
+								if [ -f "${MultiPipeFile}" ]; then
+									cat ${MultiPipeFile} | ${TheBinDir}/${TheBin} ${Args[@]}
+								else
+									cat /dev/stdin | ${TheBinDir}/${TheBin} ${Args[@]}
+								fi
 							fi
 						else
 							if [ ! -z "${TimeRun}" ]; then

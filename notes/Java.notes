@@ -1,5 +1,5 @@
 [Java Notes]
-Date: (12/14/2020)
+Date: (4/11/2022)
 
 >>>		---[Java System Properties]---
 	System.getProperty(propKey);
@@ -200,108 +200,139 @@ Date: (12/14/2020)
 	!				[boolean]					//NOT
 
 >>>		---[Type: Math Assignment]---
-	=				[short, int, long, double, float]		//(C = A + B)
-	+=				[short, int, long, double, float]		//(A += B) Same as (A = A + B)
-	-=				[short, int, long, double, float]		//(A -= B) Same as (A = A - B)
-	*=				[short, int, long, double, float]		//(A *= B) Same as (A = A * B)
-	/=				[short, int, long, double, float]		//(A /= B) Same as (A = A / B)
-	%=				[short, int, long, double, float]		//(A %= B) Same as (A = A % B)
-	<<=				[short, int, long, double, float]		//(A <<= B) Same as (A = A << B)
-	>>=				[short, int, long, double, float]		//(A >>= B) Same as (A = A >> B)
-	&=				[short, int, long, double, float]		//(A &= B) Same as (A = A & B)
-	^=				[short, int, long, double, float]		//(A ^= B) Same as (A = A ^ B)
-	|=				[short, int, long, double, float]		//(A |= B) Same as (A = A | B)
+	=						[short, int, long, double, float]		//(C = A + B)
+	+=						[short, int, long, double, float]		//(A += B) Same as (A = A + B)
+	-=						[short, int, long, double, float]		//(A -= B) Same as (A = A - B)
+	*=						[short, int, long, double, float]		//(A *= B) Same as (A = A * B)
+	/=						[short, int, long, double, float]		//(A /= B) Same as (A = A / B)
+	%=						[short, int, long, double, float]		//(A %= B) Same as (A = A % B)
+	<<=						[short, int, long, double, float]		//(A <<= B) Same as (A = A << B)
+	>>		=				[short, int, long, double, float]		//(A >>= B) Same as (A = A >> B)
+	&=						[short, int, long, double, float]		//(A &= B) Same as (A = A & B)
+	^=						[short, int, long, double, float]		//(A ^= B) Same as (A = A ^ B)
+	|=						[short, int, long, double, float]		//(A |= B) Same as (A = A | B)
 
 >>>		---[Type: Math Operation]---
-	.byteValue()			[byte]						//Converts the value of this Number object to the byte data type and returns it.
-	.shortValue()			[short]						//Converts the value of this Number object to the short data type and returns it.
-	.intValue()			[int]						//Converts the value of this Number object to the int data type and returns it.
-	.longValue()			[long]						//Converts the value of this Number object to the long data type and returns it.
-	.floatValue()			[float]						//Converts the value of this Number object to the float data type and returns it.
-	.doubleValue()			[double]					//Converts the value of this Number object to the double data type and returns it.
-	.compareTo()			[int]						//Compares this Number object to the argument.
-	.equals()			[boolean]					//Determines whether this number object is equal to the argument.
-	.valueOf()			[int]						//Returns an Integer object holding the value of the specified primitive.
-	.toString()			[String]					//Returns a String object representing the value of a specified int or Integer.
-	.parseInt()			[int]						//This method is used to get the primitive data type of a certain String.
-	.abs()				[double, float, int, long]			//Returns the absolute value of the argument.
-	.ceil()				[double]					//Returns the smallest integer that is greater than or equal to the argument. Returned as a double.
-	.floor()			[double]					//Returns the largest integer that is less than or equal to the argument. Returned as a double.
-	.rint()				[int]						//Returns the integer that is closest in value to the argument. Returned as a double.
-	.round()			[int, long]					//Returns the closest long or int, as indicated by the method's return type to the argument.
-	.min()				[double, float, int, long]			//Returns the smaller of the two arguments.
-	.max()				[double, float, int, long]			//Returns the larger of the two arguments.
-	.exp()				[double]					//Returns the base of the natural logarithms, e, to the power of the argument.
-	.log()				[double]					//Returns the natural logarithm of the argument.
-	.pow()				[double]					//Returns the value of the first argument raised to the power of the second argument.
-	.sqrt()				[double]					//Returns the square root of the argument.
-	.sin()				[double]					//Returns the sine of the specified double value.
-	.cos()				[double]					//Returns the cosine of the specified double value.
-	.tan()				[double]					//Returns the tangent of the specified double value.
-	.asin()				[double]					//Returns the arcsine of the specified double value.
-	.acos()				[double]					//Returns the arccosine of the specified double value.
-	.atan()				[double]					//Returns the arctangent of the specified double value.
-	.atan2()			[double]					//Converts rectangular coordinates (x, y) to polar coordinate (r, theta) and returns theta.
-	.toDegrees()			[double]					//Converts the argument to degrees.
-	.toRadians()			[double]					//Converts the argument to radians.
-	.random()			[double]					//Returns a random number.
+	.byteValue()					[byte]						//Converts the value of this Number object to the byte data type and returns it.
+	.shortValue()					[short]						//Converts the value of this Number object to the short data type and returns it.
+	.intValue()					[int]						//Converts the value of this Number object to the int data type and returns it.
+	.longValue()					[long]						//Converts the value of this Number object to the long data type and returns it.
+	.floatValue()					[float]						//Converts the value of this Number object to the float data type and returns it.
+	.doubleValue()					[double]					//Converts the value of this Number object to the double data type and returns it.
+	.compareTo()					[int]						//Compares this Number object to the argument.
+	.equals()					[boolean]					//Determines whether this number object is equal to the argument.
+	.valueOf()					[int]						//Returns an Integer object holding the value of the specified primitive.
+	.toString()					[String]					//Returns a String object representing the value of a specified int or Integer.
+	.parseInt()					[int]						//This method is used to get the primitive data type of a certain String.
+	.abs()						[double, float, int, long]			//Returns the absolute value of the argument.
+	.ceil()						[double]					//Returns the smallest integer that is greater than or equal to the argument. Returned as a double.
+	.floor()					[double]					//Returns the largest integer that is less than or equal to the argument. Returned as a double.
+	.rint()						[int]						//Returns the integer that is closest in value to the argument. Returned as a double.
+	.round()					[int, long]					//Returns the closest long or int, as indicated by the method's return type to the argument.
+	.min()						[double, float, int, long]			//Returns the smaller of the two arguments.
+	.max()						[double, float, int, long]			//Returns the larger of the two arguments.
+	.exp()						[double]					//Returns the base of the natural logarithms, e, to the power of the argument.
+	.log()						[double]					//Returns the natural logarithm of the argument.
+	.pow()						[double]					//Returns the value of the first argument raised to the power of the second argument.
+	.sqrt()						[double]					//Returns the square root of the argument.
+	.sin()						[double]					//Returns the sine of the specified double value.
+	.cos()						[double]					//Returns the cosine of the specified double value.
+	.tan()						[double]					//Returns the tangent of the specified double value.
+	.asin()						[double]					//Returns the arcsine of the specified double value.
+	.acos()						[double]					//Returns the arccosine of the specified double value.
+	.atan()						[double]					//Returns the arctangent of the specified double value.
+	.atan2()					[double]					//Converts rectangular coordinates (x, y) to polar coordinate (r, theta) and returns theta.
+	.toDegrees()					[double]					//Converts the argument to degrees.
+	.toRadians()					[double]					//Converts the argument to radians.
+	.random()					[double]					//Returns a random number.
 
 >>>		---[Structure: Array]---
 	arr.length			[int]						//Get length of array
 
 >>>		---[Class: File]---
-	File(Str: path)			[Object: File]					//load file by path
-	<file>.exhists()		[boolean]					//check if file exists
-	<file>.canRead()		[boolean]					//checks if allowed to read
-	<file>.canWrite()		[boolean]					//check if can write file
-	<file>.isDirectory()		[boolean]					//check if file is a directory
-	<file>.isFile()			[boolean]					//check if fils is a file
-	<file>.isAbsolute()		[boolean]					//check if file address is absolute
-	<file>.isHidden()		[boolean]					//check if file is hidden
-	<file>.getAbsolutePath()	[String]					//return file's absolute path
-	<file>.getCanonicalPath()	[String]					//resolves links
-	<file>.getName()		[String]					//return filename, no dir shown
-	<file>.getPath()		[String]					//return dir of file
-	<file>.lastModified()		[long]						//returns the time of last edit
-	<file>.length()			[long]						//returns size of file
-	<file>.delete()			[boolean]					//delete file (true = pass)
-	<file>.renameTo()		[boolean]					//rename file (true = pass)
-	<file>.mkdir()			[boolean]					//Makes directory (true = pass)
-	<file>.mkdirs()			[boolean]					//Makes dir, and parent, dirs (true = pass)
+	File(Str: path)					[Object: File]					//load file by path
+	<file>.exhists()				[boolean]					//check if file exists
+	<file>.canRead()				[boolean]					//checks if allowed to read
+	<file>.canWrite()				[boolean]					//check if can write file
+	<file>.isDirectory()				[boolean]					//check if file is a directory
+	<file>.isFile()					[boolean]					//check if fils is a file
+	<file>.isAbsolute()				[boolean]					//check if file address is absolute
+	<file>.isHidden()				[boolean]					//check if file is hidden
+	<file>.getAbsolutePath()			[String]					//return file's absolute path
+	<file>.getCanonicalPath()			[String]					//resolves links
+	<file>.getName()				[String]					//return filename, no dir shown
+	<file>.getPath()				[String]					//return dir of file
+	<file>.lastModified()				[long]						//returns the time of last edit
+	<file>.length()					[long]						//returns size of file
+	<file>.delete()					[boolean]					//delete file (true = pass)
+	<file>.renameTo()				[boolean]					//rename file (true = pass)
+	<file>.mkdir()					[boolean]					//Makes directory (true = pass)
+	<file>.mkdirs()					[boolean]					//Makes dir, and parent, dirs (true = pass)
 
 >>>		---[Type: File Handling]---
-	FileReader(<path>)		[Classs: FileReader]				//Read file from path
-	FileWriter(<path>)		[Classs: FileWriter]				//Write file from path
-	<fr>.read()			[String]					//Spit out file
-	<fw>.write(<str>)		[Null]						//Write string to file
-	<fr>.close()			[Null]						//Close file
-	<fw>.close()			[Null]						//Close file
+	FileReader(<path>)				[Classs: FileReader]				//Read file from path
+	FileWriter(<path>)				[Classs: FileWriter]				//Write file from path
+	<fr>.read()					[String]					//Spit out file
+	<fw>.write(<str>)				[Null]						//Write string to file
+	<fr>.close()					[Null]						//Close file
+	<fw>.close()					[Null]						//Close file
 
 
 >>>		---[Class: PrintWriter]---
-	PrintWriter(<file>)		[Object: PrintWriter]				//Write file
-	<pw>.print(<data>)		[void]						//Write to file
+	PrintWriter(<file>)				[Object: PrintWriter]				//Write file
+	<pw>.print(<data>)				[void]						//Write to file
 
 >>>		---[Class: Scanner]---
 	//Scanner is used to read in string/data, separated by delimiters
-	Scanner(System.in)		[Object: Scanner]				//Read data from system (keyboard)
-	Scanner(new File(file))		[Object: Scanner]				//Read data from file (import java.io.File)
-	<sc>.close()			[void]						//Closes data stream
-	<sc>.hasNext()			[boolean]					//check if more data
-	<sc>.next()			[String]					//read in next token as string
-	<sc>.nextLine()			[String]					//read in next line as string
-	<sc>.nextByte()			[byte]						//read in next token as byte
-	<sc>.nextShort()		[short]						//read in next token as short
-	<sc>.nextInt()			[int]						//read in next token as int
-	<sc>.nextLong()			[long]						//read in next token as long
-	<sc>.nextFloat()		[float]						//read in next token as float
-	<sc>.nextDouble()		[double]					//read in next token as double
-	<sc>.useDelimiter(str)		[Scanner]					//set scanner's delimiter
+	Scanner(System.in)				[Object: Scanner]				//Read data from system (keyboard)
+	Scanner(new File(file))				[Object: Scanner]				//Read data from file (import java.io.File)
+	<sc>.close()					[void]						//Closes data stream
+	<sc>.hasNext()					[boolean]					//check if more data
+	<sc>.next()					[String]					//read in next token as string
+	<sc>.nextLine()					[String]					//read in next line as string
+	<sc>.nextByte()					[byte]						//read in next token as byte
+	<sc>.nextShort()				[short]						//read in next token as short
+	<sc>.nextInt()					[int]						//read in next token as int
+	<sc>.nextLong()					[long]						//read in next token as long
+	<sc>.nextFloat()				[float]						//read in next token as float
+	<sc>.nextDouble()				[double]					//read in next token as double
+	<sc>.useDelimiter(str)				[Scanner]					//set scanner's delimiter
 
 	//convert char array into string
 	String str = new String(new char[] {'j','a','v','a'});
 	//or
 	String str = new String.valueOf(new char[] {'j','a','v','a'});
+
+>>>		---[Function: Threading]---
+	//class name
+	public class Threading extends Thread
+	{
+		public void run()
+		{
+			System.out.println("{My Thread}");
+		}
+
+		/**
+		* @param args the command line arguments
+		*/
+		public static void main(String[] args)
+		{
+			Threading first = new  Threading();
+			System.out.println("main, foo and bar now execute concurrently...");
+			first.start();
+	                System.out.println("foo and bar completed.");
+		}
+	}
+
+>>>		---[Threading]---
+	<thread>.start()				[Thread]					//Starts the thread, then invokes the run() method
+	<thread>.run()					[Thread]					//is invoked on that Runnable object.
+	<thread>.setName(String name)			[Thread]					//Changes the name of the Thread object. There is also a getName() method for retrieving the name.
+	<thread>.setPriority(int priority)		[Thread]					//Sets the priority of this Thread. Values between 1 and 10.
+	<thread>.setDaemon(boolean on)			[Thread]					//A parameter of true denotes this Thread as a daemon thread.
+	<thread>.join(long millisec)			[Thread]					//causes the current thread to block until the second thread terminates
+	<thread>.interrupt()				[Thread]					//Interrupts this thread, causing it to continue execution if it was blocked for any reason.
+	<thread>.isAlive()				[Thread]					//true if the thread is alive
 
 >>>		---[Type: Logic Handling]---
 	//if/else

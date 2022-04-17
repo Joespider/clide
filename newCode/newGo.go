@@ -8,7 +8,7 @@ import (
 
 func help() {
 	var ProgName string = "newGo"
-	var Version string = "0.1.0"
+	var Version string = "0.1.02"
 
 	fmt.Println("Author: Joespider")
 	fmt.Println("Program: \""+ProgName+"\"")
@@ -19,11 +19,13 @@ func help() {
 	fmt.Println("\t--name <name> : program name")
 	fmt.Println("\t--cli : enable command line (Main file ONLY)")
 	fmt.Println("\t--main : main file")
+	fmt.Println("\t--pipe : enable piping (Main file ONLY)")
 	fmt.Println("\t--random : enable \"random\" int method")
 	fmt.Println("\t--write-file : enable \"write\" file method")
 	fmt.Println("\t--read-file : enable \"read\" file method")
-	fmt.Println("\t--is-in : enable \"IsIn\" file method")
-	fmt.Println("\t--user-input : enable \"Raw_Input\" file method")
+	fmt.Println("\t--is-in : enable \"IsIn\" method")
+	fmt.Println("\t--user-input : enable \"Raw_Input\" method")
+	fmt.Println("\t--sleep : enable \"sleep\" method")
 }
 
 func getPackage(ThePackage string) string {
@@ -31,31 +33,41 @@ func getPackage(ThePackage string) string {
 }
 
 //create import listing
-func getImports(UserInput bool, write bool, read bool, random bool, cli bool) string {
+func getImports(UserInput bool, write bool, read bool, random bool, cli bool, sleep bool, getPipe bool) string {
 	var Imports string = ""
 	var standard string = "\"fmt\"\n"
 	var readWrite string = ""
 	var ForRandom string = ""
+	var ForTime string = ""
 	var ForCLI string = ""
 	var ForUserInput string = ""
+	var ForString string = ""
 
 	if read == true || write == true {
 		readWrite = "\t\"io/ioutil\"\n\t\"io\"\n"
 	}
 
-	if read == true || write == true || cli == true {
+	if read == true || write == true || cli == true || getPipe == true {
 		ForCLI = "\t\"os\"\n"
 	}
 
-	if UserInput == true {
+	if UserInput == true || getPipe == true {
 		ForUserInput = "\t\"bufio\"\n"
 	}
 
 	if random == true {
-		ForRandom = "\t\"math/rand\"\n\t\"time\"\n"
+		ForRandom = "\t\"math/rand\"\n"
 	}
 
-	Imports = standard+readWrite+ForRandom+ForCLI+ForUserInput
+	if random == true || sleep == true {
+		ForTime = "\t\"time\"\n"
+	}
+
+	if getPipe == true {
+		ForString = "\t\"strings\"\n"
+	}
+
+	Imports = standard+readWrite+ForRandom+ForCLI+ForUserInput+ForTime+ForString
 	if Imports == standard {
 		Imports = "import "+Imports
 	} else {
@@ -65,12 +77,13 @@ func getImports(UserInput bool, write bool, read bool, random bool, cli bool) st
 	return Imports
 }
 
-func getMethods(getRawIn bool, getRand bool, getWrite bool, getRead bool, getIsIn bool) string {
+func getMethods(getRawIn bool, getRand bool, getWrite bool, getRead bool, getIsIn bool, getSleep bool) string {
 	var TheMethods string = ""
 	var ReadMethod string = ""
 	var WriteMethod string = ""
 	var RandMethod string = ""
 	var UserInput string = ""
+	var SleepMethod string = ""
 
 	if getRawIn == true {
 		UserInput = "func raw_input(Message string) string {\n\tvar UserIn string\n\tfmt.Print(Message)\n\treader := bufio.NewReader(os.Stdin)\n\tUserIn, _ = reader.ReadString('\\n')\n\treturn UserIn\n}\n\n"
@@ -88,23 +101,33 @@ func getMethods(getRawIn bool, getRand bool, getWrite bool, getRead bool, getIsI
 		RandMethod = "func Random(min int, max int) {\n\treturn rand.Intn(max-min) + min\n}\n\n"
 	}
 
-	TheMethods = UserInput+WriteMethod+ReadMethod+RandMethod
+	if getSleep == true {
+		SleepMethod = "func sleep() {\n\ttime.Sleep(3 * time.Second)\n}\n\n"
+	}
+
+
+	TheMethods = UserInput+WriteMethod+ReadMethod+RandMethod+SleepMethod
 	return TheMethods
 }
 
 //build main function
-func getMain(Args bool, getRandom bool) string {
+func getMain(Args bool, getRandom bool, getPipe bool) string {
 	var Main string = ""
 	var RandStart string = ""
+	var PipeCode string = ""
 
 	if getRandom == true {
 		RandStart = "\trand.Seed(time.Now().UnixNano())\n"
 	}
 
+	if getPipe == true {
+		PipeCode = "\tfi, err := os.Stdin.Stat()\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\tif fi.Mode() & os.ModeNamedPipe == 0 {\n\t\tfmt.Println(\"nothing was piped in\")\n\t} else {\n\t\tfmt.Println(\"[Pipe]\")\n\t\tfmt.Println(\"{\")\n\t\tvar reader = bufio.NewReader(os.Stdin)\n\t\tmessage, _ := reader.ReadString('\\n')\n\t\tmessage = strings.Replace(message, \"\\n\", \"\", -1)\n\t\tfmt.Println(message)\n\t\tfmt.Println(\"}\")\n\t}\n"
+	}
+
 	if Args == true {
-		Main = "//main\nfunc main() {\n"+RandStart+"\targs := os.Args[1:]\n\tfor arg := range args {\n\t\tfmt.Println(args[arg])\n\t}\n}"
+		Main = "//main\nfunc main() {\n"+RandStart+"\targs := os.Args[1:]\n\tfor arg := range args {\n\t\tfmt.Println(args[arg])\n\t}\n"+PipeCode+"}"
 	} else {
-		Main = "//main\nfunc main() {\n"+RandStart+"\tfmt.Printf(\"hellow world\")\n}"
+		Main = "//main\nfunc main() {\n"+RandStart+"\tfmt.Printf(\"hellow world\")\n"+PipeCode+"}"
 	}
 	return Main
 }
@@ -135,6 +158,8 @@ func main() {
 	var getIsIn bool = false
 	var getRawIn bool = false
 	var getRand bool = false
+	var getSleep bool = false
+	var getPipe bool = false
 	var IsMain bool = false
 	var UserIn string = ""
 	var ThePackage string = ""
@@ -181,19 +206,28 @@ func main() {
 		} else if UserIn == "--user-input" {
 			getName = false
 			getRawIn = true
+		//Get sleep
+		} else if UserIn == "--sleep" {
+			getName = false
+			getSleep = true
+		//Get pipe
+		} else if UserIn == "--pipe" {
+			getName = false
+			getPipe = true
 		//Get Name of program
 		} else if getName == true {
 			CName = UserIn
 			getName = false
 		}
+
 	}
 	//Ensure program name is given
 	if CName != "" {
 		ThePackage = getPackage("main")
-		Imports = getImports(getRawIn,getWrite,getRead,getRand,getArgs)
-		Methods = getMethods(getRawIn,getRand,getWrite,getRead,getIsIn)
+		Imports = getImports(getRawIn,getWrite,getRead,getRand,getArgs, getSleep,getPipe)
+		Methods = getMethods(getRawIn,getRand,getWrite,getRead,getIsIn, getSleep)
 		if IsMain == true {
-			Main = getMain(getArgs,getRand)
+			Main = getMain(getArgs,getRand,getPipe)
 		} else {
 			Main = ""
 		}

@@ -3,7 +3,7 @@
 #https://stackoverflow.com/questions/10339637/java-import-cannot-find-symbol
 #https://www.codejava.net/java-core/tools/how-to-compile-package-and-run-a-java-program-using-command-line-tools-javac-jar-and-java
 
-SupportV="0.2.31"
+SupportV="0.2.32"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -743,6 +743,11 @@ UseJava()
 			;;
 		setCplArgs)
 			;;
+		BuildHelp)
+			echo -e "*Default* (--jar)"
+			echo -e "\t--jar\t\t: \"Build a jar from project\""
+			echo -e "\t--war\t\t: \"Build a war from project\""
+			;;
 		setCplArgs-help)
 			;;
 		compileType-list)
@@ -1323,13 +1328,13 @@ UseJava()
 							case ${USER} in
 								root)
 									touch ${ThePath}/${BinFile}
-									echo -e "#!/bin/bash\n${ExeString} \$@" > ${BinFile}
+									echo -e "#!/bin/bash\n${ExeString}" > ${BinFile}
 									mv ${BinFile} ${ThePath}/${BinFile}
 									chmod +x ${ThePath}/${BinFile}
 									;;
 								*)
 									sudo touch ${ThePath}/${BinFile}
-									echo -e "#!/bin/bash\n${ExeString} \$@" > ${BinFile}
+									echo -e "#!/bin/bash\n${ExeString}" > ${BinFile}
 									sudo mv ${BinFile} ${ThePath}/${BinFile}
 									sudo chmod +x ${ThePath}/${BinFile}
 									;;
@@ -1388,13 +1393,13 @@ UseJava()
 							case ${USER} in
 								root)
 									touch ${ThePath}/${BinFile}
-									echo -e "#!/bin/bash\n${ExeString} \$@" > ${BinFile}
+									echo -e "#!/bin/bash\n${ExeString}" > ${BinFile}
 									mv ${BinFile} ${ThePath}/${BinFile}
 									chmod +x ${ThePath}/${BinFile}
 									;;
 								*)
 									touch ${ThePath}/${BinFile}
-									echo -e "#!/bin/bash\n${ExeString} \$@" > ${BinFile}
+									echo -e "#!/bin/bash\n${ExeString}" > ${BinFile}
 									sudo mv ${BinFile} ${ThePath}/${BinFile}
 									sudo chmod +x ${ThePath}/${BinFile}
 									;;
@@ -1417,7 +1422,7 @@ UseJava()
 						else
 							if [ -d ${ThePath} ]; then
 								touch ${ThePath}/${BinFile}
-								echo -e "#!/bin/bash\n${ExeString} \$@" > ${BinFile}
+								echo -e "#!/bin/bash\n${ExeString}" > ${BinFile}
 								mv ${BinFile} ${ThePath}/${BinFile}
 								chmod +x ${ThePath}/${BinFile}
 							else
@@ -1922,9 +1927,17 @@ UseJava()
 									#Execute without
 									if [ ! -z "${ThePipe}" ]; then
 										if [ ! -z "${TimeRun}" ]; then
-											time cat /dev/stdin | ${LangRun} ${package}${TheBin} ${Args[@]}
+											if [ -f "${MultiPipeFile}" ]; then
+												time cat ${MultiPipeFile} | ${LangRun} ${package}${TheBin} ${Args[@]}
+											else
+												time cat /dev/stdin | ${LangRun} ${package}${TheBin} ${Args[@]}
+											fi
 										else
-											cat /dev/stdin | ${LangRun} ${package}${TheBin} ${Args[@]}
+											if [ -f "${MultiPipeFile}" ]; then
+												cat ${MultiPipeFile} | ${LangRun} ${package}${TheBin} ${Args[@]}
+											else
+												cat /dev/stdin | ${LangRun} ${package}${TheBin} ${Args[@]}
+											fi
 										fi
 									else
 										if [ ! -z "${TimeRun}" ]; then
@@ -1947,9 +1960,17 @@ UseJava()
 									#Execute without
 									if [ ! -z "${ThePipe}" ]; then
 										if [ ! -z "${TimeRun}" ]; then
-											time cat /dev/stdin | ${LangRun} "${JavaProp}" ${package}${TheBin} ${Args[@]}
+											if [ -f "${MultiPipeFile}" ]; then
+												time cat ${MultiPipeFile} | ${LangRun} "${JavaProp}" ${package}${TheBin} ${Args[@]}
+											else
+												time cat /dev/stdin | ${LangRun} "${JavaProp}" ${package}${TheBin} ${Args[@]}
+											fi
 										else
-											cat /dev/stdin | ${LangRun} "${JavaProp}" ${package}${TheBin} ${Args[@]}
+											if [ -f "${MultiPipeFile}" ]; then
+												cat ${MultiPipeFile} | ${LangRun} "${JavaProp}" ${package}${TheBin} ${Args[@]}
+											else
+												cat /dev/stdin | ${LangRun} "${JavaProp}" ${package}${TheBin} ${Args[@]}
+											fi
 										fi
 									else
 										if [ ! -z "${TimeRun}" ]; then
@@ -1969,9 +1990,17 @@ UseJava()
 				elif [ -f ${TheJarDir}/${TheJar} ]; then
 					if [ ! -z "${ThePipe}" ]; then
 						if [ ! -z "${TimeRun}" ]; then
-							time cat /dev/stdin | ${LangRun} -jar ${TheJarDir}/${TheJar} ${Args[@]}
+							if [ -f "${MultiPipeFile}" ]; then
+								time cat ${MultiPipeFile} | ${LangRun} -jar ${TheJarDir}/${TheJar} ${Args[@]}
+							else
+								time cat /dev/stdin | ${LangRun} -jar ${TheJarDir}/${TheJar} ${Args[@]}
+							fi
 						else
-							cat /dev/stdin | ${LangRun} -jar ${TheJarDir}/${TheJar} ${Args[@]}
+							if [ -f "${MultiPipeFile}" ]; then
+								cat ${MultiPipeFile} | ${LangRun} -jar ${TheJarDir}/${TheJar} ${Args[@]}
+							else
+								cat /dev/stdin | ${LangRun} -jar ${TheJarDir}/${TheJar} ${Args[@]}
+							fi
 						fi
 					else
 						if [ ! -z "${TimeRun}" ]; then

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.43"
+SupportV="0.1.45"
 Lang=Rust
 LangExt=".rs"
 ColorNum=1
@@ -688,6 +688,10 @@ UseRust()
 			done
 			echo ${Vals// /,}
 			;;
+		BuildHelp)
+                        echo -e "*Default* (--release)"
+                        echo -e "\t--release\t\t: \"Build project as a release\""
+                        ;;
 		setCplArgs-help)
 			echo -e "-v, --verboses\t\t: \"Verbose (-v)\""
 			echo -e "-d, --debug\t\t: \"Set Debugging (-g)\""
@@ -1329,7 +1333,11 @@ UseRust()
 				case ${Type} in
 					debug)
 						if [ ! -z "${ThePipe}" ]; then
-							cat /dev/stdin | ${UseDebugger} ${TheBinDir}/${TheBin} ${Args[@]}
+							if [ -f "${MultiPipeFile}" ]; then
+								cat ${MultiPipeFile} | ${UseDebugger} ${TheBinDir}/${TheBin} ${Args[@]}
+							else
+								cat /dev/stdin | ${UseDebugger} ${TheBinDir}/${TheBin} ${Args[@]}
+							fi
 						else
 							${UseDebugger} ${TheBinDir}/${TheBin} ${Args[@]}
 						fi
@@ -1337,9 +1345,17 @@ UseRust()
 					runCode)
 						if [ ! -z "${ThePipe}" ]; then
 							if [ ! -z "${TimeRun}" ]; then
-								time cat /dev/stdin | ${TheBinDir}/${TheBin} ${Args[@]}
+								if [ -f "${MultiPipeFile}" ]; then
+									time cat ${MultiPipeFile} | ${TheBinDir}/${TheBin} ${Args[@]}
+								else
+									time cat /dev/stdin | ${TheBinDir}/${TheBin} ${Args[@]}
+								fi
 							else
-								cat /dev/stdin | ${TheBinDir}/${TheBin} ${Args[@]}
+								if [ -f "${MultiPipeFile}" ]; then
+									cat ${MultiPipeFile} | ${TheBinDir}/${TheBin} ${Args[@]}
+								else
+									cat /dev/stdin | ${TheBinDir}/${TheBin} ${Args[@]}
+								fi
 							fi
 						else
 							if [ ! -z "${TimeRun}" ]; then

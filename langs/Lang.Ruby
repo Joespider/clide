@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.87"
+SupportV="0.1.88"
 Lang=Ruby
 LangExt=".rb"
 ColorNum=1
@@ -1235,9 +1235,17 @@ UseRuby()
 					runCode)
 						if [ ! -z "${ThePipe}" ]; then
 							if [ ! -z "${TimeRun}" ]; then
-								time cat /dev/stdin | ${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+								if [ -f "${MultiPipeFile}" ]; then
+									time cat ${MultiPipeFile} | ${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+								else
+									time cat /dev/stdin | ${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+								fi
 							else
-								cat /dev/stdin | ${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+								if [ -f "${MultiPipeFile}" ]; then
+									cat ${MultiPipeFile} | ${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+								else
+									cat /dev/stdin | ${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+								fi
 							fi
 						else
 							if [ ! -z "${TimeRun}" ]; then
