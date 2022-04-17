@@ -1669,6 +1669,25 @@ compileCode()
 	CplFlag=""
 }
 
+MultiPipe()
+{
+	local PipeAction=$1
+	if [ ! -z "${ThePipe}" ]; then
+		if [ ! -z "${PipeAction}" ]; then
+			case ${PipeAction} in
+				--save)
+					cp /dev/stdin ${MultiPipeFile}
+					;;
+				--remove)
+					rm ${MultiPipeFile}
+					;;
+				*)
+					;;
+			esac
+		fi
+	fi
+}
+
 runCode()
 {
 	local Lang=$1
@@ -1778,6 +1797,178 @@ runCodeMessage()
 				;;
 		esac
 	fi
+}
+
+InstallCode()
+{
+	local Lang=$1
+	shift
+	local InstallType=$2
+	shift
+	local UserIn=( $@ )
+	case ${InstallType} in
+		--alias)
+			ManageLangs ${Lang} "Install-alias" ${TheSrcCode} ${UserIn[@]}
+			;;
+		--bin)
+			ManageLangs ${Lang} "Install-bin" ${TheSrcCode} ${UserIn[@]}
+			;;
+		--check)
+			ManageLangs ${Lang} "Install-check" ${TheSrcCode} ${UserIn[@]}
+			;;
+		--root-bin)
+			ManageLangs ${Lang} "Install-root" ${TheSrcCode} ${UserIn[@]}
+			;;
+		--user-bin)
+			ManageLangs ${Lang} "Install-user" ${TheSrcCode} ${UserIn[@]}
+			;;
+		--help)
+			HelpMenu ${Lang} "install"
+			;;
+		*)
+			HelpMenu ${Lang} "install"
+			;;
+	esac
+}
+
+CopyOrRename()
+{
+	local Lang=$1
+	local UserArg=$2
+	local chosen
+	local TheNewChosen
+	local GetCount
+	shift
+	local UserIn=( $@ )
+	case ${UserIn[1]} in
+		--help)
+			HelpMenu ${Lang} ${UserIn[@]}
+				;;
+		*)
+			chosen=${UserIn[1]}
+			TheNewChosen=${UserIn[2]}
+			case ${TheSrcCode} in
+				*,*)
+					if [ ! -z "${TheNewChosen}" ]; then
+						case ${TheSrcCode} in
+							*${chosen}*)
+								GetCount=$(echo -e ${TheSrcCode//,/\\n} | grep ${chosen} | wc -l)
+								case ${GetCount} in
+									1)
+										chosen=$(echo -e ${TheSrcCode//,/\\n} | grep ${chosen})
+										case ${UserArg} in
+											rename)
+												TheNewChosen=$(ManageLangs ${Lang} "rename" ${chosen} ${TheNewChosen})
+												;;
+											cp|copy)
+												TheNewChosen=$(ManageLangs ${Lang} "copy" ${chosen} ${TheNewChosen})
+												;;
+											*)
+												;;
+										esac
+										TheSrcCode=${TheSrcCode//${chosen}/${TheNewChosen}}
+										refresh="yes"
+										;;
+									*)
+										case ${UserArg} in
+											rename)
+												errorCode "rename" "wrong" ${chosen}
+												;;
+											cp|copy)
+												errorCode "copy" "wrong" ${chosen}
+												;;
+											*)
+												;;
+										esac
+										;;
+								esac
+								;;
+							*)
+								case ${UserArg} in
+									rename)
+										errorCode "rename" "wrong" ${chosen}
+										;;
+									cp|copy)
+										errorCode "copy" "wrong" ${chosen}
+										;;
+									*)
+										;;
+								esac
+								;;
+						esac
+					else
+						case ${UserArg} in
+							rename)
+								errorCode "rename" "null"
+								;;
+							cp|copy)
+								errorCode "backup" "null"
+								;;
+							*)
+								;;
+						esac
+					fi
+					;;
+				*)
+					if [ -z "${TheNewChosen}" ]; then
+						case ${UserArg} in
+							rename)
+								TheSrcCode=$(ManageLangs ${Lang} "rename" ${TheSrcCode} ${chosen})
+								;;
+							cp|copy)
+								TheSrcCode=$(ManageLangs ${Lang} "copy" ${TheSrcCode} ${chosen})
+								;;
+							*)
+								;;
+						esac
+						refresh="yes"
+					else
+						case ${TheSrcCode} in
+							${chosen})
+								case ${UserArg} in
+									rename)
+										TheSrcCode=$(ManageLangs ${Lang} "rename" ${chosen} ${TheNewChosen})
+										;;
+									cp|copy)
+										TheSrcCode=$(ManageLangs ${Lang} "copy" ${chosen} ${TheNewChosen})
+										;;
+									*)
+										;;
+								esac
+								refresh="yes"
+								;;
+							*${chosen}*)
+								chosen=$(echo ${TheSrcCode} | grep ${chosen})
+								case ${UserArg} in
+									rename)
+										TheSrcCode=$(ManageLangs ${Lang} "rename" ${chosen} ${TheNewChosen})
+										;;
+									cp|copy)
+										TheSrcCode=$(ManageLangs ${Lang} "copy" ${chosen} ${TheNewChosen})
+										;;
+									*)
+										;;
+								esac
+								refresh="yes"
+								;;
+							*)
+								case ${UserArg} in
+									rename)
+										errorCode "rename" "wrong" ${chosen}
+										;;
+									cp|copy)
+										errorCode "copy" "wrong" ${chosen}
+										;;
+									*)
+										;;
+ 								esac
+								;;
+						esac
+					fi
+					;;
+			esac
+			;;
+	esac
 }
 
 ManageCreate()
@@ -3086,135 +3277,8 @@ Actions()
 					#OR
 					#Make a copy of your selected code...similar to backup...but nothing to restore
 					cp|copy|rename)
-						case ${UserIn[1]} in
-							--help)
-								HelpMenu ${Lang} ${UserIn[@]}
-								;;
-							*)
-								local chosen=${UserIn[1]}
-								local TheNewChosen=${UserIn[2]}
-								case ${TheSrcCode} in
-									*,*)
-										if [ ! -z "${TheNewChosen}" ]; then
-											case ${TheSrcCode} in
-												*${chosen}*)
-													local GetCount=$(echo -e ${TheSrcCode//,/\\n} | grep ${chosen} | wc -l)
-													case ${GetCount} in
-														1)
-															chosen=$(echo -e ${TheSrcCode//,/\\n} | grep ${chosen})
-															case ${UserArg} in
-																rename)
-																	TheNewChosen=$(ManageLangs ${Lang} "rename" ${chosen} ${TheNewChosen})
-																	;;
-																cp|copy)
-																	TheNewChosen=$(ManageLangs ${Lang} "copy" ${chosen} ${TheNewChosen})
-																	;;
-																*)
-																	;;
-															esac
-															TheSrcCode=${TheSrcCode//${chosen}/${TheNewChosen}}
-															refresh="yes"
-															;;
-														*)
-															case ${UserArg} in
-																rename)
-																	errorCode "rename" "wrong" ${chosen}
-																	;;
-																cp|copy)
-																	errorCode "copy" "wrong" ${chosen}
-																	;;
-																*)
-																	;;
-															esac
-															;;
-													esac
-													;;
-												*)
-													case ${UserArg} in
-														rename)
-															errorCode "rename" "wrong" ${chosen}
-															;;
-														cp|copy)
-															errorCode "copy" "wrong" ${chosen}
-															;;
-														*)
-															;;
-													esac
-													;;
-											esac
-										else
-											case ${UserArg} in
-												rename)
-													errorCode "rename" "null"
-													;;
-												cp|copy)
-													errorCode "backup" "null"
-													;;
-												*)
-													;;
-											esac
-										fi
-										;;
-									*)
-										if [ -z "${TheNewChosen}" ]; then
-											case ${UserArg} in
-												rename)
-													TheSrcCode=$(ManageLangs ${Lang} "rename" ${TheSrcCode} ${chosen})
-													;;
-												cp|copy)
-													TheSrcCode=$(ManageLangs ${Lang} "copy" ${TheSrcCode} ${chosen})
-													;;
-												*)
-													;;
-											esac
-											refresh="yes"
-										else
-											case ${TheSrcCode} in
-												${chosen})
-													case ${UserArg} in
-														rename)
-															TheSrcCode=$(ManageLangs ${Lang} "rename" ${chosen} ${TheNewChosen})
-															;;
-														cp|copy)
-															TheSrcCode=$(ManageLangs ${Lang} "copy" ${chosen} ${TheNewChosen})
-															;;
-														*)
-															;;
-														esac
-														refresh="yes"
-														;;
-												*${chosen}*)
-													chosen=$(echo ${TheSrcCode} | grep ${chosen})
-													case ${UserArg} in
-														rename)
-															TheSrcCode=$(ManageLangs ${Lang} "rename" ${chosen} ${TheNewChosen})
-															;;
-														cp|copy)
-															TheSrcCode=$(ManageLangs ${Lang} "copy" ${chosen} ${TheNewChosen})
-															;;
-														*)
-															;;
-													esac
-													refresh="yes"
-													;;
-												*)
-													case ${UserArg} in
-														rename)
-															errorCode "rename" "wrong" ${chosen}
-															;;
-														cp|copy)
-															errorCode "copy" "wrong" ${chosen}
-															;;
-														*)
-															;;
- 													esac
-													;;
-											esac
-										fi
-										;;
-								esac
-								;;
-						esac
+						CopyOrRename ${Lang} ${UserIn[@]}
+						refresh="yes"
 						;;
 					#use the shell of a given language
 					shell)
@@ -3246,7 +3310,7 @@ Actions()
 								local NewCode
 								BeforeFiles=$(ManageLangs ${Lang} "BeforeFiles")
 								#Create new code
-								ManageLangs ${Lang} "customCode" ${Lang} ${cLang}
+								ManageLangs ${Lang} "customCode" ${Lang} ${cLang} ${UserIn[@]}
 								AfterFiles=$(ManageLangs ${Lang} "AfterFiles")
 								AllFiles="${BeforeFiles} ${AfterFiles}"
 								#Look ALL files for new for new file
@@ -3709,10 +3773,67 @@ Actions()
 										;;
 								esac
 								;;
+							version)
+								case ${Lang} in
+									#only C and C++ uses make
+									C*)
+										case ${RunCplArgs} in
+											*-std=c*)
+												echo -e ${RunCplArgs//,/\\n} | grep "std"
+												;;
+											*)
+												if [ ! -z "${UserIn[2]}" ]; then
+													case ${UserIn[2]} in
+														*-std=c*)
+															case ${RunCplArgs} in
+																none)
+																	RunCplArgs="${UserIn[2]}"
+																	;;
+																*)
+																	RunCplArgs="${RunCplArgs},${UserIn[2]}"
+																	;;
+															esac
+															;;
+														*)
+															ManageLangs ${Lang} "setCplArgs-help" | grep "c++"
+															;;
+													esac
+												else
+													ManageLangs ${Lang} "setCplArgs-help" | grep "c++"
+													#User input
+													echo -n "${cLang}\$ "
+													read -a NewVal
+
+													#User provided a value
+													if [ ! -z "${NewVal}" ]; then
+														case ${NewVal} in
+															*-std=c*)
+																case ${RunCplArgs} in
+																	none)
+																		RunCplArgs="${NewVal},mw"
+																		;;
+																	*)
+																		RunCplArgs="${RunCplArgs},${NewVal}"
+																		;;
+																esac
+																;;
+															*)
+																ManageLangs ${Lang} "setCplArgs-help" | grep "c++"
+																;;
+														esac
+													fi
+												fi
+												;;
+										esac
+										;;
+									*)
+										;;
+								esac
+								;;
 							#Clear all
 							reset)
 								case ${UserIn[2]} in
-									cpl|cpl-args)
+									cpl|cpl-args|version)
 										RunCplArgs="none"
 										echo "Compile args reset"
 										;;
@@ -3759,30 +3880,69 @@ Actions()
 						esac
 						;;
 					#(c)ompile (a)nd (r)un
-					car|car-a)
+					car)
+						local CarArgs=( ${UserIn[@]} )
+						local CplArgs=( )
+						local RunArgs=( )
+						local GetRun
+						CarArgs[0]=""
 						case ${UserIn[1]} in
 							--help)
 								HelpMenu ${Lang} ${UserIn[@]}
 								;;
 							*)
-								#Lets Compile
-								compileCode ${Lang} ${UserIn[@]}
 								if [ ! -z "${TheSrcCode}" ]; then
-									case ${UserArg} in
-										#Run without args
-										car)
-											runCode ${Lang} ${TheSrcCode}
+									case ${CarArgs[1]} in
+										-a|--args)
+#											CarArgs[1]=""
+											for ThisTime in ${CarArgs[@]};
+											do
+												if [ ! -z "${ThisTime}" ]; then
+													case ${ThisTime} in
+														--run)
+															if [ -z "${GetRun}" ]; then
+																GetRun="-a"
+																ThisTime=""
+															fi
+															;;
+														*)
+															;;
+													esac
+
+													if [ ! -z "${ThisTime}" ] && [ -z "${GetRun}" ]; then
+														CplArgs+=(${ThisTime})
+													else
+														RunArgs+=(${ThisTime})
+													fi
+												fi
+											done
+											#Lets Compile
+											compileCode ${Lang} "cpl" ${CplArgs[@]}
 											;;
-										#Run WITH args
-										car-a)
-											runCode ${Lang} ${TheSrcCode} "run" "--args"
+										--run)
+											GetRun="-a"
+											CarArgs[1]=""
+											RunArgs=( ${CarArgs[@]} )
+											compileCode ${Lang} "cpl"
 											;;
 										*)
+											#Lets Compile
+											compileCode ${Lang} "cpl"
 											;;
 									esac
+
+									if [ ! -z "${GetRun}" ]; then
+										runCode ${Lang} ${TheSrcCode} "run" "--args"  ${RunArgs[@]}
+									else
+										runCode ${Lang} ${TheSrcCode}
+									fi
 								fi
 								;;
 						esac
+						CarArgs=""
+						CplArgs=""
+						RunArgs=""
+						GetRun=""
 						;;
 					#Compile code
 					compile|cpl)
@@ -3836,14 +3996,7 @@ Actions()
 						;;
 					#Install compiled code into aliases
 					install)
-						case ${UserIn[1]} in
-							--help)
-								HelpMenu ${Lang} ${UserIn[@]}
-								;;
-							*)
-								ManageLangs ${Lang} "Install" ${TheSrcCode} ${UserIn[1]}
-								;;
-						esac
+						InstallCode ${Lang} ${UserIn[@]}
 						;;
 					#Add debugging functionality
 					debug)
@@ -4397,6 +4550,7 @@ loadAuto()
 	bind -x '"\C-l":clear'
 	comp_list "ls"
 	comp_list "whoami"
+	comp_list "build" "--help"
 	comp_list "save"
 	comp_list "session" "save load"
 	comp_list "lscpl"
@@ -4429,7 +4583,7 @@ loadAuto()
 	comp_list "help"
 	comp_list "notes" "edit add read --help"
 	comp_list "last load" "--help"
-	comp_list "install" "--help"
+	comp_list "install" "--help --alias --bin --check --root-bin --user-bin"
 	comp_list "bkup backup" "--help"
 	comp_list "restore" "--help"
 	comp_list "rename" "--help"
@@ -5467,17 +5621,33 @@ CLI()
 					fi
 				fi
 				;;
+			#clide --new <args>
+			#or
+			#clide -n <args>
 			-n|--new)
 				if [ -z "${ThePipe}" ]; then
 					shift
+					local NoSupportLang
 					local Lang
 					local Code=$2
 					local Args
 					local FindCode
 					local AlreadyCode
 					local ColorCode
+					local BeforeFiles
+					local AfterFiles
+					local AllFiles
+					local NewCode
+
+					#clide --new <src>.<ext>
+					#or
+					#clide --new --help
+					#or
+					#clide --new <lang>
 					if [ -z "${Code}" ]; then
+						#Identify the language by code
 						Lang=$(SelectLangByCode $1)
+						#Langauge has been found
 						if [ ! -z "${Lang}" ]; then
 							Code=$1
 							shift
@@ -5492,60 +5662,131 @@ CLI()
 									fi
 									;;
 							esac
+						#clide --new <lang>
+						else
+							Lang=$1
+							case ${Lang} in
+								#clide --new <lang> --help
+								-h|--help)
+									main --help function --new
+									;;
+								#clide --new <lang>
+								*)
+									#assume the user wants to create a custom tempalte
+									main --new "${Lang}" "-c"
+									;;
+							esac
 						fi
+					#clide --new <lang> <src>.<ext> <args>
 					else
 						case ${Code} in
+							#clide --new <lang> --help
+							-h|--help)
+								NoSupportLang=$1
+								Lang=$1
+								;;
+							#clide --new <lang> --custom <args>
+							--custom)
+								NoSupportLang=$1
+								#check if language is supported
+								Lang=$(pgLang $1)
+								shift
+								shift
+								Args=$@
+								;;
+							#clide --new <src> --<other>
 							--*)
+								NoSupportLang=$1
 								Lang=$(SelectLangByCode $1)
 								Code=$1
 								shift
 								Args=$@
 								;;
+							#clide --new <lang> <code> <flag> <args>
 							*)
+								NoSupportLang=$1
+								#check if language is supported
 								Lang=$(pgLang $1)
 								shift
 								shift
 								Args=$@
 								;;
 						esac
-						case ${Lang} in
-							no)
-								errorCode "install" "cli-not-supported" "$1"
-								;;
-							*)
-								local CodeDir=$(pgDir ${Lang})
-								if [ ! -z "${CodeDir}" ]; then
-									ColorCode=$(ManageLangs ${Lang} "color-number")
-									cd ${CodeDir}
-									InAndOut="yes"
-									IFS=',' read -ra ADDR <<< "${Code}"
-									for NewCode in "${ADDR[@]}";
-									do
-										AlreadyCode=$(ManageLangs ${Lang} "getCode" ${NewCode})
-										if [ -z "${AlreadyCode}" ]; then
-											Actions ${Lang} "code" "new" ${NewCode} ${Args[@]}
-											FindCode=$(ManageLangs ${Lang} "getCode" ${NewCode} ${AlreadyCode})
-											if [ ! -z "${FindCode}" ]; then
-												echo -e "\e[1;4${ColorCode}m[${Lang} (${FindCode}) Created]\e[0m"
-											fi
-										else
-											local SecondTry=$(ManageLangs ${Lang} "getCode" ${NewCode} ${AlreadyCode})
-											if [ -z "${SecondTry}" ]; then
-												Actions ${Lang} "code" "new" ${NewCode} ${Args[@]}
-												FindCode=$(ManageLangs ${Lang} "getCode" ${NewCode} ${AlreadyCode})
-												if [ ! -z "${FindCode}" ]; then
-													echo -e "\e[1;4${ColorCode}m[${Lang} (${FindCode}) Created]\e[0m"
+						if [ ! -z "${Lang}" ]; then
+							case ${Lang} in
+								no)
+									errorCode "install" "cli-not-supported" "${NoSupportLang}"
+									;;
+								*)
+									local CodeDir=$(pgDir ${Lang})
+									if [ ! -z "${CodeDir}" ]; then
+										ColorCode=$(ManageLangs ${Lang} "color-number")
+										cd ${CodeDir}
+										InAndOut="yes"
+										case ${Code} in
+											#clide --new <lang> --help
+											#or
+											#clide --new <lang> -h
+											-h|--help)
+												main --help function --new
+												;;
+											#clide --new <lang> --custom <args>
+											#or
+											#clide --new <lang> -c <args>
+											-c|--custom)
+												#Get list of files  BEFORE creation
+												BeforeFiles=$(ManageLangs ${Lang} "BeforeFiles")
+												#Create new code
+												Actions ${Lang} "code" "new" "-c" ${Args[@]}
+												#Get list of files  AFTER creation
+												AfterFiles=$(ManageLangs ${Lang} "AfterFiles")
+												#Combine BEFORE and AFTER
+												AllFiles="${BeforeFiles} ${AfterFiles}"
+												#Look ALL files for new for new file
+												NewCode=$(echo -e "${AllFiles// /\\n}" | sort | uniq -u | tr -d '\n')
+												#Check if new code is found
+												if [ ! -z "${NewCode}" ]; then
+													echo -e "\e[1;4${ColorCode}m[${Lang} (${NewCode}) Created]\e[0m"
 												fi
-											fi
-										fi
-									done
-#								else
-#									errorCode "cli-cpl" "none"
-								fi
-						esac
+												;;
+											*)
+												#clide --new <lang> <src>
+												#or
+												#clide --new <lang> <src>,<src>
+												IFS=',' read -ra ADDR <<< "${Code}"
+												for NewCode in "${ADDR[@]}";
+												do
+													AlreadyCode=$(ManageLangs ${Lang} "getCode" ${NewCode})
+													if [ -z "${AlreadyCode}" ]; then
+														Actions ${Lang} "code" "new" ${NewCode} ${Args[@]}
+														FindCode=$(ManageLangs ${Lang} "getCode" ${NewCode} ${AlreadyCode})
+														if [ ! -z "${FindCode}" ]; then
+															echo -e "\e[1;4${ColorCode}m[${Lang} (${FindCode}) Created]\e[0m"
+														fi
+													else
+														local SecondTry=$(ManageLangs ${Lang} "getCode" ${NewCode} ${AlreadyCode})
+														if [ -z "${SecondTry}" ]; then
+															Actions ${Lang} "code" "new" ${NewCode} ${Args[@]}
+															FindCode=$(ManageLangs ${Lang} "getCode" ${NewCode} ${AlreadyCode})
+															if [ ! -z "${FindCode}" ]; then
+																echo -e "\e[1;4${ColorCode}m[${Lang} (${FindCode}) Created]\e[0m"
+															fi
+														fi
+													fi
+												done
+												;;
+										esac
+#									else
+#										errorCode "cli-cpl" "none"
+									fi
+							esac
+						else
+								errorCode "install" "cli-not-supported" "${NoSupportLang}"
+						fi
 					fi
 				fi
 				;;
+			#clide --edit <args>
 			--edit)
 				if [ -z "${ThePipe}" ]; then
 					#Protecting
@@ -5553,8 +5794,10 @@ CLI()
 					shift
 					local Action=$1
 					local Lang=$2
+					local Code
 					local confirm=$3
 					case ${Action} in
+						#clide --edit --config <arg>
 						--config)
 							if [ -z "${confirm}" ]; then
 								confirm=${Lang}
@@ -5586,6 +5829,7 @@ CLI()
 									;;
 							esac
 							;;
+						#clide --edit --lang <lang> <args>
 						--lang)
 							if [ ! -z "${Lang}" ]; then
 								Lang=${Lang,,}
@@ -5626,17 +5870,19 @@ CLI()
 								theHelp EditCliHelp
 							fi
 							;;
+						#clide --edit <lang> <src>
 						*)
 							if [ -z "${Action}" ]; then
 								theHelp EditCliHelp
 							else
 								case ${Action} in
+									#clide --edit --help
 									-h|--help)
 										theHelp EditCliHelp
 										;;
 									*)
-										local Lang=$(pgLang $1)
-										local Code=$2
+										Lang=$(pgLang $1)
+										Code=$2
 										if [ -z "${Code}" ]; then
 											Lang=$(SelectLangByCode $1)
 											Code=$1
@@ -5668,6 +5914,83 @@ CLI()
 					Protect "done"
 				fi
 				;;
+			--cp|--copy|--rename)
+				if [ -z "${ThePipe}" ]; then
+					#Protecting
+					Protect
+					shift
+					local DoAction
+					local NotLang
+					local Lang
+					local TheSrc
+					local TheNew
+
+					case $# in
+						2)
+							Lang=$(SelectLangByCode $1)
+							TheSrc=$1
+							TheNew=$2
+							if [ ! -z "${Lang}" ]; then
+								CodeDir=$(pgDir ${Lang})
+								if [ ! -z "${CodeDir}" ]; then
+									cd ${CodeDir}
+									TheSrcCode=$(selectCode ${Lang} ${TheSrc})
+									cd - > /dev/null
+								fi
+								DoAction="do"
+							else
+								DoAction="dont"
+							fi
+							;;
+						3)
+							NotLang=$1
+							Lang=$(pgLang $1)
+							TheSrc=$2
+							TheNew=$3
+							case ${Lang} in
+								no)
+									DoAction="dont"
+									;;
+								*)
+									CodeDir=$(pgDir ${Lang})
+									if [ ! -z "${CodeDir}" ]; then
+										cd ${CodeDir}
+										TheSrcCode=$(selectCode ${Lang} ${TheSrc})
+										cd - > /dev/null
+										DoAction="do"
+									else
+										DoAction="dont"
+									fi
+									;;
+							esac
+							;;
+						*)
+							DoAction="dont"
+							;;
+					esac
+
+					case ${DoAction} in
+						do)
+							case ${UserArg} in
+								--cp|--copy)
+									CopyOrRename ${Lang} "cp" ${TheNew}
+									;;
+								--rename)
+									CopyOrRename ${Lang} "rename" ${TheNew}
+									;;
+								*)
+									;;
+							esac
+							;;
+						*)
+							theHelp CliCopyOrRename ${UserArg}
+							;;
+					esac
+
+					#Done protecting
+					Protect "done"
+				fi
+				;;
 			--cpl-run|--car|--cat|--cpl-time)
 				if [ -z "${ThePipe}" ]; then
 					local RunLang
@@ -5693,8 +6016,8 @@ CLI()
 
 					local CplArgs=( )
 					local RunArgs=( )
-					for ThisTime in $@; do
-
+					for ThisTime in $@;
+					do
 						if [ ! -z "${TheSrcCplAndRun}" ]; then
 							break
 						fi
@@ -5858,43 +6181,87 @@ CLI()
 			#Install compiled code into aliases
 			--install)
 				if [ -z "${ThePipe}" ]; then
+					local TypeOfInstall
+					local NotSupported
 					shift
-					local Lang=$(pgLang $1)
+					local Lang
 					local Code=$2
+					local Args
+
+					#clide --install <code>.<ext>
 					if [ -z "${Code}" ]; then
+						NotSupported=$1
 						Lang=$(SelectLangByCode $1)
-						Code=$1
-						shift
-						local Args=$@
-						case ${Code} in
-							-h|--help)
-								theHelp InstallCliHelp
-								;;
-							*)
-								if [ ! -z "${Code}" ]; then
-									main --install "${Lang}" "${Code}" ${Args[@]}
-								fi
-								;;
-						esac
+						if [ ! -z "${Lang}" ]; then
+							Code=$1
+							shift
+							Args=$@
+							case ${Code} in
+								-h|--help)
+									theHelp InstallCliHelp
+									;;
+								*)
+									if [ ! -z "${Code}" ]; then
+										main --install "${Lang}" "${Code}" ${Args[@]}
+									fi
+									;;
+							esac
+						else
+							theHelp InstallCliHelp
+						fi
+					# $ clide --install <lang> <code> or $ clide --install <lang>
 					else
-						shift
-						shift
-						local Args=$@
-						case ${Lang} in
-							no)
-								errorCode "install" "cli-not-supported" "$1"
-								theHelp InstallCliHelp
+						case ${1} in
+							# $ clide --install --<installType> <lang> <code> or $ clide --install --<installType> <code>
+							--*)
+								TypeOfInstall=$1
+								shift
+								main --install $@ ${TypeOfInstall}
 								;;
 							*)
-								local CodeDir=$(pgDir ${Lang})
-								if [ ! -z "${CodeDir}" ]; then
-									cd ${CodeDir}
-									Code=$(selectCode ${Lang} ${Code})
-									ManageLangs ${Lang} "Install" ${Code} ${Args[@]}
-									cd - > /dev/null
-								else
-									errorCode "cli-cpl" "none"
-								fi
+								case ${Code} in
+									#clide --install <code> --<args>
+									-*)
+										Lang=$(SelectLangByCode $1)
+										Code=$1
+										shift
+										Args=$@
+										;;
+									# $ clide --install <lang> <code> <args> or $ clide --install <code> <args>
+									*)
+										Lang=$(pgLang $1)
+										shift
+										shift
+										Args=$@
+										;;
+								esac
+
+								case ${Lang} in
+									no)
+										errorCode "install" "cli-not-supported" "${NotSupported}"
+										;;
+									*)
+										local CodeDir=$(pgDir ${Lang})
+										if [ ! -z "${CodeDir}" ] && [ -d "${CodeDir}" ]; then
+											cd ${CodeDir}
+											TheSrcCode=$(selectCode ${Lang} ${Code})
+											if [ ! -z "${TheSrcCode}" ]; then
+												InAndOut="yes"
+												if [ ! -z "${Args[@]}" ]; then
+													InstallCode ${Lang} "install" ${Args[@]}
+												else
+													InstallCode ${Lang} "install"
+												fi
+											else
+												errorCode "cli-cpl" "none"
+											fi
+											cd - > /dev/null
+										else
+											errorCode "cli-cpl" "none"
+										fi
+										;;
+								esac
+								;;
 						esac
 					fi
 				fi
@@ -5922,6 +6289,7 @@ CLI()
 					InAndOut="yes"
 					case ${Code} in
 						*","*)
+							MultiPipe --save
 							shift
 							shift
 							for TheCode in ${Code//,/ };
@@ -5935,11 +6303,13 @@ CLI()
 								esac
 								CLI ${UserArg} ${Lang} ${TheCode} $@
 							done
+							MultiPipe --remove
 							;;
 						*)
 							case ${Lang} in
 								#Run multiple languages
 								*","*)
+									MultiPipe --save
 									MessageOverride="yes"
 									local TheCode
 									shift
@@ -5969,6 +6339,7 @@ CLI()
 												;;
 										esac
 									done
+									MultiPipe --remove
 									;;
 								#Provide the help page
 								-h|--help|-*)
@@ -6267,11 +6638,44 @@ main()
 								shift
 								local HiddenAction=$1
 								local NextHiddenAction=$2
+								local CodeDir
+								local BeforeFiles
+								local AfterFiles
+								local AllFiles
+								local NewCode
+
 								case ${HiddenAction} in
 									-n|--new)
 										shift
-										Args=$@
-										main ${HiddenAction} ${Lang} ${Args[@]}
+										Args=( $@ )
+										if [ ! -z "${Args[0]}" ]; then
+											case ${Args[0]} in
+												--custom|-c)
+													CodeDir=$(pgDir ${Lang})
+													if [ ! -z "${CodeDir}" ]; then
+														cd ${CodeDir}
+														BeforeFiles=$(ManageLangs ${Lang} "BeforeFiles")
+														main ${HiddenAction} ${Lang} ${Args[@]}
+														AfterFiles=$(ManageLangs ${Lang} "AfterFiles")
+														#Combine BEFORE and AFTER
+														AllFiles="${BeforeFiles} ${AfterFiles}"
+														#Look ALL files for new for new file
+														NewCode=$(echo -e "${AllFiles// /\\n}" | sort | uniq -u | tr -d '\n')
+														#Check if new code is found
+														Args=( "" )
+														if [ ! -z "${NewCode}" ]; then
+															Args="${NewCode}"
+														else
+															Args=""
+														fi
+														cd - > /dev/null
+													fi
+													;;
+												*)
+													main ${HiddenAction} ${Lang} ${Args[@]}
+													;;
+											esac
+										fi
 										InAndOut="no"
 										Actions ${Lang} ${Args[@]}
 										;;

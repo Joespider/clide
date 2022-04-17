@@ -2,7 +2,7 @@ import sys
 
 ProgramName = "newPython"
 ProgramName = sys.argv[0].rsplit("/",1)[1]
-VersionName = "0.1.08"
+VersionName = "0.1.11"
 
 def Help():
 	print "Author: Joespider"
@@ -15,11 +15,13 @@ def Help():
 	print "\t--cli : enable command line (Main file ONLY)"
 	print "\t--main : main file"
 	print "\t--shell : unix shell"
-	print "\t--pipe : enable piping"
+	print "\t--pipe : enable piping (Main file ONLY)"
 	print "\t--write-file : enable \"write\" file method"
 	print "\t--read-file : enable \"read\" file method"
 	print "\t--random : enable \"random\" method"
 	print "\t--os : import OS"
+	print "\t--thread : enable threading"
+	print "\t--sleep : enable sleep method"
 
 def GetArgs():
 	Args = sys.argv
@@ -34,6 +36,8 @@ def GetArgs():
 		   "random":False,
 		   "pipe":False,
 		   "os":False,
+		   "thread":False,
+		   "sleep":False,
 		   "shell":False}
 	#
 	lp = 0
@@ -66,11 +70,15 @@ def GetArgs():
 			Returns["os"] = True
 		elif now == "--shell":
 			Returns["shell"] = True
+		elif now == "--thread":
+			Returns["thread"] = True
+		elif now == "--sleep":
+			Returns["sleep"] = True
 		lp += 1
 	return Returns
 
 #Get Imports
-def Imports(getOS, getShell, getSys, getRand, getPipe):
+def Imports(getOS, getShell, getSys, getRand, getThread, getPipe, getSleep):
 	TheImports = ""
 	if getOS == True or getShell == True:
 		TheImports = "import os\n"
@@ -78,10 +86,15 @@ def Imports(getOS, getShell, getSys, getRand, getPipe):
 		TheImports = TheImports+"import sys\n"
 	if getRand == True:
 		TheImports = TheImports+"from random import *\n"
+	if getThread == True:
+		TheImports = TheImports+"import threading\n"
+	if getSleep == True:
+		TheImports = TheImports+"import time\n"
+
 	return TheImports
 
 #Get Methods
-def Methods(getMain, getShell, getCLI, getWrite, getRead, getRandom, getPipe):
+def Methods(getMain, getShell, getCLI, getWrite, getRead, getRandom, getThread, getPipe, getSleep):
 	TheMethods = ""
 	#{
 	OSshellMethod = "def Shell(cmd):\n\tOutput = \"\"\n\tTheShell = os.popen(cmd)\n\tOutput = TheShell.read()\n\tTheShell.close()\n\treturn Output\n\ndef Exe(cmd):\n\tos.system(cmd)\n"
@@ -90,11 +103,16 @@ def Methods(getMain, getShell, getCLI, getWrite, getRead, getRandom, getPipe):
 	ReadMethod = "def Read(FileName):\n\tOutput = \"\"\n\tTheFile = open(FileName,\"r\")\n\tOutput = TheFile.read()\n\tTheFile.close()\n\treturn Output\n"
 	RandomMethod = "def Random(min=0,max=0):\n\tif min == 0 and max == 0:\n\t\treturn random()\n\telse:\n\t\treturn randint(min,max)\n"
 	PipeMethod = "def Pipe():\n\tif not sys.stdin.isatty():\n\t\tPipeData = sys.stdin.read().strip()\n\t\treturn PipeData\n\telse:\n\t\treturn \"\"\n"
+	ThreadMethod = ""
+	SleepMethod = "def sleep(sec):\n\ttime.sleep(sec)\n"
+
+	if getThread == True:
+		ThreadMethod = "\t#TheThread = threading.Thread(target=<method>, args=(<arg>,<arg>,))\n\t#TheThread.start()\n\t#TheThread.join()\n"
 
 	if getCLI == True:
-		MainMethod = "def Main():\n\t#Get User CLI Input\n\tUserArgs = Args()\n\nif __name__ == '__main__':\n\tMain()"
+		MainMethod = "def Main():\n\t#Get User CLI Input\n\tUserArgs = Args()\n"+ThreadMethod+"\nif __name__ == '__main__':\n\tMain()"
 	else:
-		MainMethod = "def Main():\n\tprint \"main\"\n\nif __name__ == '__main__':\n\tMain()"
+		MainMethod = "def Main():\n\tprint \"main\"\n"+ThreadMethod+"\nif __name__ == '__main__':\n\tMain()"
 	#}
 	#Get Write Method
 	if getWrite == True:
@@ -108,6 +126,9 @@ def Methods(getMain, getShell, getCLI, getWrite, getRead, getRandom, getPipe):
 	#Get Unix Shell
 	if getShell == True:
 		TheMethods = TheMethods+OSshellMethod+"\n"
+	#Get Sleep Method
+	if getSleep == True:
+		TheMethods = TheMethods+SleepMethod+"\n"
 	#Get Pipe Method
 	if getPipe == True:
 		TheMethods = TheMethods+PipeMethod+"\n"
@@ -117,6 +138,7 @@ def Methods(getMain, getShell, getCLI, getWrite, getRead, getRandom, getPipe):
 	#Get Main Method
 	if getMain == True:
 		TheMethods = TheMethods+MainMethod+"\n"
+
 	#Return Methods
 	return TheMethods
 
@@ -141,13 +163,15 @@ def Main():
 	GetPipe = UserArgs["pipe"]
 	GetOS = UserArgs["os"]
 	GetShell = UserArgs["shell"]
+	GetThreads = UserArgs["thread"]
+	GetSleep = UserArgs["sleep"]
 	#}
 	#Ensure Name of program
 	if TheName != "":
 		#Get Imports
-		ProgImports = Imports(GetOS, GetShell, IsCLI, GetRand, GetPipe)
+		ProgImports = Imports(GetOS, GetShell, IsCLI, GetRand, GetThreads, GetPipe, GetSleep)
 		#Get Methods
-		ProgMethods = Methods(IsMain, GetShell, IsCLI, GetWrite, GetRead, GetRand, GetPipe)
+		ProgMethods = Methods(IsMain, GetShell, IsCLI, GetWrite, GetRead, GetRand, GetThreads, GetPipe, GetSleep)
 		#Manage Imports
 		if ProgImports != "":
 			TheNewProgram = ProgImports+"\n"

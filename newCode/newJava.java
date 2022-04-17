@@ -26,13 +26,15 @@ public class newJava {
 	private static boolean getShell = false;
 	private static boolean getArrays = false;
 	private static boolean getLengths = false;
+	private static boolean getThreads = false;
+	private static boolean getSleep = false;
 	private static boolean getPipe = false;
 	private static boolean getJavaProp = false;
 
 	private static void Help()
 	{
 		String program = "newJava";
-		String version = "0.1.15";
+		String version = "0.1.19";
 		print("Author: Joespider");
 		print("Program: \""+program+"\"");
 		print("Version: "+version);
@@ -48,7 +50,9 @@ public class newJava {
 		print("\t-m : main file");
 		print("\t--main : main file");
 		print("\t--prop : enable custom system property");
-		print("\t--pipe : enable piping");
+		print("\t--pipe : enable piping (Main file ONLY)");
+		print("\t--thread : enable threading");
+		print("\t--sleep : enable sleep method");
 		print("\t--shell : unix shell");
 		print("\t--write-file : enable \"write\" file method");
 		print("\t--read-file : enable \"read\" file method");
@@ -174,6 +178,11 @@ public class newJava {
 			{
 				getShell = true;
 			}
+			//enable sleep method
+			else if (now.equals("--sleep"))
+			{
+				getSleep = true;
+			}
 			//enable unix piping
 			else if (now.equals("--prop"))
 			{
@@ -208,6 +217,11 @@ public class newJava {
 			else if (now.equals("--get-length"))
 			{
 				getLengths = true;
+			}
+			//enable threads
+			else if (now.equals("--thread"))
+			{
+				getThreads = true;
 			}
 
 			lp++;
@@ -323,6 +337,7 @@ public class newJava {
 		String MethodReadFile = "";
 		String MethodWriteFile = "";
 		String MethodShell = "";
+		String MethodSleep = "";
 
 		//raw_input
 		if (getUserIn == true)
@@ -351,9 +366,14 @@ public class newJava {
 		}
 		if (getShell == true)
 		{
-			MethodShell = "\tprivate static String Shell(String command)\n\t{\n\t\tString ShellOut = \"\";\n\t\tRuntime r = Runtime.getRuntime();\n\t\ttry\n\t\t{\n\t\t\tProcess p = r.exec(command);\n\t\t\tInputStream in = p.getInputStream();\n\t\t\tBufferedInputStream buf = new BufferedInputStream(in);\n\t\t\tInputStreamReader inread = new InputStreamReader(buf);\n\t\t\tBufferedReader bufferedreader = new BufferedReader(inread);\n\t\t\t// Read the ls output\n\t\t\tString line;\n\t\t\twhile ((line = bufferedreader.readLine()) != null)\n\t\t\t{\n\t\t\t\tif (ShellOut.equals(\"\"))\n\t\t\t\t{\n\t\t\t\t\t// Print the content on the console\n\t\t\t\t\tShellOut = line;\n\t\t\t\t}\n\t\t\t\telse\n\t\t\t\t{\n\t\t\t\t\tShellOut = ShellOut+\"\\n\"+line;\n\t\t\t\t}\n\t\t\t}\n\t\t\t// Check for ls failure\n\t\t\ttry\n\t\t\t{\n\t\t\t\tif (p.waitFor() != 0)\n\t\t\t\t{\n\t\t\t\t\tSystem.err.println(\"exit value = \" + p.exitValue());\n\t\t\t\t}\n\t\t\t}\n\t\t\tcatch (InterruptedException e)\n\t\t\t{\n\t\t\t\tSystem.err.println(e);\n\t\t\t}\n\t\t\tfinally\n\t\t\t{\n\t\t\t\t// Close the InputStream\n\t\t\t\tbufferedreader.close();\n\t\t\t\tinread.close();\n\t\t\t\tbuf.close();\n\t\t\t\tin.close();\n\t\t\t}\n\t\t}\n\t\tcatch (IOException e)\n\t\t{\n\t\t\tSystem.err.println(e.getMessage());\n\t\t}\n\t\treturn ShellOut;\n\t}\n";
+			MethodShell = "\tprivate static String Shell(String command)\n\t{\n\t\tString ShellOut = \"\";\n\t\tRuntime r = Runtime.getRuntime();\n\t\ttry\n\t\t{\n\t\t\tProcess p = r.exec(command);\n\t\t\tInputStream in = p.getInputStream();\n\t\t\tBufferedInputStream buf = new BufferedInputStream(in);\n\t\t\tInputStreamReader inread = new InputStreamReader(buf);\n\t\t\tBufferedReader bufferedreader = new BufferedReader(inread);\n\t\t\t// Read the ls output\n\t\t\tString line;\n\t\t\twhile ((line = bufferedreader.readLine()) != null)\n\t\t\t{\n\t\t\t\tif (ShellOut.equals(\"\"))\n\t\t\t\t{\n\t\t\t\t\t// Print the content on the console\n\t\t\t\t\tShellOut = line;\n\t\t\t\t}\n\t\t\t\telse\n\t\t\t\t{\n\t\t\t\t\tShellOut = ShellOut+\"\\n\"+line;\n\t\t\t\t}\n\t\t\t}\n\t\t\t// Check for ls failure\n\t\t\ttry\n\t\t\t{\n\t\t\t\tif (p.waitFor() != 0)\n\t\t\t\t{\n\t\t\t\t\tSystem.err.println(\"exit value = \" + p.exitValue());\n\t\t\t\t}\n\t\t\t}\n\t\t\tcatch (InterruptedException e)\n\t\t\t{\n\t\t\t\tSystem.err.println(e);\n\t\t\t}\n\t\t\tfinally\n\t\t\t{\n\t\t\t\t// Close the InputStream\n\t\t\t\tbufferedreader.close();\n\t\t\t\tinread.close();\n\t\t\t\tbuf.close();\n\t\t\t\tin.close();\n\t\t\t}\n\t\t}\n\t\tcatch (IOException e)\n\t\t{\n\t\t\tSystem.err.println(e.getMessage());\n\t\t}\n\t\treturn ShellOut;\n\t}\n\n";
 		}
-		TheMethods = MethodProp+MethodUserIn+MethodPrint+MethodLength+MethodArrays+MethodReadFile+MethodWriteFile+MethodShell;
+		if (getSleep == true)
+		{
+			MethodSleep = "\tprivate static void sleep(long millies)\n\t{\n\t\ttry\n\t\t{\n\t\t\tThread.sleep(millies);\n\t\t}\n\t\tcatch (InterruptedException e)\n\t\t{\n\t\t\tThread.currentThread().interrupt();\n\t\t}\n\t}\n";
+		}
+
+		TheMethods = MethodProp+MethodUserIn+MethodPrint+MethodLength+MethodArrays+MethodReadFile+MethodWriteFile+MethodShell+MethodSleep;
 		return TheMethods;
 	}
 
@@ -362,6 +382,10 @@ public class newJava {
 	*/
 	public static void main(String[] args) {
 		String JavaPackage = "";
+		String JavaThreads = "extends Thread";
+		String JavaThreadStart = "";
+		String JavaThreadCall = "";
+		String TheClass = "";
 		String JavaImports;
 		String JavaMethods;
 		String JavaMain;
@@ -375,6 +399,16 @@ public class newJava {
 			{
 				JavaPackage = "package "+Package+";\n\n";
 			}
+			if (getThreads == true)
+			{
+				TheClass = Class+" "+JavaThreads;
+				JavaThreadStart = "\tpublic void run()\n\t{\n\t\tSystem.out.println(\"{My Thread}\");\n\t}\n\n";
+				JavaThreadCall = "\t\t//Instance of a threaded class\n\t\t//"+Class+" TheThread = new "+Class+"();\n\t\t//Starting Thread\n\t\t//TheThread.start();\n\n";
+			}
+			else if (getThreads == false)
+			{
+				TheClass = Class;
+			}
 			JavaImports = GetImports();
 			JavaMethods = GetMethods();
 			Comments[0] ="/**\n *\n * @author "+user+"\n */";
@@ -384,17 +418,17 @@ public class newJava {
 				Comments[2] ="/**\n\t* @param args the command line arguments\n\t*/";
 				if (getPipe == true)
 				{
-					JavaMain = "\tpublic static void main(String[] args)\n\t{\n\t\ttry\n\t\t{\n\t\t\tint numBytesWaiting = System.in.available();\n\t\t\tif (numBytesWaiting > 0)\n\t\t\t{\n\t\t\t\tprint(\"[Pipe]\");\n\t\t\t\tprint(\"{\");\n\t\t\t\tScanner pipe = new Scanner(System.in);\n\t\t\t\t// Read and print out each line.\n\t\t\t\twhile (pipe.hasNextLine())\n\t\t\t\t{\n\t\t\t\t\tString lineOfInput = pipe.nextLine();\n\t\t\t\t\tprint(lineOfInput);\n\t\t\t\t}\n\t\t\t\tpipe.close();\n\t\t\t\tprint(\"}\");\n\t\t\t}\n\t\t\telse\n\t\t\t{\n\t\t\t\tprint(\"nothing was piped in\");\n\t\t\t}\n\t\t}\n\t\tcatch (Exception e)\n\t\t{\n\t\t\tSystem.err.println(\"Failed read in\");\n\t\t}\n\t}";
+					JavaMain = "\tpublic static void main(String[] args)\n\t{\n"+JavaThreadCall+"\n\t\ttry\n\t\t{\n\t\t\tint numBytesWaiting = System.in.available();\n\t\t\tif (numBytesWaiting > 0)\n\t\t\t{\n\t\t\t\tprint(\"[Pipe]\");\n\t\t\t\tprint(\"{\");\n\t\t\t\tScanner pipe = new Scanner(System.in);\n\t\t\t\t// Read and print out each line.\n\t\t\t\twhile (pipe.hasNextLine())\n\t\t\t\t{\n\t\t\t\t\tString lineOfInput = pipe.nextLine();\n\t\t\t\t\tprint(lineOfInput);\n\t\t\t\t}\n\t\t\t\tpipe.close();\n\t\t\t\tprint(\"}\");\n\t\t\t}\n\t\t\telse\n\t\t\t{\n\t\t\t\tprint(\"nothing was piped in\");\n\t\t\t}\n\t\t}\n\t\tcatch (Exception e)\n\t\t{\n\t\t\tSystem.err.println(\"Failed read in\");\n\t\t}\n\t}";
 				}
 				else
 				{
-					JavaMain = "\tpublic static void main(String[] args)\n\t{\n\n\t}";
+					JavaMain = "\tpublic static void main(String[] args)\n\t{\n"+JavaThreadCall+"\n\n\t}";
 				}
-				Java = JavaPackage+JavaImports+"\n\n"+Comments[0]+"\n\n"+Comments[1]+"\npublic class "+Class+" {\n\n"+JavaMethods+"\n\t"+Comments[2]+"\n"+JavaMain+"\n}\n";
+				Java = JavaPackage+JavaImports+"\n\n"+Comments[0]+"\n\n"+Comments[1]+"\npublic class "+TheClass+" {\n\n"+JavaThreadStart+JavaMethods+"\n\t"+Comments[2]+"\n"+JavaMain+"\n}\n";
 			}
 			else
 			{
-				Java = JavaPackage+JavaImports+"\n\n"+Comments[0]+"\n\n"+Comments[1]+"\npublic class "+Class+" {\n\n"+JavaMethods+"\n\n}\n";
+				Java = JavaPackage+JavaImports+"\n\n"+Comments[0]+"\n\n"+Comments[1]+"\npublic class "+TheClass+" {\n\n"+JavaThreadStart+JavaMethods+"\n\n}\n"+JavaThreadCall;
 			}
 			WriteFile(Class+".java",Java);
 		}

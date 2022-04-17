@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.75"
+SupportV="0.1.79"
 Lang=Go
 LangExt=".go"
 #Color Green
@@ -366,7 +366,7 @@ UseGo()
 			;;
 		newCodeHelp)
 			if [ -f ${TemplateCode} ]; then
-				echo -e "\t-c, --custom\t\t\t: \"Custom src file using ${Lang} template\""
+				echo -e "\t-c, --custom <args>\t\t: \"Custom src file using ${Lang} template\""
 			fi
 			;;
 		#Make sure directories in place
@@ -1025,7 +1025,157 @@ UseGo()
 				ls --color=auto ${path}
 			fi
 			;;
-		Install|exe-string)
+		Install*)
+			local bin=$1
+			local BinFile="${bin%.*}"
+			local project=${CodeProject}
+			local TheBinDir
+			local UseProjectTemplate
+			local ThePath
+			#Handle Project Dir
+			case ${project} in
+				none)
+					project=""
+					TheBinDir=${LangBin}
+					;;
+				*)
+					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type}) 
+					project="${project}/"
+					TheBinDir="${LangProject}/${project}bin"
+					;;
+			esac
+
+			case ${Type} in
+				Install-alias)
+					#Make sure Binary exists
+					if [ -f "${TheBinDir}/${BinFile}" ]; then
+						#Add command to Aliases
+						AddAlias "${BinFile}" "${TheBinDir}/${BinFile}"
+					elif [ ! -f "${TheBinDir}/${BinFile}" ]; then
+						#compile or swap to binary
+						errorCode "install" "${bin}"
+					else
+						errorCode "noCode"
+					fi
+					;;
+				Install-check)
+					local IsAlias
+					echo -n "Install-alias (~/.bash_aliases): "
+					if [ -f ~/.bash_aliases ]; then
+						IsAlias=$(grep "alias ${BinFile}=\"" ~/.bash_aliases)
+						if [ ! -z "${IsAlias}" ]; then
+							errorCode "HINT" "INSTALLED"
+						else
+							errorCode "ERROR" "NOT-INSTALLED"
+						fi
+					else
+						errorCode "ERROR" "NOT-INSTALLED"
+					fi
+
+					echo -n "Install-bin (/bin): "
+					if [ -f /bin/${BinFile} ]; then
+						errorCode "HINT" "INSTALLED"
+					else
+						errorCode "ERROR" "NOT-INSTALLED"
+					fi
+
+					echo -n "Install-root (/usr/sbin): "
+					if [ -f /usr/sbin/${BinFile} ]; then
+						errorCode "HINT" "INSTALLED"
+					else
+						errorCode "ERROR" "NOT-INSTALLED"
+					fi
+
+					echo -n "Install-user (~/bin): "
+					if [ -f ~/bin/${BinFile} ]; then
+						errorCode "HINT" "INSTALLED"
+					else
+						errorCode "ERROR" "NOT-INSTALLED"
+					fi
+					;;
+				Install-bin)
+					ThePath="/bin"
+					#Make sure Binary exists
+					if [ -f "${TheBinDir}/${BinFile}" ]; then
+						if [ -f ${ThePath}/${BinFile} ]; then
+							errorCode "install" "already" "${BinFile}" "${ThePath}/"
+							echo ""
+							errorCode "HINT" "This must be done manually to protect from unwanted over-written binaries"
+							errorCode "HINT" "command"
+							case ${USER} in
+								root)
+									errorCode "HINT" "cp ${TheBinDir}/${BinFile} ${ThePath}/${BinFile}"
+									;;
+								*)
+									errorCode "HINT" "sudo cp ${TheBinDir}/${BinFile} ${ThePath}/${BinFile}"
+									;;
+							esac
+						else
+							case ${USER} in
+								root)
+									cp ${TheBinDir}/${BinFile} ${ThePath}/${BinFile}
+									;;
+								*)
+									sudo cp ${TheBinDir}/${BinFile} ${ThePath}/${BinFile}
+									;;
+							esac
+						fi
+					elif [ ! -f "${TheBinDir}/${BinFile}" ]; then
+						#compile or swap to binary
+						errorCode "install" "${BinFile}"
+					else
+						errorCode "noCode"
+					fi
+					;;
+				Install-root)
+					ThePath="/usr/sbin"
+					#Make sure Binary exists
+					if [ -f "${TheBinDir}/${BinFile}" ]; then
+						if [ -f ${ThePath}/${BinFile} ]; then
+							errorCode "install" "already" "${BinFile}" "${ThePath}/"
+						else
+							case ${USER} in
+								root)
+									cp ${TheBinDir}/${BinFile} ${ThePath}/${BinFile}
+									;;
+								*)
+									sudo cp ${TheBinDir}/${BinFile} ${ThePath}/${BinFile}
+									;;
+							esac
+						fi
+					elif [ ! -f "${TheBinDir}/${BinFile}" ]; then
+						#compile or swap to binary
+						errorCode "install" "${BinFile}"
+					else
+						errorCode "noCode"
+					fi
+					;;
+				Install-user)
+					ThePath="~/bin"
+					#Make sure Binary exists
+					if [ -f "${TheBinDir}/${BinFile}" ]; then
+						if [ -f ${ThePath}/${BinFile} ]; then
+							errorCode "install" "already" "${BinFile}" "${ThePath}/"
+						else
+							if [ -d ${ThePath} ]; then
+								cp ${TheBinDir}/${BinFile} ${ThePath}/${BinFile}
+							else
+								errorCode "ERROR"
+								errorCode "ERROR" "${ThePath}/ does not exist"
+							fi
+						fi
+					elif [ ! -f "${TheBinDir}/${BinFile}" ]; then
+						#compile or swap to binary
+						errorCode "install" "${BinFile}"
+					else
+						errorCode "noCode"
+					fi
+					;;
+				*)
+					;;
+			esac
+			;;
+		exe-string)
 			local bin=$1
 			local BinFile="${bin%.*}"
 			local project=${CodeProject}
@@ -1044,36 +1194,25 @@ UseGo()
 					;;
 			esac
 
-			case ${Type} in
-				Install)
-					#Make sure Binary exists
-					if [ -f "${TheBinDir}/${BinFile}" ]; then
-						#Add command to Aliases
-						AddAlias "${BinFile}" "${TheBinDir}/${BinFile}"
-					elif [ ! -f "${TheBinDir}/${BinFile}" ]; then
-						#compile or swap to binary
-						errorCode "install" "${bin}"
-					else
-						errorCode "noCode"
-					fi
-					;;
-				exe-string)
-					#Make sure Binary exists
-					if [ -f "${TheBinDir}/${BinFile}" ]; then
-						echo "${TheBinDir}/${BinFile}"
-					fi
-					;;
-				*)
-					;;
-			esac
+			#Make sure Binary exists
+			if [ -f "${TheBinDir}/${BinFile}" ]; then
+				echo "${TheBinDir}/${BinFile}"
+			fi
 			;;
 		customCode)
 			local cLang=$(UseGo "color")
 			local cTemplate=$(OtherColor ${TemplateCode##*/})
 			#Check for Custom Code Template
 			if [ -f ${TemplateCode} ]; then
-				echo -n "${cLang}\$ ./${cTemplate} "
-				read -a Args
+				shift
+				shift
+				shift
+				shift
+				Args=$@
+				if [ -z "${1}" ]; then
+					echo -n "${cLang}\$ ./${cTemplate} "
+					read -a Args
+				fi
 				#Program Args Given
 				if [ ! -z "${Args}" ]; then
 					${TemplateCode} ${Args[@]}
@@ -1315,7 +1454,11 @@ UseGo()
 				case ${Type} in
 					debug)
 						if [ ! -z "${ThePipe}" ]; then
-							cat /dev/stdin | ${UseDebugger} ${TheBinDir}/${TheBin} ${Args[@]}
+							if [ -f "${MultiPipeFile}" ]; then
+								cat ${MultiPipeFile} | ${UseDebugger} ${TheBinDir}/${TheBin} ${Args[@]}
+							else
+								cat /dev/stdin | ${UseDebugger} ${TheBinDir}/${TheBin} ${Args[@]}
+							fi
 						else
 							${UseDebugger} ${TheBinDir}/${TheBin} ${Args[@]}
 						fi
@@ -1323,9 +1466,17 @@ UseGo()
 					runCode)
 						if [ ! -z "${ThePipe}" ]; then
 							if [ ! -z "${TimeRun}" ]; then
-								time cat /dev/stdin | ${TheBinDir}/${TheBin} ${Args[@]}
+								if [ -f "${MultiPipeFile}" ]; then
+									time cat ${MultiPipeFile} | ${TheBinDir}/${TheBin} ${Args[@]}
+								else
+									time cat /dev/stdin | ${TheBinDir}/${TheBin} ${Args[@]}
+								fi
 							else
-								cat /dev/stdin | ${TheBinDir}/${TheBin} ${Args[@]}
+								if [ -f "${MultiPipeFile}" ]; then
+									cat ${MultiPipeFile} | ${TheBinDir}/${TheBin} ${Args[@]}
+								else
+									cat /dev/stdin | ${TheBinDir}/${TheBin} ${Args[@]}
+								fi
 							fi
 						else
 							if [ ! -z "${TimeRun}" ]; then
@@ -1541,3 +1692,4 @@ UseGo()
 }
 
 UseGo $@
+

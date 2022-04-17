@@ -275,6 +275,22 @@ errorCode()
 			shift
 			local thr=$1
 			case ${sec} in
+				missing-env)
+					shift
+					local four=$1
+					errorCode "ERROR"
+					errorCode "ERROR" "Please pre-pend and your shell enviroment path"
+					echo ""
+					errorCode "HINT" "example: ${thr}" "${four}"
+					;;
+				already)
+					shift
+					local four=$1
+					errorCode "ERROR"
+					errorCode "ERROR" "\"${thr}\" is alread installed in \"${four}\""
+					errorCode "WARNING"
+					errorCode "WARNING" "Please copy \"${thr}\" to \"${four}\""
+					;;
 				cli-not-supported)
 					errorCode "lang" "cli-not-supported" "${thr}"
 					;;

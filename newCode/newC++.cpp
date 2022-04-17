@@ -8,7 +8,7 @@
 static void help()
 {
 	std::string ProgName = "newC++";
-	std::string Version = "0.1.20";
+	std::string Version = "0.1.22";
 	print("Author: Joespider");
 	print("Program: \"" << ProgName << "\"");
 	print("Version: " << Version);
@@ -19,15 +19,15 @@ static void help()
 	print("\t--ext <extension> : choose an extension (.cpp is default)");
 	print("\t--cli : enable command line (Main file ONLY)");
 	print("\t--main : main file");
-	print("\t--pipe : enable piping");
+	print("\t--pipe : enable piping (Main file ONLY)");
 	print("\t--shell : unix shell");
 	print("\t--random : enable \"random\" int method");
 	print("\t--write-file : enable \"write\" file method");
 	print("\t--read-file : enable \"read\" file method");
 	print("\t--is-in : enable \"IsIn\" file method");
 	print("\t--user-input : enable \"raw_input\" method");
-	print("\t--user-input : enable \"raw_input\" method");
 	print("\t--thread : enable threading");
+	print("\t--sleep : enable sleep method");
 }
 
 static std::string getMarcos()
@@ -43,7 +43,7 @@ static std::string getMarcos()
 }
 
 //create import listing
-static std::string getImports(bool* write, bool* read, bool* random, bool* pipe, bool* shell, bool* threads)
+static std::string getImports(bool* write, bool* read, bool* random, bool* pipe, bool* shell, bool* threads, bool* sleep)
 {
 	std::string Imports = "";
 	std::string standard = "#include <iostream>\n#include <string>\n";
@@ -52,6 +52,8 @@ static std::string getImports(bool* write, bool* read, bool* random, bool* pipe,
 	std::string ForPiping = "";
 	std::string ForShell = "";
 	std::string ForThreading = "";
+	std::string ForSleep = "";
+
 	if ((*read == true) || (*write == true))
 	{
 		readWrite = "#include <fstream>\n";
@@ -68,18 +70,23 @@ static std::string getImports(bool* write, bool* read, bool* random, bool* pipe,
 	{
 		ForShell = "#include <stdexcept>\n#include <stdio.h>\n";
 	}
-	if (*threads == true)
+	if ((*threads == true) || (*sleep == true))
 	{
 		ForThreading = "#include <thread>\n";
 	}
+	if (*sleep == true)
+	{
+		ForSleep = "#include <chrono>\n";
+	}
 
-	Imports = standard+readWrite+ForRandom+ForPiping+ForShell+ForThreading+"\n";
+
+	Imports = standard+readWrite+ForRandom+ForPiping+ForShell+ForThreading+ForSleep+"\n";
 
 	return Imports;
 }
 
 //create base methods
-static std::string getMethods(bool* rawinput, bool* rand, bool* write, bool* read, bool* isin, bool* shell)
+static std::string getMethods(bool* rawinput, bool* rand, bool* write, bool* read, bool* isin, bool* shell, bool* sleep)
 {
 	std::string Methods = "";
 	std::string Random = "";
@@ -88,6 +95,7 @@ static std::string getMethods(bool* rawinput, bool* rand, bool* write, bool* rea
 	std::string ReadFile = "";
 	std::string IsIn = "";
 	std::string TheShell = "";
+	std::string TheSleep = "";
 
 	if (*rawinput == true)
 	{
@@ -113,8 +121,13 @@ static std::string getMethods(bool* rawinput, bool* rand, bool* write, bool* rea
 	{
 		TheShell = "std::string shell(std::string command)\n{\n\tchar buffer[128];\n\tstd::string result = \"\";\n\n\t// Open pipe to file\n\tFILE* pipe = popen(command.c_str(), \"r\");\n\tif (!pipe)\n\t{\n\t\treturn \"popen failed!\";\n\t}\n\n\t// read till end of process:\n\twhile (!feof(pipe))\n\t{\n\t\t// use buffer to read and add to result\n\t\tif (fgets(buffer, 128, pipe) != NULL)\n\t\t{\n\t\t\tresult += buffer;\n\t\t}\n\t}\n\n\tpclose(pipe);\n\treturn result;\n}\n\n";
 	}
+	if (*sleep == true)
+	{
+		TheSleep = "void sleep(int millies)\n{\n\tstd::this_thread::sleep_for(std::chrono::milliseconds(millies));\n}\n\n";
+	}
+
 	//Methods for C++
-	Methods = RawInput+Random+IsIn+WriteFile+ReadFile+TheShell;
+	Methods = RawInput+Random+IsIn+WriteFile+ReadFile+TheShell+TheSleep;
 
 	return Methods;
 }
@@ -188,6 +201,7 @@ int main(int argc, char** argv)
 	bool getPipe = false;
 	bool getShell = false;
 	bool getThreads = false;
+	bool getSleep = false;
 	bool IsMain = false;
 	std::string UserIn = "";
 	std::string TheExt = ".cpp";
@@ -271,6 +285,11 @@ int main(int argc, char** argv)
 			{
 				getThreads = true;
 			}
+			//Enable sleep
+			else if (UserIn == "--sleep")
+			{
+				getSleep = true;
+			}
 			//capture new C++ program name
 			else if (getName == true)
 			{
@@ -297,9 +316,9 @@ int main(int argc, char** argv)
 		//Ensure program name is given
 		if (CName != "")
 		{
-			Imports = getImports(&getWrite, &getRead, &getRand, &getPipe, &getShell, &getThreads);
+			Imports = getImports(&getWrite, &getRead, &getRand, &getPipe, &getShell, &getThreads, &getSleep);
 			Marcos = getMarcos();
-			Methods =  getMethods(&getRawIn, &getRand, &getWrite, &getRead, &getIsIn, &getShell);
+			Methods =  getMethods(&getRawIn, &getRand, &getWrite, &getRead, &getIsIn, &getShell, &getSleep);
 			if (IsMain == true)
 			{
 				Main = getMain(&getArgs, &getRand, &getPipe, &getThreads);

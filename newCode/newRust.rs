@@ -10,20 +10,21 @@ fn help()
 {
 	print("Author: Joespider");
 	print("Program: \"newRust\"");
-	print("Version: 0.1.0");
+	print("Version: 0.1.01");
 	print("Purpose: make new Rust programs");
 	print("Usage: newRust <args>");
 	print("\t-n <name> : program name");
 	print("\t--name <name> : program name");
 	print("\t--cli : enable command line (Main file ONLY)");
 	print("\t--main : main file");
+	print("\t--pipe : enable piping (Main file and project ONLY)");
 	print("\t--random : enable \"random\" int method");
 	print("\t--write-file : enable \"write\" file method");
 	print("\t--read-file : enable \"read\" file method");
 	print("\t--user-input : enable \"Raw_Input\" file method");
 }
 
-fn get_imports(getreadfile: bool, getwritefile: bool, getcli: bool) -> String
+fn get_imports(getreadfile: bool, getwritefile: bool, getcli: bool, getpipe: bool) -> String
 {
 	let mut theimports = String::new();
 	if getcli == true
@@ -42,6 +43,15 @@ fn get_imports(getreadfile: bool, getwritefile: bool, getcli: bool) -> String
 	{
 		theimports.push_str("use std::fs::File;\nuse std::io::{BufRead, BufReader, Write};\n");
 	}
+	if getpipe == true && getreadfile == false && getwritefile == false
+	{
+		theimports.push_str("/*\nThis needs to be a rust project\nIn file 'Cargo.toml', account for the following\n\n[dependencies]\nisatty = \"0.1\"\n\nextern crate isatty;\nuse isatty::{stdin_isatty};\nuse std::io::{self, BufRead};\n*/\n");
+	}
+	if getpipe == true && getreadfile == true && getwritefile == true
+	{
+		theimports.push_str("/*\nThis needs to be a rust project\nIn file 'Cargo.toml', account for the following\n\n[dependencies]\nisatty = \"0.1\"\n\nextern crate isatty;\nuse isatty::{stdin_isatty};\n*/\n");
+	}
+
 	theimports.push_str("\n");
 	return theimports;
 }
@@ -61,10 +71,11 @@ fn get_methods(getreadfile: bool, getwritefile: bool, getrawinput: bool) -> Stri
 	{
 		themethods.push_str("fn write_file(filename: String, thecontent: String)\n{\n\tlet mut file = std::fs::File::create(filename).expect(\"create failed\");\n\tfile.write_all(thecontent.as_bytes()).expect(\"write failed\");\n}\n\n");
 	}
+
 	return themethods;
 }
 
-fn get_main(getmain: bool, getcli: bool) -> String
+fn get_main(getmain: bool, getcli: bool, getpipe: bool) -> String
 {
 	let mut themain = String::new();
 	if getmain == true
@@ -73,6 +84,10 @@ fn get_main(getmain: bool, getcli: bool) -> String
 		if getcli == true
 		{
 			themain.push_str("\tlet mut arg_count = 0;\n\t//CLI arguments\n\tfor args in env::args()\n\t{\n\t\tif arg_count > 0\n\t\t{\n\t\t\tprintln!(\"{}\", args);\n\t\t}\n\t\targ_count += 1;\n\t}\n");
+		}
+		if getpipe == true
+		{
+			themain.push_str("/*\n\tif stdin_isatty() == false\n\t{\n\t\tprintln!(\"[Pipe]\");\n\t\tprintln!(\"{{\");\n\t\tlet stdin = io::stdin();\n\t\tfor line in stdin.lock().lines()\n\t\t{\n\t\t\tprintln!(\"{}\", line.unwrap());\n\t\t}\n\t\tprintln!(\"}}\");\n\t}\n\telse\n\t{\n\t\tprintln!(\"nothing was piped in\");\n\t}\n*/");
 		}
 		themain.push_str("\n}");
 	}
@@ -98,6 +113,7 @@ fn main()
 	let mut is_cli = false;
 	let mut is_read_file = false;
 	let mut is_write_file = false;
+	let mut is_pipe = false;
 	let mut name_set = false;
 	let mut arg_count = 0;
 	//CLI arguments
@@ -149,6 +165,11 @@ fn main()
 			{
 				get_input_method = true;
 			}
+			else if args == "--pipe"
+			{
+				is_pipe = true;
+			}
+
 		}
 		arg_count += 1;
 	}
@@ -159,9 +180,9 @@ fn main()
 	}
 	else
 	{
-		let the_imports = get_imports(is_read_file, is_write_file, is_cli);
+		let the_imports = get_imports(is_read_file, is_write_file, is_cli, is_pipe);
 		let the_methods = get_methods(is_read_file, is_write_file, get_input_method);
-		let the_main = get_main(is_main, is_cli);
+		let the_main = get_main(is_main, is_cli, is_pipe);
 		write_file(program_name, the_imports, the_methods, the_main);
 	}
 }
