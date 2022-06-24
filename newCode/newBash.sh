@@ -17,7 +17,7 @@ Help()
 
 GetPipe()
 {
-	echo "if readlink /proc/$$/fd/0 | grep -q \"^pipe:\"; then"
+	echo "if readlink /proc/\$\$/fd/0 | grep -q \"^pipe:\"; then"
 	echo -e	"\techo \"[piped]\""
 	echo -e "\techo \"{\""
 	echo -e "\tcat /dev/stdin"

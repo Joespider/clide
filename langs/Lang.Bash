@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.92"
+SupportV="0.1.94"
 Lang=Bash
 LangExt=".sh"
 ColorNum=2
@@ -56,6 +56,7 @@ UseBash()
 	local LangProject=${LangHome}/projects
 
 	local TemplateCode=${NewBash}
+	local TemplateCodeArgs=${NewBashArgs}
 	TemplateCode=${LangBin}/${TemplateCode%${LangExt}}${LangExt}
 
 	local TemplateCodeSrc=${NewBash%${LangExt}}${LangExt}
@@ -1074,7 +1075,7 @@ UseBash()
 					if [ -f ${TemplateCode} ]; then
 						#Program Name Given
 						if [ ! -z "${name}" ]; then
-							${TemplateCode} -n ${name} > ${name}${LangExt}
+							${TemplateCode} -n ${name} ${TemplateCodeArgs} > ${name}${LangExt}
 						#No Program Name Given
 						else
 							${TemplateCode} --help

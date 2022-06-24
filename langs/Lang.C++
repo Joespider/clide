@@ -80,7 +80,6 @@ UseC++()
 {
 	#Get the enviornment variables for C++
 	#{
-	
 	local LangCpl=${cplCpp}
 	local UseDebugger=${debugCandCpp}
 
@@ -2074,7 +2073,6 @@ UseC++()
 					yes)
 						oldCode=${CodeType}
 						CodeType=""
-	
 						;;
 					*)
 						;;
