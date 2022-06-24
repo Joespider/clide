@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.89"
+SupportV="0.1.92"
 Lang=Bash
 LangExt=".sh"
 ColorNum=2
@@ -176,13 +176,18 @@ UseBash()
 			fi
 			;;
 		pgLang)
-			HasLang=$(which ${LangRun} 2> /dev/null)
-			if [ ! -z "${HasLang}" ]; then
-				#Return Bash tag
-				echo "${Lang}"
+			local ShowCpl=$1
+			if [ ! -z "${ShowCpl}" ]; then
+				echo ${LangRun}
 			else
-				#Return rejection
-				echo "no"
+				local HasLang=$(which ${LangRun} 2> /dev/null)
+				if [ ! -z "${HasLang}" ]; then
+					#Return Bash tag
+					echo "${Lang}"
+				else
+					#Return rejection
+					echo "no"
+				fi
 			fi
 			;;
 		hasExt)
@@ -313,7 +318,7 @@ UseBash()
 			;;
 		TemplateVersion)
 			if [ -f ${TemplateCode} ]; then
-				echo "${TemplateCode##*/} "
+				echo -n "${TemplateCode##*/} "
 				${TemplateCode} 2> /dev/null | grep Version | sed "s/Version//g"
 			else
 				echo "no ${TemplateCode##*/} found"
@@ -486,7 +491,7 @@ UseBash()
 				*)
 					;;
 			esac
-	
+
 			if [ -f ${ThePath}/${name}${LangExt} ] ; then
 				echo ${ThePath}/${name}${LangExt}
 			elif [ -f ${ThePath}/${project}${LangExt} ]; then
@@ -1069,7 +1074,7 @@ UseBash()
 					if [ -f ${TemplateCode} ]; then
 						#Program Name Given
 						if [ ! -z "${name}" ]; then
-							${TemplateCode} ${name} > ${name}${LangExt}
+							${TemplateCode} -n ${name} > ${name}${LangExt}
 						#No Program Name Given
 						else
 							${TemplateCode} --help

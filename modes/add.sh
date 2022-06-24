@@ -14,8 +14,7 @@ shift
 ClideProjectDir=$1
 ClideProjectDir=${ClideProjectDir}/Templates
 shift
-
-Version="0.1.04"
+addVersion="0.1.05"
 IDE=$(echo -e "\e[1;43madd\e[0m")
 Name="cl[${IDE}]"
 
@@ -27,7 +26,7 @@ errorCode()
 #call help shell script
 theHelp()
 {
-	${LibDir}/help.sh ${Head} ${LangsDir} ${RunCplArgs} ModesHelp add.sh $@
+	${LibDir}/help.sh ${Head} ${LangsDir} ModesHelp add.sh $@
 }
 
 #Select Languge
@@ -69,6 +68,9 @@ AddLangSupport()
 	local NewSupportFile
 	local SupportFile
 	case ${Choice} in
+		--help|help)
+			theHelp "language"
+			;;
 		create)
 			echo "refactor please"
 			;;
@@ -87,10 +89,8 @@ AddShortcut()
 {
 	local DebainAppDir=/usr/share/applications
 	local Lang=$1
-	local Code=$2
-	local Project=$3
+	local Project=$2
 	local ExeString
-	shift
 	shift
 	shift
 	local Choice=( $@ )
@@ -101,7 +101,7 @@ AddShortcut()
 					local ClideDesktop="clide.desktop"
 					echo -e "[Desktop Entry]\nName=cl[ide]\nEncoding=UTF-8\nExec=bash -c \"${root}/clide.sh\"\nIcon=${root}/icons/clide.png\nStartupNotify=false\nTerminal=true\nType=Application\nCategories=Programming;Development;IDE;" > ${ClideDesktop}
 					if [ -f ${ClideDesktop} ]; then
-						case $USER in
+						case ${USER} in
 							root)
 								mv ${ClideDesktop} ${DebainAppDir}/
 								;;
@@ -120,7 +120,7 @@ AddShortcut()
 				app)
 					local Name=${Choice[2]}
 					local shortcut="/usr/share/applications/${Name}.desktop"
-					case ${Code} in
+					case ${TheSrcCode} in
 						none)
 							errorCode "mode-add" "shortcut" "app" "none"
 							;;
@@ -135,7 +135,7 @@ AddShortcut()
 									;;
 							esac
 							if [ ! -z "${Name}" ]; then
-								ExeString=$(ManageLangs ${Lang} "exe-string" "${Code}")
+								ExeString=$(ManageLangs ${Lang} "exe-string" "${TheSrcCode}")
 								if [ ! -z "${ExeString}" ] && [ ! -f ${shortcut} ]; then
 									echo -e "[Desktop Entry]\nName=${Name}\nEncoding=UTF-8\nExec=bash -c \"${ExeString}\"\nStartupNotify=false\nType=Application" > ${Name}.desktop
 									case ${USER,,} in
@@ -191,6 +191,9 @@ AddProjectTemplate()
 	local Lang=$1
 	local Choice=$2
 	case ${Choice} in
+		--help|help)
+			theHelp "project"
+			;;
 		create)
 			echo "Create a new project template"
 			;;
@@ -228,8 +231,10 @@ Add()
 {
 	local Lang=$1
 	local cLang=$2
-	local cCode=$3
-	local FirstAction=$5
+	shift
+	shift
+	shift
+	local FirstAction=( $@ )
 	local UserIn
 	local prompt
 	local UserArg
@@ -244,9 +249,8 @@ Add()
 		fi
 
 		#User's first action
-		if [ ! -z "${FirstAction}" ]; then
-			UserIn[ 0 ]="set"
-			UserIn[ 1 ]=${FirstAction,,}
+		if [ ! -z "${FirstAction[0]}" ]; then
+			UserIn=( ${FirstAction[@]} )
 			UserArg=${UserIn[0]}
 			FirstAction=""
 		else
@@ -257,18 +261,27 @@ Add()
 			UserArg=${UserIn[0],,}
 		fi
 		case ${UserArg} in
-			set)
-				component=$(SelectComp "${UserIn[1],,}")
-				Ccomponent=$(echo -e "\e[1;35m${component}\e[0m")
+			version)
+				echo "Mode(\"add\"): ${addVersion}"
 				;;
-			done)
+			set)
+				local GetComp
+				if [ ! -z "${UserIn[1]}" ]; then
+					GetComp=$(SelectComp "${UserIn[1],,}")
+					if [ ! -z "${GetComp}" ]; then
+						component="${GetComp}"
+						Ccomponent=$(echo -e "\e[1;35m${component}\e[0m")
+					fi
+				fi
+				;;
+			unset|done)
 				component=$(SelectComp "")
 				Ccomponent=""
 				;;
 			create|import|change|correct)
 				case ${component} in
 					shortcut)
-						AddShortcut ${Lang} ${TheSrcCode} ${CodeProject} ${UserIn[@]}
+						AddShortcut ${Lang} ${CodeProject} ${UserIn[@]}
 						;;
 					project)
 						AddProjectTemplate ${Lang} ${UserArg}
@@ -282,13 +295,9 @@ Add()
 				;;
 			using)
 				echo "Language: \"${cLang}\""
-				case ${TheSrcCode} in
-					none)
-						;;
-					*)
-						echo "Code: \"${cCode}\""
-						;;
-				esac
+				if [ ! -z "${TheSrcCode}" ]; then
+					echo "Code: \"${TheSrcCode}\""
+				fi
 				case ${CodeProject} in
 					none)
 						;;
@@ -301,14 +310,27 @@ Add()
 			clear)
 				clear
 				;;
-			help)
-				theHelp "${Lang}" "${component}"
+			help|-h|--help)
+				UserIn[1]=""
+				if [ ! -z "${component}" ]; then
+					theHelp ${Lang} ${component} ${UserIn[@]}
+				else
+					theHelp ${Lang} ${UserIn[@]}
+				fi
 				;;
 			exit|close)
 				break
 				;;
 			#ignore all other commands
 			*)
+				local GetComp
+				if [ ! -z "${UserArg[0]}" ]; then
+					GetComp=$(SelectComp "${UserIn[0],,}")
+					if [ ! -z "${GetComp}" ]; then
+						component="${GetComp}"
+						Ccomponent=$(echo -e "\e[1;35m${component}\e[0m")
+					fi
+				fi
 				;;
 		esac
 	done

@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+echo "Running: Spring"
+BinOrJar=$1
+case ${BinOrJar} in
+	*.class)
+		echo "Is a class"
+		;;
+	*.jar)
+		echo "Is a Jar"
+		;;
+	*)
+		;;
+esac
+echo mvn spring-boot:run

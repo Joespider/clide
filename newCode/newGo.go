@@ -8,7 +8,7 @@ import (
 
 func help() {
 	var ProgName string = "newGo"
-	var Version string = "0.1.05"
+	var Version string = "0.1.06"
 
 	fmt.Println("Author: Joespider")
 	fmt.Println("Program: \""+ProgName+"\"")
@@ -19,6 +19,7 @@ func help() {
 	fmt.Println("\t--name <name> : program name")
 	fmt.Println("\t--main : main file")
 	fmt.Println("\t--cli : enable command line (Main file ONLY)")
+	fmt.Println("\t--prop : enable custom system property")
 	fmt.Println("\t--pipe : enable piping (Main file ONLY)")
 	fmt.Println("\t--shell : unix shell")
 	fmt.Println("\t--random : enable \"random\" int method")
@@ -35,7 +36,7 @@ func getPackage(ThePackage string) string {
 }
 
 //create import listing
-func getImports(UserInput bool, write bool, read bool, random bool, cli bool, sleep bool, getPipe bool, getShell bool, getThread bool) string {
+func getImports(UserInput bool, write bool, read bool, random bool, cli bool, sleep bool, getPipe bool, getShell bool, getThread bool, getProp bool) string {
 	var Imports string = ""
 	var standard string = "\"fmt\"\n"
 	var readWrite string = ""
@@ -50,7 +51,7 @@ func getImports(UserInput bool, write bool, read bool, random bool, cli bool, sl
 		readWrite = "\t\"io/ioutil\"\n\t\"io\"\n"
 	}
 
-	if read == true || write == true || cli == true || getPipe == true {
+	if read == true || write == true || cli == true || getPipe == true || getProp == true {
 		ForCLI = "\t\"os\"\n"
 	}
 
@@ -84,7 +85,7 @@ func getImports(UserInput bool, write bool, read bool, random bool, cli bool, sl
 	return Imports
 }
 
-func getMethods(getRawIn bool, getRand bool, getWrite bool, getRead bool, getIsIn bool, getSleep bool, getShell bool, getThread bool) string {
+func getMethods(getRawIn bool, getRand bool, getWrite bool, getRead bool, getIsIn bool, getSleep bool, getShell bool, getThread bool, getProp bool) string {
 	var TheMethods string = ""
 	var ReadMethod string = ""
 	var WriteMethod string = ""
@@ -92,6 +93,7 @@ func getMethods(getRawIn bool, getRand bool, getWrite bool, getRead bool, getIsI
 	var UserInput string = ""
 	var SleepMethod string = ""
 	var ShellMethod string = ""
+	var SysPropMethod string = ""
 	var ThreadMethod string = ""
 
 	if getRawIn == true {
@@ -122,7 +124,11 @@ func getMethods(getRawIn bool, getRand bool, getWrite bool, getRead bool, getIsI
 		ThreadMethod = "func MyThread() {\n\tfmt.Println(\"{My Thread}\")\n}\n\n"
 	}
 
-	TheMethods = UserInput+WriteMethod+ReadMethod+RandMethod+ShellMethod+SleepMethod+ThreadMethod
+	if getProp == true {
+		SysPropMethod = "func GetSysProp(PleaseGet string) string {\n\tif PleaseGet != \"\" {\n\t\treturn os.Getenv(PleaseGet)\n\t} else {\n\t\treturn \"\"\n\t}\n}\n\n"
+	}
+
+	TheMethods = UserInput+WriteMethod+ReadMethod+RandMethod+ShellMethod+SleepMethod+ThreadMethod+SysPropMethod
 	return TheMethods
 }
 
@@ -181,6 +187,7 @@ func main() {
 	var getRand bool = false
 	var getSleep bool = false
 	var getPipe bool = false
+	var getProp bool = false
 	var getShell bool = false
 	var getThread bool = false
 	var IsMain bool = false
@@ -237,7 +244,10 @@ func main() {
 		} else if UserIn == "--pipe" {
 			getName = false
 			getPipe = true
-
+		//Get prop
+		} else if UserIn == "--prop" {
+			getName = false
+			getProp = true
 		//Get Shell
 		} else if UserIn == "--shell" {
 			getName = false
@@ -258,8 +268,8 @@ func main() {
 	//Ensure program name is given
 	if CName != "" {
 		ThePackage = getPackage("main")
-		Imports = getImports(getRawIn,getWrite,getRead,getRand,getArgs, getSleep,getPipe,getShell,getThread)
-		Methods = getMethods(getRawIn,getRand,getWrite,getRead,getIsIn, getSleep,getShell,getThread)
+		Imports = getImports(getRawIn, getWrite, getRead, getRand, getArgs, getSleep, getPipe, getShell, getThread, getProp)
+		Methods = getMethods(getRawIn, getRand, getWrite, getRead, getIsIn, getSleep, getShell, getThread, getProp)
 		if IsMain == true {
 			Main = getMain(getArgs,getRand,getPipe,getThread)
 		} else {

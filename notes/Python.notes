@@ -102,6 +102,11 @@ Date: (04/09/2022)
 	ary.pop()					#take last item out
 	ary.sort()					#Sort list
 
+>>>		---[OS Environment]---
+	import os
+	os.environ['USER']				#get username
+	os.environ					#get ALL environment vars
+
 >>>		---[Get CLI Args]---
 	import sys
 	Args = sys.argv		[array]

@@ -10,13 +10,14 @@ fn help()
 {
 	print("Author: Joespider");
 	print("Program: \"newRust\"");
-	print("Version: 0.1.01");
+	print("Version: 0.1.02");
 	print("Purpose: make new Rust programs");
 	print("Usage: newRust <args>");
 	print("\t-n <name> : program name");
 	print("\t--name <name> : program name");
 	print("\t--cli : enable command line (Main file ONLY)");
 	print("\t--main : main file");
+	print("\t--prop : enable custom system property");
 	print("\t--pipe : enable piping (Main file and project ONLY)");
 	print("\t--random : enable \"random\" int method");
 	print("\t--write-file : enable \"write\" file method");
@@ -24,10 +25,10 @@ fn help()
 	print("\t--user-input : enable \"Raw_Input\" file method");
 }
 
-fn get_imports(getreadfile: bool, getwritefile: bool, getcli: bool, getpipe: bool) -> String
+fn get_imports(getreadfile: bool, getwritefile: bool, getcli: bool, getpipe: bool, getsysprop: bool) -> String
 {
 	let mut theimports = String::new();
-	if getcli == true
+	if getcli == true || getsysprop == true
 	{
 		theimports.push_str("use std::env;\n");
 	}
@@ -56,7 +57,7 @@ fn get_imports(getreadfile: bool, getwritefile: bool, getcli: bool, getpipe: boo
 	return theimports;
 }
 
-fn get_methods(getreadfile: bool, getwritefile: bool, getrawinput: bool) -> String
+fn get_methods(getreadfile: bool, getwritefile: bool, getrawinput: bool, getsysprop: bool) -> String
 {
 	let mut themethods = String::new();
 	if getrawinput == true
@@ -70,6 +71,10 @@ fn get_methods(getreadfile: bool, getwritefile: bool, getrawinput: bool) -> Stri
 	if getwritefile == true
 	{
 		themethods.push_str("fn write_file(filename: String, thecontent: String)\n{\n\tlet mut file = std::fs::File::create(filename).expect(\"create failed\");\n\tfile.write_all(thecontent.as_bytes()).expect(\"write failed\");\n}\n\n");
+	}
+	if getsysprop == true
+	{
+		themethods.push_str("fn get_sys_prop(please_get: &str) -> String\n{\n\tlet value = match env::var_os(please_get)\n\t{\n\t\tSome(v) => v.into_string().unwrap(),\n\t\tNone => panic!(\"{} is not set\",please_get)\n\t};\n\treturn value;\n}\n\n");
 	}
 
 	return themethods;
@@ -113,6 +118,7 @@ fn main()
 	let mut is_cli = false;
 	let mut is_read_file = false;
 	let mut is_write_file = false;
+	let mut is_prop = false;
 	let mut is_pipe = false;
 	let mut name_set = false;
 	let mut arg_count = 0;
@@ -169,6 +175,10 @@ fn main()
 			{
 				is_pipe = true;
 			}
+			else if args == "--prop"
+			{
+				is_prop = true;
+			}
 
 		}
 		arg_count += 1;
@@ -180,8 +190,8 @@ fn main()
 	}
 	else
 	{
-		let the_imports = get_imports(is_read_file, is_write_file, is_cli, is_pipe);
-		let the_methods = get_methods(is_read_file, is_write_file, get_input_method);
+		let the_imports = get_imports(is_read_file, is_write_file, is_cli, is_pipe, is_prop);
+		let the_methods = get_methods(is_read_file, is_write_file, get_input_method, is_prop);
 		let the_main = get_main(is_main, is_cli, is_pipe);
 		write_file(program_name, the_imports, the_methods, the_main);
 	}

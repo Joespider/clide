@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.88"
+SupportV="0.1.89"
 Lang=Ruby
 LangExt=".rb"
 ColorNum=1
@@ -175,13 +175,18 @@ UseRuby()
 			fi
 			;;
 		pgLang)
-			local HasLang=$(which ${LangRun} 2> /dev/null)
-			if [ ! -z "${HasLang}" ]; then
-				#Return Ruby tag
-				echo "${Lang}"
+			local ShowCpl=$1
+			if [ ! -z "${ShowCpl}" ]; then
+				echo ${LangRun}
 			else
-				#Return rejection
-				echo "no"
+				local HasLang=$(which ${LangRun} 2> /dev/null)
+				if [ ! -z "${HasLang}" ]; then
+					#Return Ruby tag
+					echo "${Lang}"
+				else
+					#Return rejection
+					echo "no"
+				fi
 			fi
 			;;
 		hasExt)

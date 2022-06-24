@@ -3,7 +3,7 @@
 #Program Details
 User = "Joespider"
 ProgramName = "newRuby"
-VersionName = "0.1.03"
+VersionName = "0.1.04"
 Purpose = "Purpose: make new Ruby Scripts"
 
 #Help Page
@@ -18,9 +18,9 @@ def help
 	puts "\t--cli : enable command line (Main file ONLY)"
 	puts "\t--pipe : enable command line (Main file ONLY)"
 	puts "\t--main : main file"
-	puts "\t-w : enable \"write\" file method"
-	puts "\t-r : enable \"read\" file method"
-	puts "\t-u : enable \"raw_input\" method"
+	puts "\t--write-file : enable \"write\" file method"
+	puts "\t--read-file : enable \"read\" file method"
+	puts "\t--user-input : enable \"raw_input\" method"
 end
 
 #Get the User info for new program
@@ -64,11 +64,11 @@ def getArgs
 			userArgs["isMain"] = true
 		elsif theArg == "--main"
 			userArgs["isMain"] = true
-		elsif theArg == "-w"
+		elsif theArg == "--write-file"
 			userArgs["writeFile"] = true
-		elsif theArg == "-r"
+		elsif theArg == "--read-file"
 			userArgs["readFile"] = true
-		elsif theArg == "-u"
+		elsif theArg == "--user-input"
 			userArgs["raw_input"] = true
 		end
 	end
