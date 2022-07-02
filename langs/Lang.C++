@@ -4,7 +4,7 @@
 #Link Libs: https://gist.github.com/gubatron/32f82053596c24b6bec6
 #both https://avikdas.com/2019/12/16/makefiles-for-c-cpp-projects.html
 
-SupportV="0.2.43"
+SupportV="0.2.45"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -80,7 +80,6 @@ UseC++()
 {
 	#Get the enviornment variables for C++
 	#{
-	
 	local LangCpl=${cplCpp}
 	local UseDebugger=${debugCandCpp}
 
@@ -533,13 +532,18 @@ UseC++()
 			;;
 		#check if compiler is installed
 		pgLang)
-			local HasLang=$(which ${LangCpl} 2> /dev/null)
-			if [ ! -z "${HasLang}" ]; then
-				#Return C++ tag
-				echo "${Lang}"
+			local ShowCpl=$1
+			if [ ! -z "${ShowCpl}" ]; then
+				echo ${LangCpl}
 			else
-				#Return rejection
-				echo "no"
+				local HasLang=$(which ${LangCpl} 2> /dev/null)
+				if [ ! -z "${HasLang}" ]; then
+					#Return C++ tag
+					echo "${Lang}"
+				else
+					#Return rejection
+					echo "no"
+				fi
 			fi
 			;;
 		#Look for source code before and after new source code created
@@ -1163,6 +1167,7 @@ UseC++()
 			local HasXlib
 			local HasXutil
 			local HasXos
+			local HasSDL
 			local src=$1
 			src=${src//,/ }
 			local cplArgs=$2
@@ -1180,10 +1185,11 @@ UseC++()
 				none)
 					if [ ! -z "${src}" ]; then
 						HasAutoInFunction=$(grep -E \(*auto*\) ${src} 2> /dev/null | grep -v ";")
-						NeedThreads=$(grep "#include <thread>" ${src} 2> /dev/null | egrep -v "//|=|\"")
-						HasXlib=$(grep "#include <X11/Xlib.h>" ${src} 2> /dev/null | egrep -v "//|=|\"")
-						HasXutil=$(grep "#include <X11/Xutil.h>" ${src} 2> /dev/null | egrep -v "//|=|\"")
-						HasXos=$(grep "#include <X11/Xos.h>" ${src} 2> /dev/null | egrep -v "//|=|\"")
+						NeedThreads=$(grep "#include <thread>" ${src} 2> /dev/null | egrep -v "//|=")
+						HasXlib=$(grep "#include <X11/Xlib.h>" ${src} 2> /dev/null | egrep -v "//|=")
+						HasXutil=$(grep "#include <X11/Xutil.h>" ${src} 2> /dev/null | egrep -v "//|=")
+						HasXos=$(grep "#include <X11/Xos.h>" ${src} 2> /dev/null | egrep -v "//|=")
+						HasSDL=$(egrep -i "#include <SDL2/SDL.h>|#include \"sdl/SDL.h\"" ${src} 2> /dev/null | egrep -v "//|=")
 					fi
 					;;
 				*)
@@ -1194,10 +1200,11 @@ UseC++()
 					#Check headers for ALL values
 					if [ ! -z "${GetHeaders}" ]; then
 						HasAutoInFunction=$(grep -E \(*auto*\) "${GetHeaders}" 2> /dev/null | grep -v ";")
-						NeedThreads=$(grep "#include <thread>" "${GetHeaders}" 2> /dev/null | egrep -v "//|=|\"")
-						HasXlib=$(grep "#include <X11/Xlib.h>" "${GetHeaders}" 2> /dev/null | egrep -v "//|=|\"")
-						HasXutil=$(grep "#include <X11/Xutil.h>" "${GetHeaders}" 2> /dev/null | egrep -v "//|=|\"")
-						HasXos=$(grep "#include <X11/Xos.h>" "${GetHeaders}" 2> /dev/null | egrep -v "//|=|\"")
+						NeedThreads=$(grep "#include <thread>" "${GetHeaders}" 2> /dev/null | egrep -v "//|=")
+						HasXlib=$(grep "#include <X11/Xlib.h>" "${GetHeaders}" 2> /dev/null | egrep -v "//|=")
+						HasXutil=$(grep "#include <X11/Xutil.h>" "${GetHeaders}" 2> /dev/null | egrep -v "//|=")
+						HasXos=$(grep "#include <X11/Xos.h>" "${GetHeaders}" 2> /dev/null | egrep -v "//|=")
+						HasSDL=$(egrep -i "#include <SDL2/SDL.h>|#include \"sdl/SDL.h\"" "${GetHeaders}" 2> /dev/null | egrep -v "//|=")
 					fi
 
 					#Nothing found
@@ -1208,13 +1215,17 @@ UseC++()
 
 						if [ -z "${NeedThreads}" ]; then
 							#Look in source code
-							NeedThreads=$(grep "#include <thread>" "${GetSrc}" 2> /dev/null | egrep -v "//|=|\"")
+							NeedThreads=$(grep "#include <thread>" "${GetSrc}" 2> /dev/null | egrep -v "//|=")
 						fi
 
 						if [ -z "${HasXlib}" ] && [ -z "${HasXutil}" ] && [ -z "${HasXos}" ]; then
-							HasXlib=$(grep "#include <X11/Xlib.h>" "${GetSrc}" 2> /dev/null | egrep -v "//|=|\"")
-							HasXutil=$(grep "#include <X11/Xutil.h>" "${GetSrc}" 2> /dev/null | egrep -v "//|=|\"")
-							HasXos=$(grep "#include <X11/Xos.h>" "${GetSrc}" 2> /dev/null | egrep -v "//|=|\"")
+							HasXlib=$(grep "#include <X11/Xlib.h>" "${GetSrc}" 2> /dev/null | egrep -v "//|=")
+							HasXutil=$(grep "#include <X11/Xutil.h>" "${GetSrc}" 2> /dev/null | egrep -v "//|=")
+							HasXos=$(grep "#include <X11/Xos.h>" "${GetSrc}" 2> /dev/null | egrep -v "//|=")
+						fi
+
+						if [ -z "${HasSDL}" ]; then
+							HasSDL=$(egrep -i "#include <SDL2/SDL.h>|#include \"sdl/SDL.h\"" "${GetSrc}" 2> /dev/null | egrep -v "//|=")
 						fi
 					fi
 
@@ -1272,6 +1283,23 @@ UseC++()
 			fi
 			#}
 
+			#[SDL2]
+			#{
+			if [ ! -z "${HasSDL}" ]; then
+				case ${cplArgs} in
+					*"-lSDL2"*)
+						;;
+					*)
+						if [ -z "${cplArgs}" ]; then
+							cplArgs="-lSDL2"
+						else
+							cplArgs="${cplArgs} -lSDL2"
+						fi
+						;;
+				esac
+			fi
+			#}
+
 			echo ${cplArgs// /,}
 			;;
 		setCplArgs)
@@ -1321,6 +1349,9 @@ UseC++()
 						-w|--warnings)
 							Item="-Wall"
 							;;
+						-sdl)
+							Item="-lSDL2"
+							;;
 						-std=*)
 							local stdVal=${TheItem}
 							case ${stdVal} in
@@ -1369,6 +1400,7 @@ UseC++()
 			echo -e "-t, --thread\t\t: \"Set Threading (-lpthread)\""
 			echo -e "-x, --gui\t\t: \"Set GUI (-I /usr/X11/include -L /usr/X11/lib -lX11)\""
 			echo -e "-w, --warnings\t\t: \"Show ALL warnings (-Wall)\""
+			echo -e "-sdl\t\t\t: \"Use SDL2 (-lSDL2)\""
 			echo -e "-std=c++<version>\t: \"Set C++ version (-std=c++17)\""
 			case ${LangCpl} in
 				g++)
@@ -2041,7 +2073,6 @@ UseC++()
 					yes)
 						oldCode=${CodeType}
 						CodeType=""
-	
 						;;
 					*)
 						;;

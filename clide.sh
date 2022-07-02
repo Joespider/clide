@@ -18,6 +18,7 @@ source ${root}/var/clide.conf
 source ${root}/var/version
 
 export TypeOfCpl
+export RunType
 export RunCplArgs
 export TheSrcCode
 export TimeRun
@@ -211,9 +212,7 @@ ModeHandler()
 	local Mode=$1
 	local Lang=$2
 	local cLang=$3
-	local cCode=$5
-	shift
-	shift
+	local cCode
 	shift
 	shift
 	shift
@@ -253,8 +252,13 @@ ModeHandler()
 				;;
 			add)
 				if [ -f ${ModesDir}/add.sh ]; then
+					#cCode=${TheSrcCode}
+					#if [ -z "${TheSrcCode}" ]; then
+					#	cCode="none"
+					#fi
 					chmod -w ${ModesDir}/add.sh 2> /dev/null
-					${ModesDir}/add.sh ${Head} "${LibDir}" "${LangsDir}" "${ClideProjectDir}" ${Lang} ${cLang} ${cCode} ${Arg[@]}
+					#${ModesDir}/add.sh ${Head} "${LibDir}" "${LangsDir}" "${ClideProjectDir}" ${Lang} ${cLang} ${cCode} ${Arg[@]}
+					${ModesDir}/add.sh ${Head} "${LibDir}" "${LangsDir}" "${ClideProjectDir}" ${Lang} ${cLang} ${Arg[@]}
 					chmod u+w ${ModesDir}/add.sh 2> /dev/null
 				fi
 				;;
@@ -351,7 +355,7 @@ EnsureDirs()
 #provide the langauge number of cl[ide]
 ClideVersion()
 {
-	echo ${Version}
+	echo ${clideVersion}
 }
 
 #Get repo version
@@ -562,9 +566,9 @@ Banner()
 		esac
 	fi
 	if [ ! -z "${VerColor}" ]; then
-		echo -e "(\e[1;4${VerColor}m${Version}\e[0m)"
+		echo -e "(\e[1;4${VerColor}m${clideVersion}\e[0m)"
 	else
-		echo "(${Version})"
+		echo "(${clideVersion})"
 	fi
 	echo ""
 	echo "\"Welcome to ${Head}\""
@@ -1159,8 +1163,10 @@ listProjects()
 					Lang=$(grep "lang=" ${TheProject} | sed "s/lang=//1")
 					Linked=$(grep "link=" ${TheProject} | sed "s/link=//1")
 					TheColor=$(ManageLangs ${Lang} "color-number")
-					echo -e "\e[1;4${TheColor}mProject:\e[0m \e[1;3${TheColor}m${Name}\e[0m"
-					echo -e "\e[1;4${TheColor}mLanguage:\e[0m \e[1;3${TheColor}m${Lang}\e[0m"
+					#echo -e "\e[1;4${TheColor}mProject:\e[0m \e[1;3${TheColor}m${Name}\e[0m"
+					#echo -e "\e[1;4${TheColor}mLanguage:\e[0m \e[1;3${TheColor}m${Lang}\e[0m"
+					echo -e "Project: \e[1;3${TheColor}m${Name}\e[0m"
+					echo -e "Language: \e[1;3${TheColor}m${Lang}\e[0m"
 					if [ ! -z "${Linked}" ]; then
 						echo -en "\e[1;4${TheColor}mLinked:\e[0m"
 						echo -n " "
@@ -2030,11 +2036,12 @@ color()
 	ManageLangs ${text} "color"
 }
 
-ColorCodes()
+ListLangs()
 {
 	local text
 	local TheColor
 	local ChosenLangs=""
+	local Option=$1
 
 	for TheLang in ${LangsDir}/Lang.*;
 	do
@@ -2047,10 +2054,21 @@ ColorCodes()
 				;;
 			*)
 				TheColor=$(color ${text})
-				if [ -z "${ChosenLangs}" ]; then
-					ChosenLangs=${TheColor}
+				if [ ! -z "${Option}" ]; then
+					case ${Option} in
+						--cpl|--compiler|--run-time)
+							local ShowCpl=$(ManageLangs ${text} "pgLang" --cpl)
+							echo "${TheColor}: {${ShowCpl}}"
+							;;
+						*)
+							;;
+					esac
 				else
-					ChosenLangs="${ChosenLangs} ${TheColor}"
+					if [ -z "${ChosenLangs}" ]; then
+						ChosenLangs=${TheColor}
+					else
+						ChosenLangs="${ChosenLangs} ${TheColor}"
+					fi
 				fi
 				;;
 		esac
@@ -2156,9 +2174,11 @@ SelectLangByCode()
 Actions-NoLang()
 {
 	history -c
+	Lang="no-lang"
 	local NoLang=cl[$(echo -e "\e[1;41mide\e[0m")]
 	local UserIn
-	local prompt="${NoLang}($(echo -e "\e[1;31mno-lang\e[0m")):~$ "
+	local cLang=$(echo -e "\e[1;31m${Lang}\e[0m")
+	local prompt="${NoLang}(${cLang}):~$ "
 	while true
 	do
 		read -e -p "${prompt}" -a UserIn
@@ -2194,6 +2214,9 @@ Actions-NoLang()
 			version)
 				main "--version"
 				;;
+			ll|languages)
+				CLI "-ll" "${UserIn[1],,}"
+				;;
 			#Get compile/interpreter version from cli
 			cv|code-version)
 				main "--code-version"
@@ -2213,6 +2236,25 @@ Actions-NoLang()
 			#Get version control version from cli
 			rv|repo-version)
 				main "--repo-version"
+				;;
+			#list projects
+			project)
+				case ${UserIn[1],,} in
+					info)
+						main "--project" "--list" "--info"
+						;;
+					discover)
+						main "--project" "--discover"
+						;;
+					remove|delete)
+						if [ ! -z "${UserIn[2]}" ]; then
+							main --project --${UserIn[1]} ${UserIn[2]}
+						fi
+						;;
+					*)
+						main "--project" "--list"
+						;;
+				esac
 				;;
 			#jump out of No-Lang session and into a language session
 			use|bash|c|c++|go|java|python|perl|php|ruby|rust)
@@ -2243,6 +2285,25 @@ Actions-NoLang()
 				fi
 				break
 				;;
+			#Modes
+			mode)
+				local ModeArgs=( ${UserIn[@]} )
+				case ${UserIn[1]} in
+					#Provide help page when asked
+					-h|--help)
+						ModeArgs[0]=""
+						ModeArgs[1]=""
+						theHelp ModesHelp ${ModeArgs[@]}
+						;;
+					*)
+						local useMode=${ModeArgs[1]}
+						ModeArgs[0]=""
+						ModeArgs[1]=""
+						#Swap cl[ide] to a given mode
+						ModeHandler ${useMode} ${Lang} ${cLang} "none" ${ModeArgs[@]}
+						;;
+				esac
+				;;
 			#Display help page
 			help)
 				theHelp MenuHelp "no-lang"
@@ -2264,7 +2325,7 @@ Actions()
 	shift
 	shift
 	local CodeDir=$(pgDir ${Lang})
-	local pLangs=$(ColorCodes)
+	local pLangs=$(ListLangs)
 	local prompt
 	local listSrc
 	local cntSrc
@@ -2576,7 +2637,7 @@ Actions()
 										;;
 									*)
 										if [ ! -z "${UserIn[1]}" ]; then
-											cd ${UserIn[1]} 2> /dev/null
+											cd ${UserIn[1]} > /dev/null
 											here=${PWD}
 											case ${here} in
 												${ProjectDir}*)
@@ -2767,26 +2828,33 @@ Actions()
 							#Create new project
 							new)
 								local ProjectName=${UserIn[2]}
+								local projectType=${UserIn[3]}
 								#Ensure project has a name
 								if [ ! -z "${ProjectName}" ]; then
-									#Locate Project Directory
-									if [ -f ${ActiveProjectDir}/${ProjectName}.clide ]; then
-										errorCode "project" "exists" ${ProjectName}
-									else
-										newProject ${Lang} ${ProjectName} ${UserIn[3]} ${UserIn[4]}
-										if [ -f ${ActiveProjectDir}/${ProjectName}.clide ]; then
-											TheSrcCode=""
-											updateProject ${TheSrcCode}
-											if [ ! -z "${UserIn[2]}" ]; then
-												CodeProject=${ProjectName}
-												errorCode "HINT" "Created \"${CodeProject}\""
-												ProjectDir=$(echo ${ThePWD#*${CodeProject}})
-												ProjectDir=${ProjectDir/\//:}
+									case ${ProjectName} in
+										-*)
+											;;
+										*)
+											#Locate Project Directory
+											if [ -f ${ActiveProjectDir}/${ProjectName}.clide ]; then
+												errorCode "project" "exists" ${ProjectName}
+											else
+												newProject ${Lang} ${ProjectName} ${projectType} ${UserIn[4]}
+												if [ -f ${ActiveProjectDir}/${ProjectName}.clide ]; then
+													TheSrcCode=""
+													updateProject ${TheSrcCode}
+													if [ ! -z "${UserIn[2]}" ]; then
+														CodeProject=${ProjectName}
+														errorCode "HINT" "Created \"${CodeProject}\""
+														ProjectDir=$(echo ${ThePWD#*${CodeProject}})
+														ProjectDir=${ProjectDir/\//:}
+													fi
+												else
+													errorCode "project" "not-exist" ${ProjectName}
+												fi
 											fi
-										else
-											errorCode "project" "not-exist" ${ProjectName}
-										fi
-									fi
+											;;
+									esac
 								fi
 								refresh="yes"
 								;;
@@ -3175,8 +3243,14 @@ Actions()
 								if [ ! -z "${UserIn[1]}" ]; then
 									case ${UserIn[1]} in
 										no-lang|nl)
+											Lang=${UserIn[1]}
+											cLang=$(echo -e "\e[1;31m${Lang}\e[0m")
+											TheSrcCode=""
 											#Start IDE
 											Actions-NoLang
+											Lang=${Old}
+											cLang=$(color ${Lang})
+											TheSrcCode=${OldCode}
 											;;
 										*)
 											Lang=$(pgLang ${UserIn[1]})
@@ -3190,8 +3264,14 @@ Actions()
 							*)
 								case ${UserArg} in
 									no-lang|nl)
+										Lang=${UserArg}
+										cLang=$(echo -e "\e[1;31m${Lang}\e[0m")
+										TheSrcCode=""
 										#Start IDE
 										Actions-NoLang
+										Lang=${Old}
+										cLang=$(color ${Lang})
+										TheSrcCode=${OldCode}
 										;;
 									*)
 										Lang=$(pgLang ${UserIn[0]})
@@ -3524,12 +3604,11 @@ Actions()
 								HelpMenu ${Lang} ${UserIn[@]}
 								;;
 							*)
-								local passcCode=${cCode}
-								if [ -z "${passcCode}" ]; then
-									passcCode="none"
-								fi
 								#Swap cl[ide] to a given mode
-								ModeHandler ${UserIn[1]} ${Lang} ${cLang} ${passcCode} ${UserIn[2]}
+								local ModeArgs=( ${UserIn[@]} )
+								ModeArgs[0]=""
+								ModeArgs[1]="none"
+								ModeHandler ${UserIn[1]} ${Lang} ${cLang} ${ModeArgs[@]}
 								;;
 						esac
 						;;
@@ -4174,7 +4253,7 @@ Actions()
 						;;
 					#List supported languages
 					langs|languages)
-						local pg=$(ColorCodes)
+						local pg=$(ListLangs)
 						echo "Supported Languages: ${pg}"
 						;;
 					#Save cl[ide] session
@@ -4595,6 +4674,7 @@ loadAuto()
 CLI()
 {
 	local UserArg=$1
+	local Option=$2
 	local pg
 	local prompt
 	#No argument given
@@ -4645,8 +4725,7 @@ CLI()
 			#list supported Langauges
 			-ll|--languages|--langs)
 				if [ -z "${ThePipe}" ]; then
-					local pg=$(ColorCodes)
-					echo "${pg}"
+					ListLangs ${Option}
 				fi
 				;;
 			#List projects from cli
@@ -4751,6 +4830,18 @@ CLI()
 							shift
 							local CheckSrc
 							local Lang=$1
+
+							case ${Lang} in
+								--*)
+									RunType=$1
+									RunType=${RunType#--*}
+									shift
+									Lang=$1
+									;;
+								*)
+									;;
+							esac
+
 							Lang=$(pgLang ${Lang})
 
 							case ${Lang} in
@@ -4766,6 +4857,7 @@ CLI()
 									shift
 									;;
 							esac
+
 
 							if [ -z "${GetProject}" ]; then
 								if [ -z "${ThePipe}" ]; then
@@ -4875,11 +4967,17 @@ CLI()
 																			break
 																		fi
 																	done
+																else
+																	TheSrcCode=$(selectCode ${Lang} ${Code})
 																fi
 															else
 																TheSrcCode=$(selectCode ${Lang} ${Code})
 															fi
-															ManageLangs ${Lang} "editCode"
+															if [ ! -z "${TheSrcCode}" ]; then
+																ManageLangs ${Lang} "editCode"
+															else
+																errorCode "selectCode" "not-found" "${Code}"
+															fi
 															;;
 														-x|--run)
 															InAndOut="yes"
@@ -4942,6 +5040,7 @@ CLI()
 														*)
 															;;
 													esac
+													cd - > /dev/null
 												else
 													errorCode "project" "not-valid" "${GetProject}"
 												fi
@@ -6538,7 +6637,7 @@ main()
 	#No argument given
 	if [ -z "${UserArg}" ]; then
 		clear
-		pg=$(ColorCodes)
+		pg=$(ListLangs)
 		local getLang=""
 		if [ ! -z "${pg}" ]; then
 			if [ -z "${ThePipe}" ]; then

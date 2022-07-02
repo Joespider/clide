@@ -35,6 +35,16 @@ MenuHelp()
 			echo -e "read config\t\t\t: \"read ${Head} config\""
 			echo -e "edit config\t\t\t: \"edit ${Head} config\""
 			echo -e "version\t\t\t\t: \"Get ${Head} Version\""
+			echo -e "ll, languages\t\t\t: \"Get ${Head} supported languages\""
+			echo -e "\t--cpl, --compile, --run-time\t: \"Get ${Head} supported languages and compiler/intepreter\""
+			echo -e "mode <mode>\t\t\t: \"choose a mode ${Head} to use\""
+			echo -e "\tadd <component>\t\t: install/add component management"
+			echo -e "\tpkg\t\t\t: Use distro package manager"
+			echo -e "project <args>\t\t\t: \"List Projects\""
+			echo -e "\tinfo\t\t\t: \"List projects with supported languages\""
+			echo -e "\tdiscover\t\t: \"Discover Unlisted Projects\""
+			echo -e "\tremove <project>\t: \"Remove a Projects\""
+			echo -e "\tdelete <project>\t: \"Delete a Projects\""
 			echo -e "cv, code-version\t\t: \"Get compile/interpreter version of supported languages\""
 			echo -e "dv, debug-version\t\t: \"Get debugger version of supported languages\""
 			echo -e "sv, support-version\t\t: \"Get compile/interpreter version of supported languages\""
@@ -569,7 +579,8 @@ ProjectHelp()
 	echo "----------------[(${Head}) \"Project\" Help]----------------"
 	echo -e "Purpose: \"handle projects\""
 	echo -e "project <action>\t\t\t: \"handle projects\""
-	echo -e "\tnew <project>\t\t\t: \"Create a new project\""
+	echo -e "\tnew <project> <args>\t\t: \"Create a new project\""
+	echo -e "\t\t<type>\t\t: \"Create a given type of project\""
 	echo -e "\timport <project> <path>\t\t: \"Import projects\""
 	echo -e "\tupdate, save\t\t\t: \"Update the active project\""
 	echo -e "\texport\t\t\t\t: \"Export the active project to a tar.gz\""
@@ -686,6 +697,7 @@ CliHelp()
 			echo -e "-rv, --repo-version\t\t\t: \"The ${repoTool} Version\""
 			echo -e "-c, --config\t\t\t\t: \"Read my configuration\""
 			echo -e "-ll, --languages\t\t\t: \"List the languages I know\""
+			echo -e "\t--cpl, --compile, --run-time\t: \"List the languages I know AND how I know it\""
 			echo -e "--type <args>\t\t\t\t: \"Show Language Info\""
 			echo -e "-h, --help\t\t\t\t: \"Get to know me better\""
 			echo ""
@@ -1145,9 +1157,10 @@ ProjectCliHelp()
 	echo -e "${cmd} --info\t\t\t\t: \"List ${Head} Project's info\""
 	echo -e "${cmd} --info <project>\t\t\t: \"List ${Head} Project's info\""
 	echo -e "${cmd} --files <project>\t\t\t: \"List the contents of a project's files\""
+	echo -e "${cmd} --files <project> <src>\t\t: \"List the contents of a project's source files\""
 	echo -e "${cmd} --list\t\t\t\t: \"List ${Head} Projects\""
 	echo -e "${cmd} --list <project>\t\t\t: \"List the contents of a given project\""
-	echo -e "${cmd} --list --info\t\t\t\t: \"List ${Head} Project's info\""
+	echo -e "${cmd} --list --info\t\t\t: \"List ${Head} Project's info\""
 	echo -e "${cmd} --list --info <project>\t\t: \"List ${Head} Project's info\""
 	echo -e "${cmd} --link <lang> <project>\t\t: \"Link a language to a given project\""
 	echo -e "${cmd} --link --list <project>\t\t: \"List the linked languages in a given project\""
@@ -1270,7 +1283,7 @@ ModesHelp()
 {
 	local CalledBy=$1
 	case ${CalledBy} in
-		add.sh)
+		add.sh|add)
 			shift
 			local Lang=$1
 			shift
@@ -1317,10 +1330,11 @@ ModesHelp()
 					;;
 				*)
 					echo "Help options"
-					echo -e "set <cmp>\t\t\t: \"select component to add\""
+					echo -e "set <cmp>\t\t\t: \"select component\""
 					echo -e "\tshortcut\t\t: \"Create shortcut for cl[ide]\""
 					echo -e "\tproject\t\t\t: \"select the 'project' component\""
 					echo -e "\tsupport, language\t: \"select the 'language' component\""
+					echo -e "unset, done\t\t\t: \"unselect component\""
 					echo -e "using\t\t\t\t: \"List the content used in cl[ide]\""
 					echo ""
 					echo -e "exit, close\t\t\t: \"close mode\""

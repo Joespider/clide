@@ -1,8 +1,7 @@
 import sys
 
-ProgramName = "newPython"
 ProgramName = sys.argv[0].rsplit("/",1)[1]
-VersionName = "0.1.11"
+VersionName = "0.1.12"
 
 def Help():
 	print "Author: Joespider"
@@ -15,6 +14,7 @@ def Help():
 	print "\t--cli : enable command line (Main file ONLY)"
 	print "\t--main : main file"
 	print "\t--shell : unix shell"
+	print "\t--prop : enable custom system property"
 	print "\t--pipe : enable piping (Main file ONLY)"
 	print "\t--write-file : enable \"write\" file method"
 	print "\t--read-file : enable \"read\" file method"
@@ -35,6 +35,7 @@ def GetArgs():
 		   "read":False,
 		   "random":False,
 		   "pipe":False,
+		   "prop":False,
 		   "os":False,
 		   "thread":False,
 		   "sleep":False,
@@ -66,6 +67,8 @@ def GetArgs():
 			Returns["random"] = True
 		elif now == "--pipe":
 			Returns["pipe"] = True
+		elif now == "--prop":
+			Returns["prop"] = True
 		elif now == "--os":
 			Returns["os"] = True
 		elif now == "--shell":
@@ -78,9 +81,9 @@ def GetArgs():
 	return Returns
 
 #Get Imports
-def Imports(getOS, getShell, getSys, getRand, getThread, getPipe, getSleep):
+def Imports(getOS, getShell, getSys, getRand, getThread, getPipe, getSleep, getProp):
 	TheImports = ""
-	if getOS == True or getShell == True:
+	if getOS == True or getShell == True or getProp:
 		TheImports = "import os\n"
 	if getSys == True or getPipe == True:
 		TheImports = TheImports+"import sys\n"
@@ -94,7 +97,7 @@ def Imports(getOS, getShell, getSys, getRand, getThread, getPipe, getSleep):
 	return TheImports
 
 #Get Methods
-def Methods(getMain, getShell, getCLI, getWrite, getRead, getRandom, getThread, getPipe, getSleep):
+def Methods(getMain, getShell, getCLI, getWrite, getRead, getRandom, getThread, getPipe, getSleep, getProp):
 	TheMethods = ""
 	#{
 	OSshellMethod = "def Shell(cmd):\n\tOutput = \"\"\n\tTheShell = os.popen(cmd)\n\tOutput = TheShell.read()\n\tTheShell.close()\n\treturn Output\n\ndef Exe(cmd):\n\tos.system(cmd)\n"
@@ -103,6 +106,7 @@ def Methods(getMain, getShell, getCLI, getWrite, getRead, getRandom, getThread, 
 	ReadMethod = "def Read(FileName):\n\tOutput = \"\"\n\tTheFile = open(FileName,\"r\")\n\tOutput = TheFile.read()\n\tTheFile.close()\n\treturn Output\n"
 	RandomMethod = "def Random(min=0,max=0):\n\tif min == 0 and max == 0:\n\t\treturn random()\n\telse:\n\t\treturn randint(min,max)\n"
 	PipeMethod = "def Pipe():\n\tif not sys.stdin.isatty():\n\t\tPipeData = sys.stdin.read().strip()\n\t\treturn PipeData\n\telse:\n\t\treturn \"\"\n"
+	SysPropMethod = "def GetSysProp(PleaseGet):\n\tif PleaseGet != \"\":\n\t\treturn os.environ[PleaseGet]\n\telse:\n\t\treturn \"\"\n"
 	ThreadMethod = ""
 	SleepMethod = "def sleep(sec):\n\ttime.sleep(sec)\n"
 
@@ -132,6 +136,9 @@ def Methods(getMain, getShell, getCLI, getWrite, getRead, getRandom, getThread, 
 	#Get Pipe Method
 	if getPipe == True:
 		TheMethods = TheMethods+PipeMethod+"\n"
+	#Get Sys Prop Method
+	if getProp == True:
+		TheMethods = TheMethods+SysPropMethod+"\n"
 	#Get CLI Method
 	if getCLI == True:
 		TheMethods = TheMethods+CLImethod+"\n"
@@ -161,6 +168,7 @@ def Main():
 	GetRead = UserArgs["read"]
 	GetRand = UserArgs["random"]
 	GetPipe = UserArgs["pipe"]
+	GetProp = UserArgs["prop"]
 	GetOS = UserArgs["os"]
 	GetShell = UserArgs["shell"]
 	GetThreads = UserArgs["thread"]
@@ -169,9 +177,9 @@ def Main():
 	#Ensure Name of program
 	if TheName != "":
 		#Get Imports
-		ProgImports = Imports(GetOS, GetShell, IsCLI, GetRand, GetThreads, GetPipe, GetSleep)
+		ProgImports = Imports(GetOS, GetShell, IsCLI, GetRand, GetThreads, GetPipe, GetSleep, GetProp)
 		#Get Methods
-		ProgMethods = Methods(IsMain, GetShell, IsCLI, GetWrite, GetRead, GetRand, GetThreads, GetPipe, GetSleep)
+		ProgMethods = Methods(IsMain, GetShell, IsCLI, GetWrite, GetRead, GetRand, GetThreads, GetPipe, GetSleep, GetProp)
 		#Manage Imports
 		if ProgImports != "":
 			TheNewProgram = ProgImports+"\n"

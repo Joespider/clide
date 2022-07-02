@@ -28,13 +28,15 @@ public class newJava {
 	private static boolean getLengths = false;
 	private static boolean getThreads = false;
 	private static boolean getSleep = false;
+	private static boolean getSplit = false;
+	private static boolean getJoin = false;
 	private static boolean getPipe = false;
 	private static boolean getJavaProp = false;
 
 	private static void Help()
 	{
 		String program = "newJava";
-		String version = "0.1.19";
+		String version = "0.1.21";
 		print("Author: Joespider");
 		print("Program: \""+program+"\"");
 		print("Version: "+version);
@@ -53,6 +55,8 @@ public class newJava {
 		print("\t--pipe : enable piping (Main file ONLY)");
 		print("\t--thread : enable threading");
 		print("\t--sleep : enable sleep method");
+		print("\t--join : enable join method");
+		print("\t--split : enable split method");
 		print("\t--shell : unix shell");
 		print("\t--write-file : enable \"write\" file method");
 		print("\t--read-file : enable \"read\" file method");
@@ -183,7 +187,7 @@ public class newJava {
 			{
 				getSleep = true;
 			}
-			//enable unix piping
+			//enable java prop
 			else if (now.equals("--prop"))
 			{
 				getJavaProp = true;
@@ -192,6 +196,16 @@ public class newJava {
 			else if (now.equals("--pipe"))
 			{
 				getPipe = true;
+			}
+			//enable split method
+			else if (now.equals("--split"))
+			{
+				getSplit = true;
+			}
+			//enable join method
+			else if (now.equals("--join"))
+			{
+				getJoin = true;
 			}
 			//enable Write file Method
 			else if (now.equals("--write-file"))
@@ -337,6 +351,9 @@ public class newJava {
 		String MethodReadFile = "";
 		String MethodWriteFile = "";
 		String MethodShell = "";
+		String MethodSplit = "";
+		String MethodJoin = "";
+		String MethodSplitAndJoin = "";
 		String MethodSleep = "";
 
 		//raw_input
@@ -354,7 +371,7 @@ public class newJava {
 		}
 		if (getJavaProp == true)
 		{
-			MethodProp = "\tprivate static String GetSysProp(String PleaseGet)\n\t{\n\t\tString PropVal;\n\t\tif (PleaseGet.equals(\"\"))\n\t\t{\n\t\t\tPropVal = \"\";\n\t\t}\n\t\telse if (PleaseGet.equals(\"pwd\"))\n\t\t{\n\t\t\tPropVal = System.getProperty(\"user.dir\");\n\t\t}\n\t\telse if (PleaseGet.equals(\"user\"))\n\t\t{\n\t\t\tPropVal = System.getProperty(\"user.name\");\n\t\t}\n\t\telse if (PleaseGet.equals(\"home\"))\n\t\t{\n\t\t\tPropVal = System.getProperty(\"user.home\");\n\t\t}\n\t\telse if (PleaseGet.equals(\"jhome\"))\n\t\t{\n\t\t\tPropVal = System.getProperty(\"java.home\");\n\t\t}\n\t\telse if (PleaseGet.equals(\"os\"))\n\t\t{\n\t\t\tPropVal = System.getProperty(\"os.name\");\n\t\t}\n\t\telse if (PleaseGet.equals(\"fileSep\"))\n\t\t{\n\t\t\tPropVal = System.getProperty(\"file.separator\");\n\t\t}\n\t\telse if (PleaseGet.equals(\"sysPathSep\"))\n\t\t{\n\t\t\tPropVal = System.getProperty(\"path.separator\");\n\t\t}\n\t\telse if (PleaseGet.equals(\"kernel\"))\n\t\t{\n\t\t\tPropVal = System.getProperty(\"os.version\");\n\t\t}\n\t\telse if (PleaseGet.equals(\"osname\"))\n\t\t{\n\t\t\tPropVal = System.getProperty(\"java.vendor\");\n\t\t}\n\t\telse if (PleaseGet.equals(\"version\"))\n\t\t{\n\t\t\tPropVal = System.getProperty(\"java.version\");\n\t\t}\n\t\telse if (PleaseGet.equals(\"ossite\"))\n\t\t{\n\t\t\tPropVal = System.getProperty(\"java.vendor.url\");\n\t\t}\n\t\telse if (PleaseGet.equals(\"cpu\"))\n\t\t{\n\t\t\tPropVal = System.getProperty(\"os.arch\");\n\t\t}\n\t\telse if (PleaseGet.equals(\"bin\"))\n\t\t{\n\t\t\tPropVal = System.getProperty(\"java.class.path\");\n\t\t}\n\t\telse if (PleaseGet.equals(\"newline\"))\n\t\t{\n\t\t\tPropVal = System.getProperty(\"line.separator\");\n\t\t}\n\t\telse\n\t\t{\n\t\t\tPropVal = System.getProperty(PleaseGet);\n\t\t}\n\t\treturn PropVal;\n\t}\n\n";
+			MethodProp = "\tprivate static String GetSysProp(String PleaseGet)\n\t{\n\t\tString PropVal = \"\";\n\t\tif (PleaseGet.equals(\"\"))\n\t\t{\n\t\t\tPropVal = \"\";\n\t\t}\n\t\telse if (PleaseGet.equals(\"pwd\"))\n\t\t{\n\t\t\tPropVal = System.getProperty(\"user.dir\");\n\t\t}\n\t\telse if (PleaseGet.equals(\"user\"))\n\t\t{\n\t\t\tPropVal = System.getProperty(\"user.name\");\n\t\t}\n\t\telse if (PleaseGet.equals(\"home\"))\n\t\t{\n\t\t\tPropVal = System.getProperty(\"user.home\");\n\t\t}\n\t\telse if (PleaseGet.equals(\"jhome\"))\n\t\t{\n\t\t\tPropVal = System.getProperty(\"java.home\");\n\t\t}\n\t\telse if (PleaseGet.equals(\"os\"))\n\t\t{\n\t\t\tPropVal = System.getProperty(\"os.name\");\n\t\t}\n\t\telse if (PleaseGet.equals(\"fileSep\"))\n\t\t{\n\t\t\tPropVal = System.getProperty(\"file.separator\");\n\t\t}\n\t\telse if (PleaseGet.equals(\"sysPathSep\"))\n\t\t{\n\t\t\tPropVal = System.getProperty(\"path.separator\");\n\t\t}\n\t\telse if (PleaseGet.equals(\"kernel\"))\n\t\t{\n\t\t\tPropVal = System.getProperty(\"os.version\");\n\t\t}\n\t\telse if (PleaseGet.equals(\"osname\"))\n\t\t{\n\t\t\tPropVal = System.getProperty(\"java.vendor\");\n\t\t}\n\t\telse if (PleaseGet.equals(\"version\"))\n\t\t{\n\t\t\tPropVal = System.getProperty(\"java.version\");\n\t\t}\n\t\telse if (PleaseGet.equals(\"ossite\"))\n\t\t{\n\t\t\tPropVal = System.getProperty(\"java.vendor.url\");\n\t\t}\n\t\telse if (PleaseGet.equals(\"cpu\"))\n\t\t{\n\t\t\tPropVal = System.getProperty(\"os.arch\");\n\t\t}\n\t\telse if (PleaseGet.equals(\"bin\"))\n\t\t{\n\t\t\tPropVal = System.getProperty(\"java.class.path\");\n\t\t}\n\t\telse if (PleaseGet.equals(\"newline\"))\n\t\t{\n\t\t\tPropVal = System.getProperty(\"line.separator\");\n\t\t}\n\t\telse\n\t\t{\n\t\t\ttry\n\t\t\t{\n\t\t\t\tPropVal = System.getProperty(PleaseGet);\n\t\t\t\tif (PropVal == null)\n\t\t\t\t{\n\t\t\t\t\tPropVal = System.getenv(PleaseGet);\n\t\t\t\t}\n\t\t\t}\n\t\t\tcatch (NullPointerException e)\n\t\t\t{\n\t\t\t\tPropVal = \"\";\n\t\t\t}\n\t\t}\n\t\treturn PropVal;\n\t}\n\n";
 		}
 		if (getReadFile == true)
 		{
@@ -372,8 +389,20 @@ public class newJava {
 		{
 			MethodSleep = "\tprivate static void sleep(long millies)\n\t{\n\t\ttry\n\t\t{\n\t\t\tThread.sleep(millies);\n\t\t}\n\t\tcatch (InterruptedException e)\n\t\t{\n\t\t\tThread.currentThread().interrupt();\n\t\t}\n\t}\n";
 		}
+		if (getSplit == true)
+		{
+			MethodSplit = "\tprivate static String[] split(String message, String by)\n\t{\n\t\tString[] vArray = message.split(by);\n\t\treturn vArray;\n\t}\n";
+		}
+		if (getJoin == true)
+		{
+			MethodJoin = "\tprivate static String join(String[] Str, String ToJoin)\n\t{\n\t\tString message = String.join(ToJoin, Str);\n\t\treturn message;\n\t}\n";
+		}
+		if ((getSplit == true) && (getJoin == true))
+		{
+			MethodSplitAndJoin = "\tprivate static String SplitAndJoin(String message, String sBy, String jBy)\n\t{\n\t\tString SplitMessage[] = split(message,sBy);\n\t\tString NewMessage = join(SplitMessage, jBy);\n\t\treturn NewMessage;\t}\n";
+		}
 
-		TheMethods = MethodProp+MethodUserIn+MethodPrint+MethodLength+MethodArrays+MethodReadFile+MethodWriteFile+MethodShell+MethodSleep;
+		TheMethods = MethodProp+MethodUserIn+MethodPrint+MethodLength+MethodArrays+MethodReadFile+MethodWriteFile+MethodShell+MethodSleep+MethodSplit+MethodJoin+MethodSplitAndJoin;
 		return TheMethods;
 	}
 

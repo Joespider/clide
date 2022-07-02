@@ -78,6 +78,9 @@ gitHandler()
 			ActiveBranch)
 				git branch 2> /dev/null| grep "*" | sed "s/* //g"
 				;;
+			url)
+				git config --get remote.origin.url
+				;;
 			#Create a new repo
 			new|init)
 				echo git init
@@ -358,10 +361,10 @@ Repo()
 			True)
 				Branch=$(gitHandler "ActiveBranch")
 				if [ -z "${Branch}" ]; then
-					prompt="${Name}(${cRepoTool}):$ "
+					prompt="${Name}(${cRepoTool}):~/$ "
 				else
 					cBranch=$(colors "${Branch}" "branch")
-					prompt="${Name}(${cRepoTool}{${cBranch}}):$ "
+					prompt="${Name}(${cRepoTool}{${cBranch}}):~/$ "
 				fi
 				Refresh=False
 				;;

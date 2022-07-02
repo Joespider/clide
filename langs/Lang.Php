@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.0.02"
+SupportV="0.0.01"
 Lang=Php
 LangExt=".php"
 ColorNum=5
@@ -175,13 +175,18 @@ UsePhp()
 			fi
 			;;
 		pgLang)
-			HasLang=$(which ${LangRun} 2> /dev/null)
-			if [ ! -z "${HasLang}" ]; then
-				#Return Php tag
-				echo "${Lang}"
+			local ShowCpl=$1
+			if [ ! -z "${ShowCpl}" ]; then
+				echo ${LangRun}
 			else
-				#Return rejection
-				echo "no"
+				HasLang=$(which ${LangRun} 2> /dev/null)
+				if [ ! -z "${HasLang}" ]; then
+					#Return Php tag
+					echo "${Lang}"
+				else
+					#Return rejection
+					echo "no"
+				fi
 			fi
 			;;
 		hasExt)

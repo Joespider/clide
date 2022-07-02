@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.80"
+SupportV="0.1.81"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
@@ -391,13 +391,18 @@ UseC()
 			;;
 		#check if compiler is installed
 		pgLang)
-			local HasLang=$(which ${LangCpl} 2> /dev/null)
-			if [ ! -z "${HasLang}" ]; then
-				#Return C tag
-				echo "${Lang}"
+			local ShowCpl=$1
+			if [ ! -z "${ShowCpl}" ]; then
+				echo ${LangCpl}
 			else
-				#Return rejection
-				echo "no"
+				local HasLang=$(which ${LangCpl} 2> /dev/null)
+				if [ ! -z "${HasLang}" ]; then
+					#Return C tag
+					echo "${Lang}"
+				else
+					#Return rejection
+					echo "no"
+				fi
 			fi
 			;;
 		#Look for source code before and after new source code created

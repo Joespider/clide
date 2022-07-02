@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+ThePath=$1
+TheBinDir=$2
+if [ ! -z "${ThePath}" ] && [ -d "${ThePath}" ]; then
+	echo "This component needs work"
+	echo "To compile: mvn compile"
+	echo "The BinDir: ${TheBinDir}"
+fi
