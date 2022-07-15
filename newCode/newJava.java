@@ -36,7 +36,7 @@ public class newJava {
 	private static void Help()
 	{
 		String program = "newJava";
-		String version = "0.1.21";
+		String version = "0.1.22";
 		print("Author: Joespider");
 		print("Program: \""+program+"\"");
 		print("Version: "+version);
@@ -399,7 +399,7 @@ public class newJava {
 		}
 		if ((getSplit == true) && (getJoin == true))
 		{
-			MethodSplitAndJoin = "\tprivate static String SplitAndJoin(String message, String sBy, String jBy)\n\t{\n\t\tString SplitMessage[] = split(message,sBy);\n\t\tString NewMessage = join(SplitMessage, jBy);\n\t\treturn NewMessage;\t}\n";
+			MethodSplitAndJoin = "\tprivate static String SplitAndJoin(String message, String sBy, String jBy)\n\t{\n\t\tString NewMessage = message.replaceAll(sBy,jBy);\n\t\treturn NewMessage;\n\t}\n";
 		}
 
 		TheMethods = MethodProp+MethodUserIn+MethodPrint+MethodLength+MethodArrays+MethodReadFile+MethodWriteFile+MethodShell+MethodSleep+MethodSplit+MethodJoin+MethodSplitAndJoin;

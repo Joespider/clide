@@ -3889,7 +3889,7 @@ Actions()
 															*-std=c*)
 																case ${RunCplArgs} in
 																	none)
-																		RunCplArgs="${NewVal},mw"
+																		RunCplArgs="${NewVal},"
 																		;;
 																	*)
 																		RunCplArgs="${RunCplArgs},${NewVal}"
