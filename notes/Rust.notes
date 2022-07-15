@@ -73,3 +73,8 @@ site: https://doc.rust-lang.org/reference/introduction.html
 		return var;
 	}
 
+
+//String contains substring
+if a.contains("bc") {
+    do_something();
+}

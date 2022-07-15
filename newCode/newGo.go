@@ -8,7 +8,7 @@ import (
 
 func help() {
 	var ProgName string = "newGo"
-	var Version string = "0.1.06"
+	var Version string = "0.1.07"
 
 	fmt.Println("Author: Joespider")
 	fmt.Println("Program: \""+ProgName+"\"")
@@ -244,6 +244,10 @@ func main() {
 		} else if UserIn == "--pipe" {
 			getName = false
 			getPipe = true
+		//Get threading
+		} else if UserIn == "--thread" {
+			getName = false
+			getThread = true
 		//Get prop
 		} else if UserIn == "--prop" {
 			getName = false
@@ -252,12 +256,6 @@ func main() {
 		} else if UserIn == "--shell" {
 			getName = false
 			getShell = true
-
-		//Get Shell
-		} else if UserIn == "--shell" {
-			getName = false
-			getThread = true
-
 		//Get Name of program
 		} else if getName == true {
 			CName = UserIn
