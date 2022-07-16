@@ -504,6 +504,33 @@ CodeVersion()
 	fi
 }
 
+CompileAllCodeTemp()
+{
+	local text
+	local TheLang
+	if [ -d ${LangsDir} ]; then
+		for TheLang in ${LangsDir}/Lang.*;
+		do
+			if [ -f ${TheLang} ]; then
+				#Select the next langauge
+				TheLang=${TheLang##*/}
+				text=${TheLang#Lang.*}
+				#Ensure langauge is supported on computer
+				text=$(ManageLangs ${text} "pgLang")
+				if [ ! -z "${text}" ]; then
+					case ${text} in
+						no)
+							;;
+						*)
+							CLI --cpl-ct ${text} | egrep -v "ERROR|HINT"
+							;;
+					esac
+				fi
+			fi
+		done
+	fi
+}
+
 DebugVersion()
 {
 	local TheLang=$1
@@ -6166,6 +6193,40 @@ CLI()
 							CLI --run ${RunLang} ${TheSrcCplAndRun} ${RunArgs[@]}
 							;;
 					esac
+				fi
+				;;
+			--compile-code-temp|--cpl-ct)
+				if [ -z "${ThePipe}" ]; then
+					shift
+					local Lang=$1
+					local TheTempCode
+					if [ ! -z "${Lang}" ]; then
+						case ${Lang,,} in
+							all)
+								CompileAllCodeTemp
+								Lang="no"
+								;;
+							*)
+								Lang=$(pgLang $1)
+								;;
+						esac
+
+						case ${Lang} in
+							no)
+								;;
+							*)
+								TheTempCode=$(ManageLangs ${Lang} "getNewCode")
+								case ${Lang} in
+									Java)
+										CLI --cpl --jar ${Lang} ${TheTempCode}
+										;;
+									*)
+										CLI --cpl ${Lang} ${TheTempCode}
+										;;
+								esac
+								;;
+						esac
+					fi
 				fi
 				;;
 			#compile code without entering cl[ide]
