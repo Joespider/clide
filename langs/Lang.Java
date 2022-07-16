@@ -3,7 +3,7 @@
 #https://stackoverflow.com/questions/10339637/java-import-cannot-find-symbol
 #https://www.codejava.net/java-core/tools/how-to-compile-package-and-run-a-java-program-using-command-line-tools-javac-jar-and-java
 
-SupportV="0.2.37"
+SupportV="0.2.38"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -1513,18 +1513,26 @@ UseJava()
 				#Program Args Given
 				if [ ! -z "${Args}" ]; then
 					cd ${LangBin}
-					${LangRun} new${Lang} ${Args[@]}
+					${LangRun} ${TemplateC} ${Args[@]}
 					cd - > /dev/null
 					mv "${LangBin}/*${LangExt}" . 2> /dev/null
 				else
 					cd ${LangBin}
-					${LangRun} new${Lang} --help
+					${LangRun} ${TemplateC} --help
 					cd - > /dev/null
 				fi
 			#Check for Custom Code Template...is jar
 			elif [ -f ${TemplateCodeJar} ]; then
-				echo -n "${cLang}\$ java -jar ${cTemplateJ} "
-				read -a Args
+				shift
+				shift
+				shift
+				shift
+				Args=$@
+				if [ -z "${1}" ]; then
+					echo -n "${cLang}\$ java -jar ${cTemplateJ} "
+					read -a Args
+				fi
+
 				#Program Args Given
 				if [ ! -z "${Args}" ]; then
 					${LangRun} -jar ${TemplateCodeJar} ${Args[@]}
@@ -1574,7 +1582,7 @@ UseJava()
 					#Determine if project
 					case ${project} in
 						#not a project
-						none)							
+						none)
 							;;
 						#Handle Project Specific code
 						*)
