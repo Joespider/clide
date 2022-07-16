@@ -16,7 +16,7 @@ bool IsIn(std::string Str, std::string Sub);
 static void help()
 {
 	std::string ProgName = "newC++";
-	std::string Version = "0.1.26";
+	std::string Version = "0.1.27";
 	print("Author: Joespider");
 	print("Program: \"" << ProgName << "\"");
 	print("Version: " << Version);
@@ -155,7 +155,9 @@ static std::string getMethods(bool* rawinput, bool* rand, bool* write, bool* rea
 	if (*shell == true)
 	{
 		Declaration = Declaration+"std::string shell(std::string command);\n";
+		Declaration = Declaration+"void shellExe(std::string command);\n";
 		TheShell = "std::string shell(std::string command)\n{\n\tchar buffer[128];\n\tstd::string result = \"\";\n\n\t// Open pipe to file\n\tFILE* pipe = popen(command.c_str(), \"r\");\n\tif (!pipe)\n\t{\n\t\treturn \"popen failed!\";\n\t}\n\n\t// read till end of process:\n\twhile (!feof(pipe))\n\t{\n\t\t// use buffer to read and add to result\n\t\tif (fgets(buffer, 128, pipe) != NULL)\n\t\t{\n\t\t\tresult += buffer;\n\t\t}\n\t}\n\n\tpclose(pipe);\n\treturn result;\n}\n\n";
+		TheShell = TheShell+"void shellExe(std::string command)\n{\n\tsystem(command.c_str());\n}\n\n";
 	}
 	if (*sleep == true)
 	{
