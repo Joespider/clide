@@ -8,7 +8,7 @@ import (
 
 func help() {
 	var ProgName string = "newGo"
-	var Version string = "0.1.07"
+	var Version string = "0.1.08"
 
 	fmt.Println("Author: Joespider")
 	fmt.Println("Program: \""+ProgName+"\"")
@@ -21,6 +21,8 @@ func help() {
 	fmt.Println("\t--cli : enable command line (Main file ONLY)")
 	fmt.Println("\t--prop : enable custom system property")
 	fmt.Println("\t--pipe : enable piping (Main file ONLY)")
+	fmt.Println("\t--split : enable \"split\" function")
+	fmt.Println("\t--join : enable \"join\" function")
 	fmt.Println("\t--shell : unix shell")
 	fmt.Println("\t--random : enable \"random\" int method")
 	fmt.Println("\t--write-file : enable \"write\" file method")
@@ -36,7 +38,7 @@ func getPackage(ThePackage string) string {
 }
 
 //create import listing
-func getImports(UserInput bool, write bool, read bool, random bool, cli bool, sleep bool, getPipe bool, getShell bool, getThread bool, getProp bool) string {
+func getImports(UserInput bool, write bool, read bool, random bool, cli bool, sleep bool, getPipe bool, getShell bool, getThread bool, getProp bool, getSplit bool, getJoin bool) string {
 	var Imports string = ""
 	var standard string = "\"fmt\"\n"
 	var readWrite string = ""
@@ -71,7 +73,7 @@ func getImports(UserInput bool, write bool, read bool, random bool, cli bool, sl
 		ForTime = "\t\"time\"\n"
 	}
 
-	if getPipe == true {
+	if getPipe == true || getSplit == true || getJoin == true {
 		ForString = "\t\"strings\"\n"
 	}
 
@@ -85,7 +87,7 @@ func getImports(UserInput bool, write bool, read bool, random bool, cli bool, sl
 	return Imports
 }
 
-func getMethods(getRawIn bool, getRand bool, getWrite bool, getRead bool, getIsIn bool, getSleep bool, getShell bool, getThread bool, getProp bool) string {
+func getMethods(getRawIn bool, getRand bool, getWrite bool, getRead bool, getIsIn bool, getSleep bool, getShell bool, getThread bool, getProp bool, getSplit bool, getJoin bool) string {
 	var TheMethods string = ""
 	var ReadMethod string = ""
 	var WriteMethod string = ""
@@ -93,6 +95,9 @@ func getMethods(getRawIn bool, getRand bool, getWrite bool, getRead bool, getIsI
 	var UserInput string = ""
 	var SleepMethod string = ""
 	var ShellMethod string = ""
+	var SplitMethod string = ""
+	var JoinMethod string = ""
+	var SplitAndJoinMethod string = ""
 	var SysPropMethod string = ""
 	var ThreadMethod string = ""
 
@@ -128,7 +133,21 @@ func getMethods(getRawIn bool, getRand bool, getWrite bool, getRead bool, getIsI
 		SysPropMethod = "func GetSysProp(PleaseGet string) string {\n\tif PleaseGet != \"\" {\n\t\treturn os.Getenv(PleaseGet)\n\t} else {\n\t\treturn \"\"\n\t}\n}\n\n"
 	}
 
-	TheMethods = UserInput+WriteMethod+ReadMethod+RandMethod+ShellMethod+SleepMethod+ThreadMethod+SysPropMethod
+	if getSplit == true {
+		SplitMethod = "func split(Str string, sBy string) []string {\n\tArray := strings.Split(Str, sBy)\n\treturn Array\n}\n\n"
+	}
+
+	if getJoin == true {
+		JoinMethod = "func join(Array []string, ToJoin string) string {\n\tJoined := strings.Join(Array, ToJoin)\n\treturn Joined\n}\n\n"
+	}
+
+	if  getSplit == true && getJoin == true {
+		SplitAndJoinMethod = "func SplitAndJoin(Str string, sBy string, ToJoin string) string {\n\tArray := split(Str, sBy)\n\tJoined := join(Array, ToJoin)\n\treturn Joined\n}\n\n"
+	}
+
+
+	TheMethods = UserInput+WriteMethod+ReadMethod+RandMethod+ShellMethod+SleepMethod+ThreadMethod+SysPropMethod+SplitMethod+JoinMethod+SplitAndJoinMethod
+
 	return TheMethods
 }
 
@@ -189,6 +208,8 @@ func main() {
 	var getPipe bool = false
 	var getProp bool = false
 	var getShell bool = false
+	var getSplit bool = false
+	var getJoin bool = false
 	var getThread bool = false
 	var IsMain bool = false
 	var UserIn string = ""
@@ -256,18 +277,25 @@ func main() {
 		} else if UserIn == "--shell" {
 			getName = false
 			getShell = true
+		//Get Split
+		} else if UserIn == "--split" {
+			getName = false
+			getSplit = true
+		//Get Join
+		} else if UserIn == "--join" {
+			getName = false
+			getJoin = true
 		//Get Name of program
 		} else if getName == true {
 			CName = UserIn
 			getName = false
 		}
-
 	}
 	//Ensure program name is given
 	if CName != "" {
 		ThePackage = getPackage("main")
-		Imports = getImports(getRawIn, getWrite, getRead, getRand, getArgs, getSleep, getPipe, getShell, getThread, getProp)
-		Methods = getMethods(getRawIn, getRand, getWrite, getRead, getIsIn, getSleep, getShell, getThread, getProp)
+		Imports = getImports(getRawIn, getWrite, getRead, getRand, getArgs, getSleep, getPipe, getShell, getThread, getProp, getSplit, getJoin)
+		Methods = getMethods(getRawIn, getRand, getWrite, getRead, getIsIn, getSleep, getShell, getThread, getProp, getSplit, getJoin)
 		if IsMain == true {
 			Main = getMain(getArgs,getRand,getPipe,getThread)
 		} else {
