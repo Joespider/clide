@@ -838,7 +838,7 @@ errorCode()
 					shift
 					local thr=$1
 					errorCode "ERROR"
-					errorCode "ERROR" "\"${thr}\" already compiled"
+					errorCode "ERROR" "\"${thr}\" already set to run"
 					;;
 				not)
 					errorCode "ERROR"

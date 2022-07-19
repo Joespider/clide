@@ -5658,6 +5658,7 @@ CLI()
 					local TheSrc=$2
 					local CodeDir
 					local srcPath
+					local isCompiled
 					local src
 					local Found
 					local ColorCode
@@ -5706,7 +5707,7 @@ CLI()
 						#Langauge provided or found
 						if [ ! -z "${Lang}" ]; then
 							if [ ! -z "${TheSrc}" ]; then
-								find -L ${ProgDir} -name ${TheSrc} | grep "/src/"
+								find -L ${ProgDir} -name ${TheSrc} 2> /dev/null | grep "/src/"
 							else
 								theHelp PathCliHelp ${UserArg}
 							fi
@@ -5717,7 +5718,7 @@ CLI()
 							Found=$(find -L ${ProgDir} -name *${TheSrc}* | grep "/src/" | sort)
 							#Code has been founs
 							if [ ! -z "${Found}" ]; then
-								echo -e "\e[1;40m{Language}\t\t{Source Code}\t\t{Project}\e[0m"
+								echo -e "\e[1;40m{Language}\t\t{Source Code}\t\t{Compiled}\t\t{Project}\e[0m"
 								for src in ${Found};
 								do
 									srcPath=${src}
@@ -5725,6 +5726,7 @@ CLI()
 									#Get language by source code
 									Lang=$(SelectLangByCode ${src})
 									if [ ! -z "${Lang}" ]; then
+										isCompiled=$(ManageLangs ${Lang} "getBin" "${src}")
 										case ${srcPath} in
 											*/${Lang}/projects/*)
 												srcPath=$(echo ${srcPath} | sed "s/\/${Lang}\/projects\//|/g" | cut -d '|' -f 2)
@@ -5737,7 +5739,11 @@ CLI()
 										#get langauge color
 										ColorCode=$(ManageLangs ${Lang} "color-number")
 										#Display language and code
-										echo -e "\e[1;3${ColorCode}m${Lang}\t\t\t${src}\t\t${TypeOfCode}\e[0m"
+										if [ ! -z "${isCompiled}" ]; then
+											echo -e "\e[1;3${ColorCode}m${Lang}\t\t\t${src}\t\t${isCompiled}\t\t${TypeOfCode}\e[0m"
+										else
+											echo -e "\e[1;3${ColorCode}m${Lang}\t\t\t${src}\t\t\t\t\t${TypeOfCode}\e[0m"
+										fi
 									fi
 								done
 							fi

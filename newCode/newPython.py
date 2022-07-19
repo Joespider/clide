@@ -1,7 +1,7 @@
 import sys
 
 ProgramName = sys.argv[0].rsplit("/",1)[1]
-VersionName = "0.1.13"
+VersionName = "0.1.14"
 
 def Help():
 	print "Author: Joespider"
@@ -21,7 +21,6 @@ def Help():
 	print "\t--write-file : enable \"write\" file method"
 	print "\t--read-file : enable \"read\" file method"
 	print "\t--random : enable \"random\" method"
-	print "\t--os : import OS"
 	print "\t--thread : enable threading"
 	print "\t--sleep : enable sleep method"
 
@@ -40,7 +39,6 @@ def GetArgs():
 		   "random":False,
 		   "pipe":False,
 		   "prop":False,
-		   "os":False,
 		   "thread":False,
 		   "sleep":False,
 		   "shell":False}
@@ -77,8 +75,6 @@ def GetArgs():
 			Returns["split"] = True
 		elif now == "--prop":
 			Returns["prop"] = True
-		elif now == "--os":
-			Returns["os"] = True
 		elif now == "--shell":
 			Returns["shell"] = True
 		elif now == "--thread":
@@ -89,9 +85,9 @@ def GetArgs():
 	return Returns
 
 #Get Imports
-def Imports(getOS, getShell, getSys, getRand, getThread, getPipe, getSleep, getProp):
+def Imports(getShell, getSys, getRand, getThread, getPipe, getSleep, getProp):
 	TheImports = ""
-	if getOS == True or getShell == True or getProp:
+	if getShell == True or getProp:
 		TheImports = "import os\n"
 	if getSys == True or getPipe == True:
 		TheImports = TheImports+"import sys\n"
@@ -191,7 +187,6 @@ def Main():
 	GetSplit = UserArgs["split"]
 	GetJoin = UserArgs["join"]
 	GetProp = UserArgs["prop"]
-	GetOS = UserArgs["os"]
 	GetShell = UserArgs["shell"]
 	GetThreads = UserArgs["thread"]
 	GetSleep = UserArgs["sleep"]
@@ -199,7 +194,7 @@ def Main():
 	#Ensure Name of program
 	if TheName != "":
 		#Get Imports
-		ProgImports = Imports(GetOS, GetShell, IsCLI, GetRand, GetThreads, GetPipe, GetSleep, GetProp)
+		ProgImports = Imports(GetShell, IsCLI, GetRand, GetThreads, GetPipe, GetSleep, GetProp)
 		#Get Methods
 		ProgMethods = Methods(IsMain, GetShell, IsCLI, GetWrite, GetRead, GetRand, GetThreads, GetPipe, GetSleep, GetProp, GetSplit, GetJoin)
 		#Manage Imports
