@@ -3,7 +3,7 @@
 #Program Details
 User = "Joespider"
 ProgramName = "newRuby"
-VersionName = "0.1.04"
+VersionName = "0.1.06"
 Purpose = "Purpose: make new Ruby Scripts"
 
 #Help Page
@@ -37,6 +37,7 @@ def getArgs
 		"theName" => "",
 		"theUser" => "",
 		"isCli" => false,
+		"isShell" => false,
 		"isPipe" => false,
 		"isMain" => false,
 		"readFile" => false,
@@ -70,6 +71,8 @@ def getArgs
 			userArgs["readFile"] = true
 		elsif theArg == "--user-input"
 			userArgs["raw_input"] = true
+		elsif theArg == "--shell"
+			userArgs["isShell"] = true
 		end
 	end
 	return userArgs
@@ -90,7 +93,7 @@ def getImports
 end
 
 #Handle Ruby Methods
-def getMethods(getHelp,getRead,getWrite,getRawInput,getCLI)
+def getMethods(getHelp,getRead,getWrite,getRawInput,getCLI,getShell)
 	theMethods = ""
 	if getHelp
 		theMethods = theMethods+"#Help Page\ndef help\n\tputs (\"Author: \"+User)\n\tputs (\"Program: \"+ProgramName)\n\tputs (\"Version: \"+VersionName)\n\tputs (\"Purpose: \"+Purpose)\n\tputs (\"Usage: \"+ProgramName+\".rb\")\nend\n\n"
@@ -107,6 +110,10 @@ def getMethods(getHelp,getRead,getWrite,getRawInput,getCLI)
 	if getCLI
 		theMethods = theMethods+"#Get CLI arguments\ndef getArgs\n\tgetName = false\n\t#User Dictionary\n\tuserArgs = {\n\t\t\"keyOne\" => \"\",\n\t\t\"keyTwo\" => false\n\t}\n\t#User CLI\n\tARGV.each do|arg|\n\t\ttheArg = arg.to_s\n\t\tif theArg == \"-1\" or theArg == \"--one\"\n\t\t\tgetName = true\n\t\telsif getName\n\t\t\tuserArgs[\"keyOne\"] = theArg\n\t\t\tgetName = false\n\t\telsif theArg == \"-2\" or theArg == \"--two\"\n\t\t\tuserArgs[\"keyTwo\"] = true\n\t\tend\n\tend\n\treturn userArgs\nend\n\n"
 	end
+	if getShell
+		theMethods = theMethods+"#Get Shell commandds\ndef exec(cmd)\n\tsystem cmd\nend\n\n"
+	end
+
 	return theMethods
 end
 
@@ -120,7 +127,7 @@ def getMain(yes,cli,pipe)
 		end
 
 		if pipe
-			theMain = theMain+"\nif $stdin.tty?\n\t	puts \"nothing was piped in\"\nelse\n\tputs \"[Pipe]\"\n\tputs \"{\"\n\t$stdin.each_line do |line|\n\t\tputs \"\#{line}\"\n\tend\n\tputs \"}\"n"
+			theMain = theMain+"\nif $stdin.tty?\n\tputs \"nothing was piped in\"\nelse\n\tputs \"[Pipe]\"\n\tputs \"{\"\n\t$stdin.each_line do |line|\n\t\tputs \"\#{line}\"\n\tend\n\tputs \"}\n\"\nend\n"
 		end
 		theMain = theMain+"\n# }"
 	end
@@ -142,7 +149,7 @@ if UserInput["theName"] != ""
 	#Pull the Main function
 	TheMain = getMain(UserInput["isMain"],UserInput["isCli"],UserInput["isPipe"])
 	#Pull the Methods for the program
-	TheMethods = getMethods(UserInput["isMain"],UserInput["readFile"],UserInput["writeFile"],UserInput["raw_input"],UserInput["isCli"])
+	TheMethods = getMethods(UserInput["isMain"],UserInput["readFile"],UserInput["writeFile"],UserInput["raw_input"],UserInput["isCli"],UserInput["isShell"])
 	#Organize Program content
 	TheContent = TheDetails+TheImports+TheMethods+TheMain
 	#Create new ruby src file
