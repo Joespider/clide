@@ -36,7 +36,7 @@ public class newJava {
 	private static void Help()
 	{
 		String program = "newJava";
-		String version = "0.1.22";
+		String version = "0.1.23";
 		print("Author: Joespider");
 		print("Program: \""+program+"\"");
 		print("Version: "+version);
@@ -269,6 +269,8 @@ public class newJava {
 			//import java.io.InputStreamReader;
 			NeedBufferedReader = true;
 			//import java.io.BufferedReader;
+			NeedIOException = true;
+			//import java.io.IOException;
 		}
 		if ((getUserIn == true) || (getPipe == true))
 		{
