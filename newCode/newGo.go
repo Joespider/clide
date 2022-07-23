@@ -8,7 +8,7 @@ import (
 
 func help() {
 	var ProgName string = "newGo"
-	var Version string = "0.1.08"
+	var Version string = "0.1.10"
 
 	fmt.Println("Author: Joespider")
 	fmt.Println("Program: \""+ProgName+"\"")
@@ -19,18 +19,25 @@ func help() {
 	fmt.Println("\t--name <name> : program name")
 	fmt.Println("\t--main : main file")
 	fmt.Println("\t--cli : enable command line (Main file ONLY)")
+	fmt.Println("\t--shell : unix shell")
 	fmt.Println("\t--prop : enable custom system property")
+	fmt.Println("\t--reverse : enable reverse string")
 	fmt.Println("\t--pipe : enable piping (Main file ONLY)")
 	fmt.Println("\t--split : enable \"split\" function")
 	fmt.Println("\t--join : enable \"join\" function")
-	fmt.Println("\t--shell : unix shell")
 	fmt.Println("\t--random : enable \"random\" int method")
 	fmt.Println("\t--write-file : enable \"write\" file method")
 	fmt.Println("\t--read-file : enable \"read\" file method")
-	fmt.Println("\t--is-in : enable \"IsIn\" method")
+	fmt.Println("\t--is-in : enable string contains methods")
 	fmt.Println("\t--user-input : enable \"raw_input\" method")
-	fmt.Println("\t--sleep : enable \"sleep\" method")
 	fmt.Println("\t--thread : enable threading")
+	fmt.Println("\t--sleep : enable \"sleep\" method")
+}
+
+func getHelp(TheName string) string {
+	var TheUser = os.Getenv("USER")
+	var HelpMethod = "func help() {\n\tvar ProgName string = \""+TheName+"\"\n\tvar Version string = \"0.0.0\"\n\n\tfmt.Println(\"Author: "+TheUser+"\")\n\tfmt.Println(\"Program: \\\"\"+ProgName+\"\\\"\")\n\tfmt.Println(\"Version: \"+Version)\n\tfmt.Println(\"Purpose: \")\n\tfmt.Println(\"Usage: \"+ProgName+\" <args>\")\n}\n\n\n"
+	return HelpMethod
 }
 
 func getPackage(ThePackage string) string {
@@ -87,7 +94,7 @@ func getImports(UserInput bool, write bool, read bool, random bool, cli bool, sl
 	return Imports
 }
 
-func getMethods(getRawIn bool, getRand bool, getWrite bool, getRead bool, getIsIn bool, getSleep bool, getShell bool, getThread bool, getProp bool, getSplit bool, getJoin bool) string {
+func getMethods(getRawIn bool, getRand bool, getWrite bool, getRead bool, getIsIn bool, getSleep bool, getShell bool, getThread bool, getProp bool, getSplit bool, getJoin bool, getRev bool) string {
 	var TheMethods string = ""
 	var ReadMethod string = ""
 	var WriteMethod string = ""
@@ -100,6 +107,7 @@ func getMethods(getRawIn bool, getRand bool, getWrite bool, getRead bool, getIsI
 	var SplitAndJoinMethod string = ""
 	var SysPropMethod string = ""
 	var ThreadMethod string = ""
+	var ReverseMethod string = ""
 
 	if getRawIn == true {
 		UserInput = "func raw_input(Message string) string {\n\tvar UserIn string\n\tfmt.Print(Message)\n\treader := bufio.NewReader(os.Stdin)\n\tUserIn, _ = reader.ReadString('\\n')\n\treturn UserIn\n}\n\n"
@@ -129,6 +137,10 @@ func getMethods(getRawIn bool, getRand bool, getWrite bool, getRead bool, getIsI
 		ThreadMethod = "func MyThread() {\n\tfmt.Println(\"{My Thread}\")\n}\n\n"
 	}
 
+	if getRev == true {
+		ReverseMethod = "func rev(s string) string {\n\trns := []rune(s)\n\tfor i, j := 0, len(rns)-1; i < j; i, j = i+1, j-1 {\n\t\trns[i], rns[j] = rns[j], rns[i]\n\t}\n\n\t// return the reversed string.\n\treturn string(rns)\n}\n\n"
+	}
+
 	if getProp == true {
 		SysPropMethod = "func GetSysProp(PleaseGet string) string {\n\tif PleaseGet != \"\" {\n\t\treturn os.Getenv(PleaseGet)\n\t} else {\n\t\treturn \"\"\n\t}\n}\n\n"
 	}
@@ -146,7 +158,7 @@ func getMethods(getRawIn bool, getRand bool, getWrite bool, getRead bool, getIsI
 	}
 
 
-	TheMethods = UserInput+WriteMethod+ReadMethod+RandMethod+ShellMethod+SleepMethod+ThreadMethod+SysPropMethod+SplitMethod+JoinMethod+SplitAndJoinMethod
+	TheMethods = UserInput+WriteMethod+ReadMethod+RandMethod+ShellMethod+SleepMethod+ThreadMethod+ReverseMethod+SysPropMethod+SplitMethod+JoinMethod+SplitAndJoinMethod
 
 	return TheMethods
 }
@@ -207,6 +219,7 @@ func main() {
 	var getSleep bool = false
 	var getPipe bool = false
 	var getProp bool = false
+	var getRev bool = false
 	var getShell bool = false
 	var getSplit bool = false
 	var getJoin bool = false
@@ -217,6 +230,7 @@ func main() {
 	var CName string = ""
 	var Imports string = ""
 	var Methods string = ""
+	var TheHelpContent string = ""
 	var Main string = ""
 	var Content string = ""
 
@@ -269,6 +283,10 @@ func main() {
 		} else if UserIn == "--thread" {
 			getName = false
 			getThread = true
+		//Get reverse
+		} else if UserIn == "--reverse" {
+			getName = false
+			getRev = true
 		//Get prop
 		} else if UserIn == "--prop" {
 			getName = false
@@ -295,13 +313,16 @@ func main() {
 	if CName != "" {
 		ThePackage = getPackage("main")
 		Imports = getImports(getRawIn, getWrite, getRead, getRand, getArgs, getSleep, getPipe, getShell, getThread, getProp, getSplit, getJoin)
-		Methods = getMethods(getRawIn, getRand, getWrite, getRead, getIsIn, getSleep, getShell, getThread, getProp, getSplit, getJoin)
+		Methods = getMethods(getRawIn, getRand, getWrite, getRead, getIsIn, getSleep, getShell, getThread, getProp, getSplit, getJoin, getRev)
 		if IsMain == true {
+			if getArgs == true {
+				TheHelpContent = getHelp(CName)
+			}
 			Main = getMain(getArgs,getRand,getPipe,getThread)
 		} else {
 			Main = ""
 		}
-		Content = ThePackage+"\n"+Imports+"\n"+Methods+"\n"+Main
+		Content = ThePackage+"\n"+Imports+"\n"+TheHelpContent+Methods+"\n"+Main
 		CreateNew(CName,Content)
 	} else {
 		help()

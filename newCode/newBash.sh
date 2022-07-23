@@ -1,6 +1,6 @@
 #!/bin/bash
 
-Version="0.1.1"
+Version="0.1.2"
 
 Help()
 {
@@ -12,6 +12,7 @@ Help()
 	echo -e "\t-n <name> : script name"
 	echo -e "\t--name <name> : script name"
 	echo -e "\t--pipe : enable piping"
+	echo -e "\t--reverse : enable reverse"
 	echo -e "\t--random : enable random (1 - 10)"
 }
 
@@ -36,11 +37,18 @@ GetRandom()
 	echo ""
 }
 
+GetRev()
+{
+	echo "word=\"This\""
+	echo "echo \${word} | rev"
+}
+
 main()
 {
 	local GetName="no"
 	local UsePipe="no"
 	local UseRandom="no"
+	local UseRev="no"
 	local TheName=""
 
 	for arg in "$@"; do
@@ -53,6 +61,9 @@ main()
 				;;
 			--random)
 				UseRandom="yes"
+				;;
+			--reverse)
+				UseRev="yes"
 				;;
 			*)
 				case ${GetName} in
@@ -82,6 +93,14 @@ main()
 		case ${UseRandom} in
 			yes)
 				GetRandom >> "${TheName}.sh"
+				;;
+			*)
+				;;
+		esac
+
+		case ${UseRev} in
+			yes)
+				GetRev >> "${TheName}.sh"
 				;;
 			*)
 				;;

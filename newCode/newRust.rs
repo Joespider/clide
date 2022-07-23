@@ -10,7 +10,7 @@ fn help()
 {
 	print("Author: Joespider");
 	print("Program: \"newRust\"");
-	print("Version: 0.1.04");
+	print("Version: 0.1.07");
 	print("Purpose: make new Rust programs");
 	print("Usage: newRust <args>");
 	print("\t-n <name> : program name");
@@ -18,14 +18,54 @@ fn help()
 	print("\t--cli : enable command line (Main file ONLY)");
 	print("\t--main : main file");
 	print("\t--prop : enable custom system property");
-	print("\t--thread : enable threading (Main file and project ONLY)");
+	print("\t--reverse : enable \"rev\" method");
 	print("\t--pipe : enable piping (Main file and project ONLY)");
 	print("\t--random : enable \"random\" int method");
 	print("\t--write-file : enable \"write\" file method");
 	print("\t--read-file : enable \"read\" file method");
 	print("\t--user-input : enable \"Raw_Input\" file method");
+	print("\t--thread : enable threading (Main file and project ONLY)");
 	print("\t--sleep : enable sleep method");
 }
+
+fn get_sys_prop(please_get: &str) -> String
+{
+	let value = match env::var_os(please_get)
+	{
+		Some(v) => v.into_string().unwrap(),
+		None => panic!("{} is not set",please_get)
+	};
+	return value;
+}
+
+fn get_help(thename: String, hasargs: bool) -> String
+{
+	let mut helpmethod = String::new();
+	if hasargs == true
+	{
+		let theuser = get_sys_prop("USER");
+		helpmethod.push_str("fn help()\n");
+		helpmethod.push_str("{\n");
+		helpmethod.push_str("\tprint(\"Author: ");
+		helpmethod.push_str(&theuser);
+		helpmethod.push_str("\");\n");
+		helpmethod.push_str("\tprint(\"Program: \\\"");
+		helpmethod.push_str(&thename);
+		helpmethod.push_str("\\\"\");\n");
+		helpmethod.push_str("\tprint(\"Version: 0.0.0\");\n");
+		helpmethod.push_str("\tprint(\"Purpose: \");\n");
+		helpmethod.push_str("\tprint(\"Usage: ");
+		helpmethod.push_str(&thename);
+		helpmethod.push_str(" <args>\");\n");
+		helpmethod.push_str("}\n\n");
+	}
+	else
+	{
+		helpmethod.push_str("");
+	}
+	return helpmethod;
+}
+
 
 fn get_imports(getreadfile: bool, getwritefile: bool, getcli: bool, getpipe: bool, getsysprop: bool, getthread: bool, getsleep: bool) -> String
 {
@@ -67,7 +107,7 @@ fn get_imports(getreadfile: bool, getwritefile: bool, getcli: bool, getpipe: boo
 	return theimports;
 }
 
-fn get_methods(getreadfile: bool, getwritefile: bool, getrawinput: bool, getsysprop: bool, getsleep: bool) -> String
+fn get_methods(getreadfile: bool, getwritefile: bool, getrawinput: bool, getsysprop: bool, getsleep: bool, getrev: bool) -> String
 {
 	let mut themethods = String::new();
 	if getrawinput == true
@@ -77,6 +117,10 @@ fn get_methods(getreadfile: bool, getwritefile: bool, getrawinput: bool, getsysp
 	if getreadfile == true
 	{
 		themethods.push_str("fn read_file(filename: String) -> String\n{\n\t// Open the file in read-only mode (ignoring errors).\n\tlet file = File::open(filename).unwrap();\n\tlet reader = BufReader::new(file);\n\n\t// Read the file line by line using the lines() iterator from std::io::BufRead.\n\tfor line in reader.lines()\n\t{\n\t\t// Ignore errors.\n\t\tlet line = line.unwrap();\n\t\t// Show the line and its number.\n\t\tprintln!(\"{}\", line)\n\t}\n}\n\n");
+	}
+	if getrev == true
+	{
+		themethods.push_str("fn rev(theword: &str) -> String\n{\n\tlet mut newstr = String::new();\n\tlet mut plc = 0;\n\tlet charlen = theword.len();\n\twhile plc != charlen\n\t{\n\t\tplc += 1;\n\t\tnewstr.push_str(&theword.chars().nth(charlen - plc).unwrap().to_string());\n\t}\n\treturn newstr;\n}\n\n");
 	}
 	if getwritefile == true
 	{
@@ -117,12 +161,13 @@ fn get_main(getmain: bool, getcli: bool, getpipe: bool, getthread: bool) -> Stri
 	return themain;
 }
 
-fn write_file(thename: String, theimports: String, themethods: String, themain: String)
+fn write_file(thename: String, theimports: String, thehelp: String, themethods: String, themain: String)
 {
 	let mut file = std::fs::File::create(thename).expect("create failed");
 	file.write_all(theimports.as_bytes()).expect("write failed");
-	file.write_all(themethods.as_bytes()).expect("write failed");
-	file.write_all(themain.as_bytes()).expect("write failed");
+	file.write_all(thehelp.as_bytes()).expect("help failed");
+	file.write_all(themethods.as_bytes()).expect("methods failed");
+	file.write_all(themain.as_bytes()).expect("main failed");
 }
 
 fn main()
@@ -139,6 +184,7 @@ fn main()
 	let mut is_prop = false;
 	let mut is_thread = false;
 	let mut is_pipe = false;
+	let mut is_rev = false;
 	let mut is_sleep = false;
 	let mut name_set = false;
 	let mut arg_count = 0;
@@ -151,7 +197,6 @@ fn main()
 			{
 				//program_name = &args;
 				program_name.push_str(&args);
-				program_name.push_str(".rs");
 				name_set = true;
 				is_name = false;
 			}
@@ -199,6 +244,10 @@ fn main()
 			{
 				is_pipe = true;
 			}
+			else if args == "--reverse"
+			{
+				is_rev = true;
+			}
 			else if args == "--prop"
 			{
 				is_prop = true;
@@ -218,8 +267,10 @@ fn main()
 	else
 	{
 		let the_imports = get_imports(is_read_file, is_write_file, is_cli, is_pipe, is_prop, is_thread, is_sleep);
-		let the_methods = get_methods(is_read_file, is_write_file, get_input_method, is_prop, is_sleep);
+		let the_helps = get_help(program_name.to_string(),is_cli);
+		program_name.push_str(".rs");
+		let the_methods = get_methods(is_read_file, is_write_file, get_input_method, is_prop, is_sleep, is_rev);
 		let the_main = get_main(is_main, is_cli, is_pipe, is_thread);
-		write_file(program_name, the_imports, the_methods, the_main);
+		write_file(program_name, the_imports, the_helps, the_methods, the_main);
 	}
 }
