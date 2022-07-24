@@ -8,13 +8,14 @@ import (
 
 func help() {
 	var ProgName string = "newGo"
-	var Version string = "0.1.10"
+	var Version string = "0.1.11"
 
 	fmt.Println("Author: Joespider")
 	fmt.Println("Program: \""+ProgName+"\"")
 	fmt.Println("Version: "+Version)
 	fmt.Println("Purpose: make new Go programs")
 	fmt.Println("Usage: "+ProgName+" <args>")
+	fmt.Println("\t--user <username>: get username for help page")
 	fmt.Println("\t-n <name> : program name")
 	fmt.Println("\t--name <name> : program name")
 	fmt.Println("\t--main : main file")
@@ -34,8 +35,11 @@ func help() {
 	fmt.Println("\t--sleep : enable \"sleep\" method")
 }
 
-func getHelp(TheName string) string {
-	var TheUser = os.Getenv("USER")
+func getHelp(TheName string, TheUser string) string {
+
+	if TheUser == "" {
+		TheUser = os.Getenv("USER")
+	}
 	var HelpMethod = "func help() {\n\tvar ProgName string = \""+TheName+"\"\n\tvar Version string = \"0.0.0\"\n\n\tfmt.Println(\"Author: "+TheUser+"\")\n\tfmt.Println(\"Program: \\\"\"+ProgName+\"\\\"\")\n\tfmt.Println(\"Version: \"+Version)\n\tfmt.Println(\"Purpose: \")\n\tfmt.Println(\"Usage: \"+ProgName+\" <args>\")\n}\n\n\n"
 	return HelpMethod
 }
@@ -209,6 +213,7 @@ func CreateNew(filename string, content string) error {
 
 //Go main
 func main() {
+	var getUser bool = false
 	var getName bool = false
 	var getArgs bool = false
 	var getWrite bool = false
@@ -228,6 +233,7 @@ func main() {
 	var UserIn string = ""
 	var ThePackage string = ""
 	var CName string = ""
+	var TheAuthor string = ""
 	var Imports string = ""
 	var Methods string = ""
 	var TheHelpContent string = ""
@@ -243,6 +249,10 @@ func main() {
 		//Get name of program
 		if UserIn == "-n" || UserIn == "--name" {
 			getName = true
+		//Get Author
+		} else if UserIn == "--user" {
+			getName = false
+			getUser = true
 		//Get cli arg in main method
 		} else if UserIn == "--cli" {
 			getName = false
@@ -307,6 +317,10 @@ func main() {
 		} else if getName == true {
 			CName = UserIn
 			getName = false
+		//Get Author of program
+		} else if getUser == true {
+			TheAuthor = UserIn
+			getUser = false
 		}
 	}
 	//Ensure program name is given
@@ -316,7 +330,7 @@ func main() {
 		Methods = getMethods(getRawIn, getRand, getWrite, getRead, getIsIn, getSleep, getShell, getThread, getProp, getSplit, getJoin, getRev)
 		if IsMain == true {
 			if getArgs == true {
-				TheHelpContent = getHelp(CName)
+				TheHelpContent = getHelp(CName,TheAuthor)
 			}
 			Main = getMain(getArgs,getRand,getPipe,getThread)
 		} else {

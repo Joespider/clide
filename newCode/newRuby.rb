@@ -3,7 +3,7 @@
 #Program Details
 User = "Joespider"
 ProgramName = "newRuby"
-VersionName = "0.1.11"
+VersionName = "0.1.13"
 Purpose = "Purpose: make new Ruby Scripts"
 
 #Help Page
@@ -13,6 +13,7 @@ def help
 	puts ("Version: "+VersionName)
 	puts ("Purpose: "+Purpose)
 	puts ("Usage: "+ProgramName+".rb <args>")
+	puts "\t--user <username>: get username for help page"
 	puts "\t-n <name> : program name"
 	puts "\t--name <name> : program name"
 	puts "\t--cli : enable command line (Main file ONLY)"
@@ -26,6 +27,7 @@ def help
 	puts "\t--read-file : enable \"read\" file method"
 	puts "\t--is-in : enable string contains methods"
 	puts "\t--user-input : enable \"raw_input\" method"
+	puts "\t--thread : enable threading"
 end
 
 #Get the User info for new program
@@ -56,6 +58,7 @@ def getArgs
 		"readFile" => false,
 		"writeFile" => false,
 		"isIn" => false,
+		"isThread" => false,
 		"raw_input" => false
 	}
 	#User CLI
@@ -93,6 +96,8 @@ def getArgs
 			userArgs["isRev"] = true
 		elsif theArg == "--sleep"
 			userArgs["isSleep"] = true
+		elsif theArg == "--thread"
+			userArgs["isThread"] = true
 		elsif theArg == "--prop"
 			userArgs["isProp"] = true
 		end
@@ -152,7 +157,7 @@ def getMethods(getHelp, getRead, getWrite, getRawInput, getCLI, getShell, getSle
 end
 
 #Handle Ruby Main
-def getMain(yes,cli,pipe)
+def getMain(yes,cli,pipe,threads)
 	theMain = ""
 	if yes
 		theMain = "#Main\n# {\n"
@@ -162,6 +167,10 @@ def getMain(yes,cli,pipe)
 
 		if pipe
 			theMain = theMain+"\nif $stdin.tty?\n\tputs \"nothing was piped in\"\nelse\n\tputs \"[Pipe]\"\n\tputs \"{\"\n\t$stdin.each_line do |line|\n\t\tputs \"\#{line}\"\n\tend\n\tputs \"}\n\"\nend\n"
+		end
+
+		if threads
+			theMain = theMain+"\n#x = Thread.new{Method()}\n#x.join\n"
 		end
 		theMain = theMain+"\n# }"
 	end
@@ -181,7 +190,7 @@ if UserInput["theName"] != ""
 	#Pull the imports for program
 	TheImports = getImports
 	#Pull the Main function
-	TheMain = getMain(UserInput["isMain"],UserInput["isCli"],UserInput["isPipe"])
+	TheMain = getMain(UserInput["isMain"],UserInput["isCli"],UserInput["isPipe"],UserInput["isThread"])
 	#Pull the Methods for the program
 	TheMethods = getMethods(UserInput["isMain"],UserInput["readFile"],UserInput["writeFile"],UserInput["raw_input"],UserInput["isCli"],UserInput["isShell"],UserInput["isSleep"],UserInput["isIn"],UserInput["isProp"],UserInput["isRev"])
 	#Organize Program content

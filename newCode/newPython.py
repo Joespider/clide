@@ -2,7 +2,7 @@ import os
 import sys
 
 ProgramName = sys.argv[0].rsplit("/",1)[1]
-VersionName = "0.1.15"
+VersionName = "0.1.16"
 
 def Help():
 	print "Author: Joespider"
@@ -10,6 +10,7 @@ def Help():
 	print "Version: "+VersionName
 	print "Purpose: make new Python Scripts"
 	print "Usage: "+ProgramName+" <args>"
+	print "\t--user <username>: get username for help page"
 	print "\t-n <name> : program name"
 	print "\t--cli : enable command line (Main file ONLY)"
 	print "\t--name <name> : program name"
@@ -32,6 +33,7 @@ def GetArgs():
 	now = ""
 	next = ""
 	Returns = {"name":"",
+		   "user":"",
 		   "cli":False,
 		   "main":False,
 		   "write":False,
@@ -58,6 +60,13 @@ def GetArgs():
 				next = Args[lp+1]
 				#record program name
 				Returns["name"] = next
+		#-n <name> or --name <name>
+		elif now == "--user":
+			if (lp+1) < end:
+				#Value arg
+				next = Args[lp+1]
+				#record program name
+				Returns["user"] = next
 		#--cli
 		elif now == "--cli":
 			#enable cli
@@ -89,8 +98,9 @@ def GetArgs():
 		lp += 1
 	return Returns
 
-def getHelp(TheName):
-	TheUser = os.environ["USER"]
+def getHelp(TheName, TheUser):
+	if TheUser == "":
+		TheUser = os.environ["USER"]
 	HelpMethod = "TheProgram = \""+TheName+".py\"\nVersionName = \"0.0.0\"\n\ndef Help():\n\tprint \"Author: "+TheUser+"\"\n\tprint \"Program: \\\"\"+TheProgram+\"\\\"\"\n\tprint \"Version: \"+VersionName\n\tprint \"Purpose: \"\n\tprint \"Usage: \"+TheProgram+\" <args>\"\n\n"
 	return HelpMethod
 
@@ -193,6 +203,7 @@ def Main():
 	#Assign User CLI Input
 	#{
 	TheName = UserArgs["name"]
+	TheUser = UserArgs["user"]
 	IsCLI = UserArgs["cli"]
 	IsMain = UserArgs["main"]
 	GetWrite = UserArgs["write"]
@@ -214,7 +225,7 @@ def Main():
 		#Get Methods
 		ProgMethods = Methods(IsMain, GetShell, IsCLI, GetWrite, GetRead, GetRand, GetThreads, GetPipe, GetSleep, GetProp, GetSplit, GetJoin, GetRev)
 		if IsCLI == True:
-			TheHelpMethod = getHelp(TheName)
+			TheHelpMethod = getHelp(TheName,TheUser)
 		#Manage Imports
 		if ProgImports != "":
 			TheNewProgram = ProgImports+"\n"

@@ -10,9 +10,10 @@ fn help()
 {
 	print("Author: Joespider");
 	print("Program: \"newRust\"");
-	print("Version: 0.1.07");
+	print("Version: 0.1.08");
 	print("Purpose: make new Rust programs");
 	print("Usage: newRust <args>");
+	print("\t--user <username>: get username for help page");
 	print("\t-n <name> : program name");
 	print("\t--name <name> : program name");
 	print("\t--cli : enable command line (Main file ONLY)");
@@ -24,6 +25,7 @@ fn help()
 	print("\t--write-file : enable \"write\" file method");
 	print("\t--read-file : enable \"read\" file method");
 	print("\t--user-input : enable \"Raw_Input\" file method");
+	print("\t--is-in : enable string contains methods");
 	print("\t--thread : enable threading (Main file and project ONLY)");
 	print("\t--sleep : enable sleep method");
 }
@@ -38,12 +40,29 @@ fn get_sys_prop(please_get: &str) -> String
 	return value;
 }
 
-fn get_help(thename: String, hasargs: bool) -> String
+fn get_help(thename: String,theuser: String, hasargs: bool) -> String
 {
 	let mut helpmethod = String::new();
-	if hasargs == true
+	if hasargs == true && theuser == ""
 	{
-		let theuser = get_sys_prop("USER");
+		let gettheuser = get_sys_prop("USER");
+		helpmethod.push_str("fn help()\n");
+		helpmethod.push_str("{\n");
+		helpmethod.push_str("\tprint(\"Author: ");
+		helpmethod.push_str(&gettheuser);
+		helpmethod.push_str("\");\n");
+		helpmethod.push_str("\tprint(\"Program: \\\"");
+		helpmethod.push_str(&thename);
+		helpmethod.push_str("\\\"\");\n");
+		helpmethod.push_str("\tprint(\"Version: 0.0.0\");\n");
+		helpmethod.push_str("\tprint(\"Purpose: \");\n");
+		helpmethod.push_str("\tprint(\"Usage: ");
+		helpmethod.push_str(&thename);
+		helpmethod.push_str(" <args>\");\n");
+		helpmethod.push_str("}\n\n");
+	}
+	else if hasargs == true && theuser != ""
+	{
 		helpmethod.push_str("fn help()\n");
 		helpmethod.push_str("{\n");
 		helpmethod.push_str("\tprint(\"Author: ");
@@ -107,7 +126,7 @@ fn get_imports(getreadfile: bool, getwritefile: bool, getcli: bool, getpipe: boo
 	return theimports;
 }
 
-fn get_methods(getreadfile: bool, getwritefile: bool, getrawinput: bool, getsysprop: bool, getsleep: bool, getrev: bool) -> String
+fn get_methods(getreadfile: bool, getwritefile: bool, getrawinput: bool, getsysprop: bool, getsleep: bool, getrev: bool, getisin: bool) -> String
 {
 	let mut themethods = String::new();
 	if getrawinput == true
@@ -134,6 +153,12 @@ fn get_methods(getreadfile: bool, getwritefile: bool, getrawinput: bool, getsysp
 	{
 		themethods.push_str("fn sleep()\n{\n\t// 3 * 1000 = 3 sec\n\tlet ten_millis = time::Duration::from_millis(3000);\n\tlet now = time::Instant::now();\n\n\tthread::sleep(ten_millis);\n\n\tassert!(now.elapsed() >= ten_millis);\n}\n\n");
 	}
+	if getisin == true
+	{
+		themethods.push_str("fn contains(str: &str, sub: &str) -> bool\n{\n\tif str.contains(sub)\n\t{\n\t\treturn true;\n\t}\n\telse\n\t{\n\t\treturn false;\n\t}\n}\n\n");
+		themethods.push_str("fn startswith(str: &str, start: &str) -> bool\n{\n\tif str.starts_with(start)\n\t{\n\t\treturn true;\n\t}\n\telse\n\t{\n\t\treturn false;\n\t}\n}\n\n");
+		themethods.push_str("fn endswith(str: &str, end: &str) -> bool\n{\n\tif str.ends_with(end)\n\t{\n\t\treturn true;\n\t}\n\telse\n\t{\n\t\treturn false;\n\t}\n}\n\n");
+	}
 
 	return themethods;
 }
@@ -154,7 +179,7 @@ fn get_main(getmain: bool, getcli: bool, getpipe: bool, getthread: bool) -> Stri
 		}
 		if getthread == true
 		{
-			themain.push_str("\n/*\n\t// https://doc.rust-lang.org/std/thread/\n\tlet thread_join_handle = thread::spawn(move || {\n\t\t//do stuff here\n\t});\n\t//join thread\n\tlet _ = thread_join_handle.join();\n*/");
+			themain.push_str("\n/*\n\t// https://doc.rust-lang.org/std/thread/\n\tlet thread_join_handle = thread::spawn(|| {\n\t\t//do stuff here\n\t});\n\t//join thread\n\tthread_join_handle.join().unwrap();\n*/");
 		}
 		themain.push_str("\n}");
 	}
@@ -173,10 +198,11 @@ fn write_file(thename: String, theimports: String, thehelp: String, themethods: 
 fn main()
 {
 	let mut program_name = String::new();
+	let mut the_user = String::new();
 	let mut get_input_method = false;
 	let mut is_name = false;
+	let mut is_user = false;
 	let mut is_main = false;
-//	let mut is_in_string = false;
 //	let mut is_a_random = false;
 	let mut is_cli = false;
 	let mut is_read_file = false;
@@ -185,6 +211,7 @@ fn main()
 	let mut is_thread = false;
 	let mut is_pipe = false;
 	let mut is_rev = false;
+	let mut is_in = false;
 	let mut is_sleep = false;
 	let mut name_set = false;
 	let mut arg_count = 0;
@@ -195,14 +222,22 @@ fn main()
 		{
 			if is_name == true
 			{
-				//program_name = &args;
 				program_name.push_str(&args);
 				name_set = true;
 				is_name = false;
 			}
+			else if is_user == true
+			{
+				the_user.push_str(&args);
+				is_user = false;
+			}
 			else if args == "-n" || args == "--name"
 			{
 				is_name = true;
+			}
+			else if args == "--user"
+			{
+				is_user = true;
 			}
 			else if args == "--cli"
 			{
@@ -226,12 +261,6 @@ fn main()
 			{
 				is_read_file = true;
 			}
-/*
-			else if args == "--is-in"
-			{
-				is_in_string = true;
-			}
-*/
 			else if args == "--user-input"
 			{
 				get_input_method = true;
@@ -252,6 +281,10 @@ fn main()
 			{
 				is_prop = true;
 			}
+			else if args == "--is-in"
+			{
+				is_in = true;
+			}
 			else if args == "--sleep"
 			{
 				is_sleep = true;
@@ -267,9 +300,9 @@ fn main()
 	else
 	{
 		let the_imports = get_imports(is_read_file, is_write_file, is_cli, is_pipe, is_prop, is_thread, is_sleep);
-		let the_helps = get_help(program_name.to_string(),is_cli);
+		let the_helps = get_help(program_name.to_string(),the_user.to_string(),is_cli);
 		program_name.push_str(".rs");
-		let the_methods = get_methods(is_read_file, is_write_file, get_input_method, is_prop, is_sleep, is_rev);
+		let the_methods = get_methods(is_read_file, is_write_file, get_input_method, is_prop, is_sleep, is_rev, is_in);
 		let the_main = get_main(is_main, is_cli, is_pipe, is_thread);
 		write_file(program_name, the_imports, the_helps, the_methods, the_main);
 	}

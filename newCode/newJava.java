@@ -46,7 +46,7 @@ public class newJava {
 		print("Version: "+version);
 		print("Purpose: make new Java programs");
 		print("Usage: "+program+" <args>");
-		print("\t--user <username>: get username for comments");
+		print("\t--user <username>: get username for help page");
 		print("\t-n <name> : program name");
 		print("\t--name <name> : program name");
 		print("\t\tnew libary with inheritance");
@@ -71,9 +71,12 @@ public class newJava {
 		print("\t--get-length : enable \"length\" methods");
 	}
 
-	private static String getHelp(String TheName)
+	private static String getHelp(String TheName, String TheUser)
 	{
-		String TheUser = System.getProperty("user.name");
+		if (TheUser.equals(""))
+		{
+			TheUser = System.getProperty("user.name");
+		}
 		String HelpMethod = "\tprivate static void Help()\n\t{\n\t\tString program = \""+TheName+"\";\n\t\tString version = \"0.0.0\";\n\t\tprint(\"Author: "+TheUser+"\");\n\t\tprint(\"Program: \\\"\"+program+\"\\\"\");\n\t\tprint(\"Version: \"+version);\n\t\tprint(\"Purpose: \");\n\t\tprint(\"Usage: \"+program+\" <args>\");\n\t}\n\n";
 		return HelpMethod;
 	}
@@ -511,7 +514,7 @@ public class newJava {
 			Comments[1] ="//class name";
 			if (IsMain == true)
 			{
-				JavaHelp = getHelp(Class);
+				JavaHelp = getHelp(Class,user);
 				Comments[2] ="/**\n\t* @param args the command line arguments\n\t*/";
 				if (getPipe == true)
 				{
