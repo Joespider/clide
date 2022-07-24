@@ -18,6 +18,7 @@ public class newJava {
 	private static String Class = "";
 	private static String Parent = "";
 	private static String Package = "";
+	private static boolean NameIsNotOk = true;
 	private static boolean HasPackage = false;
 	private static boolean IsMain = false;
 	private static boolean getUserIn = false;
@@ -27,42 +28,57 @@ public class newJava {
 	private static boolean getArrays = false;
 	private static boolean getLengths = false;
 	private static boolean getThreads = false;
+	private static boolean getCliArgs = false;
+	private static boolean getRev = false;
 	private static boolean getSleep = false;
 	private static boolean getSplit = false;
 	private static boolean getJoin = false;
 	private static boolean getPipe = false;
+	private static boolean getIsIn = false;
 	private static boolean getJavaProp = false;
 
 	private static void Help()
 	{
 		String program = "newJava";
-		String version = "0.1.23";
+		String version = "0.1.26";
 		print("Author: Joespider");
 		print("Program: \""+program+"\"");
 		print("Version: "+version);
 		print("Purpose: make new Java programs");
 		print("Usage: "+program+" <args>");
-		print("\t--user <username>: get username for comments");
+		print("\t--user <username>: get username for help page");
 		print("\t-n <name> : program name");
 		print("\t--name <name> : program name");
 		print("\t\tnew libary with inheritance");
 		print("\t-p <name> : parent program name");
 		print("\t--parent <name> : parent program name");
 		print("\t--package <package> : package name");
-		print("\t-m : main file");
+		print("\t--cli : enable command line (Main file ONLY)");
 		print("\t--main : main file");
 		print("\t--prop : enable custom system property");
 		print("\t--pipe : enable piping (Main file ONLY)");
-		print("\t--thread : enable threading");
-		print("\t--sleep : enable sleep method");
-		print("\t--join : enable join method");
+		print("\t--reverse : enable reverse method");
 		print("\t--split : enable split method");
+		print("\t--join : enable join method");
 		print("\t--shell : unix shell");
 		print("\t--write-file : enable \"write\" file method");
+		print("\t--is-in : enable string contains methods");
 		print("\t--read-file : enable \"read\" file method");
 		print("\t--user-input : enable \"raw_input\" method");
 		print("\t--append-array : enable \"append\" array methods");
+		print("\t--thread : enable threading");
+		print("\t--sleep : enable sleep method");
 		print("\t--get-length : enable \"length\" methods");
+	}
+
+	private static String getHelp(String TheName, String TheUser)
+	{
+		if (TheUser.equals(""))
+		{
+			TheUser = System.getProperty("user.name");
+		}
+		String HelpMethod = "\tprivate static void Help()\n\t{\n\t\tString program = \""+TheName+"\";\n\t\tString version = \"0.0.0\";\n\t\tprint(\"Author: "+TheUser+"\");\n\t\tprint(\"Program: \\\"\"+program+\"\\\"\");\n\t\tprint(\"Version: \"+version);\n\t\tprint(\"Purpose: \");\n\t\tprint(\"Usage: \"+program+\" <args>\");\n\t}\n\n";
+		return HelpMethod;
 	}
 
 	private static void print(Object out)
@@ -152,10 +168,14 @@ public class newJava {
 			//Get name of class and filename
 			if ((now.equals("-n")) || (now.equals("--name")))
 			{
-				Class = next;
+				NameIsNotOk = IsIn(next,"--");
+				if (NameIsNotOk == false)
+				{
+					Class = next;
+				}
 			}
 			//is a main class
-			else if ((now.equals("-m")) || (now.equals("--main")))
+			else if (now.equals("--main"))
 			{
 				IsMain = true;
 				Parent = "";
@@ -186,6 +206,21 @@ public class newJava {
 			else if (now.equals("--sleep"))
 			{
 				getSleep = true;
+			}
+			//enable CLI Args
+			else if (now.equals("--is-in"))
+			{
+				getIsIn = false;
+			}
+			//enable CLI Args
+			else if (now.equals("--cli"))
+			{
+				getCliArgs = true;
+			}
+			//enable reverse
+			else if (now.equals("--reverse"))
+			{
+				getRev = true;
 			}
 			//enable java prop
 			else if (now.equals("--prop"))
@@ -241,6 +276,16 @@ public class newJava {
 			lp++;
 			NextPos++;
 		}
+	}
+
+	private static String GetCliArgs()
+	{
+		String HandleArgs = "";
+		if (getCliArgs == true)
+		{
+			HandleArgs = "\n\t\t//Grab CLI arguments\n\t\tint lp = 0;\n\t\tint NextPos = 1;\n\t\tint end = args.length;\n\t\tString now = \"\";\n\t\tString next = \"\";\n\t\twhile (lp != end)\n\t\t{\n\t\t\tnow = args[lp];\n\t\t\t//Ensure next arg is there\n\t\t\tif (NextPos < end)\n\t\t\t{\n\t\t\t\tnext = args[NextPos];\n\t\t\t}\n\t\t\telse\n\t\t\t{\n\t\t\t\tnext = \"\";\n\t\t\t}\n\t\t\tlp++;\n\t\t\tNextPos++;\n\t\t}\n";
+		}
+		return HandleArgs;
 	}
 
 	private static String GetImports()
@@ -356,6 +401,8 @@ public class newJava {
 		String MethodSplit = "";
 		String MethodJoin = "";
 		String MethodSplitAndJoin = "";
+		String MethodIsIn = "";
+		String MethodRev = "";
 		String MethodSleep = "";
 
 		//raw_input
@@ -383,6 +430,10 @@ public class newJava {
 		{
 			MethodWriteFile = "\t//Write a file\n\tprivate static void WriteFile(String FileName, String Content)\n\t{\n\t\ttry\n\t\t{\n\t\t\t// Create file\n\t\t\tFileWriter fstream = new FileWriter(FileName);\n\t\t\tBufferedWriter out = new BufferedWriter(fstream);\n\t\t\tout.write(Content);\n\t\t\t//Close the output stream\n\t\t\tfstream.close();\n\t\t\tout.close();\n\t\t}\n\t\tcatch (Exception e)\n\t\t{\n\t\t\t//Catch exception if any\n\t\t\tprint(\"Error: \" + e.getMessage());\n\t\t}\n\t}\n\n";
 		}
+		if (getRev == true)
+		{
+			MethodRev = "\tprivate static String rev(String Str)\n\t{\n\t\tString RevStr = \"\";\n\t\tchar ch;\n\t\tfor (int i=0; i < Str.length(); i++)\n\t\t{\n\t\t\tch = Str.charAt(i);\n\t\t\tRevStr = ch+RevStr;\n\t\t}\n\t\treturn RevStr;\n\t}\n\n";
+		}
 		if (getShell == true)
 		{
 			MethodShell = "\tprivate static String Shell(String command)\n\t{\n\t\tString ShellOut = \"\";\n\t\tRuntime r = Runtime.getRuntime();\n\t\ttry\n\t\t{\n\t\t\tProcess p = r.exec(command);\n\t\t\tInputStream in = p.getInputStream();\n\t\t\tBufferedInputStream buf = new BufferedInputStream(in);\n\t\t\tInputStreamReader inread = new InputStreamReader(buf);\n\t\t\tBufferedReader bufferedreader = new BufferedReader(inread);\n\t\t\t// Read the ls output\n\t\t\tString line;\n\t\t\twhile ((line = bufferedreader.readLine()) != null)\n\t\t\t{\n\t\t\t\tif (ShellOut.equals(\"\"))\n\t\t\t\t{\n\t\t\t\t\t// Print the content on the console\n\t\t\t\t\tShellOut = line;\n\t\t\t\t}\n\t\t\t\telse\n\t\t\t\t{\n\t\t\t\t\tShellOut = ShellOut+\"\\n\"+line;\n\t\t\t\t}\n\t\t\t}\n\t\t\t// Check for ls failure\n\t\t\ttry\n\t\t\t{\n\t\t\t\tif (p.waitFor() != 0)\n\t\t\t\t{\n\t\t\t\t\tSystem.err.println(\"exit value = \" + p.exitValue());\n\t\t\t\t}\n\t\t\t}\n\t\t\tcatch (InterruptedException e)\n\t\t\t{\n\t\t\t\tSystem.err.println(e);\n\t\t\t}\n\t\t\tfinally\n\t\t\t{\n\t\t\t\t// Close the InputStream\n\t\t\t\tbufferedreader.close();\n\t\t\t\tinread.close();\n\t\t\t\tbuf.close();\n\t\t\t\tin.close();\n\t\t\t}\n\t\t}\n\t\tcatch (IOException e)\n\t\t{\n\t\t\tSystem.err.println(e.getMessage());\n\t\t}\n\t\treturn ShellOut;\n\t}\n\n";
@@ -395,6 +446,10 @@ public class newJava {
 		{
 			MethodSplit = "\tprivate static String[] split(String message, String by)\n\t{\n\t\tString[] vArray = message.split(by);\n\t\treturn vArray;\n\t}\n";
 		}
+		if (getCliArgs == true)
+		{
+			MethodIsIn = "\tprivate static boolean IsIn(String Str, String Sub)\n\t{\n\t\tboolean found = false;\n\t\tif (Str.contains(Sub))\n\t\t{\n\t\t\tfound = true;\n\t\t}\n\t\treturn found;\n\t}\n";
+		}
 		if (getJoin == true)
 		{
 			MethodJoin = "\tprivate static String join(String[] Str, String ToJoin)\n\t{\n\t\tString message = String.join(ToJoin, Str);\n\t\treturn message;\n\t}\n";
@@ -404,8 +459,18 @@ public class newJava {
 			MethodSplitAndJoin = "\tprivate static String SplitAndJoin(String message, String sBy, String jBy)\n\t{\n\t\tString NewMessage = message.replaceAll(sBy,jBy);\n\t\treturn NewMessage;\n\t}\n";
 		}
 
-		TheMethods = MethodProp+MethodUserIn+MethodPrint+MethodLength+MethodArrays+MethodReadFile+MethodWriteFile+MethodShell+MethodSleep+MethodSplit+MethodJoin+MethodSplitAndJoin;
+		TheMethods = MethodProp+MethodUserIn+MethodPrint+MethodLength+MethodArrays+MethodReadFile+MethodWriteFile+MethodShell+MethodSleep+MethodIsIn+MethodRev+MethodSplit+MethodJoin+MethodSplitAndJoin;
 		return TheMethods;
+	}
+
+	private static boolean IsIn(String Str, String Sub)
+	{
+		boolean found = false;
+		if (Str.contains(Sub))
+		{
+			found = true;
+		}
+		return found;
 	}
 
 	/**
@@ -419,6 +484,8 @@ public class newJava {
 		String TheClass = "";
 		String JavaImports;
 		String JavaMethods;
+		String JavaCLI;
+		String JavaHelp;
 		String JavaMain;
 		String[] Comments = new String[3];
 		String Java;
@@ -442,20 +509,22 @@ public class newJava {
 			}
 			JavaImports = GetImports();
 			JavaMethods = GetMethods();
+			JavaCLI = GetCliArgs();
 			Comments[0] ="/**\n *\n * @author "+user+"\n */";
 			Comments[1] ="//class name";
 			if (IsMain == true)
 			{
+				JavaHelp = getHelp(Class,user);
 				Comments[2] ="/**\n\t* @param args the command line arguments\n\t*/";
 				if (getPipe == true)
 				{
-					JavaMain = "\tpublic static void main(String[] args)\n\t{\n"+JavaThreadCall+"\n\t\ttry\n\t\t{\n\t\t\tint numBytesWaiting = System.in.available();\n\t\t\tif (numBytesWaiting > 0)\n\t\t\t{\n\t\t\t\tprint(\"[Pipe]\");\n\t\t\t\tprint(\"{\");\n\t\t\t\tScanner pipe = new Scanner(System.in);\n\t\t\t\t// Read and print out each line.\n\t\t\t\twhile (pipe.hasNextLine())\n\t\t\t\t{\n\t\t\t\t\tString lineOfInput = pipe.nextLine();\n\t\t\t\t\tprint(lineOfInput);\n\t\t\t\t}\n\t\t\t\tpipe.close();\n\t\t\t\tprint(\"}\");\n\t\t\t}\n\t\t\telse\n\t\t\t{\n\t\t\t\tprint(\"nothing was piped in\");\n\t\t\t}\n\t\t}\n\t\tcatch (Exception e)\n\t\t{\n\t\t\tSystem.err.println(\"Failed read in\");\n\t\t}\n\t}";
+					JavaMain = "\tpublic static void main(String[] args)\n\t{\n"+JavaThreadCall+JavaCLI+"\n\t\ttry\n\t\t{\n\t\t\tint numBytesWaiting = System.in.available();\n\t\t\tif (numBytesWaiting > 0)\n\t\t\t{\n\t\t\t\tprint(\"[Pipe]\");\n\t\t\t\tprint(\"{\");\n\t\t\t\tScanner pipe = new Scanner(System.in);\n\t\t\t\t// Read and print out each line.\n\t\t\t\twhile (pipe.hasNextLine())\n\t\t\t\t{\n\t\t\t\t\tString lineOfInput = pipe.nextLine();\n\t\t\t\t\tprint(lineOfInput);\n\t\t\t\t}\n\t\t\t\tpipe.close();\n\t\t\t\tprint(\"}\");\n\t\t\t}\n\t\t\telse\n\t\t\t{\n\t\t\t\tprint(\"nothing was piped in\");\n\t\t\t}\n\t\t}\n\t\tcatch (Exception e)\n\t\t{\n\t\t\tSystem.err.println(\"Failed read in\");\n\t\t}\n\t}";
 				}
 				else
 				{
-					JavaMain = "\tpublic static void main(String[] args)\n\t{\n"+JavaThreadCall+"\n\n\t}";
+					JavaMain = "\tpublic static void main(String[] args)\n\t{\n"+JavaThreadCall+"\n"+JavaCLI+"\n\t}";
 				}
-				Java = JavaPackage+JavaImports+"\n\n"+Comments[0]+"\n\n"+Comments[1]+"\npublic class "+TheClass+" {\n\n"+JavaThreadStart+JavaMethods+"\n\t"+Comments[2]+"\n"+JavaMain+"\n}\n";
+				Java = JavaPackage+JavaImports+"\n\n"+Comments[0]+"\n\n"+Comments[1]+"\npublic class "+TheClass+" {\n\n"+JavaHelp+JavaThreadStart+JavaMethods+"\n\t"+Comments[2]+"\n"+JavaMain+"\n}\n";
 			}
 			else
 			{

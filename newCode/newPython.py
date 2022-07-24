@@ -1,7 +1,8 @@
+import os
 import sys
 
 ProgramName = sys.argv[0].rsplit("/",1)[1]
-VersionName = "0.1.14"
+VersionName = "0.1.16"
 
 def Help():
 	print "Author: Joespider"
@@ -9,18 +10,20 @@ def Help():
 	print "Version: "+VersionName
 	print "Purpose: make new Python Scripts"
 	print "Usage: "+ProgramName+" <args>"
+	print "\t--user <username>: get username for help page"
 	print "\t-n <name> : program name"
-	print "\t--name <name> : program name"
 	print "\t--cli : enable command line (Main file ONLY)"
+	print "\t--name <name> : program name"
 	print "\t--main : main file"
-	print "\t--shell : unix shell"
 	print "\t--prop : enable custom system property"
 	print "\t--pipe : enable piping (Main file ONLY)"
+	print "\t--shell : unix shell"
+	print "\t--reverse : enable \"reverse\" file method"
 	print "\t--split : enable \"split\" file method"
 	print "\t--join : enable \"join\" file method"
+	print "\t--random : enable \"random\" method"
 	print "\t--write-file : enable \"write\" file method"
 	print "\t--read-file : enable \"read\" file method"
-	print "\t--random : enable \"random\" method"
 	print "\t--thread : enable threading"
 	print "\t--sleep : enable sleep method"
 
@@ -30,6 +33,7 @@ def GetArgs():
 	now = ""
 	next = ""
 	Returns = {"name":"",
+		   "user":"",
 		   "cli":False,
 		   "main":False,
 		   "write":False,
@@ -38,6 +42,7 @@ def GetArgs():
 		   "join":False,
 		   "random":False,
 		   "pipe":False,
+		   "rev":False,
 		   "prop":False,
 		   "thread":False,
 		   "sleep":False,
@@ -55,6 +60,13 @@ def GetArgs():
 				next = Args[lp+1]
 				#record program name
 				Returns["name"] = next
+		#-n <name> or --name <name>
+		elif now == "--user":
+			if (lp+1) < end:
+				#Value arg
+				next = Args[lp+1]
+				#record program name
+				Returns["user"] = next
 		#--cli
 		elif now == "--cli":
 			#enable cli
@@ -67,6 +79,8 @@ def GetArgs():
 			Returns["write"] = True
 		elif now == "--random":
 			Returns["random"] = True
+		elif now == "--reverse":
+			Returns["rev"] = True
 		elif now == "--pipe":
 			Returns["pipe"] = True
 		elif now == "--join":
@@ -83,6 +97,12 @@ def GetArgs():
 			Returns["sleep"] = True
 		lp += 1
 	return Returns
+
+def getHelp(TheName, TheUser):
+	if TheUser == "":
+		TheUser = os.environ["USER"]
+	HelpMethod = "TheProgram = \""+TheName+".py\"\nVersionName = \"0.0.0\"\n\ndef Help():\n\tprint \"Author: "+TheUser+"\"\n\tprint \"Program: \\\"\"+TheProgram+\"\\\"\"\n\tprint \"Version: \"+VersionName\n\tprint \"Purpose: \"\n\tprint \"Usage: \"+TheProgram+\" <args>\"\n\n"
+	return HelpMethod
 
 #Get Imports
 def Imports(getShell, getSys, getRand, getThread, getPipe, getSleep, getProp):
@@ -101,7 +121,7 @@ def Imports(getShell, getSys, getRand, getThread, getPipe, getSleep, getProp):
 	return TheImports
 
 #Get Methods
-def Methods(getMain, getShell, getCLI, getWrite, getRead, getRandom, getThread, getPipe, getSleep, getProp, getSplit, getJoin):
+def Methods(getMain, getShell, getCLI, getWrite, getRead, getRandom, getThread, getPipe, getSleep, getProp, getSplit, getJoin, getRev):
 	TheMethods = ""
 	#{
 	OSshellMethod = "def Shell(cmd):\n\tOutput = \"\"\n\tTheShell = os.popen(cmd)\n\tOutput = TheShell.read()\n\tTheShell.close()\n\treturn Output\n\ndef Exe(cmd):\n\tos.system(cmd)\n"
@@ -115,6 +135,7 @@ def Methods(getMain, getShell, getCLI, getWrite, getRead, getRandom, getThread, 
 	JoinMethod = "def Join(SplitMessage, jBy):\n\tmessage = jBy.join(SplitMessage)\n\treturn message\n"
 	SplitAndJoinMethod = "def SplitAndJoin(message, sBy, jBy):\n\tSplitMessage = message.split(sBy)\n\tmessage = jBy.join(SplitMessage)\n\treturn message\n"
 	ThreadMethod = ""
+	ReverseMethod = "def rev(Str):\n\treturn Str[::-1]\n"
 	SleepMethod = "def sleep(sec):\n\ttime.sleep(sec)\n"
 
 	if getThread == True:
@@ -140,6 +161,9 @@ def Methods(getMain, getShell, getCLI, getWrite, getRead, getRandom, getThread, 
 	#Get Sleep Method
 	if getSleep == True:
 		TheMethods = TheMethods+SleepMethod+"\n"
+	#Get Reverse Method
+	if getRev == True:
+		TheMethods = TheMethods+ReverseMethod+"\n"
 	#Get Pipe Method
 	if getPipe == True:
 		TheMethods = TheMethods+PipeMethod+"\n"
@@ -173,11 +197,13 @@ def Write(FileName,content):
 def Main():
 	TheExt = ".py"
 	TheNewProgram = ""
+	TheHelpMethod = ""
 	#Get User CLI Input
 	UserArgs = GetArgs()
 	#Assign User CLI Input
 	#{
 	TheName = UserArgs["name"]
+	TheUser = UserArgs["user"]
 	IsCLI = UserArgs["cli"]
 	IsMain = UserArgs["main"]
 	GetWrite = UserArgs["write"]
@@ -187,6 +213,7 @@ def Main():
 	GetSplit = UserArgs["split"]
 	GetJoin = UserArgs["join"]
 	GetProp = UserArgs["prop"]
+	GetRev = UserArgs["rev"]
 	GetShell = UserArgs["shell"]
 	GetThreads = UserArgs["thread"]
 	GetSleep = UserArgs["sleep"]
@@ -196,13 +223,15 @@ def Main():
 		#Get Imports
 		ProgImports = Imports(GetShell, IsCLI, GetRand, GetThreads, GetPipe, GetSleep, GetProp)
 		#Get Methods
-		ProgMethods = Methods(IsMain, GetShell, IsCLI, GetWrite, GetRead, GetRand, GetThreads, GetPipe, GetSleep, GetProp, GetSplit, GetJoin)
+		ProgMethods = Methods(IsMain, GetShell, IsCLI, GetWrite, GetRead, GetRand, GetThreads, GetPipe, GetSleep, GetProp, GetSplit, GetJoin, GetRev)
+		if IsCLI == True:
+			TheHelpMethod = getHelp(TheName,TheUser)
 		#Manage Imports
 		if ProgImports != "":
 			TheNewProgram = ProgImports+"\n"
 		#Manage Methods
 		if ProgMethods != "":
-			TheNewProgram = TheNewProgram+ProgMethods
+			TheNewProgram = TheNewProgram+TheHelpMethod+ProgMethods
 		if TheExt in TheName:
 			Write(TheName,TheNewProgram)
 		elif TheExt not in TheName:

@@ -3,29 +3,41 @@
 #Program Details
 User = "Joespider"
 ProgramName = "newRuby"
-VersionName = "0.1.06"
+VersionName = "0.1.13"
 Purpose = "Purpose: make new Ruby Scripts"
 
 #Help Page
 def help
 	puts ("Author: "+User)
-	puts ("Program: "+ProgramName)
+	puts ("Program: \""+ProgramName+"\"")
 	puts ("Version: "+VersionName)
 	puts ("Purpose: "+Purpose)
 	puts ("Usage: "+ProgramName+".rb <args>")
+	puts "\t--user <username>: get username for help page"
 	puts "\t-n <name> : program name"
 	puts "\t--name <name> : program name"
 	puts "\t--cli : enable command line (Main file ONLY)"
 	puts "\t--pipe : enable command line (Main file ONLY)"
+	puts "\t--shell : unix shell"
+	puts "\t--sleep : enable sleep method"
 	puts "\t--main : main file"
+	puts "\t--prop : enable custom system property"
+	puts "\t--reverse : enable \"rev\" file method"
 	puts "\t--write-file : enable \"write\" file method"
 	puts "\t--read-file : enable \"read\" file method"
+	puts "\t--is-in : enable string contains methods"
 	puts "\t--user-input : enable \"raw_input\" method"
+	puts "\t--thread : enable threading"
 end
 
 #Get the User info for new program
-def getDetails(theProgram,theAuthor)
-	return "#Program Details\nUser = \""+theAuthor+"\"\nProgramName = \""+theProgram+"\"\nVersionName = \"0.0.0\"\nPurpose = \"\"\n"
+def getDetails(theProgram,theAuthor="")
+	if theAuthor.empty?
+		theAuthor = "ENV[\"USER\"]"
+		return "#Program Details\nUser = "+theAuthor+"\nProgramName = \""+theProgram+"\"\nVersionName = \"0.0.0\"\nPurpose = \"\"\n"
+	else
+		return "#Program Details\nUser = \""+theAuthor+"\"\nProgramName = \""+theProgram+"\"\nVersionName = \"0.0.0\"\nPurpose = \"\"\n"
+	end
 end
 
 #Get CLI arguments
@@ -38,10 +50,15 @@ def getArgs
 		"theUser" => "",
 		"isCli" => false,
 		"isShell" => false,
+		"isSleep" => false,
 		"isPipe" => false,
+		"isProp" => false,
 		"isMain" => false,
+		"isRev" => false,
 		"readFile" => false,
 		"writeFile" => false,
+		"isIn" => false,
+		"isThread" => false,
 		"raw_input" => false
 	}
 	#User CLI
@@ -69,10 +86,20 @@ def getArgs
 			userArgs["writeFile"] = true
 		elsif theArg == "--read-file"
 			userArgs["readFile"] = true
+		elsif theArg == "--is-in"
+			userArgs["isIn"] = true
 		elsif theArg == "--user-input"
 			userArgs["raw_input"] = true
 		elsif theArg == "--shell"
 			userArgs["isShell"] = true
+		elsif theArg == "--reverse"
+			userArgs["isRev"] = true
+		elsif theArg == "--sleep"
+			userArgs["isSleep"] = true
+		elsif theArg == "--thread"
+			userArgs["isThread"] = true
+		elsif theArg == "--prop"
+			userArgs["isProp"] = true
 		end
 	end
 	return userArgs
@@ -93,7 +120,7 @@ def getImports
 end
 
 #Handle Ruby Methods
-def getMethods(getHelp,getRead,getWrite,getRawInput,getCLI,getShell)
+def getMethods(getHelp, getRead, getWrite, getRawInput, getCLI, getShell, getSleep, getIsIn, getSysProp, getRev)
 	theMethods = ""
 	if getHelp
 		theMethods = theMethods+"#Help Page\ndef help\n\tputs (\"Author: \"+User)\n\tputs (\"Program: \"+ProgramName)\n\tputs (\"Version: \"+VersionName)\n\tputs (\"Purpose: \"+Purpose)\n\tputs (\"Usage: \"+ProgramName+\".rb\")\nend\n\n"
@@ -110,15 +137,27 @@ def getMethods(getHelp,getRead,getWrite,getRawInput,getCLI,getShell)
 	if getCLI
 		theMethods = theMethods+"#Get CLI arguments\ndef getArgs\n\tgetName = false\n\t#User Dictionary\n\tuserArgs = {\n\t\t\"keyOne\" => \"\",\n\t\t\"keyTwo\" => false\n\t}\n\t#User CLI\n\tARGV.each do|arg|\n\t\ttheArg = arg.to_s\n\t\tif theArg == \"-1\" or theArg == \"--one\"\n\t\t\tgetName = true\n\t\telsif getName\n\t\t\tuserArgs[\"keyOne\"] = theArg\n\t\t\tgetName = false\n\t\telsif theArg == \"-2\" or theArg == \"--two\"\n\t\t\tuserArgs[\"keyTwo\"] = true\n\t\tend\n\tend\n\treturn userArgs\nend\n\n"
 	end
+	if getRev
+		theMethods = theMethods+"#Reverse string\ndef rev(str)\n\tstr.reverse\nend\n\n"
+	end
 	if getShell
 		theMethods = theMethods+"#Get Shell commandds\ndef exec(cmd)\n\tsystem cmd\nend\n\n"
+	end
+	if getSleep
+		theMethods = theMethods+"#Get system sleep\ndef Sleep(sec)\n\tsleep sec\nend\n\n"
+	end
+	if getIsIn
+		theMethods = theMethods+"#Get IsIn Method\ndef IsIn(str,sub)\n\tif str.include? sub\n\t\treturn true\n\telse\n\t\treturn false\n\tend\nend\n\n"
+	end
+	if getSysProp
+		theMethods = theMethods+"#Get GetSysProp Method\ndef GetSysProp(pleaseGet=\"\")\n\tif pleaseGet.empty?\n\t\treturn ENV.keys\n\telse\n\t\treturn ENV[pleaseGet]\n\tend\nend\n\n"
 	end
 
 	return theMethods
 end
 
 #Handle Ruby Main
-def getMain(yes,cli,pipe)
+def getMain(yes,cli,pipe,threads)
 	theMain = ""
 	if yes
 		theMain = "#Main\n# {\n"
@@ -128,6 +167,10 @@ def getMain(yes,cli,pipe)
 
 		if pipe
 			theMain = theMain+"\nif $stdin.tty?\n\tputs \"nothing was piped in\"\nelse\n\tputs \"[Pipe]\"\n\tputs \"{\"\n\t$stdin.each_line do |line|\n\t\tputs \"\#{line}\"\n\tend\n\tputs \"}\n\"\nend\n"
+		end
+
+		if threads
+			theMain = theMain+"\n#x = Thread.new{Method()}\n#x.join\n"
 		end
 		theMain = theMain+"\n# }"
 	end
@@ -147,11 +190,15 @@ if UserInput["theName"] != ""
 	#Pull the imports for program
 	TheImports = getImports
 	#Pull the Main function
-	TheMain = getMain(UserInput["isMain"],UserInput["isCli"],UserInput["isPipe"])
+	TheMain = getMain(UserInput["isMain"],UserInput["isCli"],UserInput["isPipe"],UserInput["isThread"])
 	#Pull the Methods for the program
-	TheMethods = getMethods(UserInput["isMain"],UserInput["readFile"],UserInput["writeFile"],UserInput["raw_input"],UserInput["isCli"],UserInput["isShell"])
+	TheMethods = getMethods(UserInput["isMain"],UserInput["readFile"],UserInput["writeFile"],UserInput["raw_input"],UserInput["isCli"],UserInput["isShell"],UserInput["isSleep"],UserInput["isIn"],UserInput["isProp"],UserInput["isRev"])
 	#Organize Program content
-	TheContent = TheDetails+TheImports+TheMethods+TheMain
+	if UserInput["isMain"]
+		TheContent = TheDetails+TheImports+TheMethods+TheMain
+	else
+		TheContent = TheImports+TheMethods+TheMain
+	end
 	#Create new ruby src file
 	writeFile(TheName+".rb",TheContent)
 else

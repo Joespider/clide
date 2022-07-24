@@ -6201,6 +6201,40 @@ CLI()
 					esac
 				fi
 				;;
+			--car-ct|--edit-ct|--run-ct|--read-ct)
+				if [ -z "${ThePipe}" ]; then
+					shift
+					local Lang=$1
+					local TheTempCode
+					if [ ! -z "${Lang}" ]; then
+						Lang=$(pgLang $1)
+						case ${Lang} in
+							no)
+								;;
+							*)
+								TheTempCode=$(ManageLangs ${Lang} "getNewCode")
+								case ${UserArg} in
+									--run-ct)
+										CLI --run ${Lang} ${TheTempCode} $@
+										;;
+									--edit-ct)
+										CLI --edit ${Lang} ${TheTempCode}
+										;;
+									--read-ct)
+										CLI --read ${Lang} ${TheTempCode}
+										;;
+									--car-ct)
+										CLI --cpl-ct ${Lang}
+										CLI --run-ct ${Lang} $@
+										;;
+									*)
+										;;
+								esac
+								;;
+						esac
+					fi
+				fi
+				;;
 			--compile-code-temp|--cpl-ct)
 				if [ -z "${ThePipe}" ]; then
 					shift
