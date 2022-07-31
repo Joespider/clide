@@ -1,8 +1,12 @@
 import os
 import sys
 
-ProgramName = sys.argv[0].rsplit("/",1)[1]
-VersionName = "0.1.16"
+ProgramName = sys.argv[0]
+
+if "/" in ProgramName:
+	ProgramName = ProgramName.rsplit("/",1)[1]
+
+VersionName = "0.1.17"
 
 def Help():
 	print("Author: Joespider")
@@ -101,7 +105,7 @@ def GetArgs():
 def getHelp(TheName, TheUser):
 	if TheUser == "":
 		TheUser = os.environ["USER"]
-	HelpMethod = "TheProgram = \""+TheName+".py\"\nVersionName = \"0.0.0\"\n\ndef Help():\n\tprint(\"Author: "+TheUser+"\")\n\tprint(\"Program: \\\"\"+TheProgram+\"\\\"\")\n\tprint(\"Version: \"+VersionName)\n\tprint(\"Purpose: \")\n\tprint(\"Usage: \"+TheProgram+\" <args>\")\n\n"
+	HelpMethod = "TheProgram = \""+TheName+".py\"\nVersionName = \"0.0.0\"\n\ndef Help():\n\t\print(\"Author: "+TheUser+"\")\n\tprint(\"Program: \\\"\"+TheProgram+\"\\\"\")\n\tprint(\"Version: \"+VersionName)\n\tprint(\"Purpose: \")\n\tprint(\"Usage: \"+TheProgram+\" <args>\")\n\n"
 	return HelpMethod
 
 #Get Imports
@@ -142,9 +146,9 @@ def Methods(getMain, getShell, getCLI, getWrite, getRead, getRandom, getThread, 
 		ThreadMethod = "\t#TheThread = threading.Thread(target=<method>, args=(<arg>,<arg>,))\n\t#TheThread.start()\n\t#TheThread.join()\n"
 
 	if getCLI == True:
-		MainMethod = "def Main():\n\t#Get User CLI Input\n\tUserArgs = Args()\n"+ThreadMethod+"\nif __name__ == '__main__':\n\tMain()"
+		MainMethod = "def Main():\n\t#Get User CLI Input\n\tUserArgs = Args()\n\tif UserArgs != []:\n\t\tprint(\"You have entered cli arguments\")\n\telse:\n\t\tHelp()\n"+ThreadMethod+"\nif __name__ == '__main__':\n\tMain()"
 	else:
-		MainMethod = "def Main():\n\tprint(\"main\"\n"+ThreadMethod+")\nif __name__ == '__main__':\n\tMain()"
+		MainMethod = "def Main():\n\tprint(\"main\")\n"+ThreadMethod+"\nif __name__ == '__main__':\n\tMain()"
 	#}
 	#Get Write Method
 	if getWrite == True:

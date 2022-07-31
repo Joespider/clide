@@ -40,7 +40,7 @@ public class newJava {
 	private static void Help()
 	{
 		String program = "newJava";
-		String version = "0.1.26";
+		String version = "0.1.27";
 		print("Author: Joespider");
 		print("Program: \""+program+"\"");
 		print("Version: "+version);
@@ -73,11 +73,15 @@ public class newJava {
 
 	private static String getHelp(String TheName, String TheUser)
 	{
-		if (TheUser.equals(""))
+		String HelpMethod = "";
+		if (getCliArgs == true)
 		{
-			TheUser = System.getProperty("user.name");
+			if (TheUser.equals(""))
+			{
+				TheUser = System.getProperty("user.name");
+			}
+			HelpMethod = "\tprivate static void Help()\n\t{\n\t\tString program = \""+TheName+"\";\n\t\tString version = \"0.0.0\";\n\t\tprint(\"Author: "+TheUser+"\");\n\t\tprint(\"Program: \\\"\"+program+\"\\\"\");\n\t\tprint(\"Version: \"+version);\n\t\tprint(\"Purpose: \");\n\t\tprint(\"Usage: \"+program+\" <args>\");\n\t}\n\n";
 		}
-		String HelpMethod = "\tprivate static void Help()\n\t{\n\t\tString program = \""+TheName+"\";\n\t\tString version = \"0.0.0\";\n\t\tprint(\"Author: "+TheUser+"\");\n\t\tprint(\"Program: \\\"\"+program+\"\\\"\");\n\t\tprint(\"Version: \"+version);\n\t\tprint(\"Purpose: \");\n\t\tprint(\"Usage: \"+program+\" <args>\");\n\t}\n\n";
 		return HelpMethod;
 	}
 
@@ -283,7 +287,7 @@ public class newJava {
 		String HandleArgs = "";
 		if (getCliArgs == true)
 		{
-			HandleArgs = "\n\t\t//Grab CLI arguments\n\t\tint lp = 0;\n\t\tint NextPos = 1;\n\t\tint end = args.length;\n\t\tString now = \"\";\n\t\tString next = \"\";\n\t\twhile (lp != end)\n\t\t{\n\t\t\tnow = args[lp];\n\t\t\t//Ensure next arg is there\n\t\t\tif (NextPos < end)\n\t\t\t{\n\t\t\t\tnext = args[NextPos];\n\t\t\t}\n\t\t\telse\n\t\t\t{\n\t\t\t\tnext = \"\";\n\t\t\t}\n\t\t\tlp++;\n\t\t\tNextPos++;\n\t\t}\n";
+			HandleArgs = "\n\t\t//Grab CLI arguments\n\t\tint lp = 0;\n\t\tint NextPos = 1;\n\t\tint end = args.length;\n\t\tString now = \"\";\n\t\tString next = \"\";\n\t\tif (end > 0)\n\t\t{\n\t\t\twhile (lp != end)\n\t\t\t{\n\t\t\t\tnow = args[lp];\n\t\t\t\t//Ensure next arg is there\n\t\t\t\tif (NextPos < end)\n\t\t\t\t{\n\t\t\t\t\tnext = args[NextPos];\n\t\t\t\t}\n\t\t\t\telse\n\t\t\t\t{\n\t\t\t\t\tnext = \"\";\n\t\t\t\t}\n\t\t\t\tlp++;\n\t\t\t\tNextPos++;\n\t\t\t}\n\t\t}\n\t\telse\n\t\t{\n\t\t\tHelp();\n\t\t}\n";
 		}
 		return HandleArgs;
 	}
@@ -445,6 +449,7 @@ public class newJava {
 		if (getSplit == true)
 		{
 			MethodSplit = "\tprivate static String[] split(String message, String by)\n\t{\n\t\tString[] vArray = message.split(by);\n\t\treturn vArray;\n\t}\n";
+			MethodSplit = MethodSplit+"\tprivate static String[] split(String message, String by, int plc)\n\t{\n\t\tString[] vArray = message.split(by,plc);\n\t\treturn vArray;\n\t}\n";
 		}
 		if (getCliArgs == true)
 		{
@@ -515,6 +520,9 @@ public class newJava {
 			if (IsMain == true)
 			{
 				JavaHelp = getHelp(Class,user);
+				{
+
+				}
 				Comments[2] ="/**\n\t* @param args the command line arguments\n\t*/";
 				if (getPipe == true)
 				{

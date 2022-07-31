@@ -8,7 +8,7 @@ import (
 
 func help() {
 	var ProgName string = "newGo"
-	var Version string = "0.1.11"
+	var Version string = "0.1.12"
 
 	fmt.Println("Author: Joespider")
 	fmt.Println("Program: \""+ProgName+"\"")
@@ -187,7 +187,7 @@ func getMain(Args bool, getRandom bool, getPipe bool, getThread bool) string {
 	}
 
 	if Args == true {
-		Main = "//main\nfunc main() {\n"+RandStart+"\targs := os.Args[1:]\n\tfor arg := range args {\n\t\tfmt.Println(args[arg])\n\t}\n"+PipeCode+UseThread+"}"
+		Main = "//main\nfunc main() {\n"+RandStart+"\targs := os.Args[1:]\n\tif len(args) > 0 {\n\t\tfor arg := range args {\n\t\t\tfmt.Println(args[arg])\n\t\t}\n\t} else {\n\t\thelp()\n\t}\n"+PipeCode+UseThread+"}"
 	} else {
 		Main = "//main\nfunc main() {\n"+RandStart+"\tfmt.Printf(\"hellow world\")\n"+PipeCode+UseThread+"}"
 	}

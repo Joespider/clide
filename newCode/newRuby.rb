@@ -3,7 +3,7 @@
 #Program Details
 User = "Joespider"
 ProgramName = "newRuby"
-VersionName = "0.1.13"
+VersionName = "0.1.14"
 Purpose = "Purpose: make new Ruby Scripts"
 
 #Help Page
@@ -162,7 +162,7 @@ def getMain(yes,cli,pipe,threads)
 	if yes
 		theMain = "#Main\n# {\n"
 		if cli
-			theMain = theMain+"\nUserInput = getArgs\n"
+			theMain = theMain+"\nUserInput = getArgs\nif UserInput[\"keyOne\"] == \"\"\n\thelp\nend\n"
 		end
 
 		if pipe

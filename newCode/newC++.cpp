@@ -20,7 +20,7 @@ bool IsIn(String Str, String Sub);
 static void help()
 {
 	String ProgName = "newC++";
-	String Version = "0.1.33";
+	String Version = "0.1.34";
 	print("Author: Joespider");
 	print("Program: \"" << ProgName << "\"");
 	print("Version: " << Version);
@@ -43,9 +43,10 @@ static void help()
 	print("\t--read-file : enable \"read\" file method");
 	print("\t--is-in : enable string contains methods");
 	print("\t--user-input : enable \"raw_input\" method");
+	print("\t--vectors : enable vector arrays");
 	print("\t--thread : enable threading");
 	print("\t--sleep : enable sleep method");
-	print("\t--vectors : enable vector arrays");
+	print("\t--get-length : enable \"length\" examples");
 }
 
 static String getHelp(String TheName, String TheUser)
@@ -272,12 +273,13 @@ static String getMethods(bool* rawinput, bool* rand, bool* write, bool* read, bo
 }
 
 //build main function
-static String getMain(bool* Args, bool* getRandom, bool* pipe, bool* threads, bool* getVectors)
+static String getMain(bool* getArgs, bool* getRandom, bool* getPipe, bool* getThreads, bool* getVectors, bool* getLength)
 {
 	String Main = "";
 	String StartRandom = "";
 	String UsePipe = "";
 	String UseThreads = "";
+	String UseLength = "";
 	String UseVectors = "";
 
 	if (*getRandom == true)
@@ -285,27 +287,33 @@ static String getMain(bool* Args, bool* getRandom, bool* pipe, bool* threads, bo
 		StartRandom = "\t//Enable Random\n\tsrand(time(NULL));\n\n";
 	}
 
-	if (*pipe == true)
+	if (*getPipe == true)
 	{
 		UsePipe = "\t//C++ Unix Piping\n\tif(!isatty(fileno(stdin)))\n\t{\n\t\tprint(\"[Pipe]\");\n\t\tprint(\"{\");\n\t\tfor (String line; std::getline(std::cin, line);)\n\t\t{\n\t\t\tprint(line);\n\t\t}\n\t\tprint(\"}\");\n\t}\n\telse\n\t{\n\t\tprint(\"nothing was piped in\");\n\t}\n\n";
 	}
 
-	if (*threads == true)
+	if (*getThreads == true)
 	{
 		UseThreads = "/*\n\t//spawn new thread\n\tstd::thread ThreadName(function,params);\n\t//synchronize threads\n\tThreadName.join();\n*/\n\n";
 	}
+
+	if (*getLength == true)
+	{
+		UseLength = "/*\n\t//Get the length of a string\n\tint StrLen = len(FromUser);\n\t//Get length of array\n\tint AgesLen = sizeof(ages)/sizeof(ages[0]);\n*/\n\n";
+	}
+
 	if (*getVectors == true)
 	{
 		UseVectors = "/*\n\t//string vectors\n\tstd::vector<String> TheStrVect;\n\t//append string\n\tTheStrVect.push_back(\"one\");\n\t//int vectors\n\n\tstd::vector<int> TheIntVect;\n\t//append int\n\tTheIntVect.push_back(1);\n\t//int vectors\n\n\tstd::vector<double> TheDblVect;\n\t//append double\n\tTheDblVect.push_back(1.0);\n\n\t//Vector length\n\tint TheStrVectLen = TheStrVect.size();\n\tint TheIntVectLen = TheIntVect.size();\n\tint TheDblVectLen = TheDblVect.size();\n*/\n\n\n";
 	}
 
-	if (*Args == true)
+	if (*getArgs == true)
 	{
-		Main = "//C++ Main...with cli arguments\nint main(int argc, char** argv)\n{\n"+StartRandom+"\tString out = \"\";\n\t//Args were given\n\tif (argc > 1)\n\t{\n\t\t//Loop through Args\n\t\tfor (int i = 1; i < argc; i++)\n\t\t{\n\t\t\tout = String(argv[i]);\n\t\t\tif (out == \"find\")\n\t\t\t{\n\t\t\t\tprint(\"Found\");\n\t\t\t\tbreak;\n\t\t\t}\n\t\t}\n\t}\n\telse\n\t{\n\t\thelp();\n\t}\n\n"+UsePipe+UseThreads+UseVectors+"\treturn 0;\n}\n";
+		Main = "//C++ Main...with cli arguments\nint main(int argc, char** argv)\n{\n"+StartRandom+"\tString out = \"\";\n\t//Args were given\n\tif (argc > 1)\n\t{\n\t\t//Loop through Args\n\t\tfor (int i = 1; i < argc; i++)\n\t\t{\n\t\t\tout = String(argv[i]);\n\t\t\tif (out == \"find\")\n\t\t\t{\n\t\t\t\tprint(\"Found\");\n\t\t\t\tbreak;\n\t\t\t}\n\t\t}\n\t}\n\telse\n\t{\n\t\thelp();\n\t}\n\n"+UsePipe+UseThreads+UseLength+UseVectors+"\treturn 0;\n}\n";
 	}
 	else
 	{
-		Main = "//C++ Main\nint main()\n{\n"+StartRandom+UsePipe+UseThreads+UseVectors+"\n\treturn 0;\n}\n";
+		Main = "//C++ Main\nint main()\n{\n"+StartRandom+UsePipe+UseThreads+UseLength+UseVectors+"\n\treturn 0;\n}\n";
 	}
 	return Main;
 }
@@ -351,6 +359,7 @@ int main(int argc, char** argv)
 	bool getJoin = false;
 	bool getThreads = false;
 	bool getSleep = false;
+	bool getLength = false;
 	bool IsMain = false;
 	bool getTheUser = false;
 	String theUser = "";
@@ -416,6 +425,13 @@ int main(int argc, char** argv)
 				getName = false;
 				getVect = true;
 			}
+			//Enamble Length
+			else if (UserIn == "--get-length")
+			{
+				getName = false;
+				getLength = true;
+			}
+
 			//Get Write file method
 			else if (UserIn == "--write-file")
 			{
@@ -516,14 +532,14 @@ int main(int argc, char** argv)
 			Imports = getImports(&getWrite, &getRead, &getRand, &getPipe, &getShell, &getThreads, &getSleep, &getProp, &getSplit, &getJoin, &getRev, &getVect);
 			Marcos = getMarcos();
 			theDeclaration = getMethodDec(&getRawIn, &getRand, &getWrite, &getRead, &getIsIn, &getShell, &getSleep, &getProp, &getSplit, &getJoin, &getRev);
-			Methods =  getMethods(&getRawIn, &getRand, &getWrite, &getRead, &getIsIn, &getShell, &getSleep, &getProp, &getSplit, &getJoin, &getRev);
+			Methods = getMethods(&getRawIn, &getRand, &getWrite, &getRead, &getIsIn, &getShell, &getSleep, &getProp, &getSplit, &getJoin, &getRev);
 			if (IsMain == true)
 			{
 				if (getArgs == true)
 				{
 					theHelpMethod = getHelp(CName,theUser);
 				}
-				Main = getMain(&getArgs, &getRand, &getPipe, &getThreads, &getVect);
+				Main = getMain(&getArgs, &getRand, &getPipe, &getThreads, &getVect, &getLength);
 			}
 			else
 			{
