@@ -6,7 +6,7 @@ ProgramName = sys.argv[0]
 if "/" in ProgramName:
 	ProgramName = ProgramName.rsplit("/",1)[1]
 
-VersionName = "0.1.17"
+VersionName = "0.1.21"
 
 def Help():
 	print "Author: Joespider"
@@ -29,6 +29,7 @@ def Help():
 	print "\t--write-file : enable \"write\" file method"
 	print "\t--read-file : enable \"read\" file method"
 	print "\t--thread : enable threading"
+	print "\t--type : enable data type eval method"
 	print "\t--sleep : enable sleep method"
 
 def GetArgs():
@@ -49,6 +50,7 @@ def GetArgs():
 		   "rev":False,
 		   "prop":False,
 		   "thread":False,
+		   "type":False,
 		   "sleep":False,
 		   "shell":False}
 	#
@@ -97,6 +99,8 @@ def GetArgs():
 			Returns["shell"] = True
 		elif now == "--thread":
 			Returns["thread"] = True
+		elif now == "--type":
+			Returns["type"] = True
 		elif now == "--sleep":
 			Returns["sleep"] = True
 		lp += 1
@@ -125,7 +129,7 @@ def Imports(getShell, getSys, getRand, getThread, getPipe, getSleep, getProp):
 	return TheImports
 
 #Get Methods
-def Methods(getMain, getShell, getCLI, getWrite, getRead, getRandom, getThread, getPipe, getSleep, getProp, getSplit, getJoin, getRev):
+def Methods(getMain, getShell, getCLI, getWrite, getRead, getRandom, getThread, getPipe, getSleep, getProp, getSplit, getJoin, getRev, getTypes):
 	TheMethods = ""
 	#{
 	OSshellMethod = "def Shell(cmd):\n\tOutput = \"\"\n\tTheShell = os.popen(cmd)\n\tOutput = TheShell.read()\n\tTheShell.close()\n\treturn Output\n\ndef Exe(cmd):\n\tos.system(cmd)\n"
@@ -137,8 +141,11 @@ def Methods(getMain, getShell, getCLI, getWrite, getRead, getRandom, getThread, 
 	SysPropMethod = "def GetSysProp(PleaseGet):\n\tif PleaseGet != \"\":\n\t\treturn os.environ[PleaseGet]\n\telse:\n\t\treturn \"\"\n"
 	SplitMethod = "def Split(message, sBy):\n\tSplitMessage = message.split(sBy)\n\treturn SplitMessage\n"
 	JoinMethod = "def Join(SplitMessage, jBy):\n\tmessage = jBy.join(SplitMessage)\n\treturn message\n"
-	SplitAndJoinMethod = "def SplitAndJoin(message, sBy, jBy):\n\tSplitMessage = message.split(sBy)\n\tmessage = jBy.join(SplitMessage)\n\treturn message\n"
+	replaceAllMethod = "def replaceAll(message, sBy, jBy):\n\tSplitMessage = message.split(sBy)\n\tmessage = jBy.join(SplitMessage)\n\treturn message\n"
+	replaceAllMethod = replaceAllMethod + "def replaceFirst(message, sBy, jBy):\n\tSplitMessage = message.split(sBy,1)\n\tmessage = jBy.join(SplitMessage)\n\treturn message\n"
+	replaceAllMethod = replaceAllMethod + "def replaceLast(message, sBy, jBy):\n\tSplitMessage = message.rsplit(sBy,1)\n\tmessage = jBy.join(SplitMessage)\n\treturn message\n"
 	ThreadMethod = ""
+	TypeMethod = "def Type(Data):\n\tTheType = type(Data)\n\tif TheType == int:\n\t\treturn \"int\"\n\telif TheType == float:\n\t\treturn \"float\"\n\telif TheType == str:\n\t\treturn \"string\"\n\telif TheType == bool:\n\t\treturn \"bool\"\n\telif TheType == list:\n\t\treturn \"list\"\n\telif TheType == dict:\n\t\treturn \"dict\"\n\telif TheType == tuple:\n\t\treturn \"tuple\"\n\telse:\n\t\treturn TheType\n"
 	ReverseMethod = "def rev(Str):\n\treturn Str[::-1]\n"
 	SleepMethod = "def sleep(sec):\n\ttime.sleep(sec)\n"
 
@@ -182,7 +189,10 @@ def Methods(getMain, getShell, getCLI, getWrite, getRead, getRandom, getThread, 
 		TheMethods = TheMethods+JoinMethod+"\n"
 	#Get Split and Join Method
 	if getSplit == True and getJoin == True:
-		TheMethods = TheMethods+SplitAndJoinMethod+"\n"
+		TheMethods = TheMethods+replaceAllMethod+"\n"
+	#Get Type Method
+	if getTypes == True:
+		TheMethods = TheMethods+TypeMethod+"\n"
 	#Get CLI Method
 	if getCLI == True:
 		TheMethods = TheMethods+CLImethod+"\n"
@@ -220,6 +230,7 @@ def Main():
 	GetRev = UserArgs["rev"]
 	GetShell = UserArgs["shell"]
 	GetThreads = UserArgs["thread"]
+	GetTypes = UserArgs["type"]
 	GetSleep = UserArgs["sleep"]
 	#}
 	#Ensure Name of program
@@ -227,7 +238,7 @@ def Main():
 		#Get Imports
 		ProgImports = Imports(GetShell, IsCLI, GetRand, GetThreads, GetPipe, GetSleep, GetProp)
 		#Get Methods
-		ProgMethods = Methods(IsMain, GetShell, IsCLI, GetWrite, GetRead, GetRand, GetThreads, GetPipe, GetSleep, GetProp, GetSplit, GetJoin, GetRev)
+		ProgMethods = Methods(IsMain, GetShell, IsCLI, GetWrite, GetRead, GetRand, GetThreads, GetPipe, GetSleep, GetProp, GetSplit, GetJoin, GetRev, GetTypes)
 		if IsCLI == True:
 			TheHelpMethod = getHelp(TheName,TheUser)
 		#Manage Imports

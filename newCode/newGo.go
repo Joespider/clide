@@ -8,7 +8,7 @@ import (
 
 func help() {
 	var ProgName string = "newGo"
-	var Version string = "0.1.12"
+	var Version string = "0.1.17"
 
 	fmt.Println("Author: Joespider")
 	fmt.Println("Program: \""+ProgName+"\"")
@@ -18,12 +18,12 @@ func help() {
 	fmt.Println("\t--user <username>: get username for help page")
 	fmt.Println("\t-n <name> : program name")
 	fmt.Println("\t--name <name> : program name")
-	fmt.Println("\t--main : main file")
 	fmt.Println("\t--cli : enable command line (Main file ONLY)")
-	fmt.Println("\t--shell : unix shell")
+	fmt.Println("\t--main : main file")
 	fmt.Println("\t--prop : enable custom system property")
-	fmt.Println("\t--reverse : enable reverse string")
 	fmt.Println("\t--pipe : enable piping (Main file ONLY)")
+	fmt.Println("\t--shell : unix shell")
+	fmt.Println("\t--reverse : enable reverse string")
 	fmt.Println("\t--split : enable \"split\" function")
 	fmt.Println("\t--join : enable \"join\" function")
 	fmt.Println("\t--random : enable \"random\" int method")
@@ -33,6 +33,8 @@ func help() {
 	fmt.Println("\t--user-input : enable \"raw_input\" method")
 	fmt.Println("\t--thread : enable threading")
 	fmt.Println("\t--sleep : enable \"sleep\" method")
+	fmt.Println("\t--convert : enable data type conversion methods")
+	fmt.Println("\t--sub-string : enable sub-string methods")
 }
 
 func getHelp(TheName string, TheUser string) string {
@@ -49,7 +51,7 @@ func getPackage(ThePackage string) string {
 }
 
 //create import listing
-func getImports(UserInput bool, write bool, read bool, random bool, cli bool, sleep bool, getPipe bool, getShell bool, getThread bool, getProp bool, getSplit bool, getJoin bool) string {
+func getImports(UserInput bool, write bool, read bool, random bool, cli bool, sleep bool, getPipe bool, getShell bool, getThread bool, getProp bool, getSplit bool, getJoin bool, getConv bool) string {
 	var Imports string = ""
 	var standard string = "\"fmt\"\n"
 	var readWrite string = ""
@@ -57,6 +59,7 @@ func getImports(UserInput bool, write bool, read bool, random bool, cli bool, sl
 	var ForTime string = ""
 	var ForCLI string = ""
 	var ForUserInput string = ""
+	var ForConvert string = ""
 	var ForString string = ""
 	var ForShell string = ""
 
@@ -84,11 +87,14 @@ func getImports(UserInput bool, write bool, read bool, random bool, cli bool, sl
 		ForTime = "\t\"time\"\n"
 	}
 
+	if getConv == true {
+		ForConvert = "\t\"strconv\"\n"
+	}
 	if getPipe == true || getSplit == true || getJoin == true {
 		ForString = "\t\"strings\"\n"
 	}
 
-	Imports = standard+readWrite+ForRandom+ForCLI+ForShell+ForUserInput+ForTime+ForString
+	Imports = standard+readWrite+ForRandom+ForCLI+ForShell+ForUserInput+ForTime+ForString+ForConvert
 	if Imports == standard {
 		Imports = "import "+Imports
 	} else {
@@ -98,7 +104,7 @@ func getImports(UserInput bool, write bool, read bool, random bool, cli bool, sl
 	return Imports
 }
 
-func getMethods(getRawIn bool, getRand bool, getWrite bool, getRead bool, getIsIn bool, getSleep bool, getShell bool, getThread bool, getProp bool, getSplit bool, getJoin bool, getRev bool) string {
+func getMethods(getRawIn bool, getRand bool, getWrite bool, getRead bool, getIsIn bool, getSleep bool, getShell bool, getThread bool, getProp bool, getSplit bool, getJoin bool, getRev bool, getSubStr bool, getConv bool) string {
 	var TheMethods string = ""
 	var ReadMethod string = ""
 	var WriteMethod string = ""
@@ -106,9 +112,11 @@ func getMethods(getRawIn bool, getRand bool, getWrite bool, getRead bool, getIsI
 	var UserInput string = ""
 	var SleepMethod string = ""
 	var ShellMethod string = ""
+	var SubStrMethod string = ""
+	var ConvertMethod string = ""
 	var SplitMethod string = ""
 	var JoinMethod string = ""
-	var SplitAndJoinMethod string = ""
+	var replaceAllMethod string = ""
 	var SysPropMethod string = ""
 	var ThreadMethod string = ""
 	var ReverseMethod string = ""
@@ -126,7 +134,7 @@ func getMethods(getRawIn bool, getRand bool, getWrite bool, getRead bool, getIsI
 	}
 
 	if getRand == true {
-		RandMethod = "func Random(min int, max int) {\n\treturn rand.Intn(max-min) + min\n}\n\n"
+		RandMethod = "func Random(min int, max int) int {\n\treturn rand.Intn(max-min) + min\n}\n\n"
 	}
 
 	if getShell == true {
@@ -149,6 +157,15 @@ func getMethods(getRawIn bool, getRand bool, getWrite bool, getRead bool, getIsI
 		SysPropMethod = "func GetSysProp(PleaseGet string) string {\n\tif PleaseGet != \"\" {\n\t\treturn os.Getenv(PleaseGet)\n\t} else {\n\t\treturn \"\"\n\t}\n}\n\n"
 	}
 
+	if getSubStr == true {
+		SubStrMethod = "func SubString(TheString string, Start int, End int) string {\n\tLen := Start + End\n\tif Len >= len(TheString) {\n\t\treturn TheString[Start:End]\n\t} else {\n\t\treturn TheString[Start:Len]\n\t}\n}\n\n"
+		SubStrMethod = SubStrMethod + "func Index(TheString string, SubStr string) int {\n\treturn strings.Index(TheString, SubStr)\n}\n\n"
+	}
+
+	if getConv == true {
+		ConvertMethod = "func Str(number int) string {\n\treturn strconv.Itoa(number)\n}\n\n"
+	}
+
 	if getSplit == true {
 		SplitMethod = "func split(Str string, sBy string) []string {\n\tArray := strings.Split(Str, sBy)\n\treturn Array\n}\n\n"
 	}
@@ -158,11 +175,11 @@ func getMethods(getRawIn bool, getRand bool, getWrite bool, getRead bool, getIsI
 	}
 
 	if  getSplit == true && getJoin == true {
-		SplitAndJoinMethod = "func SplitAndJoin(Str string, sBy string, ToJoin string) string {\n\tArray := split(Str, sBy)\n\tJoined := join(Array, ToJoin)\n\treturn Joined\n}\n\n"
+		replaceAllMethod = "func replaceAll(Str string, sBy string, ToJoin string) string {\n\tArray := split(Str, sBy)\n\tJoined := join(Array, ToJoin)\n\treturn Joined\n}\n\n"
 	}
 
 
-	TheMethods = UserInput+WriteMethod+ReadMethod+RandMethod+ShellMethod+SleepMethod+ThreadMethod+ReverseMethod+SysPropMethod+SplitMethod+JoinMethod+SplitAndJoinMethod
+	TheMethods = UserInput+WriteMethod+ReadMethod+RandMethod+ShellMethod+SleepMethod+ThreadMethod+ReverseMethod+SysPropMethod+SplitMethod+JoinMethod+replaceAllMethod+SubStrMethod+ConvertMethod
 
 	return TheMethods
 }
@@ -189,7 +206,7 @@ func getMain(Args bool, getRandom bool, getPipe bool, getThread bool) string {
 	if Args == true {
 		Main = "//main\nfunc main() {\n"+RandStart+"\targs := os.Args[1:]\n\tif len(args) > 0 {\n\t\tfor arg := range args {\n\t\t\tfmt.Println(args[arg])\n\t\t}\n\t} else {\n\t\thelp()\n\t}\n"+PipeCode+UseThread+"}"
 	} else {
-		Main = "//main\nfunc main() {\n"+RandStart+"\tfmt.Printf(\"hellow world\")\n"+PipeCode+UseThread+"}"
+		Main = "//main\nfunc main() {\n"+RandStart+"\tfmt.Println(\"hellow world\")\n"+PipeCode+UseThread+"}"
 	}
 	return Main
 }
@@ -226,8 +243,10 @@ func main() {
 	var getProp bool = false
 	var getRev bool = false
 	var getShell bool = false
+	var getConv bool = false
 	var getSplit bool = false
 	var getJoin bool = false
+	var getSubStr bool = false
 	var getThread bool = false
 	var IsMain bool = false
 	var UserIn string = ""
@@ -281,6 +300,10 @@ func main() {
 		} else if UserIn == "--user-input" {
 			getName = false
 			getRawIn = true
+		//Get convert methods
+		} else if UserIn == "--convert" {
+			getName = false
+			getConv = true
 		//Get sleep
 		} else if UserIn == "--sleep" {
 			getName = false
@@ -309,6 +332,10 @@ func main() {
 		} else if UserIn == "--split" {
 			getName = false
 			getSplit = true
+		//Get Sub Str
+		} else if UserIn == "--sub-string" {
+			getName = false
+			getSubStr = true
 		//Get Join
 		} else if UserIn == "--join" {
 			getName = false
@@ -326,8 +353,8 @@ func main() {
 	//Ensure program name is given
 	if CName != "" {
 		ThePackage = getPackage("main")
-		Imports = getImports(getRawIn, getWrite, getRead, getRand, getArgs, getSleep, getPipe, getShell, getThread, getProp, getSplit, getJoin)
-		Methods = getMethods(getRawIn, getRand, getWrite, getRead, getIsIn, getSleep, getShell, getThread, getProp, getSplit, getJoin, getRev)
+		Imports = getImports(getRawIn, getWrite, getRead, getRand, getArgs, getSleep, getPipe, getShell, getThread, getProp, getSplit, getJoin, getConv)
+		Methods = getMethods(getRawIn, getRand, getWrite, getRead, getIsIn, getSleep, getShell, getThread, getProp, getSplit, getJoin, getRev, getSubStr, getConv)
 		if IsMain == true {
 			if getArgs == true {
 				TheHelpContent = getHelp(CName,TheAuthor)

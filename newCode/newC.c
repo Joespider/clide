@@ -2,6 +2,10 @@
 #include <string.h>
 #include <stdlib.h>
 
+#define bool int
+#define false 1
+#define true 0
+
 /*
 Method	Description
 strcat()	It is used to concatenate(combine) two strings
@@ -25,7 +29,7 @@ void help()
 {
 	print("Author: Joespider");
 	print("Program: \"newC\"");
-	print("Version: 0.0.12");
+	print("Version: 0.0.13");
 	print("Purpose: make new C programs");
 	print("Usage: newC <args>");
 	print("\t-n <name> : program name");
@@ -47,19 +51,24 @@ void getImports(FILE *file)
 	fputs("#include <stdio.h>\n#include <string.h>\n#include <stdlib.h>\n\n", file);
 }
 
-void getMethods(FILE *file, int getRawIn, int getRand, int getWrite, int getRead, int getIsIn)
+void getMarcos(FILE *file)
+{
+	fputs("#define bool int\n#define false 1\n#define true 0\n\n", file);
+}
+
+void getMethods(FILE *file, bool getRawIn, bool getRand, bool getWrite, bool getRead, bool getIsIn)
 {
 	fputs("void print(char *Out)\n{\n\tprintf(\"%s\\n\",Out);\n}\n\n",file);
-	if (getIsIn == 0)
+	if (getIsIn == true)
 	{
 		fputs("int IsIn(char Str[], char Sub[])\n{\n\tint found = 1;\n\tif (strstr(Str,Sub) != NULL)\n\t{\n\t\tfound = 0;\n\t}\n\treturn found;\n}\n", file);
 	}
 	fputs("\n", file);
 }
 
-void getMain(FILE *file, int getArgs, int getRand)
+void getMain(FILE *file, bool getArgs, int getRand)
 {
-	if (getArgs == 0)
+	if (getArgs == true)
 	{
 		fputs("//C Main\nint main(int argc, char *argv[])\n{\n\n\tif (argc > 1)\n\t{\n\t\t//loop through args\n\t\tfor (int i = 1; i < argc; i++)\n\t\t{\n\t\t\tprint(argv[i]);\n\t\t}\n\t}\n\n\treturn 0;\n}\n", file);
 	}
@@ -69,12 +78,12 @@ void getMain(FILE *file, int getArgs, int getRand)
 	}
 }
 
-int IsIn(char Str[], char Sub[])
+bool IsIn(char Str[], char Sub[])
 {
-	int found = 1;
+	bool found = false;
 	if (strstr(Str,Sub) != NULL)
 	{
-		found = 0;
+		found = true;
 	}
 	return found;
 }
@@ -82,15 +91,15 @@ int IsIn(char Str[], char Sub[])
 //C Main
 int main(int argc, char *argv[])
 {
-	int NameIsNotOk = 1;
-	int getName = 1;
-	int getArgs = 1;
-	int getRand = 1;
-	int getWrite = 1;
-	int getRead = 1;
-	int getIsIn = 1;
-	int getRawIn = 1;
-	int IsMain = 1;
+	bool NameIsNotOk = false;
+	bool getName = false;
+	bool getArgs = false;
+	bool getRand = false;
+	bool getWrite = false;
+	bool getRead = false;
+	bool getIsIn = false;
+	bool getRawIn = false;
+	bool IsMain = false;
 	int LenOfName = 0;
 	char TheExt[2];
 
@@ -113,42 +122,42 @@ int main(int argc, char *argv[])
 				getName = 1;
 			}
 			//Get name of program
-			else if ((strcmp(argv[i],"-n") == 0) || (strcmp(argv[i],"--name") == 0))
+			else if ((strcmp(argv[i],"-n") == true) || (strcmp(argv[i],"--name") == true))
 			{
-				getName = 0;
+				getName = true;
 			}
-			else if (strcmp(argv[i],"--cli") == 0)
+			else if (strcmp(argv[i],"--cli") == true)
 			{
-				getArgs = 0;
+				getArgs = true;
 			}
-			else if (strcmp(argv[i],"--main") == 0)
+			else if (strcmp(argv[i],"--main") == true)
 			{
-				IsMain = 0;
+				IsMain = true;
 			}
-			else if (strcmp(argv[i],"--is-in") == 0)
+			else if (strcmp(argv[i],"--is-in") == true)
 			{
-				getIsIn = 0;
+				getIsIn = true;
 			}
-			else if (strcmp(argv[i],"--random") == 0)
+			else if (strcmp(argv[i],"--random") == true)
 			{
-				getRand = 0;
+				getRand = true;
 			}
-			else if (strcmp(argv[i],"--write-file") == 0)
+			else if (strcmp(argv[i],"--write-file") == true)
 			{
-				getWrite = 0;
+				getWrite = true;
 			}
-			else if (strcmp(argv[i],"--read-file") == 0)
+			else if (strcmp(argv[i],"--read-file") == true)
 			{
-				getRead = 0;
+				getRead = true;
 			}
-			else if (strcmp(argv[i],"--user-input") == 0)
+			else if (strcmp(argv[i],"--user-input") == true)
 			{
-				getRawIn = 0;
+				getRawIn = true;
 			}
 		}
 
 		//Ensure program name is given
-		if (strcmp(CName,"") != 0)
+		if (strcmp(CName,"") != true)
 		{
 			FILE * fp;
 			if (LenOfName >= 3)
@@ -168,8 +177,9 @@ int main(int argc, char *argv[])
 				fp = fopen(strcat(CName,".c"), "w");
 			}
 			getImports(fp);
+			getMarcos(fp);
 			getMethods(fp, getRawIn, getRand, getWrite, getRead, getIsIn);
-			if (IsMain == 0)
+			if (IsMain == true)
 			{
 				getMain(fp, getArgs, getRand);
 			}

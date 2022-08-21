@@ -5,7 +5,7 @@ fn help()
 {
 	println!("Author: Joespider");
 	println!("Program: \"newRust\"");
-	println!("Version: 0.1.10");
+	println!("Version: 0.1.11");
 	println!("Purpose: make new Rust programs");
 	println!("Usage: newRust <args>");
 	println!("\t--user <username>: get username for help page");
@@ -25,6 +25,7 @@ fn help()
 	println!("\t--is-in : enable string contains methods");
 	println!("\t--thread : enable threading (Main file and project ONLY)");
 	println!("\t--sleep : enable sleep method");
+	println!("\t--get-length : enable \"length\" methods");
 }
 
 fn get_sys_prop(please_get: &str) -> String
@@ -123,7 +124,7 @@ fn get_imports(getreadfile: bool, getwritefile: bool, getcli: bool, getpipe: boo
 	return theimports;
 }
 
-fn get_methods(getreadfile: bool, getwritefile: bool, getrawinput: bool, getsysprop: bool, getsleep: bool, getrev: bool, getisin: bool) -> String
+fn get_methods(getreadfile: bool, getwritefile: bool, getrawinput: bool, getsysprop: bool, getsleep: bool, getrev: bool, getisin: bool, getlen: bool) -> String
 {
 	let mut themethods = String::new();
 	if getrawinput == true
@@ -155,6 +156,10 @@ fn get_methods(getreadfile: bool, getwritefile: bool, getrawinput: bool, getsysp
 		themethods.push_str("fn contains(str: &str, sub: &str) -> bool\n{\n\tif str.contains(sub)\n\t{\n\t\treturn true;\n\t}\n\telse\n\t{\n\t\treturn false;\n\t}\n}\n\n");
 		themethods.push_str("fn startswith(str: &str, start: &str) -> bool\n{\n\tif str.starts_with(start)\n\t{\n\t\treturn true;\n\t}\n\telse\n\t{\n\t\treturn false;\n\t}\n}\n\n");
 		themethods.push_str("fn endswith(str: &str, end: &str) -> bool\n{\n\tif str.ends_with(end)\n\t{\n\t\treturn true;\n\t}\n\telse\n\t{\n\t\treturn false;\n\t}\n}\n\n");
+	}
+	if getlen == true
+	{
+		themethods.push_str("fn len(message: &str) -> u32\n{\n\tlet thesize = message.len().to_string();\n\treturn thesize.parse().unwrap();\n}\n\n");
 	}
 
 	return themethods;
@@ -217,6 +222,7 @@ fn main()
 	let mut is_pipe = false;
 	let mut is_rev = false;
 	let mut is_in = false;
+	let mut is_len = false;
 	let mut is_split = false;
 	let mut is_join = false;
 	let mut is_sleep = false;
@@ -284,6 +290,10 @@ fn main()
 			{
 				is_thread = true;
 			}
+			else if args == "--get-length"
+			{
+				is_len = true;
+			}
 			else if args == "--pipe"
 			{
 				is_pipe = true;
@@ -317,7 +327,7 @@ fn main()
 		let the_imports = get_imports(is_read_file, is_write_file, is_cli, is_pipe, is_prop, is_thread, is_sleep);
 		let the_helps = get_help(program_name.to_string(),the_user.to_string(),is_cli);
 		program_name.push_str(".rs");
-		let the_methods = get_methods(is_read_file, is_write_file, get_input_method, is_prop, is_sleep, is_rev, is_in);
+		let the_methods = get_methods(is_read_file, is_write_file, get_input_method, is_prop, is_sleep, is_rev, is_in,is_len);
 		let the_main = get_main(is_main, is_cli, is_pipe, is_thread, is_split, is_join);
 		write_file(program_name, the_imports, the_helps, the_methods, the_main);
 	}

@@ -4,7 +4,7 @@
 #Link Libs: https://gist.github.com/gubatron/32f82053596c24b6bec6
 #both https://avikdas.com/2019/12/16/makefiles-for-c-cpp-projects.html
 
-SupportV="0.2.45"
+SupportV="0.2.46"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -2471,10 +2471,10 @@ UseC++()
 						#Remove old file for "rename"
 						case ${Type} in
 							rename)
-								mv ${LangSrc}/${TheOld}${LangExt} ${LangSrc}/${TheNew}${LangExt}
+								mv ${LangSrc}/${TheOld}${LangExt} ${LangSrc}/${TheNew}${LangExt} 2> /dev/null
 								;;
 							copy)
-								cp ${LangSrc}/${TheOld}${LangExt} ${LangSrc}/${TheNew}${LangExt}
+								cp ${LangSrc}/${TheOld}${LangExt} ${LangSrc}/${TheNew}${LangExt} 2> /dev/null
 								;;
 							*)
 								;;
@@ -2547,10 +2547,10 @@ UseC++()
 							cd ${ThePath}
 							case ${Type} in
 								rename)
-									mv ${TheOld} ${TheNew}
+									mv ${TheOld} ${TheNew} 2> /dev/null
 									;;
 								copy)
-									cp ${TheOld} ${TheNew}
+									cp ${TheOld} ${TheNew} 2> /dev/null
 									;;
 								*)
 									;;
@@ -2560,10 +2560,10 @@ UseC++()
 						else
 							case ${Type} in
 								rename)
-									mv ${TheOld} ${TheNew}
+									mv ${TheOld} ${TheNew} 2> /dev/null
 									;;
 								copy)
-									cp ${TheOld} ${TheNew}
+									cp ${TheOld} ${TheNew} 2> /dev/null
 									;;
 								*)
 									;;

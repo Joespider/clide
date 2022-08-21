@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.81"
+SupportV="0.1.83"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
@@ -1786,7 +1786,7 @@ UseC()
 								else
 									#Program Name Given
 									if [ ! -z "${name}" ]; then
-										local Content="#include <stdio.h>\n\n//${Lang} Main\nint main()\n{\n\n\treturn 0;\n}"
+										local Content="#include <stdio.h>\n\n#define bool int\n#define false 1\n#define true 0\n\n//${Lang} Main\nint main()\n{\n\n\treturn 0;\n}"
 										touch ${name}${LangExt}
 										echo -e "${Content}" > ${name}${LangExt}
 									else
@@ -2120,10 +2120,10 @@ UseC()
 						#Remove old file for "rename"
 						case ${Type} in
 							rename)
-								mv ${LangSrc}/${TheOld}${LangExt} ${LangSrc}/${TheNew}${LangExt}
+								mv ${LangSrc}/${TheOld}${LangExt} ${LangSrc}/${TheNew}${LangExt} 2> /dev/null
 								;;
 							copy)
-								cp ${LangSrc}/${TheOld}${LangExt} ${LangSrc}/${TheNew}${LangExt}
+								cp ${LangSrc}/${TheOld}${LangExt} ${LangSrc}/${TheNew}${LangExt} 2> /dev/null
 								;;
 							*)
 								;;
@@ -2196,10 +2196,10 @@ UseC()
 							cd ${ThePath}
 							case ${Type} in
 								rename)
-									mv ${TheOld} ${TheNew}
+									mv ${TheOld} ${TheNew} 2> /dev/null
 									;;
 								copy)
-									cp ${TheOld} ${TheNew}
+									cp ${TheOld} ${TheNew} 2> /dev/null
 									;;
 								*)
 									;;
@@ -2209,10 +2209,10 @@ UseC()
 						else
 							case ${Type} in
 								rename)
-									mv ${TheOld} ${TheNew}
+									mv ${TheOld} ${TheNew} 2> /dev/null
 									;;
 								copy)
-									cp ${TheOld} ${TheNew}
+									cp ${TheOld} ${TheNew} 2> /dev/null
 									;;
 								*)
 									;;
