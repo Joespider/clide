@@ -2,6 +2,7 @@
 
 ThePath=$1
 if [ ! -z "${ThePath}" ] && [ -d "${ThePath}" ]; then
+	TheName=${ThePath##*/}
 	mkdir -p ${ThePath}/lib
 	mkdir -p ${ThePath}/classes
 	mkdir -p ${ThePath}/META-INF
@@ -12,5 +13,5 @@ if [ ! -z "${ThePath}" ] && [ -d "${ThePath}" ]; then
 	mkdir -p ${ThePath}/src/main/java
 	mkdir -p ${ThePath}/src/test/java
 	touch ${ThePath}/pom.xml
-	echo -e "<project xmlns = \"http://maven.apache.org/POM/4.0.0\" xmlns:xsi = \"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation = \"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd\">\n\t<modelVersion>4.0.0</modelVersion>\n\n\t<groupId></groupId>\n\t<artifactId>project</artifactId>\n\t<version>1.0</version>\n</project>\n" > ${ThePath}/pom.xml
+	echo -e "<project xmlns = \"http://maven.apache.org/POM/4.0.0\" xmlns:xsi = \"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation = \"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd\">\n\t<modelVersion>4.0.0</modelVersion>\n\n\t<groupId></groupId>\n\t<artifactId>${TheName}</artifactId>\n\t<version>1.0</version>\n</project>\n" > ${ThePath}/pom.xml
 fi

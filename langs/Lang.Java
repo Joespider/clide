@@ -3,7 +3,7 @@
 #https://stackoverflow.com/questions/10339637/java-import-cannot-find-symbol
 #https://www.codejava.net/java-core/tools/how-to-compile-package-and-run-a-java-program-using-command-line-tools-javac-jar-and-java
 
-SupportV="0.2.38"
+SupportV="0.2.41"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -147,6 +147,19 @@ UseJava()
 			local TheSrcDir=${LangProject}/${project}/src
 			find ${TheSrcDir} -name *"${LangExt}" 2> /dev/null | grep "${ProjectMode}"
 			;;
+		getProjSrc)
+			local name=$1
+			local project=${CodeProject}
+			local TheSrcDir=${LangProject}/${project}/src
+			local UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
+			if [ ! -z "${name}" ]; then
+				if [ ! -z "${UseProjectTemplate}" ]; then
+					ProjectTemplateHandler ${ProjectType} ${Type} ${TheSrcDir} ${name}
+				else
+					find ${TheSrcDir} -name "${name}" 2> /dev/null | grep "${ProjectMode}"
+				fi
+			fi
+                        ;;
 		getProjSrc)
 			local name=$1
 			local project=${CodeProject}
@@ -462,6 +475,8 @@ UseJava()
 			local newName
 			local DirPath
 			local TheSrcDir
+			local NumFound
+			local UseProjectTemplate
 			#Correct filename
 			if [ ! -z "${name}" ]; then
 				name=$(UseJava "removeExt" "${name}")
@@ -517,7 +532,13 @@ UseJava()
 								;;
 						esac
 
-						local NumFound=$(find ${TheSrcDir} -name ${LookFor} 2> /dev/null | grep "${ProjectMode}" | wc -l)
+						UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check "getProjSrc")
+						if [ -z "${UseProjectTemplate}" ]; then
+							NumFound=$(UseJava "getProjSrc" ${LookFor} 2> /dev/null | grep ${ProjectMode} | wc -l)
+						else
+							NumFound=$(UseJava "getProjSrc" ${LookFor} 2> /dev/null | wc -l)
+						fi
+
 						case ${NumFound} in
 							0)
 								;;
@@ -615,6 +636,8 @@ UseJava()
 			local DirPath
 			local TheSrcDir
 			local ReadOrEdit
+			local UseProjectTemplate
+			local NumFound
 
 			#Select the tool
 			#{
@@ -713,28 +736,44 @@ UseJava()
 
 							TheSrcDir="${LangProject}/${project}/src/"
 
-							local NumFound=$(find ${TheSrcDir} -name ${TheFile} 2> /dev/null | grep "${ProjectMode}" | wc -l)
+							UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check "getProjSrc")
+							if [ -z "${UseProjectTemplate}" ]; then
+								NumFound=$(UseJava "getProjSrc" ${TheFile} 2> /dev/null | grep ${ProjectMode} | wc -l)
+							else
+								NumFound=$(UseJava "getProjSrc" ${TheFile} 2> /dev/null | wc -l)
+							fi
+
 							case ${NumFound} in
 								0)
+									
 									;;
 								1)
-									TheFile=$(find ${TheSrcDir} -name ${TheFile} 2> /dev/null | grep "${ProjectMode}")
+									if [ -z "${UseProjectTemplate}" ]; then
+										TheFile=$(UseJava "getProjSrc" ${TheFile} 2> /dev/null | grep ${ProjectMode})
+									else
+										TheFile=$(UseJava "getProjSrc" ${TheFile} 2> /dev/null)
+									fi
+									
 									if [ -f ${TheFile} ]; then
 										#Read or Write Code
 										#{
-									${ReadOrEdit} ${TheFile}
+										${ReadOrEdit} ${TheFile}
 										#}
 									fi
 									;;
 								*)
 									local Select
-									find ${TheSrcDir} -name ${TheFile} 2> /dev/null | grep "${ProjectMode}" | sed "s/\/${project}\/src\//|/1" | cut -d '|' -f 2 | nl
+									if [ -z "${UseProjectTemplate}" ]; then
+										UseJava "getProjSrc" 2> /dev/null | grep ${ProjectMode} | sed "s/\/${project}\/src\//|/1" | cut -d '|' -f 2 | nl
+									else
+										UseJava "getProjSrc" 2> /dev/null | sed "s/\/${project}\/src\//|/1" | cut -d '|' -f 2 | nl
+									fi
 									echo -n "> "
 									read Select
 									Select=$(echo ${Select} | grep "^-\?[0-9]*$")
 									if [ ! -z "${Select}" ]; then
 										if [ ${Select} -le ${NumFound} ] && [ ${Select} -gt 0 ]; then
-											TheFile=$(find ${TheSrcDir} -name ${TheFile} 2> /dev/null | grep "${ProjectMode}" | tr '\n' '|' | cut -d '|' -f ${Select})
+											TheFile=$(UseJava "getProjSrc" ${TheFile} 2> /dev/null | tr '\n' '|' | cut -d '|' -f ${Select})
 											#Read or Write Code
 											#{
 											${ReadOrEdit} ${TheFile}
@@ -798,6 +837,11 @@ UseJava()
 					local TheProjName=$1
 					echo -e "\e[1;4${ColorNum}m[Project \"${TheProjName}\" Compiled (CLASS)]\e[0m"
 					;;
+				project-mvn)
+					shift
+					local TheProjName=$1
+					echo -e "\e[1;4${ColorNum}m[Maven Project \"${TheProjName}\" Compiled (JAR)]\e[0m"
+					;;
 				*)
 					;;
 			esac
@@ -855,10 +899,10 @@ UseJava()
 												#Keep Generated Manafest file
 												case ${keep} in
 													--keep-manifest)
-														rm *.class
+														rm *.class 2> /dev/null
 														;;
 													*)
-														rm manifest.mf *.class
+														rm manifest.mf *.class 2> /dev/null
 													;;
 												esac
 												#move Java Jar to Binary dir
@@ -880,7 +924,7 @@ UseJava()
 									#Do nothing...keep class
 									*|--class)
 										#move Java Class to Binary dir
-										mv *.class ${TheBinDir}/
+										mv *.class ${TheBinDir}/ 2> /dev/null
 										NumOfMain=$(echo -e "${TheMainClass// /\\n}" | wc -l)
 										case ${NumOfMain} in
 											#only ONE "main" class was found
@@ -954,7 +998,11 @@ UseJava()
 					fi
 
 					if [ ! -z "${UseProjectTemplate}" ]; then
-						ProjectTemplateHandler ${ProjectType} ${Type} ${LangProject}/${project} ${TheBinDir}
+						ProjectTemplateHandler ${ProjectType} ${Type} ${LangProject}/${project} ${Lang} ${ColorNum} ${TheBinDir}
+						local CplBin=$(ProjectTemplateHandler ${ProjectType} ${Type}.status ${project} ${LangProject}/${project} ${TheBinDir})
+						if [ ! -z "${CplBin}" ]; then
+							UseJava compileCode-message project-mvn ${project}
+						fi
 					else
 						#Compile as jar or class
 						case ${UseTypeOfCpl} in
@@ -1169,7 +1217,7 @@ UseJava()
 					if [ ! -z "${src}" ]; then
 						src=$(UseJava "removeExt" "${src}")
 						TheFile=${src}${LangExt}
-						local NumFound=$(find ${TheSrcDir} -name ${TheFile} 2> /dev/null | grep "${ProjectMode}" | wc -l)
+						local NumFound=$(find -L ${TheSrcDir} -name ${TheFile} 2> /dev/null | grep "${ProjectMode}" | wc -l)
 						case ${NumFound} in
 							0)
 								;;
@@ -1657,7 +1705,7 @@ UseJava()
 															#Because a project can have source code scattered in different directories,
 															#make sure you have one main component
 															local TheSrcDir="${LangProject}/${project}/src/"
-															local NumFound=$(find ${TheSrcDir} -type f -name "*${LangExt}" 2> /dev/null | wc -l)
+															local NumFound=$(find -L ${TheSrcDir} -type f -name "*${LangExt}" 2> /dev/null | wc -l)
 															case ${NumFound} in
 																#No other source code was found...make your main file
 																0)
@@ -1736,7 +1784,7 @@ UseJava()
 															#Because a project can have source code scattered in different directories,
 															#make sure you have one main component
 															local TheSrcDir="${LangProject}/${project}/src/"
-															local NumFound=$(find ${TheSrcDir} -type f -name "*${LangExt}" 2> /dev/null | wc -l)
+															local NumFound=$(find -L ${TheSrcDir} -type f -name "*${LangExt}" 2> /dev/null | wc -l)
 															case ${NumFound} in
 																#No other source code was found...make your main file
 																0)
@@ -2267,10 +2315,10 @@ UseJava()
 						#Remove old file for "rename"
 						case ${Type} in
 							rename)
-								mv ${LangSrc}/${TheOld}${LangExt} ${LangSrc}/${TheNew}${LangExt}
+								mv ${LangSrc}/${TheOld}${LangExt} ${LangSrc}/${TheNew}${LangExt} 2> /dev/null
 								;;
 							copy)
-								cp ${LangSrc}/${TheOld}${LangExt} ${LangSrc}/${TheNew}${LangExt}
+								cp ${LangSrc}/${TheOld}${LangExt} ${LangSrc}/${TheNew}${LangExt} 2> /dev/null
 								;;
 							*)
 								;;

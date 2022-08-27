@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+TheProject=$1
+ThePath=$2
+TheBinDir=$3
+
+if [ ! -z "${ThePath}" ] && [ -d "${ThePath}" ]; then
+	PomFile=${ThePath}/pom.xml
+	if [ ! -z "${PomFile}" ] && [ -f "${PomFile}" ]; then
+		TheName=$(grep artifactId ${PomFile} | head -n 1 | sed "s/>/|/g" | sed "s/</|/g" | cut -d '|' -f 3)
+		TheVersion=$(grep version ${PomFile} | head -n 1 | sed "s/>/|/g" | sed "s/</|/g" | cut -d '|' -f 3)
+		TheJar="${TheName}-${TheVersion}.jar"
+		TheJar=$(find ${ThePath} -name ${TheJar})
+
+		if [ ! -z "${TheJar}" ] && [ -d "${TheBinDir}" ]; then
+			mv ${TheJar} ${TheBinDir}/${TheProject}.jar > /dev/null
+			echo "done"
+		fi
+	fi
+fi

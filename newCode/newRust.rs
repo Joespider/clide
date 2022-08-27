@@ -1,33 +1,33 @@
 use std::env;
 use std::io::Write;
 
-fn print(message: &str)
-{
-	println!("{}", message);
-}
-
 fn help()
 {
-	print("Author: Joespider");
-	print("Program: \"newRust\"");
-	print("Version: 0.1.08");
-	print("Purpose: make new Rust programs");
-	print("Usage: newRust <args>");
-	print("\t--user <username>: get username for help page");
-	print("\t-n <name> : program name");
-	print("\t--name <name> : program name");
-	print("\t--cli : enable command line (Main file ONLY)");
-	print("\t--main : main file");
-	print("\t--prop : enable custom system property");
-	print("\t--reverse : enable \"rev\" method");
-	print("\t--pipe : enable piping (Main file and project ONLY)");
-	print("\t--random : enable \"random\" int method");
-	print("\t--write-file : enable \"write\" file method");
-	print("\t--read-file : enable \"read\" file method");
-	print("\t--user-input : enable \"Raw_Input\" file method");
-	print("\t--is-in : enable string contains methods");
-	print("\t--thread : enable threading (Main file and project ONLY)");
-	print("\t--sleep : enable sleep method");
+	println!("Author: Joespider");
+	println!("Program: \"newRust\"");
+	println!("Version: 0.1.13");
+	println!("Purpose: make new Rust programs");
+	println!("Usage: newRust <args>");
+	println!("\t--user <username>: get username for help page");
+	println!("\t-n <name> : program name");
+	println!("\t--name <name> : program name");
+	println!("\t--cli : enable command line (Main file ONLY)");
+	println!("\t--main : main file");
+	println!("\t--prop : enable custom system property");
+	println!("\t--reverse : enable \"rev\" method");
+	println!("\t--pipe : enable piping (Main file and project ONLY)");
+	println!("\t--random : enable \"random\" int method");
+	println!("\t--write-file : enable \"write\" file method");
+	println!("\t--read-file : enable \"read\" file method");
+	println!("\t--user-input : enable \"Raw_Input\" file method");
+	println!("\t--split : enable split");
+	println!("\t--join : enable join");
+	println!("\t--is-in : enable string contains methods");
+	println!("\t--thread : enable threading (Main file and project ONLY)");
+	println!("\t--sleep : enable sleep method");
+	println!("\t--get-length : enable \"length\" methods");
+	println!("\t--upper : enable upper case methods");
+	println!("\t--lower : enable lower case methods");
 }
 
 fn get_sys_prop(please_get: &str) -> String
@@ -48,15 +48,15 @@ fn get_help(thename: String,theuser: String, hasargs: bool) -> String
 		let gettheuser = get_sys_prop("USER");
 		helpmethod.push_str("fn help()\n");
 		helpmethod.push_str("{\n");
-		helpmethod.push_str("\tprint(\"Author: ");
+		helpmethod.push_str("\tprintln!(\"Author: ");
 		helpmethod.push_str(&gettheuser);
 		helpmethod.push_str("\");\n");
-		helpmethod.push_str("\tprint(\"Program: \\\"");
+		helpmethod.push_str("\tprintln!(\"Program: \\\"");
 		helpmethod.push_str(&thename);
 		helpmethod.push_str("\\\"\");\n");
-		helpmethod.push_str("\tprint(\"Version: 0.0.0\");\n");
-		helpmethod.push_str("\tprint(\"Purpose: \");\n");
-		helpmethod.push_str("\tprint(\"Usage: ");
+		helpmethod.push_str("\tprintln!(\"Version: 0.0.0\");\n");
+		helpmethod.push_str("\tprintln!(\"Purpose: \");\n");
+		helpmethod.push_str("\tprintln!(\"Usage: ");
 		helpmethod.push_str(&thename);
 		helpmethod.push_str(" <args>\");\n");
 		helpmethod.push_str("}\n\n");
@@ -65,15 +65,15 @@ fn get_help(thename: String,theuser: String, hasargs: bool) -> String
 	{
 		helpmethod.push_str("fn help()\n");
 		helpmethod.push_str("{\n");
-		helpmethod.push_str("\tprint(\"Author: ");
+		helpmethod.push_str("\tprintln!(\"Author: ");
 		helpmethod.push_str(&theuser);
 		helpmethod.push_str("\");\n");
-		helpmethod.push_str("\tprint(\"Program: \\\"");
+		helpmethod.push_str("\tprintln!(\"Program: \\\"");
 		helpmethod.push_str(&thename);
 		helpmethod.push_str("\\\"\");\n");
-		helpmethod.push_str("\tprint(\"Version: 0.0.0\");\n");
-		helpmethod.push_str("\tprint(\"Purpose: \");\n");
-		helpmethod.push_str("\tprint(\"Usage: ");
+		helpmethod.push_str("\tprintln!(\"Version: 0.0.0\");\n");
+		helpmethod.push_str("\tprintln!(\"Purpose: \");\n");
+		helpmethod.push_str("\tprintln!(\"Usage: ");
 		helpmethod.push_str(&thename);
 		helpmethod.push_str(" <args>\");\n");
 		helpmethod.push_str("}\n\n");
@@ -126,12 +126,12 @@ fn get_imports(getreadfile: bool, getwritefile: bool, getcli: bool, getpipe: boo
 	return theimports;
 }
 
-fn get_methods(getreadfile: bool, getwritefile: bool, getrawinput: bool, getsysprop: bool, getsleep: bool, getrev: bool, getisin: bool) -> String
+fn get_methods(getreadfile: bool, getwritefile: bool, getrawinput: bool, getsysprop: bool, getsleep: bool, getrev: bool, getisin: bool, getlen: bool, getupper: bool, getlower: bool) -> String
 {
 	let mut themethods = String::new();
 	if getrawinput == true
 	{
-		themethods.push_str("fn raw_input(message: &str) -> String\n{\n\tuse std::io::{stdin,stdout,Write};\n\tlet mut s=String::new();\n\tprint!(\"{} \",message);\n\tlet _=stdout().flush();\n\tstdin().read_line(&mut s).expect(\"Did not enter a correct string\");\n\tif let Some('\\n')=s.chars().next_back() {\n\t\ts.pop();\n\t}\n\tif let Some('\\r')=s.chars().next_back() {\n\t\ts.pop();\n\t}\n\treturn s;\n}\n\n");
+		themethods.push_str("fn raw_input(message: &str) -> String\n{\n\tuse std::io::{stdin,stdout,Write};\n\tlet mut s=String::new();\n\tprint!(\"{}\",message);\n\tlet _=stdout().flush();\n\tstdin().read_line(&mut s).expect(\"Did not enter a correct string\");\n\tif let Some('\\n')=s.chars().next_back() {\n\t\ts.pop();\n\t}\n\tif let Some('\\r')=s.chars().next_back() {\n\t\ts.pop();\n\t}\n\treturn s;\n}\n\n");
 	}
 	if getreadfile == true
 	{
@@ -159,11 +159,25 @@ fn get_methods(getreadfile: bool, getwritefile: bool, getrawinput: bool, getsysp
 		themethods.push_str("fn startswith(str: &str, start: &str) -> bool\n{\n\tif str.starts_with(start)\n\t{\n\t\treturn true;\n\t}\n\telse\n\t{\n\t\treturn false;\n\t}\n}\n\n");
 		themethods.push_str("fn endswith(str: &str, end: &str) -> bool\n{\n\tif str.ends_with(end)\n\t{\n\t\treturn true;\n\t}\n\telse\n\t{\n\t\treturn false;\n\t}\n}\n\n");
 	}
+	if getlen == true
+	{
+		themethods.push_str("fn len(message: &str) -> u32\n{\n\tlet thesize = message.len().to_string();\n\treturn thesize.parse().unwrap();\n}\n\n");
+	}
+	if getupper == true
+	{
+		themethods.push_str("fn touppercase(message: &str) -> String\n{\n\tlet upper = message.to_uppercase();\n\treturn upper;\n}\n\n");
+		themethods.push_str("fn touppercase_at(message: &str, plc: usize) -> String\n{\n\tlet mut newmsg = String::new();\n\tlet size = message.chars().count();\n\tfor c in 0..size\n\t{\n\t\tlet mut letter = message.chars().nth(c).unwrap();\n\t\tif c == plc\n\t\t{\n\t\t\tletter = letter.to_ascii_uppercase();\n\t\t}\n\t\tnewmsg.push(letter);\n\t}\n\treturn newmsg;\n}\n\n");
+	}
+	if getlower == true
+	{
+		themethods.push_str("fn tolowercase(message: &str) -> String\n{\n\tlet lower = message.to_lowercase();\n\treturn lower;\n}\n\n");
+		themethods.push_str("fn tolowercase_at(message: &str, plc: usize) -> String\n{\n\tlet mut newmsg = String::new();\n\tlet size = message.chars().count();\n\tfor c in 0..size\n\t{\n\t\tlet mut letter = message.chars().nth(c).unwrap();\n\t\tif c == plc\n\t\t{\n\t\t\tletter = letter.to_ascii_lowercase();\n\t\t}\n\t\tnewmsg.push(letter);\n\t}\n\treturn newmsg;\n}\n\n");
+	}
 
 	return themethods;
 }
 
-fn get_main(getmain: bool, getcli: bool, getpipe: bool, getthread: bool) -> String
+fn get_main(getmain: bool, getcli: bool, getpipe: bool, getthread: bool, getsplit: bool, getjoin: bool) -> String
 {
 	let mut themain = String::new();
 	if getmain == true
@@ -171,17 +185,25 @@ fn get_main(getmain: bool, getcli: bool, getpipe: bool, getthread: bool) -> Stri
 		themain.push_str("fn main()\n{\n");
 		if getcli == true
 		{
-			themain.push_str("\tlet mut arg_count = 0;\n\t//CLI arguments\n\tfor args in env::args()\n\t{\n\t\tif arg_count > 0\n\t\t{\n\t\t\tprintln!(\"{}\", args);\n\t\t}\n\t\targ_count += 1;\n\t}\n");
+			themain.push_str("\tlet mut arg_count = 0;\n\t//CLI arguments\n\tfor args in env::args()\n\t{\n\t\tif arg_count > 0\n\t\t{\n\t\t\tprintln!(\"{}\", args);\n\t\t}\n\t\targ_count += 1;\n\t}\n\n\t//No CLI Arguments given\n\tif arg_count == 1\n\t{\n\t\t//Show Help Page\n\t\thelp();\n\t}\n");
 		}
 		if getpipe == true
 		{
 			themain.push_str("\n/*\n\tif stdin_isatty() == false\n\t{\n\t\tprintln!(\"[Pipe]\");\n\t\tprintln!(\"{{\");\n\t\tlet stdin = io::stdin();\n\t\tfor line in stdin.lock().lines()\n\t\t{\n\t\t\tprintln!(\"{}\", line.unwrap());\n\t\t}\n\t\tprintln!(\"}}\");\n\t}\n\telse\n\t{\n\t\tprintln!(\"nothing was piped in\");\n\t}\n*/");
 		}
+		if getsplit == true
+		{
+			themain.push_str("\n/*\n\tlet message = \"This is how we will win the game\"\n;\tlet sby = \" \";\n\tlet split: Vec<&str> = message.split(sby).collect();\n*/");
+		}
+		if getjoin == true
+		{
+			themain.push_str("\n/*\n\t//Needs to be Vec<&str>\n\tlet joined = split.join(\"-\");\n*/");
+		}
 		if getthread == true
 		{
 			themain.push_str("\n/*\n\t// https://doc.rust-lang.org/std/thread/\n\tlet thread_join_handle = thread::spawn(|| {\n\t\t//do stuff here\n\t});\n\t//join thread\n\tthread_join_handle.join().unwrap();\n*/");
 		}
-		themain.push_str("\n}");
+		themain.push_str("\n}\n");
 	}
 	return themain;
 }
@@ -212,7 +234,12 @@ fn main()
 	let mut is_pipe = false;
 	let mut is_rev = false;
 	let mut is_in = false;
+	let mut is_len = false;
+	let mut is_split = false;
+	let mut is_join = false;
 	let mut is_sleep = false;
+	let mut is_upper = false;
+	let mut is_lower = false;
 	let mut name_set = false;
 	let mut arg_count = 0;
 	//CLI arguments
@@ -238,6 +265,14 @@ fn main()
 			else if args == "--user"
 			{
 				is_user = true;
+			}
+			else if args == "--split"
+			{
+				is_split = true;
+			}
+			else if args == "--join"
+			{
+				is_join = true;
 			}
 			else if args == "--cli"
 			{
@@ -269,6 +304,10 @@ fn main()
 			{
 				is_thread = true;
 			}
+			else if args == "--get-length"
+			{
+				is_len = true;
+			}
 			else if args == "--pipe"
 			{
 				is_pipe = true;
@@ -289,6 +328,15 @@ fn main()
 			{
 				is_sleep = true;
 			}
+			else if args == "--upper"
+			{
+				is_upper = true;
+			}
+			else if args == "--lower"
+			{
+				is_lower = true;
+			}
+
 		}
 		arg_count += 1;
 	}
@@ -302,8 +350,8 @@ fn main()
 		let the_imports = get_imports(is_read_file, is_write_file, is_cli, is_pipe, is_prop, is_thread, is_sleep);
 		let the_helps = get_help(program_name.to_string(),the_user.to_string(),is_cli);
 		program_name.push_str(".rs");
-		let the_methods = get_methods(is_read_file, is_write_file, get_input_method, is_prop, is_sleep, is_rev, is_in);
-		let the_main = get_main(is_main, is_cli, is_pipe, is_thread);
+		let the_methods = get_methods(is_read_file, is_write_file, get_input_method, is_prop, is_sleep, is_rev, is_in, is_len, is_upper, is_lower);
+		let the_main = get_main(is_main, is_cli, is_pipe, is_thread, is_split, is_join);
 		write_file(program_name, the_imports, the_helps, the_methods, the_main);
 	}
 }

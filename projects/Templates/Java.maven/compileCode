@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
 ThePath=$1
 TheBinDir=$2
+
 if [ ! -z "${ThePath}" ] && [ -d "${ThePath}" ]; then
-	echo "This component needs work"
-	echo "To compile: mvn compile"
-	echo "The BinDir: ${TheBinDir}"
+	PomFile=${ThePath}/pom.xml
+	if [ ! -z "${ThePath}" ] && [ -f "${PomFile}" ]; then
+		cd ${ThePath}/
+		mvn clean install
+		cd - > /dev/null
+	fi
 fi

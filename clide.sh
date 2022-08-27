@@ -5328,7 +5328,7 @@ CLI()
 								fi
 							fi
 							;;
-						--read)
+						--read|--read-num)
 							if [ -z "${ThePipe}" ]; then
 								shift
 								local Lang
@@ -5348,7 +5348,14 @@ CLI()
 											if [ ! -z "${TheSrc}" ]; then
 												TheSrc=$(find ${CodeDir} -name ${TheSrc})
 												if [ ! -z "${TheSrc}" ]; then
-													cat "${TheSrc}"
+													case ${ActionProject} in
+														--read-num)
+															cat -n "${TheSrc}"
+															;;
+														*)
+															cat "${TheSrc}"
+															;;
+													esac
 												fi
 											else
 												CLI --project --list ${GetProject} | grep "\."
@@ -6623,7 +6630,7 @@ CLI()
 				fi
 				;;
 			#cat out source code
-			--read)
+			--read|--read-num)
 				if [ -z "${ThePipe}" ]; then
 					shift
 					local Action=$1
@@ -6632,14 +6639,28 @@ CLI()
 					if [ -z "${Code}" ]; then
 						case ${Action} in
 							--config)
-								cat ${root}/var/clide.conf
+								case ${UserArg} in
+									--read-num)
+										cat -n ${root}/var/clide.conf
+										;;
+									*)
+										cat ${root}/var/clide.conf
+										;;
+								esac
 								;;
 							--lang)
 								Lang=$2
 								Lang=${Lang,,}
 								Lang=${Lang^}
 								if [ -f ${LangsDir}/Lang.${Lang} ]; then
-									cat ${LangsDir}/Lang.${Lang}
+									case ${UserArg} in
+										--read-num)
+											cat -n ${LangsDir}/Lang.${Lang}
+											;;
+										*)
+											cat ${LangsDir}/Lang.${Lang}
+											;;
+									esac
 								fi
 								;;
 							*)
@@ -6648,7 +6669,7 @@ CLI()
 								shift
 								local Args=$@
 								if [ ! -z "${Lang}" ] && [ ! -z "${Code}" ]; then
-									main --read "${Lang}" "${Code}" ${Args[@]}
+									main ${UserArg} "${Lang}" "${Code}" ${Args[@]}
 								fi
 								;;
 						esac
@@ -6676,7 +6697,14 @@ CLI()
 											cd ${CodeDir}
 											TheSrcCode=$(selectCode ${Lang} ${Code})
 											if [ ! -z "${TheSrcCode}" ]; then
-												cat ${TheSrcCode}
+												case ${UserArg} in
+													--read-num)
+														cat -n ${TheSrcCode}
+														;;
+													*)
+														cat ${TheSrcCode}
+														;;
+												esac
 											else
 												errorCode "lang" "readCode"
 											fi

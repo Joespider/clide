@@ -790,6 +790,7 @@ CliHelp()
 					echo -e "\t--time <args>\t\t\t\t\t: \"Run and time compiled code\""
 					echo -e "\t--notes <args>\t\t\t\t\t: \"Manage the notes for a given language\""
 					echo -e "\t--read <args>\t\t\t\t\t: \"Read out (cat) source code\""
+					echo -e "\t--read-num <args>\t\t\t\t\t: \"Read out (cat) numbered source code\""
 					echo -e "\t--list <lang>\t\t\t\t\t: \"List source code\""
 					echo -e "\t--list-cpl <lang>\t\t\t\t: \"List compiled code\""
 					echo -e "\t--lscpl <lang>\t\t\t\t\t: \"List compiled code\""

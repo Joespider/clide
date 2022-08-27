@@ -185,7 +185,7 @@ gitHandler()
 							fi
 						fi
 						;;
-					select|checkout)
+					set|select|checkout)
 						#Get branch name
 						name=$1
 						#branch name given

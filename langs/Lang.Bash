@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.94"
+SupportV="0.1.96"
 Lang=Bash
 LangExt=".sh"
 ColorNum=2
@@ -762,7 +762,7 @@ UseBash()
 						fi
 						#Code is already found
 					else
-						errorCode "cpl" "already" ${src}
+						UseBash compileCode-message
 					fi
 					;;
 				*)
@@ -1280,10 +1280,10 @@ UseBash()
 						#Remove old file for "rename"
 						case ${Type} in
 							rename)
-								mv ${LangSrc}/${TheOld}${LangExt} ${LangSrc}/${TheNew}${LangExt}
+								mv ${LangSrc}/${TheOld}${LangExt} ${LangSrc}/${TheNew}${LangExt} 2> /dev/null
 								;;
 							copy)
-								cp ${LangSrc}/${TheOld}${LangExt} ${LangSrc}/${TheNew}${LangExt}
+								cp ${LangSrc}/${TheOld}${LangExt} ${LangSrc}/${TheNew}${LangExt} 2> /dev/null
 								;;
 							*)
 								;;
@@ -1329,10 +1329,10 @@ UseBash()
 							cd ${ThePath}
 							case ${Type} in
 								rename)
-									mv ${TheOld} ${TheNew}
+									mv ${TheOld} ${TheNew} 2> /dev/null
 									;;
 								copy)
-									cp ${TheOld} ${TheNew}
+									cp ${TheOld} ${TheNew} 2> /dev/null
 									;;
 								*)
 									;;
@@ -1342,10 +1342,10 @@ UseBash()
 						else
 							case ${Type} in
 								rename)
-									mv ${TheOld} ${TheNew}
+									mv ${TheOld} ${TheNew} 2> /dev/null
 									;;
 								copy)
-									cp ${TheOld} ${TheNew}
+									cp ${TheOld} ${TheNew} 2> /dev/null
 									;;
 								*)
 									;;

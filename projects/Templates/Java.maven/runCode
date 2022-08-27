@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 echo "Running: Spring"
 BinOrJar=$1
+shift
 case ${BinOrJar} in
 	*.class)
-		echo "Is a class"
+		echo java ${BinOrJar} $@
 		;;
 	*.jar)
-		echo "Is a Jar"
+		java -jar ${BinOrJar} $@
 		;;
 	*)
 		;;
 esac
-echo $@

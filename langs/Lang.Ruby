@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.89"
+SupportV="0.1.91"
 Lang=Ruby
 LangExt=".rb"
 ColorNum=1
@@ -764,7 +764,7 @@ UseRuby()
 						fi
 					#Code is already found
 					else
-						errorCode "cpl" "already" ${src}
+						UseRuby compileCode-message
 					fi
 					;;
 				*)
@@ -1379,10 +1379,10 @@ UseRuby()
 						#Remove old file for "rename"
 						case ${Type} in
 							rename)
-								mv ${LangSrc}/${TheOld}${LangExt} ${LangSrc}/${TheNew}${LangExt}
+								mv ${LangSrc}/${TheOld}${LangExt} ${LangSrc}/${TheNew}${LangExt} 2> /dev/null
 								;;
 							copy)
-								cp ${LangSrc}/${TheOld}${LangExt} ${LangSrc}/${TheNew}${LangExt}
+								cp ${LangSrc}/${TheOld}${LangExt} ${LangSrc}/${TheNew}${LangExt} 2> /dev/null
 								;;
 							*)
 								;;
@@ -1428,10 +1428,10 @@ UseRuby()
 							cd ${ThePath}
 							case ${Type} in
 								rename)
-									mv ${TheOld} ${TheNew}
+									mv ${TheOld} ${TheNew} 2> /dev/null
 									;;
 								copy)
-									cp ${TheOld} ${TheNew}
+									cp ${TheOld} ${TheNew} 2> /dev/null
 									;;
 								*)
 									;;
@@ -1441,10 +1441,10 @@ UseRuby()
 						else
 							case ${Type} in
 								rename)
-									mv ${TheOld} ${TheNew}
+									mv ${TheOld} ${TheNew} 2> /dev/null
 									;;
 								copy)
-									cp ${TheOld} ${TheNew}
+									cp ${TheOld} ${TheNew} 2> /dev/null
 									;;
 								*)
 									;;

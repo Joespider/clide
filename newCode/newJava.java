@@ -29,18 +29,23 @@ public class newJava {
 	private static boolean getLengths = false;
 	private static boolean getThreads = false;
 	private static boolean getCliArgs = false;
+	private static boolean getConvert = false;
 	private static boolean getRev = false;
 	private static boolean getSleep = false;
+	private static boolean getSubStr = false;
 	private static boolean getSplit = false;
 	private static boolean getJoin = false;
 	private static boolean getPipe = false;
 	private static boolean getIsIn = false;
+	private static boolean getRandom = false;
 	private static boolean getJavaProp = false;
+	private static boolean getUpper = false;
+	private static boolean getLower = false;
 
 	private static void Help()
 	{
 		String program = "newJava";
-		String version = "0.1.26";
+		String version = "0.1.35";
 		print("Author: Joespider");
 		print("Program: \""+program+"\"");
 		print("Version: "+version);
@@ -60,6 +65,7 @@ public class newJava {
 		print("\t--reverse : enable reverse method");
 		print("\t--split : enable split method");
 		print("\t--join : enable join method");
+		print("\t--random : enable \"random\" int method");
 		print("\t--shell : unix shell");
 		print("\t--write-file : enable \"write\" file method");
 		print("\t--is-in : enable string contains methods");
@@ -69,15 +75,23 @@ public class newJava {
 		print("\t--thread : enable threading");
 		print("\t--sleep : enable sleep method");
 		print("\t--get-length : enable \"length\" methods");
+		print("\t--casting : enable data type conversion methods");
+		print("\t--sub-string : enable sub-string methods");
+		print("\t--upper : enable uppercase methods");
+		print("\t--lower : enable lowercase methods");
 	}
 
 	private static String getHelp(String TheName, String TheUser)
 	{
-		if (TheUser.equals(""))
+		String HelpMethod = "";
+		if (getCliArgs == true)
 		{
-			TheUser = System.getProperty("user.name");
+			if (TheUser.equals(""))
+			{
+				TheUser = System.getProperty("user.name");
+			}
+			HelpMethod = "\tprivate static void Help()\n\t{\n\t\tString program = \""+TheName+"\";\n\t\tString version = \"0.0.0\";\n\t\tprint(\"Author: "+TheUser+"\");\n\t\tprint(\"Program: \\\"\"+program+\"\\\"\");\n\t\tprint(\"Version: \"+version);\n\t\tprint(\"Purpose: \");\n\t\tprint(\"Usage: \"+program+\" <args>\");\n\t}\n\n";
 		}
-		String HelpMethod = "\tprivate static void Help()\n\t{\n\t\tString program = \""+TheName+"\";\n\t\tString version = \"0.0.0\";\n\t\tprint(\"Author: "+TheUser+"\");\n\t\tprint(\"Program: \\\"\"+program+\"\\\"\");\n\t\tprint(\"Version: \"+version);\n\t\tprint(\"Purpose: \");\n\t\tprint(\"Usage: \"+program+\" <args>\");\n\t}\n\n";
 		return HelpMethod;
 	}
 
@@ -210,7 +224,7 @@ public class newJava {
 			//enable CLI Args
 			else if (now.equals("--is-in"))
 			{
-				getIsIn = false;
+				getIsIn = true;
 			}
 			//enable CLI Args
 			else if (now.equals("--cli"))
@@ -222,6 +236,11 @@ public class newJava {
 			{
 				getRev = true;
 			}
+			//enable random
+			else if (now.equals("--random"))
+			{
+				getRandom = true;
+			}
 			//enable java prop
 			else if (now.equals("--prop"))
 			{
@@ -232,6 +251,11 @@ public class newJava {
 			{
 				getPipe = true;
 			}
+			//enable data conversion methods
+			else if (now.equals("--casting"))
+			{
+				getConvert = true;
+			}
 			//enable split method
 			else if (now.equals("--split"))
 			{
@@ -241,6 +265,21 @@ public class newJava {
 			else if (now.equals("--join"))
 			{
 				getJoin = true;
+			}
+			//enable uppercase method
+			else if (now.equals("--upper"))
+			{
+				getUpper = true;
+			}
+			//enable lowercase method
+			else if (now.equals("--lower"))
+			{
+				getLower = true;
+			}
+			//enable sub string methods
+			else if (now.equals("--sub-string"))
+			{
+				getSubStr = true;
 			}
 			//enable Write file Method
 			else if (now.equals("--write-file"))
@@ -283,7 +322,7 @@ public class newJava {
 		String HandleArgs = "";
 		if (getCliArgs == true)
 		{
-			HandleArgs = "\n\t\t//Grab CLI arguments\n\t\tint lp = 0;\n\t\tint NextPos = 1;\n\t\tint end = args.length;\n\t\tString now = \"\";\n\t\tString next = \"\";\n\t\twhile (lp != end)\n\t\t{\n\t\t\tnow = args[lp];\n\t\t\t//Ensure next arg is there\n\t\t\tif (NextPos < end)\n\t\t\t{\n\t\t\t\tnext = args[NextPos];\n\t\t\t}\n\t\t\telse\n\t\t\t{\n\t\t\t\tnext = \"\";\n\t\t\t}\n\t\t\tlp++;\n\t\t\tNextPos++;\n\t\t}\n";
+			HandleArgs = "\n\t\t//Grab CLI arguments\n\t\tint lp = 0;\n\t\tint NextPos = 1;\n\t\tint end = args.length;\n\t\tString now = \"\";\n\t\tString next = \"\";\n\t\tif (end > 0)\n\t\t{\n\t\t\twhile (lp != end)\n\t\t\t{\n\t\t\t\tnow = args[lp];\n\t\t\t\t//Ensure next arg is there\n\t\t\t\tif (NextPos < end)\n\t\t\t\t{\n\t\t\t\t\tnext = args[NextPos];\n\t\t\t\t}\n\t\t\t\telse\n\t\t\t\t{\n\t\t\t\t\tnext = \"\";\n\t\t\t\t}\n\t\t\t\tlp++;\n\t\t\t\tNextPos++;\n\t\t\t}\n\t\t}\n\t\telse\n\t\t{\n\t\t\tHelp();\n\t\t}\n";
 		}
 		return HandleArgs;
 	}
@@ -392,6 +431,9 @@ public class newJava {
 		String TheMethods = "";
 		String MethodUserIn = "";
 		String MethodPrint = "\t//Print Output\n\tprivate static void print(Object out)\n\t{\n\t\tSystem.out.println(out);\n\t}\n\n";
+		MethodPrint = MethodPrint + "\t//Print Output\n\tprivate static void print(Object[] TheArray)\n\t{\n\t\tint Length = TheArray.length;\n\t\tfor (int lp = 0; lp != Length; lp++)\n\t\t{\n\t\t\tif (Length == 1)\n\t\t\t{\n\t\t\t\tSystem.out.print(\"['\");\n\t\t\t\tSystem.out.print(TheArray[lp]);\n\t\t\t\tSystem.out.println(\"']\");\n\t\t\t}\n\t\t\telse\n\t\t\t{\n\t\t\t\tif (lp == 0)\n\t\t\t\t{\n\t\t\t\t\tSystem.out.print(\"['\");\n\t\t\t\t\tSystem.out.print(TheArray[lp]);\n\t\t\t\t\tSystem.out.print(\"', \");\n\t\t\t\t}\n\t\t\t\telse if ((lp > 0) && (lp < (Length - 1)))\n\t\t\t\t{\n\t\t\t\t\tSystem.out.print(\"'\");\n\t\t\t\t\tSystem.out.print(TheArray[lp]);\n\t\t\t\t\tSystem.out.print(\"', \");\n\t\t\t\t}\n\t\t\t\telse if (lp == (Length - 1))\n\t\t\t\t{\n\t\t\t\t\tSystem.out.print(\"'\");\n\t\t\t\t\tSystem.out.print(TheArray[lp]);\n\t\t\t\t\tSystem.out.println(\"']\");\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n\n";
+		MethodPrint = MethodPrint + "\t//Print Output\n\tprivate static void print(int[] TheArray)\n\t{\n\t\tString Item;\n\t\tint Length = TheArray.length;\n\t\tfor (int lp = 0; lp != Length; lp++)\n\t\t{\n\t\t\tItem = String.valueOf(TheArray[lp]);\n\t\t\tif (Length == 1)\n\t\t\t{\n\t\t\t\tSystem.out.print(\"['\");\n\t\t\t\tSystem.out.print(Item);\n\t\t\t\tSystem.out.println(\"']\");\n\t\t\t}\n\t\t\telse\n\t\t\t{\n\t\t\t\tif (lp == 0)\n\t\t\t\t{\n\t\t\t\t\tSystem.out.print(\"[\");\n\t\t\t\t\tSystem.out.print(Item);\n\t\t\t\t\tSystem.out.print(\", \");\n\t\t\t\t}\n\t\t\t\telse if ((lp > 0) && (lp < (Length - 1)))\n\t\t\t\t{\n\t\t\t\t\tSystem.out.print(Item);\n\t\t\t\t\tSystem.out.print(\", \");\n\t\t\t\t}\n\t\t\t\telse if (lp == (Length - 1))\n\t\t\t\t{\n\t\t\t\t\tSystem.out.print(Item);\n\t\t\t\t\tSystem.out.println(\"]\");\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n\n";
+		MethodPrint = MethodPrint + "\t//Print Output\n\tprivate static void print(double[] TheArray)\n\t{\n\t\tString Item;\n\t\tint Length = TheArray.length;\n\t\tfor (int lp = 0; lp != Length; lp++)\n\t\t{\n\t\t\tItem = String.valueOf(TheArray[lp]);\n\t\t\tif (Length == 1)\n\t\t\t{\n\t\t\t\tSystem.out.print(\"['\");\n\t\t\t\tSystem.out.print(Item);\n\t\t\t\tSystem.out.println(\"']\");\n\t\t\t}\n\t\t\telse\n\t\t\t{\n\t\t\t\tif (lp == 0)\n\t\t\t\t{\n\t\t\t\t\tSystem.out.print(\"[\");\n\t\t\t\t\tSystem.out.print(Item);\n\t\t\t\t\tSystem.out.print(\", \");\n\t\t\t\t}\n\t\t\t\telse if ((lp > 0) && (lp < (Length - 1)))\n\t\t\t\t{\n\t\t\t\t\tSystem.out.print(Item);\n\t\t\t\t\tSystem.out.print(\", \");\n\t\t\t\t}\n\t\t\t\telse if (lp == (Length - 1))\n\t\t\t\t{\n\t\t\t\t\tSystem.out.print(Item);\n\t\t\t\t\tSystem.out.println(\"]\");\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n\n";
 		String MethodLength = "";
 		String MethodArrays = "";
 		String MethodProp = "";
@@ -400,10 +442,15 @@ public class newJava {
 		String MethodShell = "";
 		String MethodSplit = "";
 		String MethodJoin = "";
-		String MethodSplitAndJoin = "";
+		String MethodreplaceAll = "";
 		String MethodIsIn = "";
 		String MethodRev = "";
+		String MethodRand = "";
+		String MethodSubStr = "";
+		String MethodConv = "";
 		String MethodSleep = "";
+		String MethodUpper = "";
+		String MethodLower = "";
 
 		//raw_input
 		if (getUserIn == true)
@@ -440,26 +487,59 @@ public class newJava {
 		}
 		if (getSleep == true)
 		{
-			MethodSleep = "\tprivate static void sleep(long millies)\n\t{\n\t\ttry\n\t\t{\n\t\t\tThread.sleep(millies);\n\t\t}\n\t\tcatch (InterruptedException e)\n\t\t{\n\t\t\tThread.currentThread().interrupt();\n\t\t}\n\t}\n";
+			MethodSleep = "\tprivate static void sleep(long millies)\n\t{\n\t\ttry\n\t\t{\n\t\t\tThread.sleep(millies);\n\t\t}\n\t\tcatch (InterruptedException e)\n\t\t{\n\t\t\tThread.currentThread().interrupt();\n\t\t}\n\t}\n\n";
 		}
 		if (getSplit == true)
 		{
-			MethodSplit = "\tprivate static String[] split(String message, String by)\n\t{\n\t\tString[] vArray = message.split(by);\n\t\treturn vArray;\n\t}\n";
+			MethodSplit = "\tprivate static String[] split(String message, String by)\n\t{\n\t\tString[] vArray = message.split(by);\n\t\treturn vArray;\n\t}\n\n";
+			MethodSplit = MethodSplit+"\tprivate static String[] split(String message, String by, int plc)\n\t{\n\t\tString[] vArray = message.split(by,plc);\n\t\treturn vArray;\n\t}\n\n";
 		}
-		if (getCliArgs == true)
+		if (getConvert == true)
 		{
-			MethodIsIn = "\tprivate static boolean IsIn(String Str, String Sub)\n\t{\n\t\tboolean found = false;\n\t\tif (Str.contains(Sub))\n\t\t{\n\t\t\tfound = true;\n\t\t}\n\t\treturn found;\n\t}\n";
+			MethodConv = "\tprivate static double Dbl(int number)\n\t{\n\t\tdouble MyDouble = Double.valueOf(number);\n\t\treturn MyDouble;\n\t}\n\n";
+			MethodConv = MethodConv+"\tprivate static double Dbl(String number)\n\t{\n\t\tdouble MyDouble = 0.0;\n\t\ttry\n\t\t{\n\t\t\tMyDouble = Double.parseDouble(number);\n\t\t}\n\t\tcatch (NumberFormatException ex)\n\t\t{\n\t\t\tex.printStackTrace();\n\t\t}\n\t\treturn MyDouble;\n\t}\n\n";
+			MethodConv = MethodConv+"\tprivate static int Int(double number)\n\t{\n\t\tint MyInt = (int)number;\n\t\treturn MyInt;\n\t}\n\n";
+			MethodConv = MethodConv+"\tprivate static int Int(String number)\n\t{\n\t\tint MyInt = 0;\n\t\ttry\n\t\t{\n\t\t\tMyInt = Integer.parseInt(number);\n\t\t}\n\t\tcatch (NumberFormatException ex)\n\t\t{\n\t\t\tex.printStackTrace();\n\t\t}\n\t\treturn MyInt;\n\t}\n\n";
+			MethodConv = MethodConv+"\tprivate static String Str(Object Item)\n\t{\n\t\tString MyString = String.valueOf(Item);\n\t\treturn MyString;\n\t}\n\n";
+		}
+		if (getSubStr == true)
+		{
+			MethodSubStr = "\tprivate static String SubString(String TheString, int Pos)\n\t{\n\t\tString TheSub = TheString.substring(Pos);\n\t\treturn TheSub;\n\t}\n\n";
+			MethodSubStr = MethodSubStr+"\tprivate static String SubString(String TheString, int Start, int End)\n\t{\n\t\tString TheSub = TheString.substring(Start,End);\n\t\treturn TheSub;\n\t}\n\n";
+			MethodSubStr = MethodSubStr+"\tprivate static int Index(String TheString, String SubStr)\n\t{\n\t\tint place = TheString.indexOf(SubStr);\n\t\treturn place;\n\t}\n\n";
+		}
+		if (getIsIn == true)
+		{
+			MethodIsIn = "\tprivate static boolean IsIn(String Str, String Sub)\n\t{\n\t\tboolean found = false;\n\t\tif (Str.contains(Sub))\n\t\t{\n\t\t\tfound = true;\n\t\t}\n\t\treturn found;\n\t}\n\n";
 		}
 		if (getJoin == true)
 		{
-			MethodJoin = "\tprivate static String join(String[] Str, String ToJoin)\n\t{\n\t\tString message = String.join(ToJoin, Str);\n\t\treturn message;\n\t}\n";
+			MethodJoin = "\tprivate static String join(String[] Str, String ToJoin)\n\t{\n\t\tString message = String.join(ToJoin, Str);\n\t\treturn message;\n\t}\n\n";
 		}
 		if ((getSplit == true) && (getJoin == true))
 		{
-			MethodSplitAndJoin = "\tprivate static String SplitAndJoin(String message, String sBy, String jBy)\n\t{\n\t\tString NewMessage = message.replaceAll(sBy,jBy);\n\t\treturn NewMessage;\n\t}\n";
+			MethodreplaceAll = "\tprivate static String replaceAll(String message, String sBy, String jBy)\n\t{\n\t\tString NewMessage = message.replaceAll(sBy,jBy);\n\t\treturn NewMessage;\n\t}\n\n";
+			MethodreplaceAll = MethodreplaceAll + "\tprivate static String replaceFirst(String message, String sBy, String jBy)\t{\n\t\tString NewMessage = message.replaceFirst(sBy,jBy);\n\t\treturn NewMessage;\n\t}\n\n";
+			MethodreplaceAll = MethodreplaceAll + "\tprivate static String replaceLast(String message, String sBy, String jBy)\n\t{\n\t\tString NewMessage = message;\n\t\tint lastIndex = message.lastIndexOf(sBy);\n\t\tif (lastIndex != -1)\n\t\t{\n\t\t\tString beginString = message.substring(0, lastIndex);\n\t\t\tString endString = message.substring(lastIndex + sBy.length());\n\t\t\tNewMessage = beginString + jBy + endString;\n\t\t}\n\t\treturn NewMessage;\n\t}\n\n";
+		}
+		if (getRandom == true)
+		{
+			MethodRand = "\tprivate static int random(int min, int max)\n\t{\n\t\treturn (int)(Math.random() * (max - min) + min);\n\t}\n\n";
+			MethodRand = MethodRand + "\tprivate static int random(int max)\n\t{\n\t\treturn (int)(Math.random() * max);\n\t}\n\n";
+		}
+		if (getUpper == true)
+		{
+
+			MethodUpper = "\tprivate static String toUpperCase(String TheStr)\n\t{\n\t\tTheStr = TheStr.toUpperCase();\n\t\treturn TheStr;\n\t}\n\n";
+			MethodUpper = MethodUpper + "\tprivate static String toUpperCase(String TheStr, int plc)\n\t{\n\t\tString newStr = TheStr;\n\t\tint end = TheStr.length();\n\t\tchar[] Upper = TheStr.toCharArray();\n\t\tif ((plc < end) && (end != 0) && (plc >= 0))\n\t\t{\n\t\t\tUpper[plc] = Character.toUpperCase(Upper[plc]);\n\t\t\tnewStr = String.valueOf(Upper);\n\t\t}\n\t\treturn newStr;\n\t}\n\n";
+		}
+		if (getLower == true)
+		{
+			MethodLower = "\tprivate static String toLowerCase(String TheStr)\n\t{\n\t\tTheStr = TheStr.toLowerCase();\n\t\treturn TheStr;\n\t}\n\n";
+			MethodLower = MethodLower + "\tprivate static String toLowerCase(String TheStr, int plc)\n\t{\n\t\tString newStr = TheStr;\n\t\tint end = TheStr.length();\n\t\tchar[] Lower = TheStr.toCharArray();\n\t\tif ((plc < end) && (end != 0) && (plc >= 0))\n\t\t{\n\t\t\tLower[plc] = Character.toLowerCase(Lower[plc]);\n\t\t\tnewStr = String.valueOf(Lower);\n\t\t}\n\t\treturn newStr;\n\t}\n\n";
 		}
 
-		TheMethods = MethodProp+MethodUserIn+MethodPrint+MethodLength+MethodArrays+MethodReadFile+MethodWriteFile+MethodShell+MethodSleep+MethodIsIn+MethodRev+MethodSplit+MethodJoin+MethodSplitAndJoin;
+		TheMethods = MethodProp+MethodUserIn+MethodPrint+MethodLength+MethodArrays+MethodReadFile+MethodWriteFile+MethodShell+MethodSleep+MethodIsIn+MethodRev+MethodSplit+MethodJoin+MethodreplaceAll+MethodConv+MethodSubStr+MethodRand+MethodUpper+MethodLower;
 		return TheMethods;
 	}
 
@@ -515,6 +595,9 @@ public class newJava {
 			if (IsMain == true)
 			{
 				JavaHelp = getHelp(Class,user);
+				{
+
+				}
 				Comments[2] ="/**\n\t* @param args the command line arguments\n\t*/";
 				if (getPipe == true)
 				{

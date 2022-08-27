@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.94"
+SupportV="0.1.96"
 Lang=Perl
 LangExt=".pl"
 #Color Purple
@@ -695,7 +695,7 @@ UsePerl()
 						fi
 						#Code is already found
 					else
-						errorCode "cpl" "already" ${src}
+						UsePerl compileCode-message
 					fi
 					;;
 				*)
@@ -1303,10 +1303,10 @@ UsePerl()
 						#Remove old file for "rename"
 						case ${Type} in
 							rename)
-								mv ${LangSrc}/${TheOld}${LangExt} ${LangSrc}/${TheNew}${LangExt}
+								mv ${LangSrc}/${TheOld}${LangExt} ${LangSrc}/${TheNew}${LangExt} 2> /dev/null
 								;;
 							copy)
-								cp ${LangSrc}/${TheOld}${LangExt} ${LangSrc}/${TheNew}${LangExt}
+								cp ${LangSrc}/${TheOld}${LangExt} ${LangSrc}/${TheNew}${LangExt} 2> /dev/null
 								;;
 							*)
 								;;
@@ -1352,10 +1352,10 @@ UsePerl()
 							cd ${ThePath}
 							case ${Type} in
 								rename)
-									mv ${TheOld} ${TheNew}
+									mv ${TheOld} ${TheNew} 2> /dev/null
 									;;
 								copy)
-									cp ${TheOld} ${TheNew}
+									cp ${TheOld} ${TheNew} 2> /dev/null
 									;;
 								*)
 									;;
@@ -1365,10 +1365,10 @@ UsePerl()
 						else
 							case ${Type} in
 								rename)
-									mv ${TheOld} ${TheNew}
+									mv ${TheOld} ${TheNew} 2> /dev/null
 									;;
 								copy)
-									cp ${TheOld} ${TheNew}
+									cp ${TheOld} ${TheNew} 2> /dev/null
 									;;
 								*)
 									;;
