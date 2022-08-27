@@ -20,7 +20,7 @@ bool IsIn(String Str, String Sub);
 static void help()
 {
 	String ProgName = "newC++";
-	String Version = "0.1.44";
+	String Version = "0.1.45";
 	print("Author: Joespider");
 	print("Program: \"" << ProgName << "\"");
 	print("Version: " << Version);
@@ -49,6 +49,8 @@ static void help()
 	print("\t--get-length : enable \"length\" examples");
 	print("\t--casting : enable data type conversion methods");
 	print("\t--sub-string : enable sub-string methods");
+	print("\t--upper : enable upper case methods");
+	print("\t--lower : enable lower case methods");
 }
 
 static String getHelp(String TheName, String TheUser)
@@ -150,7 +152,7 @@ static String getImports(bool* write, bool* read, bool* random, bool* pipe, bool
 }
 
 //create base methods
-static String getMethodDec(bool* rawinput, bool* rand, bool* write, bool* read, bool* isin, bool* shell, bool* sleep, bool* prop, bool* Split, bool* Join, bool* Rev, bool* Conv, bool* subStr, bool* getLen)
+static String getMethodDec(bool* rawinput, bool* rand, bool* write, bool* read, bool* isin, bool* shell, bool* sleep, bool* prop, bool* Split, bool* Join, bool* Rev, bool* Conv, bool* subStr, bool* getLen, bool* getUpper, bool* getLower)
 {
 	String Declaration = "";
 
@@ -231,12 +233,21 @@ static String getMethodDec(bool* rawinput, bool* rand, bool* write, bool* read, 
 		Declaration = Declaration+"String replaceFirst(String message, String sBy, String jBy);\n";
 		Declaration = Declaration+"String replaceLast(String message, String sBy, String jBy);\n";
 	}
-
+	if (*getUpper == true)
+	{
+		Declaration = Declaration+"String toUpperCase(String Str);\n";
+		Declaration = Declaration+"String toUpperCase(String Str, int plc);\n";
+	}
+	if (*getLower == true)
+	{
+		Declaration = Declaration+"String toLowerCase(String Str);\n";
+		Declaration = Declaration+"String toLowerCase(String Str, int plc);\n";
+	}
 	return Declaration;
 }
 
 //create base methods
-static String getMethods(bool* rawinput, bool* rand, bool* write, bool* read, bool* isin, bool* shell, bool* sleep, bool* prop, bool* Split, bool* Join, bool* Rev, bool* Conv, bool* subStr, bool* getLen)
+static String getMethods(bool* rawinput, bool* rand, bool* write, bool* read, bool* isin, bool* shell, bool* sleep, bool* prop, bool* Split, bool* Join, bool* Rev, bool* Conv, bool* subStr, bool* getLen, bool* getUpper, bool* getLower)
 {
 	String Methods = "";
 	String Random = "";
@@ -253,6 +264,8 @@ static String getMethods(bool* rawinput, bool* rand, bool* write, bool* read, bo
 	String SubStr = "";
 	String StrSplit = "";
 	String StrJoin = "";
+	String StrUpper = "";
+	String StrLower = "";
 	String StrReplaceAll = "";
 
 	if (*rawinput == true)
@@ -332,9 +345,19 @@ static String getMethods(bool* rawinput, bool* rand, bool* write, bool* read, bo
 		StrReplaceAll = StrReplaceAll+"String replaceFirst(String message, String sBy, String jBy)\n{\n\tstd::vector<String> SplitMessage = split(message,sBy,1);\n\tmessage = join(SplitMessage,jBy);\n\treturn message;\n}\n\n";
 		StrReplaceAll = StrReplaceAll+"String replaceLast(String message, String sBy, String jBy)\n{\n\tstd::vector<String> SplitMessage = rsplit(message,sBy,1);\n\tmessage = join(SplitMessage,jBy);\n\treturn message;\n}\n\n";
 	}
+	if (*getUpper == true)
+	{
+		StrUpper = "String toUpperCase(String Str)\n{\n\tfor (int lp = 0; lp != Str.length(); lp++)\n\t{\n\t\tStr[lp] = toupper(Str[lp]);\n\t}\n\treturn Str;\n}\n\n";
+		StrUpper = StrUpper + "String toUpperCase(String Str, int plc)\n{\n\tint end = Str.length();\n\tif ((plc < end) && (end != 0) && (plc >= 0))\n\t{\n\t\tStr[plc] = toupper(Str[plc]);\n\t}\n\treturn Str;\n}\n\n";
+	}
+	if (*getLower == true)
+	{
+		StrLower = "String toLowerCase(String Str)\n{\n\tfor (int lp = 0; lp != Str.length(); lp++)\n\t{\n\t\tStr[lp] = tolower(Str[lp]);\n\t}\n\treturn Str;\n}\n\n";
+		StrLower = StrLower + "String toLowerCase(String Str, int plc)\n{\n\tint end = Str.length();\n\tif ((plc < end) && (end != 0) && (plc >= 0))\n\t{\n\t\tStr[plc] = tolower(Str[plc]);\n\t}\n\treturn Str;\n}\n\n";
+	}
 
 	//Methods for C++
-	Methods = "\n"+RawInput+Random+IsIn+WriteFile+ReadFile+TheShell+TheSleep+SysProp+StrSplit+StrJoin+StrReplaceAll+StrRev+ConvData+SubStr+StrLen;
+	Methods = "\n"+RawInput+Random+IsIn+WriteFile+ReadFile+TheShell+TheSleep+SysProp+StrSplit+StrJoin+StrReplaceAll+StrRev+ConvData+SubStr+StrLen+StrUpper+StrLower;
 
 	return Methods;
 }
@@ -423,6 +446,8 @@ int main(int argc, char** argv)
 	bool getSleep = false;
 	bool getConvert = false;
 	bool getLength = false;
+	bool getUpper = false;
+	bool getLower = false;
 	bool IsMain = false;
 	bool getTheUser = false;
 	String theUser = "";
@@ -560,6 +585,16 @@ int main(int argc, char** argv)
 			{
 				getJoin = true;
 			}
+			//Enable uppercase
+			else if (UserIn == "--upper")
+			{
+				getUpper = true;
+			}
+			//Enable lowercase
+			else if (UserIn == "--lower")
+			{
+				getLower = true;
+			}
 			//Enable system property
 			else if (UserIn == "--prop")
 			{
@@ -605,8 +640,8 @@ int main(int argc, char** argv)
 		{
 			Imports = getImports(&getWrite, &getRead, &getRand, &getPipe, &getShell, &getThreads, &getSleep, &getProp, &getSplit, &getJoin, &getRev, &getVect);
 			Marcos = getMarcos(&getConvert, &getLength);
-			theDeclaration = getMethodDec(&getRawIn, &getRand, &getWrite, &getRead, &getIsIn, &getShell, &getSleep, &getProp, &getSplit, &getJoin, &getRev, &getConvert, &getSubStr, &getLength);
-			Methods = getMethods(&getRawIn, &getRand, &getWrite, &getRead, &getIsIn, &getShell, &getSleep, &getProp, &getSplit, &getJoin, &getRev, &getConvert, &getSubStr, &getLength);
+			theDeclaration = getMethodDec(&getRawIn, &getRand, &getWrite, &getRead, &getIsIn, &getShell, &getSleep, &getProp, &getSplit, &getJoin, &getRev, &getConvert, &getSubStr, &getLength, &getUpper, &getLower);
+			Methods = getMethods(&getRawIn, &getRand, &getWrite, &getRead, &getIsIn, &getShell, &getSleep, &getProp, &getSplit, &getJoin, &getRev, &getConvert, &getSubStr, &getLength, &getUpper, &getLower);
 			if (IsMain == true)
 			{
 				if (getArgs == true)

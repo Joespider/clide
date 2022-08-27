@@ -39,11 +39,13 @@ public class newJava {
 	private static boolean getIsIn = false;
 	private static boolean getRandom = false;
 	private static boolean getJavaProp = false;
+	private static boolean getUpper = false;
+	private static boolean getLower = false;
 
 	private static void Help()
 	{
 		String program = "newJava";
-		String version = "0.1.33";
+		String version = "0.1.35";
 		print("Author: Joespider");
 		print("Program: \""+program+"\"");
 		print("Version: "+version);
@@ -75,6 +77,8 @@ public class newJava {
 		print("\t--get-length : enable \"length\" methods");
 		print("\t--casting : enable data type conversion methods");
 		print("\t--sub-string : enable sub-string methods");
+		print("\t--upper : enable uppercase methods");
+		print("\t--lower : enable lowercase methods");
 	}
 
 	private static String getHelp(String TheName, String TheUser)
@@ -262,6 +266,16 @@ public class newJava {
 			{
 				getJoin = true;
 			}
+			//enable uppercase method
+			else if (now.equals("--upper"))
+			{
+				getUpper = true;
+			}
+			//enable lowercase method
+			else if (now.equals("--lower"))
+			{
+				getLower = true;
+			}
 			//enable sub string methods
 			else if (now.equals("--sub-string"))
 			{
@@ -435,6 +449,8 @@ public class newJava {
 		String MethodSubStr = "";
 		String MethodConv = "";
 		String MethodSleep = "";
+		String MethodUpper = "";
+		String MethodLower = "";
 
 		//raw_input
 		if (getUserIn == true)
@@ -511,8 +527,19 @@ public class newJava {
 			MethodRand = "\tprivate static int random(int min, int max)\n\t{\n\t\treturn (int)(Math.random() * (max - min) + min);\n\t}\n\n";
 			MethodRand = MethodRand + "\tprivate static int random(int max)\n\t{\n\t\treturn (int)(Math.random() * max);\n\t}\n\n";
 		}
+		if (getUpper == true)
+		{
 
-		TheMethods = MethodProp+MethodUserIn+MethodPrint+MethodLength+MethodArrays+MethodReadFile+MethodWriteFile+MethodShell+MethodSleep+MethodIsIn+MethodRev+MethodSplit+MethodJoin+MethodreplaceAll+MethodConv+MethodSubStr+MethodRand;
+			MethodUpper = "\tprivate static String toUpperCase(String TheStr)\n\t{\n\t\tTheStr = TheStr.toUpperCase();\n\t\treturn TheStr;\n\t}\n\n";
+			MethodUpper = MethodUpper + "\tprivate static String toUpperCase(String TheStr, int plc)\n\t{\n\t\tString newStr = TheStr;\n\t\tint end = TheStr.length();\n\t\tchar[] Upper = TheStr.toCharArray();\n\t\tif ((plc < end) && (end != 0) && (plc >= 0))\n\t\t{\n\t\t\tUpper[plc] = Character.toUpperCase(Upper[plc]);\n\t\t\tnewStr = String.valueOf(Upper);\n\t\t}\n\t\treturn newStr;\n\t}\n\n";
+		}
+		if (getLower == true)
+		{
+			MethodLower = "\tprivate static String toLowerCase(String TheStr)\n\t{\n\t\tTheStr = TheStr.toLowerCase();\n\t\treturn TheStr;\n\t}\n\n";
+			MethodLower = MethodLower + "\tprivate static String toLowerCase(String TheStr, int plc)\n\t{\n\t\tString newStr = TheStr;\n\t\tint end = TheStr.length();\n\t\tchar[] Lower = TheStr.toCharArray();\n\t\tif ((plc < end) && (end != 0) && (plc >= 0))\n\t\t{\n\t\t\tLower[plc] = Character.toLowerCase(Lower[plc]);\n\t\t\tnewStr = String.valueOf(Lower);\n\t\t}\n\t\treturn newStr;\n\t}\n\n";
+		}
+
+		TheMethods = MethodProp+MethodUserIn+MethodPrint+MethodLength+MethodArrays+MethodReadFile+MethodWriteFile+MethodShell+MethodSleep+MethodIsIn+MethodRev+MethodSplit+MethodJoin+MethodreplaceAll+MethodConv+MethodSubStr+MethodRand+MethodUpper+MethodLower;
 		return TheMethods;
 	}
 

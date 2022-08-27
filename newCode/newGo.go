@@ -8,7 +8,7 @@ import (
 
 func help() {
 	var ProgName string = "newGo"
-	var Version string = "0.1.17"
+	var Version string = "0.1.22"
 
 	fmt.Println("Author: Joespider")
 	fmt.Println("Program: \""+ProgName+"\"")
@@ -35,6 +35,9 @@ func help() {
 	fmt.Println("\t--sleep : enable \"sleep\" method")
 	fmt.Println("\t--convert : enable data type conversion methods")
 	fmt.Println("\t--sub-string : enable sub-string methods")
+	fmt.Println("\t--type : enable data type eval")
+	fmt.Println("\t--upper : enable uppercase methods")
+	fmt.Println("\t--lower : enable lowercase methods")
 }
 
 func getHelp(TheName string, TheUser string) string {
@@ -51,7 +54,7 @@ func getPackage(ThePackage string) string {
 }
 
 //create import listing
-func getImports(UserInput bool, write bool, read bool, random bool, cli bool, sleep bool, getPipe bool, getShell bool, getThread bool, getProp bool, getSplit bool, getJoin bool, getConv bool) string {
+func getImports(UserInput bool, write bool, read bool, random bool, cli bool, sleep bool, getPipe bool, getShell bool, getThread bool, getProp bool, getSplit bool, getJoin bool, getConv bool, getUpper bool, getLower bool, getTypes bool) string {
 	var Imports string = ""
 	var standard string = "\"fmt\"\n"
 	var readWrite string = ""
@@ -62,12 +65,13 @@ func getImports(UserInput bool, write bool, read bool, random bool, cli bool, sl
 	var ForConvert string = ""
 	var ForString string = ""
 	var ForShell string = ""
+	var ForTypes string = ""
 
 	if read == true || write == true {
 		readWrite = "\t\"io/ioutil\"\n\t\"io\"\n"
 	}
 
-	if read == true || write == true || cli == true || getPipe == true || getProp == true {
+	if read == true || write == true || cli == true || getPipe == true || getProp == true || UserInput == true {
 		ForCLI = "\t\"os\"\n"
 	}
 
@@ -90,11 +94,16 @@ func getImports(UserInput bool, write bool, read bool, random bool, cli bool, sl
 	if getConv == true {
 		ForConvert = "\t\"strconv\"\n"
 	}
-	if getPipe == true || getSplit == true || getJoin == true {
+
+	if getPipe == true || getSplit == true || getJoin == true || getUpper == true || getLower == true {
 		ForString = "\t\"strings\"\n"
 	}
 
-	Imports = standard+readWrite+ForRandom+ForCLI+ForShell+ForUserInput+ForTime+ForString+ForConvert
+	if getTypes == true {
+		ForTypes = "\t\"reflect\"\n"
+	}
+
+	Imports = standard+readWrite+ForRandom+ForCLI+ForShell+ForUserInput+ForTime+ForString+ForConvert+ForTypes
 	if Imports == standard {
 		Imports = "import "+Imports
 	} else {
@@ -104,7 +113,7 @@ func getImports(UserInput bool, write bool, read bool, random bool, cli bool, sl
 	return Imports
 }
 
-func getMethods(getRawIn bool, getRand bool, getWrite bool, getRead bool, getIsIn bool, getSleep bool, getShell bool, getThread bool, getProp bool, getSplit bool, getJoin bool, getRev bool, getSubStr bool, getConv bool) string {
+func getMethods(getRawIn bool, getRand bool, getWrite bool, getRead bool, getIsIn bool, getSleep bool, getShell bool, getThread bool, getProp bool, getSplit bool, getJoin bool, getRev bool, getSubStr bool, getConv bool, getUpper bool, getLower bool) string {
 	var TheMethods string = ""
 	var ReadMethod string = ""
 	var WriteMethod string = ""
@@ -120,6 +129,8 @@ func getMethods(getRawIn bool, getRand bool, getWrite bool, getRead bool, getIsI
 	var SysPropMethod string = ""
 	var ThreadMethod string = ""
 	var ReverseMethod string = ""
+	var UpperMethod string = ""
+	var LowerMethod string = ""
 
 	if getRawIn == true {
 		UserInput = "func raw_input(Message string) string {\n\tvar UserIn string\n\tfmt.Print(Message)\n\treader := bufio.NewReader(os.Stdin)\n\tUserIn, _ = reader.ReadString('\\n')\n\treturn UserIn\n}\n\n"
@@ -175,21 +186,31 @@ func getMethods(getRawIn bool, getRand bool, getWrite bool, getRead bool, getIsI
 	}
 
 	if  getSplit == true && getJoin == true {
-		replaceAllMethod = "func replaceAll(Str string, sBy string, ToJoin string) string {\n\tArray := split(Str, sBy)\n\tJoined := join(Array, ToJoin)\n\treturn Joined\n}\n\n"
+		replaceAllMethod = "func replaceAll(Str string, sBy string, ToJoin string) string {\n\tnewStr := strings.ReplaceAll(Str, sBy, ToJoin)\n\treturn newStr\n}\n\n"
 	}
 
+	if  getUpper == true {
+		UpperMethod = "func toUpperCase(message string) string {\n\tUpper := strings.ToUpper(message)\n\treturn Upper\n}\n\n"
+		UpperMethod = UpperMethod + "func toUpperCase_at(message string, plc int) string {\n\tvar newStr string\n\tchars := []rune(message)\n\tfor i := 0; i < len(chars); i++ {\n\t\tif i == plc {\n\t\t\tnewStr = newStr + strings.ToUpper(string(chars[i]))\n\t\t} else {\n\t\t\tnewStr = newStr + string(chars[i])\n\t\t}\n\t}\n\treturn newStr\n}\n\n"
+	}
 
-	TheMethods = UserInput+WriteMethod+ReadMethod+RandMethod+ShellMethod+SleepMethod+ThreadMethod+ReverseMethod+SysPropMethod+SplitMethod+JoinMethod+replaceAllMethod+SubStrMethod+ConvertMethod
+	if  getLower == true {
+		LowerMethod = "func toLowerCase(message string) string {\n\tUpper := strings.ToLower(message)\n\treturn Upper\n}\n\n"
+		LowerMethod = LowerMethod + "func toLowerCase_at(message string, plc int) string {\n\tvar newStr string\n\tchars := []rune(message)\n\tfor i := 0; i < len(chars); i++ {\n\t\tif i == plc {\n\t\t\tnewStr = newStr + strings.ToLower(string(chars[i]))\n\t\t} else {\n\t\t\tnewStr = newStr + string(chars[i])\n\t\t}\n\t}\n\treturn newStr\n}\n\n"
+	}
+
+	TheMethods = UserInput+WriteMethod+ReadMethod+RandMethod+ShellMethod+SleepMethod+ThreadMethod+ReverseMethod+SysPropMethod+SplitMethod+JoinMethod+replaceAllMethod+SubStrMethod+ConvertMethod+UpperMethod+LowerMethod
 
 	return TheMethods
 }
 
 //build main function
-func getMain(Args bool, getRandom bool, getPipe bool, getThread bool) string {
+func getMain(Args bool, getRandom bool, getPipe bool, getThread bool, getTypes bool) string {
 	var Main string = ""
 	var RandStart string = ""
 	var PipeCode string = ""
 	var UseThread string = ""
+	var ShowDataTypes string = ""
 
 	if getRandom == true {
 		RandStart = "\trand.Seed(time.Now().UnixNano())\n"
@@ -203,10 +224,14 @@ func getMain(Args bool, getRandom bool, getPipe bool, getThread bool) string {
 		UseThread = "\t//This is a go thread\n\tgo MyThread()\n\t//wait for thread to start\n\ttime.Sleep(1 * time.Second)\n"
 	}
 
+	if getTypes == true {
+		ShowDataTypes = "/*\n\tvar str string\n\tvar number int\n\tvar intArray [5]int\n\n\tif reflect.ValueOf(str).Kind() == reflect.String {\n\t\tfmt.Println(\"This is a string\")\n\t}\n\n\tif reflect.ValueOf(number).Kind() == reflect.Int {\n\t\tfmt.Println(\"This is an Int\")\n\t}\n\n\tif reflect.ValueOf(intArray).Kind() == reflect.Array {\n\t\tfmt.Println(\"This is an Array\")\n\t}\n*/\n"
+	}
+
 	if Args == true {
-		Main = "//main\nfunc main() {\n"+RandStart+"\targs := os.Args[1:]\n\tif len(args) > 0 {\n\t\tfor arg := range args {\n\t\t\tfmt.Println(args[arg])\n\t\t}\n\t} else {\n\t\thelp()\n\t}\n"+PipeCode+UseThread+"}"
+		Main = "//main\nfunc main() {\n"+RandStart+"\targs := os.Args[1:]\n\tif len(args) > 0 {\n\t\tfor arg := range args {\n\t\t\tfmt.Println(args[arg])\n\t\t}\n\t} else {\n\t\thelp()\n\t}\n"+PipeCode+UseThread+ShowDataTypes+"}"
 	} else {
-		Main = "//main\nfunc main() {\n"+RandStart+"\tfmt.Println(\"hellow world\")\n"+PipeCode+UseThread+"}"
+		Main = "//main\nfunc main() {\n"+RandStart+"\tfmt.Println(\"hellow world\")\n"+PipeCode+UseThread+ShowDataTypes+"}"
 	}
 	return Main
 }
@@ -248,6 +273,9 @@ func main() {
 	var getJoin bool = false
 	var getSubStr bool = false
 	var getThread bool = false
+	var getTypes bool = false
+	var getUpper bool = false
+	var getLower bool = false
 	var IsMain bool = false
 	var UserIn string = ""
 	var ThePackage string = ""
@@ -340,6 +368,18 @@ func main() {
 		} else if UserIn == "--join" {
 			getName = false
 			getJoin = true
+		//Get Upper
+		} else if UserIn == "--upper" {
+			getName = false
+			getUpper = true
+		//Get Lower
+		} else if UserIn == "--lower" {
+			getName = false
+			getLower = true
+		//Get data types
+		} else if UserIn == "--type" {
+			getName = false
+			getTypes = true
 		//Get Name of program
 		} else if getName == true {
 			CName = UserIn
@@ -353,13 +393,13 @@ func main() {
 	//Ensure program name is given
 	if CName != "" {
 		ThePackage = getPackage("main")
-		Imports = getImports(getRawIn, getWrite, getRead, getRand, getArgs, getSleep, getPipe, getShell, getThread, getProp, getSplit, getJoin, getConv)
-		Methods = getMethods(getRawIn, getRand, getWrite, getRead, getIsIn, getSleep, getShell, getThread, getProp, getSplit, getJoin, getRev, getSubStr, getConv)
+		Imports = getImports(getRawIn, getWrite, getRead, getRand, getArgs, getSleep, getPipe, getShell, getThread, getProp, getSplit, getJoin, getConv, getUpper, getLower, getTypes)
+		Methods = getMethods(getRawIn, getRand, getWrite, getRead, getIsIn, getSleep, getShell, getThread, getProp, getSplit, getJoin, getRev, getSubStr, getConv, getUpper, getLower)
 		if IsMain == true {
 			if getArgs == true {
 				TheHelpContent = getHelp(CName,TheAuthor)
 			}
-			Main = getMain(getArgs,getRand,getPipe,getThread)
+			Main = getMain(getArgs,getRand,getPipe,getThread,getTypes)
 		} else {
 			Main = ""
 		}

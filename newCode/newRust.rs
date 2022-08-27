@@ -5,7 +5,7 @@ fn help()
 {
 	println!("Author: Joespider");
 	println!("Program: \"newRust\"");
-	println!("Version: 0.1.11");
+	println!("Version: 0.1.13");
 	println!("Purpose: make new Rust programs");
 	println!("Usage: newRust <args>");
 	println!("\t--user <username>: get username for help page");
@@ -26,6 +26,8 @@ fn help()
 	println!("\t--thread : enable threading (Main file and project ONLY)");
 	println!("\t--sleep : enable sleep method");
 	println!("\t--get-length : enable \"length\" methods");
+	println!("\t--upper : enable upper case methods");
+	println!("\t--lower : enable lower case methods");
 }
 
 fn get_sys_prop(please_get: &str) -> String
@@ -124,12 +126,12 @@ fn get_imports(getreadfile: bool, getwritefile: bool, getcli: bool, getpipe: boo
 	return theimports;
 }
 
-fn get_methods(getreadfile: bool, getwritefile: bool, getrawinput: bool, getsysprop: bool, getsleep: bool, getrev: bool, getisin: bool, getlen: bool) -> String
+fn get_methods(getreadfile: bool, getwritefile: bool, getrawinput: bool, getsysprop: bool, getsleep: bool, getrev: bool, getisin: bool, getlen: bool, getupper: bool, getlower: bool) -> String
 {
 	let mut themethods = String::new();
 	if getrawinput == true
 	{
-		themethods.push_str("fn raw_input(message: &str) -> String\n{\n\tuse std::io::{stdin,stdout,Write};\n\tlet mut s=String::new();\n\tprint!(\"{} \",message);\n\tlet _=stdout().flush();\n\tstdin().read_line(&mut s).expect(\"Did not enter a correct string\");\n\tif let Some('\\n')=s.chars().next_back() {\n\t\ts.pop();\n\t}\n\tif let Some('\\r')=s.chars().next_back() {\n\t\ts.pop();\n\t}\n\treturn s;\n}\n\n");
+		themethods.push_str("fn raw_input(message: &str) -> String\n{\n\tuse std::io::{stdin,stdout,Write};\n\tlet mut s=String::new();\n\tprint!(\"{}\",message);\n\tlet _=stdout().flush();\n\tstdin().read_line(&mut s).expect(\"Did not enter a correct string\");\n\tif let Some('\\n')=s.chars().next_back() {\n\t\ts.pop();\n\t}\n\tif let Some('\\r')=s.chars().next_back() {\n\t\ts.pop();\n\t}\n\treturn s;\n}\n\n");
 	}
 	if getreadfile == true
 	{
@@ -160,6 +162,16 @@ fn get_methods(getreadfile: bool, getwritefile: bool, getrawinput: bool, getsysp
 	if getlen == true
 	{
 		themethods.push_str("fn len(message: &str) -> u32\n{\n\tlet thesize = message.len().to_string();\n\treturn thesize.parse().unwrap();\n}\n\n");
+	}
+	if getupper == true
+	{
+		themethods.push_str("fn touppercase(message: &str) -> String\n{\n\tlet upper = message.to_uppercase();\n\treturn upper;\n}\n\n");
+		themethods.push_str("fn touppercase_at(message: &str, plc: usize) -> String\n{\n\tlet mut newmsg = String::new();\n\tlet size = message.chars().count();\n\tfor c in 0..size\n\t{\n\t\tlet mut letter = message.chars().nth(c).unwrap();\n\t\tif c == plc\n\t\t{\n\t\t\tletter = letter.to_ascii_uppercase();\n\t\t}\n\t\tnewmsg.push(letter);\n\t}\n\treturn newmsg;\n}\n\n");
+	}
+	if getlower == true
+	{
+		themethods.push_str("fn tolowercase(message: &str) -> String\n{\n\tlet lower = message.to_lowercase();\n\treturn lower;\n}\n\n");
+		themethods.push_str("fn tolowercase_at(message: &str, plc: usize) -> String\n{\n\tlet mut newmsg = String::new();\n\tlet size = message.chars().count();\n\tfor c in 0..size\n\t{\n\t\tlet mut letter = message.chars().nth(c).unwrap();\n\t\tif c == plc\n\t\t{\n\t\t\tletter = letter.to_ascii_lowercase();\n\t\t}\n\t\tnewmsg.push(letter);\n\t}\n\treturn newmsg;\n}\n\n");
 	}
 
 	return themethods;
@@ -226,6 +238,8 @@ fn main()
 	let mut is_split = false;
 	let mut is_join = false;
 	let mut is_sleep = false;
+	let mut is_upper = false;
+	let mut is_lower = false;
 	let mut name_set = false;
 	let mut arg_count = 0;
 	//CLI arguments
@@ -314,6 +328,15 @@ fn main()
 			{
 				is_sleep = true;
 			}
+			else if args == "--upper"
+			{
+				is_upper = true;
+			}
+			else if args == "--lower"
+			{
+				is_lower = true;
+			}
+
 		}
 		arg_count += 1;
 	}
@@ -327,7 +350,7 @@ fn main()
 		let the_imports = get_imports(is_read_file, is_write_file, is_cli, is_pipe, is_prop, is_thread, is_sleep);
 		let the_helps = get_help(program_name.to_string(),the_user.to_string(),is_cli);
 		program_name.push_str(".rs");
-		let the_methods = get_methods(is_read_file, is_write_file, get_input_method, is_prop, is_sleep, is_rev, is_in,is_len);
+		let the_methods = get_methods(is_read_file, is_write_file, get_input_method, is_prop, is_sleep, is_rev, is_in, is_len, is_upper, is_lower);
 		let the_main = get_main(is_main, is_cli, is_pipe, is_thread, is_split, is_join);
 		write_file(program_name, the_imports, the_helps, the_methods, the_main);
 	}

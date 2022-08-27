@@ -6,7 +6,7 @@ ProgramName = sys.argv[0]
 if "/" in ProgramName:
 	ProgramName = ProgramName.rsplit("/",1)[1]
 
-VersionName = "0.1.21"
+VersionName = "0.1.23"
 
 def Help():
 	print("Author: Joespider")
@@ -28,9 +28,12 @@ def Help():
 	print("\t--random : enable \"random\" method")
 	print("\t--write-file : enable \"write\" file method")
 	print("\t--read-file : enable \"read\" file method")
+	print("\t--user-input : enable \"raw_input\" method")
 	print("\t--thread : enable threading")
 	print("\t--type : enable data type eval method")
 	print("\t--sleep : enable sleep method")
+	print("\t--upper : enable upper method")
+	print("\t--lower : enable lower method")
 
 def GetArgs():
 	Args = sys.argv
@@ -52,6 +55,9 @@ def GetArgs():
 		   "thread":False,
 		   "type":False,
 		   "sleep":False,
+		   "input":False,
+		   "upper":False,
+		   "lower":False,
 		   "shell":False}
 	#
 	lp = 0
@@ -103,6 +109,12 @@ def GetArgs():
 			Returns["type"] = True
 		elif now == "--sleep":
 			Returns["sleep"] = True
+		elif now == "--user-input":
+			Returns["input"] = True
+		elif now == "--upper":
+			Returns["upper"] = True
+		elif now == "--lower":
+			Returns["lower"] = True
 		lp += 1
 	return Returns
 
@@ -129,10 +141,11 @@ def Imports(getShell, getSys, getRand, getThread, getPipe, getSleep, getProp):
 	return TheImports
 
 #Get Methods
-def Methods(getMain, getShell, getCLI, getWrite, getRead, getRandom, getThread, getPipe, getSleep, getProp, getSplit, getJoin, getRev, getTypes):
+def Methods(getMain, getRawInput, getShell, getCLI, getWrite, getRead, getRandom, getThread, getPipe, getSleep, getProp, getSplit, getJoin, getRev, getTypes, getUpper, getLower):
 	TheMethods = ""
 	#{
 	OSshellMethod = "def Shell(cmd):\n\tOutput = \"\"\n\tTheShell = os.popen(cmd)\n\tOutput = TheShell.read()\n\tTheShell.close()\n\treturn Output\n\ndef Exe(cmd):\n\tos.system(cmd)\n"
+	RawInputMethod = "def raw_input(message):\n\treturn input(message)\n"
 	CLImethod = "def Args():\n\tTheArgs = sys.argv\n\tTheArgs.pop(0)\n\treturn TheArgs\n"
 	WriteMethod = "def Write(FileName,content):\n\tTheFile = open(FileName,\"w\")\n\tTheFile.write(content)\n\tTheFile.close()\n"
 	ReadMethod = "def Read(FileName):\n\tOutput = \"\"\n\tTheFile = open(FileName,\"r\")\n\tOutput = TheFile.read()\n\tTheFile.close()\n\treturn Output\n"
@@ -148,6 +161,8 @@ def Methods(getMain, getShell, getCLI, getWrite, getRead, getRandom, getThread, 
 	TypeMethod = "def Type(Data):\n\tTheType = type(Data)\n\tif TheType == int:\n\t\treturn \"int\"\n\telif TheType == float:\n\t\treturn \"float\"\n\telif TheType == str:\n\t\treturn \"string\"\n\telif TheType == bool:\n\t\treturn \"bool\"\n\telif TheType == list:\n\t\treturn \"list\"\n\telif TheType == dict:\n\t\treturn \"dict\"\n\telif TheType == tuple:\n\t\treturn \"tuple\"\n\telse:\n\t\treturn TheType\n"
 	ReverseMethod = "def rev(Str):\n\treturn Str[::-1]\n"
 	SleepMethod = "def sleep(sec):\n\ttime.sleep(sec)\n"
+	UpperMethod = "def toUpperCase(Str,plc=-1):\n\tif plc != -1 and plc == 0:\n\t\tplc += 1\n\t\treturn Str[:plc].upper()+Str[plc:]\n\tif plc != -1 and plc > 0:\n\t\tFirst = Str[:plc]\n\t\tplc += 1\n\t\treturn First+Str[plc-1:plc:].upper()+Str[plc:]\n\telse:\n\t\treturn Str.upper()\n"
+	LowerMethod = "def toLowerCase(Str,plc=-1):\n\tif plc != -1:\n\t\tplc += 1\n\t\treturn Str[:plc].lower()+Str[plc:]\n\telse:\n\t\treturn Str.lower()\n"
 
 	if getThread == True:
 		ThreadMethod = "\t#TheThread = threading.Thread(target=<method>, args=(<arg>,<arg>,))\n\t#TheThread.start()\n\t#TheThread.join()\n"
@@ -160,6 +175,9 @@ def Methods(getMain, getShell, getCLI, getWrite, getRead, getRandom, getThread, 
 	#Get Write Method
 	if getWrite == True:
 		TheMethods = WriteMethod+"\n"
+	#Get raw_input Method
+	if getRawInput == True:
+		TheMethods = TheMethods+RawInputMethod+"\n"
 	#Get Read Method
 	if getRead == True:
 		TheMethods = TheMethods+ReadMethod+"\n"
@@ -187,6 +205,12 @@ def Methods(getMain, getShell, getCLI, getWrite, getRead, getRandom, getThread, 
 	#Get Join Method
 	if getJoin == True:
 		TheMethods = TheMethods+JoinMethod+"\n"
+	#Get uppercase Method
+	if getUpper == True:
+		TheMethods = TheMethods+UpperMethod+"\n"
+	#Get lowercase Method
+	if getLower == True:
+		TheMethods = TheMethods+LowerMethod+"\n"
 	#Get Split and Join Method
 	if getSplit == True and getJoin == True:
 		TheMethods = TheMethods+replaceAllMethod+"\n"
@@ -220,6 +244,7 @@ def Main():
 	TheUser = UserArgs["user"]
 	IsCLI = UserArgs["cli"]
 	IsMain = UserArgs["main"]
+	GetRawInput = UserArgs["input"]
 	GetWrite = UserArgs["write"]
 	GetRead = UserArgs["read"]
 	GetRand = UserArgs["random"]
@@ -232,13 +257,15 @@ def Main():
 	GetThreads = UserArgs["thread"]
 	GetTypes = UserArgs["type"]
 	GetSleep = UserArgs["sleep"]
+	GetUpper = UserArgs["upper"]
+	GetLower = UserArgs["lower"]
 	#}
 	#Ensure Name of program
 	if TheName != "":
 		#Get Imports
 		ProgImports = Imports(GetShell, IsCLI, GetRand, GetThreads, GetPipe, GetSleep, GetProp)
 		#Get Methods
-		ProgMethods = Methods(IsMain, GetShell, IsCLI, GetWrite, GetRead, GetRand, GetThreads, GetPipe, GetSleep, GetProp, GetSplit, GetJoin, GetRev, GetTypes)
+		ProgMethods = Methods(IsMain, GetRawInput, GetShell, IsCLI, GetWrite, GetRead, GetRand, GetThreads, GetPipe, GetSleep, GetProp, GetSplit, GetJoin, GetRev, GetTypes, GetUpper, GetLower)
 		if IsCLI == True:
 			TheHelpMethod = getHelp(TheName,TheUser)
 		#Manage Imports
