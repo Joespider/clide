@@ -6,7 +6,7 @@ ProgramName = sys.argv[0]
 if "/" in ProgramName:
 	ProgramName = ProgramName.rsplit("/",1)[1]
 
-VersionName = "0.1.23"
+VersionName = "0.1.27"
 
 def Help():
 	print "Author: Joespider"
@@ -26,13 +26,16 @@ def Help():
 	print "\t--split : enable \"split\" file method"
 	print "\t--join : enable \"join\" file method"
 	print "\t--random : enable \"random\" method"
+	print "\t--check-file : enable \"fexists\" file method"
 	print "\t--write-file : enable \"write\" file method"
 	print "\t--read-file : enable \"read\" file method"
 	print "\t--thread : enable threading"
 	print "\t--type : enable data type eval method"
 	print "\t--sleep : enable sleep method"
+	print "\t--get-length : enable \"length\" examples (Main file ONLY)"
 	print "\t--upper : enable upper method"
 	print "\t--lower : enable lower method"
+	print "\t--math : enable math functions"
 
 def GetArgs():
 	Args = sys.argv
@@ -43,6 +46,7 @@ def GetArgs():
 		   "user":"",
 		   "cli":False,
 		   "main":False,
+		   "check":False,
 		   "write":False,
 		   "read":False,
 		   "split":False,
@@ -56,6 +60,8 @@ def GetArgs():
 		   "sleep":False,
 		   "upper":False,
 		   "lower":False,
+		   "math":False,
+		   "length":False,
 		   "shell":False}
 	#
 	lp = 0
@@ -83,6 +89,8 @@ def GetArgs():
 			Returns["cli"] = True
 		elif now == "--main":
 			Returns["main"] = True
+		elif now == "--check-file":
+			Returns["check"] = True
 		elif now == "--read-file":
 			Returns["read"] = True
 		elif now == "--write-file":
@@ -111,6 +119,10 @@ def GetArgs():
 			Returns["upper"] = True
 		elif now == "--lower":
 			Returns["lower"] = True
+		elif now == "--math":
+			Returns["math"] = True
+		elif now == "--get-length":
+			Returns["length"] = True
 		lp += 1
 	return Returns
 
@@ -121,9 +133,9 @@ def getHelp(TheName, TheUser):
 	return HelpMethod
 
 #Get Imports
-def Imports(getShell, getSys, getRand, getThread, getPipe, getSleep, getProp):
+def Imports(getShell, getSys, getRand, getThread, getPipe, getSleep, getProp, getMath, getCheckFile):
 	TheImports = ""
-	if getShell == True or getProp:
+	if getShell == True or getProp == True or getCheckFile == True:
 		TheImports = "import os\n"
 	if getSys == True or getPipe == True:
 		TheImports = TheImports+"import sys\n"
@@ -133,15 +145,18 @@ def Imports(getShell, getSys, getRand, getThread, getPipe, getSleep, getProp):
 		TheImports = TheImports+"import threading\n"
 	if getSleep == True:
 		TheImports = TheImports+"import time\n"
+	if getMath == True:
+		TheImports = TheImports+"import math\n"
 
 	return TheImports
 
 #Get Methods
-def Methods(getMain, getShell, getCLI, getWrite, getRead, getRandom, getThread, getPipe, getSleep, getProp, getSplit, getJoin, getRev, getTypes, getUpper, getLower):
-	TheMethods = "def print(message):\n\tprint message\n"
+def Methods(getMain, getShell, getCLI, getCheckFile, getWrite, getRead, getRandom, getThread, getPipe, getSleep, getProp, getSplit, getJoin, getRev, getTypes, getUpper, getLower, getMath, getLength):
+	TheMethods = "def print(message):\n\tprint message\n\n"
 	#{
 	OSshellMethod = "def Shell(cmd):\n\tOutput = \"\"\n\tTheShell = os.popen(cmd)\n\tOutput = TheShell.read()\n\tTheShell.close()\n\treturn Output\n\ndef Exe(cmd):\n\tos.system(cmd)\n"
 	CLImethod = "def Args():\n\tTheArgs = sys.argv\n\tTheArgs.pop(0)\n\treturn TheArgs\n"
+	CheckFileMethod = "def fexists(aFile):\n\treturn os.path.exists(aFile)\n"
 	WriteMethod = "def Write(FileName,content):\n\tTheFile = open(FileName,\"w\")\n\tTheFile.write(content)\n\tTheFile.close()\n"
 	ReadMethod = "def Read(FileName):\n\tOutput = \"\"\n\tTheFile = open(FileName,\"r\")\n\tOutput = TheFile.read()\n\tTheFile.close()\n\treturn Output\n"
 	RandomMethod = "def Random(min=0,max=0):\n\tif min == 0 and max == 0:\n\t\treturn random()\n\telse:\n\t\treturn randint(min,max)\n"
@@ -150,7 +165,7 @@ def Methods(getMain, getShell, getCLI, getWrite, getRead, getRandom, getThread, 
 	SplitMethod = "def Split(message, sBy):\n\tSplitMessage = message.split(sBy)\n\treturn SplitMessage\n"
 	JoinMethod = "def Join(SplitMessage, jBy):\n\tmessage = jBy.join(SplitMessage)\n\treturn message\n"
 	replaceAllMethod = "def replaceAll(message, sBy, jBy):\n\tSplitMessage = message.split(sBy)\n\tmessage = jBy.join(SplitMessage)\n\treturn message\n"
-	replaceAllMethod = replaceAllMethod + "def replaceFirst(message, sBy, jBy):\n\tSplitMessage = message.split(sBy,1)\n\tmessage = jBy.join(SplitMessage)\n\treturn message\n"
+	replaceAllMethod = replaceAllMethod + "def replaceFirst(message, sBy, jBy):\n\tSplitMessage = message.split(sBy,1)\n\tmessage = jBy.join(SplitMessage)\n\treturn message\n\n"
 	replaceAllMethod = replaceAllMethod + "def replaceLast(message, sBy, jBy):\n\tSplitMessage = message.rsplit(sBy,1)\n\tmessage = jBy.join(SplitMessage)\n\treturn message\n"
 	ThreadMethod = ""
 	TypeMethod = "def Type(Data):\n\tTheType = type(Data)\n\tif TheType == int:\n\t\treturn \"int\"\n\telif TheType == float:\n\t\treturn \"float\"\n\telif TheType == str:\n\t\treturn \"string\"\n\telif TheType == bool:\n\t\treturn \"bool\"\n\telif TheType == list:\n\t\treturn \"list\"\n\telif TheType == dict:\n\t\treturn \"dict\"\n\telif TheType == tuple:\n\t\treturn \"tuple\"\n\telse:\n\t\treturn TheType\n"
@@ -158,18 +173,42 @@ def Methods(getMain, getShell, getCLI, getWrite, getRead, getRandom, getThread, 
 	SleepMethod = "def sleep(sec):\n\ttime.sleep(sec)\n"
 	UpperMethod = "def toUpperCase(Str,plc=-1):\n\tif plc != -1 and plc == 0:\n\t\tplc += 1\n\t\treturn Str[:plc].upper()+Str[plc:]\n\tif plc != -1 and plc > 0:\n\t\tFirst = Str[:plc]\n\t\tplc += 1\n\t\treturn First+Str[plc-1:plc:].upper()+Str[plc:]\n\telse:\n\t\treturn Str.upper()\n"
 	LowerMethod = "def toLowerCase(Str,plc=-1):\n\tif plc != -1:\n\t\tplc += 1\n\t\treturn Str[:plc].lower()+Str[plc:]\n\telse:\n\t\treturn Str.lower()\n"
+	MathMethod = "def sqrt(number):\n\treturn math.sqrt(number)\n\n"
+	MathMethod = MathMethod + "def log(number):\n\treturn math.log(number)\n\n"
+	MathMethod = MathMethod + "def ceil(number):\n\treturn math.ceil(number)\n\n"
+	MathMethod = MathMethod + "def floor(number):\n\treturn math.floor(number)\n\n"
+	MathMethod = MathMethod + "def exp(number):\n\treturn math.exp(number)\n\n"
+	MathMethod = MathMethod + "def expm1(number):\n\treturn math.expm1(number)\n\n"
+	MathMethod = MathMethod + "def acos(number):\n\treturn math.acosh(number)\n\n"
+	MathMethod = MathMethod + "def asin(number):\n\treturn math.asinh(number)\n\n"
+	MathMethod = MathMethod + "def atan(number):\n\treturn math.atan(number)\n\n"
+	MathMethod = MathMethod + "def cos(number):\n\treturn math.cos(number)\n\n"
+	MathMethod = MathMethod + "def cosh(number):\n\treturn math.cosh(number)\n\n"
+	MathMethod = MathMethod + "def fabs(number):\n\treturn math.fabs(number)\n\n"
+	MathMethod = MathMethod + "def hypot(x, y):\n\treturn math.hypot(x, y)\n\n"
+	MathMethod = MathMethod + "def fmod(x, y):\n\treturn math.fmod(x, y)\n\n"
+	MathMethod = MathMethod + "def sin(number):\n\treturn math.sin(number)\n\n"
+	MathMethod = MathMethod + "def sinh(number):\n\treturn math.sinh(number)\n\n"
+	MathMethod = MathMethod + "def tan(number):\n\treturn math.tan(number)\n\n"
+	MathMethod = MathMethod + "def tanh(number):\n\treturn math.tanh(number)\n"
+	LengthExample = ""
 
 	if getThread == True:
 		ThreadMethod = "\t#TheThread = threading.Thread(target=<method>, args=(<arg>,<arg>,))\n\t#TheThread.start()\n\t#TheThread.join()\n"
+	if getLength == True:
+		LengthExample = "#\tmessage = \"this is a message\"\n#\titems = [\"one\",\"two\",\"three\"]\n#\tStrLen = len(message)\n#\tAryLen = len(items)\n\n"
 
 	if getCLI == True:
-		MainMethod = "def Main():\n\t#Get User CLI Input\n\tUserArgs = Args()\n\tif UserArgs != []:\n\t\tprint \"You have entered cli arguments\"\n\telse:\n\t\tHelp()\n"+ThreadMethod+"\nif __name__ == '__main__':\n\tMain()"
+		MainMethod = "def Main():\n\t#Get User CLI Input\n\tUserArgs = Args()\n\tif UserArgs != []:\n\t\tprint \"You have entered cli arguments\"\n\telse:\n\t\tHelp()\n"+ThreadMethod+LengthExample+"\nif __name__ == '__main__':\n\tMain()"
 	else:
-		MainMethod = "def Main():\n\tprint \"main\"\n"+ThreadMethod+"\nif __name__ == '__main__':\n\tMain()"
+		MainMethod = "def Main():\n\tprint \"main\"\n"+ThreadMethod+LengthExample+"\nif __name__ == '__main__':\n\tMain()"
 	#}
 	#Get Write Method
 	if getWrite == True:
 		TheMethods = WriteMethod+"\n"
+	#Get Check File Method
+	if getCheckFile == True:
+		TheMethods = TheMethods+CheckFileMethod+"\n"
 	#Get Read Method
 	if getRead == True:
 		TheMethods = TheMethods+ReadMethod+"\n"
@@ -197,6 +236,15 @@ def Methods(getMain, getShell, getCLI, getWrite, getRead, getRandom, getThread, 
 	#Get Join Method
 	if getJoin == True:
 		TheMethods = TheMethods+JoinMethod+"\n"
+	#Get uppercase Method
+	if getUpper == True:
+		TheMethods = TheMethods+UpperMethod+"\n"
+	#Get lowercase Method
+	if getLower == True:
+		TheMethods = TheMethods+LowerMethod+"\n"
+	#Get Math functions
+	if getMath == True:
+		TheMethods = TheMethods+MathMethod+"\n"
 	#Get Split and Join Method
 	if getSplit == True and getJoin == True:
 		TheMethods = TheMethods+replaceAllMethod+"\n"
@@ -212,6 +260,9 @@ def Methods(getMain, getShell, getCLI, getWrite, getRead, getRandom, getThread, 
 
 	#Return Methods
 	return TheMethods
+
+def fexists(aFile):
+	return os.path.exists(aFile)
 
 def Write(FileName,content):
 	TheFile = open(FileName,"w")
@@ -231,6 +282,7 @@ def Main():
 	IsCLI = UserArgs["cli"]
 	IsMain = UserArgs["main"]
 	GetWrite = UserArgs["write"]
+	GetCheckFile = UserArgs["check"]
 	GetRead = UserArgs["read"]
 	GetRand = UserArgs["random"]
 	GetPipe = UserArgs["pipe"]
@@ -244,25 +296,39 @@ def Main():
 	GetSleep = UserArgs["sleep"]
 	GetUpper = UserArgs["upper"]
 	GetLower = UserArgs["lower"]
+	GetMath = UserArgs["math"]
+	GetLength = UserArgs["length"]
 	#}
 	#Ensure Name of program
 	if TheName != "":
-		#Get Imports
-		ProgImports = Imports(GetShell, IsCLI, GetRand, GetThreads, GetPipe, GetSleep, GetProp)
-		#Get Methods
-		ProgMethods = Methods(IsMain, GetShell, IsCLI, GetWrite, GetRead, GetRand, GetThreads, GetPipe, GetSleep, GetProp, GetSplit, GetJoin, GetRev, GetTypes, GetUpper, GetLower)
-		if IsCLI == True:
-			TheHelpMethod = getHelp(TheName,TheUser)
-		#Manage Imports
-		if ProgImports != "":
-			TheNewProgram = ProgImports+"\n"
-		#Manage Methods
-		if ProgMethods != "":
-			TheNewProgram = TheNewProgram+TheHelpMethod+ProgMethods
+		FileExists = False
 		if TheExt in TheName:
-			Write(TheName,TheNewProgram)
+			FileExists = fexists(TheName)
 		elif TheExt not in TheName:
-			Write(TheName+TheExt,TheNewProgram)
+			FileExists = fexists(TheName+TheExt)
+
+                if FileExists == False:
+			#Get Imports
+			ProgImports = Imports(GetShell, IsCLI, GetRand, GetThreads, GetPipe, GetSleep, GetProp, GetMath, GetCheckFile)
+			#Get Methods
+			ProgMethods = Methods(IsMain, GetShell, IsCLI, GetCheckFile, GetWrite, GetRead, GetRand, GetThreads, GetPipe, GetSleep, GetProp, GetSplit, GetJoin, GetRev, GetTypes, GetUpper, GetLower, GetMath, GetLength)
+			if IsCLI == True:
+				TheHelpMethod = getHelp(TheName,TheUser)
+			#Manage Imports
+			if ProgImports != "":
+				TheNewProgram = ProgImports+"\n"
+			#Manage Methods
+			if ProgMethods != "":
+				TheNewProgram = TheNewProgram+TheHelpMethod+ProgMethods
+			if TheExt in TheName:
+				Write(TheName,TheNewProgram)
+			elif TheExt not in TheName:
+				Write(TheName+TheExt,TheNewProgram)
+		else:
+			if TheExt in TheName:
+				print "\""+TheName+"\" already exists"
+			elif TheExt not in TheName:
+				print "\""+TheName+TheExt+"\" already exists"
 
 	#Program name not found
 	else:

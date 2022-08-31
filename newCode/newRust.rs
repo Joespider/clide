@@ -1,11 +1,12 @@
 use std::env;
 use std::io::Write;
+use std::path::Path;
 
 fn help()
 {
 	println!("Author: Joespider");
 	println!("Program: \"newRust\"");
-	println!("Version: 0.1.13");
+	println!("Version: 0.1.14");
 	println!("Purpose: make new Rust programs");
 	println!("Usage: newRust <args>");
 	println!("\t--user <username>: get username for help page");
@@ -17,6 +18,7 @@ fn help()
 	println!("\t--reverse : enable \"rev\" method");
 	println!("\t--pipe : enable piping (Main file and project ONLY)");
 	println!("\t--random : enable \"random\" int method");
+	println!("\t--check-file : enable \"fexists\" file method");
 	println!("\t--write-file : enable \"write\" file method");
 	println!("\t--read-file : enable \"read\" file method");
 	println!("\t--user-input : enable \"Raw_Input\" file method");
@@ -86,12 +88,16 @@ fn get_help(thename: String,theuser: String, hasargs: bool) -> String
 }
 
 
-fn get_imports(getreadfile: bool, getwritefile: bool, getcli: bool, getpipe: bool, getsysprop: bool, getthread: bool, getsleep: bool) -> String
+fn get_imports(getcheckfile: bool, getreadfile: bool, getwritefile: bool, getcli: bool, getpipe: bool, getsysprop: bool, getthread: bool, getsleep: bool) -> String
 {
 	let mut theimports = String::new();
 	if getcli == true || getsysprop == true
 	{
 		theimports.push_str("use std::env;\n");
+	}
+	if getcheckfile == true
+	{
+		theimports.push_str("use std::path::Path;\n");
 	}
 	if getreadfile == true && getwritefile == false
 	{
@@ -126,12 +132,16 @@ fn get_imports(getreadfile: bool, getwritefile: bool, getcli: bool, getpipe: boo
 	return theimports;
 }
 
-fn get_methods(getreadfile: bool, getwritefile: bool, getrawinput: bool, getsysprop: bool, getsleep: bool, getrev: bool, getisin: bool, getlen: bool, getupper: bool, getlower: bool) -> String
+fn get_methods(getcheckfile: bool, getreadfile: bool, getwritefile: bool, getrawinput: bool, getsysprop: bool, getsleep: bool, getrev: bool, getisin: bool, getlen: bool, getupper: bool, getlower: bool) -> String
 {
 	let mut themethods = String::new();
 	if getrawinput == true
 	{
 		themethods.push_str("fn raw_input(message: &str) -> String\n{\n\tuse std::io::{stdin,stdout,Write};\n\tlet mut s=String::new();\n\tprint!(\"{}\",message);\n\tlet _=stdout().flush();\n\tstdin().read_line(&mut s).expect(\"Did not enter a correct string\");\n\tif let Some('\\n')=s.chars().next_back() {\n\t\ts.pop();\n\t}\n\tif let Some('\\r')=s.chars().next_back() {\n\t\ts.pop();\n\t}\n\treturn s;\n}\n\n");
+	}
+	if getcheckfile == true
+	{
+		themethods.push_str("fn fexists(afile: &str) -> bool\n{\n\treturn Path::new(afile).exists();\n}\n\n");
 	}
 	if getreadfile == true
 	{
@@ -208,6 +218,11 @@ fn get_main(getmain: bool, getcli: bool, getpipe: bool, getthread: bool, getspli
 	return themain;
 }
 
+fn fexists(afile: &str) -> bool
+{
+	return Path::new(afile).exists();
+}
+
 fn write_file(thename: String, theimports: String, thehelp: String, themethods: String, themain: String)
 {
 	let mut file = std::fs::File::create(thename).expect("create failed");
@@ -227,6 +242,7 @@ fn main()
 	let mut is_main = false;
 //	let mut is_a_random = false;
 	let mut is_cli = false;
+	let mut is_check_file = false;
 	let mut is_read_file = false;
 	let mut is_write_file = false;
 	let mut is_prop = false;
@@ -296,6 +312,10 @@ fn main()
 			{
 				is_read_file = true;
 			}
+			else if args == "--check-file"
+			{
+				is_check_file = true;
+			}
 			else if args == "--user-input"
 			{
 				get_input_method = true;
@@ -347,11 +367,22 @@ fn main()
 	}
 	else
 	{
-		let the_imports = get_imports(is_read_file, is_write_file, is_cli, is_pipe, is_prop, is_thread, is_sleep);
-		let the_helps = get_help(program_name.to_string(),the_user.to_string(),is_cli);
-		program_name.push_str(".rs");
-		let the_methods = get_methods(is_read_file, is_write_file, get_input_method, is_prop, is_sleep, is_rev, is_in, is_len, is_upper, is_lower);
-		let the_main = get_main(is_main, is_cli, is_pipe, is_thread, is_split, is_join);
-		write_file(program_name, the_imports, the_helps, the_methods, the_main);
+		let mut check_file = String::new();
+		check_file.push_str(&program_name);
+		check_file.push_str(".rs");
+		let file_exists = fexists(&check_file);
+		if file_exists == false
+		{
+			let the_imports = get_imports(is_check_file, is_read_file, is_write_file, is_cli, is_pipe, is_prop, is_thread, is_sleep);
+			let the_helps = get_help(program_name.to_string(),the_user.to_string(),is_cli);
+			program_name.push_str(".rs");
+			let the_methods = get_methods(is_check_file, is_read_file, is_write_file, get_input_method, is_prop, is_sleep, is_rev, is_in, is_len, is_upper, is_lower);
+			let the_main = get_main(is_main, is_cli, is_pipe, is_thread, is_split, is_join);
+			write_file(program_name, the_imports, the_helps, the_methods, the_main);
+		}
+		else
+		{
+			println!("\"{}\" already exists",check_file);
+		}
 	}
 }

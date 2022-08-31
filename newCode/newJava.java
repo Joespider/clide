@@ -1,4 +1,5 @@
 import java.util.Scanner;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -22,6 +23,7 @@ public class newJava {
 	private static boolean HasPackage = false;
 	private static boolean IsMain = false;
 	private static boolean getUserIn = false;
+	private static boolean getCheckFile = false;
 	private static boolean getReadFile = false;
 	private static boolean getWriteFile = false;
 	private static boolean getShell = false;
@@ -39,13 +41,15 @@ public class newJava {
 	private static boolean getIsIn = false;
 	private static boolean getRandom = false;
 	private static boolean getJavaProp = false;
+	private static boolean getTypes = false;
 	private static boolean getUpper = false;
 	private static boolean getLower = false;
+	private static boolean getMath = false;
 
 	private static void Help()
 	{
 		String program = "newJava";
-		String version = "0.1.35";
+		String version = "0.1.38";
 		print("Author: Joespider");
 		print("Program: \""+program+"\"");
 		print("Version: "+version);
@@ -62,23 +66,26 @@ public class newJava {
 		print("\t--main : main file");
 		print("\t--prop : enable custom system property");
 		print("\t--pipe : enable piping (Main file ONLY)");
-		print("\t--reverse : enable reverse method");
+		print("\t--reverse : enable \"rev\" method");
 		print("\t--split : enable split method");
 		print("\t--join : enable join method");
 		print("\t--random : enable \"random\" int method");
 		print("\t--shell : unix shell");
+		print("\t--check-file : enable \"fexists\" file method");
 		print("\t--write-file : enable \"write\" file method");
 		print("\t--is-in : enable string contains methods");
 		print("\t--read-file : enable \"read\" file method");
 		print("\t--user-input : enable \"raw_input\" method");
 		print("\t--append-array : enable \"append\" array methods");
 		print("\t--thread : enable threading");
+		print("\t--type : enable data type eval method");
 		print("\t--sleep : enable sleep method");
 		print("\t--get-length : enable \"length\" methods");
 		print("\t--casting : enable data type conversion methods");
 		print("\t--sub-string : enable sub-string methods");
 		print("\t--upper : enable uppercase methods");
 		print("\t--lower : enable lowercase methods");
+		print("\t--math : enable math functions");
 	}
 
 	private static String getHelp(String TheName, String TheUser)
@@ -114,29 +121,10 @@ public class newJava {
 		return length;
 	}
 
-	private static void ReadFile(String FileName)
+	private static boolean fexists(String aFile)
 	{
-		try
-		{
-			FileInputStream fstream = new FileInputStream(FileName);
-			// Get the object of DataInputStream
-			DataInputStream in = new DataInputStream(fstream);
-			BufferedReader br = new BufferedReader(new InputStreamReader(in));
-			String strLine;
-			//Read File Line By Line
-			while ((strLine = br.readLine()) != null)
-			{
-				// Print the content on the console
-				print(strLine);
-			}
-			//Close the input stream
-			in.close();
-		}
-		catch (Exception e)
-		{
-			//Catch exception if any
-			print("Error: " + e.getMessage());
-		}
+		File file = new File(aFile);
+		return file.exists();
 	}
 
 	//Write a file
@@ -276,10 +264,20 @@ public class newJava {
 			{
 				getLower = true;
 			}
+			//enable math functions
+			else if (now.equals("--math"))
+			{
+				getMath = true;
+			}
 			//enable sub string methods
 			else if (now.equals("--sub-string"))
 			{
 				getSubStr = true;
+			}
+			//enable Write file Method
+			else if (now.equals("--check-file"))
+			{
+				getCheckFile = true;
 			}
 			//enable Write file Method
 			else if (now.equals("--write-file"))
@@ -311,6 +309,11 @@ public class newJava {
 			{
 				getThreads = true;
 			}
+			//enable getTypes method
+			else if (now.equals("--type"))
+			{
+				getTypes = true;
+			}
 
 			lp++;
 			NextPos++;
@@ -330,6 +333,7 @@ public class newJava {
 	private static String GetImports()
 	{
 		String TheImports = "";
+		boolean NeedIOFile = false;
 		boolean NeedScanner = false;
 		boolean NeedInputStreamReader = false;
 		boolean NeedInputStream = false;
@@ -340,9 +344,14 @@ public class newJava {
 		boolean NeedFileWriter = false;
 		boolean NeedIOException = false;
 		boolean NeedDataInputStream = false;
+		boolean NeedJavaLangMath = false;
 
 		//Handle the imports by Functions
 		//{
+		if (getCheckFile == true)
+		{
+			NeedIOFile = true;
+		}
 		if (getShell == true)
 		{
 			NeedInputStream = true;
@@ -378,13 +387,22 @@ public class newJava {
 			NeedDataInputStream = true;
 			//import java.io.DataInputStream;
 		}
+		if (getMath == true)
+		{
+			//import java.lang.Math;
+			NeedJavaLangMath = true;
+		}
 		//}
 
 		//Get Needed list of imports
 		//{
+		if (NeedIOFile)
+		{
+			TheImports = "import java.io.File;\n";
+		}
 		if (NeedScanner)
 		{
-			TheImports = "import java.util.Scanner;\n";
+			TheImports = TheImports+"import java.util.Scanner;\n";
 		}
 		if (NeedInputStreamReader)
 		{
@@ -422,6 +440,10 @@ public class newJava {
 		{
 			TheImports = TheImports+"import java.io.DataInputStream;\n";
 		}
+		if (NeedJavaLangMath)
+		{
+			TheImports = TheImports+"import java.lang.Math;\n";
+		}
 		//}
 		return TheImports;
 	}
@@ -437,6 +459,7 @@ public class newJava {
 		String MethodLength = "";
 		String MethodArrays = "";
 		String MethodProp = "";
+		String MethodCheckFile = "";
 		String MethodReadFile = "";
 		String MethodWriteFile = "";
 		String MethodShell = "";
@@ -451,6 +474,8 @@ public class newJava {
 		String MethodSleep = "";
 		String MethodUpper = "";
 		String MethodLower = "";
+		String MethodGetTypes = "";
+		String MethodMath = "";
 
 		//raw_input
 		if (getUserIn == true)
@@ -472,6 +497,10 @@ public class newJava {
 		if (getReadFile == true)
 		{
 			MethodReadFile = "\t//Read a file\n\tprivate static void ReadFile(String FileName)\n\t{\n\t\ttry\n\t\t{\n\t\t\tFileInputStream fstream = new FileInputStream(FileName);\n\t\t\t// Get the object of DataInputStream\n\t\t\tDataInputStream in = new DataInputStream(fstream);\n\t\t\tBufferedReader br = new BufferedReader(new InputStreamReader(in));\n\t\t\tString strLine;\n\t\t\t//Read File Line By Line\n\t\t\twhile ((strLine = br.readLine()) != null)\n\t\t\t{\n\t\t\t\t// Print the content on the console\n\t\t\t\tprint(strLine);\n\t\t\t}\n\t\t\t//Close the input stream\n\t\t\tbr.close();\n\t\t\tin.close();\n\t\t}\n\t\tcatch (Exception e)\n\t\t{\n\t\t\t//Catch exception if any\n\t\t\tprint(\"Error: \" + e.getMessage());\n\t\t}\n\t}\n\n";
+		}
+		if (getCheckFile == true)
+		{
+			MethodCheckFile = "\tprivate static boolean fexists(String aFile)\n\t{\n\t\tFile file = new File(aFile);\n\t\treturn file.exists();\n\t}\n\n";
 		}
 		if (getWriteFile == true)
 		{
@@ -539,7 +568,50 @@ public class newJava {
 			MethodLower = MethodLower + "\tprivate static String toLowerCase(String TheStr, int plc)\n\t{\n\t\tString newStr = TheStr;\n\t\tint end = TheStr.length();\n\t\tchar[] Lower = TheStr.toCharArray();\n\t\tif ((plc < end) && (end != 0) && (plc >= 0))\n\t\t{\n\t\t\tLower[plc] = Character.toLowerCase(Lower[plc]);\n\t\t\tnewStr = String.valueOf(Lower);\n\t\t}\n\t\treturn newStr;\n\t}\n\n";
 		}
 
-		TheMethods = MethodProp+MethodUserIn+MethodPrint+MethodLength+MethodArrays+MethodReadFile+MethodWriteFile+MethodShell+MethodSleep+MethodIsIn+MethodRev+MethodSplit+MethodJoin+MethodreplaceAll+MethodConv+MethodSubStr+MethodRand+MethodUpper+MethodLower;
+		if (getTypes == true)
+		{
+			MethodGetTypes = "\tprivate static String Type(Object Data)\n\t{\n\t\tString TheType = \"\";\n\t\tif (Data instanceof Integer)\n\t\t{\n\t\t\tTheType = \"int\";\n\t\t}\n\t\telse if (Data instanceof Double)\n\t\t{\n\t\t\tTheType = \"double\";\n\t\t}\n\t\telse if (Data instanceof String)\n\t\t{\n\t\t\tTheType = \"String\";\n\t\t}\n\t\telse if (Data instanceof Object[])\n\t\t{\n\t\t\tTheType = \"Array\";\n\t\t}\n\t\telse\n\t\t{\n\t\t\tTheType = \"unknown\";\n\t\t}\n\t\treturn TheType;\n\t}\n\n";
+		}
+
+		if (getMath == true)
+		{
+			MethodMath = "\tprivate static double max(double a, double b)\n\t{\n\t\treturn Math.max(a,b);\n\t}\n\n";
+			MethodMath = MethodMath + "\tprivate static float max(float a, float b)\n\t{\n\t\treturn Math.max(a,b);\n\t}\n\n";
+			MethodMath = MethodMath + "\tprivate static long max(long a, long b)\n\t{\n\t\treturn Math.max(a,b);\n\t}\n\n";
+			MethodMath = MethodMath + "\tprivate static int max(int a, int b)\n\t{\n\t\treturn Math.max(a,b);\n\t}\n\n";
+			MethodMath = MethodMath + "\tprivate static double min(double a, double b)\n\t{\n\t\treturn Math.min(a,b);\n\t}\n\n";
+			MethodMath = MethodMath + "\tprivate static float min(float a, float b)\n\t{\n\t\treturn Math.min(a,b);\n\t}\n\n";
+			MethodMath = MethodMath + "\tprivate static long min(long a, long b)\n\t{\n\t\treturn Math.min(a,b);\n\t}\n\n";
+			MethodMath = MethodMath + "\tprivate static int min(int a, int b)\n\t{\n\t\treturn Math.min(a,b);\n\t}\n\n";
+			MethodMath = MethodMath + "\tprivate static double abs(double a)\n\t{\n\t\treturn Math.abs(a);\n\t}\n\n";
+			MethodMath = MethodMath + "\tprivate static float abs(float a)\n\t{\n\t\treturn Math.abs(a);\n\t}\n\n";
+			MethodMath = MethodMath + "\tprivate static int abs(int a)\n\t{\n\t\treturn Math.abs(a);\n\t}\n\n";
+			MethodMath = MethodMath + "\tprivate static long abs(long a)\n\t{\n\t\treturn Math.abs(a);\n\t}\n\n";
+			MethodMath = MethodMath + "\tprivate static double acos(double a)\n\t{\n\t\treturn Math.acos(a);\n\t}\n\n";
+			MethodMath = MethodMath + "\tprivate static double asin(double a)\n\t{\n\t\treturn Math.asin(a);\n\t}\n\n";
+			MethodMath = MethodMath + "\tprivate static double atan(double a)\n\t{\n\t\treturn Math.atan(a);\n\t}\n\n";
+			MethodMath = MethodMath + "\tprivate static double cbrt(double a)\n\t{\n\t\treturn Math.cbrt(a);\n\t}\n\n";
+			MethodMath = MethodMath + "\tprivate static double ceil(double a)\n\t{\n\t\treturn Math.ceil(a);\n\t}\n\n";
+			MethodMath = MethodMath + "\tprivate static double cos(double a)\n\t{\n\t\treturn Math.cos(a);\n\t}\n\n";
+			MethodMath = MethodMath + "\tprivate static double cosh(double x)\n\t{\n\t\treturn Math.cosh(x);\n\t}\n\n";
+			MethodMath = MethodMath + "\tprivate static double exp(double a)\n\t{\n\t\treturn Math.exp(a);\n\t}\n\n";
+			MethodMath = MethodMath + "\tprivate static double expm1(double x)\n\t{\n\t\treturn Math.expm1(x);\n\t}\n\n";
+			MethodMath = MethodMath + "\tprivate static double floor(double a)\n\t{\n\t\treturn Math.floor(a);\n\t}\n\n";
+			MethodMath = MethodMath + "\tprivate static int fmod(int x, int y)\n\t{\n\t\treturn Math.floorMod(x, y);\n\t}\n\n";
+			MethodMath = MethodMath + "\tprivate static long fmod(long x, long y)\n\t{\n\t\treturn Math.floorMod(x, y);\n\t}\n\n";
+			MethodMath = MethodMath + "\tprivate static double hypot(double x, double y)\n\t{\n\t\treturn Math.hypot(x, y);\n\t}\n\n";
+			MethodMath = MethodMath + "\tprivate static double pow(double a, double b)\n\t{\n\t\treturn Math.pow(a, b);\n\t}\n\n";
+			MethodMath = MethodMath + "\tprivate static double sin(double a)\n\t{\n\t\treturn Math.sin(a);\n\t}\n\n";
+			MethodMath = MethodMath + "\tprivate static double sinh(double x)\n\t{\n\t\treturn Math.sinh(x);\n\t}\n\n";
+			MethodMath = MethodMath + "\tprivate static double tan(double a)\n\t{\n\t\treturn Math.tan(a);\n\t}\n\n";
+			MethodMath = MethodMath + "\tprivate static double tanh(double x)\n\t{\n\t\treturn Math.tanh(x);\n\t}\n\n";
+			MethodMath = MethodMath + "\tprivate static double sqrt(double Number)\n\t{\n\t\treturn Math.sqrt(Number);\n\t}\n\n";
+			MethodMath = MethodMath + "\tprivate static int round(float Number)\n\t{\n\t\treturn Math.round(Number);\n\t}\n\n";
+			MethodMath = MethodMath + "\tprivate static long round(double Number)\n\t{\n\t\treturn Math.round(Number);\n\t}\n\n";
+			MethodMath = MethodMath + "\tprivate static double log(double Number)\n\t{\n\t\treturn Math.log(Number);\n\t}\n\n";
+		}
+
+		TheMethods = MethodProp+MethodUserIn+MethodPrint+MethodLength+MethodArrays+MethodCheckFile+MethodReadFile+MethodWriteFile+MethodShell+MethodSleep+MethodIsIn+MethodRev+MethodSplit+MethodJoin+MethodreplaceAll+MethodConv+MethodSubStr+MethodRand+MethodUpper+MethodLower+			MethodGetTypes+MethodMath;
 		return TheMethods;
 	}
 
@@ -557,6 +629,7 @@ public class newJava {
 	* @param args the command line arguments
 	*/
 	public static void main(String[] args) {
+		boolean FileExists = false;
 		String JavaPackage = "";
 		String JavaThreads = "extends Thread";
 		String JavaThreadStart = "";
@@ -573,47 +646,53 @@ public class newJava {
 		GetArgs(args);
 		if (!Class.equals(""))
 		{
-			if (HasPackage == true)
+			FileExists = fexists(Class+".java");
+			if (FileExists == false)
 			{
-				JavaPackage = "package "+Package+";\n\n";
-			}
-			if (getThreads == true)
-			{
-				TheClass = Class+" "+JavaThreads;
-				JavaThreadStart = "\tpublic void run()\n\t{\n\t\tSystem.out.println(\"{My Thread}\");\n\t}\n\n";
-				JavaThreadCall = "\t\t//Instance of a threaded class\n\t\t//"+Class+" TheThread = new "+Class+"();\n\t\t//Starting Thread\n\t\t//TheThread.start();\n\n";
-			}
-			else if (getThreads == false)
-			{
-				TheClass = Class;
-			}
-			JavaImports = GetImports();
-			JavaMethods = GetMethods();
-			JavaCLI = GetCliArgs();
-			Comments[0] ="/**\n *\n * @author "+user+"\n */";
-			Comments[1] ="//class name";
-			if (IsMain == true)
-			{
-				JavaHelp = getHelp(Class,user);
+				if (HasPackage == true)
 				{
-
+					JavaPackage = "package "+Package+";\n\n";
 				}
-				Comments[2] ="/**\n\t* @param args the command line arguments\n\t*/";
-				if (getPipe == true)
+				if (getThreads == true)
 				{
-					JavaMain = "\tpublic static void main(String[] args)\n\t{\n"+JavaThreadCall+JavaCLI+"\n\t\ttry\n\t\t{\n\t\t\tint numBytesWaiting = System.in.available();\n\t\t\tif (numBytesWaiting > 0)\n\t\t\t{\n\t\t\t\tprint(\"[Pipe]\");\n\t\t\t\tprint(\"{\");\n\t\t\t\tScanner pipe = new Scanner(System.in);\n\t\t\t\t// Read and print out each line.\n\t\t\t\twhile (pipe.hasNextLine())\n\t\t\t\t{\n\t\t\t\t\tString lineOfInput = pipe.nextLine();\n\t\t\t\t\tprint(lineOfInput);\n\t\t\t\t}\n\t\t\t\tpipe.close();\n\t\t\t\tprint(\"}\");\n\t\t\t}\n\t\t\telse\n\t\t\t{\n\t\t\t\tprint(\"nothing was piped in\");\n\t\t\t}\n\t\t}\n\t\tcatch (Exception e)\n\t\t{\n\t\t\tSystem.err.println(\"Failed read in\");\n\t\t}\n\t}";
+					TheClass = Class+" "+JavaThreads;
+					JavaThreadStart = "\tpublic void run()\n\t{\n\t\tSystem.out.println(\"{My Thread}\");\n\t}\n\n";
+					JavaThreadCall = "\t\t//Instance of a threaded class\n\t\t//"+Class+" TheThread = new "+Class+"();\n\t\t//Starting Thread\n\t\t//TheThread.start();\n\n";
+				}
+				else if (getThreads == false)
+				{
+					TheClass = Class;
+				}
+				JavaImports = GetImports();
+				JavaMethods = GetMethods();
+				JavaCLI = GetCliArgs();
+				Comments[0] ="/**\n *\n * @author "+user+"\n */";
+				Comments[1] ="//class name";
+				if (IsMain == true)
+				{
+					JavaHelp = getHelp(Class,user);
+					Comments[2] ="/**\n\t* @param args the command line arguments\n\t*/";
+					if (getPipe == true)
+					{
+						JavaMain = "\tpublic static void main(String[] args)\n\t{\n"+JavaThreadCall+JavaCLI+"\n\t\ttry\n\t\t{\n\t\t\tint numBytesWaiting = System.in.available();\n\t\t\tif (numBytesWaiting > 0)\n\t\t\t{\n\t\t\t\tprint(\"[Pipe]\");\n\t\t\t\tprint(\"{\");\n\t\t\t\tScanner pipe = new Scanner(System.in);\n\t\t\t\t// Read and print out each line.\n\t\t\t\twhile (pipe.hasNextLine())\n\t\t\t\t{\n\t\t\t\t\tString lineOfInput = pipe.nextLine();\n\t\t\t\t\tprint(lineOfInput);\n\t\t\t\t}\n\t\t\t\tpipe.close();\n\t\t\t\tprint(\"}\");\n\t\t\t}\n\t\t\telse\n\t\t\t{\n\t\t\t\tprint(\"nothing was piped in\");\n\t\t\t}\n\t\t}\n\t\tcatch (Exception e)\n\t\t{\n\t\t\tSystem.err.println(\"Failed read in\");\n\t\t}\n\t}";
+					}
+					else
+					{
+						JavaMain = "\tpublic static void main(String[] args)\n\t{\n"+JavaThreadCall+"\n"+JavaCLI+"\n\t}";
+					}
+					Java = JavaPackage+JavaImports+"\n\n"+Comments[0]+"\n\n"+Comments[1]+"\npublic class "+TheClass+" {\n\n"+JavaHelp+JavaThreadStart+JavaMethods+"\n\t"+Comments[2]+"\n"+JavaMain+"\n}\n";
 				}
 				else
 				{
-					JavaMain = "\tpublic static void main(String[] args)\n\t{\n"+JavaThreadCall+"\n"+JavaCLI+"\n\t}";
+					Java = JavaPackage+JavaImports+"\n\n"+Comments[0]+"\n\n"+Comments[1]+"\npublic class "+TheClass+" {\n\n"+JavaThreadStart+JavaMethods+"\n\n}\n"+JavaThreadCall;
 				}
-				Java = JavaPackage+JavaImports+"\n\n"+Comments[0]+"\n\n"+Comments[1]+"\npublic class "+TheClass+" {\n\n"+JavaHelp+JavaThreadStart+JavaMethods+"\n\t"+Comments[2]+"\n"+JavaMain+"\n}\n";
+				WriteFile(Class+".java",Java);
 			}
 			else
 			{
-				Java = JavaPackage+JavaImports+"\n\n"+Comments[0]+"\n\n"+Comments[1]+"\npublic class "+TheClass+" {\n\n"+JavaThreadStart+JavaMethods+"\n\n}\n"+JavaThreadCall;
+				print("\""+Class+".java\" already exists");
+
 			}
-			WriteFile(Class+".java",Java);
 		}
 		else
 		{
