@@ -6880,7 +6880,7 @@ main()
 											case ${Args[0]} in
 												--custom|-c)
 													CodeDir=$(pgDir ${Lang})
-													if [ ! -z "${CodeDir}" ]; then
+													if [ ! -z "${CodeDir}" ] && [ -d "${CodeDir}" ]; then
 														cd ${CodeDir}
 														BeforeFiles=$(ManageLangs ${Lang} "BeforeFiles")
 														main ${HiddenAction} ${Lang} ${Args[@]}

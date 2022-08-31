@@ -1,6 +1,6 @@
 #!/bin/bash
 
-Version="0.1.2"
+Version="0.1.3"
 
 Help()
 {
@@ -79,32 +79,36 @@ main()
 	done
 
 	if [ ! -z "${TheName}" ]; then
-		echo "#!/bin/bash" > "${TheName}.sh"
-		echo "" >> "${TheName}.sh"
+		if [ -f "${TheName}.sh" ]; then
+			echo "\"${TheName}.sh\" already exists"
+		else
+			echo "#!/bin/bash" > "${TheName}.sh"
+			echo "" >> "${TheName}.sh"
 
-		case ${UsePipe} in
-			yes)
-				GetPipe >> "${TheName}.sh"
-				;;
-			*)
-				;;
-		esac
+			case ${UsePipe} in
+				yes)
+					GetPipe >> "${TheName}.sh"
+					;;
+				*)
+					;;
+			esac
 
-		case ${UseRandom} in
-			yes)
-				GetRandom >> "${TheName}.sh"
-				;;
-			*)
-				;;
-		esac
+			case ${UseRandom} in
+				yes)
+					GetRandom >> "${TheName}.sh"
+					;;
+				*)
+					;;
+			esac
 
-		case ${UseRev} in
-			yes)
-				GetRev >> "${TheName}.sh"
-				;;
-			*)
-				;;
-		esac
+			case ${UseRev} in
+				yes)
+					GetRev >> "${TheName}.sh"
+					;;
+				*)
+					;;
+			esac
+		fi
 	else
 		Help
 	fi

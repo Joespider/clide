@@ -4,23 +4,26 @@
 
 //print marco for cout
 #define print(x); std::cout << x << std::endl
+//error marco for cerr
+#define error(x); std::cerr << x << std::endl
 //Convert std::string to String
 #define String std::string
 
 static void help();
 static String getHelp(String TheName, String TheUser);
 static String getMarcos(bool* Conv, bool* getLen);
-static String getImports(bool* write, bool* read, bool* random, bool* pipe, bool* shell, bool* threads, bool* sleep, bool* prop, bool* Split, bool* Join, bool* Rev, bool* Vect);
-static String getMethodDec(bool* rawinput, bool* rand, bool* write, bool* read, bool* isin, bool* shell, bool* sleep, bool* prop, bool* Split, bool* Join, bool* Rev, bool* Conv, bool* subStr, bool* getLen);
-static String getMethods(bool* rawinput, bool* rand, bool* write, bool* read, bool* isin, bool* shell, bool* sleep, bool* prop, bool* Split, bool* Join, bool* Rev, bool* Conv, bool* subStr, bool* getLen);
-static String getMain(bool* getArgs, bool* getRandom, bool* getPipe, bool* getThreads, bool* getVectors);
+static String getImports(bool* fcheck, bool* write, bool* read, bool* random, bool* pipe, bool* shell, bool* threads, bool* sleep, bool* prop, bool* Split, bool* Join, bool* Rev, bool* Vect, bool* Math);
+static String getMethodDec(bool* rawinput, bool* rand, bool* fcheck, bool* write, bool* read, bool* isin, bool* shell, bool* sleep, bool* prop, bool* Split, bool* Join, bool* Rev, bool* Conv, bool* subStr, bool* getLen, bool* getUpper, bool* getLower);
+static String getMethods(bool* rawinput, bool* rand, bool* fcheck, bool* write, bool* read, bool* isin, bool* shell, bool* sleep, bool* prop, bool* Split, bool* Join, bool* Rev, bool* Conv, bool* subStr, bool* getLen, bool* getUpper, bool* getLower);
+static String getMain(bool* getArgs, bool* getRandom, bool* getPipe, bool* getThreads, bool* getVectors, bool* getMath);
 static void CreateNew(String filename, String content, String ext);
+bool fexists(String aFile);
 bool IsIn(String Str, String Sub);
 
 static void help()
 {
 	String ProgName = "newC++";
-	String Version = "0.1.45";
+	String Version = "0.1.48";
 	print("Author: Joespider");
 	print("Program: \"" << ProgName << "\"");
 	print("Version: " << Version);
@@ -39,6 +42,7 @@ static void help()
 	print("\t--split : enable \"split\" function");
 	print("\t--join : enable \"join\" function");
 	print("\t--random : enable \"random\" int method");
+	print("\t--check-file : enable \"fexists\" file method");
 	print("\t--write-file : enable \"write\" file method");
 	print("\t--read-file : enable \"read\" file method");
 	print("\t--is-in : enable string contains methods");
@@ -51,6 +55,7 @@ static void help()
 	print("\t--sub-string : enable sub-string methods");
 	print("\t--upper : enable upper case methods");
 	print("\t--lower : enable lower case methods");
+	print("\t--math : enable math functions (Main file ONLY)");
 }
 
 static String getHelp(String TheName, String TheUser)
@@ -68,6 +73,7 @@ static String getMarcos(bool* Conv, bool* getLen)
 {
 	String Marcos = "";
 	String MarcoPrint = "//print marco for cout\n#define print(x); std::cout << x << std::endl\n\n";
+	String MarcoError = "//error marco for cerr\n#define error(x); std::cerr << x << std::endl\n\n";
 	String MarcoToStr = "";
 	String MarcoLen = "";
 	String MarcoString = "//Convert std::string to String\n#define String std::string\n\n";
@@ -84,12 +90,12 @@ static String getMarcos(bool* Conv, bool* getLen)
 	String MarcoLen = "//len marco for sizeof\n#define len(item) (sizeof(item))\n";
 	Marcos = MarcoPrint+MarcoLen+"\n";
 */
-	Marcos = MarcoPrint+MarcoToStr+MarcoString+MarcoLen+"\n";
+	Marcos = MarcoPrint+MarcoError+MarcoToStr+MarcoString+MarcoLen+"\n";
 	return Marcos;
 }
 
 //create import listing
-static String getImports(bool* write, bool* read, bool* random, bool* pipe, bool* shell, bool* threads, bool* sleep, bool* prop, bool* Split, bool* Join, bool* Rev, bool* Vect)
+static String getImports(bool* fcheck, bool* write, bool* read, bool* random, bool* pipe, bool* shell, bool* threads, bool* sleep, bool* prop, bool* Split, bool* Join, bool* Rev, bool* Vect, bool* Math)
 {
 	String Imports = "";
 	String standard = "#include <iostream>\n#include <string>\n";
@@ -103,8 +109,9 @@ static String getImports(bool* write, bool* read, bool* random, bool* pipe, bool
 	String ForRev = "";
 	String ForSplit = "";
 	String ForJoin = "";
+	String ForMath = "";
 
-	if ((*read == true) || (*write == true))
+	if ((*fcheck == true) || (*read == true) || (*write == true))
 	{
 		readWrite = "#include <fstream>\n";
 	}
@@ -144,21 +151,29 @@ static String getImports(bool* write, bool* read, bool* random, bool* pipe, bool
 	{
 		ForSplit = "#include <sstream>\n";
 	}
+	if (*Math == true)
+	{
+		ForMath = "#include <cmath>\n";
+	}
 
 	//concat imports
-	Imports = standard+readWrite+ForRandom+ForPiping+ForShell+ForThreading+ForSleep+ForSysProp+ForSplit+ForJoin+ForRev+"\n";
+	Imports = standard+readWrite+ForRandom+ForPiping+ForShell+ForThreading+ForSleep+ForSysProp+ForSplit+ForJoin+ForRev+ForMath+"\n";
 
 	return Imports;
 }
 
 //create base methods
-static String getMethodDec(bool* rawinput, bool* rand, bool* write, bool* read, bool* isin, bool* shell, bool* sleep, bool* prop, bool* Split, bool* Join, bool* Rev, bool* Conv, bool* subStr, bool* getLen, bool* getUpper, bool* getLower)
+static String getMethodDec(bool* rawinput, bool* rand, bool* fcheck, bool* write, bool* read, bool* isin, bool* shell, bool* sleep, bool* prop, bool* Split, bool* Join, bool* Rev, bool* Conv, bool* subStr, bool* getLen, bool* getUpper, bool* getLower)
 {
 	String Declaration = "";
 
 	if (*rawinput == true)
 	{
 		Declaration = "String raw_input(String message);\n";
+	}
+	if (*fcheck == true)
+	{
+		Declaration = Declaration+"bool fexists(String aFile);\n";
 	}
 	if (*write == true)
 	{
@@ -247,11 +262,12 @@ static String getMethodDec(bool* rawinput, bool* rand, bool* write, bool* read, 
 }
 
 //create base methods
-static String getMethods(bool* rawinput, bool* rand, bool* write, bool* read, bool* isin, bool* shell, bool* sleep, bool* prop, bool* Split, bool* Join, bool* Rev, bool* Conv, bool* subStr, bool* getLen, bool* getUpper, bool* getLower)
+static String getMethods(bool* rawinput, bool* rand, bool* fcheck, bool* write, bool* read, bool* isin, bool* shell, bool* sleep, bool* prop, bool* Split, bool* Join, bool* Rev, bool* Conv, bool* subStr, bool* getLen, bool* getUpper, bool* getLower)
 {
 	String Methods = "";
 	String Random = "";
 	String RawInput = "";
+	String CheckFile = "";
 	String WriteFile = "";
 	String ReadFile = "";
 	String IsIn = "";
@@ -271,6 +287,10 @@ static String getMethods(bool* rawinput, bool* rand, bool* write, bool* read, bo
 	if (*rawinput == true)
 	{
 		RawInput = "//User Input\nString raw_input(String message)\n{\n\tString UserIn;\n\tstd::cout << message;\n\tgetline (std::cin,UserIn);\n\treturn UserIn;\n}\n\n";
+	}
+	if (*fcheck == true)
+	{
+		CheckFile = "//check if file exists\nbool fexists(String aFile)\n{\n\tbool IsFound = false;\n\tstd::ifstream ifile;\n\tifile.open(aFile);\n\tif (ifile)\n\t{\n\t\tifile.close();\n\t\tIsFound = true;\n\t}\n\treturn IsFound;\n}\n\n";
 	}
 	if (*write == true)
 	{
@@ -357,19 +377,20 @@ static String getMethods(bool* rawinput, bool* rand, bool* write, bool* read, bo
 	}
 
 	//Methods for C++
-	Methods = "\n"+RawInput+Random+IsIn+WriteFile+ReadFile+TheShell+TheSleep+SysProp+StrSplit+StrJoin+StrReplaceAll+StrRev+ConvData+SubStr+StrLen+StrUpper+StrLower;
+	Methods = "\n"+RawInput+Random+IsIn+CheckFile+WriteFile+ReadFile+TheShell+TheSleep+SysProp+StrSplit+StrJoin+StrReplaceAll+StrRev+ConvData+SubStr+StrLen+StrUpper+StrLower;
 
 	return Methods;
 }
 
 //build main function
-static String getMain(bool* getArgs, bool* getRandom, bool* getPipe, bool* getThreads, bool* getVectors)
+static String getMain(bool* getArgs, bool* getRandom, bool* getPipe, bool* getThreads, bool* getVectors, bool* getMath)
 {
 	String Main = "";
 	String StartRandom = "";
 	String UsePipe = "";
 	String UseThreads = "";
 	String UseVectors = "";
+	String UseMath = "";
 
 	if (*getRandom == true)
 	{
@@ -391,13 +412,18 @@ static String getMain(bool* getArgs, bool* getRandom, bool* getPipe, bool* getTh
 		UseVectors = "/*\n\t//string vectors\n\tstd::vector<String> TheStrVect;\n\t//append string\n\tTheStrVect.push_back(\"one\");\n\t//int vectors\n\n\tstd::vector<int> TheIntVect;\n\t//append int\n\tTheIntVect.push_back(1);\n\t//int vectors\n\n\tstd::vector<double> TheDblVect;\n\t//append double\n\tTheDblVect.push_back(1.0);\n\n\t//Vector length\n\tint TheStrVectLen = TheStrVect.size();\n\tint TheIntVectLen = TheIntVect.size();\n\tint TheDblVectLen = TheDblVect.size();\n*/\n\n\n";
 	}
 
+	if (*getMath == true)
+	{
+		UseMath = "/*\n\tprint(\"max(5,10) = \" << std::max(5,10));\n\tprint(\"min(5,10) = \" << std::min(5,10));\n\tprint(\"abs(-10) = \" << abs(-10));\n\tprint(\"pow(4,3) = \" << pow(4, 3));\n\tprint(\"acos(7) = \" << acos(7));\n\tprint(\"asin(7) = \" << asin(7));\n\tprint(\"atan(7) = \" << atan(7));\n\tprint(\"cbrt(7) = \" << cbrt(7));\n\tprint(\"cos(7) = \" << cos(7));\n\tprint(\"cosh(7) = \" << cosh(7));\n\tprint(\"fabs(7) = \" << fabs(7));\n\tprint(\"fdim(7, 8) = \" << fdim(7, 8));\n\tprint(\"hypot(7, 8) = \" << hypot(7, 8));\n\tprint(\"fma(7, 8, 9) = \" << fma(7, 8, 9));\n\tprint(\"fmax(7, 8) = \" << fmax(7, 8));\n\tprint(\"fmin(7, 8) = \" << fmin(7, 8));\n\tprint(\"fmod(7, 8) = \" << fmod(7, 8));\n\tprint(\"sin(7) = \" << sin(7));\n\tprint(\"sinh(7) = \" << sinh(7));\n\tprint(\"tan(7) = \" << tan(7));\n\tprint(\"tanh(7) = \" << tanh(7));\n\tprint(\"sqrt(64) = \" << sqrt(64));\n\tprint(\"exp(2.6) = \" << exp(2.6));\n\tprint(\"expm1(2.6) = \" << expm1(2.6));\n\tprint(\"ceil(2.6) = \" << ceil(2.6));\n\tprint(\"floor(2.6) = \" << floor(2.6));\n\tprint(\"round(2.6) = \" << round(2.6));\n\tprint(\"log(2) = \" << log(2));\n*/\n\n";
+	}
+
 	if (*getArgs == true)
 	{
-		Main = "//C++ Main...with cli arguments\nint main(int argc, char** argv)\n{\n"+StartRandom+"\tString out = \"\";\n\t//Args were given\n\tif (argc > 1)\n\t{\n\t\t//Loop through Args\n\t\tfor (int i = 1; i < argc; i++)\n\t\t{\n\t\t\tout = String(argv[i]);\n\t\t\tif (out == \"find\")\n\t\t\t{\n\t\t\t\tprint(\"Found\");\n\t\t\t\tbreak;\n\t\t\t}\n\t\t}\n\t}\n\telse\n\t{\n\t\thelp();\n\t}\n\n"+UsePipe+UseThreads+UseVectors+"\treturn 0;\n}\n";
+		Main = "//C++ Main...with cli arguments\nint main(int argc, char** argv)\n{\n"+StartRandom+"\tString out = \"\";\n\t//Args were given\n\tif (argc > 1)\n\t{\n\t\t//Loop through Args\n\t\tfor (int i = 1; i < argc; i++)\n\t\t{\n\t\t\tout = String(argv[i]);\n\t\t\tif (out == \"find\")\n\t\t\t{\n\t\t\t\tprint(\"Found\");\n\t\t\t\tbreak;\n\t\t\t}\n\t\t}\n\t}\n\telse\n\t{\n\t\thelp();\n\t}\n\n"+UsePipe+UseThreads+UseVectors+UseMath+"\treturn 0;\n}\n";
 	}
 	else
 	{
-		Main = "//C++ Main\nint main()\n{\n"+StartRandom+UsePipe+UseThreads+UseVectors+"\n\treturn 0;\n}\n";
+		Main = "//C++ Main\nint main()\n{\n"+StartRandom+UsePipe+UseThreads+UseVectors+UseMath+"\n\treturn 0;\n}\n";
 	}
 	return Main;
 }
@@ -411,6 +437,20 @@ static void CreateNew(String filename, String content, String ext)
 	myfile << content;
 	myfile.close();
 }
+
+bool fexists(String aFile)
+{
+	bool IsFound = false;
+	std::ifstream ifile;
+	ifile.open(aFile);
+	if (ifile)
+	{
+		ifile.close();
+		IsFound = true;
+	}
+	return IsFound;
+}
+
 
 bool IsIn(String Str, String Sub)
 {
@@ -426,10 +466,12 @@ bool IsIn(String Str, String Sub)
 int main(int argc, char** argv)
 {
 	bool NameIsNotOk = true;
+	bool FileExists = false;
 	bool getName = false;
 	bool getExt = false;
 	bool getArgs = false;
 	bool getRand = false;
+	bool getFCheck = false;
 	bool getWrite = false;
 	bool getRead = false;
 	bool getIsIn = false;
@@ -448,6 +490,7 @@ int main(int argc, char** argv)
 	bool getLength = false;
 	bool getUpper = false;
 	bool getLower = false;
+	bool getMath = false;
 	bool IsMain = false;
 	bool getTheUser = false;
 	String theUser = "";
@@ -531,6 +574,12 @@ int main(int argc, char** argv)
 				getName = false;
 				getSubStr = true;
 			}
+			//Get Check file method
+			else if (UserIn == "--check-file")
+			{
+				getName = false;
+				getFCheck = true;
+			}
 			//Get Write file method
 			else if (UserIn == "--write-file")
 			{
@@ -595,6 +644,12 @@ int main(int argc, char** argv)
 			{
 				getLower = true;
 			}
+			//Enable math
+			else if (UserIn == "--math")
+			{
+				getMath = true;
+			}
+
 			//Enable system property
 			else if (UserIn == "--prop")
 			{
@@ -635,27 +690,36 @@ int main(int argc, char** argv)
 				getExt = false;
 			}
 		}
+
 		//Ensure program name is given
 		if (CName != "")
 		{
-			Imports = getImports(&getWrite, &getRead, &getRand, &getPipe, &getShell, &getThreads, &getSleep, &getProp, &getSplit, &getJoin, &getRev, &getVect);
-			Marcos = getMarcos(&getConvert, &getLength);
-			theDeclaration = getMethodDec(&getRawIn, &getRand, &getWrite, &getRead, &getIsIn, &getShell, &getSleep, &getProp, &getSplit, &getJoin, &getRev, &getConvert, &getSubStr, &getLength, &getUpper, &getLower);
-			Methods = getMethods(&getRawIn, &getRand, &getWrite, &getRead, &getIsIn, &getShell, &getSleep, &getProp, &getSplit, &getJoin, &getRev, &getConvert, &getSubStr, &getLength, &getUpper, &getLower);
-			if (IsMain == true)
+			FileExists = fexists(CName+TheExt);
+			if (FileExists == false)
 			{
-				if (getArgs == true)
+				Imports = getImports(&getFCheck, &getWrite, &getRead, &getRand, &getPipe, &getShell, &getThreads, &getSleep, &getProp, &getSplit, &getJoin, &getRev, &getVect, &getMath);
+				Marcos = getMarcos(&getConvert, &getLength);
+				theDeclaration = getMethodDec(&getRawIn, &getRand, &getFCheck, &getWrite, &getRead, &getIsIn, &getShell, &getSleep, &getProp, &getSplit, &getJoin, &getRev, &getConvert, &getSubStr, &getLength, &getUpper, &getLower);
+				Methods = getMethods(&getRawIn, &getRand, &getFCheck, &getWrite, &getRead, &getIsIn, &getShell, &getSleep, &getProp, &getSplit, &getJoin, &getRev, &getConvert, &getSubStr, &getLength, &getUpper, &getLower);
+				if (IsMain == true)
 				{
-					theHelpMethod = getHelp(CName,theUser);
+					if (getArgs == true)
+					{
+						theHelpMethod = getHelp(CName,theUser);
+					}
+					Main = getMain(&getArgs, &getRand, &getPipe, &getThreads, &getVect, &getMath);
 				}
-				Main = getMain(&getArgs, &getRand, &getPipe, &getThreads, &getVect);
+				else
+				{
+					Main = "";
+				}
+				Content = Imports+Marcos+theDeclaration+theHelpMethod+Methods+Main;
+				CreateNew(CName,Content,TheExt);
 			}
 			else
 			{
-				Main = "";
+				error("\""+CName+TheExt+"\" already exists");
 			}
-			Content = Imports+Marcos+theDeclaration+theHelpMethod+Methods+Main;
-			CreateNew(CName,Content,TheExt);
 		}
 		//No Program name...show help page
 		else
