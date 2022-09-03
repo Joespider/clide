@@ -3,7 +3,7 @@
 #Program Details
 User = "Joespider"
 ProgramName = "newRuby"
-VersionName = "0.1.14"
+VersionName = "0.1.15"
 Purpose = "Purpose: make new Ruby Scripts"
 
 #Help Page
@@ -16,6 +16,7 @@ def help
 	puts "\t--user <username>: get username for help page"
 	puts "\t-n <name> : program name"
 	puts "\t--name <name> : program name"
+	puts "\t--no-save : only show out of code; no file source code is created"
 	puts "\t--cli : enable command line (Main file ONLY)"
 	puts "\t--pipe : enable command line (Main file ONLY)"
 	puts "\t--shell : unix shell"
@@ -48,6 +49,7 @@ def getArgs
 	userArgs = {
 		"theName" => "",
 		"theUser" => "",
+		"noSave" => false,
 		"isCli" => false,
 		"isShell" => false,
 		"isSleep" => false,
@@ -71,6 +73,8 @@ def getArgs
 			getName = false
 		elsif theArg == "--user"
 			getUser = true
+		elsif theArg == "--no-save"
+			userArgs["noSave"] = true
 		elsif getUser
 			userArgs["theUser"] = theArg
 			getUser = false
@@ -180,7 +184,7 @@ end
 #Main
 # {
 UserInput = getArgs
-if UserInput["theName"] != ""
+if UserInput["theName"] != "" or UserInput["noSave"] == true
 	#Get program name
 	TheName = UserInput["theName"]
 	#Get author of program
@@ -199,8 +203,13 @@ if UserInput["theName"] != ""
 	else
 		TheContent = TheImports+TheMethods+TheMain
 	end
-	#Create new ruby src file
-	writeFile(TheName+".rb",TheContent)
+
+	if UserInput["noSave"] == false
+		#Create new ruby src file
+		writeFile(TheName+".rb",TheContent)
+	else
+		puts TheContent
+	end
 else
 	help
 end

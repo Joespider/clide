@@ -3,7 +3,7 @@
 #https://stackoverflow.com/questions/10339637/java-import-cannot-find-symbol
 #https://www.codejava.net/java-core/tools/how-to-compile-package-and-run-a-java-program-using-command-line-tools-javac-jar-and-java
 
-SupportV="0.2.41"
+SupportV="0.2.42"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -400,7 +400,8 @@ UseJava()
 		newCodeHelp)
 			local project=${CodeProject}
 			if [ -f ${TemplateCodeJar} ] || [ -f ${TemplateCodeClass} ]; then
-				echo -e "\t--custom|-c <args>\t\t: \"Custom src file using ${Lang} template\""
+				echo -e "\t-c, --custom <args>\t\t: \"Custom src file using ${Lang} template\""
+				echo -e "\t-s, --show <args>\t\t: \"Show custom src code from ${Lang} template without saving\""
 				case ${project} in
 					none)
 						;;
@@ -1584,6 +1585,61 @@ UseJava()
 				#Program Args Given
 				if [ ! -z "${Args}" ]; then
 					${LangRun} -jar ${TemplateCodeJar} ${Args[@]}
+				#No Program Name Given
+				else
+					${LangRun} -jar ${TemplateCodeJar} --help
+				fi
+			else
+				#Program Name Given
+				errorCode "customCode" "notemp" "${Lang}"
+			fi
+			;;
+		customCodeShow)
+			local cLang=$(UseJava "color")
+			local TemplateC=${TemplateCodeClass##*/}
+			TemplateC=${TemplateC%.*}
+			local TemplateJ=${TemplateCodeJar##*/}
+			local cTemplateC=$(OtherColor ${TemplateC})
+			local cTemplateJ=$(OtherColor ${TemplateJ})
+			Type=${Type,,}
+			#Check for Custom Code Template...is class
+			if [ -f ${TemplateCodeClass} ]; then
+				shift
+				shift
+				shift
+				shift
+				Args=$@
+				if [ -z "${1}" ]; then
+					echo -n "${cLang}\$ java ${cTemplateC} --no-save "
+					read -a Args
+				fi
+
+				#Program Args Given
+				if [ ! -z "${Args}" ]; then
+					cd ${LangBin}
+					${LangRun} ${TemplateC} --no-save ${Args[@]}
+					cd - > /dev/null
+					mv "${LangBin}/*${LangExt}" . 2> /dev/null
+				else
+					cd ${LangBin}
+					${LangRun} ${TemplateC} --help
+					cd - > /dev/null
+				fi
+			#Check for Custom Code Template...is jar
+			elif [ -f ${TemplateCodeJar} ]; then
+				shift
+				shift
+				shift
+				shift
+				Args=$@
+				if [ -z "${1}" ]; then
+					echo -n "${cLang}\$ java -jar ${cTemplateJ} --no-save "
+					read -a Args
+				fi
+
+				#Program Args Given
+				if [ ! -z "${Args}" ]; then
+					${LangRun} -jar ${TemplateCodeJar} --no-save ${Args[@]}
 				#No Program Name Given
 				else
 					${LangRun} -jar ${TemplateCodeJar} --help

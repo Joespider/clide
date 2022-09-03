@@ -2467,6 +2467,10 @@ Actions()
 
 			if [ ! -z "${UserArg}" ]; then
 				case ${UserArg} in
+					banner)
+						VerColor=$(ManageLangs ${Lang} "color-number")
+						Banner ${Lang}
+						;;
 					#List files
 					ls)
 						ls --color=auto ${UserIn[1]}
@@ -3428,6 +3432,10 @@ Actions()
 									#Select new Code
 									TheSrcCode=$(selectCode ${Lang} ${NewCode} ${TheSrcCode})
 								fi
+								;;
+							--show|-s)
+								#Show Source Code
+								ManageLangs ${Lang} "customCodeShow" ${Lang} ${cLang} ${UserIn[@]}
 								;;
 							#Protect against incorrect file naming
 							-*)
@@ -4654,6 +4662,7 @@ loadAuto()
 	set -o vi
 	bind -x '"\t":autocomp'
 	bind -x '"\C-l":clear'
+	comp_list "banner"
 	comp_list "ls"
 	comp_list "whoami"
 	comp_list "build" "--help"
@@ -4677,7 +4686,7 @@ loadAuto()
 	comp_list "package" "get new set list mv move --help"
 	comp_list "shell" "--help"
 	comp_list "time" "--help"
-	comp_list "new" "--version -v --help -h --custom -c"
+	comp_list "new" "--version -v --help -h --custom -c --show -s"
 	comp_list "${editor} ed edit" "non-lang --help"
 	comp_list "add" "--help"
 	comp_list "${ReadBy} read" "non-lang --help"

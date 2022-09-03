@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.96"
+SupportV="0.1.97"
 Lang=Perl
 LangExt=".pl"
 #Color Purple
@@ -286,6 +286,7 @@ UsePerl()
 		newCodeHelp)
 			if [ -f ${TemplateCode} ]; then
 				echo -e "\t-c, --custom <args>\t\t: \"Custom src file using ${Lang} template\""
+				echo -e "\t-s, --show <args>\t\t: \"Show custom src code from ${Lang} template without saving\""
 			fi
 			;;
 		EnsureDirs)
@@ -974,6 +975,31 @@ UsePerl()
 				#Program Args Given
 				if [ ! -z "${Args}" ]; then
 					${LangRun} ${TemplateCode} ${Args[@]}
+				#No Program Name Given
+				else
+					${LangRun} ${TemplateCode} --help
+				fi
+			else
+				#Program Name Given
+				errorCode "customCode" "notemp" "${Lang}"
+			fi
+			;;
+		customCodeShow)
+			local cLang=$(UsePerl "color")
+			local cTemplate=$(OtherColor ${TemplateCode##*/})
+			if [ -f ${TemplateCode} ]; then
+				shift
+				shift
+				shift
+				shift
+				Args=$@
+				if [ -z "${1}" ]; then
+					echo -n "${cLang}\$ ${LangRun} ${cTemplate} --no-save "
+					read -a Args
+				fi
+				#Program Args Given
+				if [ ! -z "${Args}" ]; then
+					${LangRun} ${TemplateCode} --no-save ${Args[@]}
 				#No Program Name Given
 				else
 					${LangRun} ${TemplateCode} --help

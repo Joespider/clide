@@ -12,9 +12,9 @@
 static void help();
 static String getHelp(String TheName, String TheUser);
 static String getMarcos(bool* Conv, bool* getLen);
-static String getImports(bool* fcheck, bool* write, bool* read, bool* random, bool* pipe, bool* shell, bool* threads, bool* sleep, bool* prop, bool* Split, bool* Join, bool* Rev, bool* Vect, bool* Math);
-static String getMethodDec(bool* rawinput, bool* rand, bool* fcheck, bool* write, bool* read, bool* isin, bool* shell, bool* sleep, bool* prop, bool* Split, bool* Join, bool* Rev, bool* Conv, bool* subStr, bool* getLen, bool* getUpper, bool* getLower);
-static String getMethods(bool* rawinput, bool* rand, bool* fcheck, bool* write, bool* read, bool* isin, bool* shell, bool* sleep, bool* prop, bool* Split, bool* Join, bool* Rev, bool* Conv, bool* subStr, bool* getLen, bool* getUpper, bool* getLower);
+static String getImports(bool* fcheck, bool* write, bool* read, bool* random, bool* pipe, bool* shell, bool* threads, bool* sleep, bool* prop, bool* Split, bool* Join, bool* Rev, bool* Vect, bool* Math, bool* getFS);
+static String getMethodDec(bool* rawinput, bool* rand, bool* fcheck, bool* write, bool* read, bool* isin, bool* shell, bool* sleep, bool* prop, bool* Split, bool* Join, bool* Rev, bool* Conv, bool* subStr, bool* getLen, bool* getUpper, bool* getLower, bool* getFS);
+static String getMethods(bool* rawinput, bool* rand, bool* fcheck, bool* write, bool* read, bool* isin, bool* shell, bool* sleep, bool* prop, bool* Split, bool* Join, bool* Rev, bool* Conv, bool* subStr, bool* getLen, bool* getUpper, bool* getLower, bool* getFS);
 static String getMain(bool* getArgs, bool* getRandom, bool* getPipe, bool* getThreads, bool* getVectors, bool* getMath);
 static void CreateNew(String filename, String content, String ext);
 bool fexists(String aFile);
@@ -23,7 +23,7 @@ bool IsIn(String Str, String Sub);
 static void help()
 {
 	String ProgName = "newC++";
-	String Version = "0.1.48";
+	String Version = "0.1.52";
 	print("Author: Joespider");
 	print("Program: \"" << ProgName << "\"");
 	print("Version: " << Version);
@@ -33,11 +33,13 @@ static void help()
 	print("\t-n <name> : program name");
 	print("\t--name <name> : program name");
 	print("\t--ext <extension> : choose an extension (.cpp is default)");
+	print("\t--no-save : only show out of code; no file source code is created");
 	print("\t--cli : enable command line (Main file ONLY)");
 	print("\t--main : main file");
 	print("\t--prop : enable custom system property");
 	print("\t--pipe : enable piping (Main file ONLY)");
 	print("\t--shell : unix shell");
+	print("\t--files : enable filesystem C++ specific code");
 	print("\t--reverse : enable \"rev\" function");
 	print("\t--split : enable \"split\" function");
 	print("\t--join : enable \"join\" function");
@@ -95,7 +97,7 @@ static String getMarcos(bool* Conv, bool* getLen)
 }
 
 //create import listing
-static String getImports(bool* fcheck, bool* write, bool* read, bool* random, bool* pipe, bool* shell, bool* threads, bool* sleep, bool* prop, bool* Split, bool* Join, bool* Rev, bool* Vect, bool* Math)
+static String getImports(bool* fcheck, bool* write, bool* read, bool* random, bool* pipe, bool* shell, bool* threads, bool* sleep, bool* prop, bool* Split, bool* Join, bool* Rev, bool* Vect, bool* Math, bool* getFS)
 {
 	String Imports = "";
 	String standard = "#include <iostream>\n#include <string>\n";
@@ -110,6 +112,7 @@ static String getImports(bool* fcheck, bool* write, bool* read, bool* random, bo
 	String ForSplit = "";
 	String ForJoin = "";
 	String ForMath = "";
+	String ForFS = "";
 
 	if ((*fcheck == true) || (*read == true) || (*write == true))
 	{
@@ -155,15 +158,19 @@ static String getImports(bool* fcheck, bool* write, bool* read, bool* random, bo
 	{
 		ForMath = "#include <cmath>\n";
 	}
+	if (*getFS == true)
+	{
+		ForFS = "#include <filesystem>\n";
+	}
 
 	//concat imports
-	Imports = standard+readWrite+ForRandom+ForPiping+ForShell+ForThreading+ForSleep+ForSysProp+ForSplit+ForJoin+ForRev+ForMath+"\n";
+	Imports = standard+readWrite+ForRandom+ForPiping+ForShell+ForThreading+ForSleep+ForSysProp+ForSplit+ForJoin+ForRev+ForMath+ForFS+"\n";
 
 	return Imports;
 }
 
 //create base methods
-static String getMethodDec(bool* rawinput, bool* rand, bool* fcheck, bool* write, bool* read, bool* isin, bool* shell, bool* sleep, bool* prop, bool* Split, bool* Join, bool* Rev, bool* Conv, bool* subStr, bool* getLen, bool* getUpper, bool* getLower)
+static String getMethodDec(bool* rawinput, bool* rand, bool* fcheck, bool* write, bool* read, bool* isin, bool* shell, bool* sleep, bool* prop, bool* Split, bool* Join, bool* Rev, bool* Conv, bool* subStr, bool* getLen, bool* getUpper, bool* getLower, bool* getFS)
 {
 	String Declaration = "";
 
@@ -198,7 +205,7 @@ static String getMethodDec(bool* rawinput, bool* rand, bool* fcheck, bool* write
 	{
 		Declaration = Declaration+"String shell(String command);\n";
 		Declaration = Declaration+"void shellExe(String command);\n";
-		Declaration = Declaration+"void CD(String command);\n";
+		Declaration = Declaration+"String getOS();\n";
 	}
 	if (*sleep == true)
 	{
@@ -206,7 +213,7 @@ static String getMethodDec(bool* rawinput, bool* rand, bool* fcheck, bool* write
 	}
 	if (*prop == true)
 	{
-		Declaration = Declaration+"String GetSysProp( String const & PleaseGet );\n";
+		Declaration = Declaration+"String GetSysProp(String PleaseGet);\n";
 	}
 	if (*Rev == true)
 	{
@@ -258,11 +265,16 @@ static String getMethodDec(bool* rawinput, bool* rand, bool* fcheck, bool* write
 		Declaration = Declaration+"String toLowerCase(String Str);\n";
 		Declaration = Declaration+"String toLowerCase(String Str, int plc);\n";
 	}
+	if (*getFS == true)
+	{
+		Declaration = Declaration+"void ShowFiles(String Dir);\n";
+		Declaration = Declaration+"void CD(String Dir);\n";
+	}
 	return Declaration;
 }
 
 //create base methods
-static String getMethods(bool* rawinput, bool* rand, bool* fcheck, bool* write, bool* read, bool* isin, bool* shell, bool* sleep, bool* prop, bool* Split, bool* Join, bool* Rev, bool* Conv, bool* subStr, bool* getLen, bool* getUpper, bool* getLower)
+static String getMethods(bool* rawinput, bool* rand, bool* fcheck, bool* write, bool* read, bool* isin, bool* shell, bool* sleep, bool* prop, bool* Split, bool* Join, bool* Rev, bool* Conv, bool* subStr, bool* getLen, bool* getUpper, bool* getLower, bool* getFS)
 {
 	String Methods = "";
 	String Random = "";
@@ -283,6 +295,7 @@ static String getMethods(bool* rawinput, bool* rand, bool* fcheck, bool* write, 
 	String StrUpper = "";
 	String StrLower = "";
 	String StrReplaceAll = "";
+	String TheFileSystem = "";
 
 	if (*rawinput == true)
 	{
@@ -315,7 +328,7 @@ static String getMethods(bool* rawinput, bool* rand, bool* fcheck, bool* write, 
 	{
 		TheShell = "String shell(String command)\n{\n\tchar buffer[128];\n\tString result = \"\";\n\n\t// Open pipe to file\n\tFILE* pipe = popen(command.c_str(), \"r\");\n\tif (!pipe)\n\t{\n\t\treturn \"popen failed!\";\n\t}\n\n\t// read till end of process:\n\twhile (!feof(pipe))\n\t{\n\t\t// use buffer to read and add to result\n\t\tif (fgets(buffer, 128, pipe) != NULL)\n\t\t{\n\t\t\tresult += buffer;\n\t\t}\n\t}\n\n\tpclose(pipe);\n\treturn result;\n}\n\n";
 		TheShell = TheShell+"void shellExe(String command)\n{\n\tsystem(command.c_str());\n}\n\n";
-		TheShell = TheShell+"void CD(String Dir)\n{\n\tchdir(Dir.c_str());\n}\n\n";
+		TheShell = TheShell+"String getOS()\n{\n\t#ifdef _WIN32\n\treturn \"Windows 32-bit\";\n\t#elif _WIN64\n\treturn \"Windows 64-bit\";\n\t#elif __APPLE__ || __MACH__\n\treturn \"Mac OSX\";\n\t#elif __linux__\n\treturn \"Linux\";\n\t#elif __FreeBSD__\n\treturn \"FreeBSD\";\n\t#elif __unix || __unix__\n\treturn \"Unix\";\n\t#else\n\treturn \"Other\";\n\t#endif\n}\n\n";
 	}
 	if (*sleep == true)
 	{
@@ -323,7 +336,7 @@ static String getMethods(bool* rawinput, bool* rand, bool* fcheck, bool* write, 
 	}
 	if (*prop == true)
 	{
-		SysProp = "String GetSysProp( String const & PleaseGet )\n{\n\tchar * val = std::getenv( PleaseGet.c_str() );\n\tString retval = \"\";\n\tif (val != NULL)\n\t{\n\t\tretval = val;\n\t}\n\treturn retval;\n}\n\n";
+		SysProp = "String GetSysProp(String PleaseGet)\n{\n\t//[NOTE] values don't change after startup\n\n\tString retval = std::getenv(PleaseGet.c_str());\n\treturn retval;\n}\n\n";
 	}
 	if (*Rev == true)
 	{
@@ -375,9 +388,14 @@ static String getMethods(bool* rawinput, bool* rand, bool* fcheck, bool* write, 
 		StrLower = "String toLowerCase(String Str)\n{\n\tfor (int lp = 0; lp != Str.length(); lp++)\n\t{\n\t\tStr[lp] = tolower(Str[lp]);\n\t}\n\treturn Str;\n}\n\n";
 		StrLower = StrLower + "String toLowerCase(String Str, int plc)\n{\n\tint end = Str.length();\n\tif ((plc < end) && (end != 0) && (plc >= 0))\n\t{\n\t\tStr[plc] = tolower(Str[plc]);\n\t}\n\treturn Str;\n}\n\n";
 	}
+	if (*getFS == true)
+	{
+		TheFileSystem = "void ShowFiles(String Dir)\n{\n\tif (Dir != \"\")\n\t{\n\t\tfor (const auto & entry : std::filesystem::directory_iterator(Dir))\n\t\t{\n\t\t\tprint(entry.path());\n\t\t}\n\t}\n}\n\n";
+		TheFileSystem = TheFileSystem + "void CD(String Dir)\n{\n\tif (Dir != \"\")\n\t{\n\t\tchdir(Dir.c_str());\n\t}\n}\n\n";
+	}
 
 	//Methods for C++
-	Methods = "\n"+RawInput+Random+IsIn+CheckFile+WriteFile+ReadFile+TheShell+TheSleep+SysProp+StrSplit+StrJoin+StrReplaceAll+StrRev+ConvData+SubStr+StrLen+StrUpper+StrLower;
+	Methods = "\n"+RawInput+Random+IsIn+CheckFile+WriteFile+ReadFile+TheShell+TheSleep+SysProp+StrSplit+StrJoin+StrReplaceAll+StrRev+ConvData+SubStr+StrLen+StrUpper+StrLower+TheFileSystem;
 
 	return Methods;
 }
@@ -438,6 +456,7 @@ static void CreateNew(String filename, String content, String ext)
 	myfile.close();
 }
 
+//check if source code exists
 bool fexists(String aFile)
 {
 	bool IsFound = false;
@@ -468,9 +487,11 @@ int main(int argc, char** argv)
 	bool NameIsNotOk = true;
 	bool FileExists = false;
 	bool getName = false;
+	bool dontSave = false;
 	bool getExt = false;
 	bool getArgs = false;
 	bool getRand = false;
+	bool getFS = false;
 	bool getFCheck = false;
 	bool getWrite = false;
 	bool getRead = false;
@@ -517,13 +538,21 @@ int main(int argc, char** argv)
 				getName = true;
 			}
 			//Get name of program author
+			else if (UserIn == "--no-save")
+			{
+				getName = false;
+				dontSave = true;
+			}
+			//Get name of program author
 			else if (UserIn == "--user")
 			{
+				getName = false;
 				getTheUser = true;
 			}
 			//Get source code extension
 			else if (UserIn == "--ext")
 			{
+				getName = false;
 				getExt = true;
 			}
 			//Get cli arg in main method
@@ -607,55 +636,69 @@ int main(int argc, char** argv)
 			//Get shell method
 			else if (UserIn == "--shell")
 			{
+				getName = false;
 				getShell = true;
+			}
+			//Get shell method
+			else if (UserIn == "--files")
+			{
+				getName = false;
+				getFS = true;
 			}
 			//Enable Piping
 			else if (UserIn == "--pipe")
 			{
+				getName = false;
 				getPipe = true;
 			}
 			//Enable Threads
 			else if (UserIn == "--thread")
 			{
+				getName = false;
 				getThreads = true;
 			}
 			//Enable sleep
 			else if (UserIn == "--sleep")
 			{
+				getName = false;
 				getSleep = true;
 			}
 			//Enable split
 			else if (UserIn == "--split")
 			{
+				getName = false;
 				getSplit = true;
 			}
 			//Enable join
 			else if (UserIn == "--join")
 			{
+				getName = false;
 				getJoin = true;
 			}
 			//Enable uppercase
 			else if (UserIn == "--upper")
 			{
+				getName = false;
 				getUpper = true;
 			}
 			//Enable lowercase
 			else if (UserIn == "--lower")
 			{
+				getName = false;
 				getLower = true;
 			}
 			//Enable math
 			else if (UserIn == "--math")
 			{
+				getName = false;
 				getMath = true;
 			}
-
 			//Enable system property
 			else if (UserIn == "--prop")
 			{
+				getName = false;
 				getProp = true;
 			}
-
 			//capture new C++ program name
 			else if (getName == true)
 			{
@@ -692,30 +735,58 @@ int main(int argc, char** argv)
 		}
 
 		//Ensure program name is given
-		if (CName != "")
+		if ((CName != "") || (dontSave == true))
 		{
-			FileExists = fexists(CName+TheExt);
-			if (FileExists == false)
+			if (dontSave == false)
 			{
-				Imports = getImports(&getFCheck, &getWrite, &getRead, &getRand, &getPipe, &getShell, &getThreads, &getSleep, &getProp, &getSplit, &getJoin, &getRev, &getVect, &getMath);
+				//check if source code file exists
+				FileExists = fexists(CName+TheExt);
+			}
+
+			// generate code to show or create source code
+			if ((FileExists == false) || (dontSave == true))
+			{
+				//generate imports
+				Imports = getImports(&getFCheck, &getWrite, &getRead, &getRand, &getPipe, &getShell, &getThreads, &getSleep, &getProp, &getSplit, &getJoin, &getRev, &getVect, &getMath, &getFS);
+				//genarate macros
 				Marcos = getMarcos(&getConvert, &getLength);
-				theDeclaration = getMethodDec(&getRawIn, &getRand, &getFCheck, &getWrite, &getRead, &getIsIn, &getShell, &getSleep, &getProp, &getSplit, &getJoin, &getRev, &getConvert, &getSubStr, &getLength, &getUpper, &getLower);
-				Methods = getMethods(&getRawIn, &getRand, &getFCheck, &getWrite, &getRead, &getIsIn, &getShell, &getSleep, &getProp, &getSplit, &getJoin, &getRev, &getConvert, &getSubStr, &getLength, &getUpper, &getLower);
+				//make declorations
+				theDeclaration = getMethodDec(&getRawIn, &getRand, &getFCheck, &getWrite, &getRead, &getIsIn, &getShell, &getSleep, &getProp, &getSplit, &getJoin, &getRev, &getConvert, &getSubStr, &getLength, &getUpper, &getLower, &getFS);
+				//create methods
+				Methods = getMethods(&getRawIn, &getRand, &getFCheck, &getWrite, &getRead, &getIsIn, &getShell, &getSleep, &getProp, &getSplit, &getJoin, &getRev, &getConvert, &getSubStr, &getLength, &getUpper, &getLower, &getFS);
+				//source code is a main file
 				if (IsMain == true)
 				{
+					//create help page
 					if (getArgs == true)
 					{
 						theHelpMethod = getHelp(CName,theUser);
 					}
+					//generate main file
 					Main = getMain(&getArgs, &getRand, &getPipe, &getThreads, &getVect, &getMath);
 				}
+				//This is not a main file
 				else
 				{
 					Main = "";
 				}
+				//put together the soure file
 				Content = Imports+Marcos+theDeclaration+theHelpMethod+Methods+Main;
-				CreateNew(CName,Content,TheExt);
+
+				//Save content to a source code file
+				if (dontSave == false)
+				{
+					//create source code file
+					CreateNew(CName,Content,TheExt);
+				}
+				//Dont Save file; only show output
+				else
+				{
+					//Show source code
+					print(Content);
+				}
 			}
+			//Source code already exists
 			else
 			{
 				error("\""+CName+TheExt+"\" already exists");
@@ -727,6 +798,7 @@ int main(int argc, char** argv)
 			help();
 		}
 	}
+	//No program argumnets given
 	else
 	{
 		help();

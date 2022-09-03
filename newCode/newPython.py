@@ -6,7 +6,7 @@ ProgramName = sys.argv[0]
 if "/" in ProgramName:
 	ProgramName = ProgramName.rsplit("/",1)[1]
 
-VersionName = "0.1.27"
+VersionName = "0.1.28"
 
 def Help():
 	print "Author: Joespider"
@@ -18,6 +18,7 @@ def Help():
 	print "\t-n <name> : program name"
 	print "\t--cli : enable command line (Main file ONLY)"
 	print "\t--name <name> : program name"
+	print "\t--no-save : only show out of code; no file source code is created"
 	print "\t--main : main file"
 	print "\t--prop : enable custom system property"
 	print "\t--pipe : enable piping (Main file ONLY)"
@@ -45,6 +46,7 @@ def GetArgs():
 	Returns = {"name":"",
 		   "user":"",
 		   "cli":False,
+		   "noSave":False,
 		   "main":False,
 		   "check":False,
 		   "write":False,
@@ -87,6 +89,8 @@ def GetArgs():
 		elif now == "--cli":
 			#enable cli
 			Returns["cli"] = True
+		elif now == "--no-save":
+			Returns["noSave"] = True
 		elif now == "--main":
 			Returns["main"] = True
 		elif now == "--check-file":
@@ -280,6 +284,7 @@ def Main():
 	TheName = UserArgs["name"]
 	TheUser = UserArgs["user"]
 	IsCLI = UserArgs["cli"]
+	noSave = UserArgs["noSave"]
 	IsMain = UserArgs["main"]
 	GetWrite = UserArgs["write"]
 	GetCheckFile = UserArgs["check"]
@@ -300,14 +305,14 @@ def Main():
 	GetLength = UserArgs["length"]
 	#}
 	#Ensure Name of program
-	if TheName != "":
+	if TheName != "" or noSave == True:
 		FileExists = False
-		if TheExt in TheName:
+		if TheExt in TheName and noSave == False:
 			FileExists = fexists(TheName)
-		elif TheExt not in TheName:
+		elif TheExt not in TheName and noSave == False:
 			FileExists = fexists(TheName+TheExt)
 
-                if FileExists == False:
+                if FileExists == False or noSave == True:
 			#Get Imports
 			ProgImports = Imports(GetShell, IsCLI, GetRand, GetThreads, GetPipe, GetSleep, GetProp, GetMath, GetCheckFile)
 			#Get Methods
@@ -320,10 +325,12 @@ def Main():
 			#Manage Methods
 			if ProgMethods != "":
 				TheNewProgram = TheNewProgram+TheHelpMethod+ProgMethods
-			if TheExt in TheName:
+			if TheExt in TheName and noSave == False:
 				Write(TheName,TheNewProgram)
-			elif TheExt not in TheName:
+			elif TheExt not in TheName and noSave == False:
 				Write(TheName+TheExt,TheNewProgram)
+			else:
+				print(TheNewProgram)
 		else:
 			if TheExt in TheName:
 				print "\""+TheName+"\" already exists"

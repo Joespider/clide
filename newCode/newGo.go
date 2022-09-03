@@ -8,7 +8,7 @@ import (
 
 func help() {
 	var ProgName string = "newGo"
-	var Version string = "0.1.26"
+	var Version string = "0.1.27"
 
 	fmt.Println("Author: Joespider")
 	fmt.Println("Program: \""+ProgName+"\"")
@@ -18,6 +18,7 @@ func help() {
 	fmt.Println("\t--user <username>: get username for help page")
 	fmt.Println("\t-n <name> : program name")
 	fmt.Println("\t--name <name> : program name")
+	fmt.Println("\t--no-save : only show out of code; no file source code is created")
 	fmt.Println("\t--cli : enable command line (Main file ONLY)")
 	fmt.Println("\t--main : main file")
 	fmt.Println("\t--prop : enable custom system property")
@@ -289,6 +290,7 @@ func CreateNew(filename string, content string) error {
 
 //Go main
 func main() {
+	var noSave bool = false
 	var getUser bool = false
 	var getName bool = false
 	var getArgs bool = false
@@ -338,6 +340,10 @@ func main() {
 		} else if UserIn == "--user" {
 			getName = false
 			getUser = true
+		//Only show; don't save
+		} else if UserIn == "--no-save" {
+			getName = false
+			noSave = true
 		//Get cli arg in main method
 		} else if UserIn == "--cli" {
 			getName = false
@@ -441,9 +447,11 @@ func main() {
 		}
 	}
 	//Ensure program name is given
-	if CName != "" {
-		FileExists = fexists(CName+".go")
-		if FileExists == false {
+	if CName != "" || noSave == true {
+		if noSave == false {
+			FileExists = fexists(CName+".go")
+		}
+		if FileExists == false || noSave == true {
 			ThePackage = getPackage("main")
 			Imports = getImports(getRawIn, getCheck, getWrite, getRead, getRand, getArgs, getSleep, getPipe, getShell, getThread, getProp, getSplit, getJoin, getConv, getUpper, getLower, getTypes, getMath, getIsIn)
 			Methods = getMethods(getRawIn, getRand, getCheck, getWrite, getRead, getIsIn, getSleep, getShell, getThread, getProp, getSplit, getJoin, getRev, getSubStr, getConv, getUpper, getLower)
@@ -456,7 +464,11 @@ func main() {
 				Main = ""
 			}
 			Content = ThePackage+"\n"+Imports+"\n"+TheHelpContent+Methods+"\n"+Main
-			CreateNew(CName,Content)
+			if noSave == false {
+				CreateNew(CName,Content)
+			} else {
+				fmt.Println(Content)
+			}
 		} else {
 			fmt.Println("\""+CName+".go\" already exists")
 		}
