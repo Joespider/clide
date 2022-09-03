@@ -22,11 +22,13 @@ public class newJava {
 	private static boolean NameIsNotOk = true;
 	private static boolean HasPackage = false;
 	private static boolean IsMain = false;
+	private static boolean dontSave = false;
 	private static boolean getUserIn = false;
 	private static boolean getCheckFile = false;
 	private static boolean getReadFile = false;
 	private static boolean getWriteFile = false;
 	private static boolean getShell = false;
+	private static boolean getFS = false;
 	private static boolean getArrays = false;
 	private static boolean getLengths = false;
 	private static boolean getThreads = false;
@@ -49,7 +51,7 @@ public class newJava {
 	private static void Help()
 	{
 		String program = "newJava";
-		String version = "0.1.38";
+		String version = "0.1.41";
 		print("Author: Joespider");
 		print("Program: \""+program+"\"");
 		print("Version: "+version);
@@ -62,6 +64,7 @@ public class newJava {
 		print("\t-p <name> : parent program name");
 		print("\t--parent <name> : parent program name");
 		print("\t--package <package> : package name");
+		print("\t--no-save : only show out of code; no file source code is created");
 		print("\t--cli : enable command line (Main file ONLY)");
 		print("\t--main : main file");
 		print("\t--prop : enable custom system property");
@@ -71,6 +74,7 @@ public class newJava {
 		print("\t--join : enable join method");
 		print("\t--random : enable \"random\" int method");
 		print("\t--shell : unix shell");
+		print("\t--files : enable filesystem Java specific code");
 		print("\t--check-file : enable \"fexists\" file method");
 		print("\t--write-file : enable \"write\" file method");
 		print("\t--is-in : enable string contains methods");
@@ -199,6 +203,11 @@ public class newJava {
 			{
 				user = next;
 			}
+			//enable Java Filesystem
+			else if (now.equals("--files"))
+			{
+				getFS = true;
+			}
 			//enable unix shell
 			else if (now.equals("--shell"))
 			{
@@ -218,6 +227,11 @@ public class newJava {
 			else if (now.equals("--cli"))
 			{
 				getCliArgs = true;
+			}
+			//Show file without saving
+			else if (now.equals("--no-save"))
+			{
+				dontSave = true;
 			}
 			//enable reverse
 			else if (now.equals("--reverse"))
@@ -348,7 +362,7 @@ public class newJava {
 
 		//Handle the imports by Functions
 		//{
-		if (getCheckFile == true)
+		if ((getCheckFile == true) || (getFS == true))
 		{
 			NeedIOFile = true;
 		}
@@ -453,9 +467,6 @@ public class newJava {
 		String TheMethods = "";
 		String MethodUserIn = "";
 		String MethodPrint = "\t//Print Output\n\tprivate static void print(Object out)\n\t{\n\t\tSystem.out.println(out);\n\t}\n\n";
-		MethodPrint = MethodPrint + "\t//Print Output\n\tprivate static void print(Object[] TheArray)\n\t{\n\t\tint Length = TheArray.length;\n\t\tfor (int lp = 0; lp != Length; lp++)\n\t\t{\n\t\t\tif (Length == 1)\n\t\t\t{\n\t\t\t\tSystem.out.print(\"['\");\n\t\t\t\tSystem.out.print(TheArray[lp]);\n\t\t\t\tSystem.out.println(\"']\");\n\t\t\t}\n\t\t\telse\n\t\t\t{\n\t\t\t\tif (lp == 0)\n\t\t\t\t{\n\t\t\t\t\tSystem.out.print(\"['\");\n\t\t\t\t\tSystem.out.print(TheArray[lp]);\n\t\t\t\t\tSystem.out.print(\"', \");\n\t\t\t\t}\n\t\t\t\telse if ((lp > 0) && (lp < (Length - 1)))\n\t\t\t\t{\n\t\t\t\t\tSystem.out.print(\"'\");\n\t\t\t\t\tSystem.out.print(TheArray[lp]);\n\t\t\t\t\tSystem.out.print(\"', \");\n\t\t\t\t}\n\t\t\t\telse if (lp == (Length - 1))\n\t\t\t\t{\n\t\t\t\t\tSystem.out.print(\"'\");\n\t\t\t\t\tSystem.out.print(TheArray[lp]);\n\t\t\t\t\tSystem.out.println(\"']\");\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n\n";
-		MethodPrint = MethodPrint + "\t//Print Output\n\tprivate static void print(int[] TheArray)\n\t{\n\t\tString Item;\n\t\tint Length = TheArray.length;\n\t\tfor (int lp = 0; lp != Length; lp++)\n\t\t{\n\t\t\tItem = String.valueOf(TheArray[lp]);\n\t\t\tif (Length == 1)\n\t\t\t{\n\t\t\t\tSystem.out.print(\"['\");\n\t\t\t\tSystem.out.print(Item);\n\t\t\t\tSystem.out.println(\"']\");\n\t\t\t}\n\t\t\telse\n\t\t\t{\n\t\t\t\tif (lp == 0)\n\t\t\t\t{\n\t\t\t\t\tSystem.out.print(\"[\");\n\t\t\t\t\tSystem.out.print(Item);\n\t\t\t\t\tSystem.out.print(\", \");\n\t\t\t\t}\n\t\t\t\telse if ((lp > 0) && (lp < (Length - 1)))\n\t\t\t\t{\n\t\t\t\t\tSystem.out.print(Item);\n\t\t\t\t\tSystem.out.print(\", \");\n\t\t\t\t}\n\t\t\t\telse if (lp == (Length - 1))\n\t\t\t\t{\n\t\t\t\t\tSystem.out.print(Item);\n\t\t\t\t\tSystem.out.println(\"]\");\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n\n";
-		MethodPrint = MethodPrint + "\t//Print Output\n\tprivate static void print(double[] TheArray)\n\t{\n\t\tString Item;\n\t\tint Length = TheArray.length;\n\t\tfor (int lp = 0; lp != Length; lp++)\n\t\t{\n\t\t\tItem = String.valueOf(TheArray[lp]);\n\t\t\tif (Length == 1)\n\t\t\t{\n\t\t\t\tSystem.out.print(\"['\");\n\t\t\t\tSystem.out.print(Item);\n\t\t\t\tSystem.out.println(\"']\");\n\t\t\t}\n\t\t\telse\n\t\t\t{\n\t\t\t\tif (lp == 0)\n\t\t\t\t{\n\t\t\t\t\tSystem.out.print(\"[\");\n\t\t\t\t\tSystem.out.print(Item);\n\t\t\t\t\tSystem.out.print(\", \");\n\t\t\t\t}\n\t\t\t\telse if ((lp > 0) && (lp < (Length - 1)))\n\t\t\t\t{\n\t\t\t\t\tSystem.out.print(Item);\n\t\t\t\t\tSystem.out.print(\", \");\n\t\t\t\t}\n\t\t\t\telse if (lp == (Length - 1))\n\t\t\t\t{\n\t\t\t\t\tSystem.out.print(Item);\n\t\t\t\t\tSystem.out.println(\"]\");\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n\n";
 		String MethodLength = "";
 		String MethodArrays = "";
 		String MethodProp = "";
@@ -475,6 +486,7 @@ public class newJava {
 		String MethodUpper = "";
 		String MethodLower = "";
 		String MethodGetTypes = "";
+		String MethodFS = "";
 		String MethodMath = "";
 
 		//raw_input
@@ -573,6 +585,12 @@ public class newJava {
 			MethodGetTypes = "\tprivate static String Type(Object Data)\n\t{\n\t\tString TheType = \"\";\n\t\tif (Data instanceof Integer)\n\t\t{\n\t\t\tTheType = \"int\";\n\t\t}\n\t\telse if (Data instanceof Double)\n\t\t{\n\t\t\tTheType = \"double\";\n\t\t}\n\t\telse if (Data instanceof String)\n\t\t{\n\t\t\tTheType = \"String\";\n\t\t}\n\t\telse if (Data instanceof Object[])\n\t\t{\n\t\t\tTheType = \"Array\";\n\t\t}\n\t\telse\n\t\t{\n\t\t\tTheType = \"unknown\";\n\t\t}\n\t\treturn TheType;\n\t}\n\n";
 		}
 
+		if (getFS == true)
+		{
+			MethodFS = "\tprivate static String LS(String dir)\n\t{\n\t\tString Line = \"\";\n\t\tString Output = \"\";\n\t\tFile directoryPath;\n\t\tif (dir.equals(\"\"))\n\t\t{\n\t\t\tdirectoryPath = new File(System.getProperty(\"user.dir\"));\n\t\t}\n\t\telse\n\t\t{\n\t\t\tdirectoryPath = new File(dir);\n\t\t}\n\n\t\t//List of all files and directories\n\t\tFile filesList[] = directoryPath.listFiles();\n\t\tif (filesList != null)\n\t\t\n\t\t\tfor(File file : filesList)\n\t\t\t{\n\t\t\t\tLine = file.getName();\n\t\t\t\tif (!Line.startsWith(\".\"))\n\t\t\t\t{\n\t\t\t\t\tOutput = Output+Line+\"\\n\";\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t\treturn Output;\n\t}\n\n";
+			MethodFS = MethodFS+"\tprivate static void CD(String dir)\n\t{\n\t\tif (!dir.equals(\"\"))\n\t\t{\n\t\t\tSystem.setProperty(\"user.dir\",dir);\n\t\t}\n\t}\n\n";
+		}
+
 		if (getMath == true)
 		{
 			MethodMath = "\tprivate static double max(double a, double b)\n\t{\n\t\treturn Math.max(a,b);\n\t}\n\n";
@@ -611,7 +629,7 @@ public class newJava {
 			MethodMath = MethodMath + "\tprivate static double log(double Number)\n\t{\n\t\treturn Math.log(Number);\n\t}\n\n";
 		}
 
-		TheMethods = MethodProp+MethodUserIn+MethodPrint+MethodLength+MethodArrays+MethodCheckFile+MethodReadFile+MethodWriteFile+MethodShell+MethodSleep+MethodIsIn+MethodRev+MethodSplit+MethodJoin+MethodreplaceAll+MethodConv+MethodSubStr+MethodRand+MethodUpper+MethodLower+			MethodGetTypes+MethodMath;
+		TheMethods = MethodProp+MethodUserIn+MethodPrint+MethodLength+MethodArrays+MethodCheckFile+MethodReadFile+MethodWriteFile+MethodShell+MethodSleep+MethodIsIn+MethodRev+MethodSplit+MethodJoin+MethodreplaceAll+MethodConv+MethodSubStr+MethodRand+MethodUpper+MethodLower+MethodGetTypes+MethodFS+MethodMath;
 		return TheMethods;
 	}
 
@@ -644,10 +662,14 @@ public class newJava {
 		String Java;
 		//Grab User Args
 		GetArgs(args);
-		if (!Class.equals(""))
+		if ((!Class.equals("")) || (dontSave == true))
 		{
-			FileExists = fexists(Class+".java");
-			if (FileExists == false)
+			if (dontSave == false)
+			{
+				FileExists = fexists(Class+".java");
+			}
+
+			if ((FileExists == false) || (dontSave == true))
 			{
 				if (HasPackage == true)
 				{
@@ -686,7 +708,14 @@ public class newJava {
 				{
 					Java = JavaPackage+JavaImports+"\n\n"+Comments[0]+"\n\n"+Comments[1]+"\npublic class "+TheClass+" {\n\n"+JavaThreadStart+JavaMethods+"\n\n}\n"+JavaThreadCall;
 				}
-				WriteFile(Class+".java",Java);
+				if (dontSave == false)
+				{
+					WriteFile(Class+".java",Java);
+				}
+				else
+				{
+					print(Java);
+				}
 			}
 			else
 			{

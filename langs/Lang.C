@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.83"
+SupportV="0.1.84"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
@@ -431,6 +431,7 @@ UseC()
 		newCodeHelp)
 			if [ -f ${TemplateCode} ]; then
 				echo -e "\t-c, --custom <args>\t\t: \"Custom src file using ${Lang} template\""
+				echo -e "\t-s, --show <args>\t\t: \"Show custom src code from ${Lang} template without saving\""
 			fi
 			;;
 		#Make sure directories in place
@@ -1701,6 +1702,33 @@ UseC()
 				#Program Args Given
 				if [ ! -z "${Args}" ]; then
 					${TemplateCode} ${Args[@]}
+				#No Program Name Given
+				else
+					#Help Page
+					${TemplateCode} --help
+				fi
+			else
+				#Program Name Given
+				errorCode "customCode" "notemp" "${Lang}"
+			fi
+			;;
+		customCodeShow)
+			local cLang=$(UseC "color")
+			local cTemplate=$(OtherColor ${TemplateCode##*/})
+			#Check for Custom Code Template
+			if [ -f ${TemplateCode} ]; then
+				shift
+				shift
+				shift
+				shift
+				Args=$@
+				if [ -z "${1}" ]; then
+					echo -n "${cLang}\$ ./${cTemplate} --no-save "
+					read -a Args
+				fi
+				#Program Args Given
+				if [ ! -z "${Args}" ]; then
+					${TemplateCode} --no-save ${Args[@]}
 				#No Program Name Given
 				else
 					#Help Page

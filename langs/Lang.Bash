@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.96"
+SupportV="0.1.98"
 Lang=Bash
 LangExt=".sh"
 ColorNum=2
@@ -295,6 +295,7 @@ UseBash()
 		newCodeHelp)
 			if [ -f ${TemplateCode} ]; then
 				echo -e "\t-c, --custom <args>\t\t: \"Custom src file using ${Lang} template\""
+				echo -e "\t-s, --show <args>\t\t: \"Show custom src code from ${Lang} template without saving\""
 			fi
 			;;
 		EnsureDirs)
@@ -1059,6 +1060,33 @@ UseBash()
 				errorCode "customCode" "notemp" "${Lang}"
 			fi
 			;;
+		customCodeShow)
+			local cLang=$(UseBash "color")
+			local cTemplate=$(OtherColor ${TemplateCode##*/})
+			local Type=${Type,,}
+			#Check for Custom Code Template
+			if [ -f ${TemplateCode} ]; then
+				shift
+				shift
+				shift
+				shift
+				Args=$@
+				if [ -z "${1}" ]; then
+					echo -n "${cLang}\$ ./${cTemplate} --no-save "
+					read -a Args
+				fi
+				#Template Args Given
+				if [ ! -z "${Args}" ]; then
+					${TemplateCode} --no-save ${Args[@]}
+				#No Template Args Given
+				else
+					${TemplateCode} --help
+				fi
+			else
+				#Program Name Given
+				errorCode "customCode" "notemp" "${Lang}"
+			fi
+			;;
 		newCode)
 			local name=$1
 			local Type=$2
@@ -1075,7 +1103,7 @@ UseBash()
 					if [ -f ${TemplateCode} ]; then
 						#Program Name Given
 						if [ ! -z "${name}" ]; then
-							${TemplateCode} -n ${name} ${TemplateCodeArgs} > ${name}${LangExt}
+							${TemplateCode} -n ${name} ${TemplateCodeArgs}
 						#No Program Name Given
 						else
 							${TemplateCode} --help

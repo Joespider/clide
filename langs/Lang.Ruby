@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.91"
+SupportV="0.1.92"
 Lang=Ruby
 LangExt=".rb"
 ColorNum=1
@@ -294,6 +294,7 @@ UseRuby()
 		newCodeHelp)
 			if [ -f ${TemplateCode} ]; then
 				echo -e "\t-c, --custom <args>\t\t: \"Custom src file using ${Lang} template\""
+				echo -e "\t-s, --show <args>\t\t: \"Show custom src code from ${Lang} template without saving\""
 			fi
 			;;
 		EnsureDirs)
@@ -1049,6 +1050,32 @@ UseRuby()
 				#Program Args Given
 				if [ ! -z "${Args}" ]; then
 					${LangRun} ${TemplateCode} ${Args[@]}
+				#No Program Name Given
+				else
+					${LangRun} ${TemplateCode} --help
+				fi
+			else
+				#Program Name Given
+				errorCode "customCode" "notemp" "${Lang}"
+			fi
+			;;
+		customCodeShow)
+			local cLang=$(UseRuby "color")
+			local cTemplate=$(OtherColor ${TemplateCode##*/})
+			#Check for Custom Code Template
+			if [ -f ${TemplateCode} ]; then
+				shift
+				shift
+				shift
+				shift
+				Args=$@
+				if [ -z "${1}" ]; then
+					echo -n "${cLang}\$ ${LangRun} ${cTemplate} --no-save "
+					read -a Args
+				fi
+				#Program Args Given
+				if [ ! -z "${Args}" ]; then
+					${LangRun} ${TemplateCode} --no-save ${Args[@]}
 				#No Program Name Given
 				else
 					${LangRun} ${TemplateCode} --help

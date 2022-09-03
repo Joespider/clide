@@ -6,12 +6,13 @@ fn help()
 {
 	println!("Author: Joespider");
 	println!("Program: \"newRust\"");
-	println!("Version: 0.1.14");
+	println!("Version: 0.1.15");
 	println!("Purpose: make new Rust programs");
 	println!("Usage: newRust <args>");
 	println!("\t--user <username>: get username for help page");
 	println!("\t-n <name> : program name");
 	println!("\t--name <name> : program name");
+	println!("\t--no-save : only show out of code; no file source code is created");
 	println!("\t--cli : enable command line (Main file ONLY)");
 	println!("\t--main : main file");
 	println!("\t--prop : enable custom system property");
@@ -237,6 +238,7 @@ fn main()
 	let mut program_name = String::new();
 	let mut the_user = String::new();
 	let mut get_input_method = false;
+	let mut no_save = false;
 	let mut is_name = false;
 	let mut is_user = false;
 	let mut is_main = false;
@@ -281,6 +283,10 @@ fn main()
 			else if args == "--user"
 			{
 				is_user = true;
+			}
+			else if args == "--no-save"
+			{
+				no_save = true;
 			}
 			else if args == "--split"
 			{
@@ -361,7 +367,7 @@ fn main()
 		arg_count += 1;
 	}
 
-	if name_set == false
+	if name_set == false && no_save == false
 	{
 		help();
 	}
@@ -371,14 +377,21 @@ fn main()
 		check_file.push_str(&program_name);
 		check_file.push_str(".rs");
 		let file_exists = fexists(&check_file);
-		if file_exists == false
+		if file_exists == false || no_save == true
 		{
 			let the_imports = get_imports(is_check_file, is_read_file, is_write_file, is_cli, is_pipe, is_prop, is_thread, is_sleep);
 			let the_helps = get_help(program_name.to_string(),the_user.to_string(),is_cli);
 			program_name.push_str(".rs");
 			let the_methods = get_methods(is_check_file, is_read_file, is_write_file, get_input_method, is_prop, is_sleep, is_rev, is_in, is_len, is_upper, is_lower);
 			let the_main = get_main(is_main, is_cli, is_pipe, is_thread, is_split, is_join);
-			write_file(program_name, the_imports, the_helps, the_methods, the_main);
+			if no_save == false
+			{
+				write_file(program_name, the_imports, the_helps, the_methods, the_main);
+			}
+			else
+			{
+				println!("{}{}{}{}",the_imports, the_helps, the_methods, the_main);
+			}
 		}
 		else
 		{

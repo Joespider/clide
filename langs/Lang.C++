@@ -4,7 +4,7 @@
 #Link Libs: https://gist.github.com/gubatron/32f82053596c24b6bec6
 #both https://avikdas.com/2019/12/16/makefiles-for-c-cpp-projects.html
 
-SupportV="0.2.46"
+SupportV="0.2.48"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -572,6 +572,7 @@ UseC++()
 		newCodeHelp)
 			if [ -f ${TemplateCode} ]; then
 				echo -e "\t-c, --custom <args>\t\t: \"Custom src file using ${Lang} template\""
+				echo -e "\t-s, --show <args>\t\t: \"Show custom src code from ${Lang} template without saving\""
 			fi
 			;;
 		#Make sure directories in place
@@ -1438,7 +1439,7 @@ UseC++()
 						echo "Use \"c++2a\" or later"
 						;;
 					*"only in c++"*|*"-std=c++"*)
-						echo ${cplMessage} | tr '|' '\n' | grep "c++" | sed "s/-std=//g" | sed "s/c++/|c++/g" | sort | uniq
+						echo ${cplMessage} | tr '|' '\n' | grep "c++" | sed "s/-std=//g" | sed "s/c++/|c++/g" | sort -u
 						;;
 					*)
 						;;
@@ -2044,6 +2045,33 @@ UseC++()
 				#Program Args Given
 				if [ ! -z "${Args}" ]; then
 					${TemplateCode} ${Args[@]}
+				#No Program Name Given
+				else
+					#Help Page
+					${TemplateCode} --help
+				fi
+			else
+				#Program Name Given
+				errorCode "customCode" "notemp" "${Lang}"
+			fi
+			;;
+		customCodeShow)
+			local cLang=$(UseC++ "color")
+			local cTemplate=$(OtherColor ${TemplateCode##*/})
+			#Check for Custom Code Template
+			if [ -f ${TemplateCode} ]; then
+				shift
+				shift
+				shift
+				shift
+				Args=$@
+				if [ -z "${1}" ]; then
+					echo -n "${cLang}\$ ./${cTemplate} --no-save "
+					read -a Args
+				fi
+				#Program Args Given
+				if [ ! -z "${Args}" ]; then
+					${TemplateCode} --no-save ${Args[@]}
 				#No Program Name Given
 				else
 					#Help Page
