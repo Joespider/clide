@@ -2,16 +2,16 @@
 #include <fstream>
 #include <string>
 
-//print marco for cout
+//print Macro for cout
 #define print(x); std::cout << x << std::endl
-//error marco for cerr
+//error Macro for cerr
 #define error(x); std::cerr << x << std::endl
 //Convert std::string to String
 #define String std::string
 
 static void help();
 static String getHelp(String TheName, String TheUser);
-static String getMarcos(bool* Conv, bool* getLen);
+static String getMacros(bool* Conv, bool* getLen);
 static String getImports(bool* fcheck, bool* write, bool* read, bool* random, bool* pipe, bool* shell, bool* threads, bool* sleep, bool* prop, bool* Split, bool* Join, bool* Rev, bool* Vect, bool* Math, bool* getFS);
 static String getMethodDec(bool* rawinput, bool* rand, bool* fcheck, bool* write, bool* read, bool* isin, bool* shell, bool* sleep, bool* prop, bool* Split, bool* Join, bool* Rev, bool* Conv, bool* subStr, bool* getLen, bool* getUpper, bool* getLower, bool* getFS);
 static String getMethods(bool* rawinput, bool* rand, bool* fcheck, bool* write, bool* read, bool* isin, bool* shell, bool* sleep, bool* prop, bool* Split, bool* Join, bool* Rev, bool* Conv, bool* subStr, bool* getLen, bool* getUpper, bool* getLower, bool* getFS);
@@ -23,7 +23,7 @@ bool IsIn(String Str, String Sub);
 static void help()
 {
 	String ProgName = "newC++";
-	String Version = "0.1.52";
+	String Version = "0.1.54";
 	print("Author: Joespider");
 	print("Program: \"" << ProgName << "\"");
 	print("Version: " << Version);
@@ -71,29 +71,30 @@ static String getHelp(String TheName, String TheUser)
 	return HelpDeclare+"\n"+HelpMethod;
 }
 
-static String getMarcos(bool* Conv, bool* getLen)
+static String getMacros(bool* Conv, bool* getLen)
 {
-	String Marcos = "";
-	String MarcoPrint = "//print marco for cout\n#define print(x); std::cout << x << std::endl\n\n";
-	String MarcoError = "//error marco for cerr\n#define error(x); std::cerr << x << std::endl\n\n";
-	String MarcoToStr = "";
-	String MarcoLen = "";
-	String MarcoString = "//Convert std::string to String\n#define String std::string\n\n";
+	String Macros = "";
+	String MacroPrint = "//print Macro for cout\n#define print(x); std::cout << x << std::endl\n\n";
+	String MacroError = "//error Macro for cerr\n#define error(x); std::cerr << x << std::endl\n\n";
+	String MacroToStr = "";
+	String MacroPressEnter = "#define PressEnter std::cout << \"Press \\\"Enter\\\" to Continue \"; std::cin.get()\n\n";
+	String MacroLen = "";
+	String MacroString = "//Convert std::string to String\n#define String std::string\n\n";
 
 	if (*Conv == true)
 	{
-		MarcoToStr = "//Str for to_strin()\n#define Str(x) std::to_string(x)\n\n";
+		MacroToStr = "//Str for to_strin()\n#define Str(x) std::to_string(x)\n\n";
 	}
 	if (*getLen == true)
 	{
-		MarcoLen = "//lenA for array sizze\n#define lenA(x) sizeof(x)/sizeof(x[0])\n\n";
+		MacroLen = "//lenA for array sizze\n#define lenA(x) sizeof(x)/sizeof(x[0])\n\n";
 	}
 /*
-	String MarcoLen = "//len marco for sizeof\n#define len(item) (sizeof(item))\n";
-	Marcos = MarcoPrint+MarcoLen+"\n";
+	String MacroLen = "//len Macro for sizeof\n#define len(item) (sizeof(item))\n";
+	Macros = MacroPrint+MacroLen+"\n";
 */
-	Marcos = MarcoPrint+MarcoError+MarcoToStr+MarcoString+MarcoLen+"\n";
-	return Marcos;
+	Macros = MacroPressEnter+MacroPrint+MacroError+MacroToStr+MacroString+MacroLen+"\n";
+	return Macros;
 }
 
 //create import listing
@@ -521,7 +522,7 @@ int main(int argc, char** argv)
 	String TheExt = ".cpp";
 	String CName = "";
 	String Imports = "";
-	String Marcos = "";
+	String Macros = "";
 	String Methods = "";
 	String Main = "";
 	String Content = "";
@@ -749,7 +750,7 @@ int main(int argc, char** argv)
 				//generate imports
 				Imports = getImports(&getFCheck, &getWrite, &getRead, &getRand, &getPipe, &getShell, &getThreads, &getSleep, &getProp, &getSplit, &getJoin, &getRev, &getVect, &getMath, &getFS);
 				//genarate macros
-				Marcos = getMarcos(&getConvert, &getLength);
+				Macros = getMacros(&getConvert, &getLength);
 				//make declorations
 				theDeclaration = getMethodDec(&getRawIn, &getRand, &getFCheck, &getWrite, &getRead, &getIsIn, &getShell, &getSleep, &getProp, &getSplit, &getJoin, &getRev, &getConvert, &getSubStr, &getLength, &getUpper, &getLower, &getFS);
 				//create methods
@@ -771,7 +772,7 @@ int main(int argc, char** argv)
 					Main = "";
 				}
 				//put together the soure file
-				Content = Imports+Marcos+theDeclaration+theHelpMethod+Methods+Main;
+				Content = Imports+Macros+theDeclaration+theHelpMethod+Methods+Main;
 
 				//Save content to a source code file
 				if (dontSave == false)
