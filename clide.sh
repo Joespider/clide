@@ -2004,6 +2004,58 @@ CopyOrRename()
 	esac
 }
 
+BackupOrRestore()
+{
+	local Lang=$1
+	local UserArg=$2
+	shift
+	shift
+	local chosen=${UserIn[1]}
+	local LangByExt
+	case ${TheSrcCode} in
+		*,*)
+			if [ ! -z "${chosen}" ]; then
+				case ${TheSrcCode} in
+					*${chosen}*)
+						LangByExt=$(ManageLangs ${Lang} "hasExt" "${chosen}")
+						if [ ! -z "${LangByExt}" ]; then
+							case ${UserArg} in
+								bkup|backup)
+									ManageLangs ${Lang} "backup" ${chosen}
+									;;
+								restore)
+									ManageLangs ${Lang} "restore" ${chosen}
+									;;
+								*)
+									;;
+							esac
+						else
+							errorCode "backup" "need-ext"
+						fi
+						;;
+					*)
+						errorCode "backup" "wrong"
+						;;
+				esac
+			else
+				errorCode "backup" "null"
+			fi
+			;;
+		*)
+			case ${UserArg} in
+				bkup|backup)
+					ManageLangs ${Lang} "backup" ${TheSrcCode}
+					;;
+				restore)
+					ManageLangs ${Lang} "restore" ${TheSrcCode}
+					;;
+				*)
+					;;
+			esac
+			;;
+	esac
+}
+
 ManageCreate()
 {
 	local Lang=$1
@@ -3336,51 +3388,10 @@ Actions()
 							--help)
 								HelpMenu ${Lang} ${UserIn[@]}
 								;;
+							--remove)
+								;;
 							*)
-								local chosen=${UserIn[1]}
-								local LangByExt
-								case ${TheSrcCode} in
-									*,*)
-										if [ ! -z "${chosen}" ]; then
-											case ${TheSrcCode} in
-												*${chosen}*)
-													LangByExt=$(ManageLangs ${Lang} "hasExt" "${chosen}")
-													if [ ! -z "${LangByExt}" ]; then
-														case ${UserArg} in
-															bkup|backup)
-			 													ManageLangs ${Lang} "backup" ${chosen}
-																;;
-															restore)
-																ManageLangs ${Lang} "restore" ${chosen}
-																;;
-															*)
-																;;
-														esac
-													else
-														errorCode "backup" "need-ext"
-													fi
-													;;
-												*)
-													errorCode "backup" "wrong"
-													;;
-											esac
-										else
-											errorCode "backup" "null"
-										fi
-										;;
-									*)
-										case ${UserArg} in
-											bkup|backup)
-												ManageLangs ${Lang} "backup" ${TheSrcCode}
-												;;
-											restore)
-												ManageLangs ${Lang} "restore" ${TheSrcCode}
-												;;
-											*)
-												;;
-										esac
-										;;
-								esac
+								BackupOrRestore ${Lang} ${UserArg} ${UserIn[@]}
 								;;
 						esac
 						;;

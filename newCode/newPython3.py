@@ -6,7 +6,7 @@ ProgramName = sys.argv[0]
 if "/" in ProgramName:
 	ProgramName = ProgramName.rsplit("/",1)[1]
 
-VersionName = "0.1.28"
+VersionName = "0.1.29"
 
 def Help():
 	print("Author: Joespider")
@@ -38,6 +38,7 @@ def Help():
 	print("\t--upper : enable upper method")
 	print("\t--lower : enable lower method")
 	print("\t--math : enable math functions")
+	print("\t--date-time : enable date and time")
 
 def GetArgs():
 	Args = sys.argv
@@ -65,6 +66,7 @@ def GetArgs():
 		   "upper":False,
 		   "lower":False,
 		   "math":False,
+		   "time":False,
 		   "length":False,
 		   "shell":False}
 	#
@@ -129,6 +131,8 @@ def GetArgs():
 			Returns["lower"] = True
 		elif now == "--math":
 			Returns["math"] = True
+		elif now == "--date-time":
+			Returns["time"] = True
 		elif now == "--get-length":
 			Returns["length"] = True
 		lp += 1
@@ -141,7 +145,7 @@ def getHelp(TheName, TheUser):
 	return HelpMethod
 
 #Get Imports
-def Imports(getShell, getSys, getRand, getThread, getPipe, getSleep, getProp, getMath, getCheckFile):
+def Imports(getShell, getSys, getRand, getThread, getPipe, getSleep, getTime, getProp, getMath, getCheckFile):
 	TheImports = ""
 	if getShell == True or getProp == True or getCheckFile == True:
 		TheImports = "import os\n"
@@ -151,7 +155,7 @@ def Imports(getShell, getSys, getRand, getThread, getPipe, getSleep, getProp, ge
 		TheImports = TheImports+"from random import *\n"
 	if getThread == True:
 		TheImports = TheImports+"import threading\n"
-	if getSleep == True:
+	if getSleep == True or getTime == True:
 		TheImports = TheImports+"import time\n"
 	if getMath == True:
 		TheImports = TheImports+"import math\n"
@@ -159,7 +163,7 @@ def Imports(getShell, getSys, getRand, getThread, getPipe, getSleep, getProp, ge
 	return TheImports
 
 #Get Methods
-def Methods(getMain, getRawInput, getShell, getCLI, getCheckFile, getWrite, getRead, getRandom, getThread, getPipe, getSleep, getProp, getSplit, getJoin, getRev, getTypes, getUpper, getLower, getMath, getLength):
+def Methods(getMain, getRawInput, getShell, getCLI, getCheckFile, getWrite, getRead, getRandom, getThread, getPipe, getSleep, getTime, getProp, getSplit, getJoin, getRev, getTypes, getUpper, getLower, getMath, getLength):
 	TheMethods = ""
 	#{
 	OSshellMethod = "def Shell(cmd):\n\tOutput = \"\"\n\tTheShell = os.popen(cmd)\n\tOutput = TheShell.read()\n\tTheShell.close()\n\treturn Output\n\ndef Exe(cmd):\n\tos.system(cmd)\n"
@@ -200,6 +204,8 @@ def Methods(getMain, getRawInput, getShell, getCLI, getCheckFile, getWrite, getR
 	MathMethod = MathMethod + "def sinh(number):\n\treturn math.sinh(number)\n\n"
 	MathMethod = MathMethod + "def tan(number):\n\treturn math.tan(number)\n\n"
 	MathMethod = MathMethod + "def tanh(number):\n\treturn math.tanh(number)\n"
+	TimeMethod = "def getTime():\n\tnow = time.localtime()\n\treturn time.strftime(\"%H:%M:%S\",now)\n\n"
+	TimeMethod = TimeMethod+"def TimeAndDate():\n\treturn time.asctime(time.localtime(time.time()))\n\n"
 	LengthExample = ""
 
 	if getThread == True:
@@ -233,6 +239,9 @@ def Methods(getMain, getRawInput, getShell, getCLI, getCheckFile, getWrite, getR
 	#Get Sleep Method
 	if getSleep == True:
 		TheMethods = TheMethods+SleepMethod+"\n"
+	#Get Time Methods
+	if getTime == True:
+		TheMethods = TheMethods+TimeMethod+"\n"
 	#Get Reverse Method
 	if getRev == True:
 		TheMethods = TheMethods+ReverseMethod+"\n"
@@ -308,6 +317,7 @@ def Main():
 	GetThreads = UserArgs["thread"]
 	GetTypes = UserArgs["type"]
 	GetSleep = UserArgs["sleep"]
+	GetTime = UserArgs["time"]
 	GetUpper = UserArgs["upper"]
 	GetLower = UserArgs["lower"]
 	GetMath = UserArgs["math"]
@@ -323,9 +333,9 @@ def Main():
 
 		if FileExists == False or noSave == True:
 			#Get Imports
-			ProgImports = Imports(GetShell, IsCLI, GetRand, GetThreads, GetPipe, GetSleep, GetProp, GetMath, GetCheckFile)
+			ProgImports = Imports(GetShell, IsCLI, GetRand, GetThreads, GetPipe, GetSleep, GetTime, GetProp, GetMath, GetCheckFile)
 			#Get Methods
-			ProgMethods = Methods(IsMain, GetRawInput, GetShell, IsCLI, GetCheckFile, GetWrite, GetRead, GetRand, GetThreads, GetPipe, GetSleep, GetProp, GetSplit, GetJoin, GetRev, GetTypes, GetUpper, GetLower, GetMath, GetLength)
+			ProgMethods = Methods(IsMain, GetRawInput, GetShell, IsCLI, GetCheckFile, GetWrite, GetRead, GetRand, GetThreads, GetPipe, GetSleep, GetTime, GetProp, GetSplit, GetJoin, GetRev, GetTypes, GetUpper, GetLower, GetMath, GetLength)
 			if IsCLI == True:
 				TheHelpMethod = getHelp(TheName,TheUser)
 			#Manage Imports

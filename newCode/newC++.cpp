@@ -23,7 +23,7 @@ bool IsIn(String Str, String Sub);
 static void help()
 {
 	String ProgName = "newC++";
-	String Version = "0.1.54";
+	String Version = "0.1.57";
 	print("Author: Joespider");
 	print("Program: \"" << ProgName << "\"");
 	print("Version: " << Version);
@@ -58,6 +58,7 @@ static void help()
 	print("\t--upper : enable upper case methods");
 	print("\t--lower : enable lower case methods");
 	print("\t--math : enable math functions (Main file ONLY)");
+	print("\t--date-time : enable date and time");
 }
 
 static String getHelp(String TheName, String TheUser)
@@ -98,7 +99,7 @@ static String getMacros(bool* Conv, bool* getLen)
 }
 
 //create import listing
-static String getImports(bool* fcheck, bool* write, bool* read, bool* random, bool* pipe, bool* shell, bool* threads, bool* sleep, bool* prop, bool* Split, bool* Join, bool* Rev, bool* Vect, bool* Math, bool* getFS)
+static String getImports(bool* fcheck, bool* write, bool* read, bool* random, bool* pipe, bool* shell, bool* threads, bool* sleep, bool* prop, bool* Split, bool* Join, bool* Rev, bool* Vect, bool* Math, bool* getFS, bool* dateTime)
 {
 	String Imports = "";
 	String standard = "#include <iostream>\n#include <string>\n";
@@ -113,6 +114,7 @@ static String getImports(bool* fcheck, bool* write, bool* read, bool* random, bo
 	String ForSplit = "";
 	String ForJoin = "";
 	String ForMath = "";
+	String ForDateAndTime = "";
 	String ForFS = "";
 
 	if ((*fcheck == true) || (*read == true) || (*write == true))
@@ -163,15 +165,19 @@ static String getImports(bool* fcheck, bool* write, bool* read, bool* random, bo
 	{
 		ForFS = "#include <filesystem>\n";
 	}
+	if (*dateTime == true)
+	{
+		ForDateAndTime = "#include <chrono>\n#include <ctime>\n";
+	}
 
 	//concat imports
-	Imports = standard+readWrite+ForRandom+ForPiping+ForShell+ForThreading+ForSleep+ForSysProp+ForSplit+ForJoin+ForRev+ForMath+ForFS+"\n";
+	Imports = standard+readWrite+ForRandom+ForPiping+ForShell+ForThreading+ForSleep+ForSysProp+ForSplit+ForJoin+ForRev+ForMath+ForFS+ForDateAndTime+"\n";
 
 	return Imports;
 }
 
 //create base methods
-static String getMethodDec(bool* rawinput, bool* rand, bool* fcheck, bool* write, bool* read, bool* isin, bool* shell, bool* sleep, bool* prop, bool* Split, bool* Join, bool* Rev, bool* Conv, bool* subStr, bool* getLen, bool* getUpper, bool* getLower, bool* getFS)
+static String getMethodDec(bool* rawinput, bool* rand, bool* fcheck, bool* write, bool* read, bool* isin, bool* shell, bool* sleep, bool* prop, bool* Split, bool* Join, bool* Rev, bool* Conv, bool* subStr, bool* getLen, bool* getUpper, bool* getLower, bool* getFS, bool* dateTime)
 {
 	String Declaration = "";
 
@@ -271,11 +277,17 @@ static String getMethodDec(bool* rawinput, bool* rand, bool* fcheck, bool* write
 		Declaration = Declaration+"void ShowFiles(String Dir);\n";
 		Declaration = Declaration+"void CD(String Dir);\n";
 	}
+	if (*dateTime == true)
+	{
+		Declaration = Declaration+"String getTime();\n";
+		Declaration = Declaration+"String TimeAndDate();\n";
+	}
+
 	return Declaration;
 }
 
 //create base methods
-static String getMethods(bool* rawinput, bool* rand, bool* fcheck, bool* write, bool* read, bool* isin, bool* shell, bool* sleep, bool* prop, bool* Split, bool* Join, bool* Rev, bool* Conv, bool* subStr, bool* getLen, bool* getUpper, bool* getLower, bool* getFS)
+static String getMethods(bool* rawinput, bool* rand, bool* fcheck, bool* write, bool* read, bool* isin, bool* shell, bool* sleep, bool* prop, bool* Split, bool* Join, bool* Rev, bool* Conv, bool* subStr, bool* getLen, bool* getUpper, bool* getLower, bool* getFS, bool* dateTime)
 {
 	String Methods = "";
 	String Random = "";
@@ -297,6 +309,7 @@ static String getMethods(bool* rawinput, bool* rand, bool* fcheck, bool* write, 
 	String StrLower = "";
 	String StrReplaceAll = "";
 	String TheFileSystem = "";
+	String TheTimeAndDate = "";
 
 	if (*rawinput == true)
 	{
@@ -394,9 +407,14 @@ static String getMethods(bool* rawinput, bool* rand, bool* fcheck, bool* write, 
 		TheFileSystem = "void ShowFiles(String Dir)\n{\n\tif (Dir != \"\")\n\t{\n\t\tfor (const auto & entry : std::filesystem::directory_iterator(Dir))\n\t\t{\n\t\t\tprint(entry.path());\n\t\t}\n\t}\n}\n\n";
 		TheFileSystem = TheFileSystem + "void CD(String Dir)\n{\n\tif (Dir != \"\")\n\t{\n\t\tchdir(Dir.c_str());\n\t}\n}\n\n";
 	}
+	if (*dateTime == true)
+	{
+		TheTimeAndDate = "String getTime()\n{\n\tstd::time_t curr_time = time(NULL);\n\tstd::tm *tm_local = localtime(&curr_time);\n\tString Hr = std::to_string(tm_local->tm_hour);\n\tString Min = std::to_string(tm_local->tm_min);\n\tString Sec = std::to_string(tm_local->tm_sec);\n\tString Time = Hr+\":\"+Min+\":\"+Sec;\n\treturn Time;\n}\n\n";
+		TheTimeAndDate = TheTimeAndDate+"String TimeAndDate()\n{\n\tauto now = std::chrono::system_clock::now();\n\tstd::time_t clock_time = std::chrono::system_clock::to_time_t(now);\n\tString val = std::ctime(&clock_time);\n\treturn val;\n}\n\n";
+	}
 
 	//Methods for C++
-	Methods = "\n"+RawInput+Random+IsIn+CheckFile+WriteFile+ReadFile+TheShell+TheSleep+SysProp+StrSplit+StrJoin+StrReplaceAll+StrRev+ConvData+SubStr+StrLen+StrUpper+StrLower+TheFileSystem;
+	Methods = "\n"+RawInput+Random+IsIn+CheckFile+WriteFile+ReadFile+TheShell+TheSleep+SysProp+StrSplit+StrJoin+StrReplaceAll+StrRev+ConvData+SubStr+StrLen+StrUpper+StrLower+TheFileSystem+TheTimeAndDate;
 
 	return Methods;
 }
@@ -428,7 +446,7 @@ static String getMain(bool* getArgs, bool* getRandom, bool* getPipe, bool* getTh
 
 	if (*getVectors == true)
 	{
-		UseVectors = "/*\n\t//string vectors\n\tstd::vector<String> TheStrVect;\n\t//append string\n\tTheStrVect.push_back(\"one\");\n\t//int vectors\n\n\tstd::vector<int> TheIntVect;\n\t//append int\n\tTheIntVect.push_back(1);\n\t//int vectors\n\n\tstd::vector<double> TheDblVect;\n\t//append double\n\tTheDblVect.push_back(1.0);\n\n\t//Vector length\n\tint TheStrVectLen = TheStrVect.size();\n\tint TheIntVectLen = TheIntVect.size();\n\tint TheDblVectLen = TheDblVect.size();\n*/\n\n\n";
+		UseVectors = "/*\n\t//string vectors\n\tstd::vector<String> TheStrVect;\n\t//append string\n\tTheStrVect.push_back(\"one\");\n\n\tstd::vector<std::thread> TheThreadVect;\n\t//append Thread\n\tTheThreadVect.push_back(move(ThreadName));\n\n\t//int vectors\n\tstd::vector<int> TheIntVect;\n\t//append int\n\tTheIntVect.push_back(1);\n\t//int vectors\n\n\t//double vectors\n\tstd::vector<double> TheDblVect;\n\t//append double\n\tTheDblVect.push_back(1.0);\n\n\t//Vector length\n\tint TheStrVectLen = TheStrVect.size();\n\tint TheThreadVectLen = TheThreadVect.size();\n\tint TheIntVectLen = TheIntVect.size();\n\tint TheDblVectLen = TheDblVect.size();\n*/\n\n";
 	}
 
 	if (*getMath == true)
@@ -513,6 +531,7 @@ int main(int argc, char** argv)
 	bool getUpper = false;
 	bool getLower = false;
 	bool getMath = false;
+	bool getDateAndTime = false;
 	bool IsMain = false;
 	bool getTheUser = false;
 	String theUser = "";
@@ -694,6 +713,12 @@ int main(int argc, char** argv)
 				getName = false;
 				getMath = true;
 			}
+			//Enable date and time
+			else if (UserIn == "--date-time")
+			{
+				getName = false;
+				getDateAndTime = true;
+			}
 			//Enable system property
 			else if (UserIn == "--prop")
 			{
@@ -748,13 +773,13 @@ int main(int argc, char** argv)
 			if ((FileExists == false) || (dontSave == true))
 			{
 				//generate imports
-				Imports = getImports(&getFCheck, &getWrite, &getRead, &getRand, &getPipe, &getShell, &getThreads, &getSleep, &getProp, &getSplit, &getJoin, &getRev, &getVect, &getMath, &getFS);
+				Imports = getImports(&getFCheck, &getWrite, &getRead, &getRand, &getPipe, &getShell, &getThreads, &getSleep, &getProp, &getSplit, &getJoin, &getRev, &getVect, &getMath, &getFS, &getDateAndTime);
 				//genarate macros
 				Macros = getMacros(&getConvert, &getLength);
 				//make declorations
-				theDeclaration = getMethodDec(&getRawIn, &getRand, &getFCheck, &getWrite, &getRead, &getIsIn, &getShell, &getSleep, &getProp, &getSplit, &getJoin, &getRev, &getConvert, &getSubStr, &getLength, &getUpper, &getLower, &getFS);
+				theDeclaration = getMethodDec(&getRawIn, &getRand, &getFCheck, &getWrite, &getRead, &getIsIn, &getShell, &getSleep, &getProp, &getSplit, &getJoin, &getRev, &getConvert, &getSubStr, &getLength, &getUpper, &getLower, &getFS, &getDateAndTime);
 				//create methods
-				Methods = getMethods(&getRawIn, &getRand, &getFCheck, &getWrite, &getRead, &getIsIn, &getShell, &getSleep, &getProp, &getSplit, &getJoin, &getRev, &getConvert, &getSubStr, &getLength, &getUpper, &getLower, &getFS);
+				Methods = getMethods(&getRawIn, &getRand, &getFCheck, &getWrite, &getRead, &getIsIn, &getShell, &getSleep, &getProp, &getSplit, &getJoin, &getRev, &getConvert, &getSubStr, &getLength, &getUpper, &getLower, &getFS, &getDateAndTime);
 				//source code is a main file
 				if (IsMain == true)
 				{

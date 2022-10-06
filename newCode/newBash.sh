@@ -1,6 +1,6 @@
 #!/bin/bash
 
-Version="0.1.4"
+Version="0.1.5"
 
 Help()
 {
@@ -15,6 +15,7 @@ Help()
 	echo -e "\t--pipe : enable piping"
 	echo -e "\t--reverse : enable reverse"
 	echo -e "\t--random : enable random (1 - 10)"
+	echo -e "\t--date-time : enable date and time"
 }
 
 GetPipe()
@@ -44,6 +45,12 @@ GetRev()
 	echo "echo "This" | rev"
 }
 
+GetDateAndTime()
+{
+	echo "date \"+%H:%M:%S\""
+	echo "date \"+%a %b %d %H:%M:%S %Y\""
+}
+
 main()
 {
 	local GetName="no"
@@ -51,6 +58,7 @@ main()
 	local UsePipe="no"
 	local UseRandom="no"
 	local UseRev="no"
+	local UseDate="no"
 	local TheName=""
 
 	for arg in "$@"; do
@@ -69,6 +77,9 @@ main()
 				;;
 			--reverse)
 				UseRev="yes"
+				;;
+			--date-time)
+				UseDate="yes"
 				;;
 			*)
 				case ${GetName} in
@@ -108,6 +119,13 @@ main()
 				*)
 					;;
 			esac
+			case ${UseDate} in
+				yes)
+					GetDateAndTime
+					;;
+				*)
+					;;
+			esac
 			;;
 		*)
 			if [ ! -z "${TheName}" ]; then
@@ -133,6 +151,13 @@ main()
 					case ${UseRev} in
 						yes)
 							GetRev >> "${TheName}.sh"
+							;;
+						*)
+							;;
+					esac
+					case ${UseDate} in
+						yes)
+							GetDateAndTime >> "${TheName}.sh"
 							;;
 						*)
 							;;

@@ -8,7 +8,7 @@ import (
 
 func help() {
 	var ProgName string = "newGo"
-	var Version string = "0.1.27"
+	var Version string = "0.1.28"
 
 	fmt.Println("Author: Joespider")
 	fmt.Println("Program: \""+ProgName+"\"")
@@ -42,6 +42,7 @@ func help() {
 	fmt.Println("\t--upper : enable uppercase methods")
 	fmt.Println("\t--lower : enable lowercase methods")
 	fmt.Println("\t--math : enable math functions (Main file ONLY)")
+	fmt.Println("\t--date-time : enable date and time")
 }
 
 func getHelp(TheName string, TheUser string) string {
@@ -58,7 +59,7 @@ func getPackage(ThePackage string) string {
 }
 
 //create import listing
-func getImports(UserInput bool, check bool, write bool, read bool, random bool, cli bool, sleep bool, getPipe bool, getShell bool, getThread bool, getProp bool, getSplit bool, getJoin bool, getConv bool, getUpper bool, getLower bool, getTypes bool, getMath bool, getIsIn bool) string {
+func getImports(UserInput bool, check bool, write bool, read bool, random bool, cli bool, sleep bool, getPipe bool, getShell bool, getThread bool, getProp bool, getSplit bool, getJoin bool, getConv bool, getUpper bool, getLower bool, getTypes bool, getMath bool, getIsIn bool, getTime bool) string {
 	var Imports string = ""
 	var standard string = "\"fmt\"\n"
 	var readWrite string = ""
@@ -92,11 +93,11 @@ func getImports(UserInput bool, check bool, write bool, read bool, random bool, 
 		ForRandom = "\t\"math/rand\"\n"
 	}
 
-	if random == true || sleep == true || getThread == true {
+	if random == true || sleep == true || getThread == true || getTime == true {
 		ForTime = "\t\"time\"\n"
 	}
 
-	if getConv == true {
+	if getConv == true || getTime == true {
 		ForConvert = "\t\"strconv\"\n"
 	}
 
@@ -122,7 +123,7 @@ func getImports(UserInput bool, check bool, write bool, read bool, random bool, 
 	return Imports
 }
 
-func getMethods(getRawIn bool, getRand bool, getCheck bool, getWrite bool, getRead bool, getIsIn bool, getSleep bool, getShell bool, getThread bool, getProp bool, getSplit bool, getJoin bool, getRev bool, getSubStr bool, getConv bool, getUpper bool, getLower bool) string {
+func getMethods(getRawIn bool, getRand bool, getCheck bool, getWrite bool, getRead bool, getIsIn bool, getSleep bool, getShell bool, getThread bool, getProp bool, getSplit bool, getJoin bool, getRev bool, getSubStr bool, getConv bool, getUpper bool, getLower bool, getTime bool) string {
 	var TheMethods string = ""
 	var CheckFileMethod string = ""
 	var ReadMethod string = ""
@@ -142,6 +143,7 @@ func getMethods(getRawIn bool, getRand bool, getCheck bool, getWrite bool, getRe
 	var UpperMethod string = ""
 	var LowerMethod string = ""
 	var IsInMethod string = ""
+	var DateAndTime string = ""
 
 	if getRawIn == true {
 		UserInput = "func raw_input(Message string) string {\n\tvar UserIn string\n\tfmt.Print(Message)\n\treader := bufio.NewReader(os.Stdin)\n\tUserIn, _ = reader.ReadString('\\n')\n\treturn UserIn\n}\n\n"
@@ -217,7 +219,12 @@ func getMethods(getRawIn bool, getRand bool, getCheck bool, getWrite bool, getRe
 		IsInMethod = "func IsIn(Str string, Sub string) bool {\n\treturn strings.Contains(Str,Sub)\n}\n\n"
 	}
 
-	TheMethods = UserInput+CheckFileMethod+WriteMethod+ReadMethod+RandMethod+ShellMethod+SleepMethod+ThreadMethod+ReverseMethod+SysPropMethod+SplitMethod+JoinMethod+replaceAllMethod+SubStrMethod+ConvertMethod+UpperMethod+LowerMethod+IsInMethod
+	if  getTime == true {
+		DateAndTime = "func TimeAndDate() string {\n\tnow := time.Now()\n\tformatted := now.Format(time.ANSIC)\n\treturn formatted\n}\n\n"
+		DateAndTime = DateAndTime + "func getTime() string {\n\tnow := time.Now()\n\tHr := strconv.Itoa(now.Hour())\n\tMin := strconv.Itoa(now.Minute())\n\tSec := strconv.Itoa(now.Second())\n\tTime := Hr+\":\"+Min+\":\"+Sec\n\treturn Time\n}\n\n"
+	}
+
+	TheMethods = UserInput+CheckFileMethod+WriteMethod+ReadMethod+RandMethod+ShellMethod+SleepMethod+ThreadMethod+ReverseMethod+SysPropMethod+SplitMethod+JoinMethod+replaceAllMethod+SubStrMethod+ConvertMethod+UpperMethod+LowerMethod+IsInMethod+DateAndTime
 
 	return TheMethods
 }
@@ -314,6 +321,7 @@ func main() {
 	var getUpper bool = false
 	var getLower bool = false
 	var getMath bool = false
+	var getTime bool = false
 	var getLen bool = false
 	var FileExists = false
 	var IsMain bool = false
@@ -432,6 +440,10 @@ func main() {
 		} else if UserIn == "--math" {
 			getName = false
 			getMath = true
+		//Get Math
+		} else if UserIn == "--date-time" {
+			getName = false
+			getTime = true
 		//Get Length examples
 		} else if UserIn == "--get-length" {
 			getName = false
@@ -453,8 +465,8 @@ func main() {
 		}
 		if FileExists == false || noSave == true {
 			ThePackage = getPackage("main")
-			Imports = getImports(getRawIn, getCheck, getWrite, getRead, getRand, getArgs, getSleep, getPipe, getShell, getThread, getProp, getSplit, getJoin, getConv, getUpper, getLower, getTypes, getMath, getIsIn)
-			Methods = getMethods(getRawIn, getRand, getCheck, getWrite, getRead, getIsIn, getSleep, getShell, getThread, getProp, getSplit, getJoin, getRev, getSubStr, getConv, getUpper, getLower)
+			Imports = getImports(getRawIn, getCheck, getWrite, getRead, getRand, getArgs, getSleep, getPipe, getShell, getThread, getProp, getSplit, getJoin, getConv, getUpper, getLower, getTypes, getMath, getIsIn, getTime)
+			Methods = getMethods(getRawIn, getRand, getCheck, getWrite, getRead, getIsIn, getSleep, getShell, getThread, getProp, getSplit, getJoin, getRev, getSubStr, getConv, getUpper, getLower, getTime)
 			if IsMain == true {
 				if getArgs == true {
 					TheHelpContent = getHelp(CName,TheAuthor)

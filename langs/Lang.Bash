@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.98"
+SupportV="0.1.99"
 Lang=Bash
 LangExt=".sh"
 ColorNum=2
@@ -862,12 +862,12 @@ UseBash()
 			case ${Type} in
 				Install-alias)
 					#Make sure Binary exists
-					if [ -f "${TheBinDir}/${BinFile}" ]; then
+					if [ -f "${TheBinDir}/${bin}" ]; then
 						#Add command to Aliases
-						AddAlias "${BinFile}" "${TheBinDir}/${BinFile}"
-					elif [ ! -f "${TheBinDir}/${BinFile}" ]; then
+						AddAlias "${BinFile}" "${TheBinDir}/${bin}"
+					elif [ ! -f "${TheBinDir}/${bin}" ]; then
 						#compile or swap to binary
-						errorCode "install" "${BinFile}"
+						errorCode "install" "${bin}"
 					else
 						errorCode "noCode"
 					fi
