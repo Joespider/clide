@@ -3,7 +3,7 @@
 #https://stackoverflow.com/questions/10339637/java-import-cannot-find-symbol
 #https://www.codejava.net/java-core/tools/how-to-compile-package-and-run-a-java-program-using-command-line-tools-javac-jar-and-java
 
-SupportV="0.2.42"
+SupportV="0.2.43"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -2261,7 +2261,7 @@ UseJava()
 				echo "Unable to locate executable"
 			fi
 			;;
-		backup|restore)
+		backup|backup-remove|restore)
 			local name=$1
 			name=$(UseJava "removeExt" "${name}")
 			name="${name}${LangExt}"
@@ -2280,6 +2280,14 @@ UseJava()
 									echo "\"${name}\" restored"
 								else
 									errorCode "restore" "exists"
+								fi
+								;;
+							backup-remove)
+								if [ -f "${LangSrc}/${name}.bak" ]; then
+									rm ${LangSrc}/${name}.bak
+									echo "\"${name}\" backup removed"
+								else
+									errorCode "backup" "exists"
 								fi
 								;;
 							backup)
@@ -2322,6 +2330,28 @@ UseJava()
 										TheFound=$(UseJava "getProjSrc" "${name}.bak")
 										mv ${TheFound} ${TheFound%.bak}
 										echo "\"${name}\" restored"
+										;;
+									*)
+										;;
+								esac
+							fi
+							;;
+						backup-remove)
+							if [ -f "${name}" ] && [ -f "${name}.bak" ]; then
+								rm ${name}.bak
+								echo "\"${name}\" backup removed"
+							else
+								TheCount=$(UseJava "getProjSrc" "${name}" | wc -l)
+								case ${TheCount} in
+									0)
+										errorCode "backup" "null"
+										;;
+									1)
+										TheFound=$(UseJava "getProjSrc" "${name}")
+										if [ -f "${TheFound}.bak" ]; then
+											rm ${TheFound}.bak
+											echo "\"${name}\" backup removed"
+										fi
 										;;
 									*)
 										;;

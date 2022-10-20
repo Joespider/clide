@@ -8,7 +8,7 @@ import (
 
 func help() {
 	var ProgName string = "newGo"
-	var Version string = "0.1.28"
+	var Version string = "0.1.29"
 
 	fmt.Println("Author: Joespider")
 	fmt.Println("Program: \""+ProgName+"\"")
@@ -166,6 +166,7 @@ func getMethods(getRawIn bool, getRand bool, getCheck bool, getWrite bool, getRe
 
 	if getShell == true {
 		ShellMethod = "func Shell(command string) string {\n\tif command != \"\" {\n\t\tout, err := exec.Command(command).Output()\n\t\tif err != nil {\n\t\t\treturn \"\"\n\t\t} else {\n\t\t\toutput := string(out[:])\n\t\t\treturn output\n\t\t}\n\t} else {\n\t\treturn \"\"\n\t}\n}\n\n"
+		ShellMethod = ShellMethod+"func Exe() {\n\t//execute\n\tcmd := exec.Command(\"touch\", \"me\")\n\tstdout, err := cmd.Output()\n\n\tif err != nil {\n\t\tfmt.Println(err.Error())\n\t\treturn\n\t}\n\n\tfmt.Print(string(stdout))\n}\n\n"
 	}
 
 	if getSleep == true {

@@ -23,7 +23,7 @@ bool IsIn(String Str, String Sub);
 static void help()
 {
 	String ProgName = "newC++";
-	String Version = "0.1.57";
+	String Version = "0.1.59";
 	print("Author: Joespider");
 	print("Program: \"" << ProgName << "\"");
 	print("Version: " << Version);
@@ -236,7 +236,9 @@ static String getMethodDec(bool* rawinput, bool* rand, bool* fcheck, bool* write
 		Declaration = Declaration+"double Dbl(int number);\n";
 		Declaration = Declaration+"double Dbl(String number);\n";
 		Declaration = Declaration+"int Int(double number);\n";
+		Declaration = Declaration+"int Int(const char* number);\n";
 		Declaration = Declaration+"int Int(String number);\n";
+		Declaration = Declaration+"long Long(String number);\n";
 	}
 	if (*subStr == true)
 	{
@@ -366,7 +368,9 @@ static String getMethods(bool* rawinput, bool* rand, bool* fcheck, bool* write, 
 		ConvData = "//Convert Int to Double\ndouble Dbl(int number)\n{\n\tdouble MyDouble = (double)number;\n\treturn MyDouble;\n}\n\n";
 		ConvData = ConvData+"//Convert String to Double\ndouble Dbl(String number)\n{\n\tdouble MyDouble = atof(number.c_str());\n\treturn MyDouble;\n}\n\n";
 		ConvData = ConvData+"//Convert Double to Int\nint Int(double number)\n{\n\tint MyInt = (int)number;\n\treturn MyInt;\n}\n\n";
+		ConvData = ConvData+"//Convert char to Int\nint Int(const char* number)\n{\n\tint MyInt = atoi(number);\n\treturn MyInt;\n}\n\n";
 		ConvData = ConvData+"//Convert String to Int\nint Int(String number)\n{\n\tint MyInt = stoi(number);\n\treturn MyInt;\n}\n\n";
+		ConvData = ConvData+"//Convert String to Long\nlong Long(String number)\n{\n\tlong MyLong = stol(number);\n\treturn MyLong;\n}\n\n";
 	}
 	if (*subStr == true)
 	{

@@ -2010,18 +2010,39 @@ BackupOrRestore()
 	local UserArg=$2
 	shift
 	shift
-	local chosen=${UserIn[1]}
+	shift
+	local theAction=$1
+	local chosen=$1
 	local LangByExt
 	case ${TheSrcCode} in
 		*,*)
+			#handle flag aruyments
 			if [ ! -z "${chosen}" ]; then
+				case ${theAction} in
+					--*)
+						chosen=$2
+						;;
+					*)
+						;;
+				esac
+
 				case ${TheSrcCode} in
 					*${chosen}*)
 						LangByExt=$(ManageLangs ${Lang} "hasExt" "${chosen}")
 						if [ ! -z "${LangByExt}" ]; then
 							case ${UserArg} in
 								bkup|backup)
-									ManageLangs ${Lang} "backup" ${chosen}
+									case ${theAction} in
+										--remove)
+											ManageLangs ${Lang} "backup-remove" ${chosen}
+											;;
+										--restore)
+											ManageLangs ${Lang} "restore" ${chosen}
+											;;
+										*)
+											ManageLangs ${Lang} "backup" ${chosen}
+											;;
+									esac
 									;;
 								restore)
 									ManageLangs ${Lang} "restore" ${chosen}
@@ -2044,7 +2065,17 @@ BackupOrRestore()
 		*)
 			case ${UserArg} in
 				bkup|backup)
-					ManageLangs ${Lang} "backup" ${TheSrcCode}
+					case ${theAction} in
+						--remove)
+							ManageLangs ${Lang} "backup-remove" ${TheSrcCode}
+							;;
+						--restore)
+							ManageLangs ${Lang} "restore" ${TheSrcCode}
+							;;
+						*)
+							ManageLangs ${Lang} "backup" ${TheSrcCode}
+							;;
+					esac
 					;;
 				restore)
 					ManageLangs ${Lang} "restore" ${TheSrcCode}
@@ -3388,8 +3419,6 @@ Actions()
 							--help)
 								HelpMenu ${Lang} ${UserIn[@]}
 								;;
-							--remove)
-								;;
 							*)
 								BackupOrRestore ${Lang} ${UserArg} ${UserIn[@]}
 								;;
@@ -4710,7 +4739,7 @@ loadAuto()
 	comp_list "notes" "edit add read --help"
 	comp_list "last load" "--help"
 	comp_list "install" "--help --alias --bin --check --root-bin --user-bin"
-	comp_list "bkup backup" "--help"
+	comp_list "bkup backup" "--help --remove --restore"
 	comp_list "restore" "--help"
 	comp_list "rename" "--help"
 	comp_list "copy" "--help"

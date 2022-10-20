@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.99"
+SupportV="0.2.0"
 Lang=Bash
 LangExt=".sh"
 ColorNum=2
@@ -1196,7 +1196,7 @@ UseBash()
 				errorCode "cpl" "need" "${name}"
 			fi
 			;;
-		backup|restore)
+		backup|backup-remove|restore)
 			local name=$1
 			name=$(UseBash "removeExt" ${name})
 			name="${name}${LangExt}"
@@ -1216,6 +1216,14 @@ UseBash()
 									echo "\"${name}\" restored"
 								else
 									errorCode "restore" "exists"
+								fi
+								;;
+							backup-remove)
+								if [ -f "${LangSrc}/${name}.bak" ]; then
+									rm ${LangSrc}/${name}.bak
+									echo "\"${name}\" backup removed"
+								else
+									errorCode "backup" "exists"
 								fi
 								;;
 							backup)
@@ -1259,6 +1267,28 @@ UseBash()
 										TheFound=$(UseBash "getProjSrc" "${name}.bak")
 										mv ${TheFound} ${TheFound%.bak}
 										echo "\"${name}\" restored"
+										;;
+									*)
+										;;
+								esac
+							fi
+							;;
+						backup-remove)
+							if [ -f "${name}" ] && [ -f "${name}.bak" ]; then
+								rm ${name}.bak
+								echo "\"${name}\" backup removed"
+							else
+								TheCount=$(UseBash "getProjSrc" "${name}" | wc -l)
+								case ${TheCount} in
+									0)
+										errorCode "backup" "null"
+										;;
+									1)
+										TheFound=$(UseBash "getProjSrc" "${name}")
+										if [ -f "${TheFound}.bak" ]; then
+											rm ${TheFound}.bak
+											echo "\"${name}\" backup removed"
+										fi
 										;;
 									*)
 										;;
