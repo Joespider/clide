@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.98"
+SupportV="0.2.01"
 Lang=Perl
 LangExt=".pl"
 #Color Purple
@@ -21,7 +21,7 @@ TheCode=${TheSrcCode}
 errorCode()
 {
 	if [ -d ${LibDir} ] && [ -f ${LibDir}/errorCode.sh ]; then
-		${LibDir}/errorCode.sh $@
+		${LibDir}/errorCode.sh "${@}"
 	fi
 }
 
@@ -29,7 +29,7 @@ errorCode()
 AddAlias()
 {
 	if [ -d ${LibDir} ] && [ -f ${LibDir}/AddAlias.sh ]; then
-		${LibDir}/AddAlias.sh $@
+		${LibDir}/AddAlias.sh "${@}"
 	fi
 }
 
@@ -244,7 +244,7 @@ UsePerl()
 							esac
 							;;
 						*)
-							TheSrcDir=$(ProjectTemplateHandler ${EnvVars[@]} ${Type} ${mode})
+							TheSrcDir=$(ProjectTemplateHandler "${EnvVars[@]}" ${Type} ${mode})
 							;;
 					esac
 					;;
@@ -293,19 +293,19 @@ UsePerl()
 			if [ ! -z "${LangRun}" ]; then
 				#Home
 				if [ ! -d "${LangHome}" ]; then
-					mkdir "${LangHome}"
+					mkdir -p "${LangHome}"
 				fi
 				#Src
 				if [ ! -d "${LangSrc}" ]; then
-					mkdir "${LangSrc}"
+					mkdir -p "${LangSrc}"
 				fi
 				#Bin
 				if [ ! -d "${LangBin}" ]; then
-					mkdir "${LangBin}"
+					mkdir -p "${LangBin}"
 				fi
 				#projects
 				if [ ! -d "${LangProject}" ]; then
-					mkdir "${LangProject}"
+					mkdir -p "${LangProject}"
 				fi
 			fi
 			;;
@@ -556,7 +556,7 @@ UsePerl()
 #			shift
 			local Vals="none"
 			local Item=""
-			local str=$@
+			local str=( "${@}" )
 			local IFS=' '         # space is set as delimiter
 			read -ra arg <<< "${str}"
 			for TheItem in "${arg[@]}"; do
@@ -721,7 +721,7 @@ UsePerl()
 						cd ${path}/src
 						;;
 					*)
-						ProjectTemplateHandler ${EnvVars[@]} ${Type} ${project}
+						ProjectTemplateHandler "${EnvVars[@]}" ${Type} ${project}
 						;;
 				esac
 			else
@@ -738,7 +738,7 @@ UsePerl()
 				*)
 					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					if [ ! -z "${UseTempalt}" ]; then
-						ProjectTemplateHandler ${EnvVars[@]} ${Type} ${mode}
+						ProjectTemplateHandler "${EnvVars[@]}" ${Type} ${mode}
 					fi
 					;;
 			esac
@@ -967,14 +967,14 @@ UsePerl()
 				shift
 				shift
 				shift
-				Args=$@
+				Args=( "${@}" )
 				if [ -z "${1}" ]; then
 					echo -n "${cLang}\$ ${LangRun} ${cTemplate} "
 					read -a Args
 				fi
 				#Program Args Given
 				if [ ! -z "${Args}" ]; then
-					${LangRun} ${TemplateCode} ${Args[@]}
+					${LangRun} ${TemplateCode} "${Args[@]}"
 				#No Program Name Given
 				else
 					${LangRun} ${TemplateCode} --help
@@ -992,14 +992,14 @@ UsePerl()
 				shift
 				shift
 				shift
-				Args=$@
+				Args=( "${@}" )
 				if [ -z "${1}" ]; then
 					echo -n "${cLang}\$ ${LangRun} ${cTemplate} --no-save "
 					read -a Args
 				fi
 				#Program Args Given
 				if [ ! -z "${Args}" ]; then
-					${LangRun} ${TemplateCode} --no-save ${Args[@]}
+					${LangRun} ${TemplateCode} --no-save "${Args[@]}"
 				#No Program Name Given
 				else
 					${LangRun} ${TemplateCode} --help
@@ -1154,7 +1154,7 @@ UsePerl()
 			local UseProjectTemplate
 			shift
 			shift
-			local Args=$@
+			local Args=( "${@}" )
 			#Handle Project Dir
 			case ${project} in
 				none)
@@ -1186,28 +1186,52 @@ UsePerl()
 				case ${Type} in
 					debug)
 						echo "no debugger for Perl"
-						#${LangRun} -m ${UseDebugger} ${TheBinDir}/${TheBin} ${Args[@]}
+						#${LangRun} -m ${UseDebugger} ${TheBinDir}/${TheBin} "${Args[@]}"
 						;;
 					runCode)
 						if [ ! -z "${ThePipe}" ]; then
 							if [ ! -z "${TimeRun}" ]; then
 								if [ -f "${MultiPipeFile}" ]; then
-									time cat ${MultiPipeFile} | ${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+									if [ -z "${Args[0]}" ]; then
+										time cat ${MultiPipeFile} | ${LangRun} ${TheBinDir}/${TheBin}
+									else
+										time cat ${MultiPipeFile} | ${LangRun} ${TheBinDir}/${TheBin} "${Args[@]}"
+									fi
 								else
-									time cat /dev/stdin | ${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+									if [ -z "${Args[0]}" ]; then
+										time cat /dev/stdin | ${LangRun} ${TheBinDir}/${TheBin}
+									else
+										time cat /dev/stdin | ${LangRun} ${TheBinDir}/${TheBin} "${Args[@]}"
+									fi
 								fi
 							else
 								if [ -f "${MultiPipeFile}" ]; then
-									cat ${MultiPipeFile} | ${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+									if [ -z "${Args[0]}" ]; then
+										cat ${MultiPipeFile} | ${LangRun} ${TheBinDir}/${TheBin}
+									else
+										cat ${MultiPipeFile} | ${LangRun} ${TheBinDir}/${TheBin} "${Args[@]}"
+									fi
 								else
-									cat /dev/stdin | ${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+									if [ -z "${Args[0]}" ]; then
+										cat /dev/stdin | ${LangRun} ${TheBinDir}/${TheBin}
+									else
+										cat /dev/stdin | ${LangRun} ${TheBinDir}/${TheBin} "${Args[@]}"
+									fi
 								fi
 							fi
 						else
 							if [ ! -z "${TimeRun}" ]; then
-								time ${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+								if [ -z "${Args[0]}" ]; then
+									time ${LangRun} ${TheBinDir}/${TheBin}
+								else
+									time ${LangRun} ${TheBinDir}/${TheBin} "${Args[@]}"
+								fi
 							else
-								${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+								if [ -z "${Args[0]}" ]; then
+									${LangRun} ${TheBinDir}/${TheBin}
+								else
+									${LangRun} ${TheBinDir}/${TheBin} "${Args[@]}"
+								fi
 							fi
 						fi
 						;;
@@ -1440,4 +1464,4 @@ UsePerl()
 	esac
 }
 
-UsePerl $@
+UsePerl "${@}"

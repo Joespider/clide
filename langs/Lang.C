@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.85"
+SupportV="0.1.88"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
@@ -21,7 +21,7 @@ TheCode=${TheSrcCode}
 errorCode()
 {
 	if [ -d ${LibDir} ] && [ -f ${LibDir}/errorCode.sh ]; then
-		${LibDir}/errorCode.sh $@
+		${LibDir}/errorCode.sh "${@}"
 	fi
 }
 
@@ -29,7 +29,7 @@ errorCode()
 AddAlias()
 {
 	if [ -d ${LibDir} ] && [ -f ${LibDir}/AddAlias.sh ]; then
-		${LibDir}/AddAlias.sh $@
+		${LibDir}/AddAlias.sh "${@}"
 	fi
 }
 
@@ -43,7 +43,7 @@ OtherColor()
 ProjectTemplateHandler()
 {
 	if [ -d ${LibDir} ] && [ -f ${LibDir}/ProjectTemplateHandler.sh ]; then
-		${LibDir}/ProjectTemplateHandler.sh ${Lang} $@
+		${LibDir}/ProjectTemplateHandler.sh ${Lang} "${@}"
 	fi
 }
 
@@ -346,7 +346,7 @@ UseC()
 						*)
 							UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 							#get source code from project template
-							TheSrcDir=$(ProjectTemplateHandler ${EnvVars[@]} ${Type} ${mode})
+							TheSrcDir=$(ProjectTemplateHandler "${EnvVars[@]}" ${Type} ${mode})
 							;;
 					esac
 					;;
@@ -439,19 +439,19 @@ UseC()
 			if [ ! -z "${LangCpl}" ]; then
 				#Home
 				if [ ! -d "${LangHome}" ]; then
-					mkdir "${LangHome}"
+					mkdir -p "${LangHome}"
 				fi
 				#Src
 				if [ ! -d "${LangSrc}" ]; then
-					mkdir "${LangSrc}"
+					mkdir -p "${LangSrc}"
 				fi
 				#Bin
 				if [ ! -d "${LangBin}" ]; then
-					mkdir "${LangBin}"
+					mkdir -p "${LangBin}"
 				fi
 				#projects
 				if [ ! -d "${LangProject}" ]; then
-					mkdir "${LangProject}"
+					mkdir -p "${LangProject}"
 				fi
 			fi
 			;;
@@ -1010,7 +1010,7 @@ UseC()
 #			shift
 			local Vals="none"
 			local Item=""
-			local str=$@
+			local str=( "${@}" )
 			# space is set as delimiter
 			local IFS=' '
 			read -ra arg <<< "${str}"
@@ -1457,7 +1457,7 @@ UseC()
 						UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 						mkdir ${path}
 						if [ ! -z "${UseProjectTemplate}" ]; then
-							ProjectTemplateHandler ${EnvVars[@]} ${Type} ${project}
+							ProjectTemplateHandler "${EnvVars[@]}" ${Type} ${project}
 							if [ ! -d ${path}/bin ]; then
 								mkdir ${path}/bin
 							fi
@@ -1491,7 +1491,7 @@ UseC()
 				*)
 					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					if [ ! -z "${UseProjectTemplate}" ]; then
-						ProjectTemplateHandler ${EnvVars[@]} ${Type} ${mode}
+						ProjectTemplateHandler "${EnvVars[@]}" ${Type} ${mode}
 					fi
 					;;
 			esac
@@ -1694,14 +1694,14 @@ UseC()
 				shift
 				shift
 				shift
-				Args=$@
+				Args=( "${@}" )
 				if [ -z "${1}" ]; then
 					echo -n "${cLang}\$ ./${cTemplate} "
 					read -a Args
 				fi
 				#Program Args Given
 				if [ ! -z "${Args}" ]; then
-					${TemplateCode} ${Args[@]}
+					${TemplateCode} "${Args[@]}"
 				#No Program Name Given
 				else
 					#Help Page
@@ -1721,14 +1721,14 @@ UseC()
 				shift
 				shift
 				shift
-				Args=$@
+				Args=( "${@}" )
 				if [ -z "${1}" ]; then
 					echo -n "${cLang}\$ ./${cTemplate} --no-save "
 					read -a Args
 				fi
 				#Program Args Given
 				if [ ! -z "${Args}" ]; then
-					${TemplateCode} --no-save ${Args[@]}
+					${TemplateCode} --no-save "${Args[@]}"
 				#No Program Name Given
 				else
 					#Help Page
@@ -1936,7 +1936,7 @@ UseC()
 			local UseProjectTemplate
 			shift
 			shift
-			local Args=$@
+			local Args=( "${@}" )
 			local TheBin
 			local project=${CodeProject}
 			local TheBinDir
@@ -1994,34 +1994,70 @@ UseC()
 					debug)
 						if [ ! -z "${ThePipe}" ]; then
 							if [ -f "${MultiPipeFile}" ]; then
-								cat ${MultiPipeFile} | ${UseDebugger} ${TheBinDir}/${TheBin} ${Args[@]}
+								if [ -z "${Args[0]}" ]; then
+									cat ${MultiPipeFile} | ${UseDebugger} ${TheBinDir}/${TheBin}
+								else
+									cat ${MultiPipeFile} | ${UseDebugger} ${TheBinDir}/${TheBin} "${Args[@]}"
+								fi
 							else
-								cat /dev/stdin | ${UseDebugger} ${TheBinDir}/${TheBin} ${Args[@]}
+								if [ -z "${Args[0]}" ]; then
+									cat /dev/stdin | ${UseDebugger} ${TheBinDir}/${TheBin}
+								else
+									cat /dev/stdin | ${UseDebugger} ${TheBinDir}/${TheBin} "${Args[@]}"
+								fi
 							fi
 						else
-							${UseDebugger} ${TheBinDir}/${TheBin} ${Args[@]}
+							if [ -z "${Args[0]}" ]; then
+								${UseDebugger} ${TheBinDir}/${TheBin}
+							else
+								${UseDebugger} ${TheBinDir}/${TheBin} "${Args[@]}"
+							fi
 						fi
 						;;
 					runCode)
 						if [ ! -z "${ThePipe}" ]; then
 							if [ ! -z "${TimeRun}" ]; then
 								if [ -f "${MultiPipeFile}" ]; then
-									time cat ${MultiPipeFile} | ${TheBinDir}/${TheBin} ${Args[@]}
+									if [ -z "${Args[0]}" ]; then
+										time cat ${MultiPipeFile} | ${TheBinDir}/${TheBin}
+									else
+										time cat ${MultiPipeFile} | ${TheBinDir}/${TheBin} "${Args[@]}"
+									fi
 								else
-									time cat /dev/stdin | ${TheBinDir}/${TheBin} ${Args[@]}
+									if [ -z "${Args[0]}" ]; then
+										time cat /dev/stdin | ${TheBinDir}/${TheBin}
+									else
+										time cat /dev/stdin | ${TheBinDir}/${TheBin} "${Args[@]}"
+									fi
 								fi
 							else
 								if [ -f "${MultiPipeFile}" ]; then
-									cat ${MultiPipeFile} | ${TheBinDir}/${TheBin} ${Args[@]}
+									if [ -z "${Args[0]}" ]; then
+										cat ${MultiPipeFile} | ${TheBinDir}/${TheBin}
+									else
+										cat ${MultiPipeFile} | ${TheBinDir}/${TheBin} "${Args[@]}"
+									fi
 								else
-									cat /dev/stdin | ${TheBinDir}/${TheBin} ${Args[@]}
+									if [ -z "${Args[0]}" ]; then
+										cat /dev/stdin | ${TheBinDir}/${TheBin}
+									else
+										cat /dev/stdin | ${TheBinDir}/${TheBin} "${Args[@]}"
+									fi
 								fi
 							fi
 						else
 							if [ ! -z "${TimeRun}" ]; then
-								time ${TheBinDir}/${TheBin} ${Args[@]}
+								if [ -z "${Args[0]}" ]; then
+									time ${TheBinDir}/${TheBin}
+								else
+									time ${TheBinDir}/${TheBin} "${Args[@]}"
+								fi
 							else
-								${TheBinDir}/${TheBin} ${Args[@]}
+								if [ -z "${Args[0]}" ]; then
+									${TheBinDir}/${TheBin}
+								else
+									${TheBinDir}/${TheBin} "${Args[@]}"
+								fi
 							fi
 						fi
 						;;
@@ -2287,4 +2323,4 @@ UseC()
 }
 
 #init
-UseC $@
+UseC "${@}"

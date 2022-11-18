@@ -44,7 +44,7 @@ declare -A Commands
 theHelp()
 {
 	if [ -d ${LibDir} ] && [ -f ${LibDir}/help.sh ]; then
-		${LibDir}/help.sh ${Head} ${LangsDir} $@
+		${LibDir}/help.sh ${Head} ${LangsDir} "${@}"
 	fi
 }
 
@@ -52,7 +52,7 @@ HelpMenu()
 {
 	local Lang=$1
 	shift
-	local HelpArgs=( $@ )
+	local HelpArgs=( "${@}" )
 	case ${HelpArgs[0]} in
 		help)
 			HelpArgs[0]=""
@@ -67,14 +67,14 @@ HelpMenu()
 			esac
 			;;
 	esac
-	theHelp MenuHelp ${Lang} ${HelpArgs[@]}
+	theHelp MenuHelp ${Lang} "${HelpArgs[@]}"
 }
 
 #call errorcode shell script
 errorCode()
 {
 	if [ -d ${LibDir} ] && [ -f ${LibDir}/errorCode.sh ]; then
-		${LibDir}/errorCode.sh $@
+		${LibDir}/errorCode.sh "${@}"
 	fi
 }
 
@@ -82,7 +82,7 @@ errorCode()
 AddAlias()
 {
 	if [ -d ${LibDir} ] && [ -f ${LibDir}/AddAlias.sh ]; then
-		${LibDir}/AddAlias.sh $@
+		${LibDir}/AddAlias.sh "${@}"
 	fi
 }
 
@@ -142,7 +142,7 @@ UseOther()
 	shift
 	local Type=$1
 	shift
-	local Args=$@
+	local Args=( "${@}" )
 	case ${Type} in
 		color)
 			local text=${Lang}
@@ -183,25 +183,25 @@ ManageLangs()
 	local Langs=${LangsDir}/Lang.${TheLang^}
 	#Make first letter uppercase
 	shift
-	local Manage=$@
+	local Manage=( "${@}" )
 	if [ ! -z "${TheAction}" ]; then
 		if [ -d ${LangsDir} ] && [ -f ${Langs} ]; then
 			chmod -w ${Langs} 2> /dev/null
 			case ${TheAction} in
 				runCode)
 					if [ ! -z "${ThePipe}" ]; then
-						cat /dev/stdin | ${Langs} ${Manage[@]}
+						cat /dev/stdin | ${Langs} "${Manage[@]}"
 					else
-						${Langs} ${Manage[@]}
+						${Langs} "${Manage[@]}"
 					fi
 					;;
 				*)
-					${Langs} ${Manage[@]}
+					${Langs} "${Manage[@]}"
 					;;
 			esac
 			chmod u+w ${Langs} 2> /dev/null
 		else
-			UseOther ${TheLang} ${Manage[@]}
+			UseOther ${TheLang} "${Manage[@]}"
 		fi
 	fi
 }
@@ -216,7 +216,7 @@ ModeHandler()
 	shift
 	shift
 	shift
-	local Arg=$@
+	local Arg=( "${@}" )
 	if [ -d ${ModesDir} ]; then
 		case ${Mode} in
 			${repoTool}|repo)
@@ -258,7 +258,7 @@ ModeHandler()
 					#fi
 					chmod -w ${ModesDir}/add.sh 2> /dev/null
 					#${ModesDir}/add.sh ${Head} "${LibDir}" "${LangsDir}" "${ClideProjectDir}" ${Lang} ${cLang} ${cCode} ${Arg[@]}
-					${ModesDir}/add.sh ${Head} "${LibDir}" "${LangsDir}" "${ClideProjectDir}" ${Lang} ${cLang} ${Arg[@]}
+					${ModesDir}/add.sh ${Head} "${LibDir}" "${LangsDir}" "${ClideProjectDir}" ${Lang} ${cLang} "${Arg[@]}"
 					chmod u+w ${ModesDir}/add.sh 2> /dev/null
 				fi
 				;;
@@ -278,32 +278,40 @@ ModeHandler()
 EnsureDirs()
 {
 	#If missing...create "Programs" dir
-	if [ ! -d "${ProgDir}" ]; then
-		mkdir -p "${ProgDir}"
-	fi
+#	if [ ! -d "${ProgDir}" ]; then
+#		mkdir -p "${ProgDir}"
+#	fi
 
-	if [ ! -d "${ClideDir}" ]; then
-		mkdir -p "${ClideDir}"
-	fi
+#	if [ ! -d "${ClideDir}" ]; then
+#		mkdir -p "${ClideDir}"
+#	fi
 
-	if [ ! -d "${NotesDir}" ]; then
-		mkdir -p "${NotesDir}"
-	fi
+#	if [ ! -d "${NotesDir}" ]; then
+#		mkdir -p "${NotesDir}"
+#	fi
 
-	if [ ! -d "${LangsDir}" ]; then
-		mkdir -p "${LangDir}"
-	fi
+#	if [ ! -d "${LibDir}" ]; then
+#		mkdir -p "${LibDir}"
+#	fi
 
-	if [ ! -d "${LibDir}" ]; then
-		mkdir -p "${LibDir}"
-	fi
+#	if [ ! -d "${ClideProjectDir}" ]; then
+#		mkdir -p "${ClideProjectDir}"
+#	fi
 
-	if [ ! -d "${ClideProjectDir}" ]; then
-		mkdir -p "${ClideProjectDir}"
-	fi
+#	if [ ! -d "${TemplateProjectDir}" ]; then
+#		mkdir -p "${TemplateProjectDir}"
+#	fi
 
-	if [ ! -d "${TemplateProjectDir}" ]; then
-		mkdir -p "${TemplateProjectDir}"
+#	if [ ! -d "${ClideUserDir}" ]; then
+#		mkdir -p "${ClideUserDir}"
+#	fi
+
+#	if [ ! -d "${ClideUserProjectDir}" ]; then
+#		mkdir -p "${ClideUserProjectDir}"
+#	fi
+
+	if [ ! -d "${ExportProjectDir}" ]; then
+		mkdir -p "${ExportProjectDir}"
 	fi
 
 	if [ ! -d "${ActiveProjectDir}" ]; then
@@ -314,17 +322,9 @@ EnsureDirs()
 		mkdir -p "${ImportProjectDir}"
 	fi
 
-	if [ ! -d "${ClideUserProjectDir}" ]; then
-		mkdir -p "${ClideUserProjectDir}"
-	fi
-
-	if [ ! -d "${ClideUserDir}" ]; then
-		mkdir -p "${ClideUserDir}"
-	fi
-
-	if [ ! -d "${ExportProjectDir}" ]; then
-		mkdir -p "${ExportProjectDir}"
-	fi
+#	if [ ! -d "${LangsDir}" ]; then
+#		mkdir -p "${LangDir}"
+#	fi
 
 	#Handle the langauge specific directories
 	#{
@@ -1567,7 +1567,7 @@ compileCode()
 	shift
 	local options
 	local CplFlag
-	local CplInputs=( $@ )
+	local CplInputs=( "${@}" )
 	CplInputs[0]=""
 	CplFlag=${CplInputs[1]}
 	case ${CplInputs[1]} in
@@ -1613,7 +1613,7 @@ compileCode()
 						#Keep OLD cpl args
 						local OldCplArgs=${RunCplArgs}
 						#Checking and getting compile arguments
-						local newCplArgs=$(ManageLangs ${Lang} "setCplArgs" ${CplInputs[@]})
+						local newCplArgs=$(ManageLangs ${Lang} "setCplArgs" "${CplInputs[@]}")
 						#compile argument was given
 						if [ ! -z "${newCplArgs}" ]; then
 							#Checks of returned values
@@ -1692,11 +1692,11 @@ compileCode()
 				TypeOfCpl="${NewCplType}"
 				CplInputs[1]=""
 			fi
-			ManageLangs ${Lang} "compileCode" ${CplInputs[@]}
+			ManageLangs ${Lang} "compileCode" "${CplInputs[@]}"
 			TypeOfCpl=""
 			;;
 		*)
-			ManageLangs ${Lang} "compileCode" ${CplInputs[@]}
+			ManageLangs ${Lang} "compileCode" "${CplInputs[@]}"
 			;;
 	esac
 	CplFlag=""
@@ -1730,7 +1730,7 @@ runCode()
 	shift
 	shift
 	shift
-	local Args=( $@ )
+	local Args=( "${@}" )
 	local First="${Args[0]}"
 	local JavaProp="none"
 	local TheBin
@@ -1766,7 +1766,8 @@ runCode()
 						#Show Args
 						echo -n ${CLIout} "${RunTimeArgs[@]}"
 						read
-						Args=${RunTimeArgs[@]}
+						Args=( "${RunTimeArgs[@]}" )
+						CodeRunArgs=( "${RunTimeArgs[@]}" )
 					fi
 				fi
 				;;
@@ -1776,7 +1777,7 @@ runCode()
 
 		runCodeMessage ${Lang} ${TheBin} "started"
 		#Get the Lang.<language> to handle running the code
-		ManageLangs ${Lang} "runCode" "${TheBin}" "${JavaProp}" ${Args[@]}
+		ManageLangs ${Lang} "runCode" "${TheBin}" "${JavaProp}" "${Args[@]}"
 		runCodeMessage ${Lang} ${TheBin} "finished"
 
 	else
@@ -1838,22 +1839,22 @@ InstallCode()
 	shift
 	local InstallType=$2
 	shift
-	local UserIn=( $@ )
+	local UserIn=( "${@}" )
 	case ${InstallType} in
 		--alias)
-			ManageLangs ${Lang} "Install-alias" ${TheSrcCode} ${UserIn[@]}
+			ManageLangs ${Lang} "Install-alias" ${TheSrcCode} "${UserIn[@]}"
 			;;
 		--bin)
-			ManageLangs ${Lang} "Install-bin" ${TheSrcCode} ${UserIn[@]}
+			ManageLangs ${Lang} "Install-bin" ${TheSrcCode} "${UserIn[@]}"
 			;;
 		--check)
-			ManageLangs ${Lang} "Install-check" ${TheSrcCode} ${UserIn[@]}
+			ManageLangs ${Lang} "Install-check" ${TheSrcCode} "${UserIn[@]}"
 			;;
 		--root-bin)
-			ManageLangs ${Lang} "Install-root" ${TheSrcCode} ${UserIn[@]}
+			ManageLangs ${Lang} "Install-root" ${TheSrcCode} "${UserIn[@]}"
 			;;
 		--user-bin)
-			ManageLangs ${Lang} "Install-user" ${TheSrcCode} ${UserIn[@]}
+			ManageLangs ${Lang} "Install-user" ${TheSrcCode} "${UserIn[@]}"
 			;;
 		--help)
 			HelpMenu ${Lang} "install"
@@ -1872,10 +1873,10 @@ CopyOrRename()
 	local TheNewChosen
 	local GetCount
 	shift
-	local UserIn=( $@ )
+	local UserIn=( "${@}" )
 	case ${UserIn[1]} in
 		--help)
-			HelpMenu ${Lang} ${UserIn[@]}
+			HelpMenu ${Lang} "${UserIn[@]}"
 				;;
 		*)
 			chosen=${UserIn[1]}
@@ -1944,31 +1945,57 @@ CopyOrRename()
 					;;
 				*)
 					if [ -z "${TheNewChosen}" ]; then
-						case ${UserArg} in
-							rename)
-								TheSrcCode=$(ManageLangs ${Lang} "rename" ${TheSrcCode} ${chosen})
-								;;
-							cp|copy)
-								TheSrcCode=$(ManageLangs ${Lang} "copy" ${TheSrcCode} ${chosen})
-								;;
-							*)
-								;;
-						esac
-						refresh="yes"
+						if [ ! -z "${chosen}" ]; then
+							case ${UserArg} in
+								rename)
+									TheSrcCode=$(ManageLangs ${Lang} "rename" ${TheSrcCode} ${chosen})
+									;;
+								cp|copy)
+									TheSrcCode=$(ManageLangs ${Lang} "copy" ${TheSrcCode} ${chosen})
+									;;
+								*)
+									;;
+							esac
+							refresh="yes"
+						else
+							case ${UserArg} in
+								rename)
+									errorCode "rename" "null"
+									;;
+								cp|copy)
+									errorCode "backup" "null"
+									;;
+								*)
+									;;
+							esac
+						fi
 					else
 						case ${TheSrcCode} in
 							${chosen})
-								case ${UserArg} in
-									rename)
-										TheSrcCode=$(ManageLangs ${Lang} "rename" ${chosen} ${TheNewChosen})
-										;;
-									cp|copy)
-										TheSrcCode=$(ManageLangs ${Lang} "copy" ${chosen} ${TheNewChosen})
-										;;
-									*)
-										;;
-								esac
-								refresh="yes"
+								if [ ! -z "${chosen}" ]; then
+									case ${UserArg} in
+										rename)
+											TheSrcCode=$(ManageLangs ${Lang} "rename" ${chosen} ${TheNewChosen})
+											;;
+										cp|copy)
+											TheSrcCode=$(ManageLangs ${Lang} "copy" ${chosen} ${TheNewChosen})
+											;;
+										*)
+											;;
+									esac
+									refresh="yes"
+								else
+									case ${UserArg} in
+										rename)
+											errorCode "rename" "null"
+											;;
+										cp|copy)
+											errorCode "backup" "null"
+											;;
+										*)
+											;;
+									esac
+								fi
 								;;
 							*${chosen}*)
 								chosen=$(echo ${TheSrcCode} | grep ${chosen})
@@ -2095,9 +2122,9 @@ ManageCreate()
 	shift
 	local Choice=$1
 	shift
-	local CreateArgs=( $@ )
+	local CreateArgs=( "${@}" )
 	if [ ! -z "${Choice}" ]; then
-		ManageLangs ${Lang} "${Choice}" ${Code} ${UserIn[@]}
+		ManageLangs ${Lang} "${Choice}" ${Code} "${UserIn[@]}"
 	else
 		#Show help page
 		theHelp CreateHelp ${Lang}
@@ -2397,20 +2424,20 @@ Actions-NoLang()
 				;;
 			#Modes
 			mode)
-				local ModeArgs=( ${UserIn[@]} )
+				local ModeArgs=( "${UserIn[@]}" )
 				case ${UserIn[1]} in
 					#Provide help page when asked
 					-h|--help)
 						ModeArgs[0]=""
 						ModeArgs[1]=""
-						theHelp ModesHelp ${ModeArgs[@]}
+						theHelp ModesHelp "${ModeArgs[@]}"
 						;;
 					*)
 						local useMode=${ModeArgs[1]}
 						ModeArgs[0]=""
 						ModeArgs[1]=""
 						#Swap cl[ide] to a given mode
-						ModeHandler ${useMode} ${Lang} ${cLang} "none" ${ModeArgs[@]}
+						ModeHandler ${useMode} ${Lang} ${cLang} "none" "${ModeArgs[@]}"
 						;;
 				esac
 				;;
@@ -2445,7 +2472,7 @@ Actions()
 	local ProjectPrompt
 	local FirstAction=$1
 	#Pass into array
-	local UserIn=( $@ )
+	local UserIn=( "${@}" )
 	CodeProject="none"
 
 	#Language Chosen
@@ -2576,7 +2603,7 @@ Actions()
 					type)
 						case ${UserIn[1]} in
 							--help)
-								HelpMenu ${Lang} ${UserIn[@]}
+								HelpMenu ${Lang} "${UserIn[@]}"
 								;;
 							*)
 								ManageLangs ${Lang} "Lang-Type" ${UserIn[1]}
@@ -2587,7 +2614,7 @@ Actions()
 					select|set|add)
 						case ${UserIn[1]} in
 							--help)
-								HelpMenu ${Lang} ${UserIn[@]}
+								HelpMenu ${Lang} "${UserIn[@]}"
 								;;
 							*)
 								local theExt
@@ -2650,7 +2677,7 @@ Actions()
 					unset)
 						case ${UserIn[1]} in
 							--help)
-								HelpMenu ${Lang} ${UserIn[@]}
+								HelpMenu ${Lang} "${UserIn[@]}"
 								;;
 							*)
 								local TheNewChosen
@@ -2685,7 +2712,7 @@ Actions()
 					rm|remove|delete)
 						case ${UserIn[1]} in
 							--help)
-								HelpMenu ${Lang} ${UserIn[@]}
+								HelpMenu ${Lang} "${UserIn[@]}"
 								;;
 							--src|--bin)
 								Remove ${UserIn[1]} ${TheSrcCode} ${UserIn[2]} ${UserIn[3]}
@@ -2703,7 +2730,7 @@ Actions()
 					rmsrc)
 						case ${UserIn[1]} in
 							--help)
-								HelpMenu ${Lang} ${UserIn[@]}
+								HelpMenu ${Lang} "${UserIn[@]}"
 								;;
 							*)
 								Remove "--src" ${TheSrcCode} ${UserIn[1]} ${UserIn[2]}
@@ -2716,7 +2743,7 @@ Actions()
 					rmbin)
 						case ${UserIn[1]} in
 							--help)
-								HelpMenu ${Lang} ${UserIn[@]}
+								HelpMenu ${Lang} "${UserIn[@]}"
 								;;
 							*)
 								Remove "--bin" ${TheSrcCode} ${UserIn[1]} ${UserIn[2]}
@@ -2728,7 +2755,7 @@ Actions()
 					using)
 						case ${UserIn[1]} in
 							--help)
-								HelpMenu ${Lang} ${UserIn[@]}
+								HelpMenu ${Lang} "${UserIn[@]}"
 								;;
 							*)
 								echo "${cLang}"
@@ -2739,7 +2766,7 @@ Actions()
 					cd)
 						case ${UserIn[1]} in
 							--help)
-								HelpMenu ${Lang} ${UserIn[@]}
+								HelpMenu ${Lang} "${UserIn[@]}"
 								;;
 							*)
 								local here
@@ -2788,7 +2815,7 @@ Actions()
 					mkdir)
 						case ${UserIn[1]} in
 							--help)
-								HelpMenu ${Lang} ${UserIn[@]}
+								HelpMenu ${Lang} "${UserIn[@]}"
 								;;
 							*)
 								#Use ONLY for Projects
@@ -2815,7 +2842,7 @@ Actions()
 									*)
 										case ${UserIn[1]} in
 											--help)
-												HelpMenu ${Lang} ${UserIn[@]}
+												HelpMenu ${Lang} "${UserIn[@]}"
 												;;
 											mv|move)
 												TheExt=$(ManageLangs ${Lang} "getExt")
@@ -2878,7 +2905,7 @@ Actions()
 						if [ ! -z "${TheSrcCode}" ]; then
 							case ${UserIn[1]} in
 								--help)
-									HelpMenu ${Lang} ${UserIn[@]}
+									HelpMenu ${Lang} "${UserIn[@]}"
 									;;
 								*)
 									echo -e "${TheSrcCode//,/\\n}"
@@ -2896,7 +2923,7 @@ Actions()
 							*)
 								case ${UserIn[1]} in
 									--help)
-										HelpMenu ${Lang} ${UserIn[@]}
+										HelpMenu ${Lang} "${UserIn[@]}"
 										;;
 									*)
 										case ${Lang} in
@@ -2937,7 +2964,7 @@ Actions()
 						#Project commands
 						case ${UserIn[1]} in
 							--help)
-								HelpMenu ${Lang} ${UserIn[@]}
+								HelpMenu ${Lang} "${UserIn[@]}"
 								;;
 							#Create new project
 							new)
@@ -3417,10 +3444,10 @@ Actions()
 					bkup|backup|restore)
 						case ${UserIn[1]} in
 							--help)
-								HelpMenu ${Lang} ${UserIn[@]}
+								HelpMenu ${Lang} "${UserIn[@]}"
 								;;
 							*)
-								BackupOrRestore ${Lang} ${UserArg} ${UserIn[@]}
+								BackupOrRestore ${Lang} ${UserArg} "${UserIn[@]}"
 								;;
 						esac
 						;;
@@ -3428,14 +3455,14 @@ Actions()
 					#OR
 					#Make a copy of your selected code...similar to backup...but nothing to restore
 					cp|copy|rename)
-						CopyOrRename ${Lang} ${UserIn[@]}
+						CopyOrRename ${Lang} "${UserIn[@]}"
 						refresh="yes"
 						;;
 					#use the shell of a given language
 					shell)
 						case ${UserIn[1]} in
 							--help)
-								HelpMenu ${Lang} ${UserIn[@]}
+								HelpMenu ${Lang} "${UserIn[@]}"
 								;;
 							*)
 								ManageLangs ${Lang} "shell"
@@ -3461,7 +3488,7 @@ Actions()
 								local NewCode
 								BeforeFiles=$(ManageLangs ${Lang} "BeforeFiles")
 								#Create new code
-								ManageLangs ${Lang} "customCode" ${Lang} ${cLang} ${UserIn[@]}
+								ManageLangs ${Lang} "customCode" ${Lang} ${cLang} "${UserIn[@]}"
 								AfterFiles=$(ManageLangs ${Lang} "AfterFiles")
 								AllFiles="${BeforeFiles} ${AfterFiles}"
 								#Look ALL files for new for new file
@@ -3475,7 +3502,7 @@ Actions()
 								;;
 							--show|-s)
 								#Show Source Code
-								ManageLangs ${Lang} "customCodeShow" ${Lang} ${cLang} ${UserIn[@]}
+								ManageLangs ${Lang} "customCodeShow" ${Lang} ${cLang} "${UserIn[@]}"
 								;;
 							#Protect against incorrect file naming
 							-*)
@@ -3623,7 +3650,7 @@ Actions()
 					${editor}|edit|ed|${ReadBy}|read)
 						case ${UserIn[1]} in
 							--help)
-								HelpMenu ${Lang} ${UserIn[@]}
+								HelpMenu ${Lang} "${UserIn[@]}"
 								;;
 							#edit non-langugage source files
 							non-lang)
@@ -3676,14 +3703,14 @@ Actions()
 					mode)
 						case ${UserIn[1]} in
 							--help)
-								HelpMenu ${Lang} ${UserIn[@]}
+								HelpMenu ${Lang} "${UserIn[@]}"
 								;;
 							*)
 								#Swap cl[ide] to a given mode
-								local ModeArgs=( ${UserIn[@]} )
+								local ModeArgs=( "${UserIn[@]}" )
 								ModeArgs[0]=""
 								ModeArgs[1]="none"
-								ModeHandler ${UserIn[1]} ${Lang} ${cLang} ${ModeArgs[@]}
+								ModeHandler ${UserIn[1]} ${Lang} ${cLang} "${ModeArgs[@]}"
 								;;
 						esac
 						;;
@@ -3691,7 +3718,7 @@ Actions()
 					search)
 						case ${UserIn[1]} in
 							--help)
-								HelpMenu ${Lang} ${UserIn[@]}
+								HelpMenu ${Lang} "${UserIn[@]}"
 								;;
 							*)
 								lookFor ${UserIn[1]} ${UserIn[2]}
@@ -3702,7 +3729,7 @@ Actions()
 					notes)
 						case ${UserIn[1]} in
 							--help)
-								HelpMenu ${Lang} ${UserIn[@]}
+								HelpMenu ${Lang} "${UserIn[@]}"
 								;;
 							*)
 								#Handle language notes
@@ -3738,7 +3765,7 @@ Actions()
 						#what to create
 						case ${UserIn[1]} in
 							--help)
-								HelpMenu ${Lang} ${UserIn[@]}
+								HelpMenu ${Lang} "${UserIn[@]}"
 								;;
 							cpl|cpl-args)
 								local options
@@ -3780,18 +3807,18 @@ Actions()
 
 												#User provided a value
 												if [ ! -z "${NewVal}" ]; then
-													NewVal=( ${UserIn[0]} ${UserIn[1]} ${UserIn[2]} ${NewVal[@]} )
+													NewVal=( ${UserIn[0]} ${UserIn[1]} ${UserIn[2]} "${NewVal[@]}" )
 												fi
 											fi
 										#User gave pre-set argument
 										else
-											NewVal=${UserIn[@]}
+											NewVal="${UserIn[@]}"
 										fi
 
 										#User Value was given
 										if [ ! -z "${NewVal}" ]; then
 											#Checking and getting compile arguments
-											local newCplArgs=$(ManageLangs ${Lang} "setCplArgs" ${NewVal[@]})
+											local newCplArgs=$(ManageLangs ${Lang} "setCplArgs" "${NewVal[@]}")
 											#compile argument was given
 											if [ ! -z "${newCplArgs}" ]; then
 												#Checks of returned values
@@ -3822,7 +3849,7 @@ Actions()
 							make)
 								case ${UserIn[1]} in
 									--help)
-										HelpMenu ${Lang} ${UserIn[@]}
+										HelpMenu ${Lang} "${UserIn[@]}"
 										;;
 									*)
 										case ${Lang} in
@@ -3841,7 +3868,7 @@ Actions()
 							args)
 								case ${UserIn[1]} in
 									--help)
-										HelpMenu ${Lang} ${UserIn[@]}
+										HelpMenu ${Lang} "${UserIn[@]}"
 										;;
 									*)
 										echo -n "${cLang}\$ "
@@ -4019,30 +4046,34 @@ Actions()
 							${UserIn[1]}-${UserIn[2]})
 								case ${OldVal} in
 									none)
-										RunCplArgs=$(ManageLangs ${Lang} "${UserIn[1]}-${UserIn[2]}" ${TheSrcCode} ${UserIn[@]})
+										RunCplArgs=$(ManageLangs ${Lang} "${UserIn[1]}-${UserIn[2]}" ${TheSrcCode} "${UserIn[@]}")
 										;;
 									*)
-										RunCplArgs=$(ManageLangs ${Lang} "${UserIn[1]}-${UserIn[2]}" ${TheSrcCode} ${UserIn[@]})
+										RunCplArgs=$(ManageLangs ${Lang} "${UserIn[1]}-${UserIn[2]}" ${TheSrcCode} "${UserIn[@]}")
 										RunCplArgs="${RunCplArgs} ${OldVal}"
 										;;
 								esac
 								;;
 							#Manage Create
 							*)
-								ManageCreate ${Lang} ${TheSrcCode} ${UserIn[1]} ${UserIn[2]} ${UserIn[3]}
+								if [ ! -z "${UserIn[1]}" ]; then
+									ManageCreate ${Lang} ${TheSrcCode} ${UserIn[1]} ${UserIn[2]} ${UserIn[3]}
+								else
+									HelpMenu ${Lang} "${UserIn[@]}"
+								fi
 								;;
 						esac
 						;;
 					#(c)ompile (a)nd (r)un
 					car)
-						local CarArgs=( ${UserIn[@]} )
+						local CarArgs=( "${UserIn[@]}" )
 						local CplArgs=( )
 						local RunArgs=( )
 						local GetRun
 						CarArgs[0]=""
 						case ${UserIn[1]} in
 							--help)
-								HelpMenu ${Lang} ${UserIn[@]}
+								HelpMenu ${Lang} "${UserIn[@]}"
 								;;
 							*)
 								if [ ! -z "${TheSrcCode}" ]; then
@@ -4064,19 +4095,19 @@ Actions()
 													esac
 
 													if [ ! -z "${ThisTime}" ] && [ -z "${GetRun}" ]; then
-														CplArgs+=(${ThisTime})
+														CplArgs+=( "${ThisTime}" )
 													else
-														RunArgs+=(${ThisTime})
+														RunArgs+=( "${ThisTime}" )
 													fi
 												fi
 											done
 											#Lets Compile
-											compileCode ${Lang} "cpl" ${CplArgs[@]}
+											compileCode ${Lang} "cpl" "${CplArgs[@]}"
 											;;
 										--run)
 											GetRun="-a"
 											CarArgs[1]=""
-											RunArgs=( ${CarArgs[@]} )
+											RunArgs=( "${CarArgs[@]}" )
 											compileCode ${Lang} "cpl"
 											;;
 										*)
@@ -4086,7 +4117,7 @@ Actions()
 									esac
 
 									if [ ! -z "${GetRun}" ]; then
-										runCode ${Lang} ${TheSrcCode} "run" "--args"  ${RunArgs[@]}
+										runCode ${Lang} ${TheSrcCode} "run" "--args"  "${RunArgs[@]}"
 									else
 										runCode ${Lang} ${TheSrcCode}
 									fi
@@ -4102,11 +4133,11 @@ Actions()
 					compile|cpl)
 						case ${UserIn[1]} in
 							--help)
-								HelpMenu ${Lang} ${UserIn[@]}
+								HelpMenu ${Lang} "${UserIn[@]}"
 								;;
 							*)
 								#Lets Compile
-								compileCode ${Lang} ${UserIn[@]}
+								compileCode ${Lang} "${UserIn[@]}"
 								;;
 						esac
 
@@ -4127,7 +4158,7 @@ Actions()
 							*)
 								case ${UserIn[1]} in
 									--help)
-										HelpMenu ${Lang} ${UserIn[@]}
+										HelpMenu ${Lang} "${UserIn[@]}"
 										;;
 									*)
 										case ${Lang} in
@@ -4150,13 +4181,13 @@ Actions()
 						;;
 					#Install compiled code into aliases
 					install)
-						InstallCode ${Lang} ${UserIn[@]}
+						InstallCode ${Lang} "${UserIn[@]}"
 						;;
 					#Add debugging functionality
 					debug)
 						case ${UserIn[1]} in
 							--help)
-								HelpMenu ${Lang} ${UserIn[@]}
+								HelpMenu ${Lang} "${UserIn[@]}"
 								;;
 							*)
 								if [ ! -z "${TheSrcCode}" ]; then
@@ -4200,16 +4231,16 @@ Actions()
 					execute|exe|run)
 						case ${UserIn[1]} in
 							--help)
-								HelpMenu ${Lang} ${UserIn[@]}
+								HelpMenu ${Lang} "${UserIn[@]}"
 								;;
 							-d|--debug)
-								ManageLangs ${Lang} "debug" ${TheSrcCode} ${UserIn[1]}
+								ManageLangs ${Lang} "debug" ${TheSrcCode} "${UserIn[1]}"
 								;;
 							*)
 								case ${CodeProject} in
 									none)
 										if [ ! -z "${TheSrcCode}" ]; then
-											runCode ${Lang} ${TheSrcCode} ${UserIn[@]}
+											runCode ${Lang} ${TheSrcCode} "${UserIn[@]}"
 										else
 											errorCode "cpl" "none"
 										fi
@@ -4217,10 +4248,10 @@ Actions()
 									#It is assumed that the project name is the binary
 									*)
 										if [ ! -z "${TheSrcCode}" ]; then
-											runCode ${Lang} ${TheSrcCode} ${UserIn[@]}
+											runCode ${Lang} ${TheSrcCode} "${UserIn[@]}"
 										else
 											#May Cause Prolems
-											runCode ${Lang} ${CodeProject} ${UserIn[@]}
+											runCode ${Lang} ${CodeProject} "${UserIn[@]}"
 										fi
 										;;
 								esac
@@ -4230,14 +4261,14 @@ Actions()
 					time)
 						case ${UserIn[1]} in
 							--help)
-								HelpMenu ${Lang} ${UserIn[@]}
+								HelpMenu ${Lang} "${UserIn[@]}"
 								;;
 							*)
 								TimeRun="time"
 								case ${CodeProject} in
 									none)
 										if [ ! -z "${TheSrcCode}" ]; then
-											runCode ${Lang} ${TheSrcCode} ${UserIn[@]}
+											runCode ${Lang} ${TheSrcCode} "${UserIn[@]}"
 										else
 											errorCode "cpl" "none"
 										fi
@@ -4245,10 +4276,10 @@ Actions()
 									#It is assumed that the project name is the binary
 									*)
 										if [ ! -z "${TheSrcCode}" ]; then
-											runCode ${Lang} ${TheSrcCode} ${UserIn[@]}
+											runCode ${Lang} ${TheSrcCode} "${UserIn[@]}"
 										else
 											#May Cause Prolems
-											runCode ${Lang} ${CodeProject} ${UserIn[@]}
+											runCode ${Lang} ${CodeProject} "${UserIn[@]}"
 										fi
 										;;
 								esac
@@ -4265,13 +4296,13 @@ Actions()
 						;;
 					#Display help page
 					help)
-						HelpMenu ${Lang} ${UserIn[@]}
+						HelpMenu ${Lang} "${UserIn[@]}"
 						;;
 					#load last session
 					last|load)
 						case ${UserIn[1]} in
 							--help)
-								HelpMenu ${Lang} ${UserIn[@]}
+								HelpMenu ${Lang} "${UserIn[@]}"
 								;;
 							*)
 								local SavedLang=${Lang}
@@ -4335,7 +4366,7 @@ Actions()
 					save)
 						case ${UserIn[1]} in
 							--help)
-								HelpMenu ${Lang} ${UserIn[@]}
+								HelpMenu ${Lang} "${UserIn[@]}"
 								;;
 							*)
 								SaveSession ${Lang} ${UserIn[1]}
@@ -4343,11 +4374,11 @@ Actions()
 						esac
 						;;
 					session)
-						local NewArgs=( ${UserIn[@]} )
+						local NewArgs=( "${UserIn[@]}" )
 						NewArgs[0]=""
 						case ${UserIn[1]} in
 							--help)
-								HelpMenu ${Lang} ${UserIn[@]}
+								HelpMenu ${Lang} "${UserIn[@]}"
 								;;
 							list)
 								ListSession
@@ -4356,7 +4387,7 @@ Actions()
 							save)
 								case ${UserIn[2]} in
 									--help)
-										HelpMenu ${Lang} ${NewArgs[@]}
+										HelpMenu ${Lang} "${NewArgs[@]}"
 										;;
 									*)
 										SaveSession ${Lang} ${UserIn[2]}
@@ -4367,7 +4398,7 @@ Actions()
 							last|load)
 								case ${UserIn[2]} in
 									--help)
-										HelpMenu ${Lang} ${NewArgs[@]}
+										HelpMenu ${Lang} "${NewArgs[@]}"
 										;;
 									*)
 										local SavedLang=${Lang}
@@ -4822,14 +4853,14 @@ CLI()
 								shift
 								shift
 								TheLang=$(pgLang ${TheLang})
-								local Args=$@
+								local Args=( "${@}" )
 								if [ ! -z "${TheProjectName}" ]; then
 									case ${TheLang} in
 										no)
 											;;
 										*)
 											InAndOut="yes"
-											Actions ${TheLang} "code" "project" "new" ${TheProjectName} ${Args[@]}
+											Actions ${TheLang} "code" "project" "new" ${TheProjectName} "${Args[@]}"
 											;;
 									esac
 								fi
@@ -5022,8 +5053,9 @@ CLI()
 															TimeRun="time"
 															shift
 															local ArgFlag=$1
+															local CodeRunArgs=( "${@}" )
 															if [ ! -z "${ArgFlag}" ]; then
-																runCode ${Lang} "none" "none" "none" $@
+																runCode ${Lang} "none" "none" "none" "${CodeRunArgs[@]}"
 															else
 																runCode ${Lang} "none"
 															fi
@@ -5059,8 +5091,9 @@ CLI()
 															InAndOut="yes"
 															shift
 															local ArgFlag=$1
+															local CodeRunArgs=( "${@}" )
 															if [ ! -z "${ArgFlag}" ]; then
-																runCode ${Lang} "none" "none" "none" $@
+																runCode ${Lang} "none" "none" "none" "${CodeRunArgs[@]}"
 															else
 																runCode ${Lang} "none"
 															fi
@@ -5491,7 +5524,7 @@ CLI()
 															passcCode="none"
 														fi
 														#Swap cl[ide] to a given mode
-														ModeHandler ${ModeType} ${Lang} ${cLang} ${passcCode} $@
+														ModeHandler ${ModeType} ${Lang} ${cLang} ${passcCode} "${@}"
 													fi
 													;;
 												-*|--*)
@@ -5511,10 +5544,10 @@ CLI()
 																		;;
 																esac
 															fi
-															CLI --project ${ModeAction} ${CheckForLang} ${GetProject} $@
+															CLI --project ${ModeAction} ${CheckForLang} ${GetProject} "${@}"
 															;;
 														*)
-															CLI --project ${ModeAction} ${GetProject} $@
+															CLI --project ${ModeAction} ${GetProject} "${@}"
 															;;
 													esac
 													;;
@@ -5641,8 +5674,8 @@ CLI()
 						if [ ! -z "${Lang}" ]; then
 							case ${UserArg} in
 								--rm)
-									CLI --rm-bin $@
-									CLI --rm-src $@
+									CLI --rm-bin "${@}"
+									CLI --rm-src "${@}"
 									;;
 								--rm-bin)
 									#Get the binary path
@@ -5839,14 +5872,14 @@ CLI()
 						if [ ! -z "${Lang}" ]; then
 							Code=$1
 							shift
-							local Args=$@
+							local Args=( "${@}" )
 							case ${Code} in
 								-h|--help)
 									#theHelp InstallCliHelp
 									;;
 								*)
 									if [ ! -z "${Code}" ]; then
-										main --new "${Lang}" "${Code}" ${Args[@]}
+										main --new "${Lang}" "${Code}" "${Args[@]}"
 									fi
 									;;
 							esac
@@ -5880,7 +5913,7 @@ CLI()
 								Lang=$(pgLang $1)
 								shift
 								shift
-								Args=$@
+								Args=( "${@}" )
 								;;
 							#clide --new <src> --<other>
 							--*)
@@ -5888,7 +5921,7 @@ CLI()
 								Lang=$(SelectLangByCode $1)
 								Code=$1
 								shift
-								Args=$@
+								Args=( "${@}" )
 								;;
 							#clide --new <lang> <code> <flag> <args>
 							*)
@@ -5897,7 +5930,7 @@ CLI()
 								Lang=$(pgLang $1)
 								shift
 								shift
-								Args=$@
+								Args=( "${@}" )
 								;;
 						esac
 						if [ ! -z "${Lang}" ]; then
@@ -5925,7 +5958,7 @@ CLI()
 												#Get list of files  BEFORE creation
 												BeforeFiles=$(ManageLangs ${Lang} "BeforeFiles")
 												#Create new code
-												Actions ${Lang} "code" "new" "-c" ${Args[@]}
+												Actions ${Lang} "code" "new" "-c" "${Args[@]}"
 												#Get list of files  AFTER creation
 												AfterFiles=$(ManageLangs ${Lang} "AfterFiles")
 												#Combine BEFORE and AFTER
@@ -5946,7 +5979,7 @@ CLI()
 												do
 													AlreadyCode=$(ManageLangs ${Lang} "getCode" ${NewCode})
 													if [ -z "${AlreadyCode}" ]; then
-														Actions ${Lang} "code" "new" ${NewCode} ${Args[@]}
+														Actions ${Lang} "code" "new" ${NewCode} "${Args[@]}"
 														FindCode=$(ManageLangs ${Lang} "getCode" ${NewCode} ${AlreadyCode})
 														if [ ! -z "${FindCode}" ]; then
 															echo -e "\e[1;4${ColorCode}m[${Lang} (${FindCode}) Created]\e[0m"
@@ -5954,7 +5987,7 @@ CLI()
 													else
 														local SecondTry=$(ManageLangs ${Lang} "getCode" ${NewCode} ${AlreadyCode})
 														if [ -z "${SecondTry}" ]; then
-															Actions ${Lang} "code" "new" ${NewCode} ${Args[@]}
+															Actions ${Lang} "code" "new" ${NewCode} "${Args[@]}"
 															FindCode=$(ManageLangs ${Lang} "getCode" ${NewCode} ${AlreadyCode})
 															if [ ! -z "${FindCode}" ]; then
 																echo -e "\e[1;4${ColorCode}m[${Lang} (${FindCode}) Created]\e[0m"
@@ -6204,7 +6237,7 @@ CLI()
 
 					local CplArgs=( )
 					local RunArgs=( )
-					for ThisTime in $@;
+					for ThisTime in ${@};
 					do
 						if [ ! -z "${TheSrcCplAndRun}" ]; then
 							break
@@ -6243,16 +6276,16 @@ CLI()
 							esac
 						fi
 					done
-					RunArgs=( $@ )
+					RunArgs=( "${@}" )
 
-					CLI --cpl ${cplArg} ${RunLang} ${TheSrcCplAndRun} ${CplArgs[@]}
+					CLI --cpl ${cplArg} ${RunLang} ${TheSrcCplAndRun} "${CplArgs[@]}"
 					cd "${TheOldPWD}"
 					case ${UserArg} in
 						--cat|--cpl-time)
-							CLI --time ${RunLang} ${TheSrcCplAndRun} ${RunArgs[@]}
+							CLI --time ${RunLang} ${TheSrcCplAndRun} "${RunArgs[@]}"
 							;;
 						*)
-							CLI --run ${RunLang} ${TheSrcCplAndRun} ${RunArgs[@]}
+							CLI --run ${RunLang} ${TheSrcCplAndRun} "${RunArgs[@]}"
 							;;
 					esac
 				fi
@@ -6271,7 +6304,7 @@ CLI()
 								TheTempCode=$(ManageLangs ${Lang} "getNewCode")
 								case ${UserArg} in
 									--run-ct)
-										CLI --run ${Lang} ${TheTempCode} $@
+										CLI --run ${Lang} ${TheTempCode} "${@}"
 										;;
 									--edit-ct)
 										CLI --edit ${Lang} ${TheTempCode}
@@ -6281,7 +6314,7 @@ CLI()
 										;;
 									--car-ct)
 										CLI --cpl-ct ${Lang}
-										CLI --run-ct ${Lang} $@
+										CLI --run-ct ${Lang} "${@}"
 										;;
 									*)
 										;;
@@ -6291,6 +6324,7 @@ CLI()
 					fi
 				fi
 				;;
+			#Compile the code templates of a given language
 			--compile-code-temp|--cpl-ct)
 				if [ -z "${ThePipe}" ]; then
 					shift
@@ -6341,14 +6375,14 @@ CLI()
 						if [ ! -z "${Lang}" ]; then
 							Code=$1
 							shift
-							Args=$@
+							Args=( "${@}" )
 							case ${Code} in
 								-h|--help)
 									theHelp cplCliHelp
 									;;
 								*)
 									if [ ! -z "${Code}" ]; then
-										main --cpl "${Lang}" "${Code}" ${Args[@]}
+										main --cpl "${Lang}" "${Code}" "${Args[@]}"
 									fi
 									;;
 							esac
@@ -6361,7 +6395,7 @@ CLI()
 							# $ clide --cpl --<cplType> <lang> <code> or $ clide --cpl --<cplType> <code>
 							--)
 								shift
-								main --cpl $@
+								main --cpl "${@}"
 								;;
 							--*)
 								case $1 in
@@ -6372,7 +6406,7 @@ CLI()
 										;;
 								esac
 								shift
-								main --cpl $@
+								main --cpl "${@}"
 								;;
 							*)
 								case ${Code} in
@@ -6381,14 +6415,14 @@ CLI()
 										Lang=$(SelectLangByCode $1)
 										Code=$1
 										shift
-										Args=$@
+										Args=( "${@}" )
 										;;
 									# $ clide --cpl <lang> <code> <args> or $ clide --cpl <code> <args>
 									*)
 										Lang=$(pgLang $1)
 										shift
 										shift
-										Args=$@
+										Args=( "${@}" )
 										;;
 								esac
 
@@ -6409,13 +6443,13 @@ CLI()
 													fi
 												fi
 												InAndOut="yes"
-												if [ ! -z "${Args[@]}" ]; then
-													case ${Args[@]} in
+												if [ ! -z "${Args[0]}" ]; then
+													case ${Args[0]} in
 														--args*)
-															Actions ${Lang} ${Code} "cpl" ${Args[@]}
+															Actions ${Lang} ${Code} "cpl" "${Args[@]}"
 															;;
 														*)
-															Actions ${Lang} ${Code} "cpl" --args ${Args[@]}
+															Actions ${Lang} ${Code} "cpl" --args "${Args[@]}"
 															;;
 													esac
 												else
@@ -6451,14 +6485,14 @@ CLI()
 						if [ ! -z "${Lang}" ]; then
 							Code=$1
 							shift
-							Args=$@
+							Args=( "${@}" )
 							case ${Code} in
 								-h|--help)
 									theHelp InstallCliHelp
 									;;
 								*)
 									if [ ! -z "${Code}" ]; then
-										main --install "${Lang}" "${Code}" ${Args[@]}
+										main --install "${Lang}" "${Code}" "${Args[@]}"
 									fi
 									;;
 							esac
@@ -6481,14 +6515,14 @@ CLI()
 										Lang=$(SelectLangByCode $1)
 										Code=$1
 										shift
-										Args=$@
+										Args=( "${@}" )
 										;;
 									# $ clide --install <lang> <code> <args> or $ clide --install <code> <args>
 									*)
 										Lang=$(pgLang $1)
 										shift
 										shift
-										Args=$@
+										Args=( "${@}" )
 										;;
 								esac
 
@@ -6504,7 +6538,7 @@ CLI()
 											if [ ! -z "${TheSrcCode}" ]; then
 												InAndOut="yes"
 												if [ ! -z "${Args[@]}" ]; then
-													InstallCode ${Lang} "install" ${Args[@]}
+													InstallCode ${Lang} "install" "${Args[@]}"
 												else
 													InstallCode ${Lang} "install"
 												fi
@@ -6557,7 +6591,7 @@ CLI()
 										MessageOverride="yes"
 										;;
 								esac
-								CLI ${UserArg} ${Lang} ${TheCode} $@
+								CLI ${UserArg} ${Lang} ${TheCode} "${@}"
 							done
 							MultiPipe --remove
 							;;
@@ -6578,7 +6612,7 @@ CLI()
 												if [ ! -z "${IsLang}" ]; then
 													Code=${TheLang}
 													TheLang=${IsLang}
-													CLI ${UserArg} ${TheLang} ${Code} $@
+													CLI ${UserArg} ${TheLang} ${Code} "${@}"
 												fi
 												;;
 											*)
@@ -6588,7 +6622,7 @@ CLI()
 														;;
 													*)
 														if [ ! -z "${CodeDir}" ]; then
-															CLI ${UserArg} ${TheLang} $@
+															CLI ${UserArg} ${TheLang} "${@}"
 														fi
 														;;
 												esac
@@ -6633,9 +6667,9 @@ CLI()
 												*)
 													;;
 											esac
-											local Args=$@
+											local Args=( "${@}" )
 											#run the code..."none" "none" is to provide the needed padding to run
-											runCode ${Lang} ${Code} "none" "none" ${Args[@]}
+											runCode ${Lang} ${Code} "none" "none" "${Args[@]}"
 										else
 											errorCode "cpl" "cli-need" "${Lang}"
 										fi
@@ -6678,8 +6712,73 @@ CLI()
 					fi
 				fi
 				;;
+			--bkup|--restore)
+				if [ -z "${ThePipe}" ]; then
+					shift
+					local Action=$1
+					local Lang
+					local Code
+					local CodeDir
+					case ${Action} in
+						--*)
+							Lang=$2
+							Code=$3
+							;;
+						*)
+							Action=""
+							Lang=$1
+							Code=$2
+							;;
+					esac
+
+					#Handle source code and langugage
+					if [ -z "${Code}" ]; then
+						Code=${Lang}
+						Lang=$(SelectLangByCode ${Code})
+					else
+						Lang=$(pgLang ${Lang})
+					fi
+
+					CodeDir=$(pgDir ${Lang})
+					if [ ! -z "${CodeDir}" ]; then
+						cd ${CodeDir}
+						TheSrcCode=$(selectCode ${Lang} ${Code})
+						if [ ! -z "${TheSrcCode}" ]; then
+							case ${UserArg} in
+								--restore)
+									case ${Action} in
+										--help)
+											theHelp CliBackupOrRestore ${UserArg}
+											;;
+										*)
+											BackupOrRestore ${Lang} "bkup" "none" --restore
+											;;
+									esac
+									;;
+								*)
+									case ${Action} in
+										--help)
+											theHelp CliBackupOrRestore ${UserArg}
+											;;
+										--remove)
+											BackupOrRestore ${Lang} "bkup" "none" --remove
+											;;
+										--restore)
+											BackupOrRestore ${Lang} "bkup" "none" --restore
+											;;
+										*)
+											BackupOrRestore ${Lang} "bkup"
+											;;
+									esac
+									;;
+							esac
+						fi
+					fi
+				fi
+				;;
 			#cat out source code
 			--read|--read-num)
+				#ensure nothing is getting piped into clide
 				if [ -z "${ThePipe}" ]; then
 					shift
 					local Action=$1
@@ -6699,8 +6798,11 @@ CLI()
 								;;
 							--lang)
 								Lang=$2
+								#All characters are lowercase
 								Lang=${Lang,,}
+								#Frist character is uppercase
 								Lang=${Lang^}
+								#Make sure the support file exists
 								if [ -f ${LangsDir}/Lang.${Lang} ]; then
 									case ${UserArg} in
 										--read-num)
@@ -6716,9 +6818,9 @@ CLI()
 								Lang=$(SelectLangByCode $1)
 								Code=$1
 								shift
-								local Args=$@
+								local Args=( "${@}" )
 								if [ ! -z "${Lang}" ] && [ ! -z "${Code}" ]; then
-									main ${UserArg} "${Lang}" "${Code}" ${Args[@]}
+									main ${UserArg} "${Lang}" "${Code}" "${Args[@]}"
 								fi
 								;;
 						esac
@@ -6768,31 +6870,44 @@ CLI()
 				;;
 			#List source code from given language
 			--list|--ls|--src)
+				#ensure nothing is getting piped into clide
 				if [ -z "${ThePipe}" ]; then
 					shift
+					#Select language
 					local Lang=$(pgLang $1)
 					case ${Lang} in
+						#language does not exist
 						no)
 							errorCode "lang" "cli-not-supported" "$1"
 							;;
+						#language exists
 						*)
+							#select source code directory
 							local CodeDir=$(pgDir ${Lang})
+							#directory exists
 							if [ ! -z "${CodeDir}" ]; then
+								#list files
 								ls ${CodeDir}
 							fi
 							;;
 					esac
 				fi
 				;;
+			#list the compiled/runable code
 			--list-cpl|--lscpl|--bin)
+				#ensure nothing is getting piped into clide
 				if [ -z "${ThePipe}" ]; then
 					shift
+					#Select language
 					local Lang=$(pgLang $1)
 					case ${Lang} in
+						#language does not exist
 						no)
 							errorCode "lang" "cli-not-supported" "$1"
 							;;
+						#language exists
 						*)
+							#list the compiled code of a given language
 							ManageLangs ${Lang} "lscpl"
 							;;
 					esac
@@ -6815,10 +6930,14 @@ main()
 	#No argument given
 	if [ -z "${UserArg}" ]; then
 		clear
+		#Get the list of supported languages
 		pg=$(ListLangs)
 		local getLang=""
+		#Make sure lanugages exist
 		if [ ! -z "${pg}" ]; then
+			#Ensure nothing is getting piped in
 			if [ -z "${ThePipe}" ]; then
+				#Protect clide from edits during runtime
 				Protect
 				#CliHelp
 				Banner "main"
@@ -6829,17 +6948,22 @@ main()
 				#Force user to select language
 				while [[ "${getLang}" == "" ]] || [[ "${Lang}" == "no" ]];
 				do
+					#display prompt
 					prompt="${Name}(${pg}):~$ "
+					#Get user prompt
 					read -e -p "${prompt}" getLang
 					case ${getLang} in
-						exit)
+						#close clide session
+						exit|close)
 							Protect "done"
 							break
 							;;
+						#no lnaguage is desired
 						no-lang|nl)
 							Lang="no-lang"
 							break
 							;;
+						#Attempt choosing a language
 						*)
 							#Verify Language
 							Lang=$(pgLang ${getLang})
@@ -6854,6 +6978,7 @@ main()
 							#Start IDE
 							Actions-NoLang
 							;;
+						#A valid language has been given
 						*)
 							#Start IDE
 							Actions ${Lang}
@@ -6866,10 +6991,13 @@ main()
 		else
 			errorCode "no-langs"
 		fi
+	#Handle cli arugments
 	else
 		case ${UserArg} in
+			#Clide is without a session
 			-*)
-				CLI $@
+				#handle clide from a cli command and not an IDE
+				CLI "${@}"
 				;;
 			*)
 				case ${UserArg} in
@@ -6885,9 +7013,13 @@ main()
 								errorCode "not-a-lang" "${Lang}"
 								;;
 							*)
+								#Make sure a directory exists
 								if [ ! -z "${CodeDir}" ]; then
+									#Go to the language's directory
 									cd ${CodeDir}
+									#preslect source code
 									Code=$(preSelectSrc ${Lang} ${Code})
+									#source code exists
 									if [ ! -z "${Code}" ]; then
 										#Start IDE
 										Actions ${Lang} ${Code}
@@ -6905,7 +7037,7 @@ main()
 								#Done protecting
 								Protect
 								#Start IDE
-								Actions-NoLang ${Args[@]}
+								Actions-NoLang "${Args[@]}"
 								#Done protecting
 								Protect "done"
 								;;
@@ -6924,7 +7056,7 @@ main()
 								case ${HiddenAction} in
 									-n|--new)
 										shift
-										Args=( $@ )
+										Args=( "${@}" )
 										if [ ! -z "${Args[0]}" ]; then
 											case ${Args[0]} in
 												--custom|-c)
@@ -6932,7 +7064,7 @@ main()
 													if [ ! -z "${CodeDir}" ] && [ -d "${CodeDir}" ]; then
 														cd ${CodeDir}
 														BeforeFiles=$(ManageLangs ${Lang} "BeforeFiles")
-														main ${HiddenAction} ${Lang} ${Args[@]}
+														main ${HiddenAction} ${Lang} "${Args[@]}"
 														AfterFiles=$(ManageLangs ${Lang} "AfterFiles")
 														#Combine BEFORE and AFTER
 														AllFiles="${BeforeFiles} ${AfterFiles}"
@@ -6949,14 +7081,14 @@ main()
 													fi
 													;;
 												*)
-													main ${HiddenAction} ${Lang} ${Args[@]}
+													main ${HiddenAction} ${Lang} "${Args[@]}"
 													;;
 											esac
 										fi
 										InAndOut="no"
-										Actions ${Lang} ${Args[@]}
+										Actions ${Lang} "${Args[@]}"
 										;;
-										# $ clide <lang> --project <action> <ProjectName>
+									# $ clide <lang> --project <action> <ProjectName>
 									-p|--project)
 										case ${NextHiddenAction} in
 											# $ clide <lang> --project --new <ProjectName>
@@ -6965,24 +7097,24 @@ main()
 											-n|--new|-i|--import)
 												shift
 												shift
-												Args=$@
-												main ${HiddenAction} ${NextHiddenAction} ${Lang} ${Args[@]}
+												Args=( "${@}" )
+												main ${HiddenAction} ${NextHiddenAction} ${Lang} "${Args[@]}"
 												InAndOut="no"
-												main ${HiddenAction} ${Lang} ${Args[@]}
+												main ${HiddenAction} ${Lang} "${Args[@]}"
 												;;
 											# $ clide <lang> --project <ProjectName>
 											*)
 												shift
-												Args=$@
-												main ${HiddenAction} ${Lang} ${Args[@]}
+												Args=( "${@}" )
+												main ${HiddenAction} ${Lang} "${Args[@]}"
 												;;
 										esac
 										;;
 									#Normal usage
 									*)
-										Args=$@
+										Args=( "${@}" )
 										#Start IDE
-										Actions ${Lang} ${Args[@]}
+										Actions ${Lang} "${Args[@]}"
 										;;
 								esac
 								;;
@@ -6995,25 +7127,32 @@ main()
 }
 
 FirstArg=$1
+#No argument has been given
 if [ -z "${FirstArg}" ]; then
+	#Clear cli history
 	history -c
 	#Run clide
-	main $@
+	main
 else
+	#Check number of arguments
 	case $# in
+		#Only one argument given
 		1)
 			#Ignore if program resolves to aliases
 			AliasTest=$(echo $@ | grep "/")
+			#make sure no alias is found
 			if [ -z "${AliasTest}" ]; then
+				#Clear cli history
 				history -c
 				#Run clide
-				main $@
+				main "$@"
 			fi
 			;;
 		*)
+			#Clear cli history
 			history -c
 			#Run clide
-			main $@
+			main "$@"
 			;;
 	esac
 fi

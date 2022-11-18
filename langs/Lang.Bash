@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.2.0"
+SupportV="0.2.03"
 Lang=Bash
 LangExt=".sh"
 ColorNum=2
@@ -20,7 +20,7 @@ TheCode=${TheSrcCode}
 errorCode()
 {
 	if [ -d ${LibDir} ] && [ -f ${LibDir}/errorCode.sh ]; then
-		${LibDir}/errorCode.sh $@
+		${LibDir}/errorCode.sh "${@}"
 	fi
 }
 
@@ -28,7 +28,7 @@ errorCode()
 AddAlias()
 {
 	if [ -d ${LibDir} ] && [ -f ${LibDir}/AddAlias.sh ]; then
-		${LibDir}/AddAlias.sh $@
+		${LibDir}/AddAlias.sh "${@}"
 	fi
 }
 
@@ -42,7 +42,7 @@ OtherColor()
 ProjectTemplateHandler()
 {
 	if [ -d ${LibDir} ] && [ -f ${LibDir}/ProjectTemplateHandler.sh ]; then
-		${LibDir}/ProjectTemplateHandler.sh ${Lang} $@
+		${LibDir}/ProjectTemplateHandler.sh ${Lang} "${@}"
 	fi
 }
 
@@ -267,7 +267,7 @@ UseBash()
 							esac
 							;;
 						*)
-							TheSrcDir=$(ProjectTemplateHandler ${EnvVars[@]} ${Type} ${mode})
+							TheSrcDir=$(ProjectTemplateHandler "${EnvVars[@]}" ${Type} ${mode})
 							;;
 					esac
 					;;
@@ -302,19 +302,19 @@ UseBash()
 			if [ ! -z "${LangRun}" ]; then
 				#Home
 				if [ ! -d "${LangHome}" ]; then
-					mkdir "${LangHome}"
+					mkdir -p "${LangHome}"
 				fi
 				#Src
 				if [ ! -d "${LangSrc}" ]; then
-					mkdir "${LangSrc}"
+					mkdir -p "${LangSrc}"
 				fi
 				#Bin
 				if [ ! -d "${LangBin}" ]; then
-					mkdir "${LangBin}"
+					mkdir -p "${LangBin}"
 				fi
 				#projects
 				if [ ! -d "${LangProject}" ]; then
-					mkdir "${LangProject}"
+					mkdir -p "${LangProject}"
 				fi
 			fi
 			;;
@@ -790,7 +790,7 @@ UseBash()
 						UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 						mkdir ${path}
 						if [ ! -z "${UseProjectTemplate}" ]; then
-							ProjectTemplateHandler ${EnvVars[@]} ${Type} ${project}
+							ProjectTemplateHandler "${EnvVars[@]}" ${Type} ${project}
 							if [ ! -d ${path}/bin ]; then
 								mkdir ${path}/bin
 							fi
@@ -818,7 +818,7 @@ UseBash()
 				*)
 					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					if [ ! -z "${UseProjectTemplate}" ]; then
-						ProjectTemplateHandler ${EnvVars[@]} ${Type} ${mode}
+						ProjectTemplateHandler "${EnvVars[@]}" ${Type} ${mode}
 					fi
 					;;
 			esac
@@ -1043,14 +1043,14 @@ UseBash()
 				shift
 				shift
 				shift
-				Args=$@
+				Args=( "${@}" )
 				if [ -z "${1}" ]; then
 					echo -n "${cLang}\$ ./${cTemplate} "
 					read -a Args
 				fi
 				#Template Args Given
 				if [ ! -z "${Args}" ]; then
-					${TemplateCode} ${Args[@]}
+					${TemplateCode} "${Args[@]}"
 				#No Template Args Given
 				else
 					${TemplateCode} --help
@@ -1070,14 +1070,14 @@ UseBash()
 				shift
 				shift
 				shift
-				Args=$@
+				Args=( "${@}" )
 				if [ -z "${1}" ]; then
 					echo -n "${cLang}\$ ./${cTemplate} --no-save "
 					read -a Args
 				fi
 				#Template Args Given
 				if [ ! -z "${Args}" ]; then
-					${TemplateCode} --no-save ${Args[@]}
+					${TemplateCode} --no-save "${Args[@]}"
 				#No Template Args Given
 				else
 					${TemplateCode} --help
@@ -1131,7 +1131,7 @@ UseBash()
 			local UseProjectTemplate
 			shift
 			shift
-			local Args=$@
+			local Args=( "${@}" )
 			local TheBin
 			local project=${CodeProject}
 			local TheBinDir
@@ -1172,22 +1172,46 @@ UseBash()
 				if [ ! -z "${ThePipe}" ]; then
 					if [ ! -z "${TimeRun}" ]; then
 						if [ -f "${MultiPipeFile}" ]; then
-							time cat ${MultiPipeFile} | ${TheBinDir}/${TheBin} ${Args[@]}
+							if [ -z "${Args[0]}" ]; then
+								time cat ${MultiPipeFile} | ${TheBinDir}/${TheBin}
+							else
+								time cat ${MultiPipeFile} | ${TheBinDir}/${TheBin} "${Args[@]}"
+							fi
 						else
-							time cat /dev/stdin | ${TheBinDir}/${TheBin} ${Args[@]}
+							if [ -z "${Args[0]}" ]; then
+								time cat /dev/stdin | ${TheBinDir}/${TheBin}
+							else
+								time cat /dev/stdin | ${TheBinDir}/${TheBin} "${Args[@]}"
+							fi
 						fi
 					else
 						if [ -f "${MultiPipeFile}" ]; then
-							cat ${MultiPipeFile} | ${TheBinDir}/${TheBin} ${Args[@]}
+							if [ -z "${Args[0]}" ]; then
+								cat ${MultiPipeFile} | ${TheBinDir}/${TheBin}
+							else
+								cat ${MultiPipeFile} | ${TheBinDir}/${TheBin} "${Args[@]}"
+							fi
 						else
-							cat /dev/stdin | ${TheBinDir}/${TheBin} ${Args[@]}
+							if [ -z "${Args[0]}" ]; then
+								cat /dev/stdin | ${TheBinDir}/${TheBin}
+							else
+								cat /dev/stdin | ${TheBinDir}/${TheBin} "${Args[@]}"
+							fi
 						fi
 					fi
 				else
 					if [ ! -z "${TimeRun}" ]; then
-						time ${TheBinDir}/${TheBin} ${Args[@]}
+						if [ -z "${Args[0]}" ]; then
+							time ${TheBinDir}/${TheBin}
+						else
+							time ${TheBinDir}/${TheBin} "${Args[@]}"
+						fi
 					else
-						${TheBinDir}/${TheBin} ${Args[@]}
+						if [ -z "${Args[0]}" ]; then
+							${TheBinDir}/${TheBin}
+						else
+							${TheBinDir}/${TheBin} "${Args[@]}"
+						fi
 					fi
 				fi
 				#release protection
@@ -1419,4 +1443,4 @@ UseBash()
 	esac
 }
 
-UseBash $@
+UseBash "${@}"
