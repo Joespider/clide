@@ -169,7 +169,7 @@ gitHandler()
 						#branch name given
 						if [ ! -z "${name}" ]; then
 							#remove branch
-							echo git branch -d "${name}"
+							git branch -d "${name}"
 						#no branch name given
 						else
 							#Get user to type branch name
@@ -208,6 +208,9 @@ gitHandler()
 								errorCode "mode-repo" "${repoTool}" "select-no-branch"
 							fi
 						fi
+						;;
+					save|stash)
+						git stash
 						;;
 					help)
 						theHelp "${repoAct}"

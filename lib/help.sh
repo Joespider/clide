@@ -268,6 +268,8 @@ MenuHelp()
 					echo -e "${Choice,,}\t\t\t\t\"run code\""
 					echo -e "${Choice,,} -a <args>\t\t\t\"run code with a cli argument\""
 					echo -e "${Choice,,} --args <args>\t\t\"run code with a cli argument\""
+					echo -e "${Choice,,} --debug\t\t\t: \"run program in debug mode\""
+					echo -e "${Choice,,} -d\t\t\t\t: \"run program in debug mode\""
 					echo "------------------------------------------------"
 					echo ""
 					;;
@@ -279,6 +281,10 @@ MenuHelp()
 					echo ""
 					echo -e "${Choice,,}\t\t\t\t\"backup your selected source code\""
 					echo -e "${Choice,,} <src>\t\t\t\"Choose source code, when multiple source code selected\""
+					echo -e "${Choice,,} --restore\t\t\t\"Restore from the previous backup\""
+					echo -e "${Choice,,} --remove\t\t\t\"Remove the previous backup\""
+					echo ""
+					echo -e "${Choice,,} --help\t\t\t\"this page\""
 					echo "------------------------------------------------"
 					echo ""
 					;;
@@ -407,17 +413,13 @@ MenuHelp()
 					echo -e "ls\t\t\t\t: \"list progams\""
 					echo -e "lscpl\t\t\t\t: \"list compiled progams\""
 					echo -e "using\t\t\t\t: \"get the language being used\""
-					echo -e "unset\t\t\t\t: \"deselect source code\""
 					echo -e "unset <code>\t\t\t: \"deselect source code\""
 					echo -e "use <language> <code>\t\t: \"choose language\""
 					echo -e "save\t\t\t\t: \"Save session\""
 					echo -e "create <arg>\t\t\t: \"create compile type, compile arguments, and runtime arguments"
-					echo -e "\thelp\t\t\t: \"create help page"
 					echo -e "debug\t\t\t\t: \"debug your program\""
 					echo ""
 					ManageLangs ${Lang} "MenuHelp"
-					echo -e "cpl, compile --args <args>\t: \"compile program with one-time-use arguments\""
-					echo -e "cpl, compile --get-args\t\t: \"show compile arguments\""
 					echo -e "car\t\t\t\t: \"compile and run; compile and run with arguments\""
 					echo -e "rm, remove, delete\t\t: \"delete source AND binary file\""
 					echo -e "rmbin, remove-bin, delete-bin\t: \"delete ONLY binary file\""
@@ -428,40 +430,11 @@ MenuHelp()
 					echo -e "${editor}, edit, ed\t\t\t: \"edit source code\""
 					echo -e "${ReadBy}, read\t\t\t: \"Read source code\""
 					echo -e "search <find>\t\t\t: \"search for code in project\""
-					case ${project} in
-						none)
-							echo -e "project <action> <name>\t\t: \"handle projects\""
-							echo -e "\tnew <name>\t\t: \"create a new project\""
-							echo -e "\tlist <name>\t\t: \"list all your projects\""
-							echo -e "\tload <name>\t\t: \"load and existing projects\""
-							echo -e "\tset <name>\t\t: \"load and existing projects\""
-							echo -e "\tselect <name>\t\t: \"load and existing projects\""
-							;;
-						*)
-							echo -e "project <action> <name>\t\t: \"handle projects\""
-							echo -e "\tnew <name>\t\t\t: \"create a new project\""
-							echo -e "\ttype <name>\t\t\t: \"display the type of project\""
-							echo -e "\ttitle <name>\t\t\t: \"give your project a title\""
-							echo -e "\tupdate <name>\t\t\t: \"update your existing project\""
-							echo -e "\tlist <name>\t\t\t: \"list all your projects\""
-							echo -e "\tload <name>\t\t\t: \"load and existing projects\""
-							echo -e "\texport <name>\t\t\t: \"export existing project to tar.gz\""
-							echo -e "\tset <name>\t\t\t: \"load and existing projects\""
-							echo -e "\tselect <name>\t\t\t: \"load and existing projects\""
-							echo -e "\tlink <lang>\t\t: \"Link a language to an active project\""
-							echo -e "\t\t--list, list\t: \"list the linked languages in an active project\""
-							echo -e "\tswap, use <lang>\t: \"swap to a language in an active project\""
-							echo -e "\t\t--list, list\t: \"list the linked languages in an active project\""
-							echo -e "\tdiscover\t\t: \"update the list of projects\""
-							echo -e "${repoTool}, repo\t\t\t: \"handle repos\""
-							;;
-					esac
+					echo -e "project <action> <name>\t\t: \"handle projects\""
 					echo -e "execute, exe, run <option>\t: \"run active program\""
-					echo -e "\t\t-a, --args\t: \"run program with cli arguments\""
-					echo -e "\t\t-d, --debug\t: \"run program in debug mode\""
 					echo -e "time <options>\t\t\t: \"runime of an active program\""
-					echo -e "\t-a, --args\t\t: \"run program with cli arguments\""
-					echo -e "bkup, backup\t\t\t: \"make backup of existing source code\""
+					echo -e "bkup\t\t\t\t: \"make backup of existing source code\""
+					echo -e "backup\t\t\t\t: \"make backup of existing source code\""
 					echo -e "restore\t\t\t\t: \"restore the backup to original source code\""
 					echo -e "rename <new>\t\t\t: \"rename the existing source code\""
 					echo -e "src, source\t\t\t: \"list selected source code\""
@@ -580,7 +553,7 @@ ProjectHelp()
 	echo -e "Purpose: \"handle projects\""
 	echo -e "project <action>\t\t\t: \"handle projects\""
 	echo -e "\tnew <project> <args>\t\t: \"Create a new project\""
-	echo -e "\t\t<type>\t\t: \"Create a given type of project\""
+	echo -e "\t\t<type>\t\t\t: \"Create a given type of project\""
 	echo -e "\timport <project> <path>\t\t: \"Import projects\""
 	echo -e "\tupdate, save\t\t\t: \"Update the active project\""
 	echo -e "\texport\t\t\t\t: \"Export the active project to a tar.gz\""
@@ -725,6 +698,9 @@ CliHelp()
 				--cp|--copy|--rename)
 					CliCopyOrRename ${example}
 					;;
+				--bkup|--restore)
+					CliBackupOrRestore ${example}
+					;;
 				--read)
 					ReadCliHelp
 					;;
@@ -764,6 +740,8 @@ CliHelp()
 					echo -e "\t--cp <args>\t\t\t\t\t: \"Copy source code\""
 					echo -e "\t--copy <args>\t\t\t\t\t: \"Copy source code\""
 					echo -e "\t--rename <args>\t\t\t\t\t: \"Rename source code\""
+					echo -e "\t--bkup <args>\t\t\t\t\t: \"make a backup of source code\""
+					echo -e "\t--restore <args>\t\t\t\t: \"restore source code from a backup\""
 					echo -e "\t--edit <args>\t\t\t\t\t: \"Edit source code\""
 					echo -e "\t--edit --config\t\t\t\t\t: \"Edit ${Head} config\""
 					echo -e "\t--edit --lang <language>\t\t\t: \"Edit the ${Head} langauge support file\""
@@ -772,8 +750,8 @@ CliHelp()
 					echo -e "\t--cpl-ct all\t\t\t\t\t: \"Compile ALL language new code template\""
 					echo -e "\t--car-ct <lang>\t\t\t\t\t: \"Compile and Run a given language's new code template\""
 					echo -e "\t--cpl-ct <lang>\t\t\t\t\t: \"Compile a given language's new code template\""
-					echo -e "\t--edit-ct <lang>\t\t\t\t\t: \"Edit a given language's new code template\""
-					echo -e "\t--read-ct <lang>\t\t\t\t\t: \"Read a given language's new code template\""
+					echo -e "\t--edit-ct <lang>\t\t\t\t: \"Edit a given language's new code template\""
+					echo -e "\t--read-ct <lang>\t\t\t\t: \"Read a given language's new code template\""
 					echo -e "\t--run-ct <lang>\t\t\t\t\t: \"Run a given language's new code template\""
 					echo -e "\t--cpl, --compile <args>\t\t\t\t: \"Compile source code\""
 					echo -e "\t\t--args <compile args>\t\t\t: \"Compile with one-time-use args\""
@@ -790,7 +768,7 @@ CliHelp()
 					echo -e "\t--time <args>\t\t\t\t\t: \"Run and time compiled code\""
 					echo -e "\t--notes <args>\t\t\t\t\t: \"Manage the notes for a given language\""
 					echo -e "\t--read <args>\t\t\t\t\t: \"Read out (cat) source code\""
-					echo -e "\t--read-num <args>\t\t\t\t\t: \"Read out (cat) numbered source code\""
+					echo -e "\t--read-num <args>\t\t\t\t: \"Read out (cat) numbered source code\""
 					echo -e "\t--list <lang>\t\t\t\t\t: \"List source code\""
 					echo -e "\t--list-cpl <lang>\t\t\t\t: \"List compiled code\""
 					echo -e "\t--lscpl <lang>\t\t\t\t\t: \"List compiled code\""
@@ -920,6 +898,40 @@ NewCliHelp()
 	echo ""
 }
 
+CliBackupOrRestore()
+{
+	local cli="$1"
+	local cmd="\$ clide ${cli}"
+	echo ""
+	echo "----------------[(${Head}) cli {${cli}}]----------------"
+	case ${cli} in
+		--restore)
+			echo -e "Restore your source code file from backup without a ${Head} session"
+			echo ""
+			echo -e "${cmd} <language> <code>"
+			echo -e "${cmd} <code>"
+			echo ""
+			;;
+		--bkup)
+			echo -e "Backup your source code files without a ${Head} session"
+			echo ""
+			echo -e "${cmd} <language> <code>"
+			echo -e "${cmd} <code>"
+			echo ""
+			echo -e "${cmd} --restore <language> <code>"
+			echo -e "${cmd} --restore <code>"
+			echo ""
+			echo -e "${cmd} --remove <language> <code>"
+			echo -e "${cmd} --remove <code>"
+			echo ""
+			;;
+		*)
+			;;
+	esac
+	echo "-----------------------------------------------"
+	echo ""
+}
+
 CliCopyOrRename()
 {
 	local cli="$1"
@@ -973,7 +985,7 @@ TypeCliHelp()
 	echo -e "Get the type of programming language"
 	echo ""
 	echo -e "${cmd} <language> <arg>\t\t: \"get info about a give langauge\""
-	echo -e "${cmd} all <arg>\t\t\t: \"get info about ALL langauges\""
+	echo -e "${cmd} all <arg>\t\t: \"get info about ALL langauges\""
 	echo -e "\t\t\tclassified\t: \"Get the type of Language\""
 	echo -e "\t\t\texecutable\t: \"Get the executable of Language\""
 	echo -e "\t\t\truntime\t\t: \"Get how the code is run\""
@@ -1253,6 +1265,7 @@ RepoHelp()
 					echo -e "\tnew <branch>\t\t\t: \"Create a new branch\""
 					echo -e "\tremove, delete <branch>\t\t: \"Delete a local branch\""
 					echo -e "\tselect, checkout <branch>\t: \"Select a branch to become active\""
+					echo -e "\tsave, stash\t\t: \"Save your changes in a given branch\""
 					echo -e "remove, delete <branch>\t\t\t: \"Delete a local branch\""
 					echo -e "select, checkout <branch>\t\t: \"Select a branch to become active\""
 					echo -e "upload, push\t\t\t\t: \"push your committed code to repo\""

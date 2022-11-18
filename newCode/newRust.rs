@@ -6,10 +6,10 @@ fn help()
 {
 	println!("Author: Joespider");
 	println!("Program: \"newRust\"");
-	println!("Version: 0.1.15");
+	println!("Version: 0.1.17");
 	println!("Purpose: make new Rust programs");
 	println!("Usage: newRust <args>");
-	println!("\t--user <username>: get username for help page");
+	println!("\t--user <username> : get username for help page");
 	println!("\t-n <name> : program name");
 	println!("\t--name <name> : program name");
 	println!("\t--no-save : only show out of code; no file source code is created");
@@ -17,6 +17,7 @@ fn help()
 	println!("\t--main : main file");
 	println!("\t--prop : enable custom system property");
 	println!("\t--reverse : enable \"rev\" method");
+	println!("\t--shell : unix shell");
 	println!("\t--pipe : enable piping (Main file and project ONLY)");
 	println!("\t--random : enable \"random\" int method");
 	println!("\t--check-file : enable \"fexists\" file method");
@@ -89,7 +90,7 @@ fn get_help(thename: String,theuser: String, hasargs: bool) -> String
 }
 
 
-fn get_imports(getcheckfile: bool, getreadfile: bool, getwritefile: bool, getcli: bool, getpipe: bool, getsysprop: bool, getthread: bool, getsleep: bool) -> String
+fn get_imports(getcheckfile: bool, getreadfile: bool, getwritefile: bool, getcli: bool, getpipe: bool, getsysprop: bool, getthread: bool, getsleep: bool, getshell: bool) -> String
 {
 	let mut theimports = String::new();
 	if getcli == true || getsysprop == true
@@ -127,6 +128,10 @@ fn get_imports(getcheckfile: bool, getreadfile: bool, getwritefile: bool, getcli
 	if getpipe == true && getreadfile == true && getwritefile == true
 	{
 		theimports.push_str("/*\nThis needs to be a rust project\nIn file 'Cargo.toml', account for the following\n\n[dependencies]\nisatty = \"0.1\"\n\nextern crate isatty;\nuse isatty::{stdin_isatty};\n*/\n");
+	}
+	if getshell == true
+	{
+		theimports.push_str("use std::process::Command;");
 	}
 
 	theimports.push_str("\n");
@@ -188,7 +193,7 @@ fn get_methods(getcheckfile: bool, getreadfile: bool, getwritefile: bool, getraw
 	return themethods;
 }
 
-fn get_main(getmain: bool, getcli: bool, getpipe: bool, getthread: bool, getsplit: bool, getjoin: bool) -> String
+fn get_main(getmain: bool, getcli: bool, getpipe: bool, getthread: bool, getsplit: bool, getjoin: bool, getshell: bool) -> String
 {
 	let mut themain = String::new();
 	if getmain == true
@@ -204,7 +209,7 @@ fn get_main(getmain: bool, getcli: bool, getpipe: bool, getthread: bool, getspli
 		}
 		if getsplit == true
 		{
-			themain.push_str("\n/*\n\tlet message = \"This is how we will win the game\"\n;\tlet sby = \" \";\n\tlet split: Vec<&str> = message.split(sby).collect();\n*/");
+			themain.push_str("\n/*\n\tlet message = \"This is how we will win the game\";\n\tlet sby = \" \";\n\tlet split: Vec<&str> = message.split(sby).collect();\n*/");
 		}
 		if getjoin == true
 		{
@@ -213,6 +218,10 @@ fn get_main(getmain: bool, getcli: bool, getpipe: bool, getthread: bool, getspli
 		if getthread == true
 		{
 			themain.push_str("\n/*\n\t// https://doc.rust-lang.org/std/thread/\n\tlet thread_join_handle = thread::spawn(|| {\n\t\t//do stuff here\n\t});\n\t//join thread\n\tthread_join_handle.join().unwrap();\n*/");
+		}
+		if getshell == true
+		{
+			themain.push_str("\nCommand::new(\"ls\")\n\t.arg(\"-l\")\n\t.arg(\"-a\")\n\t.spawn()\n\t.expect(\"ls command failed to start\");\n");
 		}
 		themain.push_str("\n}\n");
 	}
@@ -251,6 +260,7 @@ fn main()
 	let mut is_thread = false;
 	let mut is_pipe = false;
 	let mut is_rev = false;
+	let mut is_shell = false;
 	let mut is_in = false;
 	let mut is_len = false;
 	let mut is_split = false;
@@ -295,6 +305,10 @@ fn main()
 			else if args == "--join"
 			{
 				is_join = true;
+			}
+			else if args == "--shell"
+			{
+				is_shell = true;
 			}
 			else if args == "--cli"
 			{
@@ -379,11 +393,11 @@ fn main()
 		let file_exists = fexists(&check_file);
 		if file_exists == false || no_save == true
 		{
-			let the_imports = get_imports(is_check_file, is_read_file, is_write_file, is_cli, is_pipe, is_prop, is_thread, is_sleep);
+			let the_imports = get_imports(is_check_file, is_read_file, is_write_file, is_cli, is_pipe, is_prop, is_thread, is_sleep, is_shell);
 			let the_helps = get_help(program_name.to_string(),the_user.to_string(),is_cli);
 			program_name.push_str(".rs");
 			let the_methods = get_methods(is_check_file, is_read_file, is_write_file, get_input_method, is_prop, is_sleep, is_rev, is_in, is_len, is_upper, is_lower);
-			let the_main = get_main(is_main, is_cli, is_pipe, is_thread, is_split, is_join);
+			let the_main = get_main(is_main, is_cli, is_pipe, is_thread, is_split, is_join, is_shell);
 			if no_save == false
 			{
 				write_file(program_name, the_imports, the_helps, the_methods, the_main);

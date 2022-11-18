@@ -3,7 +3,7 @@
 #https://stackoverflow.com/questions/10339637/java-import-cannot-find-symbol
 #https://www.codejava.net/java-core/tools/how-to-compile-package-and-run-a-java-program-using-command-line-tools-javac-jar-and-java
 
-SupportV="0.2.42"
+SupportV="0.2.45"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -361,7 +361,7 @@ UseJava()
 							fi
 							;;
 						*)
-							ProjectTemplateHandler ${EnvVars[@]} ${Type} ${mode}
+							ProjectTemplateHandler "${EnvVars[@]}" ${Type} ${mode}
 							;;
 					esac
 					;;
@@ -414,22 +414,21 @@ UseJava()
 			;;
 		EnsureDirs)
 			if [ ! -z "${LangCpl}" ] && [ ! -z "${LangRun}" ]; then
-
 				#Home
 				if [ ! -d "${LangHome}" ]; then
-					mkdir "${LangHome}"
+					mkdir -p "${LangHome}"
 				fi
 				#Src
 				if [ ! -d "${LangSrc}" ]; then
-					mkdir "${LangSrc}"
+					mkdir -p "${LangSrc}"
 				fi
 				#Bin
 				if [ ! -d "${LangBin}" ]; then
-					mkdir "${LangBin}"
+					mkdir -p "${LangBin}"
 				fi
 				#projects
 				if [ ! -d "${LangProject}" ]; then
-					mkdir "${LangProject}"
+					mkdir -p "${LangProject}"
 				fi
 			fi
 			;;
@@ -746,7 +745,6 @@ UseJava()
 
 							case ${NumFound} in
 								0)
-									
 									;;
 								1)
 									if [ -z "${UseProjectTemplate}" ]; then
@@ -754,7 +752,7 @@ UseJava()
 									else
 										TheFile=$(UseJava "getProjSrc" ${TheFile} 2> /dev/null)
 									fi
-									
+
 									if [ -f ${TheFile} ]; then
 										#Read or Write Code
 										#{
@@ -876,7 +874,7 @@ UseJava()
 							TheMainClass=$(grep -l "public static void main" ${src})
 							#get Java Class/compiled file name
 							TheMainClass=$(echo ${TheMainClass} | sed "s/${LangExt}/.class/g")
-							ERROR=$(${LangCpl} -d ${TheSrcDir}/ ${src} 2>&1 | tr '\n' '|')
+							ERROR=$(${LangCpl} -d ${TheSrcDir}/ ${src} 2>&1 | tr '\n' '|' | grep -v "JAVA_OPTIONS")
 							if [ -z "${ERROR}" ]; then
 								#Compile as jar or class
 								case ${UseTypeOfCpl} in
@@ -1030,7 +1028,7 @@ UseJava()
 										fi
 									done
 									#}
-	
+
 									#Create manifest file
 									#{
 									echo "Manifest-Version: 1.1" > ${ManifestFile}
@@ -1048,7 +1046,7 @@ UseJava()
 									echo "Main-Class: ${Package}.${TheMain%${LangExt}}" >> ${ManifestFile}
 									echo "Sealed: true" >> ${ManifestFile}
 									#}
-	
+
 									#Look for compiled classes
 									cd ${TheClassDir}
 									TheClassBin=$(find . -name "*.class")
@@ -1148,7 +1146,7 @@ UseJava()
 								mkdir -p ${path}
 							fi
 							ProjectTemplateHandler ${TheProjectType} ${Type} ${path}
-							#ProjectTemplateHandler ${EnvVars[@]} ${Type} ${project}
+							#ProjectTemplateHandler "${EnvVars[@]}" ${Type} ${project}
 							if [ ! -d ${path}/classes ]; then
 								mkdir -p ${path}/classes
 							fi
@@ -1326,7 +1324,7 @@ UseJava()
 				*)
 					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					if [ ! -z "${UseProjectTemplate}" ]; then
-						ProjectTemplateHandler ${EnvVars[@]} ${Type} ${mode}
+						ProjectTemplateHandler "${EnvVars[@]}" ${Type} ${mode}
 					fi
 					;;
 			esac
@@ -1553,7 +1551,7 @@ UseJava()
 				shift
 				shift
 				shift
-				Args=$@
+				Args=( "${@}" )
 				if [ -z "${1}" ]; then
 					echo -n "${cLang}\$ java ${cTemplateC} "
 					read -a Args
@@ -1562,7 +1560,7 @@ UseJava()
 				#Program Args Given
 				if [ ! -z "${Args}" ]; then
 					cd ${LangBin}
-					${LangRun} ${TemplateC} ${Args[@]}
+					${LangRun} ${TemplateC} "${Args[@]}"
 					cd - > /dev/null
 					mv "${LangBin}/*${LangExt}" . 2> /dev/null
 				else
@@ -1576,7 +1574,7 @@ UseJava()
 				shift
 				shift
 				shift
-				Args=$@
+				Args=( "${@}" )
 				if [ -z "${1}" ]; then
 					echo -n "${cLang}\$ java -jar ${cTemplateJ} "
 					read -a Args
@@ -1584,7 +1582,7 @@ UseJava()
 
 				#Program Args Given
 				if [ ! -z "${Args}" ]; then
-					${LangRun} -jar ${TemplateCodeJar} ${Args[@]}
+					${LangRun} -jar ${TemplateCodeJar} "${Args[@]}"
 				#No Program Name Given
 				else
 					${LangRun} -jar ${TemplateCodeJar} --help
@@ -1608,7 +1606,7 @@ UseJava()
 				shift
 				shift
 				shift
-				Args=$@
+				Args=( "${@}" )
 				if [ -z "${1}" ]; then
 					echo -n "${cLang}\$ java ${cTemplateC} --no-save "
 					read -a Args
@@ -1617,7 +1615,7 @@ UseJava()
 				#Program Args Given
 				if [ ! -z "${Args}" ]; then
 					cd ${LangBin}
-					${LangRun} ${TemplateC} --no-save ${Args[@]}
+					${LangRun} ${TemplateC} --no-save "${Args[@]}"
 					cd - > /dev/null
 					mv "${LangBin}/*${LangExt}" . 2> /dev/null
 				else
@@ -1631,7 +1629,7 @@ UseJava()
 				shift
 				shift
 				shift
-				Args=$@
+				Args=( "${@}" )
 				if [ -z "${1}" ]; then
 					echo -n "${cLang}\$ java -jar ${cTemplateJ} --no-save "
 					read -a Args
@@ -1639,7 +1637,7 @@ UseJava()
 
 				#Program Args Given
 				if [ ! -z "${Args}" ]; then
-					${LangRun} -jar ${TemplateCodeJar} --no-save ${Args[@]}
+					${LangRun} -jar ${TemplateCodeJar} --no-save "${Args[@]}"
 				#No Program Name Given
 				else
 					${LangRun} -jar ${TemplateCodeJar} --help
@@ -2002,7 +2000,7 @@ UseJava()
 			local UseProjectTemplate
 			shift
 			shift
-			local Args=$@
+			local Args=( "${@}" )
 
 			#Run Compiled Code
 			if [ ! -z "${name}" ]; then
@@ -2058,7 +2056,11 @@ UseJava()
 						none)
 							case ${Type} in
 								debug)
-									echo "${UseDebugger} ${package}${TheBin} ${Args[@]}"
+									if [ -z "${Args[0]}" ]; then
+										echo "${UseDebugger} ${package}${TheBin}"
+									else
+										echo "${UseDebugger} ${package}${TheBin} ${Args[@]}"
+									fi
 									;;
 								runCode)
 									#Execute without
@@ -2066,56 +2068,128 @@ UseJava()
 										if [ ! -z "${TimeRun}" ]; then
 											if [ -f "${MultiPipeFile}" ]; then
 												if [ ! -z "${RunType}" ] && [ ! -z "${UseProjectTemplate}" ]; then
-													time cat ${MultiPipeFile} | ProjectTemplateHandler ${ProjectType} ${Type}.${RunType} ${package}${TheBin} ${Args[@]}
+													if [ -z "${Args[0]}" ]; then
+														time cat ${MultiPipeFile} | ProjectTemplateHandler ${ProjectType} ${Type}.${RunType} ${package}${TheBin}
+													else
+														time cat ${MultiPipeFile} | ProjectTemplateHandler ${ProjectType} ${Type}.${RunType} ${package}${TheBin} "${Args[@]}"
+													fi
 												elif [ -z "${RunType}" ] && [ ! -z "${UseProjectTemplate}" ]; then
-													time cat ${MultiPipeFile} | ProjectTemplateHandler ${ProjectType} runCode ${package}${TheBin} ${Args[@]}
+													if [ -z "${Args[0]}" ]; then
+														time cat ${MultiPipeFile} | ProjectTemplateHandler ${ProjectType} runCode ${package}${TheBin}
+													else
+														time cat ${MultiPipeFile} | ProjectTemplateHandler ${ProjectType} runCode ${package}${TheBin} "${Args[@]}"
+													fi
 												else
-													time cat ${MultiPipeFile} | ${LangRun} ${package}${TheBin} ${Args[@]}
+													if [ -z "${Args[0]}" ]; then
+														time cat ${MultiPipeFile} | ${LangRun} ${package}${TheBin}
+													else
+														time cat ${MultiPipeFile} | ${LangRun} ${package}${TheBin} "${Args[@]}"
+													fi
 												fi
 											else
 												if [ ! -z "${RunType}" ] && [ ! -z "${UseProjectTemplate}" ]; then
-													time cat /dev/stdin | ProjectTemplateHandler ${ProjectType} ${Type}.${RunType} ${package}${TheBin} ${Args[@]}
+													if [ -z "${Args[0]}" ]; then
+														time cat /dev/stdin | ProjectTemplateHandler ${ProjectType} ${Type}.${RunType} ${package}${TheBin}
+													else
+														time cat /dev/stdin | ProjectTemplateHandler ${ProjectType} ${Type}.${RunType} ${package}${TheBin} "${Args[@]}"
+													fi
 												elif [ -z "${RunType}" ] && [ ! -z "${UseProjectTemplate}" ]; then
-													time cat /dev/stdin | ProjectTemplateHandler ${ProjectType} runCode ${package}${TheBin} ${Args[@]}
+													if [ -z "${Args[0]}" ]; then
+														time cat /dev/stdin | ProjectTemplateHandler ${ProjectType} runCode ${package}${TheBin}
+													else
+														time cat /dev/stdin | ProjectTemplateHandler ${ProjectType} runCode ${package}${TheBin} "${Args[@]}"
+													fi
 												else
-													time cat /dev/stdin | ${LangRun} ${package}${TheBin} ${Args[@]}
+													if [ -z "${Args[0]}" ]; then
+														time cat /dev/stdin | ${LangRun} ${package}${TheBin}
+													else
+														time cat /dev/stdin | ${LangRun} ${package}${TheBin} "${Args[@]}"
+													fi
 												fi
 											fi
 										else
 											if [ -f "${MultiPipeFile}" ]; then
 												if [ ! -z "${RunType}" ] && [ ! -z "${UseProjectTemplate}" ]; then
-													cat ${MultiPipeFile} | ProjectTemplateHandler ${ProjectType} ${Type}.${RunType} ${package}${TheBin} ${Args[@]}
+													if [ -z "${Args[0]}" ]; then
+														cat ${MultiPipeFile} | ProjectTemplateHandler ${ProjectType} ${Type}.${RunType} ${package}${TheBin}
+													else
+														cat ${MultiPipeFile} | ProjectTemplateHandler ${ProjectType} ${Type}.${RunType} ${package}${TheBin} "${Args[@]}"
+													fi
 												elif [ -z "${RunType}" ] && [ ! -z "${UseProjectTemplate}" ]; then
-													cat ${MultiPipeFile} | ProjectTemplateHandler ${ProjectType} runCode ${package}${TheBin} ${Args[@]}
+													if [ -z "${Args[0]}" ]; then
+														cat ${MultiPipeFile} | ProjectTemplateHandler ${ProjectType} runCode ${package}${TheBin}
+													else
+														cat ${MultiPipeFile} | ProjectTemplateHandler ${ProjectType} runCode ${package}${TheBin} "${Args[@]}"
+													fi
 												else
-													cat ${MultiPipeFile} | ${LangRun} ${package}${TheBin} ${Args[@]}
+													if [ -z "${Args[0]}" ]; then
+														cat ${MultiPipeFile} | ${LangRun} ${package}${TheBin}
+													else
+														cat ${MultiPipeFile} | ${LangRun} ${package}${TheBin} "${Args[@]}"
+													fi
 												fi
 											else
 												if [ ! -z "${RunType}" ] && [ ! -z "${UseProjectTemplate}" ]; then
-													cat /dev/stdin | ProjectTemplateHandler ${ProjectType} ${Type}.${RunType} ${package}${TheBin} ${Args[@]}
+													if [ -z "${Args[0]}" ]; then
+														cat /dev/stdin | ProjectTemplateHandler ${ProjectType} ${Type}.${RunType} ${package}${TheBin}
+													else
+														cat /dev/stdin | ProjectTemplateHandler ${ProjectType} ${Type}.${RunType} ${package}${TheBin} "${Args[@]}"
+													fi
 												elif [ -z "${RunType}" ] && [ ! -z "${UseProjectTemplate}" ]; then
-													cat /dev/stdin | ProjectTemplateHandler ${ProjectType} runCode ${package}${TheBin} ${Args[@]}
+													if [ -z "${Args[0]}" ]; then
+														cat /dev/stdin | ProjectTemplateHandler ${ProjectType} runCode ${package}${TheBin}
+													else
+														cat /dev/stdin | ProjectTemplateHandler ${ProjectType} runCode ${package}${TheBin} "${Args[@]}"
+													fi
 												else
-													cat /dev/stdin | ${LangRun} ${package}${TheBin} ${Args[@]}
+													if [ -z "${Args[0]}" ]; then
+														cat /dev/stdin | ${LangRun} ${package}${TheBin}
+													else
+														cat /dev/stdin | ${LangRun} ${package}${TheBin} "${Args[@]}"
+													fi
 												fi
 											fi
 										fi
 									else
 										if [ ! -z "${TimeRun}" ]; then
 											if [ ! -z "${RunType}" ] && [ ! -z "${UseProjectTemplate}" ]; then
-												time ProjectTemplateHandler ${ProjectType} ${Type}.${RunType} ${package}${TheBin} ${Args[@]}
+												if [ -z "${Args[0]}" ]; then
+													time ProjectTemplateHandler ${ProjectType} ${Type}.${RunType} ${package}${TheBin}
+												else
+													time ProjectTemplateHandler ${ProjectType} ${Type}.${RunType} ${package}${TheBin} "${Args[@]}"
+												fi
 											elif [ -z "${RunType}" ] && [ ! -z "${UseProjectTemplate}" ]; then
-												time ProjectTemplateHandler ${ProjectType} runCode ${package}${TheBin} ${Args[@]}
+												if [ -z "${Args[0]}" ]; then
+													time ProjectTemplateHandler ${ProjectType} runCode ${package}${TheBin}
+												else
+													time ProjectTemplateHandler ${ProjectType} runCode ${package}${TheBin} "${Args[@]}"
+												fi
 											else
-												time ${LangRun} ${package}${TheBin} ${Args[@]}
+												if [ -z "${Args[0]}" ]; then
+													time ${LangRun} ${package}${TheBin}
+												else
+													time ${LangRun} ${package}${TheBin} "${Args[@]}"
+												fi
 											fi
 										else
 											if [ ! -z "${RunType}" ] && [ ! -z "${UseProjectTemplate}" ]; then
-												ProjectTemplateHandler ${ProjectType} ${Type}.${RunType} ${package}${TheBin} ${Args[@]}
+												if [ -z "${Args[0]}" ]; then
+													ProjectTemplateHandler ${ProjectType} ${Type}.${RunType} ${package}${TheBin}
+												else
+													ProjectTemplateHandler ${ProjectType} ${Type}.${RunType} ${package}${TheBin} "${Args[@]}"
+												fi
 											elif [ -z "${RunType}" ] && [ ! -z "${UseProjectTemplate}" ]; then
-												ProjectTemplateHandler ${ProjectType} runCode ${package}${TheBin} ${Args[@]}
+												if [ -z "${Args[0]}" ]; then
+													ProjectTemplateHandler ${ProjectType} runCode ${package}${TheBin}
+												else
+													ProjectTemplateHandler ${ProjectType} runCode ${package}${TheBin} "${Args[@]}"
+												fi
 											else
-												${LangRun} ${package}${TheBin} ${Args[@]}
+												if [ -z "${Args[0]}" ]; then
+													${LangRun} ${package}${TheBin}
+												else
+													${LangRun} ${package}${TheBin} "${Args[@]}"
+												fi
 											fi
 										fi
 									fi
@@ -2127,7 +2201,11 @@ UseJava()
 						*)
 							case ${Type} in
 								debug)
-									${UseDebugger} "${JavaProp}" ${package}${TheBin} ${Args[@]}
+									if [ -z "${Args[0]}" ]; then
+										${UseDebugger} "${JavaProp}" ${package}${TheBin}
+									else
+										${UseDebugger} "${JavaProp}" ${package}${TheBin} "${Args[@]}"
+									fi
 									;;
 								runCode)
 									#Execute without
@@ -2135,56 +2213,128 @@ UseJava()
 										if [ ! -z "${TimeRun}" ]; then
 											if [ -f "${MultiPipeFile}" ]; then
 												if [ ! -z "${RunType}" ] && [ ! -z "${UseProjectTemplate}" ]; then
-													time cat ${MultiPipeFile} | ProjectTemplateHandler ${ProjectType} ${Type}.${RunType} ${package}${TheBin} ${Args[@]}
+													if [ -z "${Args[0]}" ]; then
+														time cat ${MultiPipeFile} | ProjectTemplateHandler ${ProjectType} ${Type}.${RunType} ${package}${TheBin}
+													else
+														time cat ${MultiPipeFile} | ProjectTemplateHandler ${ProjectType} ${Type}.${RunType} ${package}${TheBin} "${Args[@]}"
+													fi
 												elif [ -z "${RunType}" ] && [ ! -z "${UseProjectTemplate}" ]; then
-													time cat ${MultiPipeFile} | ProjectTemplateHandler ${ProjectType} runCode --class ${Args[@]}
+													if [ -z "${Args[0]}" ]; then
+														time cat ${MultiPipeFile} | ProjectTemplateHandler ${ProjectType} runCode --class
+													else
+														time cat ${MultiPipeFile} | ProjectTemplateHandler ${ProjectType} runCode --class "${Args[@]}"
+													fi
 												else
-													time cat ${MultiPipeFile} | ${LangRun} "${JavaProp}" ${package}${TheBin} ${Args[@]}
+													if [ -z "${Args[0]}" ]; then
+														time cat ${MultiPipeFile} | ${LangRun} "${JavaProp}" ${package}${TheBin}
+													else
+														time cat ${MultiPipeFile} | ${LangRun} "${JavaProp}" ${package}${TheBin} "${Args[@]}"
+													fi
 												fi
 											else
 												if [ ! -z "${RunType}" ] && [ ! -z "${UseProjectTemplate}" ]; then
-													time cat /dev/stdin | ProjectTemplateHandler ${ProjectType} ${Type}.${RunType} ${package}${TheBin} ${Args[@]}
+													if [ -z "${Args[0]}" ]; then
+														time cat /dev/stdin | ProjectTemplateHandler ${ProjectType} ${Type}.${RunType} ${package}${TheBin}
+													else
+														time cat /dev/stdin | ProjectTemplateHandler ${ProjectType} ${Type}.${RunType} ${package}${TheBin} "${Args[@]}"
+													fi
 												elif [ -z "${RunType}" ] && [ ! -z "${UseProjectTemplate}" ]; then
-													time cat /dev/stdin | ProjectTemplateHandler ${ProjectType} runCode ${package}${TheBin} ${Args[@]}
+													if [ -z "${Args[0]}" ]; then
+														time cat /dev/stdin | ProjectTemplateHandler ${ProjectType} runCode ${package}${TheBin}
+													else
+														time cat /dev/stdin | ProjectTemplateHandler ${ProjectType} runCode ${package}${TheBin} "${Args[@]}"
+													fi
 												else
-													time cat /dev/stdin | ${LangRun} "${JavaProp}" ${package}${TheBin} ${Args[@]}
+													if [ -z "${Args[0]}" ]; then
+														time cat /dev/stdin | ${LangRun} "${JavaProp}" ${package}${TheBin}
+													else
+														time cat /dev/stdin | ${LangRun} "${JavaProp}" ${package}${TheBin} "${Args[@]}"
+													fi
 												fi
 											fi
 										else
 											if [ -f "${MultiPipeFile}" ]; then
 												if [ ! -z "${RunType}" ] && [ ! -z "${UseProjectTemplate}" ]; then
-													cat ${MultiPipeFile} | ProjectTemplateHandler ${ProjectType} ${Type}.${RunType} ${package}${TheBin} ${Args[@]}
+													if [ -z "${Args[0]}" ]; then
+														cat ${MultiPipeFile} | ProjectTemplateHandler ${ProjectType} ${Type}.${RunType} ${package}${TheBin}
+													else
+														cat ${MultiPipeFile} | ProjectTemplateHandler ${ProjectType} ${Type}.${RunType} ${package}${TheBin} "${Args[@]}"
+													fi
 												elif [ -z "${RunType}" ] && [ ! -z "${UseProjectTemplate}" ]; then
-													cat ${MultiPipeFile} | ProjectTemplateHandler ${ProjectType} runCode ${package}${TheBin} ${Args[@]}
+													if [ -z "${Args[0]}" ]; then
+														cat ${MultiPipeFile} | ProjectTemplateHandler ${ProjectType} runCode ${package}${TheBin}
+													else
+														cat ${MultiPipeFile} | ProjectTemplateHandler ${ProjectType} runCode ${package}${TheBin} "${Args[@]}"
+													fi
 												else
-													cat ${MultiPipeFile} | ${LangRun} "${JavaProp}" ${package}${TheBin} ${Args[@]}
+													if [ -z "${Args[0]}" ]; then
+														cat ${MultiPipeFile} | ${LangRun} "${JavaProp}" ${package}${TheBin}
+													else
+														cat ${MultiPipeFile} | ${LangRun} "${JavaProp}" ${package}${TheBin} "${Args[@]}"
+													fi
 												fi
 											else
 												if [ ! -z "${RunType}" ] && [ ! -z "${UseProjectTemplate}" ]; then
-													cat /dev/stdin | ProjectTemplateHandler ${ProjectType} ${Type}.${RunType} ${package}${TheBin} ${Args[@]}
+													if [ -z "${Args[0]}" ]; then
+														cat /dev/stdin | ProjectTemplateHandler ${ProjectType} ${Type}.${RunType} ${package}${TheBin}
+													else
+														cat /dev/stdin | ProjectTemplateHandler ${ProjectType} ${Type}.${RunType} ${package}${TheBin} "${Args[@]}"
+													fi
 												elif [ -z "${RunType}" ] && [ ! -z "${UseProjectTemplate}" ]; then
-													cat /dev/stdin | ProjectTemplateHandler ${ProjectType} runCode ${package}${TheBin} ${Args[@]}
+													if [ -z "${Args[0]}" ]; then
+														cat /dev/stdin | ProjectTemplateHandler ${ProjectType} runCode ${package}${TheBin}
+													else
+														cat /dev/stdin | ProjectTemplateHandler ${ProjectType} runCode ${package}${TheBin} "${Args[@]}"
+													fi
 												else
-													cat /dev/stdin | ${LangRun} "${JavaProp}" ${package}${TheBin} ${Args[@]}
+													if [ -z "${Args[0]}" ]; then
+														cat /dev/stdin | ${LangRun} "${JavaProp}" ${package}${TheBin}
+													else
+														cat /dev/stdin | ${LangRun} "${JavaProp}" ${package}${TheBin} "${Args[@]}"
+													fi
 												fi
 											fi
 										fi
 									else
 										if [ ! -z "${TimeRun}" ]; then
 											if [ ! -z "${RunType}" ] && [ ! -z "${UseProjectTemplate}" ]; then
-												time ProjectTemplateHandler ${ProjectType} ${Type}.${RunType} ${package}${TheBin} ${Args[@]}
+												if [ -z "${Args[0]}" ]; then
+													time ProjectTemplateHandler ${ProjectType} ${Type}.${RunType} ${package}${TheBin}
+												else
+													time ProjectTemplateHandler ${ProjectType} ${Type}.${RunType} ${package}${TheBin} "${Args[@]}"
+												fi
 											elif [ -z "${RunType}" ] && [ ! -z "${UseProjectTemplate}" ]; then
-												time ProjectTemplateHandler ${ProjectType} runCode ${package}${TheBin} ${Args[@]}
-											else
-												time ${LangRun} "${JavaProp}" ${package}${TheBin} ${Args[@]}
+												if [ -z "${Args[0]}" ]; then
+													time ProjectTemplateHandler ${ProjectType} runCode ${package}${TheBin}
+												else
+													time ProjectTemplateHandler ${ProjectType} runCode ${package}${TheBin} "${Args[@]}"
+												fi
+										else
+												if [ -z "${Args[0]}" ]; then
+													time ${LangRun} "${JavaProp}" ${package}${TheBin}
+												else
+													time ${LangRun} "${JavaProp}" ${package}${TheBin} "${Args[@]}"
+												fi
 											fi
 										else
 											if [ ! -z "${RunType}" ] && [ ! -z "${UseProjectTemplate}" ]; then
-												ProjectTemplateHandler ${ProjectType} ${Type}.${RunType} ${package}${TheBin} ${Args[@]}
+												if [ -z "${Args[0]}" ]; then
+													ProjectTemplateHandler ${ProjectType} ${Type}.${RunType} ${package}${TheBin}
+												else
+													ProjectTemplateHandler ${ProjectType} ${Type}.${RunType} ${package}${TheBin} "${Args[@]}"
+												fi
 											elif [ -z "${RunType}" ] && [ ! -z "${UseProjectTemplate}" ]; then
-												ProjectTemplateHandler ${ProjectType} runCode ${package}${TheBin} ${Args[@]}
+												if [ -z "${Args[0]}" ]; then
+													ProjectTemplateHandler ${ProjectType} runCode ${package}${TheBin}
+												else
+													ProjectTemplateHandler ${ProjectType} runCode ${package}${TheBin} "${Args[@]}"
+												fi
 											else
-												${LangRun} "${JavaProp}" ${package}${TheBin} ${Args[@]}
+												if [ -z "${Args[0]}" ]; then
+													${LangRun} "${JavaProp}" ${package}${TheBin}
+												else
+													${LangRun} "${JavaProp}" ${package}${TheBin} "${Args[@]}"
+												fi
 											fi
 										fi
 									fi
@@ -2201,56 +2351,128 @@ UseJava()
 						if [ ! -z "${TimeRun}" ]; then
 							if [ -f "${MultiPipeFile}" ]; then
 								if [ ! -z "${RunType}" ] && [ ! -z "${UseProjectTemplate}" ]; then
-									time cat ${MultiPipeFile} | ProjectTemplateHandler ${ProjectType} ${Type}.${RunType} ${TheJarDir}/${TheJar} ${Args[@]}
+									if [ -z "${Args[0]}" ]; then
+										time cat ${MultiPipeFile} | ProjectTemplateHandler ${ProjectType} ${Type}.${RunType} ${TheJarDir}/${TheJar}
+									else
+										time cat ${MultiPipeFile} | ProjectTemplateHandler ${ProjectType} ${Type}.${RunType} ${TheJarDir}/${TheJar} "${Args[@]}"
+									fi
 								elif [ -z "${RunType}" ] && [ ! -z "${UseProjectTemplate}" ]; then
-									time cat ${MultiPipeFile} | ProjectTemplateHandler ${ProjectType} runCode  ${TheJarDir}/${TheJar} ${Args[@]}
+									if [ -z "${Args[0]}" ]; then
+										time cat ${MultiPipeFile} | ProjectTemplateHandler ${ProjectType} runCode  ${TheJarDir}/${TheJar}
+									else
+										time cat ${MultiPipeFile} | ProjectTemplateHandler ${ProjectType} runCode  ${TheJarDir}/${TheJar} "${Args[@]}"
+									fi
 								else
-									time cat ${MultiPipeFile} | ${LangRun} -jar ${TheJarDir}/${TheJar} ${Args[@]}
+									if [ -z "${Args[0]}" ]; then
+										time cat ${MultiPipeFile} | ${LangRun} -jar ${TheJarDir}/${TheJar}
+									else
+										time cat ${MultiPipeFile} | ${LangRun} -jar ${TheJarDir}/${TheJar} "${Args[@]}"
+									fi
 								fi
 							else
 								if [ ! -z "${RunType}" ] && [ ! -z "${UseProjectTemplate}" ]; then
-									time cat /dev/stdin | ProjectTemplateHandler ${ProjectType} ${Type}.${RunType} ${TheJarDir}/${TheJar} ${Args[@]}
+									if [ -z "${Args[0]}" ]; then
+										time cat /dev/stdin | ProjectTemplateHandler ${ProjectType} ${Type}.${RunType} ${TheJarDir}/${TheJar}
+									else
+										time cat /dev/stdin | ProjectTemplateHandler ${ProjectType} ${Type}.${RunType} ${TheJarDir}/${TheJar} "${Args[@]}"
+									fi
 								elif [ -z "${RunType}" ] && [ ! -z "${UseProjectTemplate}" ]; then
-									time cat /dev/stdin | ProjectTemplateHandler ${ProjectType} runCode ${TheJarDir}/${TheJar} ${Args[@]}
+									if [ -z "${Args[0]}" ]; then
+										time cat /dev/stdin | ProjectTemplateHandler ${ProjectType} runCode ${TheJarDir}/${TheJar}
+									else
+										time cat /dev/stdin | ProjectTemplateHandler ${ProjectType} runCode ${TheJarDir}/${TheJar} "${Args[@]}"
+									fi
 								else
-									time cat /dev/stdin | ${LangRun} -jar ${TheJarDir}/${TheJar} ${Args[@]}
+									if [ -z "${Args[0]}" ]; then
+										time cat /dev/stdin | ${LangRun} -jar ${TheJarDir}/${TheJar}
+									else
+										time cat /dev/stdin | ${LangRun} -jar ${TheJarDir}/${TheJar} "${Args[@]}"
+									fi
 								fi
 							fi
 						else
 							if [ -f "${MultiPipeFile}" ]; then
 								if [ ! -z "${RunType}" ] && [ ! -z "${UseProjectTemplate}" ]; then
-									cat ${MultiPipeFile} | ProjectTemplateHandler ${ProjectType} ${Type}.${RunType} ${TheJarDir}/${TheJar} ${Args[@]}
+									if [ -z "${Args[0]}" ]; then
+										cat ${MultiPipeFile} | ProjectTemplateHandler ${ProjectType} ${Type}.${RunType} ${TheJarDir}/${TheJar}
+									else
+										cat ${MultiPipeFile} | ProjectTemplateHandler ${ProjectType} ${Type}.${RunType} ${TheJarDir}/${TheJar} "${Args[@]}"
+									fi
 								elif [ -z "${RunType}" ] && [ ! -z "${UseProjectTemplate}" ]; then
-									cat ${MultiPipeFile} | ProjectTemplateHandler ${ProjectType} runCode ${TheJarDir}/${TheJar} ${Args[@]}
+									if [ -z "${Args[0]}" ]; then
+										cat ${MultiPipeFile} | ProjectTemplateHandler ${ProjectType} runCode ${TheJarDir}/${TheJar}
+									else
+										cat ${MultiPipeFile} | ProjectTemplateHandler ${ProjectType} runCode ${TheJarDir}/${TheJar} "${Args[@]}"
+									fi
 								else
-									cat ${MultiPipeFile} | ${LangRun} -jar ${TheJarDir}/${TheJar} ${Args[@]}
+									if [ -z "${Args[0]}" ]; then
+										cat ${MultiPipeFile} | ${LangRun} -jar ${TheJarDir}/${TheJar}
+									else
+										cat ${MultiPipeFile} | ${LangRun} -jar ${TheJarDir}/${TheJar} "${Args[@]}"
+									fi
 								fi
 							else
 								if [ ! -z "${RunType}" ] && [ ! -z "${UseProjectTemplate}" ]; then
-									cat /dev/stdin | ProjectTemplateHandler ${ProjectType} ${Type}.${RunType} ${TheJarDir}/${TheJar} ${Args[@]}
+									if [ -z "${Args[0]}" ]; then
+										cat /dev/stdin | ProjectTemplateHandler ${ProjectType} ${Type}.${RunType} ${TheJarDir}/${TheJar}
+									else
+										cat /dev/stdin | ProjectTemplateHandler ${ProjectType} ${Type}.${RunType} ${TheJarDir}/${TheJar} "${Args[@]}"
+									fi
 								elif [ -z "${RunType}" ] && [ ! -z "${UseProjectTemplate}" ]; then
-									cat /dev/stdin | ProjectTemplateHandler ${ProjectType} runCode ${TheJarDir}/${TheJar} ${Args[@]}
+									if [ -z "${Args[0]}" ]; then
+										cat /dev/stdin | ProjectTemplateHandler ${ProjectType} runCode ${TheJarDir}/${TheJar}
+									else
+										cat /dev/stdin | ProjectTemplateHandler ${ProjectType} runCode ${TheJarDir}/${TheJar} "${Args[@]}"
+									fi
 								else
-									cat /dev/stdin | ${LangRun} -jar ${TheJarDir}/${TheJar} ${Args[@]}
+									if [ -z "${Args[0]}" ]; then
+										cat /dev/stdin | ${LangRun} -jar ${TheJarDir}/${TheJar}
+									else
+										cat /dev/stdin | ${LangRun} -jar ${TheJarDir}/${TheJar} "${Args[@]}"
+									fi
 								fi
 							fi
 						fi
 					else
 						if [ ! -z "${TimeRun}" ]; then
 							if [ ! -z "${RunType}" ] && [ ! -z "${UseProjectTemplate}" ]; then
-								time ProjectTemplateHandler ${ProjectType} ${Type}.${RunType} ${TheJarDir}/${TheJar} ${Args[@]}
+								if [ -z "${Args[0]}" ]; then
+									time ProjectTemplateHandler ${ProjectType} ${Type}.${RunType} ${TheJarDir}/${TheJar}
+								else
+									time ProjectTemplateHandler ${ProjectType} ${Type}.${RunType} ${TheJarDir}/${TheJar} "${Args[@]}"
+								fi
 							elif [ -z "${RunType}" ] && [ ! -z "${UseProjectTemplate}" ]; then
-								time ProjectTemplateHandler ${ProjectType} runCode ${TheJarDir}/${TheJar} ${Args[@]}
+								if [ -z "${Args[0]}" ]; then
+									time ProjectTemplateHandler ${ProjectType} runCode ${TheJarDir}/${TheJar}
+								else
+									time ProjectTemplateHandler ${ProjectType} runCode ${TheJarDir}/${TheJar} "${Args[@]}"
+								fi
 							else
-								time ${LangRun} -jar ${TheJarDir}/${TheJar} ${Args[@]}
+								if [ -z "${Args[0]}" ]; then
+									time ${LangRun} -jar ${TheJarDir}/${TheJar}
+								else
+									time ${LangRun} -jar ${TheJarDir}/${TheJar} "${Args[@]}"
+								fi
 							fi
 						else
 							if [ ! -z "${RunType}" ] && [ ! -z "${UseProjectTemplate}" ]; then
-								ProjectTemplateHandler ${ProjectType} ${Type}.${RunType} ${TheJarDir}/${TheJar} ${Args[@]}
+								if [ -z "${Args[0]}" ]; then
+									ProjectTemplateHandler ${ProjectType} ${Type}.${RunType} ${TheJarDir}/${TheJar}
+								else
+									ProjectTemplateHandler ${ProjectType} ${Type}.${RunType} ${TheJarDir}/${TheJar} "${Args[@]}"
+								fi
 							elif [ -z "${RunType}" ] && [ ! -z "${UseProjectTemplate}" ]; then
-								ProjectTemplateHandler ${ProjectType} runCode ${TheJarDir}/${TheJar} ${Args[@]}
+								if [ -z "${Args[0]}" ]; then
+									ProjectTemplateHandler ${ProjectType} runCode ${TheJarDir}/${TheJar}
+								else
+									ProjectTemplateHandler ${ProjectType} runCode ${TheJarDir}/${TheJar} "${Args[@]}"
+								fi
 							else
-								${TimeRun} ${LangRun} -jar ${TheJarDir}/${TheJar} ${Args[@]}
+								if [ -z "${Args[0]}" ]; then
+									${TimeRun} ${LangRun} -jar ${TheJarDir}/${TheJar}
+								else
+									${TimeRun} ${LangRun} -jar ${TheJarDir}/${TheJar} "${Args[@]}"
+								fi
 							fi
 						fi
 					fi
@@ -2261,7 +2483,7 @@ UseJava()
 				echo "Unable to locate executable"
 			fi
 			;;
-		backup|restore)
+		backup|backup-remove|restore)
 			local name=$1
 			name=$(UseJava "removeExt" "${name}")
 			name="${name}${LangExt}"
@@ -2280,6 +2502,14 @@ UseJava()
 									echo "\"${name}\" restored"
 								else
 									errorCode "restore" "exists"
+								fi
+								;;
+							backup-remove)
+								if [ -f "${LangSrc}/${name}.bak" ]; then
+									rm ${LangSrc}/${name}.bak
+									echo "\"${name}\" backup removed"
+								else
+									errorCode "backup" "exists"
 								fi
 								;;
 							backup)
@@ -2322,6 +2552,28 @@ UseJava()
 										TheFound=$(UseJava "getProjSrc" "${name}.bak")
 										mv ${TheFound} ${TheFound%.bak}
 										echo "\"${name}\" restored"
+										;;
+									*)
+										;;
+								esac
+							fi
+							;;
+						backup-remove)
+							if [ -f "${name}" ] && [ -f "${name}.bak" ]; then
+								rm ${name}.bak
+								echo "\"${name}\" backup removed"
+							else
+								TheCount=$(UseJava "getProjSrc" "${name}" | wc -l)
+								case ${TheCount} in
+									0)
+										errorCode "backup" "null"
+										;;
+									1)
+										TheFound=$(UseJava "getProjSrc" "${name}")
+										if [ -f "${TheFound}.bak" ]; then
+											rm ${TheFound}.bak
+											echo "\"${name}\" backup removed"
+										fi
 										;;
 									*)
 										;;
@@ -2435,4 +2687,4 @@ UseJava()
 	esac
 }
 
-UseJava $@
+UseJava "${@}"

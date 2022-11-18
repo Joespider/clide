@@ -3,7 +3,7 @@
 #Program Details
 User = "Joespider"
 ProgramName = "newRuby"
-VersionName = "0.1.15"
+VersionName = "0.1.16"
 Purpose = "Purpose: make new Ruby Scripts"
 
 #Help Page
@@ -29,6 +29,7 @@ def help
 	puts "\t--is-in : enable string contains methods"
 	puts "\t--user-input : enable \"raw_input\" method"
 	puts "\t--thread : enable threading"
+	puts "\t--date-time : enable date and time"
 end
 
 #Get the User info for new program
@@ -56,6 +57,7 @@ def getArgs
 		"isPipe" => false,
 		"isProp" => false,
 		"isMain" => false,
+		"isTime" => false,
 		"isRev" => false,
 		"readFile" => false,
 		"writeFile" => false,
@@ -86,6 +88,8 @@ def getArgs
 			userArgs["isMain"] = true
 		elsif theArg == "--main"
 			userArgs["isMain"] = true
+		elsif theArg == "--date-time"
+			userArgs["isTime"] = true
 		elsif theArg == "--write-file"
 			userArgs["writeFile"] = true
 		elsif theArg == "--read-file"
@@ -124,7 +128,7 @@ def getImports
 end
 
 #Handle Ruby Methods
-def getMethods(getHelp, getRead, getWrite, getRawInput, getCLI, getShell, getSleep, getIsIn, getSysProp, getRev)
+def getMethods(getHelp, getRead, getWrite, getRawInput, getCLI, getShell, getSleep, getTime, getIsIn, getSysProp, getRev)
 	theMethods = ""
 	if getHelp
 		theMethods = theMethods+"#Help Page\ndef help\n\tputs (\"Author: \"+User)\n\tputs (\"Program: \"+ProgramName)\n\tputs (\"Version: \"+VersionName)\n\tputs (\"Purpose: \"+Purpose)\n\tputs (\"Usage: \"+ProgramName+\".rb\")\nend\n\n"
@@ -150,6 +154,10 @@ def getMethods(getHelp, getRead, getWrite, getRawInput, getCLI, getShell, getSle
 	if getSleep
 		theMethods = theMethods+"#Get system sleep\ndef Sleep(sec)\n\tsleep sec\nend\n\n"
 	end
+	if getTime
+		theMethods = theMethods+"def getTime(tm)\n\t#tm = Time.new\n\tprint tm.hour\n\tprint \":\"\n\tprint tm.min\n\tprint \":\"\n\tputs tm.sec\nend\n\n"
+		theMethods = theMethods+"def TimeAndDate(tm)\n\t#tm = Time.new\n\tputs tm.strftime(\"%a %b %d %H:%M:%S %Y\")\nend\n\n"
+	end
 	if getIsIn
 		theMethods = theMethods+"#Get IsIn Method\ndef IsIn(str,sub)\n\tif str.include? sub\n\t\treturn true\n\telse\n\t\treturn false\n\tend\nend\n\n"
 	end
@@ -161,7 +169,7 @@ def getMethods(getHelp, getRead, getWrite, getRawInput, getCLI, getShell, getSle
 end
 
 #Handle Ruby Main
-def getMain(yes,cli,pipe,threads)
+def getMain(yes,cli,pipe,threads,getTime)
 	theMain = ""
 	if yes
 		theMain = "#Main\n# {\n"
@@ -171,6 +179,10 @@ def getMain(yes,cli,pipe,threads)
 
 		if pipe
 			theMain = theMain+"\nif $stdin.tty?\n\tputs \"nothing was piped in\"\nelse\n\tputs \"[Pipe]\"\n\tputs \"{\"\n\t$stdin.each_line do |line|\n\t\tputs \"\#{line}\"\n\tend\n\tputs \"}\n\"\nend\n"
+		end
+
+		if getTime
+			theMain = theMain+"\ntime = Time.new\n"
 		end
 
 		if threads
@@ -194,9 +206,9 @@ if UserInput["theName"] != "" or UserInput["noSave"] == true
 	#Pull the imports for program
 	TheImports = getImports
 	#Pull the Main function
-	TheMain = getMain(UserInput["isMain"],UserInput["isCli"],UserInput["isPipe"],UserInput["isThread"])
+	TheMain = getMain(UserInput["isMain"],UserInput["isCli"],UserInput["isPipe"],UserInput["isThread"],UserInput["isTime"])
 	#Pull the Methods for the program
-	TheMethods = getMethods(UserInput["isMain"],UserInput["readFile"],UserInput["writeFile"],UserInput["raw_input"],UserInput["isCli"],UserInput["isShell"],UserInput["isSleep"],UserInput["isIn"],UserInput["isProp"],UserInput["isRev"])
+	TheMethods = getMethods(UserInput["isMain"],UserInput["readFile"],UserInput["writeFile"],UserInput["raw_input"],UserInput["isCli"],UserInput["isShell"],UserInput["isSleep"],UserInput["isTime"],UserInput["isIn"],UserInput["isProp"],UserInput["isRev"])
 	#Organize Program content
 	if UserInput["isMain"]
 		TheContent = TheDetails+TheImports+TheMethods+TheMain

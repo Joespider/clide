@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.82"
+SupportV="0.1.86"
 Lang=Go
 LangExt=".go"
 #Color Green
@@ -21,7 +21,7 @@ TheCode=${TheSrcCode}
 errorCode()
 {
 	if [ -d ${LibDir} ] && [ -f ${LibDir}/errorCode.sh ]; then
-		${LibDir}/errorCode.sh $@
+		${LibDir}/errorCode.sh "${@}"
 	fi
 }
 
@@ -29,7 +29,7 @@ errorCode()
 AddAlias()
 {
 	if [ -d ${LibDir} ] && [ -f ${LibDir}/AddAlias.sh ]; then
-		${LibDir}/AddAlias.sh $@
+		${LibDir}/AddAlias.sh "${@}"
 	fi
 }
 
@@ -43,7 +43,7 @@ OtherColor()
 ProjectTemplateHandler()
 {
 	if [ -d ${LibDir} ] && [ -f ${LibDir}/ProjectTemplateHandler.sh ]; then
-		${LibDir}/ProjectTemplateHandler.sh ${Lang} $@
+		${LibDir}/ProjectTemplateHandler.sh ${Lang} "${@}"
 	fi
 }
 
@@ -307,7 +307,7 @@ UseGo()
 						#Is a specalized project
 						*)
 							#get source code from project template
-							TheSrcDir=$(ProjectTemplateHandler ${EnvVars[@]} ${Type} ${mode})
+							TheSrcDir=$(ProjectTemplateHandler "${EnvVars[@]}" ${Type} ${mode})
 							;;
 					esac
 					;;
@@ -380,19 +380,19 @@ UseGo()
 			if [ ! -z "${LangCpl}" ]; then
 				#Home
 				if [ ! -d "${LangHome}" ]; then
-					mkdir "${LangHome}"
+					mkdir -p "${LangHome}"
 				fi
 				#Src
 				if [ ! -d "${LangSrc}" ]; then
-					mkdir "${LangSrc}"
+					mkdir -p "${LangSrc}"
 				fi
 				#Bin
 				if [ ! -d "${LangBin}" ]; then
-					mkdir "${LangBin}"
+					mkdir -p "${LangBin}"
 				fi
 				#projects
 				if [ ! -d "${LangProject}" ]; then
-					mkdir "${LangProject}"
+					mkdir -p "${LangProject}"
 				fi
 			fi
 			;;
@@ -731,7 +731,7 @@ UseGo()
 #			shift
 			Vals="none"
 			Item=""
-			str=$@
+			str=( "${@}" )
 			IFS=' '         # space is set as delimiter
 			read -ra arg <<< "${str}"
 			for TheItem in "${arg[@]}"; do
@@ -974,7 +974,7 @@ UseGo()
 						UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type}) 
 						mkdir -p ${path}
 						if [ ! -z "${UseProjectTemplate}" ]; then
-							ProjectTemplateHandler ${EnvVars[@]} ${Type} ${project}
+							ProjectTemplateHandler "${EnvVars[@]}" ${Type} ${project}
 							if [ ! -d "${path}/bin/" ]; then
 								mkdir -p ${path}/bin
 							fi
@@ -1008,7 +1008,7 @@ UseGo()
 				*)
 					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type}) 
 					if [ ! -z "${UseProjectTemplate}" ]; then
-						ProjectTemplateHandler ${EnvVars[@]} ${Type} ${mode}
+						ProjectTemplateHandler "${EnvVars[@]}" ${Type} ${mode}
 					fi
 					;;
 			esac
@@ -1214,14 +1214,14 @@ UseGo()
 				shift
 				shift
 				shift
-				Args=$@
+				Args=( "${@}" )
 				if [ -z "${1}" ]; then
 					echo -n "${cLang}\$ ./${cTemplate} "
 					read -a Args
 				fi
 				#Program Args Given
 				if [ ! -z "${Args}" ]; then
-					${TemplateCode} ${Args[@]}
+					${TemplateCode} "${Args[@]}"
 				#No Program Name Given
 				else
 					#Help Page
@@ -1241,14 +1241,14 @@ UseGo()
 				shift
 				shift
 				shift
-				Args=$@
+				Args=( "${@}" )
 				if [ -z "${1}" ]; then
 					echo -n "${cLang}\$ ./${cTemplate} --no-save "
 					read -a Args
 				fi
 				#Program Args Given
 				if [ ! -z "${Args}" ]; then
-					${TemplateCode} --no-save ${Args[@]}
+					${TemplateCode} --no-save "${Args[@]}"
 				#No Program Name Given
 				else
 					#Help Page
@@ -1430,7 +1430,7 @@ UseGo()
 			local UseProjectTemplate
 			shift
 			shift
-			local Args=$@
+			local Args=( "${@}" )
 			local TheBin
 			local project=${CodeProject}
 			local TheBinDir
@@ -1488,34 +1488,70 @@ UseGo()
 					debug)
 						if [ ! -z "${ThePipe}" ]; then
 							if [ -f "${MultiPipeFile}" ]; then
-								cat ${MultiPipeFile} | ${UseDebugger} ${TheBinDir}/${TheBin} ${Args[@]}
+								if [ -z "${Args[0]}" ]; then
+									cat ${MultiPipeFile} | ${UseDebugger} ${TheBinDir}/${TheBin}
+								else
+									cat ${MultiPipeFile} | ${UseDebugger} ${TheBinDir}/${TheBin} "${Args[@]}"
+								fi
 							else
-								cat /dev/stdin | ${UseDebugger} ${TheBinDir}/${TheBin} ${Args[@]}
+								if [ -z "${Args[0]}" ]; then
+									cat /dev/stdin | ${UseDebugger} ${TheBinDir}/${TheBin}
+								else
+									cat /dev/stdin | ${UseDebugger} ${TheBinDir}/${TheBin} "${Args[@]}"
+								fi
 							fi
 						else
-							${UseDebugger} ${TheBinDir}/${TheBin} ${Args[@]}
+							if [ -z "${Args[0]}" ]; then
+								${UseDebugger} ${TheBinDir}/${TheBin}
+							else
+								${UseDebugger} ${TheBinDir}/${TheBin} "${Args[@]}"
+							fi
 						fi
 						;;
 					runCode)
 						if [ ! -z "${ThePipe}" ]; then
 							if [ ! -z "${TimeRun}" ]; then
 								if [ -f "${MultiPipeFile}" ]; then
-									time cat ${MultiPipeFile} | ${TheBinDir}/${TheBin} ${Args[@]}
+									if [ -z "${Args[0]}" ]; then
+										time cat ${MultiPipeFile} | ${TheBinDir}/${TheBin}
+									else
+										time cat ${MultiPipeFile} | ${TheBinDir}/${TheBin} "${Args[@]}"
+									fi
 								else
-									time cat /dev/stdin | ${TheBinDir}/${TheBin} ${Args[@]}
+									if [ -z "${Args[0]}" ]; then
+										time cat /dev/stdin | ${TheBinDir}/${TheBin}
+									else
+										time cat /dev/stdin | ${TheBinDir}/${TheBin} "${Args[@]}"
+									fi
 								fi
 							else
 								if [ -f "${MultiPipeFile}" ]; then
-									cat ${MultiPipeFile} | ${TheBinDir}/${TheBin} ${Args[@]}
+									if [ -z "${Args[0]}" ]; then
+										cat ${MultiPipeFile} | ${TheBinDir}/${TheBin}
+									else
+										cat ${MultiPipeFile} | ${TheBinDir}/${TheBin} "${Args[@]}"
+									fi
 								else
-									cat /dev/stdin | ${TheBinDir}/${TheBin} ${Args[@]}
+									if [ -z "${Args[0]}" ]; then
+										cat /dev/stdin | ${TheBinDir}/${TheBin}
+									else
+										cat /dev/stdin | ${TheBinDir}/${TheBin} "${Args[@]}"
+									fi
 								fi
 							fi
 						else
 							if [ ! -z "${TimeRun}" ]; then
-								time ${TheBinDir}/${TheBin} ${Args[@]}
+								if [ -z "${Args[0]}" ]; then
+									time ${TheBinDir}/${TheBin}
+								else
+									time ${TheBinDir}/${TheBin} "${Args[@]}"
+								fi
 							else
-								${TheBinDir}/${TheBin} ${Args[@]}
+								if [ -z "${Args[0]}" ]; then
+									${TheBinDir}/${TheBin}
+								else
+									${TheBinDir}/${TheBin} "${Args[@]}"
+								fi
 							fi
 						fi
 						;;
@@ -1531,7 +1567,7 @@ UseGo()
 				esac
 			fi
 			;;
-		backup|restore)
+		backup|backup-remove|restore)
 			local name=$1
 			name=$(UseGo "removeExt" ${name})
 			name="${name}${LangExt}"
@@ -1551,6 +1587,14 @@ UseGo()
 									echo "\"${name}\" restored"
 								else
 									errorCode "restore" "exists"
+								fi
+								;;
+							backup-remove)
+								if [ -f "${LangSrc}/${name}.bak" ]; then
+									rm ${LangSrc}/${name}.bak
+									echo "\"${name}\" backup removed"
+								else
+									errorCode "backup" "exists"
 								fi
 								;;
 							backup)
@@ -1594,6 +1638,28 @@ UseGo()
 										TheFound=$(UseGo "getProjSrc" "${name}.bak")
 										mv ${TheFound} ${TheFound%.bak}
 										echo "\"${name}\" restored"
+										;;
+									*)
+										;;
+								esac
+							fi
+							;;
+						backup-remove)
+							if [ -f "${name}" ] && [ -f "${name}.bak" ]; then
+								rm ${name}.bak
+								echo "\"${name}\" backup removed"
+							else
+								TheCount=$(UseGo "getProjSrc" "${name}" | wc -l)
+								case ${TheCount} in
+									0)
+										errorCode "backup" "null"
+										;;
+									1)
+										TheFound=$(UseGo "getProjSrc" "${name}")
+										if [ -f "${TheFound}.bak" ]; then
+											rm ${TheFound}.bak
+											echo "\"${name}\" backup removed"
+										fi
 										;;
 									*)
 										;;
@@ -1724,5 +1790,4 @@ UseGo()
 	esac
 }
 
-UseGo $@
-
+UseGo "${@}"

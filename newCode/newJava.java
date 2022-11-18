@@ -47,11 +47,12 @@ public class newJava {
 	private static boolean getUpper = false;
 	private static boolean getLower = false;
 	private static boolean getMath = false;
+	private static boolean getDateAndTime = false;
 
 	private static void Help()
 	{
 		String program = "newJava";
-		String version = "0.1.41";
+		String version = "0.1.42";
 		print("Author: Joespider");
 		print("Program: \""+program+"\"");
 		print("Version: "+version);
@@ -90,6 +91,8 @@ public class newJava {
 		print("\t--upper : enable uppercase methods");
 		print("\t--lower : enable lowercase methods");
 		print("\t--math : enable math functions");
+		print("\t--date-time : enable date and time");
+
 	}
 
 	private static String getHelp(String TheName, String TheUser)
@@ -283,6 +286,11 @@ public class newJava {
 			{
 				getMath = true;
 			}
+			//enable date and time
+			else if (now.equals("--date-time"))
+			{
+				getDateAndTime = true;
+			}
 			//enable sub string methods
 			else if (now.equals("--sub-string"))
 			{
@@ -359,6 +367,7 @@ public class newJava {
 		boolean NeedIOException = false;
 		boolean NeedDataInputStream = false;
 		boolean NeedJavaLangMath = false;
+		boolean NeedJavaTime = false;
 
 		//Handle the imports by Functions
 		//{
@@ -406,6 +415,12 @@ public class newJava {
 			//import java.lang.Math;
 			NeedJavaLangMath = true;
 		}
+		if (getDateAndTime == true)
+		{
+			//import java.lang.Math;
+			NeedJavaTime = true;
+		}
+
 		//}
 
 		//Get Needed list of imports
@@ -458,6 +473,14 @@ public class newJava {
 		{
 			TheImports = TheImports+"import java.lang.Math;\n";
 		}
+		if (NeedJavaTime)
+		{
+			TheImports = TheImports+"import java.time.LocalDate;\n";
+			TheImports = TheImports+"import java.time.LocalTime;\n";
+			TheImports = TheImports+"import java.time.LocalDateTime;\n";
+			TheImports = TheImports+"import java.time.format.DateTimeFormatter;\n";
+		}
+
 		//}
 		return TheImports;
 	}
@@ -488,6 +511,7 @@ public class newJava {
 		String MethodGetTypes = "";
 		String MethodFS = "";
 		String MethodMath = "";
+		String MethodDateAndTime = "";
 
 		//raw_input
 		if (getUserIn == true)
@@ -628,8 +652,12 @@ public class newJava {
 			MethodMath = MethodMath + "\tprivate static long round(double Number)\n\t{\n\t\treturn Math.round(Number);\n\t}\n\n";
 			MethodMath = MethodMath + "\tprivate static double log(double Number)\n\t{\n\t\treturn Math.log(Number);\n\t}\n\n";
 		}
-
-		TheMethods = MethodProp+MethodUserIn+MethodPrint+MethodLength+MethodArrays+MethodCheckFile+MethodReadFile+MethodWriteFile+MethodShell+MethodSleep+MethodIsIn+MethodRev+MethodSplit+MethodJoin+MethodreplaceAll+MethodConv+MethodSubStr+MethodRand+MethodUpper+MethodLower+MethodGetTypes+MethodFS+MethodMath;
+		if (getDateAndTime == true)
+		{
+			MethodDateAndTime = "\tprivate static String getTime()\n\t{\n\t\tLocalTime time = LocalTime.now();\n\t\tDateTimeFormatter JustTime = DateTimeFormatter.ofPattern(\"HH:mm:ss\");\n\t\tString theTime = JustTime.format(time);\n\t\treturn theTime;\n\t}\n\n";
+			MethodDateAndTime = MethodDateAndTime + "\tprivate static String TimeAndDate()\n\t{\n\t\tLocalDateTime dt = LocalDateTime.now();\n\t\tDateTimeFormatter dtf = DateTimeFormatter.ofPattern(\"E MMM dd HH:mm:ss yyyy\");\n\t\tString formatted = dtf.format(dt);\n\t\treturn formatted;\n\t}\n\n";
+		}
+		TheMethods = MethodProp+MethodUserIn+MethodPrint+MethodLength+MethodArrays+MethodCheckFile+MethodReadFile+MethodWriteFile+MethodShell+MethodSleep+MethodIsIn+MethodRev+MethodSplit+MethodJoin+MethodreplaceAll+MethodConv+MethodSubStr+MethodRand+MethodUpper+MethodLower+MethodGetTypes+MethodFS+MethodMath+MethodDateAndTime;
 		return TheMethods;
 	}
 

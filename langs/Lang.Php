@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.0.01"
+SupportV="0.0.02"
 Lang=Php
 LangExt=".php"
 ColorNum=5
@@ -297,19 +297,19 @@ UsePhp()
 			if [ ! -z "${LangRun}" ]; then
 				#Home
 				if [ ! -d "${LangHome}" ]; then
-					mkdir "${LangHome}"
+					mkdir -p "${LangHome}"
 				fi
 				#Src
 				if [ ! -d "${LangSrc}" ]; then
-					mkdir "${LangSrc}"
+					mkdir -p "${LangSrc}"
 				fi
 				#Bin
 				if [ ! -d "${LangBin}" ]; then
-					mkdir "${LangBin}"
+					mkdir -p "${LangBin}"
 				fi
 				#projects
 				if [ ! -d "${LangProject}" ]; then
-					mkdir "${LangProject}"
+					mkdir -p "${LangProject}"
 				fi
 			fi
 			;;

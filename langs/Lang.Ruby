@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.92"
+SupportV="0.1.96"
 Lang=Ruby
 LangExt=".rb"
 ColorNum=1
@@ -20,7 +20,7 @@ TheCode=${TheSrcCode}
 errorCode()
 {
 	if [ -d ${LibDir} ] && [ -f ${LibDir}/errorCode.sh ]; then
-		${LibDir}/errorCode.sh $@
+		${LibDir}/errorCode.sh "${@}"
 	fi
 }
 
@@ -28,7 +28,7 @@ errorCode()
 AddAlias()
 {
 	if [ -d ${LibDir} ] && [ -f ${LibDir}/AddAlias.sh ]; then
-		${LibDir}/AddAlias.sh $@
+		${LibDir}/AddAlias.sh "${@}"
 	fi
 }
 
@@ -42,7 +42,7 @@ OtherColor()
 ProjectTemplateHandler()
 {
 	if [ -d ${LibDir} ] && [ -f ${LibDir}/ProjectTemplateHandler.sh ]; then
-		${LibDir}/ProjectTemplateHandler.sh ${Lang} $@
+		${LibDir}/ProjectTemplateHandler.sh ${Lang} "${@}"
 	fi
 }
 
@@ -268,7 +268,7 @@ UseRuby()
 							esac
 							;;
 						*)
-							TheSrcDir=$(ProjectTemplateHandler ${EnvVars[@]} ${Type} ${mode})
+							TheSrcDir=$(ProjectTemplateHandler "${EnvVars[@]}" ${Type} ${mode})
 							;;
 					esac
 					;;
@@ -301,19 +301,19 @@ UseRuby()
 			if [ ! -z "${LangRun}" ]; then
 				#Home
 				if [ ! -d "${LangHome}" ]; then
-					mkdir "${LangHome}"
+					mkdir -p "${LangHome}"
 				fi
 				#Src
 				if [ ! -d "${LangSrc}" ]; then
-					mkdir "${LangSrc}"
+					mkdir -p "${LangSrc}"
 				fi
 				#Bin
 				if [ ! -d "${LangBin}" ]; then
-					mkdir "${LangBin}"
+					mkdir -p "${LangBin}"
 				fi
 				#projects
 				if [ ! -d "${LangProject}" ]; then
-					mkdir "${LangProject}"
+					mkdir -p "${LangProject}"
 				fi
 			fi
 			;;
@@ -793,7 +793,7 @@ UseRuby()
 					*)
 						UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 						if [ ! -z "${UseProjectTemplate}" ]; then
-							ProjectTemplateHandler ${EnvVars[@]} ${Type} ${project}
+							ProjectTemplateHandler "${EnvVars[@]}" ${Type} ${project}
 						fi
 						;;
 				esac
@@ -811,7 +811,7 @@ UseRuby()
 				*)
 					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 					if [ ! -z "${UseProjectTemplate}" ]; then
-						ProjectTemplateHandler ${EnvVars[@]} ${Type} ${mode}
+						ProjectTemplateHandler "${EnvVars[@]}" ${Type} ${mode}
 					fi
 					;;
 			esac
@@ -1042,14 +1042,14 @@ UseRuby()
 				shift
 				shift
 				shift
-				Args=$@
+				Args=( "${@}" )
 				if [ -z "${1}" ]; then
 					echo -n "${cLang}\$ ${LangRun} ${cTemplate} "
 					read -a Args
 				fi
 				#Program Args Given
 				if [ ! -z "${Args}" ]; then
-					${LangRun} ${TemplateCode} ${Args[@]}
+					${LangRun} ${TemplateCode} "${Args[@]}"
 				#No Program Name Given
 				else
 					${LangRun} ${TemplateCode} --help
@@ -1068,14 +1068,14 @@ UseRuby()
 				shift
 				shift
 				shift
-				Args=$@
+				Args=( "${@}" )
 				if [ -z "${1}" ]; then
 					echo -n "${cLang}\$ ${LangRun} ${cTemplate} --no-save "
 					read -a Args
 				fi
 				#Program Args Given
 				if [ ! -z "${Args}" ]; then
-					${LangRun} ${TemplateCode} --no-save ${Args[@]}
+					${LangRun} ${TemplateCode} --no-save "${Args[@]}"
 				#No Program Name Given
 				else
 					${LangRun} ${TemplateCode} --help
@@ -1231,7 +1231,7 @@ UseRuby()
 			local UseProjectTemplate
 			shift
 			shift
-			local Args=$@
+			local Args=( "${@}" )
 			#Handle Project Dir
 			case ${project} in
 				none)
@@ -1262,28 +1262,56 @@ UseRuby()
 				chmod -w ${TheBinDir}/${TheBin} 2> /dev/null
 				case ${Type} in
 					debug)
-						${LangRun} -m ${UseDebugger} ${TheBinDir}/${TheBin} ${Args[@]}
+						if [ -z "${Args[0]}" ]; then
+							${LangRun} -m ${UseDebugger} ${TheBinDir}/${TheBin}
+						else
+							${LangRun} -m ${UseDebugger} ${TheBinDir}/${TheBin} "${Args[@]}"
+						fi
 						;;
 					runCode)
 						if [ ! -z "${ThePipe}" ]; then
 							if [ ! -z "${TimeRun}" ]; then
 								if [ -f "${MultiPipeFile}" ]; then
-									time cat ${MultiPipeFile} | ${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+									if [ -z "${Args[0]}" ]; then
+										time cat ${MultiPipeFile} | ${LangRun} ${TheBinDir}/${TheBin}
+									else
+										time cat ${MultiPipeFile} | ${LangRun} ${TheBinDir}/${TheBin} "${Args[@]}"
+									fi
 								else
-									time cat /dev/stdin | ${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+									if [ -z "${Args[0]}" ]; then
+										time cat /dev/stdin | ${LangRun} ${TheBinDir}/${TheBin}
+									else
+										time cat /dev/stdin | ${LangRun} ${TheBinDir}/${TheBin} "${Args[@]}"
+									fi
 								fi
 							else
 								if [ -f "${MultiPipeFile}" ]; then
-									cat ${MultiPipeFile} | ${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+									if [ -z "${Args[0]}" ]; then
+										cat ${MultiPipeFile} | ${LangRun} ${TheBinDir}/${TheBin}
+									else
+										cat ${MultiPipeFile} | ${LangRun} ${TheBinDir}/${TheBin} "${Args[@]}"
+									fi
 								else
-									cat /dev/stdin | ${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+									if [ -z "${Args[0]}" ]; then
+										cat /dev/stdin | ${LangRun} ${TheBinDir}/${TheBin}
+									else
+										cat /dev/stdin | ${LangRun} ${TheBinDir}/${TheBin} "${Args[@]}"
+									fi
 								fi
 							fi
 						else
 							if [ ! -z "${TimeRun}" ]; then
-								time ${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+								if [ -z "${Args[0]}" ]; then
+									time ${LangRun} ${TheBinDir}/${TheBin}
+								else
+									time ${LangRun} ${TheBinDir}/${TheBin} "${Args[@]}"
+								fi
 							else
-								${LangRun} ${TheBinDir}/${TheBin} ${Args[@]}
+								if [ -z "${Args[0]}" ]; then
+									${LangRun} ${TheBinDir}/${TheBin}
+								else
+									${LangRun} ${TheBinDir}/${TheBin} "${Args[@]}"
+								fi
 							fi
 						fi
 						;;
@@ -1294,7 +1322,7 @@ UseRuby()
 				errorCode "cpl" "need" "${name}"
 			fi
 			;;
-		backup|restore)
+		backup|backup-remove|restore)
 			local name=$1
 			name=$(UseRuby "removeExt" ${name})
 			name="${name}${LangExt}"
@@ -1314,6 +1342,14 @@ UseRuby()
 									echo "\"${name}\" restored"
 								else
 									errorCode "restore" "exists"
+								fi
+								;;
+							backup-remove)
+								if [ -f "${LangSrc}/${name}.bak" ]; then
+									rm ${LangSrc}/${name}.bak
+									echo "\"${name}\" backup removed"
+								else
+									errorCode "backup" "exists"
 								fi
 								;;
 							backup)
@@ -1357,6 +1393,28 @@ UseRuby()
 										TheFound=$(UseRuby "getProjSrc" "${name}.bak")
 										mv ${TheFound} ${TheFound%.bak}
 										echo "\"${name}\" restored"
+										;;
+									*)
+										;;
+								esac
+							fi
+							;;
+						backup-remove)
+							if [ -f "${name}" ] && [ -f "${name}.bak" ]; then
+								rm ${name}.bak
+								echo "\"${name}\" backup removed"
+							else
+								TheCount=$(UseRuby "getProjSrc" "${name}" | wc -l)
+								case ${TheCount} in
+									0)
+										errorCode "backup" "null"
+										;;
+									1)
+										TheFound=$(UseRuby "getProjSrc" "${name}")
+										if [ -f "${TheFound}.bak" ]; then
+											rm ${TheFound}.bak
+											echo "\"${name}\" backup removed"
+										fi
 										;;
 									*)
 										;;
@@ -1487,4 +1545,4 @@ UseRuby()
 	esac
 }
 
-UseRuby $@
+UseRuby "${@}"
