@@ -3,4 +3,4 @@
 #1st # = Overflow
 #2nd # = Additional features
 #3rd # = Bug/code tweaks/fixes
-export clideVersion="0.93.79"
+export clideVersion="0.93.82"

@@ -707,6 +707,8 @@ CliHelp()
 				--path|--find)
 					PathCliHelp ${example}
 					;;
+				--shell)
+					;;
 				-x|--run|--time)
 					RunCliHelp ${example}
 					;;
@@ -762,6 +764,7 @@ CliHelp()
 					echo -e "\t--debug <args>\t\t\t\t\t: \"Debug compiled code\""
 					echo -e "\t--run <args>\t\t\t\t\t: \"Run compiled code\""
 					echo -e "\t-x <args>\t\t\t\t\t: \"Run compiled code\""
+					echo -e "\t--shell <args>\t\t\t\t\t: \"Run code specific code\""
 					echo -e "\t--rm <args>\t\t\t\t\t: \"Remove binary and source code\""
 					echo -e "\t--rm-bin <args>\t\t\t\t\t: \"Remove binary code\""
 					echo -e "\t--rm-src <args>\t\t\t\t\t: \"Remove source code\""

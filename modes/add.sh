@@ -99,7 +99,7 @@ AddShortcut()
 			case ${Choice[1],,} in
 				clide)
 					local ClideDesktop="clide.desktop"
-					echo -e "[Desktop Entry]\nName=cl[ide]\nEncoding=UTF-8\nExec=bash -c \"${root}/clide.sh\"\nIcon=${root}/icons/clide.png\nStartupNotify=false\nTerminal=true\nType=Application\nCategories=Programming;Development;IDE;" > ${ClideDesktop}
+					echo -e "[Desktop Entry]\nName=cl[ide]\nEncoding=UTF-8\nExec=bash -c \"${root}/clide.sh\"\nIcon=${root}/icons/clide.png\nStartupNotify=false\nTerminal=true\nType=Application\nCategories=Programming;Development;IDE;\nActions=use-bash;use-c;use-c++;use-go;use-java;use-perl;use-python;use-ruby;use-rust;\n\n[Desktop Action use-bash]\nName=Bash\nExec=bash -c \"/home/joespider/Programs/.clide/clide.sh Bash\"\n\n[Desktop Action use-c]\nName=C\nExec=bash -c \"/home/joespider/Programs/.clide/clide.sh C\"\n\n[Desktop Action use-c++]\nName=C++\nExec=bash -c \"/home/joespider/Programs/.clide/clide.sh C++\"\n\n[Desktop Action use-go]\nName=Go\nExec=bash -c \"/home/joespider/Programs/.clide/clide.sh Go\"\n\n[Desktop Action use-java]\nName=Java\nExec=bash -c \"/home/joespider/Programs/.clide/clide.sh Java\"\n\n[Desktop Action use-perl]\nName=Perl\nExec=bash -c \"/home/joespider/Programs/.clide/clide.sh Perl\"\n\n[Desktop Action use-python]\nName=Python\nExec=bash -c \"/home/joespider/Programs/.clide/clide.sh Python\"\n\n[Desktop Action use-ruby]\nName=Ruby\nExec=bash -c \"/home/joespider/Programs/.clide/clide.sh Ruby\"\n\n[Desktop Action use-rust]\nName=Rust\nExec=bash -c \"/home/joespider/Programs/.clide/clide.sh Rust\"\n" > ${ClideDesktop}
 					if [ -f ${ClideDesktop} ]; then
 						case ${USER} in
 							root)

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.88"
+SupportV="0.1.89"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
@@ -64,6 +64,7 @@ UseC()
 
 	local TemplateCodeSrc=${NewC%${LangExt}}${LangExt}
 	local TemplateCodeArgs=${NewCArgs}
+	local ShellCodeSrc="shell"${LangExt}
 
 	local TemplateCodeArgs=${NewCArgs}
 
@@ -130,6 +131,9 @@ UseC()
 			;;
 		getNewCode)
 			echo ${TemplateCodeSrc}
+			;;
+		getShellCode)
+			echo ${ShellCodeSrc}
 			;;
 		#source code directory
 		getSrcDir)
@@ -427,6 +431,7 @@ UseC()
 			echo -e "version, -std=<c#>\t\t: compile with a specific version"
 			;;
 		shell)
+			UseC "runCode" "${ShellCodeSrc}"
 			;;
 		newCodeHelp)
 			if [ -f ${TemplateCode} ]; then

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.86"
+SupportV="0.1.87"
 Lang=Go
 LangExt=".go"
 #Color Green
@@ -64,6 +64,7 @@ UseGo()
 
 	local TemplateCodeSrc=${NewGo%${LangExt}}${LangExt}
 	local TemplateCodeArgs=${NewGoArgs}
+	local ShellCodeSrc="shell"${LangExt}
 
 	local EnvVars=( ${LangRun} ${LangHome} ${LangSrc} ${LangBin} ${LangExt} )
 	#}
@@ -128,6 +129,9 @@ UseGo()
 			;;
 		getNewCode)
 			echo ${TemplateCodeSrc}
+			;;
+		getShellCode)
+			echo ${ShellCodeSrc}
 			;;
 		#source code directory
 		getSrcDir)
@@ -368,6 +372,7 @@ UseGo()
 		CreateHelp)
 			;;
 		shell)
+			UseGo "runCode" "${ShellCodeSrc}"
 			;;
 		newCodeHelp)
 			if [ -f ${TemplateCode} ]; then
