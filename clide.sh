@@ -3954,6 +3954,48 @@ Actions()
 										;;
 								esac
 								;;
+							shellCode)
+								local ShellCode=$(ManageLangs ${Lang} "getShellCode")
+								local LangSrcDir=$(ManageLangs ${Lang} "getSrcDir")
+								local MoveError
+								local LinkError
+
+								case ${UserIn[2]} in
+									#Create your own "new" code template
+									custom)
+										if [ ! -f ${LangSrcDir}/${ShellCode} ]; then
+											ManageLangs ${Lang} "newCode" ${ShellCode}
+										fi
+										#Select code
+										TheSrcCode=$(selectCode ${Lang} "set" ${ShellCode})
+										refresh="yes"
+										;;
+									--help|help)
+										theHelp CreateHelp ${Lang}
+										;;
+									#Use the template provided but cl[ide]
+									*)
+										#Create new souce code in shellCode/
+										if [ ! -f ${ShellsDir}/${ShellCode} ]; then
+											if [ ! -f ${LangSrcDir}/${ShellCode} ]; then
+												ManageLangs ${Lang} "newCode" ${ShellCode}
+											fi
+											#Move your custom code to cl[ide]'s template directory
+											MoveError=$(mv ${LangSrcDir}/${ShellCode} ${ShellsDir}/ 2>&1)
+										fi
+										#Copy and set source code to src/
+										if [ ! -f ${LangSrcDir}/${ShellCode} ] && [ -f ${ShellsDir}/${ShellCode} ]; then
+											LinkError=$(ln -s ${ShellsDir}/${ShellCode} 2>&1)
+										elif [ ! -f ${LangSrcDir}/${ShellCode} ] && [ ! -f ${ShellsDir}/${ShellCode} ]; then
+											LinkError="no"
+										fi
+										if [ -z "${LinkError}" ] && [ -z "${MoveError}" ]; then
+											TheSrcCode=$(selectCode ${Lang} "set" ${ShellCode})
+											refresh="yes"
+										fi
+										;;
+								esac
+								;;
 							version)
 								case ${Lang} in
 									#only C and C++ uses make
@@ -4762,7 +4804,7 @@ loadAuto()
 	comp_list "add" "--help"
 	comp_list "${ReadBy} read" "non-lang --help"
 	comp_list "search" "--help"
-	comp_list "create" "args cpl cpl-args make newCodeTemp reset version type time --help"
+	comp_list "create" "args cpl cpl-args make shellCode newCodeTemp reset version type time --help"
 	comp_list "compile cpl car car-a" "--args --get-args --type --help"
 	comp_list "execute exe run" "-a --args --help"
 	comp_list "version" "--help"
@@ -6558,6 +6600,24 @@ CLI()
 				;;
 			#debug your compiled code
 			--debug)
+				;;
+			--shell)
+				shift
+				local Lang=$1
+				#Provide the help page
+				if [ -z "${Lang}" ]; then
+					theHelp RunCliHelp ${UserArg}
+				else
+					Lang=$(pgLang ${Lang})
+					case ${Lang} in
+						no)
+							;;
+						*)
+							InAndOut="yes"
+							Actions ${Lang} "none" "shell"
+							;;
+					esac
+				fi
 				;;
 			#run your compiled code
 			-x|--run|--time)
