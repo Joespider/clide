@@ -52,7 +52,7 @@ public class newJava {
 	private static void Help()
 	{
 		String program = "newJava";
-		String version = "0.1.42";
+		String version = "0.1.43";
 		print("Author: Joespider");
 		print("Program: \""+program+"\"");
 		print("Version: "+version);
@@ -576,6 +576,8 @@ public class newJava {
 		if (getIsIn == true)
 		{
 			MethodIsIn = "\tprivate static boolean IsIn(String Str, String Sub)\n\t{\n\t\tboolean found = false;\n\t\tif (Str.contains(Sub))\n\t\t{\n\t\t\tfound = true;\n\t\t}\n\t\treturn found;\n\t}\n\n";
+			MethodIsIn = MethodIsIn+"\t//Check if string begins with substring\n\tprivate static boolean StartsWith(String Str, String Start)\n\t{\n\t\tboolean ItDoes = Str.startsWith(Start);\n\t\treturn ItDoes;\n\t}\n\n";
+			MethodIsIn = MethodIsIn+"\t//Check if string ends with substring\n\tprivate static boolean EndsWith(String Str, String Start)\n\t{\n\t\tboolean ItDoes = Str.endsWith(Start);\n\t\treturn ItDoes;\n\t}\n\n";
 		}
 		if (getJoin == true)
 		{

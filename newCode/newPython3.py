@@ -6,7 +6,7 @@ ProgramName = sys.argv[0]
 if "/" in ProgramName:
 	ProgramName = ProgramName.rsplit("/",1)[1]
 
-VersionName = "0.1.29"
+VersionName = "0.1.30"
 
 def Help():
 	print("Author: Joespider")
@@ -39,6 +39,8 @@ def Help():
 	print("\t--lower : enable lower method")
 	print("\t--math : enable math functions")
 	print("\t--date-time : enable date and time")
+	print("\t--web : use web request")
+	print("\t--json : use json")
 
 def GetArgs():
 	Args = sys.argv
@@ -68,6 +70,8 @@ def GetArgs():
 		   "math":False,
 		   "time":False,
 		   "length":False,
+		   "web":False,
+		   "json":False,
 		   "shell":False}
 	#
 	lp = 0
@@ -135,6 +139,10 @@ def GetArgs():
 			Returns["time"] = True
 		elif now == "--get-length":
 			Returns["length"] = True
+		elif now == "--web":
+			Returns["web"] = True
+		elif now == "--json":
+			Returns["json"] = True
 		lp += 1
 	return Returns
 
@@ -145,7 +153,7 @@ def getHelp(TheName, TheUser):
 	return HelpMethod
 
 #Get Imports
-def Imports(getShell, getSys, getRand, getThread, getPipe, getSleep, getTime, getProp, getMath, getCheckFile):
+def Imports(getShell, getSys, getRand, getThread, getPipe, getSleep, getTime, getProp, getMath, getCheckFile, getWeb, getJson):
 	TheImports = ""
 	if getShell == True or getProp == True or getCheckFile == True:
 		TheImports = "import os\n"
@@ -159,11 +167,16 @@ def Imports(getShell, getSys, getRand, getThread, getPipe, getSleep, getTime, ge
 		TheImports = TheImports+"import time\n"
 	if getMath == True:
 		TheImports = TheImports+"import math\n"
+	if getWeb == True:
+		TheImports = TheImports+"#https://www.geeksforgeeks.org/python-requests-tutorial/\n"
+		TheImports = TheImports+"import requests\n"
+	if getJson == True:
+		TheImports = TheImports+"import json\n"
 
 	return TheImports
 
 #Get Methods
-def Methods(getMain, getRawInput, getShell, getCLI, getCheckFile, getWrite, getRead, getRandom, getThread, getPipe, getSleep, getTime, getProp, getSplit, getJoin, getRev, getTypes, getUpper, getLower, getMath, getLength):
+def Methods(getMain, getRawInput, getShell, getCLI, getCheckFile, getWrite, getRead, getRandom, getThread, getPipe, getSleep, getTime, getProp, getSplit, getJoin, getRev, getTypes, getUpper, getLower, getMath, getLength, getWeb, getJson):
 	TheMethods = ""
 	#{
 	OSshellMethod = "def Shell(cmd):\n\tOutput = \"\"\n\tTheShell = os.popen(cmd)\n\tOutput = TheShell.read()\n\tTheShell.close()\n\treturn Output\n\ndef Exe(cmd):\n\tos.system(cmd)\n"
@@ -206,6 +219,11 @@ def Methods(getMain, getRawInput, getShell, getCLI, getCheckFile, getWrite, getR
 	MathMethod = MathMethod + "def tanh(number):\n\treturn math.tanh(number)\n"
 	TimeMethod = "def getTime():\n\tnow = time.localtime()\n\treturn time.strftime(\"%H:%M:%S\",now)\n\n"
 	TimeMethod = TimeMethod+"def TimeAndDate():\n\treturn time.asctime(time.localtime(time.time()))\n\n"
+	WebRequestMethod = "def GetWebPage(site):\n\treturn requests.get(site)\n\n"
+	WebRequestMethod = WebRequestMethod+"def GetWebStatus(response):\n\treturn response.status_code\n\n"
+	WebRequestMethod = WebRequestMethod+"def GetWebContent(response):\n\treturn response.text\n\n"
+
+	JsonMethod = "def LoadJson(Data):\n\tJsonData = json.loads(Data)\n\treturn JsonData\n\n"
 	LengthExample = ""
 
 	if getThread == True:
@@ -272,6 +290,12 @@ def Methods(getMain, getRawInput, getShell, getCLI, getCheckFile, getWrite, getR
 	#Get Type Method
 	if getTypes == True:
 		TheMethods = TheMethods+TypeMethod+"\n"
+	#Get Web Method
+	if getWeb == True:
+		TheMethods = TheMethods+WebRequestMethod+"\n"
+	#Get Json Method
+	if getJson == True:
+		TheMethods = TheMethods+JsonMethod+"\n"
 	#Get CLI Method
 	if getCLI == True:
 		TheMethods = TheMethods+CLImethod+"\n"
@@ -322,6 +346,8 @@ def Main():
 	GetLower = UserArgs["lower"]
 	GetMath = UserArgs["math"]
 	GetLength = UserArgs["length"]
+	GetWeb = UserArgs["web"]
+	GetJson = UserArgs["json"]
 	#}
 	#Ensure Name of program
 	if TheName != "" or noSave == True:
@@ -333,9 +359,9 @@ def Main():
 
 		if FileExists == False or noSave == True:
 			#Get Imports
-			ProgImports = Imports(GetShell, IsCLI, GetRand, GetThreads, GetPipe, GetSleep, GetTime, GetProp, GetMath, GetCheckFile)
+			ProgImports = Imports(GetShell, IsCLI, GetRand, GetThreads, GetPipe, GetSleep, GetTime, GetProp, GetMath, GetCheckFile, GetWeb, GetJson)
 			#Get Methods
-			ProgMethods = Methods(IsMain, GetRawInput, GetShell, IsCLI, GetCheckFile, GetWrite, GetRead, GetRand, GetThreads, GetPipe, GetSleep, GetTime, GetProp, GetSplit, GetJoin, GetRev, GetTypes, GetUpper, GetLower, GetMath, GetLength)
+			ProgMethods = Methods(IsMain, GetRawInput, GetShell, IsCLI, GetCheckFile, GetWrite, GetRead, GetRand, GetThreads, GetPipe, GetSleep, GetTime, GetProp, GetSplit, GetJoin, GetRev, GetTypes, GetUpper, GetLower, GetMath, GetLength, GetWeb, GetJson)
 			if IsCLI == True:
 				TheHelpMethod = getHelp(TheName,TheUser)
 			#Manage Imports
