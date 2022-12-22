@@ -5957,10 +5957,19 @@ CLI()
 								shift
 								Args=( "${@}" )
 								;;
-							#clide --new <src> --<other>
+							#clide --new <lang> <src> --<other>
 							--*)
 								NoSupportLang=$1
-								Lang=$(SelectLangByCode $1)
+								Lang=$(pgLang $1)
+								case ${Lang} in
+									no)
+										#clide --new <src> --<other>
+										Lang=$(SelectLangByCode $1)
+										;;
+									*)
+										shift
+										;;
+								esac
 								Code=$1
 								shift
 								Args=( "${@}" )
@@ -7141,12 +7150,18 @@ main()
 													fi
 													;;
 												*)
-													main ${HiddenAction} ${Lang} "${Args[@]}"
+													main ${HiddenAction} ${Lang} "${Args[0]}"
 													;;
 											esac
 										fi
 										InAndOut="no"
-										Actions ${Lang} "${Args[@]}"
+										case ${Args[0]} in
+											--*)
+												;;
+											*)
+											Actions ${Lang} "${Args[0]}"
+											;;
+										esac
 										;;
 									# $ clide <lang> --project <action> <ProjectName>
 									-p|--project)

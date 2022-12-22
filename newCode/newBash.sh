@@ -1,6 +1,6 @@
 #!/bin/bash
 
-Version="0.1.5"
+Version="0.1.6"
 
 Help()
 {
@@ -13,6 +13,7 @@ Help()
 	echo -e "\t--name <name> : script name"
 	echo -e "\t--no-save : only show out of code; no file source code is created"
 	echo -e "\t--pipe : enable piping"
+	echo -e "\t--sleep : enable using sleep"
 	echo -e "\t--reverse : enable reverse"
 	echo -e "\t--random : enable random (1 - 10)"
 	echo -e "\t--date-time : enable date and time"
@@ -40,6 +41,21 @@ GetRandom()
 	echo ""
 }
 
+GetSleep()
+{
+	echo "#sleep for seconds"
+	echo "#sleep 1"
+	echo ""
+	echo "#sleep for seconds"
+	echo "#sleep 1s"
+	echo ""
+	echo "#sleep for minutes"
+	echo "#sleep 1m"
+	echo ""
+	echo "#sleep for hours"
+	echo "#sleep 1h"
+}
+
 GetRev()
 {
 	echo "echo "This" | rev"
@@ -56,6 +72,7 @@ main()
 	local GetName="no"
 	local NoSave="no"
 	local UsePipe="no"
+	local UseSleep="no"
 	local UseRandom="no"
 	local UseRev="no"
 	local UseDate="no"
@@ -71,6 +88,9 @@ main()
 				;;
 			--pipe)
 				UsePipe="yes"
+				;;
+			--sleep)
+				 UseSleep="yes"
 				;;
 			--random)
 				UseRandom="yes"
@@ -112,6 +132,13 @@ main()
 				*)
 					;;
 			esac
+			case ${UseSleep} in
+				yes)
+					GetSleep
+					;;
+				*)
+					;;
+			esac
 			case ${UseRev} in
 				yes)
 					GetRev
@@ -144,6 +171,13 @@ main()
 					case ${UseRandom} in
 						yes)
 							GetRandom >> "${TheName}.sh"
+							;;
+						*)
+							;;
+					esac
+					case ${UseSleep} in
+						yes)
+							GetSleep >> "${TheName}.sh"
 							;;
 						*)
 							;;

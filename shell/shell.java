@@ -12,6 +12,61 @@ import java.io.IOException;
 
 //class name
 public class shell {
+	private static String Version = "0.0.2";
+	private static String TheKind = "";
+	private static String TheName = "";
+	private static String TheKindType = "";
+	private static String TheDataType = "";
+	private static String TheCondition = "";
+	private static String Parameters = "";
+
+	private static void Help(String Option)
+	{
+		if (Option == "")
+		{
+			print("Java shell");
+			print("Generate Java code");
+			print("");
+			print("type:<type>=<args>");
+			print("type <type> <args>");
+			print("{Type options}");
+			print("\tloop <args>");
+			print("\tlogic <args>");
+			print("\tfunction <args>");
+			print("");
+			print("name:<function/class name>");
+			print("name <function/class name>");
+			print("");
+			print("condition:<condition>");
+			print("condition <condition>");
+			print("");
+			print("gen\t\t:\t\"Generate code\"");
+			print("help\t\t:\t\"This Page\"");
+			print("help <type>\t:\t\"Get type options\"");
+		}
+		else if (Option == "loop")
+		{
+			print("type:loop <args>");
+			print("type loop <args>");
+			print("\tfor");
+			print("\twhile");
+			print("\tdo/while");
+		}
+		else if (Option == "logic")
+		{
+			print("type:logic <args>");
+			print("type logic <args>");
+			print("\tif");
+			print("\tif/else");
+			print("\tif/else");
+			print("\tswitch");
+		}
+		else if (Option == "function")
+		{
+			print("type:function <data type>");
+			print("type function <data type>");
+		}
+	}
 
 	//Get User input
 	private static String raw_input(String Message)
@@ -28,6 +83,46 @@ public class shell {
 	private static void print(Object out)
 	{
 		System.out.println(out);
+	}
+
+	private static String[] split(String message, String by)
+	{
+		String[] vArray = message.split(by);
+		return vArray;
+	}
+
+	private static String[] split(String message, String by, int plc)
+	{
+		String[] vArray = message.split(by,plc);
+		return vArray;
+	}
+
+	//Check if string begins with substring
+	private static boolean StartsWith(String Str, String Start)
+	{
+		boolean ItDoes = Str.startsWith(Start);
+		return ItDoes;
+	}
+
+	//Check if string ends with substring
+	private static boolean EndsWith(String Str, String Start)
+	{
+		boolean ItDoes = Str.endsWith(Start);
+		return ItDoes;
+	}
+
+	//get array length
+	private static int len(String[] array)
+	{
+		int length = array.length;
+		return length;
+	}
+
+	//get string length
+	private static int len(String word)
+	{
+		int length = word.length();
+		return length;
 	}
 
 	private static String Shell(String command)
@@ -93,7 +188,7 @@ public class shell {
 		String cplV = getCpl();
 		String theOS = System.getProperty("os.name");
 		print(cplV);
-		print("[Java] on "+ theOS);
+		print("[Java "+Version+"] on "+ theOS);
 		print("Type \"help\" for more information.");
 	}
 	/**
@@ -101,14 +196,114 @@ public class shell {
 	*/
 	public static void main(String[] args)
 	{
+		int length;
 		String UserIn = "";
 		banner();
-		while (!UserIn.equals("exit()"))
+		while (true)
 		{
 			UserIn = raw_input(">>> ");
-			if (UserIn.equals("exit"))
+			if (!UserIn.equals(""))
 			{
-				print("User exit() to exit");
+				if (UserIn.equals("exit"))
+				{
+					print("User exit() to exit");
+				}
+				else if (UserIn.equals("exit()"))
+				{
+					break;
+				}
+				else if (UserIn.equals("help"))
+				{
+					Help("");
+				}
+				else if (StartsWith(UserIn,"help "))
+				{
+					String[] UserArgs = split(UserIn," ");
+					length = len(UserArgs);
+					if (length == 2)
+					{
+						Help(UserArgs[1]);
+					}
+					else
+					{
+						Help("");
+					}
+				}
+				else if (UserIn.equals("gen"))
+				{
+					if (TheKind.equals("loop"))
+					{
+						//Loop();
+						print("Loop");
+					}
+					else if (TheKind.equals("array"))
+					{
+						//Array();
+						print("Array");
+					}
+					else if (TheKind.equals("class"))
+					{
+						//Class();
+						print("Class");
+					}
+					else if (TheKind.equals("logic"))
+					{
+						//Logic();
+						print("Logic");
+					}
+	/*
+					else if (TheKind == "condition")
+					{
+						Conditions();
+					}
+	*/
+					else if (TheKind.equals("function"))
+					{
+						//Function();
+						print("Function");
+					}
+				}
+				else if (UserIn.equals("clear"))
+				{
+					//clear();
+					print("clear");
+				}
+				else if (StartsWith(UserIn,"condition:"))
+				{
+					String[] UserArgs = split(UserIn,":",1);
+					//HandleCondition(UserArgs[1]);
+					print(UserArgs[1]);
+				}
+				else if (StartsWith(UserIn,"condition "))
+				{
+					String[] UserArgs = split(UserIn," ",1);
+					//HandleCondition(UserArgs[1]);
+					print(UserArgs[1]);
+				}
+				else if (StartsWith(UserIn,"name:"))
+				{
+					String[] UserArgs = split(UserIn,":",1);
+					//HandleName(UserArgs[1]);
+					print(UserArgs[1]);
+				}
+				else if (StartsWith(UserIn,"name "))
+				{
+					String[] UserArgs = split(UserIn," ",1);
+					//HandleName(UserArgs[1]);
+					print(UserArgs[1]);
+				}
+				else if (StartsWith(UserIn,"type:"))
+				{
+					String[] UserArgs = split(UserIn,":",1);
+					//HandleKind(UserArgs[1]);
+					print(UserArgs[1]);
+				}
+				else if (StartsWith(UserIn,"type "))
+				{
+					String[] UserArgs = split(UserIn," ",1);
+					//HandleKind(UserArgs[1]);
+					print(UserArgs[1]);
+				}
 			}
 		}
 	}
