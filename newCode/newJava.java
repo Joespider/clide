@@ -52,7 +52,7 @@ public class newJava {
 	private static void Help()
 	{
 		String program = "newJava";
-		String version = "0.1.43";
+		String version = "0.1.44";
 		print("Author: Joespider");
 		print("Program: \""+program+"\"");
 		print("Version: "+version);
@@ -586,7 +586,7 @@ public class newJava {
 		if ((getSplit == true) && (getJoin == true))
 		{
 			MethodreplaceAll = "\tprivate static String replaceAll(String message, String sBy, String jBy)\n\t{\n\t\tString NewMessage = message.replaceAll(sBy,jBy);\n\t\treturn NewMessage;\n\t}\n\n";
-			MethodreplaceAll = MethodreplaceAll + "\tprivate static String replaceFirst(String message, String sBy, String jBy)\t{\n\t\tString NewMessage = message.replaceFirst(sBy,jBy);\n\t\treturn NewMessage;\n\t}\n\n";
+			MethodreplaceAll = MethodreplaceAll + "\tprivate static String replaceFirst(String message, String sBy, String jBy)\n\t{\n\t\tString NewMessage = message.replaceFirst(sBy,jBy);\n\t\treturn NewMessage;\n\t}\n\n";
 			MethodreplaceAll = MethodreplaceAll + "\tprivate static String replaceLast(String message, String sBy, String jBy)\n\t{\n\t\tString NewMessage = message;\n\t\tint lastIndex = message.lastIndexOf(sBy);\n\t\tif (lastIndex != -1)\n\t\t{\n\t\t\tString beginString = message.substring(0, lastIndex);\n\t\t\tString endString = message.substring(lastIndex + sBy.length());\n\t\t\tNewMessage = beginString + jBy + endString;\n\t\t}\n\t\treturn NewMessage;\n\t}\n\n";
 		}
 		if (getRandom == true)

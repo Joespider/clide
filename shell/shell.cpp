@@ -37,7 +37,7 @@ void HandleCondition(String Value);
 void HandleKind(String Value);
 void HandleName(String Value);
 
-String Version = "0.0.2";
+String Version = "0.0.3";
 String TheKind = "";
 String TheName = "";
 String TheKindType = "";
@@ -87,6 +87,24 @@ void Help(String Option = "")
 		print("gen\t\t:\t\"Generate code\"");
 		print("help\t\t:\t\"This Page\"");
 		print("help <type>\t:\t\"Get type options\"");
+	}
+	else if (Option == "condition")
+	{
+		print("create your conditions");
+	}
+	else if (Option == "name")
+	{
+		print("give the name of your function");
+	}
+	else if (Option == "type")
+	{
+		print("Provide the type of structure needed");
+		print("");
+		Help("loop");
+		print("");
+		Help("logic");
+		print("");
+		Help("function");
 	}
 	else if (Option == "loop")
 	{
@@ -509,35 +527,59 @@ int main()
 			{
 				clear();
 			}
-			else if (StartsWith(UserIn,"condition:"))
+			else if (StartsWith(UserIn,"condition"))
 			{
-				std::vector<String> UserArgs = split(UserIn,":",1);
-				HandleCondition(UserArgs[1]);
+				if (StartsWith(UserIn,"condition:"))
+				{
+					std::vector<String> UserArgs = split(UserIn,":",1);
+					HandleCondition(UserArgs[1]);
+				}
+				else if (StartsWith(UserIn,"condition "))
+				{
+					std::vector<String> UserArgs = split(UserIn," ",1);
+					HandleCondition(UserArgs[1]);
+				}
+				//no arguments given...call help
+				else
+				{
+					Help("condition");
+				}
 			}
-			else if (StartsWith(UserIn,"condition "))
+			else if (StartsWith(UserIn,"name"))
 			{
-				std::vector<String> UserArgs = split(UserIn," ",1);
-				HandleCondition(UserArgs[1]);
+				if (StartsWith(UserIn,"name:"))
+				{
+					std::vector<String> UserArgs = split(UserIn,":",1);
+					HandleName(UserArgs[1]);
+				}
+				else if (StartsWith(UserIn,"name "))
+				{
+					std::vector<String> UserArgs = split(UserIn," ",1);
+					HandleName(UserArgs[1]);
+				}
+				//no arguments given...call help
+				else
+				{
+					Help("name");
+				}
 			}
-			else if (StartsWith(UserIn,"name:"))
+			else if (StartsWith(UserIn,"type"))
 			{
-				std::vector<String> UserArgs = split(UserIn,":",1);
-				HandleName(UserArgs[1]);
-			}
-			else if (StartsWith(UserIn,"name "))
-			{
-				std::vector<String> UserArgs = split(UserIn," ",1);
-				HandleName(UserArgs[1]);
-			}
-			else if (StartsWith(UserIn,"type:"))
-			{
-				std::vector<String> UserArgs = split(UserIn,":",1);
-				HandleKind(UserArgs[1]);
-			}
-			else if (StartsWith(UserIn,"type "))
-			{
-				std::vector<String> UserArgs = split(UserIn," ",1);
-				HandleKind(UserArgs[1]);
+				if (StartsWith(UserIn,"type:"))
+				{
+					std::vector<String> UserArgs = split(UserIn,":",1);
+					HandleKind(UserArgs[1]);
+				}
+				else if (StartsWith(UserIn,"type "))
+				{
+					std::vector<String> UserArgs = split(UserIn," ",1);
+					HandleKind(UserArgs[1]);
+				}
+				//no arguments given...call help
+				else
+				{
+					Help("type");
+				}
 			}
 		}
 	}

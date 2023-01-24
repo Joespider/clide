@@ -14,8 +14,8 @@ ShellPath=$(realpath ${ThisFile})
 #Get the dir name
 root=$(dirname ${ShellPath})
 #load the config files
-source ${root}/var/clide.conf
-source ${root}/var/version
+source ${root}/etc/clide.conf
+source ${root}/etc/version
 
 export TypeOfCpl
 export RunType
@@ -4838,7 +4838,7 @@ CLI()
 			#Get Config
 			-c|--config)
 				if [ -z "${ThePipe}" ]; then
-					grep -v "#" ${root}/var/clide.conf | sed "s/export //g" | sed "s/=/: /g" | tr -d "\""
+					grep -v "#" ${root}/etc/clide.conf | sed "s/export //g" | sed "s/=/: /g" | tr -d "\""
 				fi
 				;;
 			#Get compile/interpreter version from cli
@@ -4862,7 +4862,8 @@ CLI()
 			#Get version of template
 			-tv|--temp-version)
 				if [ -z "${ThePipe}" ]; then
-					CodeTemplateVersion
+					shift
+					CodeTemplateVersion "$@" | grep -v "Template"
 				fi
 				;;
 			#Get version control version from cli
@@ -6076,7 +6077,7 @@ CLI()
 							fi
 							case ${confirm,,} in
 								y|yes|-y|--yes)
-									${editor} ${root}/var/clide.conf
+									${editor} ${root}/etc/clide.conf
 									clear
 									errorCode "WARNING" "Please restart ${Head} for changes to take affect"
 									errorCode "WARNING" "May God have mercy on your ${Head}"
@@ -6858,10 +6859,10 @@ CLI()
 							--config)
 								case ${UserArg} in
 									--read-num)
-										cat -n ${root}/var/clide.conf
+										cat -n ${root}/etc/clide.conf
 										;;
 									*)
-										cat ${root}/var/clide.conf
+										cat ${root}/etc/clide.conf
 										;;
 								esac
 								;;
@@ -6896,7 +6897,7 @@ CLI()
 					else
 						case ${Action} in
 							--config)
-								${ReadBy} ${root}/var/clide.conf
+								${ReadBy} ${root}/etc/clide.conf
 								;;
 							--lang)
 								Lang=$2
