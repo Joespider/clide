@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.2.03"
+SupportV="0.2.04"
 Lang=Bash
 LangExt=".sh"
 ColorNum=2
@@ -1126,7 +1126,7 @@ UseBash()
 			local TheName=$(OtherColor $1)
 			echo "./${TheName}"
 			;;
-		runCode)
+		runCode|restore-edit)
 			local name=$1
 			local UseProjectTemplate
 			shift
@@ -1169,51 +1169,57 @@ UseBash()
 			if [ -f ${TheBinDir}/${TheBin} ]; then
 				#protect the shell script while running
 				chmod -w ${TheBinDir}/${TheBin} 2> /dev/null
-				if [ ! -z "${ThePipe}" ]; then
-					if [ ! -z "${TimeRun}" ]; then
-						if [ -f "${MultiPipeFile}" ]; then
-							if [ -z "${Args[0]}" ]; then
-								time cat ${MultiPipeFile} | ${TheBinDir}/${TheBin}
+				case ${Type} in
+					restore-edit)
+						;;
+					*)
+						if [ ! -z "${ThePipe}" ]; then
+							if [ ! -z "${TimeRun}" ]; then
+								if [ -f "${MultiPipeFile}" ]; then
+									if [ -z "${Args[0]}" ]; then
+										time cat ${MultiPipeFile} | ${TheBinDir}/${TheBin}
+									else
+										time cat ${MultiPipeFile} | ${TheBinDir}/${TheBin} "${Args[@]}"
+									fi
+								else
+									if [ -z "${Args[0]}" ]; then
+										time cat /dev/stdin | ${TheBinDir}/${TheBin}
+									else
+										time cat /dev/stdin | ${TheBinDir}/${TheBin} "${Args[@]}"
+									fi
+								fi
 							else
-								time cat ${MultiPipeFile} | ${TheBinDir}/${TheBin} "${Args[@]}"
+								if [ -f "${MultiPipeFile}" ]; then
+									if [ -z "${Args[0]}" ]; then
+										cat ${MultiPipeFile} | ${TheBinDir}/${TheBin}
+									else
+										cat ${MultiPipeFile} | ${TheBinDir}/${TheBin} "${Args[@]}"
+									fi
+								else
+									if [ -z "${Args[0]}" ]; then
+										cat /dev/stdin | ${TheBinDir}/${TheBin}
+									else
+										cat /dev/stdin | ${TheBinDir}/${TheBin} "${Args[@]}"
+									fi
+								fi
 							fi
 						else
-							if [ -z "${Args[0]}" ]; then
-								time cat /dev/stdin | ${TheBinDir}/${TheBin}
+							if [ ! -z "${TimeRun}" ]; then
+								if [ -z "${Args[0]}" ]; then
+									time ${TheBinDir}/${TheBin}
+								else
+									time ${TheBinDir}/${TheBin} "${Args[@]}"
+								fi
 							else
-								time cat /dev/stdin | ${TheBinDir}/${TheBin} "${Args[@]}"
+								if [ -z "${Args[0]}" ]; then
+									${TheBinDir}/${TheBin}
+								else
+									${TheBinDir}/${TheBin} "${Args[@]}"
+								fi
 							fi
 						fi
-					else
-						if [ -f "${MultiPipeFile}" ]; then
-							if [ -z "${Args[0]}" ]; then
-								cat ${MultiPipeFile} | ${TheBinDir}/${TheBin}
-							else
-								cat ${MultiPipeFile} | ${TheBinDir}/${TheBin} "${Args[@]}"
-							fi
-						else
-							if [ -z "${Args[0]}" ]; then
-								cat /dev/stdin | ${TheBinDir}/${TheBin}
-							else
-								cat /dev/stdin | ${TheBinDir}/${TheBin} "${Args[@]}"
-							fi
-						fi
-					fi
-				else
-					if [ ! -z "${TimeRun}" ]; then
-						if [ -z "${Args[0]}" ]; then
-							time ${TheBinDir}/${TheBin}
-						else
-							time ${TheBinDir}/${TheBin} "${Args[@]}"
-						fi
-					else
-						if [ -z "${Args[0]}" ]; then
-							${TheBinDir}/${TheBin}
-						else
-							${TheBinDir}/${TheBin} "${Args[@]}"
-						fi
-					fi
-				fi
+						;;
+				esac
 				#release protection
 				chmod u+w ${TheBinDir}/${TheBin} 2> /dev/null
 			else

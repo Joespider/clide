@@ -683,6 +683,9 @@ CliHelp()
 				-n|--new)
 					NewCliHelp
 					;;
+				--edit-restore)
+					EditRestoreCliHelp
+					;;
 				--edit)
 					EditCliHelp
 					;;
@@ -744,6 +747,7 @@ CliHelp()
 					echo -e "\t--rename <args>\t\t\t\t\t: \"Rename source code\""
 					echo -e "\t--bkup <args>\t\t\t\t\t: \"make a backup of source code\""
 					echo -e "\t--restore <args>\t\t\t\t: \"restore source code from a backup\""
+					echo -e "\t--edit-restore <args>\t\t\t\t: \"restore write permission to shell source code\""
 					echo -e "\t--edit <args>\t\t\t\t\t: \"Edit source code\""
 					echo -e "\t--edit --config\t\t\t\t\t: \"Edit ${Head} config\""
 					echo -e "\t--edit --lang <language>\t\t\t: \"Edit the ${Head} langauge support file\""
@@ -1047,6 +1051,21 @@ ReadCliHelp()
 	echo ""
 	echo "----------------[(${Head}) cli {${cli}}]----------------"
 	echo -e "Read your compiled code without having a ${Head} session"
+	echo ""
+	echo -e "${cmd} <language> <code>"
+	echo -e "${cmd} <code> {arguments}"
+	echo -e "${cmd} -h, --help\t\t\t: \"help page\""
+	echo "-----------------------------------------------"
+	echo ""
+}
+
+EditRestoreCliHelp()
+{
+	local cli="--edit-restore"
+	local cmd="\$ clide ${cli}"
+	echo ""
+	echo "----------------[(${Head}) cli {${cli}}]----------------"
+	echo -e "Restore write permissions of your shell source code"
 	echo ""
 	echo -e "${cmd} <language> <code>"
 	echo -e "${cmd} <code> {arguments}"

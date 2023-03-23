@@ -4269,6 +4269,12 @@ Actions()
 								;;
 						esac
 						;;
+					#restore edit on bash code
+					edrst)
+						if [ ! -z "${TheSrcCode}" ]; then
+							ManageLangs ${Lang} "restore-edit" ${TheSrcCode}
+						fi
+						;;
 					#run compiled code
 					execute|exe|run)
 						case ${UserIn[1]} in
@@ -4800,7 +4806,7 @@ loadAuto()
 	comp_list "shell" "--help"
 	comp_list "time" "--help"
 	comp_list "new" "--version -v --help -h --custom -c --show -s"
-	comp_list "${editor} ed edit" "non-lang --help"
+	comp_list "${editor} ed edit edrst" "non-lang --help"
 	comp_list "add" "--help"
 	comp_list "${ReadBy} read" "non-lang --help"
 	comp_list "search" "--help"
@@ -6630,7 +6636,7 @@ CLI()
 				fi
 				;;
 			#run your compiled code
-			-x|--run|--time)
+			-x|--run|--time|--edit-restore)
 				#Protect
 				Protect
 				shift
@@ -6738,8 +6744,17 @@ CLI()
 													;;
 											esac
 											local Args=( "${@}" )
-											#run the code..."none" "none" is to provide the needed padding to run
-											runCode ${Lang} ${Code} "none" "none" "${Args[@]}"
+
+
+											case ${UserArg} in
+												--edit-restore)
+													ManageLangs ${Lang} "restore-edit" ${TheBin}
+													;;
+												*)
+													#run the code..."none" "none" is to provide the needed padding to run
+													runCode ${Lang} ${Code} "none" "none" "${Args[@]}"
+													;;
+											esac
 										else
 											errorCode "cpl" "cli-need" "${Lang}"
 										fi

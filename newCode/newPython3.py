@@ -6,7 +6,7 @@ ProgramName = sys.argv[0]
 if "/" in ProgramName:
 	ProgramName = ProgramName.rsplit("/",1)[1]
 
-VersionName = "0.1.30"
+VersionName = "0.1.31"
 
 def Help():
 	print("Author: Joespider")
@@ -40,6 +40,7 @@ def Help():
 	print("\t--math : enable math functions")
 	print("\t--date-time : enable date and time")
 	print("\t--web : use web request")
+	print("\t--bs4 : use BeautifulSoup")
 	print("\t--json : use json")
 
 def GetArgs():
@@ -71,6 +72,7 @@ def GetArgs():
 		   "time":False,
 		   "length":False,
 		   "web":False,
+		   "webSoup":False,
 		   "json":False,
 		   "shell":False}
 	#
@@ -141,6 +143,8 @@ def GetArgs():
 			Returns["length"] = True
 		elif now == "--web":
 			Returns["web"] = True
+		elif now == "--bs4":
+			Returns["webSoup"] = True
 		elif now == "--json":
 			Returns["json"] = True
 		lp += 1
@@ -153,7 +157,7 @@ def getHelp(TheName, TheUser):
 	return HelpMethod
 
 #Get Imports
-def Imports(getShell, getSys, getRand, getThread, getPipe, getSleep, getTime, getProp, getMath, getCheckFile, getWeb, getJson):
+def Imports(getShell, getSys, getRand, getThread, getPipe, getSleep, getTime, getProp, getMath, getCheckFile, getWeb, getWebSoup, getJson):
 	TheImports = ""
 	if getShell == True or getProp == True or getCheckFile == True:
 		TheImports = "import os\n"
@@ -170,13 +174,16 @@ def Imports(getShell, getSys, getRand, getThread, getPipe, getSleep, getTime, ge
 	if getWeb == True:
 		TheImports = TheImports+"#https://www.geeksforgeeks.org/python-requests-tutorial/\n"
 		TheImports = TheImports+"import requests\n"
+	if getWebSoup == True:
+		TheImports = TheImports+"#https://realpython.com/beautiful-soup-web-scraper-python/\n"
+		TheImports = TheImports+"from bs4 import BeautifulSoup\n"
 	if getJson == True:
 		TheImports = TheImports+"import json\n"
 
 	return TheImports
 
 #Get Methods
-def Methods(getMain, getRawInput, getShell, getCLI, getCheckFile, getWrite, getRead, getRandom, getThread, getPipe, getSleep, getTime, getProp, getSplit, getJoin, getRev, getTypes, getUpper, getLower, getMath, getLength, getWeb, getJson):
+def Methods(getMain, getRawInput, getShell, getCLI, getCheckFile, getWrite, getRead, getRandom, getThread, getPipe, getSleep, getTime, getProp, getSplit, getJoin, getRev, getTypes, getUpper, getLower, getMath, getLength, getWeb, getWebSoup, getJson):
 	TheMethods = ""
 	#{
 	OSshellMethod = "def Shell(cmd):\n\tOutput = \"\"\n\tTheShell = os.popen(cmd)\n\tOutput = TheShell.read()\n\tTheShell.close()\n\treturn Output\n\ndef Exe(cmd):\n\tos.system(cmd)\n"
@@ -222,6 +229,7 @@ def Methods(getMain, getRawInput, getShell, getCLI, getCheckFile, getWrite, getR
 	WebRequestMethod = "def GetWebPage(site):\n\treturn requests.get(site)\n\n"
 	WebRequestMethod = WebRequestMethod+"def GetWebStatus(response):\n\treturn response.status_code\n\n"
 	WebRequestMethod = WebRequestMethod+"def GetWebContent(response):\n\treturn response.text\n\n"
+	WebSoupMethod = "def HtmlParser(Content):\n\treturn BeautifulSoup(Content, \"html.parser\")\n\n"
 
 	JsonMethod = "def LoadJson(Data):\n\tJsonData = json.loads(Data)\n\treturn JsonData\n\n"
 	LengthExample = ""
@@ -293,6 +301,9 @@ def Methods(getMain, getRawInput, getShell, getCLI, getCheckFile, getWrite, getR
 	#Get Web Method
 	if getWeb == True:
 		TheMethods = TheMethods+WebRequestMethod+"\n"
+	#Get Web Beautiful Soup Method
+	if getWebSoup == True:
+		TheMethods = TheMethods+WebSoupMethod+"\n"
 	#Get Json Method
 	if getJson == True:
 		TheMethods = TheMethods+JsonMethod+"\n"
@@ -347,6 +358,7 @@ def Main():
 	GetMath = UserArgs["math"]
 	GetLength = UserArgs["length"]
 	GetWeb = UserArgs["web"]
+	GetWebSoup = UserArgs["webSoup"]
 	GetJson = UserArgs["json"]
 	#}
 	#Ensure Name of program
@@ -359,9 +371,9 @@ def Main():
 
 		if FileExists == False or noSave == True:
 			#Get Imports
-			ProgImports = Imports(GetShell, IsCLI, GetRand, GetThreads, GetPipe, GetSleep, GetTime, GetProp, GetMath, GetCheckFile, GetWeb, GetJson)
+			ProgImports = Imports(GetShell, IsCLI, GetRand, GetThreads, GetPipe, GetSleep, GetTime, GetProp, GetMath, GetCheckFile, GetWeb, GetWebSoup, GetJson)
 			#Get Methods
-			ProgMethods = Methods(IsMain, GetRawInput, GetShell, IsCLI, GetCheckFile, GetWrite, GetRead, GetRand, GetThreads, GetPipe, GetSleep, GetTime, GetProp, GetSplit, GetJoin, GetRev, GetTypes, GetUpper, GetLower, GetMath, GetLength, GetWeb, GetJson)
+			ProgMethods = Methods(IsMain, GetRawInput, GetShell, IsCLI, GetCheckFile, GetWrite, GetRead, GetRand, GetThreads, GetPipe, GetSleep, GetTime, GetProp, GetSplit, GetJoin, GetRev, GetTypes, GetUpper, GetLower, GetMath, GetLength, GetWeb, GetWebSoup, GetJson)
 			if IsCLI == True:
 				TheHelpMethod = getHelp(TheName,TheUser)
 			#Manage Imports
