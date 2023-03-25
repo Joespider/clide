@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.2.01"
+SupportV="0.2.02"
 Lang=Perl
 LangExt=".pl"
 #Color Purple
@@ -279,7 +279,6 @@ UsePerl()
 			echo ${LangSrc}
 			;;
 		CreateHelp)
-			
 			;;
 		shell)
 			;;
@@ -505,47 +504,56 @@ UsePerl()
 
 			case ${src} in
 				*${LangExt})
-					if [[ "${src}" == *","* ]]; then
-						if [ -z "${num}" ]; then
-							#ERROR
-							#{
-							case ${Type} in
-								readCode)
-									errorCode "readNull"
-									;;
-								editCode)
-									errorCode "editNull"
-									;;
-								*)
-									;;
-							esac
-							#}
-						else
-							if [[ "${src}" == *"${num}"* ]]; then
-								if [[ "${num}" == *"${LangExt}" ]]; then
-									${ReadOrEdit} ${num}
-								else
-									${ReadOrEdit} "${num}${LangExt}"
-								fi
-							else
+					case ${src} in
+						*","*)
+							if [ -z "${num}" ]; then
 								#ERROR
 								#{
 								case ${Type} in
 									readCode)
-										errorCode "readNot"
+										errorCode "readNull"
 										;;
 									editCode)
-										errorCode "editNot"
+										errorCode "editNull"
 										;;
 									*)
 										;;
 								esac
 								#}
+							else
+								case ${src} in
+									*"${num}"*)
+										case ${num} in
+											*"${LangExt}")
+												${ReadOrEdit} ${num}
+												;;
+											*)
+												${ReadOrEdit} "${num}${LangExt}"
+												;;
+										esac
+										;;
+									*)
+										#ERROR
+										#{
+										case ${Type} in
+											readCode)
+												errorCode "readNot"
+												;;
+											editCode)
+												errorCode "editNot"
+												;;
+											*)
+												;;
+										esac
+										#}
+										;;
+								esac
 							fi
-						fi
-					else
-						${ReadOrEdit} ${src}
-					fi
+							;;
+						*)
+							${ReadOrEdit} ${src}
+							;;
+					esac
 					;;
 				*)
 					;;
@@ -623,41 +631,44 @@ UsePerl()
 			esac
 
 			#Handle multiple files
-			if [[ "${src}" == *","* ]]; then
-				if [ -z "${name}" ]; then
-					src=""
+			case ${src} in
+				*","*)
 					if [ -z "${name}" ]; then
-						echo "Unable to find the \"main\" file"
-						echo -n "Please choose: "
-						read name
-						case ${CodeProject} in
-							none)
-								if [ ! -f ${LangSrc}/${name%.*}${LangExt} ]; then
-									name=""
-								fi
-								;;
-							*)
-								GetCount=$(UsePerl "getProjSrc" ${src} | wc -l)
-								case ${GetCount} in
-									0)
-										;;
-									1)
-										src=$(UsePerl "getProjSrc" ${src})
-										src="..${src##*${CodeProject}}"
-										ERROR=$(ln -s ${src} ${CodeProject}${LangExt} 2>&1 | tr '\n' '|')
-										;;
-									*)
-										;;
-								esac
-								;;
-						esac
-					fi
+						src=""
+						if [ -z "${name}" ]; then
+							echo "Unable to find the \"main\" file"
+							echo -n "Please choose: "
+							read name
+							case ${CodeProject} in
+								none)
+									if [ ! -f ${LangSrc}/${name%.*}${LangExt} ]; then
+										name=""
+									fi
+									;;
+								*)
+									GetCount=$(UsePerl "getProjSrc" ${src} | wc -l)
+									case ${GetCount} in
+										0)
+											;;
+										1)
+											src=$(UsePerl "getProjSrc" ${src})
+											ERROR=$(ln -s ${src} ${CodeProject}${LangExt} 2>&1 | tr '\n' '|')
+											;;
+										*)
+											;;
+									esac
+									;;
+							esac
+						fi
 
-					if [ ! -z "${name}" ]; then
-						src="${name%.*}${LangExt}"
+						if [ ! -z "${name}" ]; then
+							src="${name%.*}${LangExt}"
+						fi
 					fi
-				fi
-			fi
+					;;
+				*)
+					;;
+			esac
 
 			#Set Code to executable
 			case ${src} in
@@ -678,7 +689,6 @@ UsePerl()
 										;;
 									1)
 										src=$(UsePerl "getProjSrc" ${src})
-										src="..${src##*${CodeProject}}"
 										chmod +x ${src} 2> /dev/null
 										ERROR=$(ln -s ${src} ${CodeProject}${LangExt} 2>&1 | tr '\n' '|')
 										;;
@@ -1170,15 +1180,19 @@ UsePerl()
 			esac
 
 			#Handle multiple files
-			if [[ "${name}" == *","* ]]; then
-				#name=${name//,/ }
-				if [ -z "${name}" ]; then
-					echo "Unable to find the \"main\" file"
-					echo -n "Please choose: "
-					read name
-				fi
-				TheBin="${name}"
-			fi
+			case ${name} in
+				*","*)
+					#name=${name//,/ }
+					if [ -z "${name}" ]; then
+						echo "Unable to find the \"main\" file"
+						echo -n "Please choose: "
+						read name
+					fi
+					TheBin="${name}"
+					;;
+				*)
+					;;
+			esac
 
 			#Check if Perl Bin exists
 			if [ -f ${TheBinDir}/${TheBin} ]; then

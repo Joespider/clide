@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.89"
+SupportV="0.1.90"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
@@ -798,86 +798,101 @@ UseC()
 				*${LangExt}|*${LangOtherExt})
 					case ${project} in
 						none)
-							if [[ "${src}" == *","* ]]; then
-								if [ -z "${num}" ]; then
-									#Error
-									#{
-									case ${Type} in
-										readCode)
-											errorCode "readNull"
-											;;
-										editCode)
-											errorCode "editNull"
-											;;
-										*)
-											;;
-									esac
-									#}
-								else
-									if [[ "${src}" == *"${num}"* ]]; then
-										#Choose file from list of choices
-										num=$(echo -e "${src//,/\\n}" | grep ${num})
-										${ReadOrEdit} ${num}
-									else
+							case ${src} in
+								*","*)
+									if [ -z "${num}" ]; then
 										#Error
 										#{
 										case ${Type} in
 											readCode)
-												errorCode "readNot"
+												errorCode "readNull"
 												;;
 											editCode)
-												errorCode "editNot"
+												errorCode "editNull"
 												;;
 											*)
 												;;
 										esac
 										#}
+									else
+										case ${src} in
+											*"${num}"*)
+												#Choose file from list of choices
+												num=$(echo -e "${src//,/\\n}" | grep ${num})
+												${ReadOrEdit} ${num}
+												;;
+											*)
+												#Error
+												#{
+												case ${Type} in
+													readCode)
+														errorCode "readNot"
+														;;
+													editCode)
+														errorCode "editNot"
+														;;
+													*)
+														;;
+												esac
+												#}
+												;;
+										esac
 									fi
-								fi
-							else
-								#Read or Write Code
-								#{
-								${ReadOrEdit} ${src}
-								#}
-							fi
+									;;
+								*)
+									#Read or Write Code
+									#{
+									${ReadOrEdit} ${src}
+									#}
+									;;
+							esac
 							;;
 						*)
 							UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 							TheSrcDir="${LangProject}/${project}/src/"
 							TheHeaderDir="${LangProject}/${project}/include/"
 							local NumFound
-							if [[ "${src}" == *","* ]]; then
-								if [ -z "${num}" ]; then
-									errorCode "editNull"
-									NumFound=0
-								else
-									if [[ "${src}" == *"${num}"* ]]; then
-										if [[ "${num}" == *"${LangExt}" ]] || [[ "${num}" == *"${LangOtherExt}" ]]; then
-											src=${num}
-										else
-											src=${num}${LangExt}
-										fi
-										NumFound=$(find ${TheSrcDir} ${TheHeaderDir} -name ${src} 2> /dev/null | wc -l)
+							case ${src} in
+								*","*)
+									if [ -z "${num}" ]; then
+										errorCode "editNull"
+										NumFound=0
 									else
-										#Error
-										#{
-										case ${Type} in
-											readCode)
-												errorCode "readNot"
-												;;
-											editCode)
-												errorCode "editNot"
+										case ${src} in
+											*"${num}"*)
+												case ${num} in
+													*"${LangExt}"|*"${LangOtherExt}")
+														src=${num}
+														;;
+													*)
+														src=${num}${LangExt}
+														;;
+												esac
+												NumFound=$(find ${TheSrcDir} ${TheHeaderDir} -name ${src} 2> /dev/null | wc -l)
 												;;
 											*)
+												#Error
+												#{
+												case ${Type} in
+													readCode)
+														errorCode "readNot"
+														;;
+													editCode)
+														errorCode "editNot"
+														;;
+													*)
+														;;
+												esac
+												NumFound=0
+												#}
 												;;
 										esac
-										NumFound=0
-										#}
 									fi
-								fi
-							else
-								NumFound=$(find ${TheSrcDir} ${TheHeaderDir} -name ${src} 2> /dev/null | wc -l)
-							fi
+									;;
+								*)
+									NumFound=$(find ${TheSrcDir} ${TheHeaderDir} -name ${src} 2> /dev/null | wc -l)
+									;;
+							esac
 
 							case ${NumFound} in
 								0)
@@ -1968,30 +1983,34 @@ UseC()
 			esac
 
 			#Handle multiple src files
-			if [[ "${name}" == *","* ]]; then
-				case ${project} in
-					none)
-						#Find the main file
-						if [ ! -z "${name}" ]; then
-							if [ -d "${TheSrcDir}" ]; then
-								cd ${TheSrcDir}
-								name=${name//,/ }
-								name=$(grep -l "int main(" ${name} 2> /dev/null)
-								if [ ! -z "${name}" ]; then
-									TheBin=$(UseC "removeExt" ${name})
+			case ${name} in
+				*","*)
+					case ${project} in
+						none)
+							#Find the main file
+							if [ ! -z "${name}" ]; then
+								if [ -d "${TheSrcDir}" ]; then
+									cd ${TheSrcDir}
+									name=${name//,/ }
+									name=$(grep -l "int main(" ${name} 2> /dev/null)
+									if [ ! -z "${name}" ]; then
+										TheBin=$(UseC "removeExt" ${name})
+									else
+										TheBin=""
+									fi
+									cd - > /dev/null
 								else
 									TheBin=""
 								fi
-								cd - > /dev/null
-							else
-								TheBin=""
 							fi
-						fi
-						;;
-					*)
-						;;
-				esac
-			fi
+							;;
+						*)
+							;;
+					esac
+					;;
+				*)
+					;;
+			esac
 
 			#Find Executable
 			if [ -f ${TheBinDir}/${TheBin} ]; then

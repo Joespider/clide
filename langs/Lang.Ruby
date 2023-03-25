@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.96"
+SupportV="0.1.97"
 Lang=Ruby
 LangExt=".rb"
 ColorNum=1
@@ -543,88 +543,100 @@ UseRuby()
 				*${LangExt})
 					case ${project} in
 						none)
-							if [[ "${src}" == *","* ]]; then
-								if [ -z "${num}" ]; then
-									#Error
-									#{
-									case ${Type} in
-										readCode)
-											errorCode "readNull"
-											;;
-										editCode)
-											errorCode "editNull"
-											;;
-										*)
-											;;
-									esac
-									#}
-								else
-									if [[ "${src}" == *"${num}"* ]]; then
-										#Choose file from list of choices
-										num=$(echo -e "${src//,/\\n}" | grep ${num})
-										${ReadOrEdit} ${num}
-									else
+							case ${src} in
+								*","*)
+									if [ -z "${num}" ]; then
 										#Error
 										#{
 										case ${Type} in
 											readCode)
-												errorCode "readNot"
+												errorCode "readNull"
 												;;
 											editCode)
-												errorCode "editNot"
+												errorCode "editNull"
 												;;
 											*)
 												;;
 										esac
 										#}
+									else
+										case ${src} in
+											*"${num}"*)
+												#Choose file from list of choices
+												num=$(echo -e "${src//,/\\n}" | grep ${num})
+												${ReadOrEdit} ${num}
+												;;
+											*)
+												#Error
+												#{
+												case ${Type} in
+													readCode)
+														errorCode "readNot"
+														;;
+													editCode)
+														errorCode "editNot"
+														;;
+													*)
+														;;
+												esac
+												#}
+												;;
+										esac
 									fi
-								fi
-							else
-								#Read or Write Code
-								#{
-								${ReadOrEdit} ${src}
-								#}
-							fi
+									;;
+								*)
+									#Read or Write Code
+									#{
+									${ReadOrEdit} ${src}
+									#}
+									;;
+							esac
 							;;
 						*)
 							UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 							TheSrcDir="${LangProject}/${project}/src/"
 							local NumFound
-							if [[ "${src}" == *","* ]]; then
-								if [ -z "${num}" ]; then
-									errorCode "editNull"
-									NumFound=0
-								else
-									if [[ "${src}" == *"${num}"* ]]; then
-										case ${num} in
-											*${LangExt})
-												src=${num}
-												;;
-											*)
-												src=${num}${LangExt}
-												;;
-										esac
-										NumFound=$(find ${TheSrcDir} -name ${src} 2> /dev/null | wc -l)
-									else
-										#Error
-										#{
-										case ${Type} in
-											readCode)
-												errorCode "readNot"
-												;;
-											editCode)
-												errorCode "editNot"
-												;;
-											*)
-												;;
-										esac
+							case ${src} in
+								*","*)
+									if [ -z "${num}" ]; then
+										errorCode "editNull"
 										NumFound=0
-										#}
+									else
+										case ${src} in
+											*"${num}"*)
+												case ${num} in
+													*${LangExt})
+														src=${num}
+														;;
+													*)
+														src=${num}${LangExt}
+														;;
+												esac
+												NumFound=$(find ${TheSrcDir} -name ${src} 2> /dev/null | wc -l)
+												;;
+											*)
+												#Error
+												#{
+												case ${Type} in
+													readCode)
+														errorCode "readNot"
+														;;
+													editCode)
+														errorCode "editNot"
+														;;
+													*)
+														;;
+												esac
+												NumFound=0
+												#}
+												;;
+										esac
 									fi
-								fi
-							else
-								NumFound=$(find ${TheSrcDir} -name ${src} 2> /dev/null | wc -l)
-							fi
+									;;
+								*)
+									NumFound=$(find ${TheSrcDir} -name ${src} 2> /dev/null | wc -l)
+									;;
+							esac
 
 							case ${NumFound} in
 								0)
@@ -694,8 +706,8 @@ UseRuby()
 			esac
 
 			#Handle multiple files
-			if [[ "${src}" == *","* ]]; then
-				if [ -z "${name}" ]; then
+			case ${src} in
+				*","*)
 					if [ -z "${name}" ]; then
 						echo "Unable to find the \"main\" file"
 						echo -n "Please choose: "
@@ -713,7 +725,6 @@ UseRuby()
 										;;
 									1)
 										src=$(UseRuby "getProjSrc" ${src})
-										src="..${src##*${CodeProject}}"
 										ERROR=$(ln -s ${src} ${CodeProject}${LangExt} 2>&1 | tr '\n' '|')
 										;;
 									*)
@@ -726,8 +737,10 @@ UseRuby()
 					if [ ! -z "${name}" ]; then
 						src="${name%.*}${LangExt}"
 					fi
-				fi
-			fi
+					;;
+				*)
+					;;
+			esac
 
 			#Set Code to executable
 			case ${src} in
@@ -748,7 +761,6 @@ UseRuby()
 										;;
 									1)
 										src=$(UseRuby "getProjSrc" ${src})
-										src="..${src##*${CodeProject}}"
 										ERROR=$(ln -s ${src} ${CodeProject}${LangExt}  2>&1 | tr '\n' '|')
 										;;
 									*)
@@ -1238,16 +1250,20 @@ UseRuby()
 					project=""
 					TheBinDir=${LangBin}
 					#Handle multiple files
-					if [[ "${name}" == *","* ]]; then
-						cd ${LangSrc}/
-						if [ -z "${name}" ]; then
-							echo "Unable to find the \"main\" file"
-							echo -n "Please choose: "
-							read name
-						fi
-						cd - /dev/null
-						TheBin="${name}"
-					fi
+					case ${name} in
+						*","*)
+							cd ${LangSrc}/
+							if [ -z "${name}" ]; then
+								echo "Unable to find the \"main\" file"
+								echo -n "Please choose: "
+								read name
+							fi
+							cd - /dev/null
+							TheBin="${name}"
+							;;
+						*)
+							;;
+					esac
 					;;
 				*)
 					UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})

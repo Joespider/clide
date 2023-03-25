@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.2.04"
+SupportV="0.2.05"
 Lang=Bash
 LangExt=".sh"
 ColorNum=2
@@ -541,88 +541,100 @@ UseBash()
 				*${LangExt})
 					case ${project} in
 						none)
-							if [[ "${src}" == *","* ]]; then
-								if [ -z "${num}" ]; then
-									#Error
-									#{
-									case ${Type} in
-										readCode)
-											errorCode "readNull"
-											;;
-										editCode)
-											errorCode "editNull"
-											;;
-										*)
-											;;
-									esac
-									#}
-								else
-									if [[ "${src}" == *"${num}"* ]]; then
-										#Choose file from list of choices
-										num=$(echo -e "${src//,/\\n}" | grep ${num})
-										${ReadOrEdit} ${num}
-									else
+							case ${src} in
+								*","*)
+									if [ -z "${num}" ]; then
 										#Error
 										#{
 										case ${Type} in
 											readCode)
-												errorCode "readNot"
+												errorCode "readNull"
 												;;
 											editCode)
-												errorCode "editNot"
+												errorCode "editNull"
 												;;
 											*)
 												;;
 										esac
 										#}
+									else
+										case ${src} in
+											*"${num}"*)
+												#Choose file from list of choices
+												num=$(echo -e "${src//,/\\n}" | grep ${num})
+												${ReadOrEdit} ${num}
+												;;
+											*)
+												#Error
+												#{
+												case ${Type} in
+													readCode)
+														errorCode "readNot"
+														;;
+													editCode)
+														errorCode "editNot"
+														;;
+													*)
+														;;
+												esac
+												#}
+												;;
+										esac
 									fi
-								fi
-							else
-								#Read or Write Code
-								#{
-								${ReadOrEdit} ${src}
-								#}
-							fi
+									;;
+								*)
+									#Read or Write Code
+									#{
+									${ReadOrEdit} ${src}
+									#}
+									;;
+							esac
 							;;
 						*)
 							UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 							TheSrcDir="${LangProject}/${project}/src/"
 							local NumFound
-							if [[ "${src}" == *","* ]]; then
-								if [ -z "${num}" ]; then
-									errorCode "editNull"
-									NumFound=0
-								else
-									if [[ "${src}" == *"${num}"* ]]; then
-										case ${num} in
-											*${LangExt})
-												src=${num}
-												;;
-											*)
-												src=${num}${LangExt}
-												;;
-										esac
-										NumFound=$(find ${TheSrcDir} -name ${src} 2> /dev/null | wc -l)
-									else
-										#Error
-										#{
-										case ${Type} in
-											readCode)
-												errorCode "readNot"
-												;;
-											editCode)
-												errorCode "editNot"
-												;;
-											*)
-												;;
-										esac
+							case ${src} in
+								*","*)
+									if [ -z "${num}" ]; then
+										errorCode "editNull"
 										NumFound=0
-										#}
+									else
+										case ${src} in
+											*"${num}"*)
+												case ${num} in
+													*${LangExt})
+														src=${num}
+														;;
+													*)
+														src=${num}${LangExt}
+														;;
+												esac
+												NumFound=$(find ${TheSrcDir} -name ${src} 2> /dev/null | wc -l)
+												;;
+											*)
+												#Error
+												#{
+												case ${Type} in
+													readCode)
+														errorCode "readNot"
+														;;
+													editCode)
+														errorCode "editNot"
+														;;
+														*)
+													;;
+												esac
+												NumFound=0
+												#}
+												;;
+										esac
 									fi
-								fi
-							else
-								NumFound=$(find ${TheSrcDir} -name ${src} 2> /dev/null | wc -l)
-							fi
+									;;
+								*)
+									NumFound=$(find ${TheSrcDir} -name ${src} 2> /dev/null | wc -l)
+									;;
+							esac
 
 							case ${NumFound} in
 								0)
@@ -689,41 +701,44 @@ UseBash()
 			esac
 
 			#Handle multiple files
-			if [[ "${src}" == *","* ]]; then
-				if [ -z "${name}" ]; then
-					src=""
+			case ${src} in
+				*","*)
 					if [ -z "${name}" ]; then
-						echo "Unable to find the \"main\" file"
-						echo -n "Please choose: "
-						read name
-						case ${CodeProject} in
-							none)
-								if [ ! -f ${LangSrc}/${name%.*}${LangExt} ]; then
-									name=""
-								fi
-								;;
-							*)
-								GetCount=$(UseBash "getProjSrc" ${src} | wc -l)
-								case ${GetCount} in
-									0)
-										;;
-									1)
-										src=$(UseBash "getProjSrc" ${src})
-										src="..${src##*${CodeProject}}"
-										ERROR=$(ln -s ${src} ${CodeProject}${LangExt} 2>&1 | tr '\n' '|')
-										;;
-									*)
-										;;
-								esac
-								;;
-						esac
-					fi
+						src=""
+						if [ -z "${name}" ]; then
+							echo "Unable to find the \"main\" file"
+							echo -n "Please choose: "
+							read name
+							case ${CodeProject} in
+								none)
+									if [ ! -f ${LangSrc}/${name%.*}${LangExt} ]; then
+										name=""
+									fi
+									;;
+								*)
+									GetCount=$(UseBash "getProjSrc" ${src} | wc -l)
+									case ${GetCount} in
+										0)
+											;;
+										1)
+											src=$(UseBash "getProjSrc" ${src})
+											ERROR=$(ln -s ${src} ${CodeProject}${LangExt} 2>&1 | tr '\n' '|')
+											;;
+										*)
+											;;
+									esac
+									;;
+							esac
+						fi
 
-					if [ ! -z "${name}" ]; then
-						src="${name%.*}${LangExt}"
+						if [ ! -z "${name}" ]; then
+							src="${name%.*}${LangExt}"
+						fi
 					fi
-				fi
-			fi
+					;;
+				*)
+					;;
+			esac
 
 			#Set Code to executable
 			case ${src} in
@@ -745,7 +760,6 @@ UseBash()
 										;;
 									1)
 										src=$(UseBash "getProjSrc" ${src})
-										src="..${src##*${CodeProject}}"
 										chmod +x ${src} 2> /dev/null
 										ERROR=$(ln -s ${src} ${CodeProject}${LangExt} 2>&1 | tr '\n' '|')
 										;;
@@ -1144,13 +1158,17 @@ UseBash()
 					TheBinDir=${LangBin}
 					TheSrcDir=${LangSrc}
 					#Handle multiple files
-					if [[ "${name}" == *","* ]]; then
-						if [ -z "${name}" ]; then
-							echo "Unable to find the \"main\" file"
-							echo -n "Please choose: "
-							read name
-						fi
-					fi
+					case ${name} in
+						*","*)
+							if [ -z "${name}" ]; then
+								echo "Unable to find the \"main\" file"
+								echo -n "Please choose: "
+								read name
+							fi
+							;;
+						*)
+							;;
+					esac
 					TheBin=${name}
 					;;
 				*)

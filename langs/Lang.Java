@@ -3,7 +3,7 @@
 #https://stackoverflow.com/questions/10339637/java-import-cannot-find-symbol
 #https://www.codejava.net/java-core/tools/how-to-compile-package-and-run-a-java-program-using-command-line-tools-javac-jar-and-java
 
-SupportV="0.2.46"
+SupportV="0.2.47"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -314,7 +314,7 @@ UseJava()
 						elif [ ! -z "${IsClass}" ] ; then
 							TheCpl=${IsClass}
 						fi
-					break
+						break
 					fi
 				done
 				echo ${TheCpl}
@@ -663,81 +663,93 @@ UseJava()
 					case ${project} in
 						#Is NOT a project
 						none)
-							if [[ "${src}" == *","* ]]; then
-								if [ -z "${num}" ]; then
-									#Error
-									#{
-									case ${Type} in
-										readCode)
-											errorCode "readNull"
-											;;
-										editCode)
-											errorCode "editNull"
-											;;
-										*)
-											;;
-									esac
-									#}
-								else
-									if [[ "${src}" == *"${num}"* ]]; then
-										if [[ "${num}" == *"${LangExt}" ]]; then
-											#Read or Write Code
-											#{
-											${ReadOrEdit} ${num}
-											#}
-										else
-											#Read or Write Code
-											#{
-											${ReadOrEdit} "${num}${LangExt}"
-											#}
-										fi
-									else
+							case ${src} in
+								*","*)
+									if [ -z "${num}" ]; then
 										#Error
 										#{
 										case ${Type} in
 											readCode)
-												errorCode "readNot"
+												errorCode "readNull"
 												;;
 											editCode)
-												errorCode "editNot"
+												errorCode "editNull"
 												;;
 											*)
 												;;
 										esac
 										#}
+									else
+										case ${src} in
+											*"${num}"*)
+												case ${num} in
+													*"${LangExt}")
+														#Read or Write Code
+														#{
+														${ReadOrEdit} ${num}
+														#}
+														;;
+													*)
+														#Read or Write Code
+														#{
+														${ReadOrEdit} "${num}${LangExt}"
+														#}
+														;;
+												esac
+												;;
+											*)
+												#Error
+												#{
+												case ${Type} in
+													readCode)
+														errorCode "readNot"
+														;;
+													editCode)
+														errorCode "editNot"
+														;;
+													*)
+														;;
+												esac
+												#}
+												;;
+										esac
 									fi
-								fi
-							else
-								#Read or Write Code
-								#{
-								${ReadOrEdit} ${src}
-								#}
-							fi
+									;;
+								*)
+									#Read or Write Code
+									#{
+									${ReadOrEdit} ${src}
+									#}
+									;;
+							esac
 							;;
 						#Is a project
 						*)
-							if [[ "${src}" == *","* ]]; then
-								if [ -z "${num}" ]; then
-									errorCode "editNull"
-									NumFound=0
-								else
-									num=$(UseJava "removeExt" "${num}")
-									num=${num}${LangExt}
+							case ${src} in
+								*","*)
+									if [ -z "${num}" ]; then
+										errorCode "editNull"
+										NumFound=0
+									else
+										num=$(UseJava "removeExt" "${num}")
+										num=${num}${LangExt}
 
-									case ${src} in
-										*,${num}*)
-											TheFile=${num}
-											;;
-										*${num},*)
-											TheFile=${num}
-											;;
-										*)
-											;;
-									esac
-								fi
-							else
-								TheFile=${src}
-							fi
+										case ${src} in
+											*,${num}*)
+												TheFile=${num}
+												;;
+											*${num},*)
+												TheFile=${num}
+												;;
+											*)
+												;;
+										esac
+									fi
+									;;
+								*)
+									TheFile=${src}
+									;;
+							esac
 
 							TheSrcDir="${LangProject}/${project}/src/"
 
@@ -2012,23 +2024,27 @@ UseJava()
 				case ${project} in
 					none)
 						#Handle multiple files
-						if [[ "${name}" == *","* ]]; then
-							cd ${LangSrc}
-							name=${name//,/ }
-							name=$(grep -l "public static void main" ${name})
-							if [ ! -z "${name}" ]; then
+						case ${name} in
+							*","*)
+								cd ${LangSrc}
+								name=${name//,/ }
+								name=$(grep -l "public static void main" ${name})
+								if [ ! -z "${name}" ]; then
+									TheBin=$(UseJava "removeExt" "${name}")
+									TheBin="${TheBin}.class"
+									TheJar=$(UseJava "removeExt" "${name}")
+									TheJar="${TheJar}.jar"
+								fi
+								cd - > /dev/null
+								;;
+							*)
 								TheBin=$(UseJava "removeExt" "${name}")
 								TheBin="${TheBin}.class"
 								TheJar=$(UseJava "removeExt" "${name}")
 								TheJar="${TheJar}.jar"
-							fi
-							cd - > /dev/null
-						else
-							TheBin=$(UseJava "removeExt" "${name}")
-							TheBin="${TheBin}.class"
-							TheJar=$(UseJava "removeExt" "${name}")
-							TheJar="${TheJar}.jar"
-						fi
+								;;
+						esac
+
 						project=""
 						TheClassDir=${LangBin}/
 						TheJarDir=${LangBin}
