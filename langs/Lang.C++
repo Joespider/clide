@@ -4,7 +4,7 @@
 #Link Libs: https://gist.github.com/gubatron/32f82053596c24b6bec6
 #both https://avikdas.com/2019/12/16/makefiles-for-c-cpp-projects.html
 
-SupportV="0.2.56"
+SupportV="0.2.57"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -1053,85 +1053,100 @@ UseC++()
 			if [ ! -z "${HasAnExt}" ]; then
 					case ${project} in
 						none)
-							if [[ "${src}" == *","* ]]; then
-								if [ -z "${num}" ]; then
-									#Error
-									#{
-									case ${Type} in
-										readCode)
-											errorCode "readNull"
-											;;
-										editCode)
-											errorCode "editNull"
-											;;
-										*)
-											;;
-									esac
-									#}
-								else
-									if [[ "${src}" == *"${num}"* ]]; then
-										#Choose file from list of choices
-										num=$(echo -e "${src//,/\\n}" | grep ${num})
-										${ReadOrEdit} ${num}
-									else
+							case ${src} in
+								*","*)
+									if [ -z "${num}" ]; then
 										#Error
 										#{
 										case ${Type} in
 											readCode)
-												errorCode "readNot"
+												errorCode "readNull"
 												;;
 											editCode)
-												errorCode "editNot"
+												errorCode "editNull"
 												;;
 											*)
 												;;
 										esac
 										#}
+									else
+										case ${src} in
+											*"${num}"*)
+												#Choose file from list of choices
+												num=$(echo -e "${src//,/\\n}" | grep ${num})
+												${ReadOrEdit} ${num}
+												;;
+											*)
+												#Error
+												#{
+												case ${Type} in
+													readCode)
+														errorCode "readNot"
+														;;
+													editCode)
+														errorCode "editNot"
+														;;
+													*)
+														;;
+												esac
+												#}
+												;;
+										esac
 									fi
-								fi
-							else
-								#Read or Write Code
-								#{
-								${ReadOrEdit} ${src}
-								#}
-							fi
+									;;
+								*)
+									#Read or Write Code
+									#{
+									${ReadOrEdit} ${src}
+									#}
+									;;
+							esac
 							;;
 						*)
 							TheSrcDir="${LangProject}/${project}/src/"
 							TheHeaderDir="${LangProject}/${project}/include/"
 							local NumFound
-							if [[ "${src}" == *","* ]]; then
-								if [ -z "${num}" ]; then
-									errorCode "editNull"
-									NumFound=0
-								else
-									if [[ "${src}" == *"${num}"* ]]; then
-										if [[ "${num}" == *"${LangExt}" ]] || [[ "${num}" == *"${LangOtherExt}" ]]; then
-											src=${num}
-										else
-											src=${num}${LangExt}
-										fi
-										NumFound=$(find ${TheSrcDir} ${TheHeaderDir} -name ${src} 2> /dev/null | wc -l)
+							case ${src} in
+								*","*)
+									if [ -z "${num}" ]; then
+										errorCode "editNull"
+										NumFound=0
 									else
-										#Error
-										#{
-										case ${Type} in
-											readCode)
-												errorCode "readNot"
-												;;
-											editCode)
-												errorCode "editNot"
+										case ${src} in
+											*"${num}"*)
+												case ${num} in
+													*"${LangExt}"|*"${LangOtherExt}")
+														src=${num}
+														;;
+													*)
+														src=${num}${LangExt}
+														;;
+												esac
+												NumFound=$(find ${TheSrcDir} ${TheHeaderDir} -name ${src} 2> /dev/null | wc -l)
 												;;
 											*)
+												#Error
+												#{
+												case ${Type} in
+													readCode)
+														errorCode "readNot"
+														;;
+													editCode)
+														errorCode "editNot"
+														;;
+													*)
+														;;
+												esac
+												NumFound=0
+												#}
 												;;
 										esac
-										NumFound=0
-										#}
 									fi
-								fi
-							else
-								NumFound=$(find ${TheSrcDir} ${TheHeaderDir} -name ${src} 2> /dev/null | wc -l)
-							fi
+									;;
+								*)
+									NumFound=$(find ${TheSrcDir} ${TheHeaderDir} -name ${src} 2> /dev/null | wc -l)
+									;;
+							esac
 
 							case ${NumFound} in
 								0)

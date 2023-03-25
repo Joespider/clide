@@ -14,8 +14,8 @@ ShellPath=$(realpath ${ThisFile})
 #Get the dir name
 root=$(dirname ${ShellPath})
 #load the config files
-source ${root}/var/clide.conf
-source ${root}/var/version
+source ${root}/etc/clide.conf
+source ${root}/etc/version
 
 export TypeOfCpl
 export RunType
@@ -4269,6 +4269,12 @@ Actions()
 								;;
 						esac
 						;;
+					#restore edit on bash code
+					edrst)
+						if [ ! -z "${TheSrcCode}" ]; then
+							ManageLangs ${Lang} "restore-edit" ${TheSrcCode}
+						fi
+						;;
 					#run compiled code
 					execute|exe|run)
 						case ${UserIn[1]} in
@@ -4800,7 +4806,7 @@ loadAuto()
 	comp_list "shell" "--help"
 	comp_list "time" "--help"
 	comp_list "new" "--version -v --help -h --custom -c --show -s"
-	comp_list "${editor} ed edit" "non-lang --help"
+	comp_list "${editor} ed edit edrst" "non-lang --help"
 	comp_list "add" "--help"
 	comp_list "${ReadBy} read" "non-lang --help"
 	comp_list "search" "--help"
@@ -4838,7 +4844,7 @@ CLI()
 			#Get Config
 			-c|--config)
 				if [ -z "${ThePipe}" ]; then
-					grep -v "#" ${root}/var/clide.conf | sed "s/export //g" | sed "s/=/: /g" | tr -d "\""
+					grep -v "#" ${root}/etc/clide.conf | sed "s/export //g" | sed "s/=/: /g" | tr -d "\""
 				fi
 				;;
 			#Get compile/interpreter version from cli
@@ -4862,7 +4868,8 @@ CLI()
 			#Get version of template
 			-tv|--temp-version)
 				if [ -z "${ThePipe}" ]; then
-					CodeTemplateVersion
+					shift
+					CodeTemplateVersion "$@" | grep -v "Template"
 				fi
 				;;
 			#Get version control version from cli
@@ -6076,7 +6083,7 @@ CLI()
 							fi
 							case ${confirm,,} in
 								y|yes|-y|--yes)
-									${editor} ${root}/var/clide.conf
+									${editor} ${root}/etc/clide.conf
 									clear
 									errorCode "WARNING" "Please restart ${Head} for changes to take affect"
 									errorCode "WARNING" "May God have mercy on your ${Head}"
@@ -6629,7 +6636,7 @@ CLI()
 				fi
 				;;
 			#run your compiled code
-			-x|--run|--time)
+			-x|--run|--time|--edit-restore)
 				#Protect
 				Protect
 				shift
@@ -6737,8 +6744,17 @@ CLI()
 													;;
 											esac
 											local Args=( "${@}" )
-											#run the code..."none" "none" is to provide the needed padding to run
-											runCode ${Lang} ${Code} "none" "none" "${Args[@]}"
+
+
+											case ${UserArg} in
+												--edit-restore)
+													ManageLangs ${Lang} "restore-edit" ${TheBin}
+													;;
+												*)
+													#run the code..."none" "none" is to provide the needed padding to run
+													runCode ${Lang} ${Code} "none" "none" "${Args[@]}"
+													;;
+											esac
 										else
 											errorCode "cpl" "cli-need" "${Lang}"
 										fi
@@ -6858,10 +6874,10 @@ CLI()
 							--config)
 								case ${UserArg} in
 									--read-num)
-										cat -n ${root}/var/clide.conf
+										cat -n ${root}/etc/clide.conf
 										;;
 									*)
-										cat ${root}/var/clide.conf
+										cat ${root}/etc/clide.conf
 										;;
 								esac
 								;;
@@ -6896,7 +6912,7 @@ CLI()
 					else
 						case ${Action} in
 							--config)
-								${ReadBy} ${root}/var/clide.conf
+								${ReadBy} ${root}/etc/clide.conf
 								;;
 							--lang)
 								Lang=$2

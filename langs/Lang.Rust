@@ -533,11 +533,11 @@ UseRust()
 			#}
 
 			HasAnExt=$(UseRust "hasExt" ${src})
-
 			if [ ! -z "${HasAnExt}" ]; then
-					case ${project} in
-						none)
-							if [[ "${src}" == *","* ]]; then
+				case ${project} in
+					none)
+						case ${src} in
+							*","*)
 								if [ -z "${num}" ]; then
 									#Error
 									#{
@@ -553,100 +553,111 @@ UseRust()
 									esac
 									#}
 								else
-									if [[ "${src}" == *"${num}"* ]]; then
-										#Choose file from list of choices
-										num=$(echo -e "${src//,/\\n}" | grep ${num})
-										${ReadOrEdit} ${num}
-									else
-										#Error
-										#{
-										case ${Type} in
-											readCode)
-												errorCode "readNot"
-												;;
-											editCode)
-												errorCode "editNot"
-												;;
-											*)
-												;;
-										esac
-										#}
-									fi
+									case ${src} in
+										*"${num}"*)
+											#Choose file from list of choices
+											num=$(echo -e "${src//,/\\n}" | grep ${num})
+											${ReadOrEdit} ${num}
+											;;
+										*)
+											#Error
+											#{
+											case ${Type} in
+												readCode)
+													errorCode "readNot"
+													;;
+												editCode)
+													errorCode "editNot"
+													;;
+												*)
+													;;
+											esac
+											#}
+											;;
+									esac
 								fi
-							else
+								;;
+							*)
 								#Read or Write Code
 								#{
 								${ReadOrEdit} ${src}
 								#}
-							fi
-							;;
-						*)
-							TheSrcDir="${LangProject}/${project}/src/"
-							local NumFound
-							if [[ "${src}" == *","* ]]; then
+								;;
+						esac
+						;;
+					*)
+						TheSrcDir="${LangProject}/${project}/src/"
+						local NumFound
+						case ${src} in
+							*","*)
 								if [ -z "${num}" ]; then
 									errorCode "editNull"
 									NumFound=0
 								else
-									if [[ "${src}" == *"${num}"* ]]; then
-										if [[ "${num}" == *"${LangExt}" ]]; then
-											src=${num}
-										else
-											src=${num}${LangExt}
-										fi
-										NumFound=$(find ${TheSrcDir} -name ${src} 2> /dev/null | wc -l)
-									else
-										#Error
-										#{
-										case ${Type} in
-											readCode)
-												errorCode "readNot"
-												;;
-											editCode)
-												errorCode "editNot"
-												;;
-											*)
-												;;
-										esac
-										NumFound=0
-										#}
-									fi
+									case ${src} in
+										*"${num}"*)
+											if [[ "${num}" == *"${LangExt}" ]]; then
+												src=${num}
+											else
+												src=${num}${LangExt}
+											fi
+											NumFound=$(find ${TheSrcDir} -name ${src} 2> /dev/null | wc -l)
+											;;
+										*)
+											#Error
+											#{
+											case ${Type} in
+												readCode)
+													errorCode "readNot"
+													;;
+												editCode)
+													errorCode "editNot"
+													;;
+												*)
+													;;
+											esac
+											NumFound=0
+											#}
+											;;
+									esac
 								fi
-							else
+								;;
+							*)
 								NumFound=$(find ${TheSrcDir} -name ${src} 2> /dev/null | wc -l)
-							fi
+								;;
+						esac
 
-							case ${NumFound} in
-								0)
-									;;
-								1)
-									src=$(find ${TheSrcDir} -name ${src} 2> /dev/null)
-									if [ -f ${src} ]; then
+						case ${NumFound} in
+							0)
+								;;
+							1)
+								src=$(find ${TheSrcDir} -name ${src} 2> /dev/null)
+								if [ -f ${src} ]; then
+									#Read or Write Code
+									#{
+									${ReadOrEdit} ${src}
+									#}
+								fi
+								;;
+							*)
+								local Select
+								find ${TheSrcDir} -name ${src} 2> /dev/null | sed "s/\/${project}\/src\//|/1" | cut -d '|' -f 2 | nl
+								echo -n "> "
+								read Select
+								Select=$(echo ${Select} | grep "^-\?[0-9]*$")
+								if [ ! -z "${Select}" ]; then
+									if [ ${Select} -le ${NumFound} ] && [ ${Select} -gt 0 ]; then
+										src=$(find ${TheSrcDir} -name ${src} 2> /dev/null | tr '\n' '|' | cut -d '|' -f ${Select})
 										#Read or Write Code
 										#{
 										${ReadOrEdit} ${src}
 										#}
 									fi
-									;;
-								*)
-									local Select
-									find ${TheSrcDir} -name ${src} 2> /dev/null | sed "s/\/${project}\/src\//|/1" | cut -d '|' -f 2 | nl
-									echo -n "> "
-									read Select
-									Select=$(echo ${Select} | grep "^-\?[0-9]*$")
-									if [ ! -z "${Select}" ]; then
-										if [ ${Select} -le ${NumFound} ] && [ ${Select} -gt 0 ]; then
-											src=$(find ${TheSrcDir} -name ${src} 2> /dev/null | tr '\n' '|' | cut -d '|' -f ${Select})
-											#Read or Write Code
-											#{
-											${ReadOrEdit} ${src}
-											#}
-										fi
-									fi
-									;;
-							esac
-							;;
-					esac
+								fi
+								;;
+						esac
+						;;
+				esac
 			fi
 			;;
 		setCplArgs)
@@ -749,41 +760,44 @@ UseRust()
 					if [ ! -z "${src}" ]; then
 						TheBinDir=${LangBin}
 						#Handle multiple files
-						if [[ "${src}" == *","* ]]; then
-							if [ -z "${name}" ]; then
-								src=${src//,/ }
-								name=$(grep -l "fn main(" ${src} 2> /dev/null)
-
+						case ${src} in
+							*","*)
 								if [ -z "${name}" ]; then
-									echo "Unable to find the \"main\" file"
-									echo -n "Please choose: "
-									read name
-									name=$(UseRust "removeExt" ${name})
-									if [ ! -f ${LangSrc}/${name}${LangExt} ]; then
-										name=""
-									fi
-								else
-									if [ ! -z "${name}" ]; then
+									src=${src//,/ }
+									name=$(grep -l "fn main(" ${src} 2> /dev/null)
+
+									if [ -z "${name}" ]; then
+										echo "Unable to find the \"main\" file"
+										echo -n "Please choose: "
+										read name
 										name=$(UseRust "removeExt" ${name})
-										src="${name}${LangExt}"
+										if [ ! -f ${LangSrc}/${name}${LangExt} ]; then
+											name=""
+										fi
+									else
+										if [ ! -z "${name}" ]; then
+											name=$(UseRust "removeExt" ${name})
+											src="${name}${LangExt}"
+										fi
 									fi
 								fi
-							fi
-						else
-							#If no file is given...find it in your select source code
-							if [ -z "${name}" ]; then
-								name=$(grep -l "fn main(" ${src} 2> /dev/null)
-							else
-								case ${name} in
-									--*)
-										#If it is given, but begins with --, try finding it in your select source code
-										name=$(grep -l "fn main(" ${src} 2> /dev/null)
-										;;
-									*)
-										;;
-								esac
-							fi
-						fi
+								;;
+							*)
+								#If no file is given...find it in your select source code
+								if [ -z "${name}" ]; then
+									name=$(grep -l "fn main(" ${src} 2> /dev/null)
+								else
+									case ${name} in
+										--*)
+											#If it is given, but begins with --, try finding it in your select source code
+											name=$(grep -l "fn main(" ${src} 2> /dev/null)
+											;;
+										*)
+											;;
+									esac
+								fi
+								;;
+						esac
 
 						#remove the extention in the event it was given
 						name=$(UseRust "removeExt" ${name})
@@ -1340,30 +1354,34 @@ UseRust()
 			esac
 
 			#Handle multiple src files
-			if [[ "${name}" == *","* ]]; then
-				case ${project} in
-					none)
-						#Find the main file
-						if [ ! -z "${name}" ]; then
-							if [ -d "${TheSrcDir}" ]; then
-								cd ${TheSrcDir}
-								name=${name//,/ }
-								name=$(grep -l "fn main(" ${name} 2> /dev/null)
-								if [ ! -z "${name}" ]; then
-									TheBin=$(UseRust "removeExt" ${name})
+			case ${name} in
+				*","*)
+					case ${project} in
+						none)
+							#Find the main file
+							if [ ! -z "${name}" ]; then
+								if [ -d "${TheSrcDir}" ]; then
+									cd ${TheSrcDir}
+									name=${name//,/ }
+									name=$(grep -l "fn main(" ${name} 2> /dev/null)
+									if [ ! -z "${name}" ]; then
+										TheBin=$(UseRust "removeExt" ${name})
+									else
+										TheBin=""
+									fi
+									cd - > /dev/null
 								else
 									TheBin=""
 								fi
-								cd - > /dev/null
-							else
-								TheBin=""
 							fi
-						fi
-						;;
-					*)
-						;;
-				esac
-			fi
+							;;
+						*)
+							;;
+					esac
+					;;
+				*)
+					;;
+			esac
 
 			#Find Executable
 			if [ -f ${TheBinDir}/${TheBin} ]; then
