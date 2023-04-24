@@ -3,7 +3,7 @@
 #https://stackoverflow.com/questions/10339637/java-import-cannot-find-symbol
 #https://www.codejava.net/java-core/tools/how-to-compile-package-and-run-a-java-program-using-command-line-tools-javac-jar-and-java
 
-SupportV="0.2.47"
+SupportV="0.2.48"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -164,14 +164,6 @@ UseJava()
 				fi
 			fi
                         ;;
-		getProjSrc)
-			local name=$1
-			local project=${CodeProject}
-			local TheSrcDir=${LangProject}/${project}/src
-			if [ ! -z "${name}" ]; then
-				find ${TheSrcDir} -name "${name}" 2> /dev/null | grep "${ProjectMode}"
-			fi
-			;;
 		IsDebugEnabled)
 			local TheCode=$1
 			local TheBinDir
