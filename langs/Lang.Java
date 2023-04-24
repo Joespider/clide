@@ -3,7 +3,7 @@
 #https://stackoverflow.com/questions/10339637/java-import-cannot-find-symbol
 #https://www.codejava.net/java-core/tools/how-to-compile-package-and-run-a-java-program-using-command-line-tools-javac-jar-and-java
 
-SupportV="0.2.48"
+SupportV="0.2.50"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -149,7 +149,11 @@ UseJava()
 		getAllProjSrc)
 			local project=${CodeProject}
 			local TheSrcDir=${LangProject}/${project}/src
-			find ${TheSrcDir} -name *"${LangExt}" 2> /dev/null | grep "${ProjectMode}"
+			if [ ! -d ${TheSrcDir}/main ] && [ ! -d ${TheSrcDir}/test ]; then
+				find ${TheSrcDir} -name *"${LangExt}" 2> /dev/null
+			else
+				find ${TheSrcDir} -name *"${LangExt}" 2> /dev/null | grep "${ProjectMode}"
+			fi
 			;;
 		getProjSrc)
 			local name=$1
@@ -160,7 +164,11 @@ UseJava()
 				if [ ! -z "${UseProjectTemplate}" ]; then
 					ProjectTemplateHandler ${ProjectType} ${Type} ${TheSrcDir} ${name}
 				else
-					find ${TheSrcDir} -name "${name}" 2> /dev/null | grep "${ProjectMode}"
+					if [ ! -d ${TheSrcDir}/main ] && [ ! -d ${TheSrcDir}/test ]; then
+						find ${TheSrcDir} -name "${name}" 2> /dev/null
+					else
+						find ${TheSrcDir} -name "${name}" 2> /dev/null | grep "${ProjectMode}"
+					fi
 				fi
 			fi
                         ;;
@@ -334,19 +342,33 @@ UseJava()
 									newName=${name##*.}
 									DirPath=${name%${newName}}
 									DirPath=${DirPath//./\/}
-									PackageName=$(echo ${name%.*} | sed "s/${ProjectMode}.java.//1")
+									TheSrcDir="${LangProject}/${project}/src/"
+									if [ ! -d ${TheSrcDir}/main ] && [ ! -d ${TheSrcDir}/test ]; then
+										PackageName=${name%.*}
+									else
+										PackageName=$(echo ${name%.*} | sed "s/${ProjectMode}.java.//1")
+									fi
 									PackageName=${PackageName//\//.}
-									TheSrcDir="${LangProject}/${project}/src/${DirPath}"
+									TheSrcDir="${TheSrcDir}/${DirPath}"
 									;;
 								*/*)
 									newName=${name##*/}
-									PackageName=$(echo ${name%/*} | sed "s/${ProjectMode}\/java\///1")
+									TheSrcDir="${LangProject}/${project}/src/"
+									if [ ! -d ${TheSrcDir}/main ] && [ ! -d ${TheSrcDir}/test ]; then
+										PackageName=${name%/*}
+									else
+										PackageName=$(echo ${name%/*} | sed "s/${ProjectMode}\/java\///1")
+									fi
 									PackageName=${PackageName//\//.}
 									DirPath=${name%${newName}}
-									TheSrcDir="${LangProject}/${project}/src/${DirPath}"
+									TheSrcDir="${TheSrcDir}/${DirPath}"
 									;;
 								*)
-									PackageName=$(pwd | sed "s/${project}\/src/|/g" | sed "s/${ProjectMode}\/java\///1" | cut -d '|' -f 2)
+									if [ ! -d ${LangProject}/${project}/src/main ] && [ ! -d ${LangProject}/${project}/src/test ]; then
+										PackageName=$(pwd | sed "s/${project}\/src/|/g" | cut -d '|' -f 2)
+									else
+										PackageName=$(pwd | sed "s/${project}\/src/|/g" | sed "s/${ProjectMode}\/java\///1" | cut -d '|' -f 2)
+									fi
 									PackageName=${PackageName//\//.}
 									TheSrcDir="$(pwd)/"
 									newName=${name}
@@ -531,7 +553,11 @@ UseJava()
 
 						UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check "getProjSrc")
 						if [ -z "${UseProjectTemplate}" ]; then
-							NumFound=$(UseJava "getProjSrc" ${LookFor} 2> /dev/null | grep ${ProjectMode} | wc -l)
+							if [ ! -d ${TheSrcDir}/main ] && [ ! -d ${TheSrcDir}/test ]; then
+								NumFound=$(UseJava "getProjSrc" ${LookFor} 2> /dev/null | wc -l)
+							else
+								NumFound=$(UseJava "getProjSrc" ${LookFor} 2> /dev/null | grep ${ProjectMode} | wc -l)
+							fi
 						else
 							NumFound=$(UseJava "getProjSrc" ${LookFor} 2> /dev/null | wc -l)
 						fi
@@ -747,7 +773,11 @@ UseJava()
 
 							UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check "getProjSrc")
 							if [ -z "${UseProjectTemplate}" ]; then
-								NumFound=$(UseJava "getProjSrc" ${TheFile} 2> /dev/null | grep ${ProjectMode} | wc -l)
+								if [ ! -d ${TheSrcDir}/main ] && [ ! -d ${TheSrcDir}/test ]; then
+									NumFound=$(UseJava "getProjSrc" ${TheFile} 2> /dev/null | wc -l)
+								else
+									NumFound=$(UseJava "getProjSrc" ${TheFile} 2> /dev/null | grep ${ProjectMode} | wc -l)
+								fi
 							else
 								NumFound=$(UseJava "getProjSrc" ${TheFile} 2> /dev/null | wc -l)
 							fi
@@ -757,7 +787,11 @@ UseJava()
 									;;
 								1)
 									if [ -z "${UseProjectTemplate}" ]; then
-										TheFile=$(UseJava "getProjSrc" ${TheFile} 2> /dev/null | grep ${ProjectMode})
+										if [ ! -d ${TheSrcDir}/main ] && [ ! -d ${TheSrcDir}/test ]; then
+											TheFile=$(UseJava "getProjSrc" ${TheFile} 2> /dev/null)
+										else
+											TheFile=$(UseJava "getProjSrc" ${TheFile} 2> /dev/null | grep ${ProjectMode})
+										fi
 									else
 										TheFile=$(UseJava "getProjSrc" ${TheFile} 2> /dev/null)
 									fi
@@ -772,7 +806,11 @@ UseJava()
 								*)
 									local Select
 									if [ -z "${UseProjectTemplate}" ]; then
-										UseJava "getProjSrc" 2> /dev/null | grep ${ProjectMode} | sed "s/\/${project}\/src\//|/1" | cut -d '|' -f 2 | nl
+										if [ ! -d ${TheSrcDir}/main ] && [ ! -d ${TheSrcDir}/test ]; then
+											UseJava "getProjSrc" 2> /dev/null | sed "s/\/${project}\/src\//|/1" | cut -d '|' -f 2 | nl
+										else
+											UseJava "getProjSrc" 2> /dev/null | grep ${ProjectMode} | sed "s/\/${project}\/src\//|/1" | cut -d '|' -f 2 | nl
+										fi
 									else
 										UseJava "getProjSrc" 2> /dev/null | sed "s/\/${project}\/src\//|/1" | cut -d '|' -f 2 | nl
 									fi
@@ -996,7 +1034,11 @@ UseJava()
 					if [ ! -z "${ProjectMode}" ]; then
 						case ${ProjectMode} in
 							main|test)
-								ProjectModeDir=${TheSrcDir}${ProjectMode}/java/
+								if [ ! -d ${TheSrcDir}main/ ] && [ ! -d ${TheSrcDir}test/ ]; then
+									ProjectModeDir=${TheSrcDir}
+								else
+									ProjectModeDir=${TheSrcDir}${ProjectMode}/java/
+								fi
 								;;
 							*)
 								;;
@@ -1084,7 +1126,12 @@ UseJava()
 								if [ ! -z "${TheJavaSrc}" ]; then
 									#Compile java code with lib jars
 									if [ -d "${TheLibDir}" ]; then
-										TheClassPath=$(find ${TheLibDir} -name "*.jar" | grep "${ProjectMode}" | tr '/' '|' | sed "s/${ReplaceTheLibDir}//g" | tr '|' '/' | tr '\n' ';' | rev | sed "s/;//1" | rev)
+
+										if [ ! -d ${LangProject}/${project}/src/main ] && [ ! -d ${LangProject}/${project}/src/test ]; then
+											TheClassPath=$(find ${TheLibDir} -name "*.jar" | tr '/' '|' | sed "s/${ReplaceTheLibDir}//g" | tr '|' '/' | tr '\n' ';' | rev | sed "s/;//1" | rev)
+										else
+											TheClassPath=$(find ${TheLibDir} -name "*.jar" | grep "${ProjectMode}" | tr '/' '|' | sed "s/${ReplaceTheLibDir}//g" | tr '|' '/' | tr '\n' ';' | rev | sed "s/;//1" | rev)
+										fi
 										#make sure jars exist in lib
 										if [ ! -z "${TheClassPath}" ]; then
 											ERROR=$(${LangCpl} -cp ".;${TheClassPath}" -d ${TheClassDir} ${TheJavaSrc} 2>&1 | tr '\n' '|')
@@ -1195,6 +1242,10 @@ UseJava()
 				none)
 					;;
 				*)
+					if [ ! -d ${LangProject}/${project}/src/main/ ] && [ ! -d ${LangProject}/${project}/src/test/ ]; then
+						path=${LangProject}/${project}/src/
+					fi
+
 					if [ ! -z "${name}" ]; then
 						case ${name} in
 							*.new.*|*.this.*|new.*|this.*|*.new|*.this)
@@ -1218,19 +1269,35 @@ UseJava()
 			local ThePackage
 			local project=${CodeProject}
 			local path=${LangProject}/${project}/src/${ProjectMode}/java
+			local NumFound
 			case ${project} in
 				none)
 					;;
 				*)
+					if [ ! -d ${LangProject}/${project}/src/main/ ] && [ ! -d ${LangProject}/${project}/src/test/ ]; then
+						path=${LangProject}/${project}/src/
+					fi
+
 					if [ ! -z "${src}" ]; then
 						src=$(UseJava "removeExt" "${src}")
 						TheFile=${src}${LangExt}
-						local NumFound=$(find -L ${TheSrcDir} -name ${TheFile} 2> /dev/null | grep "${ProjectMode}" | wc -l)
+
+						if [ ! -d ${LangProject}/${project}/src/main/ ] && [ ! -d ${LangProject}/${project}/src/test/ ]; then
+							NumFound=$(find -L ${TheSrcDir} -name ${TheFile} 2> /dev/null | wc -l)
+						else
+							NumFound=$(find -L ${TheSrcDir} -name ${TheFile} 2> /dev/null | grep "${ProjectMode}" | wc -l)
+						fi
+
 						case ${NumFound} in
 							0)
 								;;
 							1)
-								TheFile=$(find ${TheSrcDir} -name ${TheFile} 2> /dev/null | grep "${ProjectMode}")
+								if [ ! -d ${LangProject}/${project}/src/main/ ] && [ ! -d ${LangProject}/${project}/src/test/ ]; then
+									TheFile=$(find ${TheSrcDir} -name ${TheFile} 2> /dev/null)
+								else
+									TheFile=$(find ${TheSrcDir} -name ${TheFile} 2> /dev/null | grep "${ProjectMode}")
+								fi
+
 								if [ -f ${TheFile} ]; then
 									#Read or Write Code
 									#{
@@ -1240,13 +1307,21 @@ UseJava()
 								;;
 							*)
 								local Select
-								find ${TheSrcDir} -name ${TheFile} 2> /dev/null | grep "${ProjectMode}" | sed "s/\/${project}\/src\//|/1" | cut -d '|' -f 2 | nl
+								if [ ! -d ${LangProject}/${project}/src/main/ ] && [ ! -d ${LangProject}/${project}/src/test/ ]; then
+									find ${TheSrcDir} -name ${TheFile} 2> /dev/null | sed "s/\/${project}\/src\//|/1" | cut -d '|' -f 2 | nl
+								else
+									find ${TheSrcDir} -name ${TheFile} 2> /dev/null | grep "${ProjectMode}" | sed "s/\/${project}\/src\//|/1" | cut -d '|' -f 2 | nl
+								fi
 								echo -n "> "
 								read Select
 								Select=$(echo ${Select} | grep "^-\?[0-9]*$")
 								if [ ! -z "${Select}" ]; then
 									if [ ${Select} -le ${NumFound} ] && [ ${Select} -gt 0 ]; then
-									TheFile=$(find ${TheSrcDir} -name ${TheFile} 2> /dev/null | grep "${ProjectMode}" | tr '\n' '|' | cut -d '|' -f ${Select})
+										if [ ! -d ${LangProject}/${project}/src/main/ ] && [ ! -d ${LangProject}/${project}/src/test/ ]; then
+											TheFile=$(find ${TheSrcDir} -name ${TheFile} 2> /dev/null | tr '\n' '|' | cut -d '|' -f ${Select})
+										else
+											TheFile=$(find ${TheSrcDir} -name ${TheFile} 2> /dev/null | grep "${ProjectMode}" | tr '\n' '|' | cut -d '|' -f ${Select})
+										fi
 										#Read or Write Code
 										#{
 										ThePackage=$(grep package ${TheFile})
@@ -1275,6 +1350,11 @@ UseJava()
 				none)
 					;;
 				*)
+					if [ ! -d ${LangProject}/${project}/src/main/ ] && [ ! -d ${LangProject}/${project}/src/test/ ]; then
+						path=${LangProject}/${project}/src/
+					else
+						path=${LangProject}/${project}/src/${ProjectMode}/java
+					fi
 					if [ ! -z "${name}" ]; then
 						case ${name} in
 							*.new.*|*.this.*|new.*|this.*|*.new|*.this)
@@ -1313,6 +1393,11 @@ UseJava()
 				none)
 					;;
 				*)
+					if [ ! -d ${LangProject}/${project}/src/main/ ] && [ ! -d ${LangProject}/${project}/src/test/ ]; then
+						path=${LangProject}/${project}/src/
+					else
+						path=${LangProject}/${project}/src/${ProjectMode}/java/
+					fi
 					find ${path} -type d | tr '/' '|' | sed "s/${RemoveDirs}//g" | tr '|' '.'
 					;;
 			esac
@@ -1758,36 +1843,55 @@ UseJava()
 											;;
 										#Is a project
 										*)
-											case ${PWD} in
-												*"/main/java"*|*"/test/java"*)
-													case ${PWD} in
-														*"/main/java"|*"/test/java")
-															errorCode "newCode" "need-package"
-															;;
-														*)
-															#Because a project can have source code scattered in different directories,
-															#make sure you have one main component
-															local TheSrcDir="${LangProject}/${project}/src/"
-															local NumFound=$(find -L ${TheSrcDir} -type f -name "*${LangExt}" 2> /dev/null | wc -l)
-															case ${NumFound} in
-																#No other source code was found...make your main file
-																0)
-																	#Create new main code
-																	UseJava "newCode" ${name} "main" ${oldCode}
-																	;;
-																#Source code was found...make a component
-																*)
-																	#Create libary class
-																	UseJava "newCode" ${name} "component" ${oldCode}
-																	;;
-															esac
-															;;
-													esac
-													;;
-												*)
-													errorCode "newCode" "choose-dir"
-													;;
-											esac
+											if [ ! -d ${LangProject}/${project}/src/main/ ] && [ ! -d ${LangProject}/${project}/src/test/ ]; then
+												#Because a project can have source code scattered in different directories,
+												#make sure you have one main component
+												local TheSrcDir="${LangProject}/${project}/src/"
+												local NumFound=$(find -L ${TheSrcDir} -type f -name "*${LangExt}" 2> /dev/null | wc -l)
+												case ${NumFound} in
+													#No other source code was found...make your main file
+													0)
+														#Create new main code
+														UseJava "newCode" ${name} "main" ${oldCode}
+														;;
+													#Source code was found...make a component
+													*)
+														#Create libary class
+														UseJava "newCode" ${name} "component" ${oldCode}
+														;;
+												esac
+											else
+												case ${PWD} in
+													*"/main/java"*|*"/test/java"*)
+														case ${PWD} in
+															*"/main/java"|*"/test/java")
+																errorCode "newCode" "need-package"
+																;;
+															*)
+																#Because a project can have source code scattered in different directories,
+																#make sure you have one main component
+																local TheSrcDir="${LangProject}/${project}/src/"
+																local NumFound=$(find -L ${TheSrcDir} -type f -name "*${LangExt}" 2> /dev/null | wc -l)
+																case ${NumFound} in
+																	#No other source code was found...make your main file
+																	0)
+																		#Create new main code
+																		UseJava "newCode" ${name} "main" ${oldCode}
+																		;;
+																	#Source code was found...make a component
+																	*)
+																		#Create libary class
+																		UseJava "newCode" ${name} "component" ${oldCode}
+																		;;
+																esac
+																;;
+														esac
+														;;
+													*)
+														errorCode "newCode" "choose-dir"
+														;;
+												esac
+											fi
 											;;
 									esac
 									;;
@@ -1837,36 +1941,55 @@ UseJava()
 											;;
 										#Is a project
 										*)
-											case ${PWD} in
-												*"/main/java"*|*"/test/java"*)
-													case ${PWD} in
-														*"/main/java"|*"/test/java")
-															errorCode "newCode" "need-package"
-															;;
-														*)
-															#Because a project can have source code scattered in different directories,
-															#make sure you have one main component
-															local TheSrcDir="${LangProject}/${project}/src/"
-															local NumFound=$(find -L ${TheSrcDir} -type f -name "*${LangExt}" 2> /dev/null | wc -l)
-															case ${NumFound} in
-																#No other source code was found...make your main file
-																0)
-																	#Create new main code
-																	UseJava "newCode" ${name} "main" ${oldCode}
-																	;;
-																#Source code was found...make a component
-																*)
-																	#Create libary class
-																	UseJava "newCode" ${name} "component" ${oldCode}
-																	;;
-															esac
-															;;
-													esac
-													;;
-												*)
-													errorCode "newCode" "choose-dir"
-													;;
-											esac
+											if [ ! -d ${LangProject}/${project}/src/main/ ] && [ ! -d ${LangProject}/${project}/src/test/ ]; then
+												#Because a project can have source code scattered in different directories,
+												#make sure you have one main component
+												local TheSrcDir="${LangProject}/${project}/src/"
+												local NumFound=$(find -L ${TheSrcDir} -type f -name "*${LangExt}" 2> /dev/null | wc -l)
+												case ${NumFound} in
+													#No other source code was found...make your main file
+													0)
+														#Create new main code
+														UseJava "newCode" ${name} "main" ${oldCode}
+														;;
+													#Source code was found...make a component
+													*)
+														#Create libary class
+														UseJava "newCode" ${name} "component" ${oldCode}
+														;;
+												esac
+											else
+												case ${PWD} in
+													*"/main/java"*|*"/test/java"*)
+														case ${PWD} in
+															*"/main/java"|*"/test/java")
+																errorCode "newCode" "need-package"
+																;;
+															*)
+																#Because a project can have source code scattered in different directories,
+																#make sure you have one main component
+																local TheSrcDir="${LangProject}/${project}/src/"
+																local NumFound=$(find -L ${TheSrcDir} -type f -name "*${LangExt}" 2> /dev/null | wc -l)
+																case ${NumFound} in
+																	#No other source code was found...make your main file
+																	0)
+																		#Create new main code
+																		UseJava "newCode" ${name} "main" ${oldCode}
+																		;;
+																	#Source code was found...make a component
+																	*)
+																		#Create libary class
+																		UseJava "newCode" ${name} "component" ${oldCode}
+																		;;
+																esac
+																;;
+														esac
+														;;
+													*)
+														errorCode "newCode" "choose-dir"
+														;;
+												esac
+											fi
 											;;
 									esac
 									;;
