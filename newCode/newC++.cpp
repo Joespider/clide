@@ -23,7 +23,7 @@ bool IsIn(String Str, String Sub);
 static void help()
 {
 	String ProgName = "newC++";
-	String Version = "0.1.59";
+	String Version = "0.1.60";
 	print("Author: Joespider");
 	print("Program: \"" << ProgName << "\"");
 	print("Version: " << Version);
@@ -99,7 +99,7 @@ static String getMacros(bool* Conv, bool* getLen)
 }
 
 //create import listing
-static String getImports(bool* fcheck, bool* write, bool* read, bool* random, bool* pipe, bool* shell, bool* threads, bool* sleep, bool* prop, bool* Split, bool* Join, bool* Rev, bool* Vect, bool* Math, bool* getFS, bool* dateTime)
+static String getImports(bool* fcheck, bool* write, bool* read, bool* random, bool* pipe, bool* shell, bool* threads, bool* sleep, bool* prop, bool* Split, bool* Join, bool* Rev, bool* Vect, bool* getLen, bool* Math, bool* getFS, bool* dateTime)
 {
 	String Imports = "";
 	String standard = "#include <iostream>\n#include <string>\n";
@@ -149,7 +149,7 @@ static String getImports(bool* fcheck, bool* write, bool* read, bool* random, bo
 	{
 		ForRev = "#include <algorithm>\n";
 	}
-	if ((*Split == true) || (*Join == true) || (*Vect == true))
+	if ((*Split == true) || (*Join == true) || (*Vect == true) || (*getLen == true))
 	{
 		ForJoin = "#include <vector>\n";
 	}
@@ -248,6 +248,8 @@ static String getMethodDec(bool* rawinput, bool* rand, bool* fcheck, bool* write
 	}
 	if (*Split == true)
 	{
+		Declaration = Declaration+"String SplitBefore(String Str, char splitAt);\n";
+		Declaration = Declaration+"String SplitAfter(String Str, char splitAt);\n";
 		Declaration = Declaration+"std::vector<String> split(String message, char by);\n";
 		Declaration = Declaration+"std::vector<String> split(String message, String by);\n";
 		Declaration = Declaration+"std::vector<String> split(String message, String by, int at);\n";
@@ -380,10 +382,12 @@ static String getMethods(bool* rawinput, bool* rand, bool* fcheck, bool* write, 
 	}
 	if (*Split == true)
 	{
-		StrSplit = "std::vector<String> split(String message, char by)\n{\n\tstd::vector <String> vArray;\n\tstd::stringstream ss(message);\n\tString item;\n\twhile (std::getline(ss,item,by))\n\t{\n\t\tvArray.push_back(item);\n\t}\n\treturn vArray;\n}\n\n";
-		StrSplit = StrSplit+"std::vector<String> split(String message, String by)\n{\n\tstd::vector <String> vArray;\n\tint end = message.length();\n\tint subLen = by.length();\n\tString item;\n\tString Push;\n\tbool LetsPush = false;\n\tbool LeftOver = false;\n\tfor (int lp = 0; lp != end; lp++)\n\t{\n\t\tfor (int plc = 0; plc != subLen; plc++)\n\t\t{\n\t\t\titem = item + message[lp+plc];\n\t\t}\n\n\t\tif (item == by)\n\t\t{\n\t\t\tLetsPush = true;\n\t\t\t//jump length of sub string\n\t\t\tlp += subLen;\n\t\t\tif (lp >= end)\n\t\t\t{\n\t\t\t\tLeftOver = true;\n\t\t\t\tbreak;\n\t\t\t}\n\t\t}\n\n\t\t//push new string to vector\n\t\tif (LetsPush == true)\n\t\t{\n\t\t\tLetsPush = false;\n\t\t\tvArray.push_back(Push);\n\t\t\tPush = \"\";\n\t\t}\n\n\t\tif (LetsPush == false)\n\t\t{\n\t\t\tPush = Push + message[lp];\n\t\t}\n\t\titem = \"\";\n\t}\n\n\tif ((LetsPush == true) || (Push != \"\"))\n\t{\n\t\tLetsPush = false;\n\t\tvArray.push_back(Push);\n\t}\n\n\tif (LeftOver == true)\n\t{\n\t\tvArray.push_back(\"\");\n\t}\n\treturn vArray;\n}\n\n";
-		StrSplit = StrSplit+"std::vector<String> split(String message, String by, int at)\n{\n\tstd::vector <String> vArray;\n\tint end = message.length();\n\tint subLen = by.length();\n\tint num = 0;\n\tString item;\n\tString Push;\n\tbool LetsPush = false;\n\tbool LeftOver = false;\n\tfor (int lp = 0; lp != end; lp++)\n\t{\n\t\tfor (int plc = 0; plc != subLen; plc++)\n\t\t{\n\t\t\titem = item + message[lp+plc];\n\t\t}\n\n\t\tif ((item == by) && (num != at))\n\t\t{\n\t\t\tLetsPush = true;\n\t\t\t//jump length of sub string\n\t\t\tlp += subLen;\n\t\t\tif (lp >= end)\n\t\t\t{\n\t\t\t\tLeftOver = true;\n\t\t\t\tbreak;\n\t\t\t}\n\t\t}\n\n\t\t//push new string to vector\n\t\tif (LetsPush == true)\n\t\t{\n\t\t\tLetsPush = false;\n\t\t\tnum++;\n\t\t\tvArray.push_back(Push);\n\t\t\tPush = \"\";\n\t\t}\n\n\t\tif (LetsPush == false)\n\t\t{\n\t\t\tPush = Push + message[lp];\n\t\t}\n\t\titem = \"\";\n\t}\n\n\tif ((LetsPush == true) || (Push != \"\"))\n\t{\n\t\tLetsPush = false;\n\t\tvArray.push_back(Push);\n\t}\n\n\tif (LeftOver == true)\n\t{\n\t\tvArray.push_back(\"\");\n\t}\n\treturn vArray;\n}\n\n";
-		StrSplit = StrSplit+"std::vector<String> rsplit(String message, String by, int at)\n{\n\tstd::vector <String> vArray;\n\tint end = message.length();\n\tint subLen = by.length();\n\tint place = (end - 1);\n\tint num = 0;\n\tString Tmp[at+1];\n\tint tmpSize = sizeof(Tmp)/sizeof(Tmp[0]);\n\tint tmpPlc = (tmpSize - 1);\n\tString item;\n\tString Push;\n\tbool LetsPush = false;\n\tbool LeftOver = false;\n\n\tfor (int lp = 0; lp != end; lp++)\n\t{\n\t\tfor (int plc = 0; plc != subLen; plc++)\n\t\t{\n\t\t\titem = message[place-plc] + item;\n\t\t}\n\n\t\tif ((item == by) && (num != at))\n\t\t{\n\t\t\tLetsPush = true;\n\t\t\tnum++;\n\t\t\t//jump length of sub string\n\t\t\tplace -= subLen;\n\t\t\tlp += subLen;\n\t\t\tif (lp >= end)\n\t\t\t{\n\t\t\t\tLeftOver = true;\n\t\t\t\tbreak;\n\t\t\t}\n\t\t}\n\n\t\t//push new string to vector\n\t\tif (LetsPush == true)\n\t\t{\n\t\t\tLetsPush = false;\n\t\t\tTmp[tmpPlc] = Push;\n\t\t\ttmpPlc -= 1;\n\t\t\tPush = \"\";\n\t\t}\n\n\t\tif (LetsPush == false)\n\t\t{\n\t\t\tPush = message[place] + Push;\n\t\t}\n\t\titem = \"\";\n\t\tplace -= 1;\n\t}\n\n\tif ((LetsPush == true) || (Push != \"\"))\n\t{\n\t\tLetsPush = false;\n\t\tTmp[tmpPlc] = Push;\n\t\ttmpPlc -= 1;\n\t}\n\n\tif (LeftOver == true)\n\t{\n\t\tTmp[tmpPlc] = \"\";\n\t\ttmpPlc -= 1;\n\t}\n\n\tfor (int srch = 0; srch != tmpSize; srch++)\n\t{\n\t\tvArray.push_back(Tmp[srch]);\n\t}\n\treturn vArray;\n}\n\n";
+		StrSplit = "String SplitBefore(String Str, char splitAt)\n{\n\tbool Show = true;\n\tString newString;\n\tint end = Str.length();\n\tif (end != 0)\n\t{\n\t\tfor (int lp = 0; lp != end; lp++)\n\t\t{\n\t\t\tif (Str[lp] == splitAt)\n\t\t\t{\n\t\t\t\tbreak;\n\t\t\t}\n\t\t\telse\n\t\t\t{\n\t\t\t\tnewString = newString+Str[lp];\n\t\t\t}\n\t\t}\n\t}\n\treturn newString;\n}\n\n";
+		StrSplit = StrSplit+"String SplitAfter(String Str, char splitAt)\n{\n\tbool Show = false;\n\tString newString;\n\tint end = Str.length();\n\tif (end != 0)\n\t{\n\t\tfor (int lp = 0; lp != end; lp++)\n\t\t{\n\t\t\tif (Show == true)\n\t\t\t{\n\t\t\t\tnewString = newString+Str[lp];\n\t\t\t}\n\t\t\tif ((Str[lp] == splitAt) && (Show != true))\n\t\t\t{\n\t\t\t\tShow = true;\n\t\t\t}\n\t\t}\n\t}\n\treturn newString;\n}\n\n";
+		StrSplit = StrSplit+"std::vector<String> split(String message, char by)\n{\n\tstd::vector<String> vArray;\n\tstd::stringstream ss(message);\n\tString item;\n\twhile (std::getline(ss,item,by))\n\t{\n\t\tvArray.push_back(item);\n\t}\n\treturn vArray;\n}\n\n";
+		StrSplit = StrSplit+"std::vector<String> split(String message, String by)\n{\n\tstd::vector<String> vArray;\n\tint end = message.length();\n\tint subLen = by.length();\n\tString item;\n\tString Push;\n\tbool LetsPush = false;\n\tbool LeftOver = false;\n\tfor (int lp = 0; lp != end; lp++)\n\t{\n\t\tfor (int plc = 0; plc != subLen; plc++)\n\t\t{\n\t\t\titem = item + message[lp+plc];\n\t\t}\n\n\t\tif (item == by)\n\t\t{\n\t\t\tLetsPush = true;\n\t\t\t//jump length of sub string\n\t\t\tlp += subLen;\n\t\t\tif (lp >= end)\n\t\t\t{\n\t\t\t\tLeftOver = true;\n\t\t\t\tbreak;\n\t\t\t}\n\t\t}\n\n\t\t//push new string to vector\n\t\tif (LetsPush == true)\n\t\t{\n\t\t\tLetsPush = false;\n\t\t\tvArray.push_back(Push);\n\t\t\tPush = \"\";\n\t\t}\n\n\t\tif (LetsPush == false)\n\t\t{\n\t\t\tPush = Push + message[lp];\n\t\t}\n\t\titem = \"\";\n\t}\n\n\tif ((LetsPush == true) || (Push != \"\"))\n\t{\n\t\tLetsPush = false;\n\t\tvArray.push_back(Push);\n\t}\n\n\tif (LeftOver == true)\n\t{\n\t\tvArray.push_back(\"\");\n\t}\n\treturn vArray;\n}\n\n";
+		StrSplit = StrSplit+"std::vector<String> split(String message, String by, int at)\n{\n\tstd::vector<String> vArray;\n\tint end = message.length();\n\tint subLen = by.length();\n\tint num = 0;\n\tString item;\n\tString Push;\n\tbool LetsPush = false;\n\tbool LeftOver = false;\n\tfor (int lp = 0; lp != end; lp++)\n\t{\n\t\tfor (int plc = 0; plc != subLen; plc++)\n\t\t{\n\t\t\titem = item + message[lp+plc];\n\t\t}\n\n\t\tif ((item == by) && (num != at))\n\t\t{\n\t\t\tLetsPush = true;\n\t\t\t//jump length of sub string\n\t\t\tlp += subLen;\n\t\t\tif (lp >= end)\n\t\t\t{\n\t\t\t\tLeftOver = true;\n\t\t\t\tbreak;\n\t\t\t}\n\t\t}\n\n\t\t//push new string to vector\n\t\tif (LetsPush == true)\n\t\t{\n\t\t\tLetsPush = false;\n\t\t\tnum++;\n\t\t\tvArray.push_back(Push);\n\t\t\tPush = \"\";\n\t\t}\n\n\t\tif (LetsPush == false)\n\t\t{\n\t\t\tPush = Push + message[lp];\n\t\t}\n\t\titem = \"\";\n\t}\n\n\tif ((LetsPush == true) || (Push != \"\"))\n\t{\n\t\tLetsPush = false;\n\t\tvArray.push_back(Push);\n\t}\n\n\tif (LeftOver == true)\n\t{\n\t\tvArray.push_back(\"\");\n\t}\n\treturn vArray;\n}\n\n";
+		StrSplit = StrSplit+"std::vector<String> rsplit(String message, String by, int at)\n{\n\tstd::vector<String> vArray;\n\tint end = message.length();\n\tint subLen = by.length();\n\tint place = (end - 1);\n\tint num = 0;\n\tString Tmp[at+1];\n\tint tmpSize = sizeof(Tmp)/sizeof(Tmp[0]);\n\tint tmpPlc = (tmpSize - 1);\n\tString item;\n\tString Push;\n\tbool LetsPush = false;\n\tbool LeftOver = false;\n\n\tfor (int lp = 0; lp != end; lp++)\n\t{\n\t\tfor (int plc = 0; plc != subLen; plc++)\n\t\t{\n\t\t\titem = message[place-plc] + item;\n\t\t}\n\n\t\tif ((item == by) && (num != at))\n\t\t{\n\t\t\tLetsPush = true;\n\t\t\tnum++;\n\t\t\t//jump length of sub string\n\t\t\tplace -= subLen;\n\t\t\tlp += subLen;\n\t\t\tif (lp >= end)\n\t\t\t{\n\t\t\t\tLeftOver = true;\n\t\t\t\tbreak;\n\t\t\t}\n\t\t}\n\n\t\t//push new string to vector\n\t\tif (LetsPush == true)\n\t\t{\n\t\t\tLetsPush = false;\n\t\t\tTmp[tmpPlc] = Push;\n\t\t\ttmpPlc -= 1;\n\t\t\tPush = \"\";\n\t\t}\n\n\t\tif (LetsPush == false)\n\t\t{\n\t\t\tPush = message[place] + Push;\n\t\t}\n\t\titem = \"\";\n\t\tplace -= 1;\n\t}\n\n\tif ((LetsPush == true) || (Push != \"\"))\n\t{\n\t\tLetsPush = false;\n\t\tTmp[tmpPlc] = Push;\n\t\ttmpPlc -= 1;\n\t}\n\n\tif (LeftOver == true)\n\t{\n\t\tTmp[tmpPlc] = \"\";\n\t\ttmpPlc -= 1;\n\t}\n\n\tfor (int srch = 0; srch != tmpSize; srch++)\n\t{\n\t\tvArray.push_back(Tmp[srch]);\n\t}\n\treturn vArray;\n}\n\n";
 	}
 	if (*Join == true)
 	{
@@ -777,7 +781,7 @@ int main(int argc, char** argv)
 			if ((FileExists == false) || (dontSave == true))
 			{
 				//generate imports
-				Imports = getImports(&getFCheck, &getWrite, &getRead, &getRand, &getPipe, &getShell, &getThreads, &getSleep, &getProp, &getSplit, &getJoin, &getRev, &getVect, &getMath, &getFS, &getDateAndTime);
+				Imports = getImports(&getFCheck, &getWrite, &getRead, &getRand, &getPipe, &getShell, &getThreads, &getSleep, &getProp, &getSplit, &getJoin, &getRev, &getVect, &getLength, &getMath, &getFS, &getDateAndTime);
 				//genarate macros
 				Macros = getMacros(&getConvert, &getLength);
 				//make declorations
