@@ -1,49 +1,56 @@
 #include <iostream>
 #include <string>
-#include <unistd.h>
-#include <stdexcept>
+//#include <unistd.h>
+//#include <stdexcept>
 #include <stdio.h>
-#include <sstream>
+//#include <sstream>
 #include <vector>
 
-//print marco for cout
+#define PressEnter std::cout << "Press \"Enter\" to Continue "; std::cin.get()
+
+//print Macro for cout
 #define print(x); std::cout << x << std::endl
 
-//error marco for cerr
+//error Macro for cerr
 #define error(x); std::cerr << x << std::endl
 
 //Convert std::string to String
 #define String std::string
 
+String Version = "0.0.6";
+
+void Help();
 String getOS();
-void Help(String Option);
-int len(std::vector<String> Vect);
-void clear();
 String raw_input(String message);
+void clear();
 String shell(String command);
 void shellExe(String command);
 String getCplV();
 bool IsIn(String Str, String Sub);
 bool StartsWith(String Str, String Start);
+bool EndsWith(String Str, String End);
+int len(std::vector<String> Vect);
+String SplitBefore(String Str, char splitAt);
+String SplitAfter(String Str, char splitAt);
+/*
 std::vector<String> split(String message, char by);
+std::vector<String> split(String message, String by);
 std::vector<String> split(String message, String by, int at);
-void banner();
-void Class(String Name);
-void Array();
-void Logic();
-void Function();
-void Loop();
-void HandleCondition(String Value);
-void HandleKind(String Value);
-void HandleName(String Value);
+std::vector<String> rsplit(String message, String by, int at);
+*/
+String Struct(String TheName, String Content);
+String Class(String TheName, String Content);
+String Method(String Tabs, String Name, String Content);
+String GenCode(String Tabs,String GetMe);
+String Loop(String Tabs, String TheKindType, String Content);
+String Logic(String Tabs, String TheKindType, String Content);
 
-String Version = "0.0.3";
-String TheKind = "";
-String TheName = "";
-String TheKindType = "";
-String TheDataType = "";
-String TheCondition = "";
-String Parameters = "";
+void Help()
+{
+	print("class:<name> param:<params>,<param> method:<name>-<type> param:<params>,<param>");
+	print("method:<name>-<type> param:<params>,<param>");
+	print("class:pizza params:one,two,three method:cheese params:four,five loop:for");
+}
 
 String getOS()
 {
@@ -64,83 +71,6 @@ String getOS()
 	#endif
 }
 
-void Help(String Option = "")
-{
-	if (Option == "")
-	{
-		print("C++ shell");
-		print("Generate C++ code");
-		print("");
-		print("type:<type>=<args>");
-		print("type <type> <args>");
-		print("{Type options}");
-		print("\tloop <args>");
-		print("\tlogic <args>");
-		print("\tfunction <args>");
-		print("");
-		print("name:<function/class name>");
-		print("name <function/class name>");
-		print("");
-		print("condition:<condition>");
-		print("condition <condition>");
-		print("");
-		print("gen\t\t:\t\"Generate code\"");
-		print("help\t\t:\t\"This Page\"");
-		print("help <type>\t:\t\"Get type options\"");
-	}
-	else if (Option == "condition")
-	{
-		print("create your conditions");
-	}
-	else if (Option == "name")
-	{
-		print("give the name of your function");
-	}
-	else if (Option == "type")
-	{
-		print("Provide the type of structure needed");
-		print("");
-		Help("loop");
-		print("");
-		Help("logic");
-		print("");
-		Help("function");
-	}
-	else if (Option == "loop")
-	{
-		print("type:loop <args>");
-		print("type loop <args>");
-		print("\tfor");
-		print("\twhile");
-		print("\tdo/while");
-	}
-	else if (Option == "logic")
-	{
-		print("type:logic <args>");
-		print("type logic <args>");
-		print("\tif");
-		print("\tif/else");
-		print("\tif/else");
-		print("\tswitch");
-	}
-	else if (Option == "function")
-	{
-		print("type:function <data type>");
-		print("type function <data type>");
-	}
-}
-
-int len(std::vector<String> Vect)
-{
-	int StrLen = Vect.size();
-	return StrLen;
-}
-
-void clear()
-{
-	shellExe("clear");
-}
-
 //User Input
 String raw_input(String message)
 {
@@ -148,6 +78,11 @@ String raw_input(String message)
 	std::cout << message;
 	getline (std::cin,UserIn);
 	return UserIn;
+}
+
+void clear()
+{
+	shellExe("clear");
 }
 
 String shell(String command)
@@ -214,6 +149,71 @@ bool StartsWith(String Str, String Start)
 	return ItDoes;
 }
 
+//Check if string ends with substring
+bool EndsWith(String Str, String End)
+{
+	bool ItDoes = false;
+	if (Str.length() < End.length())
+	{
+		ItDoes = false;
+	}
+	else
+	{
+		ItDoes = std::equal(End.rbegin(), End.rend(), Str.rbegin());
+	}
+	return ItDoes;
+}
+
+int len(std::vector<String> Vect)
+{
+	int StrLen = Vect.size();
+	return StrLen;
+}
+
+String SplitBefore(String Str, char splitAt)
+{
+	bool Show = true;
+	String newString;
+	int end = Str.length();
+	if (end != 0)
+	{
+		for (int lp = 0; lp != end; lp++)
+		{
+			if (Str[lp] == splitAt)
+			{
+				break;
+			}
+			else
+			{
+				newString = newString+Str[lp];
+			}
+	}
+	}
+	return newString;
+}
+
+String SplitAfter(String Str, char splitAt)
+{
+	bool Show = false;
+	String newString;
+	int end = Str.length();
+	if (end != 0)
+	{
+		for (int lp = 0; lp != end; lp++)
+		{
+			if (Show == true)
+			{
+				newString = newString+Str[lp];
+			}
+			if ((Str[lp] == splitAt) && (Show != true))
+			{
+				Show = true;
+			}
+		}
+	}
+	return newString;
+}
+/*
 std::vector<String> split(String message, char by)
 {
 	std::vector <String> vArray;
@@ -226,9 +226,65 @@ std::vector<String> split(String message, char by)
 	return vArray;
 }
 
-std::vector<String> split(String message, String by, int at)
+std::vector<String> split(String message, String by)
 {
 	std::vector <String> vArray;
+	int end = message.length();
+	int subLen = by.length();
+	String item;
+	String Push;
+	bool LetsPush = false;
+	bool LeftOver = false;
+	for (int lp = 0; lp != end; lp++)
+	{
+		for (int plc = 0; plc != subLen; plc++)
+		{
+			item = item + message[lp+plc];
+		}
+
+		if (item == by)
+		{
+			LetsPush = true;
+			//jump length of sub string
+			lp += subLen;
+			if (lp >= end)
+			{
+				LeftOver = true;
+				break;
+			}
+		}
+
+		//push new string to vector
+		if (LetsPush == true)
+		{
+			LetsPush = false;
+			vArray.push_back(Push);
+			Push = "";
+		}
+
+		if (LetsPush == false)
+		{
+			Push = Push + message[lp];
+		}
+		item = "";
+	}
+
+	if ((LetsPush == true) || (Push != ""))
+	{
+		LetsPush = false;
+		vArray.push_back(Push);
+	}
+
+	if (LeftOver == true)
+	{
+		vArray.push_back("");
+	}
+	return vArray;
+}
+
+std::vector<String> split(String message, String by, int at)
+{
+	std::vector<String> vArray;
 	int end = message.length();
 	int subLen = by.length();
 	int num = 0;
@@ -284,6 +340,79 @@ std::vector<String> split(String message, String by, int at)
 	return vArray;
 }
 
+std::vector<String> rsplit(String message, String by, int at)
+{
+	std::vector <String> vArray;
+	int end = message.length();
+	int subLen = by.length();
+	int place = (end - 1);
+	int num = 0;
+	String Tmp[at+1];
+	int tmpSize = sizeof(Tmp)/sizeof(Tmp[0]);
+	int tmpPlc = (tmpSize - 1);
+	String item;
+	String Push;
+	bool LetsPush = false;
+	bool LeftOver = false;
+
+	for (int lp = 0; lp != end; lp++)
+	{
+		for (int plc = 0; plc != subLen; plc++)
+		{
+			item = message[place-plc] + item;
+		}
+
+		if ((item == by) && (num != at))
+		{
+			LetsPush = true;
+			num++;
+			//jump length of sub string
+			place -= subLen;
+			lp += subLen;
+			if (lp >= end)
+			{
+				LeftOver = true;
+				break;
+			}
+		}
+
+		//push new string to vector
+		if (LetsPush == true)
+		{
+			LetsPush = false;
+			Tmp[tmpPlc] = Push;
+			tmpPlc -= 1;
+			Push = "";
+		}
+
+		if (LetsPush == false)
+		{
+			Push = message[place] + Push;
+		}
+		item = "";
+		place -= 1;
+	}
+
+	if ((LetsPush == true) || (Push != ""))
+	{
+		LetsPush = false;
+		Tmp[tmpPlc] = Push;
+		tmpPlc -= 1;
+	}
+
+	if (LeftOver == true)
+	{
+		Tmp[tmpPlc] = "";
+		tmpPlc -= 1;
+	}
+
+	for (int srch = 0; srch != tmpSize; srch++)
+	{
+		vArray.push_back(Tmp[srch]);
+	}
+	return vArray;
+}
+*/
 void banner()
 {
 	String cplV = getCplV();
@@ -293,294 +422,210 @@ void banner()
 	print("Type \"help\" for more information.");
 }
 
-void Class()
+String Struct(String TheName, String Content)
 {
-	print("class " << TheName << " {");
-	print("");
-	print("private:");
-	print("\t//private variables");
-	print("\tint x, y;");
-	print("public:");
-	print("\t//class constructor");
-	print("\t" << TheName << "(int x, int y)");
-	print("\t{");
-	print("\t\t// this-> points to the class's x, y; not param x, y vars");
-	print("\t\tthis->x = x;");
-	print("\t\tthis->y = y;");
-	print("\t}");
-	print("");
-	print("\t//class desctructor");
-	print("\t~" << TheName << "()");
-	print("\t{");
-	print("\t\t//NO code");
-	print("\t}");
-	print("\t/*");
-	print("\t\tfunctions go here");
-	print("\t*/");
-	print("};");
+	String Complete = "";
+	TheName = SplitAfter(TheName,':');
+	Complete = "struct {\n"+Content+"\tstring brand;\n\tstring model;\n\tint year;\n} "+TheName+";\n";
+	return Complete;
 }
 
-void Array()
+String Class(String TheName, String Content)
 {
-	print("work on arrays");
-}
-
-void Logic()
-{
-	if (TheKindType == "if")
+	String Complete = "";
+	TheName = SplitAfter(TheName,':');
+	String Params = "";
+	String ClassContent = "";
+	while (Content != "")
 	{
-		print("if (" << TheCondition << ")");
-		print("{");
-		print("\t//do something here");
-		print("}");
-	}
-	else if (TheKindType == "if/else")
-	{
-		print("if (" << TheCondition << ")");
-		print("{");
-		print("\t//do something here");
-		print("}");
-		print("else if (" << TheCondition << ")");
-		print("{");
-		print("\t//do something here");
-		print("}");
-		print("else");
-		print("{");
-		print("\t//do something here");
-		print("}");
-	}
-	else if (TheKindType == "switch")
-	{
-		print("switch (" << TheCondition << ")");
-		print("{");
-		print("\tcase x:");
-		print("\t\t//code here");
-		print("\t\tbreak;");
-		print("\tcase y:");
-		print("\t\t//code here");
-		print("\t\tbreak;");
-		print("\tdefault:");
-		print("\t\t//code here");
-		print("}");
-	}
-}
-
-void Function()
-{
-	if (TheKindType == "void")
-	{
-		print("void " << TheName << "()");
-		print("{");
-		print("\t//do something here");
-		print("}");
-	}
-	else
-	{
-		print(TheKindType<<" "<< TheName <<"()");
-		print("{");
-		print("\t" << TheKindType << " TheReturn;");
-		print("\t//do something here");
-		print("\treturn TheReturn;");
-		print("}");
-	}
-}
-
-void Loop()
-{
-	if (TheKindType == "for")
-	{
-		print("for (" << TheCondition << ")");
-		print("{");
-		print("\t//do something here");
-		print("}");
-	}
-	else if (TheKindType == "do/while")
-	{
-		print("do");
-		print("{");
-		print("\t//do something here");
-		print("}");
-		print("while (" << TheCondition << ");");
-	}
-	else
-	{
-		print("while (" << TheCondition << ")");
-		print("{");
-		print("\t//do something here");
-		print("}");
-	}
-}
-
-void HandleName(String Value)
-{
-	TheName = Value;
-}
-
-void HandleCondition(String Value)
-{
-	TheCondition = Value;
-}
-
-void HandleKind(String Value)
-{
-	int length;
-	if (IsIn(Value,"="))
-	{
-		std::vector<String> UserArgs = split(Value,'=');
-		length = len(UserArgs);
-		if (length == 2)
+		if (StartsWith(Content, "params"))
 		{
-			HandleKind(UserArgs[0]);
-			TheKindType = UserArgs[1];
+			Params = GenCode("",Content);
 		}
-	}
-	else if (IsIn(Value," "))
-	{
-		std::vector<String> UserArgs = split(Value,' ');
-		length = len(UserArgs);
-		if (length == 2)
+		else if (StartsWith(Content, "method"))
+//		else
 		{
-			HandleKind(UserArgs[0]);
-			TheKindType = UserArgs[1];
+			ClassContent = ClassContent + GenCode("\t",Content);
 		}
+		Content = SplitAfter(Content,' ');
 	}
-	else
+
+	Complete = "class "+TheName+" {\n\nprivate:\n\t//private variables\n\tint x, y;\npublic:\n\t//class constructor\n\t"+TheName+"(int x, int y)\n\t{\n\t\tthis->x = x;\n\t\tthis->y = y;\n\t}\n\n\t//class desctructor\n\t~"+TheName+"()\n\t{\n\t}\n"+ClassContent+"\n};\n";
+	return Complete;
+}
+
+String Method(String Tabs, String Name, String Content)
+{
+	String Complete = "";
+	Name = SplitAfter(Name,':');
+	String TheName = SplitBefore(Name,'-');
+	String Type = SplitAfter(Name,'-');
+	String Params = "";
+	String MethodContent = "";
+	while (Content != "")
 	{
-		if ((Value == "loop") || (Value == "logic") || (Value == "function") || (Value == "array") || (Value == "class"))
+		if (StartsWith(Content, "params"))
 		{
-			TheKind = Value;
-//			TheKindType = "";
+			Params = GenCode("",Content);
 		}
 		else
 		{
-			print("Error: not a valid type");
+			MethodContent = MethodContent + GenCode(Tabs+"\t",Content);
 		}
+		Content = SplitAfter(Content,' ');
 	}
+
+	if ((Type == "") || (Type == "void"))
+	{
+		Complete = Tabs+"void " + TheName + "("+Params+")\n"+Tabs+"{\n"+MethodContent+"\n"+Tabs+"}\n";
+	}
+	else
+	{
+		Complete = Tabs+Type+" "+TheName+"("+Params+")\n"+Tabs+"{\n"+Tabs+"\t" +Type+" TheReturn;\n"+MethodContent+"\n"+Tabs+"\treturn TheReturn;\n"+Tabs+"}\n";
+	}
+	return Complete;
+}
+
+
+String Parameters(String input)
+{
+	String Type = SplitAfter(input,':');
+	return Type;
+}
+
+String Loop(String Tabs, String TheKindType, String Content)
+{
+	String Complete = "";
+	TheKindType = SplitAfter(TheKindType,':');
+	String TheName = SplitBefore(TheKindType,'-');
+	String Type = SplitAfter(TheKindType,'-');
+	String TheCondition = "";
+	String LoopContent = "";
+	while (Content != "")
+	{
+		if (StartsWith(Content, "condition"))
+		{
+			TheCondition = GenCode("",Content);
+		}
+		else
+		{
+			LoopContent = LoopContent + GenCode(Tabs+"\t",Content);
+		}
+		Content = SplitAfter(Content,' ');
+	}
+
+	if (TheKindType == "for")
+	{
+		Complete = Tabs+"for ("+TheCondition+")\n"+Tabs+"{\n"+Tabs+"\t//do something here\n"+Tabs+"}\n";
+	}
+	else if (TheKindType == "do/while")
+	{
+		Complete = Tabs+"do\n"+Tabs+"{\n"+Tabs+"\t//do something here\n"+Tabs+"}\n"+Tabs+"while ("+TheCondition+");\n";
+	}
+	else
+	{
+		Complete = Tabs+"while ("+TheCondition+")\n{\n\t//do something here\n}\n";
+	}
+	return Complete;
+}
+
+String Logic(String Tabs, String TheKindType, String Content)
+{
+	String Complete = "";
+	TheKindType = SplitAfter(TheKindType,':');
+	String TheName = SplitBefore(TheKindType,'-');
+	String Type = SplitAfter(TheKindType,'-');
+	String TheCondition = "";
+	String LogicContent = "";
+	while (Content != "")
+	{
+		if (StartsWith(Content, "condition"))
+		{
+			TheCondition = GenCode("",Content);
+		}
+		else
+		{
+			LogicContent = LogicContent + GenCode(Tabs+"\t",Content);
+		}
+		Content = SplitAfter(Content,' ');
+	}
+
+	if (TheKindType == "if")
+	{
+		Complete = "if ("+TheCondition+")\n{\n\t//do something here\n}\n";
+	}
+	else if (TheKindType == "if/else")
+	{
+		Complete = Tabs+"if ("+TheCondition+")\n"+Tabs+"{\n"+Tabs+"\t//do something here\n"+Tabs+"}\n"+Tabs+"else if ("+TheCondition+")\n"+Tabs+"{\n"+Tabs+"\t//do something here\n"+Tabs+"}\n"+Tabs+"else\n"+Tabs+"{\n"+Tabs+"\t//do something here\n"+Tabs+"\t}\n";
+	}
+	else if (TheKindType == "switch")
+	{
+		Complete = Tabs+"switch ("+TheCondition+")\n"+Tabs+"{\n"+Tabs+"\tcase x:\n"+Tabs+"\t\t//code here\n"+Tabs+"\t\tbreak;\n"+Tabs+"\tcase y:\n"+Tabs+"\t\t//code here\n"+Tabs+"\t\tbreak;\n"+Tabs+"\tdefault:\n"+Tabs+"\t\t//code here\n"+Tabs+"}\n";
+	}
+	return Complete;
+}
+
+String GenCode(String Tabs,String GetMe)
+{
+	String TheCode = "";
+	String Args[2];
+	Args[0] = SplitBefore(GetMe,' ');
+	Args[1] = SplitAfter(GetMe,' ');
+	if (StartsWith(Args[0], "class"))
+	{
+		TheCode = Class(Args[0],Args[1]);
+	}
+	else if (StartsWith(Args[0], "struct"))
+	{
+		TheCode = Struct(Args[0],Args[1]);
+	}
+	else if (StartsWith(Args[0], "method"))
+	{
+		TheCode = Method(Tabs,Args[0],Args[1]);
+	}
+	else if (StartsWith(Args[0], "loop"))
+	{
+		TheCode = Loop(Tabs,Args[0],Args[1]);
+	}
+	else if (StartsWith(Args[0], "logic"))
+	{
+		TheCode = Logic(Tabs,Args[0],Args[1]);
+	}
+	else if (StartsWith(Args[0], "params"))
+	{
+		TheCode = Parameters(Args[0]);
+	}
+
+	return TheCode;
 }
 
 //C++ Main
 int main()
 {
-	int length;
-	String UserIn = "";
 	banner();
+	String UserIn = "";
 	while (true)
 	{
 		UserIn = raw_input(">>> ");
-		if (UserIn != "")
+		if (UserIn == "exit()")
 		{
-			if (UserIn == "exit")
-			{
-				print("User exit() to exit");
-			}
-			else if (UserIn == "exit()")
-			{
-				break;
-			}
-			else if (UserIn == "help")
-			{
-				Help();
-			}
-			else if (StartsWith(UserIn,"help "))
-			{
-				std::vector<String> UserArgs = split(UserIn,' ');
-				length = len(UserArgs);
-				if (length == 2)
-				{
-					Help(UserArgs[1]);
-				}
-				else
-				{
-					Help();
-				}
-			}
-			else if (UserIn == "gen")
-			{
-				if (TheKind == "loop")
-				{
-					Loop();
-				}
-				else if (TheKind == "array")
-				{
-					Array();
-				}
-				else if (TheKind == "class")
-				{
-					Class();
-				}
-				else if (TheKind == "logic")
-				{
-					Logic();
-				}
-/*
-				else if (TheKind == "condition")
-				{
-					Conditions();
-				}
-*/
-				else if (TheKind == "function")
-				{
-					Function();
-				}
-			}
-			else if (UserIn == "clear")
-			{
-				clear();
-			}
-			else if (StartsWith(UserIn,"condition"))
-			{
-				if (StartsWith(UserIn,"condition:"))
-				{
-					std::vector<String> UserArgs = split(UserIn,":",1);
-					HandleCondition(UserArgs[1]);
-				}
-				else if (StartsWith(UserIn,"condition "))
-				{
-					std::vector<String> UserArgs = split(UserIn," ",1);
-					HandleCondition(UserArgs[1]);
-				}
-				//no arguments given...call help
-				else
-				{
-					Help("condition");
-				}
-			}
-			else if (StartsWith(UserIn,"name"))
-			{
-				if (StartsWith(UserIn,"name:"))
-				{
-					std::vector<String> UserArgs = split(UserIn,":",1);
-					HandleName(UserArgs[1]);
-				}
-				else if (StartsWith(UserIn,"name "))
-				{
-					std::vector<String> UserArgs = split(UserIn," ",1);
-					HandleName(UserArgs[1]);
-				}
-				//no arguments given...call help
-				else
-				{
-					Help("name");
-				}
-			}
-			else if (StartsWith(UserIn,"type"))
-			{
-				if (StartsWith(UserIn,"type:"))
-				{
-					std::vector<String> UserArgs = split(UserIn,":",1);
-					HandleKind(UserArgs[1]);
-				}
-				else if (StartsWith(UserIn,"type "))
-				{
-					std::vector<String> UserArgs = split(UserIn," ",1);
-					HandleKind(UserArgs[1]);
-				}
-				//no arguments given...call help
-				else
-				{
-					Help("type");
-				}
-			}
+			break;
+		}
+		else if (UserIn == "exit")
+		{
+			print("Use exit()");
+		}
+		else if (UserIn == "clear")
+		{
+			clear();
+		}
+		else if (UserIn == "help")
+		{
+			Help();
+		}
+		else
+		{
+			print(GenCode("",UserIn));
 		}
 	}
 	return 0;
