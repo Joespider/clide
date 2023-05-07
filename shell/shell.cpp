@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.0.6";
+String Version = "0.0.7";
 
 void Help();
 String getOS();
@@ -48,8 +48,11 @@ String Logic(String Tabs, String TheKindType, String Content);
 void Help()
 {
 	print("class:<name> param:<params>,<param> method:<name>-<type> param:<params>,<param>");
-	print("method:<name>-<type> param:<params>,<param>");
 	print("class:pizza params:one,two,three method:cheese params:four,five loop:for");
+	print("struct:<name>-<type>");
+	print("method:<name>-<type> param:<params>,<param>");
+	print("loop:<type>");
+	print("logic:<type>");
 }
 
 String getOS()
@@ -468,7 +471,7 @@ String Method(String Tabs, String Name, String Content)
 		{
 			Params = GenCode("",Content);
 		}
-		else
+		else if ((!StartsWith(Content, "method")) && (!StartsWith(Content, "class")))
 		{
 			MethodContent = MethodContent + GenCode(Tabs+"\t",Content);
 		}
@@ -486,6 +489,11 @@ String Method(String Tabs, String Name, String Content)
 	return Complete;
 }
 
+String Conditions(String input)
+{
+	String Type = SplitAfter(input,':');
+	return Type;
+}
 
 String Parameters(String input)
 {
@@ -507,7 +515,7 @@ String Loop(String Tabs, String TheKindType, String Content)
 		{
 			TheCondition = GenCode("",Content);
 		}
-		else
+		else if ((!StartsWith(Content, "method")) && (!StartsWith(Content, "class")))
 		{
 			LoopContent = LoopContent + GenCode(Tabs+"\t",Content);
 		}
@@ -543,7 +551,8 @@ String Logic(String Tabs, String TheKindType, String Content)
 		{
 			TheCondition = GenCode("",Content);
 		}
-		else
+		else if ((!StartsWith(Content, "method")) && (!StartsWith(Content, "class")))
+//		else
 		{
 			LogicContent = LogicContent + GenCode(Tabs+"\t",Content);
 		}
@@ -590,6 +599,10 @@ String GenCode(String Tabs,String GetMe)
 	else if (StartsWith(Args[0], "logic"))
 	{
 		TheCode = Logic(Tabs,Args[0],Args[1]);
+	}
+	else if (StartsWith(Args[0], "condition"))
+	{
+		TheCode = Conditions(Args[0]);
 	}
 	else if (StartsWith(Args[0], "params"))
 	{
