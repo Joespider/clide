@@ -6417,6 +6417,48 @@ CLI()
 					fi
 				fi
 				;;
+			--edit-shell|--edit-sh)
+				if [ -z "${ThePipe}" ]; then
+					shift
+					local Lang=$1
+					local TheTempCode
+					if [ ! -z "${Lang}" ]; then
+						Lang=$(pgLang $1)
+						case ${Lang} in
+							no)
+								;;
+							*)
+								CLI --edit ${Lang} "shell"
+								;;
+						esac
+					fi
+				fi
+				;;
+			--cpl-shell|--cpl-sh)
+				if [ -z "${ThePipe}" ]; then
+					shift
+					local Lang=$1
+					local TheTempCode
+					if [ ! -z "${Lang}" ]; then
+						Lang=$(pgLang $1)
+
+						case ${Lang} in
+							no)
+								;;
+							*)
+								case ${Lang} in
+									Java)
+										CLI --cpl --jar ${Lang} "shell"
+										;;
+									*)
+										CLI --cpl ${Lang} "shell"
+										;;
+								esac
+								;;
+						esac
+					fi
+				fi
+				;;
 			#compile code without entering cl[ide]
 			#clide --cpl <lang> <code> <args>
 			--cpl|--compile)
@@ -6617,7 +6659,7 @@ CLI()
 			#debug your compiled code
 			--debug)
 				;;
-			--shell)
+			--run-sh|--shell)
 				shift
 				local Lang=$1
 				#Provide the help page
