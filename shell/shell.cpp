@@ -6,7 +6,7 @@
 //#include <sstream>
 #include <vector>
 
-#define PressEnter std::cout << "Press \"Enter\" to Continue "; std::cin.get()
+//#define PressEnter std::cout << "Press \"Enter\" to Continue "; std::cin.get()
 
 //print Macro for cout
 #define print(x); std::cout << x << std::endl
@@ -17,10 +17,10 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.0.7";
+String Version = "0.0.17";
 
-void Help();
 String getOS();
+void Help(String Type);
 String raw_input(String message);
 void clear();
 String shell(String command);
@@ -42,18 +42,11 @@ String Struct(String TheName, String Content);
 String Class(String TheName, String Content);
 String Method(String Tabs, String Name, String Content);
 String GenCode(String Tabs,String GetMe);
+String Variables(String Tabs, String input);
+String Conditions(String input,String CalledBy);
+String Parameters(String input,String CalledBy);
 String Loop(String Tabs, String TheKindType, String Content);
 String Logic(String Tabs, String TheKindType, String Content);
-
-void Help()
-{
-	print("class:<name> param:<params>,<param> method:<name>-<type> param:<params>,<param>");
-	print("class:pizza params:one,two,three method:cheese params:four,five loop:for");
-	print("struct:<name>-<type>");
-	print("method:<name>-<type> param:<params>,<param>");
-	print("loop:<type>");
-	print("logic:<type>");
-}
 
 String getOS()
 {
@@ -72,6 +65,70 @@ String getOS()
 	#else
 	return "Other";
 	#endif
+}
+
+void Help(String Type)
+{
+	Type = SplitAfter(Type,':');
+	if (Type == "class")
+	{
+		print("{Usage}");
+		print("class:<name> param:<params>,<param> var:<vars> method:<name>-<type> param:<params>,<param>");
+		print("");
+		print("{EXAMPLE}");
+		print("class:pizza params:one,two,three method:cheese params:four,five loop:for");
+	}
+	else if (Type == "struct")
+	{
+		print("struct:<name>-<type> var:<var> var:<var>");
+		print("");
+		print("{EXAMPLE}");
+		print("struct:pizza var:topping-String var:number-int");
+	}
+	else if (Type == "method")
+	{
+		print("method:<name>-<type> param:<params>,<param>");
+	}
+	else if (Type == "loop")
+	{
+		print("loop:<type>");
+		print("");
+		print("{EXAMPLE}");
+		print("loop:for");
+		print("loop:do/while");
+		print("loop:while");
+
+	}
+	else if (Type == "logic")
+	{
+		print("logic:<type>");
+		print("");
+		print("{EXAMPLE}");
+		print("logic:if");
+		print("logic:if/else");
+		print("logic:switch");
+	}
+	else if (Type == "var")
+	{
+		print("var:<name>-<type>=value\tcreate a new variable");
+		print("var:<name>=value\tassign a new value to an existing variable");
+		print("");
+		print("{EXAMPLE}");
+		print("var:name-String=\"\" var:point-int=0 var:james-String=\"James\" var:help-int");
+	}
+	else
+	{
+		print("Components to Generate");
+		print("class\t:\t\"Create a class\"");
+		print("struct\t:\t\"Create a struct\"");
+		print("method\t:\t\"Create a method\"");
+		print("loop\t:\t\"Create a loop\"");
+		print("logic\t:\t\"Create a logic\"");
+		print("var\t:\t\"Create a variable\"");
+		print("nest-<type>\t:\t\"next element is nested in previous element\"");
+		print("");
+		print("help:<type>");
+	}
 }
 
 //User Input
@@ -428,8 +485,10 @@ void banner()
 String Struct(String TheName, String Content)
 {
 	String Complete = "";
+	String StructVar = "";
 	TheName = SplitAfter(TheName,':');
-	Complete = "struct {\n"+Content+"\tstring brand;\n\tstring model;\n\tint year;\n} "+TheName+";\n";
+	StructVar = StructVar + GenCode("\t",Content);
+	Complete = "struct {\n"+StructVar+"\n} "+TheName+";\n";
 	return Complete;
 }
 
@@ -443,10 +502,10 @@ String Class(String TheName, String Content)
 	{
 		if (StartsWith(Content, "params"))
 		{
-			Params = GenCode("",Content);
+			Params =  Parameters(Content,"class");
+
 		}
 		else if (StartsWith(Content, "method"))
-//		else
 		{
 			ClassContent = ClassContent + GenCode("\t",Content);
 		}
@@ -465,12 +524,14 @@ String Method(String Tabs, String Name, String Content)
 	String Type = SplitAfter(Name,'-');
 	String Params = "";
 	String MethodContent = "";
+	String LastComp = "";
 	while (Content != "")
 	{
 		if (StartsWith(Content, "params"))
 		{
-			Params = GenCode("",Content);
+			Params =  Parameters(Content,"method");
 		}
+//		else if ((!StartsWith(Content, "method")) && (!StartsWith(Content, "class")) && (StartsWith(Content, "nest-")))
 		else if ((!StartsWith(Content, "method")) && (!StartsWith(Content, "class")))
 		{
 			MethodContent = MethodContent + GenCode(Tabs+"\t",Content);
@@ -480,7 +541,7 @@ String Method(String Tabs, String Name, String Content)
 
 	if ((Type == "") || (Type == "void"))
 	{
-		Complete = Tabs+"void " + TheName + "("+Params+")\n"+Tabs+"{\n"+MethodContent+"\n"+Tabs+"}\n";
+		Complete = Tabs+"void "+TheName + "("+Params+")\n"+Tabs+"{\n"+MethodContent+"\n"+Tabs+"}\n";
 	}
 	else
 	{
@@ -489,13 +550,58 @@ String Method(String Tabs, String Name, String Content)
 	return Complete;
 }
 
-String Conditions(String input)
+String Variables(String Tabs, String input)
+{
+	String Type = "";
+	String Name = "";
+	String VarType = "";
+	String Value = "";
+
+	if (IsIn(input,":") && IsIn(input,"-") && IsIn(input,"="))
+	{
+		Type = SplitAfter(input,':');
+		Name = SplitBefore(Type,'-');
+		VarType = SplitAfter(Type,'-');
+		Value = SplitAfter(VarType,'=');
+		VarType = SplitBefore(VarType,'=');
+	}
+	else if (IsIn(input,":") && IsIn(input,"="))
+	{
+		Type = SplitAfter(input,':');
+		Name = SplitBefore(Type,'=');
+		Value = SplitAfter(Type,'=');
+	}
+	else if (IsIn(input,":") && IsIn(input,"-"))
+	{
+		Type = SplitAfter(input,':');
+		Name = SplitBefore(Type,'-');
+		VarType= SplitAfter(Type,'-');
+	}
+
+	String NewVar = "";
+	if (Value == "")
+	{
+		NewVar = Tabs+VarType+" "+Name+";\n";
+	}
+	else if (VarType == "")
+	{
+		NewVar = Tabs+Name+" = "+Value+";\n";
+	}
+	else
+	{
+		NewVar = Tabs+VarType+" "+Name+" = "+Value+";\n";
+	}
+
+	return NewVar;
+}
+
+String Conditions(String input,String CalledBy)
 {
 	String Type = SplitAfter(input,':');
 	return Type;
 }
 
-String Parameters(String input)
+String Parameters(String input,String CalledBy)
 {
 	String Type = SplitAfter(input,':');
 	return Type;
@@ -509,14 +615,17 @@ String Loop(String Tabs, String TheKindType, String Content)
 	String Type = SplitAfter(TheKindType,'-');
 	String TheCondition = "";
 	String LoopContent = "";
+
 	while (Content != "")
 	{
 		if (StartsWith(Content, "condition"))
 		{
-			TheCondition = GenCode("",Content);
+			TheCondition = Conditions(Content,TheKindType);
+
 		}
-		else if ((!StartsWith(Content, "method")) && (!StartsWith(Content, "class")))
+		else if ((!StartsWith(Content, "method")) && (!StartsWith(Content, "class")) && (StartsWith(Content, "nest-")))
 		{
+			Content = SplitAfter(Content,'-');
 			LoopContent = LoopContent + GenCode(Tabs+"\t",Content);
 		}
 		Content = SplitAfter(Content,' ');
@@ -524,15 +633,15 @@ String Loop(String Tabs, String TheKindType, String Content)
 
 	if (TheKindType == "for")
 	{
-		Complete = Tabs+"for ("+TheCondition+")\n"+Tabs+"{\n"+Tabs+"\t//do something here\n"+Tabs+"}\n";
+		Complete = Tabs+"for ("+TheCondition+")\n"+Tabs+"{\n"+Tabs+"\t//do something here\n"+LoopContent+"\n"+Tabs+"}\n";
 	}
 	else if (TheKindType == "do/while")
 	{
-		Complete = Tabs+"do\n"+Tabs+"{\n"+Tabs+"\t//do something here\n"+Tabs+"}\n"+Tabs+"while ("+TheCondition+");\n";
+		Complete = Tabs+"do\n"+Tabs+"{\n"+Tabs+"\t//do something here\n"+LoopContent+Tabs+"}\n"+Tabs+"while ("+TheCondition+");\n";
 	}
 	else
 	{
-		Complete = Tabs+"while ("+TheCondition+")\n{\n\t//do something here\n}\n";
+		Complete = Tabs+"while ("+TheCondition+")\n"+Tabs+"{\n"+Tabs+"\t//do something here\n"+LoopContent+Tabs+"}\n";
 	}
 	return Complete;
 }
@@ -545,15 +654,16 @@ String Logic(String Tabs, String TheKindType, String Content)
 	String Type = SplitAfter(TheKindType,'-');
 	String TheCondition = "";
 	String LogicContent = "";
+
 	while (Content != "")
 	{
 		if (StartsWith(Content, "condition"))
 		{
-			TheCondition = GenCode("",Content);
+			TheCondition = Conditions(Content,TheKindType);
 		}
-		else if ((!StartsWith(Content, "method")) && (!StartsWith(Content, "class")))
-//		else
+		else if ((!StartsWith(Content, "method")) && (!StartsWith(Content, "class")) && (StartsWith(Content, "nest-")))
 		{
+			Content = SplitAfter(Content,'-');
 			LogicContent = LogicContent + GenCode(Tabs+"\t",Content);
 		}
 		Content = SplitAfter(Content,' ');
@@ -561,15 +671,38 @@ String Logic(String Tabs, String TheKindType, String Content)
 
 	if (TheKindType == "if")
 	{
-		Complete = "if ("+TheCondition+")\n{\n\t//do something here\n}\n";
+		Complete = Tabs+"if ("+TheCondition+")\n"+Tabs+"{\n"+Tabs+"\t//do something here\n"+LogicContent+Tabs+"}\n";
 	}
-	else if (TheKindType == "if/else")
+	else if (TheKindType == "else-if")
 	{
-		Complete = Tabs+"if ("+TheCondition+")\n"+Tabs+"{\n"+Tabs+"\t//do something here\n"+Tabs+"}\n"+Tabs+"else if ("+TheCondition+")\n"+Tabs+"{\n"+Tabs+"\t//do something here\n"+Tabs+"}\n"+Tabs+"else\n"+Tabs+"{\n"+Tabs+"\t//do something here\n"+Tabs+"\t}\n";
+		Complete = Tabs+"else if ("+TheCondition+")\n"+Tabs+"{\n"+Tabs+"\t//do something here\n"+LogicContent+Tabs+"}\n";
 	}
-	else if (TheKindType == "switch")
+	else if (TheKindType == "else")
 	{
-		Complete = Tabs+"switch ("+TheCondition+")\n"+Tabs+"{\n"+Tabs+"\tcase x:\n"+Tabs+"\t\t//code here\n"+Tabs+"\t\tbreak;\n"+Tabs+"\tcase y:\n"+Tabs+"\t\t//code here\n"+Tabs+"\t\tbreak;\n"+Tabs+"\tdefault:\n"+Tabs+"\t\t//code here\n"+Tabs+"}\n";
+		Complete = Tabs+"else\n"+Tabs+"{\n"+Tabs+"\t//do something here\n"+LogicContent+Tabs+"}\n";
+
+	}
+	else if (TheKindType == "switch-case")
+	{
+		Complete = Tabs+"\tcase x:\n"+Tabs+"\t\t//code here\n"+Tabs+"\t\tbreak;";
+
+	}
+	else if (StartsWith(TheKindType, "switch"))
+	{
+		String CaseContent = TheKindType;
+		String CaseVal;
+
+		Complete = Tabs+"switch ("+TheCondition+")\n"+Tabs+"{\n\n";
+		while (CaseContent != "")
+		{
+			CaseVal = SplitBefore(CaseContent,'-');
+			if (CaseVal != "switch")
+			{
+				Complete = Complete+Tabs+"\tcase "+CaseVal+":\n"+Tabs+"\t\t//code here\n"+Tabs+"\t\tbreak;\n";
+			}
+			CaseContent = SplitAfter(CaseContent,'-');
+		}
+		Complete = Complete+Tabs+"\tdefault:\n"+Tabs+"\t\t//code here\n"+Tabs+"\t\tbreak;\n"+Tabs+"}\n";
 	}
 	return Complete;
 }
@@ -600,6 +733,12 @@ String GenCode(String Tabs,String GetMe)
 	{
 		TheCode = Logic(Tabs,Args[0],Args[1]);
 	}
+	else if (StartsWith(Args[0], "var"))
+	{
+		TheCode = Variables(Tabs,Args[0]);
+		TheCode = TheCode + GenCode(Tabs,Args[1]);
+	}
+/*
 	else if (StartsWith(Args[0], "condition"))
 	{
 		TheCode = Conditions(Args[0]);
@@ -608,7 +747,7 @@ String GenCode(String Tabs,String GetMe)
 	{
 		TheCode = Parameters(Args[0]);
 	}
-
+*/
 	return TheCode;
 }
 
@@ -617,6 +756,7 @@ int main()
 {
 	banner();
 	String UserIn = "";
+	String Content = "";
 	while (true)
 	{
 		UserIn = raw_input(">>> ");
@@ -632,13 +772,17 @@ int main()
 		{
 			clear();
 		}
-		else if (UserIn == "help")
+		else if (StartsWith(UserIn, "help"))
 		{
-			Help();
+			Help(UserIn);
 		}
 		else
 		{
-			print(GenCode("",UserIn));
+			String Content = GenCode("",UserIn);
+			if (Content != "")
+			{
+				print(Content);
+			}
 		}
 	}
 	return 0;
