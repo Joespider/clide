@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.2.02"
+SupportV="0.2.03"
 Lang=Perl
 LangExt=".pl"
 #Color Purple
@@ -970,7 +970,6 @@ UsePerl()
 			fi
 			;;
 		customCode)
-			local cLang=$(UsePerl "color")
 			local cTemplate=$(OtherColor ${TemplateCode##*/})
 			if [ -f ${TemplateCode} ]; then
 				shift
@@ -979,7 +978,7 @@ UsePerl()
 				shift
 				Args=( "${@}" )
 				if [ -z "${1}" ]; then
-					echo -n "${cLang}\$ ${LangRun} ${cTemplate} "
+					echo -n "${LangRun} ${cTemplate} "
 					read -a Args
 				fi
 				#Program Args Given
@@ -995,7 +994,6 @@ UsePerl()
 			fi
 			;;
 		customCodeShow)
-			local cLang=$(UsePerl "color")
 			local cTemplate=$(OtherColor ${TemplateCode##*/})
 			if [ -f ${TemplateCode} ]; then
 				shift
@@ -1004,7 +1002,7 @@ UsePerl()
 				shift
 				Args=( "${@}" )
 				if [ -z "${1}" ]; then
-					echo -n "${cLang}\$ ${LangRun} ${cTemplate} --no-save "
+					echo -n "${LangRun} ${cTemplate} --no-save "
 					read -a Args
 				fi
 				#Program Args Given

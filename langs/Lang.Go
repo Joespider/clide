@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.88"
+SupportV="0.1.89"
 Lang=Go
 LangExt=".go"
 #Color Green
@@ -1223,7 +1223,6 @@ UseGo()
 			fi
 			;;
 		customCode)
-			local cLang=$(UseGo "color")
 			local cTemplate=$(OtherColor ${TemplateCode##*/})
 			#Check for Custom Code Template
 			if [ -f ${TemplateCode} ]; then
@@ -1233,7 +1232,7 @@ UseGo()
 				shift
 				Args=( "${@}" )
 				if [ -z "${1}" ]; then
-					echo -n "${cLang}\$ ./${cTemplate} "
+					echo -n "./${cTemplate} "
 					read -a Args
 				fi
 				#Program Args Given
@@ -1250,7 +1249,6 @@ UseGo()
 			fi
 			;;
 		customCodeShow)
-			local cLang=$(UseGo "color")
 			local cTemplate=$(OtherColor ${TemplateCode##*/})
 			#Check for Custom Code Template
 			if [ -f ${TemplateCode} ]; then
@@ -1260,7 +1258,7 @@ UseGo()
 				shift
 				Args=( "${@}" )
 				if [ -z "${1}" ]; then
-					echo -n "${cLang}\$ ./${cTemplate} --no-save "
+					echo -n "./${cTemplate} --no-save "
 					read -a Args
 				fi
 				#Program Args Given

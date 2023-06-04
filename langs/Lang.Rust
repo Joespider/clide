@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.54"
+SupportV="0.1.55"
 Lang=Rust
 LangExt=".rs"
 ColorNum=1
@@ -1123,7 +1123,6 @@ UseRust()
 			fi
 			;;
 		customCode)
-			local cLang=$(UseRust "color")
 			local cTemplate=$(OtherColor ${TemplateCode##*/})
 			#Check for Custom Code Template
 			if [ -f ${TemplateCode} ]; then
@@ -1133,7 +1132,7 @@ UseRust()
 				shift
 				Args=( "${@}" )
 				if [ -z "${1}" ]; then
-					echo -n "${cLang}\$ ./${cTemplate} "
+					echo -n "./${cTemplate} "
 					read -a Args
 				fi
 				#Program Args Given
@@ -1149,7 +1148,6 @@ UseRust()
 			fi
 			;;
 		customCodeShow)
-			local cLang=$(UseRust "color")
 			local cTemplate=$(OtherColor ${TemplateCode##*/})
 			#Check for Custom Code Template
 			if [ -f ${TemplateCode} ]; then
@@ -1159,7 +1157,7 @@ UseRust()
 				shift
 				Args=( "${@}" )
 				if [ -z "${1}" ]; then
-					echo -n "${cLang}\$ ./${cTemplate} --no-save "
+					echo -n "./${cTemplate} --no-save "
 					read -a Args
 				fi
 				#Program Args Given

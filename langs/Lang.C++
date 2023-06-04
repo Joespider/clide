@@ -4,7 +4,7 @@
 #Link Libs: https://gist.github.com/gubatron/32f82053596c24b6bec6
 #both https://avikdas.com/2019/12/16/makefiles-for-c-cpp-projects.html
 
-SupportV="0.2.57"
+SupportV="0.2.58"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -2073,7 +2073,6 @@ UseC++()
 			esac
 			;;
 		customCode)
-			local cLang=$(UseC++ "color")
 			local cTemplate=$(OtherColor ${TemplateCode##*/})
 			#Check for Custom Code Template
 			if [ -f ${TemplateCode} ]; then
@@ -2083,7 +2082,7 @@ UseC++()
 				shift
 				Args=( "${@}" )
 				if [ -z "${1}" ]; then
-					echo -n "${cLang}\$ ./${cTemplate} "
+					echo -n "./${cTemplate} "
 					read -a Args
 				fi
 				#Program Args Given
@@ -2100,7 +2099,6 @@ UseC++()
 			fi
 			;;
 		customCodeShow)
-			local cLang=$(UseC++ "color")
 			local cTemplate=$(OtherColor ${TemplateCode##*/})
 			#Check for Custom Code Template
 			if [ -f ${TemplateCode} ]; then
@@ -2110,7 +2108,7 @@ UseC++()
 				shift
 				Args=( "${@}" )
 				if [ -z "${1}" ]; then
-					echo -n "${cLang}\$ ./${cTemplate} --no-save "
+					echo -n "./${cTemplate} --no-save "
 					read -a Args
 				fi
 				#Program Args Given

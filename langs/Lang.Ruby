@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.97"
+SupportV="0.1.98"
 Lang=Ruby
 LangExt=".rb"
 ColorNum=1
@@ -1046,7 +1046,6 @@ UseRuby()
 			fi
 			;;
 		customCode)
-			local cLang=$(UseRuby "color")
 			local cTemplate=$(OtherColor ${TemplateCode##*/})
 			#Check for Custom Code Template
 			if [ -f ${TemplateCode} ]; then
@@ -1056,7 +1055,7 @@ UseRuby()
 				shift
 				Args=( "${@}" )
 				if [ -z "${1}" ]; then
-					echo -n "${cLang}\$ ${LangRun} ${cTemplate} "
+					echo -n "${LangRun} ${cTemplate} "
 					read -a Args
 				fi
 				#Program Args Given
@@ -1072,7 +1071,6 @@ UseRuby()
 			fi
 			;;
 		customCodeShow)
-			local cLang=$(UseRuby "color")
 			local cTemplate=$(OtherColor ${TemplateCode##*/})
 			#Check for Custom Code Template
 			if [ -f ${TemplateCode} ]; then
@@ -1082,7 +1080,7 @@ UseRuby()
 				shift
 				Args=( "${@}" )
 				if [ -z "${1}" ]; then
-					echo -n "${cLang}\$ ${LangRun} ${cTemplate} --no-save "
+					echo -n "${LangRun} ${cTemplate} --no-save "
 					read -a Args
 				fi
 				#Program Args Given
