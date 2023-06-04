@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.2.11"
+SupportV="0.2.12"
 Lang=Python
 LangExt=".py"
 #Color Yellow
@@ -1077,7 +1077,6 @@ UsePython()
 			fi
 			;;
 		customCode)
-			local cLang=$(UsePython "color")
 			local cTemplate=$(OtherColor ${TemplateCode##*/})
 			#Check for Custom Code Template
 			if [ -f ${TemplateCode} ]; then
@@ -1087,7 +1086,7 @@ UsePython()
 				shift
 				Args=( "${@}" )
 				if [ -z "${1}" ]; then
-					echo -n "${cLang}\$ ${LangRun} ${cTemplate} "
+					echo -n "${LangRun} ${cTemplate} "
 					read -a Args
 				fi
 				#Program Args Given
@@ -1103,7 +1102,6 @@ UsePython()
 			fi
 			;;
 		customCodeShow)
-			local cLang=$(UsePython "color")
 			local cTemplate=$(OtherColor ${TemplateCode##*/})
 			#Check for Custom Code Template
 			if [ -f ${TemplateCode} ]; then
@@ -1113,7 +1111,7 @@ UsePython()
 				shift
 				Args=( "${@}" )
 				if [ -z "${1}" ]; then
-					echo -n "${cLang}\$ ${LangRun} ${cTemplate} --no-save "
+					echo -n "${LangRun} ${cTemplate} --no-save "
 					read -a Args
 				fi
 				#Program Args Given

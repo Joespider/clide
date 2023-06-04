@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.90"
+SupportV="0.1.91"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
@@ -1706,7 +1706,6 @@ UseC()
 			esac
 			;;
 		customCode)
-			local cLang=$(UseC "color")
 			local cTemplate=$(OtherColor ${TemplateCode##*/})
 			#Check for Custom Code Template
 			if [ -f ${TemplateCode} ]; then
@@ -1716,7 +1715,7 @@ UseC()
 				shift
 				Args=( "${@}" )
 				if [ -z "${1}" ]; then
-					echo -n "${cLang}\$ ./${cTemplate} "
+					echo -n "./${cTemplate} "
 					read -a Args
 				fi
 				#Program Args Given
@@ -1733,7 +1732,6 @@ UseC()
 			fi
 			;;
 		customCodeShow)
-			local cLang=$(UseC "color")
 			local cTemplate=$(OtherColor ${TemplateCode##*/})
 			#Check for Custom Code Template
 			if [ -f ${TemplateCode} ]; then
@@ -1743,7 +1741,7 @@ UseC()
 				shift
 				Args=( "${@}" )
 				if [ -z "${1}" ]; then
-					echo -n "${cLang}\$ ./${cTemplate} --no-save "
+					echo -n "./${cTemplate} --no-save "
 					read -a Args
 				fi
 				#Program Args Given

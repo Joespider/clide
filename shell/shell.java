@@ -12,7 +12,7 @@ import java.io.IOException;
 
 //class name
 public class shell {
-	private static String Version = "0.0.2";
+	private static String Version = "0.0.7";
 	private static String TheKind = "";
 	private static String TheName = "";
 	private static String TheKindType = "";
@@ -20,51 +20,64 @@ public class shell {
 	private static String TheCondition = "";
 	private static String Parameters = "";
 
-	private static void Help(String Option)
+
+	private static void Help(String Type)
 	{
-		if (Option == "")
+		Type = SplitAfter(Type,":");
+		if (Type.equals("class"))
 		{
-			print("Java shell");
-			print("Generate Java code");
+			print("{Usage}");
+			print("class(public):<name> param:<params>,<param> var:<vars> method:<name>-<type> param:<params>,<param>");
+			print("class(private):<name> param:<params>,<param> var:<vars> method:<name>-<type> param:<params>,<param>");
+			print("class:<name> param:<params>,<param> var:<vars> method:<name>-<type> param:<params>,<param>");
 			print("");
-			print("type:<type>=<args>");
-			print("type <type> <args>");
-			print("{Type options}");
-			print("\tloop <args>");
-			print("\tlogic <args>");
-			print("\tfunction <args>");
-			print("");
-			print("name:<function/class name>");
-			print("name <function/class name>");
-			print("");
-			print("condition:<condition>");
-			print("condition <condition>");
-			print("");
-			print("gen\t\t:\t\"Generate code\"");
-			print("help\t\t:\t\"This Page\"");
-			print("help <type>\t:\t\"Get type options\"");
+			print("{EXAMPLE}");
+			print("class(public):pizza params:one,two,three method:cheese params:four,five loop:for");
+			print("class:pizza params:one,two,three method:cheese params:four,five loop:for");
 		}
-		else if (Option == "loop")
+		else if (Type.equals("method"))
 		{
-			print("type:loop <args>");
-			print("type loop <args>");
-			print("\tfor");
-			print("\twhile");
-			print("\tdo/while");
+			print("method(public):<name>-<type> param:<params>,<param>");
+			print("method(private):<name>-<type> param:<params>,<param>");
+			print("method:<name>-<type> param:<params>,<param>");
 		}
-		else if (Option == "logic")
+		else if (Type.equals("loop"))
 		{
-			print("type:logic <args>");
-			print("type logic <args>");
-			print("\tif");
-			print("\tif/else");
-			print("\tif/else");
-			print("\tswitch");
+			print("loop:<type>");
+			print("");
+			print("{EXAMPLE}");
+			print("loop:for");
+			print("loop:do/while");
+			print("loop:while");
 		}
-		else if (Option == "function")
+		else if (Type.equals("logic"))
 		{
-			print("type:function <data type>");
-			print("type function <data type>");
+			print("logic:<type>");
+			print("");
+			print("{EXAMPLE}");
+			print("logic:if");
+			print("logic:else-if");
+			print("logic:switch");
+		}
+		else if (Type.equals("var"))
+		{
+			print("var:<name>-<type>=value\tcreate a new variable");
+			print("var:<name>=value\tassign a new value to an existing variable");
+			print("");
+			print("{EXAMPLE}");
+			print("var:name-String=\"\" var:point-int=0 var:james-String=\"James\" var:help-int");
+		}
+		else
+		{
+			print("Components to Generate");
+			print("class\t\t:\t\"Create a class\"");
+			print("method\t\t:\t\"Create a method\"");
+			print("loop\t\t:\t\"Create a loop\"");
+			print("logic\t\t:\t\"Create a logic\"");
+			print("var\t\t:\t\"Create a variable\"");
+			print("nest-<type>\t:\t\"next element is nested in previous element\"");
+			print("");
+			print("help:<type>");
 		}
 	}
 
@@ -85,6 +98,32 @@ public class shell {
 		System.out.println(out);
 	}
 
+	private static String SplitBefore(String Str, String splitAt)
+	{
+		if (Str.contains(splitAt))
+		{
+			String[] newString = split(Str, splitAt, 0);
+			return newString[0];
+		}
+		else
+		{
+			return Str;
+		}
+	}
+
+	private static String SplitAfter(String Str, String splitAt)
+	{
+		if (Str.contains(splitAt))
+		{
+			String[] newString = split(Str, splitAt, 0);
+			return newString[1];
+		}
+		else
+		{
+			return Str;
+		}
+	}
+
 	private static String[] split(String message, String by)
 	{
 		String[] vArray = message.split(by);
@@ -95,6 +134,16 @@ public class shell {
 	{
 		String[] vArray = message.split(by,plc);
 		return vArray;
+	}
+
+	private static boolean IsIn(String Str, String Sub)
+	{
+		boolean found = false;
+		if (Str.contains(Sub))
+		{
+			found = true;
+		}
+		return found;
 	}
 
 	//Check if string begins with substring
@@ -191,6 +240,355 @@ public class shell {
 		print("[Java "+Version+"] on "+ theOS);
 		print("Type \"help\" for more information.");
 	}
+
+	private static String Class(String TheName, String Content)
+	{
+		String Complete = "";
+		String PublicOrPrivate = "public";
+		if ((IsIn(TheName,"class(")) && (IsIn(TheName,"):")))
+		{
+			PublicOrPrivate = SplitAfter(TheName,"class");
+			PublicOrPrivate = SplitBefore(PublicOrPrivate,":");
+			PublicOrPrivate = PublicOrPrivate.substring(1, PublicOrPrivate.length()-1);
+		}
+
+		TheName = SplitAfter(TheName,":");
+		String Params = "";
+		String ClassContent = "";
+		while (!Content.equals(""))
+		{
+			if (StartsWith(Content, "params"))
+			{
+				Params =  Parameters(Content,"class");
+			}
+			else if (StartsWith(Content, "method"))
+			{
+				ClassContent = ClassContent + GenCode("\t",Content);
+			}
+
+			if (IsIn(Content," "))
+			{
+				Content = SplitAfter(Content," ");
+			}
+			else
+			{
+				break;
+			}
+		}
+		Complete = PublicOrPrivate+" class "+TheName+" {\n\tint x;\n\tint y;\n\n\t//class constructor\n\tpublic "+TheName+"(int x, int y)\n\t{\n\t\tthis.x = x;\n\t\tthis.y = y;\n\t}\n\n"+ClassContent+"\n}\n";
+		return Complete;
+	}
+
+	private static String Method(String Tabs, String Name, String Content)
+	{
+		String Complete = "";
+
+		String PublicOrPrivate = "public";
+		if ((IsIn(Name,"method(")) && (IsIn(Name,"):")))
+		{
+			PublicOrPrivate = SplitAfter(Name,"method");
+			PublicOrPrivate = SplitBefore(PublicOrPrivate,":");
+			PublicOrPrivate = PublicOrPrivate.substring(1, PublicOrPrivate.length()-1);
+		}
+
+		Name = SplitAfter(Name,":");
+		String TheName = "";
+		String Type = "";
+		String Params = "";
+		String MethodContent = "";
+		String LastComp = "";
+
+
+		if (IsIn(Content,"-"))
+		{
+			TheName = SplitBefore(Name,"-");
+			Type = SplitAfter(Name,"-");
+		}
+		else
+		{
+			TheName = Name;
+		}
+
+		while (!Content.equals(""))
+		{
+			if (StartsWith(Content, "params"))
+			{
+				Params =  Parameters(Content,"method");
+			}
+			else if ((!StartsWith(Content, "method")) && (!StartsWith(Content, "class")))
+			{
+				MethodContent = MethodContent + GenCode(Tabs+"\t",Content);
+			}
+
+			if (IsIn(Content," "))
+			{
+				Content = SplitAfter(Content," ");
+			}
+			else
+			{
+				break;
+			}
+		}
+
+		if ((Type.equals("")) || (Type.equals("void")))
+		{
+			Complete = Tabs+"\t"+PublicOrPrivate+" static void "+TheName + "("+Params+")\n"+Tabs+"\t{\n"+MethodContent+"\n"+Tabs+"\t}\n";
+		}
+		else
+		{
+			Complete = Tabs+"\t"+PublicOrPrivate+" static "+Type+" "+TheName+"("+Params+")\n"+Tabs+"\t{\n"+Tabs+"\t\t"+Type+" TheReturn;\n"+MethodContent+"\n"+Tabs+"\t\treturn TheReturn;\n"+Tabs+"\t}\n";
+		}
+		return Complete;
+	}
+
+	private static String Variables(String Tabs, String input)
+	{
+		String Type = "";
+		String Name = "";
+		String VarType = "";
+		String Value = "";
+
+		if (IsIn(input,":") && IsIn(input,"-") && IsIn(input,"="))
+		{
+			Type = SplitAfter(input,":");
+			Name = SplitBefore(Type,"-");
+			VarType = SplitAfter(Type,"-");
+			Value = SplitAfter(VarType,"=");
+			VarType = SplitBefore(VarType,"=");
+		}
+		else if (IsIn(input,":") && IsIn(input,"="))
+		{
+			Type = SplitAfter(input,":");
+			Name = SplitBefore(Type,"=");
+			Value = SplitAfter(Type,"=");
+		}
+		else if (IsIn(input,":") && IsIn(input,"-"))
+		{
+			Type = SplitAfter(input,":");
+			Name = SplitBefore(Type,"-");
+			VarType= SplitAfter(Type,"-");
+		}
+
+		String NewVar = "";
+		if (Value.equals(""))
+		{
+			NewVar = Tabs+VarType+" "+Name+";\n";
+		}
+		else if (VarType.equals(""))
+		{
+			NewVar = Tabs+Name+" = "+Value+";\n";
+		}
+		else
+		{
+			NewVar = Tabs+VarType+" "+Name+" = "+Value+";\n";
+		}
+
+		return NewVar;
+	}
+
+	private static String Conditions(String input,String CalledBy)
+	{
+		String Type = "";
+		if (IsIn(Type,"-"))
+		{
+			Type = SplitAfter(input,":");
+		}
+		return Type;
+	}
+
+	private static String Parameters(String input,String CalledBy)
+	{
+		String Type = "";
+		if (IsIn(Type,"-"))
+		{
+			Type = SplitAfter(input,":");
+		}
+		return Type;
+	}
+
+	private static String Loop(String Tabs, String TheKindType, String Content)
+	{
+		String Complete = "";
+		TheKindType = SplitAfter(TheKindType,":");
+		String TheName = "";
+		String Type = "";
+		String TheCondition = "";
+		String LoopContent = "";
+
+		if (IsIn(Content,"-"))
+		{
+			TheName = SplitBefore(TheKindType,"-");
+			Type = SplitAfter(TheKindType,"-");
+		}
+		else
+		{
+			TheName = TheKindType;
+		}
+
+		while (!Content.equals(""))
+		{
+			if (StartsWith(Content, "condition"))
+			{
+				TheCondition = Conditions(Content,TheKindType);
+
+			}
+			else if ((!StartsWith(Content, "method")) && (!StartsWith(Content, "class")) && (StartsWith(Content, "nest-")))
+			{
+				Content = SplitAfter(Content,"-");
+				LoopContent = LoopContent + GenCode(Tabs+"\t",Content);
+			}
+
+			if (IsIn(Content," "))
+			{
+				Content = SplitAfter(Content," ");
+			}
+			else
+			{
+				break;
+			}
+		}
+
+		if (TheKindType.equals("for"))
+		{
+			Complete = Tabs+"for ("+TheCondition+")\n"+Tabs+"{\n"+Tabs+"\t//do something here\n"+LoopContent+"\n"+Tabs+"}\n";
+		}
+		else if (TheKindType.equals("do/while"))
+		{
+			Complete = Tabs+"do\n"+Tabs+"{\n"+Tabs+"\t//do something here\n"+LoopContent+Tabs+"}\n"+Tabs+"while ("+TheCondition+");\n";
+		}
+		else
+		{
+			Complete = Tabs+"while ("+TheCondition+")\n"+Tabs+"{\n"+Tabs+"\t//do something here\n"+LoopContent+Tabs+"}\n";
+		}
+		return Complete;
+	}
+
+	private static String Logic(String Tabs, String TheKindType, String Content)
+	{
+		String Complete = "";
+		TheKindType = SplitAfter(TheKindType,":");
+		String TheName = "";
+		String Type = "";
+		String TheCondition = "";
+		String LogicContent = "";
+
+		if (IsIn(Content,"-"))
+		{
+			TheName = SplitBefore(TheKindType,"-");
+			Type = SplitAfter(TheKindType,"-");
+		}
+		else
+		{
+			TheName = TheKindType;
+		}
+
+		while (!Content.equals(""))
+		{
+			if (StartsWith(Content, "condition"))
+			{
+				TheCondition = Conditions(Content,TheKindType);
+			}
+			else if ((!StartsWith(Content, "method")) && (!StartsWith(Content, "class")) && (StartsWith(Content, "nest-")))
+			{
+				Content = SplitAfter(Content,"-");
+				LogicContent = LogicContent + GenCode(Tabs+"\t",Content);
+			}
+
+			if (IsIn(Content," "))
+			{
+				Content = SplitAfter(Content," ");
+			}
+			else
+			{
+				break;
+			}
+		}
+
+		if (TheKindType.equals("if"))
+		{
+			Complete = Tabs+"if ("+TheCondition+")\n"+Tabs+"{\n"+Tabs+"\t//do something here\n"+LogicContent+Tabs+"}\n";
+		}
+		else if (TheKindType.equals("else-if"))
+		{
+			Complete = Tabs+"else if ("+TheCondition+")\n"+Tabs+"{\n"+Tabs+"\t//do something here\n"+LogicContent+Tabs+"}\n";
+		}
+		else if (TheKindType.equals("else"))
+		{
+			Complete = Tabs+"else\n"+Tabs+"{\n"+Tabs+"\t//do something here\n"+LogicContent+Tabs+"}\n";
+		}
+		else if (TheKindType.equals("switch-case"))
+		{
+			Complete = Tabs+"\tcase x:\n"+Tabs+"\t\t//code here\n"+Tabs+"\t\tbreak;";
+
+		}
+		else if (StartsWith(TheKindType, "switch"))
+		{
+			String CaseContent = TheKindType;
+			String CaseVal;
+
+			Complete = Tabs+"switch ("+TheCondition+")\n"+Tabs+"{\n\n";
+			while (!CaseContent.equals(""))
+			{
+				CaseVal = SplitBefore(CaseContent,"-");
+				if (CaseVal != "switch")
+				{
+					Complete = Complete+Tabs+"\tcase "+CaseVal+":\n"+Tabs+"\t\t//code here\n"+Tabs+"\t\tbreak;\n";
+				}
+
+				if (IsIn(CaseContent,"-"))
+				{
+					CaseContent = SplitAfter(CaseContent,"-");
+				}
+				else
+				{
+					break;
+				}
+			}
+			Complete = Complete+Tabs+"\tdefault:\n"+Tabs+"\t\t//code here\n"+Tabs+"\t\tbreak;\n"+Tabs+"}\n";
+		}
+		return Complete;
+	}
+
+	private static String GenCode(String Tabs,String GetMe)
+	{
+		String TheCode = "";
+		String[] Args = new String[2];
+		Args[0] = SplitBefore(GetMe," ");
+		Args[1] = SplitAfter(GetMe," ");
+		if (StartsWith(Args[0], "class"))
+		{
+			TheCode = Class(Args[0],Args[1]);
+		}
+		else if (StartsWith(Args[0], "method"))
+		{
+			TheCode = Method(Tabs,Args[0],Args[1]);
+		}
+		else if (StartsWith(Args[0], "loop"))
+		{
+			TheCode = Loop(Tabs,Args[0],Args[1]);
+		}
+		else if (StartsWith(Args[0], "logic"))
+		{
+			TheCode = Logic(Tabs,Args[0],Args[1]);
+		}
+		else if (StartsWith(Args[0], "var"))
+		{
+			TheCode = Variables(Tabs,Args[0]);
+			TheCode = TheCode + GenCode(Tabs,Args[1]);
+		}
+/*
+		else if (StartsWith(Args[0], "condition"))
+		{
+			TheCode = Conditions(Args[0]);
+		}
+		else if (StartsWith(Args[0], "params"))
+		{
+			TheCode = Parameters(Args[0]);
+		}
+*/
+		return TheCode;
+	}
+
 	/**
 	* @param args the command line arguments
 	*/
@@ -199,110 +597,34 @@ public class shell {
 		int length;
 		String UserIn = "";
 		banner();
+		String Content = "";
 		while (true)
 		{
 			UserIn = raw_input(">>> ");
-			if (!UserIn.equals(""))
+			if (UserIn.equals("exit()"))
 			{
-				if (UserIn.equals("exit"))
+				break;
+			}
+			else if (UserIn.equals("exit"))
+			{
+				print("Use exit()");
+			}
+/*
+			else if (UserIn.equals("clear"))
+			{
+				clear();
+			}
+*/
+			else if (StartsWith(UserIn, "help"))
+			{
+				Help(UserIn);
+			}
+			else
+			{
+				Content = GenCode("",UserIn);
+				if (!Content.equals(""))
 				{
-					print("User exit() to exit");
-				}
-				else if (UserIn.equals("exit()"))
-				{
-					break;
-				}
-				else if (UserIn.equals("help"))
-				{
-					Help("");
-				}
-				else if (StartsWith(UserIn,"help "))
-				{
-					String[] UserArgs = split(UserIn," ");
-					length = len(UserArgs);
-					if (length == 2)
-					{
-						Help(UserArgs[1]);
-					}
-					else
-					{
-						Help("");
-					}
-				}
-				else if (UserIn.equals("gen"))
-				{
-					if (TheKind.equals("loop"))
-					{
-						//Loop();
-						print("Loop");
-					}
-					else if (TheKind.equals("array"))
-					{
-						//Array();
-						print("Array");
-					}
-					else if (TheKind.equals("class"))
-					{
-						//Class();
-						print("Class");
-					}
-					else if (TheKind.equals("logic"))
-					{
-						//Logic();
-						print("Logic");
-					}
-	/*
-					else if (TheKind == "condition")
-					{
-						Conditions();
-					}
-	*/
-					else if (TheKind.equals("function"))
-					{
-						//Function();
-						print("Function");
-					}
-				}
-				else if (UserIn.equals("clear"))
-				{
-					//clear();
-					print("clear");
-				}
-				else if (StartsWith(UserIn,"condition:"))
-				{
-					String[] UserArgs = split(UserIn,":",1);
-					//HandleCondition(UserArgs[1]);
-					print(UserArgs[1]);
-				}
-				else if (StartsWith(UserIn,"condition "))
-				{
-					String[] UserArgs = split(UserIn," ",1);
-					//HandleCondition(UserArgs[1]);
-					print(UserArgs[1]);
-				}
-				else if (StartsWith(UserIn,"name:"))
-				{
-					String[] UserArgs = split(UserIn,":",1);
-					//HandleName(UserArgs[1]);
-					print(UserArgs[1]);
-				}
-				else if (StartsWith(UserIn,"name "))
-				{
-					String[] UserArgs = split(UserIn," ",1);
-					//HandleName(UserArgs[1]);
-					print(UserArgs[1]);
-				}
-				else if (StartsWith(UserIn,"type:"))
-				{
-					String[] UserArgs = split(UserIn,":",1);
-					//HandleKind(UserArgs[1]);
-					print(UserArgs[1]);
-				}
-				else if (StartsWith(UserIn,"type "))
-				{
-					String[] UserArgs = split(UserIn," ",1);
-					//HandleKind(UserArgs[1]);
-					print(UserArgs[1]);
+					print(Content);
 				}
 			}
 		}

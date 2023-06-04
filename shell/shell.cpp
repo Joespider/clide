@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.0.17";
+String Version = "0.0.18";
 
 String getOS();
 void Help(String Type);
@@ -105,7 +105,7 @@ void Help(String Type)
 		print("");
 		print("{EXAMPLE}");
 		print("logic:if");
-		print("logic:if/else");
+		print("logic:else-if");
 		print("logic:switch");
 	}
 	else if (Type == "var")
@@ -119,12 +119,12 @@ void Help(String Type)
 	else
 	{
 		print("Components to Generate");
-		print("class\t:\t\"Create a class\"");
-		print("struct\t:\t\"Create a struct\"");
-		print("method\t:\t\"Create a method\"");
-		print("loop\t:\t\"Create a loop\"");
-		print("logic\t:\t\"Create a logic\"");
-		print("var\t:\t\"Create a variable\"");
+		print("class\t\t:\t\"Create a class\"");
+		print("struct\t\t:\t\"Create a struct\"");
+		print("method\t\t:\t\"Create a method\"");
+		print("loop\t\t:\t\"Create a loop\"");
+		print("logic\t\t:\t\"Create a logic\"");
+		print("var\t\t:\t\"Create a variable\"");
 		print("nest-<type>\t:\t\"next element is nested in previous element\"");
 		print("");
 		print("help:<type>");
@@ -495,6 +495,14 @@ String Struct(String TheName, String Content)
 String Class(String TheName, String Content)
 {
 	String Complete = "";
+/*
+	String PublicOrPrivate = "public";
+	if (IsIn(TheName,"class-"))
+	{
+		PublicOrPrivate = SplitAfter(TheName,"-");
+		PublicOrPrivate = SplitBefore(PublicOrPrivate,":");
+	}
+*/
 	TheName = SplitAfter(TheName,':');
 	String Params = "";
 	String ClassContent = "";
@@ -512,7 +520,7 @@ String Class(String TheName, String Content)
 		Content = SplitAfter(Content,' ');
 	}
 
-	Complete = "class "+TheName+" {\n\nprivate:\n\t//private variables\n\tint x, y;\npublic:\n\t//class constructor\n\t"+TheName+"(int x, int y)\n\t{\n\t\tthis->x = x;\n\t\tthis->y = y;\n\t}\n\n\t//class desctructor\n\t~"+TheName+"()\n\t{\n\t}\n"+ClassContent+"\n};\n";
+	Complete = "class "+TheName+" {\n\nprivate:\n\tprivate variables\n\tint x, y;\npublic:\n\t//class constructor\n\t"+TheName+"(int x, int y)\n\t{\n\t\tthis->x = x;\n\t\tthis->y = y;\n\t}\n\n"+ClassContent+"\n\t//class desctructor\n\t~"+TheName+"()\n\t{\n\t}\n};\n";
 	return Complete;
 }
 
@@ -778,7 +786,7 @@ int main()
 		}
 		else
 		{
-			String Content = GenCode("",UserIn);
+			Content = GenCode("",UserIn);
 			if (Content != "")
 			{
 				print(Content);

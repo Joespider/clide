@@ -3,7 +3,7 @@
 #https://stackoverflow.com/questions/10339637/java-import-cannot-find-symbol
 #https://www.codejava.net/java-core/tools/how-to-compile-package-and-run-a-java-program-using-command-line-tools-javac-jar-and-java
 
-SupportV="0.2.50"
+SupportV="0.2.52"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -921,7 +921,7 @@ UseJava()
 							TheMainClass=$(grep -l "public static void main" ${src})
 							#get Java Class/compiled file name
 							TheMainClass=$(echo ${TheMainClass} | sed "s/${LangExt}/.class/g")
-							ERROR=$(${LangCpl} -d ${TheSrcDir}/ ${src} 2>&1 | tr '\n' '|' | grep -v "JAVA_OPTIONS")
+							ERROR=$(${LangCpl} -d ${TheSrcDir}/ ${src} 2>&1 | grep -v "JAVA_OPTIONS" | tr '\n' '|')
 							if [ -z "${ERROR}" ]; then
 								#Compile as jar or class
 								case ${UseTypeOfCpl} in
@@ -1632,7 +1632,6 @@ UseJava()
 			esac
 			;;
 		customCode)
-			local cLang=$(UseJava "color")
 			local TemplateC=${TemplateCodeClass##*/}
 			TemplateC=${TemplateC%.*}
 			local TemplateJ=${TemplateCodeJar##*/}
@@ -1647,7 +1646,7 @@ UseJava()
 				shift
 				Args=( "${@}" )
 				if [ -z "${1}" ]; then
-					echo -n "${cLang}\$ java ${cTemplateC} "
+					echo -n "java ${cTemplateC} "
 					read -a Args
 				fi
 
@@ -1670,7 +1669,7 @@ UseJava()
 				shift
 				Args=( "${@}" )
 				if [ -z "${1}" ]; then
-					echo -n "${cLang}\$ java -jar ${cTemplateJ} "
+					echo -n "java -jar ${cTemplateJ} "
 					read -a Args
 				fi
 
@@ -1687,7 +1686,6 @@ UseJava()
 			fi
 			;;
 		customCodeShow)
-			local cLang=$(UseJava "color")
 			local TemplateC=${TemplateCodeClass##*/}
 			TemplateC=${TemplateC%.*}
 			local TemplateJ=${TemplateCodeJar##*/}
@@ -1702,7 +1700,7 @@ UseJava()
 				shift
 				Args=( "${@}" )
 				if [ -z "${1}" ]; then
-					echo -n "${cLang}\$ java ${cTemplateC} --no-save "
+					echo -n "java ${cTemplateC} --no-save "
 					read -a Args
 				fi
 
@@ -1725,7 +1723,7 @@ UseJava()
 				shift
 				Args=( "${@}" )
 				if [ -z "${1}" ]; then
-					echo -n "${cLang}\$ java -jar ${cTemplateJ} --no-save "
+					echo -n "java -jar ${cTemplateJ} --no-save "
 					read -a Args
 				fi
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.2.05"
+SupportV="0.2.06"
 Lang=Bash
 LangExt=".sh"
 ColorNum=2
@@ -1048,7 +1048,6 @@ UseBash()
 			fi
 			;;
 		customCode)
-			local cLang=$(UseBash "color")
 			local cTemplate=$(OtherColor ${TemplateCode##*/})
 			local Type=${Type,,}
 			#Check for Custom Code Template
@@ -1059,7 +1058,7 @@ UseBash()
 				shift
 				Args=( "${@}" )
 				if [ -z "${1}" ]; then
-					echo -n "${cLang}\$ ./${cTemplate} "
+					echo -n "./${cTemplate} "
 					read -a Args
 				fi
 				#Template Args Given
@@ -1075,7 +1074,6 @@ UseBash()
 			fi
 			;;
 		customCodeShow)
-			local cLang=$(UseBash "color")
 			local cTemplate=$(OtherColor ${TemplateCode##*/})
 			local Type=${Type,,}
 			#Check for Custom Code Template
@@ -1086,7 +1084,7 @@ UseBash()
 				shift
 				Args=( "${@}" )
 				if [ -z "${1}" ]; then
-					echo -n "${cLang}\$ ./${cTemplate} --no-save "
+					echo -n "./${cTemplate} --no-save "
 					read -a Args
 				fi
 				#Template Args Given

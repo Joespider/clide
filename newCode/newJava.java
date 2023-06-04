@@ -52,7 +52,7 @@ public class newJava {
 	private static void Help()
 	{
 		String program = "newJava";
-		String version = "0.1.44";
+		String version = "0.1.45";
 		print("Author: Joespider");
 		print("Program: \""+program+"\"");
 		print("Version: "+version);
@@ -558,6 +558,8 @@ public class newJava {
 		{
 			MethodSplit = "\tprivate static String[] split(String message, String by)\n\t{\n\t\tString[] vArray = message.split(by);\n\t\treturn vArray;\n\t}\n\n";
 			MethodSplit = MethodSplit+"\tprivate static String[] split(String message, String by, int plc)\n\t{\n\t\tString[] vArray = message.split(by,plc);\n\t\treturn vArray;\n\t}\n\n";
+			MethodSplit = MethodSplit+"\tprivate static String SplitBefore(String Str, String splitAt)\n\t{\n\t\tif (Str.contains(splitAt))\n\t\t{\n\t\t\tString[] newString = split(Str, splitAt, 0);\n\t\t\treturn newString[0];\n\t\t}\n\t\telse\n\t\t{\n\t\t\treturn Str;\n\t\t}\n\t}\n\n";
+			MethodSplit = MethodSplit+"\tprivate static String SplitAfter(String Str, String splitAt)\n\t{\n\t\tif (Str.contains(splitAt))\n\t\t{\n\t\t\tString[] newString = split(Str, splitAt, 0);\n\t\t\treturn newString[1];\n\t\t}\n\t\telse\n\t\t{\n\t\t\treturn Str;\n\t\t}\n\t}\n\n";
 		}
 		if (getConvert == true)
 		{

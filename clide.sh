@@ -6791,6 +6791,7 @@ CLI()
 											case ${UserArg} in
 												--edit-restore)
 													ManageLangs ${Lang} "restore-edit" ${TheBin}
+													echo "Edit rights restored"
 													;;
 												*)
 													#run the code..."none" "none" is to provide the needed padding to run
