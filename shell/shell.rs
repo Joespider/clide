@@ -4,70 +4,77 @@ use std::process::Command;
 fn get_help(type_of_help: &str)
 {
 	let the_type_of_help = split_after(type_of_help,':');
-	if the_type_of_help == "class"
+	match the_type_of_help.as_str()
 	{
-		println!("{{Usage}}");
-		println!("class:<name> param:<params>,<param> var:<vars> method:<name>-<type> param:<params>,<param>");
-		println!("");
-		println!("{{EXAMPLE}}");
-		println!("class:pizza params:one,two,three method:cheese params:four,five loop:for");
-	}
-	else if the_type_of_help == "struct"
-	{
-		println!("struct:<name>-<type> var:<var> var:<var>");
-		println!("");
-		println!("{{EXAMPLE}}");
-		println!("struct:pizza var:topping-String var:number-int");
-	}
-	else if the_type_of_help == "method"
-	{
-		println!("method:<name>-<type> param:<params>,<param>");
-	}
-	else if the_type_of_help == "loop"
-	{
-		println!("loop:<type>");
-		println!("");
-		println!("{{EXAMPLE}}");
-		println!("loop:for");
-		println!("loop:do/while");
-		println!("loop:while");
-
-	}
-	else if the_type_of_help == "logic"
-	{
-		println!("logic:<type>");
-		println!("");
-		println!("{{EXAMPLE}}");
-		println!("logic:if");
-		println!("logic:else-if");
-		println!("logic:switch");
-	}
-	else if the_type_of_help == "var"
-	{
-		println!("var:<name>-<type>=value\tcreate a new variable");
-		println!("var:<name>=value\tassign a new value to an existing variable");
-		println!("");
-		println!("{{EXAMPLE}}");
-		println!("var:name-String=\"\" var:point-int=0 var:james-String=\"James\" var:help-int");
-	}
-	else
-	{
-		println!("Components to Generate");
-		println!("class\t\t:\t\"Create a class\"");
-		println!("struct\t\t:\t\"Create a struct\"");
-		println!("method\t\t:\t\"Create a method\"");
-		println!("loop\t\t:\t\"Create a loop\"");
-		println!("logic\t\t:\t\"Create a logic\"");
-		println!("var\t\t:\t\"Create a variable\"");
-		println!("nest-<type>\t:\t\"next element is nested in previous element\"");
-		println!("");
-		println!("help:<type>");
+		"class" =>
+		{
+			println!("{{Usage}}");
+			println!("class:<name> param:<params>,<param> var:<vars> method:<name>-<type> param:<params>,<param>");
+			println!("");
+			println!("{{EXAMPLE}}");
+			println!("class:pizza params:one,two,three method:cheese params:four,five loop:for");
+		}
+		"struct" =>
+		{
+			println!("struct:<name>-<type> var:<var> var:<var>");
+			println!("");
+			println!("{{EXAMPLE}}");
+			println!("struct:pizza var:topping-String var:number-int");
+		}
+		"method" =>
+		{
+			println!("method:<name>-<type> param:<params>,<param>");
+		}
+		"loop" =>
+		{
+			println!("loop:<type>");
+			println!("");
+			println!("{{EXAMPLE}}");
+			println!("loop:for");
+			println!("loop:do/while");
+			println!("loop:while");
+	
+		}
+		"logic" =>
+		{
+			println!("logic:<type>");
+			println!("");
+			println!("{{EXAMPLE}}");
+			println!("logic:if");
+			println!("logic:else-if");
+			println!("logic:switch");
+		}
+		"var" =>
+		{
+			println!("var:<name>-<type>=value\tcreate a new variable");
+			println!("var:<name>-<type>[<num>]=value\tcreate a new variable as an array");
+			println!("var:<name>-<type>(<struct>)=value\tcreate a new variable a data structure");
+			println!("var:<name>=value\tassign a new value to an existing variable");
+			println!("");
+			println!("{{EXAMPLE}}");
+			println!("var:name-std::string[3]");
+			println!("var:name-std::string(vector)");
+			println!("var:name-std::string=\"\" var:point-int=0 var:james-std::string=\"James\" var:help-int");
+		}
+		_other =>
+		{
+			println!("Components to Generate");
+			println!("class\t\t:\t\"Create a class\"");
+			println!("struct\t\t:\t\"Create a struct\"");
+			println!("method\t\t:\t\"Create a method\"");
+			println!("loop\t\t:\t\"Create a loop\"");
+			println!("logic\t\t:\t\"Create a logic\"");
+			println!("var\t\t:\t\"Create a variable\"");
+			println!("nest-<type>\t:\t\"next element is nested in previous element\"");
+			println!("");
+			println!("help:<type>");
+		}
 	}
 }
 
 fn banner()
 {
-	let version = "0.0.11";
+	let version = "0.0.15";
 //	String cplV = getCplV();
 	let the_os = get_os();
 //	println!(cplV);
@@ -149,14 +156,14 @@ fn get_struct(name: &str, content: &str) -> String
 	let mut complete = String::new();
 	let the_name = split_after(name,':');
 	let struct_var = gen_code("\t",content);
-	complete.push_str("struct {\n");
+	complete.push_str("struct ");
+	complete.push_str(&the_name);
+	complete.push_str(" {");
 	if struct_var.is_empty() == false
 	{
 		complete.push_str(&struct_var);
 	}
-	complete.push_str("\n} ");
-	complete.push_str(&the_name);
-	complete.push_str(";\n");
+	complete.push_str("\n}\n");
 	return complete;
 }
 
@@ -189,12 +196,13 @@ fn get_class(name: &str, content: &str) -> String
 		}
 	}
 
-	println!("{}",the_params);
 	complete.push_str("class ");
 	complete.push_str(&the_name);
 	complete.push_str(" {\n\nprivate:\n\tprivate variables\n\tint x, y;\npublic:\n\t//class constructor\n\t");
 	complete.push_str(&the_name);
-	complete.push_str("(int x, int y)\n\t{\n\t\tthis->x = x;\n\t\tthis->y = y;\n\t}\n\n");
+	complete.push_str("(");
+	complete.push_str(&the_params);
+	complete.push_str(")\n\t{\n\t\tthis->x = x;\n\t\tthis->y = y;\n\t}\n\n");
 	complete.push_str(&class_content);
 	complete.push_str("\n\t//class desctructor\n\t~");
 	complete.push_str(&the_name);
@@ -364,10 +372,38 @@ fn get_conditions(input: &str, _called_by: &str) -> String
 	return the_type;
 }
 
-fn get_parameters(input: &str, _called_by: &str) -> String
+fn get_parameters(input: &str, called_by: &str) -> String
 {
-	let the_type: String = split_after(input,':');
-	return the_type;
+	let mut the_param: String = split_after(&input,':');
+	if called_by == "class" || called_by == "method"
+	{
+                if is_in(&the_param,"-") && is_in(&the_param,",")
+                {
+			let the_name: String = split_before(&the_param,'-');
+			let mut the_type: String = split_after(&the_param,'-');
+			the_type = split_before(&the_type,',');
+			let mut the_more: String = split_after(&the_param,',');
+			let mut ever_more = String::new();
+			ever_more.push_str("params:");
+			ever_more.push_str(&the_more);
+			the_more = get_parameters(&ever_more,called_by);
+			the_param = the_type;
+			the_param.push_str(" ");
+			the_param.push_str(&the_name);
+			the_param.push_str(", ");
+			the_param.push_str(&the_more);
+                }
+                else if is_in(&the_param,"-") && !is_in(&the_param,",")
+                {
+			let the_name: String = split_before(&the_param,'-');
+			let the_type: String = split_after(&the_param,'-');
+			the_param = the_type;
+			the_param.push_str(" ");
+			the_param.push_str(&the_name);
+
+                }
+	}
+	return the_param;
 }
 
 fn get_loop(the_tabs: &str, kind_type: &str, content: &str) -> String

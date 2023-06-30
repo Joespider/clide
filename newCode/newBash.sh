@@ -1,6 +1,6 @@
 #!/bin/bash
 
-Version="0.1.6"
+Version="0.1.7"
 
 Help()
 {
@@ -104,7 +104,7 @@ main()
 			*)
 				case ${GetName} in
 					yes)
-						TheName="${arg}"
+						TheName="${arg%%.*}"
 						GetName="no"
 						;;
 					*)
