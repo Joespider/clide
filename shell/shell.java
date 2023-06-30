@@ -12,7 +12,7 @@ import java.io.IOException;
 
 //class name
 public class shell {
-	private static String Version = "0.0.7";
+	private static String Version = "0.0.11";
 	private static String TheKind = "";
 	private static String TheName = "";
 	private static String TheKindType = "";
@@ -62,10 +62,14 @@ public class shell {
 		else if (Type.equals("var"))
 		{
 			print("var:<name>-<type>=value\tcreate a new variable");
+			print("var:<name>-<type>[<num>]=value\tcreate a new variable as an array");
+			print("var:<name>-<type>(<struct>)=value\tcreate a new variable a data structure");
 			print("var:<name>=value\tassign a new value to an existing variable");
 			print("");
 			print("{EXAMPLE}");
-			print("var:name-String=\"\" var:point-int=0 var:james-String=\"James\" var:help-int");
+			print("var:name-std::string[3]");
+			print("var:name-std::string(vector)");
+			print("var:name-std::string=\"\" var:point-int=0 var:james-std::string=\"James\" var:help-int");
 		}
 		else
 		{
@@ -254,7 +258,7 @@ public class shell {
 
 		TheName = SplitAfter(TheName,":");
 		String Params = "";
-		String ClassContent = "";
+		StringBuilder ClassContent = new StringBuilder("");
 		while (!Content.equals(""))
 		{
 			if (StartsWith(Content, "params"))
@@ -263,7 +267,7 @@ public class shell {
 			}
 			else if (StartsWith(Content, "method"))
 			{
-				ClassContent = ClassContent + GenCode("\t",Content);
+				ClassContent.append(GenCode("\t",Content));
 			}
 
 			if (IsIn(Content," "))
@@ -275,7 +279,7 @@ public class shell {
 				break;
 			}
 		}
-		Complete = PublicOrPrivate+" class "+TheName+" {\n\tint x;\n\tint y;\n\n\t//class constructor\n\tpublic "+TheName+"(int x, int y)\n\t{\n\t\tthis.x = x;\n\t\tthis.y = y;\n\t}\n\n"+ClassContent+"\n}\n";
+		Complete = PublicOrPrivate+" class "+TheName+" {\n\n\tprivate static int x;\n\tprivate static int y;\n\n\t//class constructor\n\tpublic "+TheName+"("+Params+")\n\t{\n\t\tthis.x = x;\n\t\tthis.y = y;\n\t}\n\n"+ClassContent.toString()+"\n}\n";
 		return Complete;
 	}
 
@@ -295,7 +299,7 @@ public class shell {
 		String TheName = "";
 		String Type = "";
 		String Params = "";
-		String MethodContent = "";
+		StringBuilder MethodContent = new StringBuilder("");
 		String LastComp = "";
 
 
@@ -317,7 +321,7 @@ public class shell {
 			}
 			else if ((!StartsWith(Content, "method")) && (!StartsWith(Content, "class")))
 			{
-				MethodContent = MethodContent + GenCode(Tabs+"\t",Content);
+				MethodContent.append(GenCode(Tabs+"\t",Content));
 			}
 
 			if (IsIn(Content," "))
@@ -332,11 +336,11 @@ public class shell {
 
 		if ((Type.equals("")) || (Type.equals("void")))
 		{
-			Complete = Tabs+"\t"+PublicOrPrivate+" static void "+TheName + "("+Params+")\n"+Tabs+"\t{\n"+MethodContent+"\n"+Tabs+"\t}\n";
+			Complete = Tabs+"\t"+PublicOrPrivate+" static void "+TheName + "("+Params+")\n"+Tabs+"\t{\n"+MethodContent.toString()+"\n"+Tabs+"\t}\n";
 		}
 		else
 		{
-			Complete = Tabs+"\t"+PublicOrPrivate+" static "+Type+" "+TheName+"("+Params+")\n"+Tabs+"\t{\n"+Tabs+"\t\t"+Type+" TheReturn;\n"+MethodContent+"\n"+Tabs+"\t\treturn TheReturn;\n"+Tabs+"\t}\n";
+			Complete = Tabs+"\t"+PublicOrPrivate+" static "+Type+" "+TheName+"("+Params+")\n"+Tabs+"\t{\n"+Tabs+"\t\t"+Type+" TheReturn;\n"+MethodContent.toString()+"\n"+Tabs+"\t\treturn TheReturn;\n"+Tabs+"\t}\n";
 		}
 		return Complete;
 	}
@@ -388,22 +392,49 @@ public class shell {
 
 	private static String Conditions(String input,String CalledBy)
 	{
-		String Type = "";
-		if (IsIn(Type,"-"))
+		String Params = SplitAfter(input,":");
+		if (IsIn(Params,"-"))
 		{
-			Type = SplitAfter(input,":");
+			Params = SplitAfter(input,":");
 		}
-		return Type;
+
+		if (CalledBy.equals("class"))
+		{
+			print("parameters: "+CalledBy);
+		}
+		else if (CalledBy.equals("method"))
+		{
+			print("parameters: "+CalledBy);
+		}
+		else if (CalledBy.equals("loop"))
+		{
+			print("parameters: "+CalledBy);
+		}
+		return Params;
 	}
 
 	private static String Parameters(String input,String CalledBy)
 	{
-		String Type = "";
-		if (IsIn(Type,"-"))
+		String Params = SplitAfter(input,":");
+		if ((CalledBy.equals("class")) || (CalledBy.equals("method")))
 		{
-			Type = SplitAfter(input,":");
+			if ((IsIn(Params,"-")) && (IsIn(Params,",")))
+			{
+				String Name = SplitBefore(Params,"-");
+				String Type = SplitAfter(Params,"-");
+				Type = SplitBefore(Type,",");
+				String more = Parameters("params:"+SplitAfter(Params,","),CalledBy);
+				Params = Type+" "+Name+", "+more;
+			}
+			else if ((IsIn(Params,"-")) && (!IsIn(Params,",")))
+			{
+				String Name = SplitBefore(Params,"-");
+				String Type = SplitAfter(Params,"-");
+				Params = Type+" "+Name;
+			}
 		}
-		return Type;
+
+		return Params;
 	}
 
 	private static String Loop(String Tabs, String TheKindType, String Content)
@@ -413,7 +444,7 @@ public class shell {
 		String TheName = "";
 		String Type = "";
 		String TheCondition = "";
-		String LoopContent = "";
+		StringBuilder LoopContent = new StringBuilder("");
 
 		if (IsIn(Content,"-"))
 		{
@@ -435,7 +466,7 @@ public class shell {
 			else if ((!StartsWith(Content, "method")) && (!StartsWith(Content, "class")) && (StartsWith(Content, "nest-")))
 			{
 				Content = SplitAfter(Content,"-");
-				LoopContent = LoopContent + GenCode(Tabs+"\t",Content);
+				LoopContent.append(GenCode(Tabs+"\t",Content));
 			}
 
 			if (IsIn(Content," "))
@@ -454,7 +485,7 @@ public class shell {
 		}
 		else if (TheKindType.equals("do/while"))
 		{
-			Complete = Tabs+"do\n"+Tabs+"{\n"+Tabs+"\t//do something here\n"+LoopContent+Tabs+"}\n"+Tabs+"while ("+TheCondition+");\n";
+			Complete = Tabs+"do\n"+Tabs+"{\n"+Tabs+"\t//do something here\n"+LoopContent.toString()+Tabs+"}\n"+Tabs+"while ("+TheCondition+");\n";
 		}
 		else
 		{
@@ -465,12 +496,12 @@ public class shell {
 
 	private static String Logic(String Tabs, String TheKindType, String Content)
 	{
-		String Complete = "";
+		StringBuilder Complete = new StringBuilder("");
 		TheKindType = SplitAfter(TheKindType,":");
 		String TheName = "";
 		String Type = "";
 		String TheCondition = "";
-		String LogicContent = "";
+		StringBuilder LogicContent = new StringBuilder("");
 
 		if (IsIn(Content,"-"))
 		{
@@ -491,7 +522,7 @@ public class shell {
 			else if ((!StartsWith(Content, "method")) && (!StartsWith(Content, "class")) && (StartsWith(Content, "nest-")))
 			{
 				Content = SplitAfter(Content,"-");
-				LogicContent = LogicContent + GenCode(Tabs+"\t",Content);
+				LogicContent.append(GenCode(Tabs+"\t",Content));
 			}
 
 			if (IsIn(Content," "))
@@ -506,19 +537,19 @@ public class shell {
 
 		if (TheKindType.equals("if"))
 		{
-			Complete = Tabs+"if ("+TheCondition+")\n"+Tabs+"{\n"+Tabs+"\t//do something here\n"+LogicContent+Tabs+"}\n";
+			Complete.append(Tabs+"if ("+TheCondition+")\n"+Tabs+"{\n"+Tabs+"\t//do something here\n"+LogicContent.toString()+Tabs+"}\n");
 		}
 		else if (TheKindType.equals("else-if"))
 		{
-			Complete = Tabs+"else if ("+TheCondition+")\n"+Tabs+"{\n"+Tabs+"\t//do something here\n"+LogicContent+Tabs+"}\n";
+			Complete.append(Tabs+"else if ("+TheCondition+")\n"+Tabs+"{\n"+Tabs+"\t//do something here\n"+LogicContent.toString()+Tabs+"}\n");
 		}
 		else if (TheKindType.equals("else"))
 		{
-			Complete = Tabs+"else\n"+Tabs+"{\n"+Tabs+"\t//do something here\n"+LogicContent+Tabs+"}\n";
+			Complete.append(Tabs+"else\n"+Tabs+"{\n"+Tabs+"\t//do something here\n"+LogicContent.toString()+Tabs+"}\n");
 		}
 		else if (TheKindType.equals("switch-case"))
 		{
-			Complete = Tabs+"\tcase x:\n"+Tabs+"\t\t//code here\n"+Tabs+"\t\tbreak;";
+			Complete.append(Tabs+"\tcase x:\n"+Tabs+"\t\t//code here\n"+Tabs+"\t\tbreak;");
 
 		}
 		else if (StartsWith(TheKindType, "switch"))
@@ -526,13 +557,13 @@ public class shell {
 			String CaseContent = TheKindType;
 			String CaseVal;
 
-			Complete = Tabs+"switch ("+TheCondition+")\n"+Tabs+"{\n\n";
+			Complete.append(Tabs+"switch ("+TheCondition+")\n"+Tabs+"{\n\n");
 			while (!CaseContent.equals(""))
 			{
 				CaseVal = SplitBefore(CaseContent,"-");
 				if (CaseVal != "switch")
 				{
-					Complete = Complete+Tabs+"\tcase "+CaseVal+":\n"+Tabs+"\t\t//code here\n"+Tabs+"\t\tbreak;\n";
+					Complete.append(Tabs+"\tcase "+CaseVal+":\n"+Tabs+"\t\t//code here\n"+Tabs+"\t\tbreak;\n");
 				}
 
 				if (IsIn(CaseContent,"-"))
@@ -544,49 +575,49 @@ public class shell {
 					break;
 				}
 			}
-			Complete = Complete+Tabs+"\tdefault:\n"+Tabs+"\t\t//code here\n"+Tabs+"\t\tbreak;\n"+Tabs+"}\n";
+			Complete.append(Tabs+"\tdefault:\n"+Tabs+"\t\t//code here\n"+Tabs+"\t\tbreak;\n"+Tabs+"}\n");
 		}
-		return Complete;
+		return Complete.toString();
 	}
 
 	private static String GenCode(String Tabs,String GetMe)
 	{
-		String TheCode = "";
+		StringBuilder TheCode = new StringBuilder("");
 		String[] Args = new String[2];
 		Args[0] = SplitBefore(GetMe," ");
 		Args[1] = SplitAfter(GetMe," ");
 		if (StartsWith(Args[0], "class"))
 		{
-			TheCode = Class(Args[0],Args[1]);
+			TheCode.append(Class(Args[0],Args[1]));
 		}
 		else if (StartsWith(Args[0], "method"))
 		{
-			TheCode = Method(Tabs,Args[0],Args[1]);
+			TheCode.append(Method(Tabs,Args[0],Args[1]));
 		}
 		else if (StartsWith(Args[0], "loop"))
 		{
-			TheCode = Loop(Tabs,Args[0],Args[1]);
+			TheCode.append(Loop(Tabs,Args[0],Args[1]));
 		}
 		else if (StartsWith(Args[0], "logic"))
 		{
-			TheCode = Logic(Tabs,Args[0],Args[1]);
+			TheCode.append(Logic(Tabs,Args[0],Args[1]));
 		}
 		else if (StartsWith(Args[0], "var"))
 		{
-			TheCode = Variables(Tabs,Args[0]);
-			TheCode = TheCode + GenCode(Tabs,Args[1]);
+			TheCode.append(Variables(Tabs,Args[0]));
+			TheCode.append(GenCode(Tabs,Args[1]));
 		}
 /*
 		else if (StartsWith(Args[0], "condition"))
 		{
-			TheCode = Conditions(Args[0]);
+			TheCode.append(Conditions(Args[0]));
 		}
 		else if (StartsWith(Args[0], "params"))
 		{
-			TheCode = Parameters(Args[0]);
+			TheCode.append(Parameters(Args[0]));
 		}
 */
-		return TheCode;
+		return TheCode.toString();
 	}
 
 	/**

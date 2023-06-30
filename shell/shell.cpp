@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.0.18";
+String Version = "0.0.20";
 
 String getOS();
 void Help(String Type);
@@ -111,10 +111,14 @@ void Help(String Type)
 	else if (Type == "var")
 	{
 		print("var:<name>-<type>=value\tcreate a new variable");
+		print("var:<name>-<type>[<num>]=value\tcreate a new variable as an array");
+		print("var:<name>-<type>(<struct>)=value\tcreate a new variable a data structure");
 		print("var:<name>=value\tassign a new value to an existing variable");
 		print("");
 		print("{EXAMPLE}");
-		print("var:name-String=\"\" var:point-int=0 var:james-String=\"James\" var:help-int");
+		print("var:name-std::string[3]");
+		print("var:name-std::string(vector)");
+		print("var:name-std::string=\"\" var:point-int=0 var:james-std::string=\"James\" var:help-int");
 	}
 	else
 	{
@@ -520,7 +524,7 @@ String Class(String TheName, String Content)
 		Content = SplitAfter(Content,' ');
 	}
 
-	Complete = "class "+TheName+" {\n\nprivate:\n\tprivate variables\n\tint x, y;\npublic:\n\t//class constructor\n\t"+TheName+"(int x, int y)\n\t{\n\t\tthis->x = x;\n\t\tthis->y = y;\n\t}\n\n"+ClassContent+"\n\t//class desctructor\n\t~"+TheName+"()\n\t{\n\t}\n};\n";
+	Complete = "class "+TheName+" {\n\nprivate:\n\tprivate variables\n\tint x, y;\npublic:\n\t//class constructor\n\t"+TheName+"("+Params+")\n\t{\n\t\tthis->x = x;\n\t\tthis->y = y;\n\t}\n\n"+ClassContent+"\n\t//class desctructor\n\t~"+TheName+"()\n\t{\n\t}\n};\n";
 	return Complete;
 }
 
@@ -587,6 +591,21 @@ String Variables(String Tabs, String input)
 	}
 
 	String NewVar = "";
+/*
+	//consider adapting variable type to be an array, vetctor, etc.
+	switch (VarType) {
+		case "one":
+			break;
+		case "two":
+			break;
+		case "three":
+			break;
+		case "four":
+			break;
+		default:
+			break;
+	}
+*/
 	if (Value == "")
 	{
 		NewVar = Tabs+VarType+" "+Name+";\n";
@@ -605,14 +624,44 @@ String Variables(String Tabs, String input)
 
 String Conditions(String input,String CalledBy)
 {
-	String Type = SplitAfter(input,':');
-	return Type;
+	String Condit = SplitAfter(input,':');
+	if (CalledBy == "class")
+	{
+		print("condition: " <<CalledBy);
+	}
+	else if (CalledBy == "method")
+	{
+		print("condition: " <<CalledBy);
+	}
+	else if (CalledBy == "loop")
+	{
+		print("condition: " <<CalledBy);
+	}
+	return Condit;
 }
 
 String Parameters(String input,String CalledBy)
 {
-	String Type = SplitAfter(input,':');
-	return Type;
+	String Params = SplitAfter(input,':');
+	if ((CalledBy == "class") || (CalledBy == "method"))
+	{
+		if ((IsIn(Params,"-")) && (IsIn(Params,",")))
+		{
+			String Name = SplitBefore(Params,'-');
+			String Type = SplitAfter(Params,'-');
+			Type = SplitBefore(Type,',');
+			String more = SplitAfter(Params,',');
+			more = Parameters("params:"+more,CalledBy);
+			Params = Type+" "+Name+", "+more;
+		}
+		else if ((IsIn(Params,"-")) && (!IsIn(Params,",")))
+		{
+			String Name = SplitBefore(Params,'-');
+			String Type = SplitAfter(Params,'-');
+			Params = Type+" "+Name;
+		}
+	}
+	return Params;
 }
 
 String Loop(String Tabs, String TheKindType, String Content)
