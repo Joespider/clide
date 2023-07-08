@@ -1172,6 +1172,8 @@ listHelp()
 			echo -e "\"List your source code without having a session\""
 			echo ""
 			echo -e "${cmd} <language>"
+			echo -e "${cmd} <language> <src>"
+			echo -e "${cmd} <src>"
 			echo -e "${cmd} -h, --help\t\t: \"help page\""
 			echo "-----------------------------------------------"
 			echo ""
