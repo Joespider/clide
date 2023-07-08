@@ -6,12 +6,12 @@ ProgramName = sys.argv[0]
 if "/" in ProgramName:
 	ProgramName = ProgramName.rsplit("/",1)[1]
 
-VersionName = "0.1.32"
+VersionNumver = "0.1.33"
 
 def Help():
 	print("Author: Joespider")
 	print("Program: \""+ProgramName.rsplit(".",1)[0]+"\"")
-	print("Version: "+VersionName)
+	print("Version: "+VersionNumver)
 	print("Purpose: make new Python Scripts")
 	print("Usage: "+ProgramName+" <args>")
 	print("\t--user <username>: get username for help page")
@@ -153,7 +153,7 @@ def GetArgs():
 def getHelp(TheName, TheUser):
 	if TheUser == "":
 		TheUser = os.environ["USER"]
-	HelpMethod = "TheProgram = \""+TheName+".py\"\nVersionName = \"0.0.0\"\n\ndef Help():\n\tprint(\"Author: "+TheUser+"\")\n\tprint(\"Program: \\\"\"+TheProgram+\"\\\"\")\n\tprint(\"Version: \"+VersionName)\n\tprint(\"Purpose: \")\n\tprint(\"Usage: \"+TheProgram+\" <args>\")\n\n"
+	HelpMethod = "TheProgram = \""+TheName+".py\"\nVersionNumver = \"0.0.0\"\n\ndef Help():\n\tprint(\"Author: "+TheUser+"\")\n\tprint(\"Program: \\\"\"+TheProgram+\"\\\"\")\n\tprint(\"Version: \"+VersionNumver)\n\tprint(\"Purpose: \")\n\tprint(\"Usage: \"+TheProgram+\" <args>\")\n\n"
 	return HelpMethod
 
 #Get Imports

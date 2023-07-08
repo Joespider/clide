@@ -7003,19 +7003,33 @@ CLI()
 					shift
 					#Select language
 					local Lang=$(pgLang $1)
+					local SrcFile=$2
+					local TheExt
 					case ${Lang} in
 						#language does not exist
 						no)
-							errorCode "lang" "cli-not-supported" "$1"
+							Lang=$(SelectLangByCode $1)
+							if [ ! -z "${Lang}" ]; then
+								CLI ${UserArg} ${Lang} "${1}"
+							else
+								errorCode "lang" "cli-not-supported" "$1"
+							fi
 							;;
 						#language exists
 						*)
 							#select source code directory
 							local CodeDir=$(pgDir ${Lang})
 							#directory exists
-							if [ ! -z "${CodeDir}" ]; then
+							if [ ! -z "${CodeDir}" ] && [ -z "${SrcFile}" ]; then
 								#list files
 								ls ${CodeDir}
+							elif [ ! -z "${CodeDir}" ] && [ ! -z "${SrcFile}" ]; then
+								TheExt=$(ManageLangs ${Lang} "getExt")
+								SrcFile=${SrcFile%%.*}${TheExt}
+								#list files
+								if [ -f ${CodeDir}/${SrcFile} ]; then
+									echo ${SrcFile}
+								fi
 							fi
 							;;
 					esac
