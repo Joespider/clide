@@ -23,7 +23,7 @@ bool IsIn(String Str, String Sub);
 static void help()
 {
 	String ProgName = "newC++";
-	String Version = "0.1.60";
+	String Version = "0.1.61";
 	print("Author: Joespider");
 	print("Program: \"" << ProgName << "\"");
 	print("Version: " << Version);
@@ -50,7 +50,7 @@ static void help()
 	print("\t--is-in : enable string contains methods");
 	print("\t--user-input : enable \"raw_input\" method");
 	print("\t--vectors : enable vector arrays");
-	print("\t--thread : enable threading");
+	print("\t--thread : enable threading (Main file ONLY)");
 	print("\t--sleep : enable sleep method");
 	print("\t--get-length : enable \"length\" examples");
 	print("\t--casting : enable data type conversion methods");

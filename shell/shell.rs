@@ -74,7 +74,7 @@ fn get_help(type_of_help: &str)
 
 fn banner()
 {
-	let version = "0.0.15";
+	let version = "0.0.16";
 //	String cplV = getCplV();
 	let the_os = get_os();
 //	println!(cplV);
@@ -151,19 +151,42 @@ fn clear()
 		.expect("clear command failed to start");
 }
 
+fn conver_vars_for_struct(vars: &str) -> String
+{
+	let mut new: String;
+	let mut new_struct_vars = String::new();
+	let lines = vars.lines();
+	for line in lines {
+		new = split_after(line,' ');
+		new = split_before(&new,';');
+		new_struct_vars.push_str(&new);
+		new_struct_vars.push_str(",\n");
+	}
+	new_struct_vars.pop();
+	new_struct_vars.pop();
+	new_struct_vars.push_str("\n");
+	return new_struct_vars;
+}
+
 fn get_struct(name: &str, content: &str) -> String
 {
 	let mut complete = String::new();
 	let the_name = split_after(name,':');
-	let struct_var = gen_code("\t",content);
+	let mut struct_var = gen_code("\t",content);
+	struct_var = conver_vars_for_struct(&struct_var);
 	complete.push_str("struct ");
 	complete.push_str(&the_name);
 	complete.push_str(" {");
 	if struct_var.is_empty() == false
 	{
+		complete.push_str("\n");
 		complete.push_str(&struct_var);
 	}
-	complete.push_str("\n}\n");
+	else
+	{
+		complete.push_str("\n");
+	}
+	complete.push_str("}\n");
 	return complete;
 }
 
@@ -336,8 +359,8 @@ fn get_variables(the_tabs: &str, input: &str) -> String
 		new_var.push_str(&the_tabs);
 		new_var.push_str("let ");
 		new_var.push_str(&name);
-//		new_var.push_str(":");
-//		new_var.push_str(&var_type);
+		new_var.push_str(": ");
+		new_var.push_str(&var_type);
 		new_var.push_str(";\n");
 	}
 	else if var_type.is_empty()
