@@ -6,7 +6,7 @@ fn help()
 {
 	println!("Author: Joespider");
 	println!("Program: \"newRust\"");
-	println!("Version: 0.1.22");
+	println!("Version: 0.1.23");
 	println!("Purpose: make new Rust programs");
 	println!("Usage: newRust <args>");
 	println!("\t--user <username> : get username for help page");
@@ -24,7 +24,7 @@ fn help()
 	println!("\t--write-file : enable \"write\" file method");
 	println!("\t--read-file : enable \"read\" file method");
 	println!("\t--is-in : enable string contains methods");
-	println!("\t--user-input : enable \"Raw_Input\" file method");
+	println!("\t--user-input : enable \"raw_input\" file method");
 	println!("\t--split : enable split");
 	println!("\t--join : enable join");
 	println!("\t--thread : enable threading (Main file and project ONLY)");
