@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.0.20";
+String Version = "0.0.21";
 
 String getOS();
 void Help(String Type);
@@ -236,47 +236,20 @@ int len(std::vector<String> Vect)
 
 String SplitBefore(String Str, char splitAt)
 {
-	bool Show = true;
 	String newString;
-	int end = Str.length();
-	if (end != 0)
-	{
-		for (int lp = 0; lp != end; lp++)
-		{
-			if (Str[lp] == splitAt)
-			{
-				break;
-			}
-			else
-			{
-				newString = newString+Str[lp];
-			}
-	}
-	}
+	std::size_t pos = Str.find(splitAt);
+	newString = Str.substr(0,pos);
 	return newString;
 }
 
 String SplitAfter(String Str, char splitAt)
 {
-	bool Show = false;
 	String newString;
-	int end = Str.length();
-	if (end != 0)
-	{
-		for (int lp = 0; lp != end; lp++)
-		{
-			if (Show == true)
-			{
-				newString = newString+Str[lp];
-			}
-			if ((Str[lp] == splitAt) && (Show != true))
-			{
-				Show = true;
-			}
-		}
-	}
+	std::size_t pos = Str.find(splitAt);
+	newString = Str.substr(pos + 1);
 	return newString;
 }
+
 /*
 std::vector<String> split(String message, char by)
 {
