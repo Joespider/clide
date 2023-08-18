@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.0.21";
+String Version = "0.0.22";
 
 String getOS();
 void Help(String Type);
@@ -33,8 +33,9 @@ int len(std::vector<String> Vect);
 String SplitBefore(String Str, char splitAt);
 String SplitAfter(String Str, char splitAt);
 /*
+String SplitBefore(String Str, char splitAt);
+String SplitAfter(String Str, char splitAt);
 std::vector<String> split(String message, char by);
-std::vector<String> split(String message, String by);
 std::vector<String> split(String message, String by, int at);
 std::vector<String> rsplit(String message, String by, int at);
 */
@@ -251,9 +252,25 @@ String SplitAfter(String Str, char splitAt)
 }
 
 /*
+String SplitBefore(String Str, char splitAt)
+{
+	String newString;
+	std::size_t pos = Str.find(splitAt);
+	newString = Str.substr(0,pos);
+	return newString;
+}
+
+String SplitAfter(String Str, char splitAt)
+{
+	String newString;
+	std::size_t pos = Str.find(splitAt);
+	newString = Str.substr(pos + 1);
+	return newString;
+}
+
 std::vector<String> split(String message, char by)
 {
-	std::vector <String> vArray;
+	std::vector<String> vArray;
 	std::stringstream ss(message);
 	String item;
 	while (std::getline(ss,item,by))
@@ -263,193 +280,58 @@ std::vector<String> split(String message, char by)
 	return vArray;
 }
 
-std::vector<String> split(String message, String by)
+std::vector<String> split(String message, String by, int at=0)
 {
 	std::vector <String> vArray;
-	int end = message.length();
-	int subLen = by.length();
-	String item;
-	String Push;
-	bool LetsPush = false;
-	bool LeftOver = false;
-	for (int lp = 0; lp != end; lp++)
+	String sub;
+	int offset = by.length();
+	std::size_t pos = message.find(by);
+	if (at >= 1)
 	{
-		for (int plc = 0; plc != subLen; plc++)
+		for (int off = 1; off != at; off++)
 		{
-			item = item + message[lp+plc];
+			pos = message.find(by,pos+off);
 		}
-
-		if (item == by)
-		{
-			LetsPush = true;
-			//jump length of sub string
-			lp += subLen;
-			if (lp >= end)
-			{
-				LeftOver = true;
-				break;
-			}
-		}
-
-		//push new string to vector
-		if (LetsPush == true)
-		{
-			LetsPush = false;
-			vArray.push_back(Push);
-			Push = "";
-		}
-
-		if (LetsPush == false)
-		{
-			Push = Push + message[lp];
-		}
-		item = "";
+		sub = message.substr(0,pos);
+		vArray.push_back(sub);
+		sub = message.substr(pos + offset);
+		vArray.push_back(sub);
 	}
-
-	if ((LetsPush == true) || (Push != ""))
+	else
 	{
-		LetsPush = false;
-		vArray.push_back(Push);
-	}
-
-	if (LeftOver == true)
-	{
-		vArray.push_back("");
+		while (pos != String::npos)
+		{
+			sub = message.substr(0,pos);
+			vArray.push_back(sub);
+			message = message.substr(pos+offset);
+			pos = message.find(by);
+		}
+		vArray.push_back(message);
 	}
 	return vArray;
 }
 
-std::vector<String> split(String message, String by, int at)
-{
-	std::vector<String> vArray;
-	int end = message.length();
-	int subLen = by.length();
-	int num = 0;
-	String item;
-	String Push;
-	bool LetsPush = false;
-	bool LeftOver = false;
-	for (int lp = 0; lp != end; lp++)
-	{
-		for (int plc = 0; plc != subLen; plc++)
-		{
-			item = item + message[lp+plc];
-		}
-
-		if ((item == by) && (num != at))
-		{
-			LetsPush = true;
-			//jump length of sub string
-			lp += subLen;
-			if (lp >= end)
-			{
-				LeftOver = true;
-				break;
-			}
-		}
-
-		//push new string to vector
-		if (LetsPush == true)
-		{
-			LetsPush = false;
-			num++;
-			vArray.push_back(Push);
-			Push = "";
-		}
-
-		if (LetsPush == false)
-		{
-			Push = Push + message[lp];
-		}
-		item = "";
-	}
-
-	if ((LetsPush == true) || (Push != ""))
-	{
-		LetsPush = false;
-		vArray.push_back(Push);
-	}
-
-	if (LeftOver == true)
-	{
-		vArray.push_back("");
-	}
-	return vArray;
-}
-
-std::vector<String> rsplit(String message, String by, int at)
+std::vector<String> rsplit(String message, String by, int at=1)
 {
 	std::vector <String> vArray;
-	int end = message.length();
-	int subLen = by.length();
-	int place = (end - 1);
-	int num = 0;
-	String Tmp[at+1];
-	int tmpSize = sizeof(Tmp)/sizeof(Tmp[0]);
-	int tmpPlc = (tmpSize - 1);
-	String item;
-	String Push;
-	bool LetsPush = false;
-	bool LeftOver = false;
-
-	for (int lp = 0; lp != end; lp++)
+	String sub;
+	int offset = by.length();
+	std::size_t pos = message.rfind(by);
+	if (at > 1)
 	{
-		for (int plc = 0; plc != subLen; plc++)
+		for (int off = 1; off != at; off++)
 		{
-			item = message[place-plc] + item;
+			pos = message.rfind(by,pos-off);
 		}
-
-		if ((item == by) && (num != at))
-		{
-			LetsPush = true;
-			num++;
-			//jump length of sub string
-			place -= subLen;
-			lp += subLen;
-			if (lp >= end)
-			{
-				LeftOver = true;
-				break;
-			}
-		}
-
-		//push new string to vector
-		if (LetsPush == true)
-		{
-			LetsPush = false;
-			Tmp[tmpPlc] = Push;
-			tmpPlc -= 1;
-			Push = "";
-		}
-
-		if (LetsPush == false)
-		{
-			Push = message[place] + Push;
-		}
-		item = "";
-		place -= 1;
 	}
-
-	if ((LetsPush == true) || (Push != ""))
-	{
-		LetsPush = false;
-		Tmp[tmpPlc] = Push;
-		tmpPlc -= 1;
-	}
-
-	if (LeftOver == true)
-	{
-		Tmp[tmpPlc] = "";
-		tmpPlc -= 1;
-	}
-
-	for (int srch = 0; srch != tmpSize; srch++)
-	{
-		vArray.push_back(Tmp[srch]);
-	}
+	sub = message.substr(0,pos);
+	vArray.push_back(sub);
+	sub = message.substr(pos + offset);
+	vArray.push_back(sub);
 	return vArray;
 }
 */
+
 void banner()
 {
 	String cplV = getCplV();
