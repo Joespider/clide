@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.0.22";
+String Version = "0.0.23";
 
 String getOS();
 void Help(String Type);
@@ -202,7 +202,6 @@ bool IsIn(String Str, String Sub)
 	}
 	return found;
 }
-
 //Check if string begins with substring
 bool StartsWith(String Str, String Start)
 {
@@ -238,99 +237,32 @@ int len(std::vector<String> Vect)
 String SplitBefore(String Str, char splitAt)
 {
 	String newString;
-	std::size_t pos = Str.find(splitAt);
-	newString = Str.substr(0,pos);
+	int end = Str.length();
+	if (end != 0)
+	{
+		std::size_t pos = Str.find(splitAt);
+		if (pos != String::npos)
+		{
+			newString = Str.substr(0,pos);
+		}
+	}
 	return newString;
 }
 
 String SplitAfter(String Str, char splitAt)
 {
 	String newString;
-	std::size_t pos = Str.find(splitAt);
-	newString = Str.substr(pos + 1);
-	return newString;
-}
-
-/*
-String SplitBefore(String Str, char splitAt)
-{
-	String newString;
-	std::size_t pos = Str.find(splitAt);
-	newString = Str.substr(0,pos);
-	return newString;
-}
-
-String SplitAfter(String Str, char splitAt)
-{
-	String newString;
-	std::size_t pos = Str.find(splitAt);
-	newString = Str.substr(pos + 1);
-	return newString;
-}
-
-std::vector<String> split(String message, char by)
-{
-	std::vector<String> vArray;
-	std::stringstream ss(message);
-	String item;
-	while (std::getline(ss,item,by))
+	int end = Str.length();
+	if (end != 0)
 	{
-		vArray.push_back(item);
-	}
-	return vArray;
-}
-
-std::vector<String> split(String message, String by, int at=0)
-{
-	std::vector <String> vArray;
-	String sub;
-	int offset = by.length();
-	std::size_t pos = message.find(by);
-	if (at >= 1)
-	{
-		for (int off = 1; off != at; off++)
+		std::size_t pos = Str.find(splitAt);
+		if (pos != String::npos)
 		{
-			pos = message.find(by,pos+off);
-		}
-		sub = message.substr(0,pos);
-		vArray.push_back(sub);
-		sub = message.substr(pos + offset);
-		vArray.push_back(sub);
-	}
-	else
-	{
-		while (pos != String::npos)
-		{
-			sub = message.substr(0,pos);
-			vArray.push_back(sub);
-			message = message.substr(pos+offset);
-			pos = message.find(by);
-		}
-		vArray.push_back(message);
-	}
-	return vArray;
-}
-
-std::vector<String> rsplit(String message, String by, int at=1)
-{
-	std::vector <String> vArray;
-	String sub;
-	int offset = by.length();
-	std::size_t pos = message.rfind(by);
-	if (at > 1)
-	{
-		for (int off = 1; off != at; off++)
-		{
-			pos = message.rfind(by,pos-off);
+			newString = Str.substr(pos + 1);
 		}
 	}
-	sub = message.substr(0,pos);
-	vArray.push_back(sub);
-	sub = message.substr(pos + offset);
-	vArray.push_back(sub);
-	return vArray;
+	return newString;
 }
-*/
 
 void banner()
 {
@@ -376,6 +308,7 @@ String Class(String TheName, String Content)
 		{
 			ClassContent = ClassContent + GenCode("\t",Content);
 		}
+
 		Content = SplitAfter(Content,' ');
 	}
 
