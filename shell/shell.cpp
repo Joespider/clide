@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.0.20";
+String Version = "0.0.25";
 
 String getOS();
 void Help(String Type);
@@ -33,8 +33,9 @@ int len(std::vector<String> Vect);
 String SplitBefore(String Str, char splitAt);
 String SplitAfter(String Str, char splitAt);
 /*
+String SplitBefore(String Str, char splitAt);
+String SplitAfter(String Str, char splitAt);
 std::vector<String> split(String message, char by);
-std::vector<String> split(String message, String by);
 std::vector<String> split(String message, String by, int at);
 std::vector<String> rsplit(String message, String by, int at);
 */
@@ -201,7 +202,6 @@ bool IsIn(String Str, String Sub)
 	}
 	return found;
 }
-
 //Check if string begins with substring
 bool StartsWith(String Str, String Start)
 {
@@ -236,247 +236,34 @@ int len(std::vector<String> Vect)
 
 String SplitBefore(String Str, char splitAt)
 {
-	bool Show = true;
 	String newString;
 	int end = Str.length();
 	if (end != 0)
 	{
-		for (int lp = 0; lp != end; lp++)
+		std::size_t pos = Str.find(splitAt);
+		if (pos != String::npos)
 		{
-			if (Str[lp] == splitAt)
-			{
-				break;
-			}
-			else
-			{
-				newString = newString+Str[lp];
-			}
-	}
+			newString = Str.substr(0,pos);
+		}
 	}
 	return newString;
 }
 
 String SplitAfter(String Str, char splitAt)
 {
-	bool Show = false;
 	String newString;
 	int end = Str.length();
 	if (end != 0)
 	{
-		for (int lp = 0; lp != end; lp++)
+		std::size_t pos = Str.find(splitAt);
+		if (pos != String::npos)
 		{
-			if (Show == true)
-			{
-				newString = newString+Str[lp];
-			}
-			if ((Str[lp] == splitAt) && (Show != true))
-			{
-				Show = true;
-			}
+			newString = Str.substr(pos + 1);
 		}
 	}
 	return newString;
 }
-/*
-std::vector<String> split(String message, char by)
-{
-	std::vector <String> vArray;
-	std::stringstream ss(message);
-	String item;
-	while (std::getline(ss,item,by))
-	{
-		vArray.push_back(item);
-	}
-	return vArray;
-}
 
-std::vector<String> split(String message, String by)
-{
-	std::vector <String> vArray;
-	int end = message.length();
-	int subLen = by.length();
-	String item;
-	String Push;
-	bool LetsPush = false;
-	bool LeftOver = false;
-	for (int lp = 0; lp != end; lp++)
-	{
-		for (int plc = 0; plc != subLen; plc++)
-		{
-			item = item + message[lp+plc];
-		}
-
-		if (item == by)
-		{
-			LetsPush = true;
-			//jump length of sub string
-			lp += subLen;
-			if (lp >= end)
-			{
-				LeftOver = true;
-				break;
-			}
-		}
-
-		//push new string to vector
-		if (LetsPush == true)
-		{
-			LetsPush = false;
-			vArray.push_back(Push);
-			Push = "";
-		}
-
-		if (LetsPush == false)
-		{
-			Push = Push + message[lp];
-		}
-		item = "";
-	}
-
-	if ((LetsPush == true) || (Push != ""))
-	{
-		LetsPush = false;
-		vArray.push_back(Push);
-	}
-
-	if (LeftOver == true)
-	{
-		vArray.push_back("");
-	}
-	return vArray;
-}
-
-std::vector<String> split(String message, String by, int at)
-{
-	std::vector<String> vArray;
-	int end = message.length();
-	int subLen = by.length();
-	int num = 0;
-	String item;
-	String Push;
-	bool LetsPush = false;
-	bool LeftOver = false;
-	for (int lp = 0; lp != end; lp++)
-	{
-		for (int plc = 0; plc != subLen; plc++)
-		{
-			item = item + message[lp+plc];
-		}
-
-		if ((item == by) && (num != at))
-		{
-			LetsPush = true;
-			//jump length of sub string
-			lp += subLen;
-			if (lp >= end)
-			{
-				LeftOver = true;
-				break;
-			}
-		}
-
-		//push new string to vector
-		if (LetsPush == true)
-		{
-			LetsPush = false;
-			num++;
-			vArray.push_back(Push);
-			Push = "";
-		}
-
-		if (LetsPush == false)
-		{
-			Push = Push + message[lp];
-		}
-		item = "";
-	}
-
-	if ((LetsPush == true) || (Push != ""))
-	{
-		LetsPush = false;
-		vArray.push_back(Push);
-	}
-
-	if (LeftOver == true)
-	{
-		vArray.push_back("");
-	}
-	return vArray;
-}
-
-std::vector<String> rsplit(String message, String by, int at)
-{
-	std::vector <String> vArray;
-	int end = message.length();
-	int subLen = by.length();
-	int place = (end - 1);
-	int num = 0;
-	String Tmp[at+1];
-	int tmpSize = sizeof(Tmp)/sizeof(Tmp[0]);
-	int tmpPlc = (tmpSize - 1);
-	String item;
-	String Push;
-	bool LetsPush = false;
-	bool LeftOver = false;
-
-	for (int lp = 0; lp != end; lp++)
-	{
-		for (int plc = 0; plc != subLen; plc++)
-		{
-			item = message[place-plc] + item;
-		}
-
-		if ((item == by) && (num != at))
-		{
-			LetsPush = true;
-			num++;
-			//jump length of sub string
-			place -= subLen;
-			lp += subLen;
-			if (lp >= end)
-			{
-				LeftOver = true;
-				break;
-			}
-		}
-
-		//push new string to vector
-		if (LetsPush == true)
-		{
-			LetsPush = false;
-			Tmp[tmpPlc] = Push;
-			tmpPlc -= 1;
-			Push = "";
-		}
-
-		if (LetsPush == false)
-		{
-			Push = message[place] + Push;
-		}
-		item = "";
-		place -= 1;
-	}
-
-	if ((LetsPush == true) || (Push != ""))
-	{
-		LetsPush = false;
-		Tmp[tmpPlc] = Push;
-		tmpPlc -= 1;
-	}
-
-	if (LeftOver == true)
-	{
-		Tmp[tmpPlc] = "";
-		tmpPlc -= 1;
-	}
-
-	for (int srch = 0; srch != tmpSize; srch++)
-	{
-		vArray.push_back(Tmp[srch]);
-	}
-	return vArray;
-}
-*/
 void banner()
 {
 	String cplV = getCplV();
@@ -521,6 +308,7 @@ String Class(String TheName, String Content)
 		{
 			ClassContent = ClassContent + GenCode("\t",Content);
 		}
+
 		Content = SplitAfter(Content,' ');
 	}
 
@@ -532,11 +320,22 @@ String Method(String Tabs, String Name, String Content)
 {
 	String Complete = "";
 	Name = SplitAfter(Name,':');
-	String TheName = SplitBefore(Name,'-');
-	String Type = SplitAfter(Name,'-');
+	String TheName = "";
+	String Type = "";
 	String Params = "";
 	String MethodContent = "";
 	String LastComp = "";
+
+	if (IsIn(Name,"-"))
+	{
+		TheName = SplitBefore(Name,'-');
+		Type = SplitAfter(Name,'-');
+	}
+	else
+	{
+		TheName = Name;
+	}
+
 	while (Content != "")
 	{
 		if (StartsWith(Content, "params"))
@@ -667,11 +466,21 @@ String Parameters(String input,String CalledBy)
 String Loop(String Tabs, String TheKindType, String Content)
 {
 	String Complete = "";
-	TheKindType = SplitAfter(TheKindType,':');
-	String TheName = SplitBefore(TheKindType,'-');
-	String Type = SplitAfter(TheKindType,'-');
+	String TheName = "";
+	String Type = "";
 	String TheCondition = "";
 	String LoopContent = "";
+
+	if (IsIn(TheKindType,":"))
+	{
+		TheKindType = SplitAfter(TheKindType,':');
+	}
+
+	if (IsIn(TheKindType,"-"))
+	{
+		TheName = SplitBefore(TheKindType,'-');
+		Type = SplitAfter(TheKindType,'-');
+	}
 
 	while (Content != "")
 	{
@@ -682,10 +491,17 @@ String Loop(String Tabs, String TheKindType, String Content)
 		}
 		else if ((!StartsWith(Content, "method")) && (!StartsWith(Content, "class")) && (StartsWith(Content, "nest-")))
 		{
-			Content = SplitAfter(Content,'-');
+			if (IsIn(Content,"-"))
+			{
+				Content = SplitAfter(Content,'-');
+			}
 			LoopContent = LoopContent + GenCode(Tabs+"\t",Content);
 		}
-		Content = SplitAfter(Content,' ');
+
+		if (IsIn(Content," "))
+		{
+			Content = SplitAfter(Content,' ');
+		}
 	}
 
 	if (TheKindType == "for")
@@ -706,11 +522,21 @@ String Loop(String Tabs, String TheKindType, String Content)
 String Logic(String Tabs, String TheKindType, String Content)
 {
 	String Complete = "";
-	TheKindType = SplitAfter(TheKindType,':');
-	String TheName = SplitBefore(TheKindType,'-');
-	String Type = SplitAfter(TheKindType,'-');
+	String TheName = "";
+	String Type = "";
 	String TheCondition = "";
 	String LogicContent = "";
+
+	if (IsIn(TheKindType,":"))
+	{
+		TheKindType = SplitAfter(TheKindType,':');
+	}
+
+	if (IsIn(TheKindType,"-"))
+	{
+		TheName = SplitBefore(TheKindType,'-');
+		Type = SplitAfter(TheKindType,'-');
+	}
 
 	while (Content != "")
 	{
@@ -720,10 +546,16 @@ String Logic(String Tabs, String TheKindType, String Content)
 		}
 		else if ((!StartsWith(Content, "method")) && (!StartsWith(Content, "class")) && (StartsWith(Content, "nest-")))
 		{
-			Content = SplitAfter(Content,'-');
+			if (IsIn(Content,"-"))
+			{
+				Content = SplitAfter(Content,'-');
+			}
 			LogicContent = LogicContent + GenCode(Tabs+"\t",Content);
 		}
-		Content = SplitAfter(Content,' ');
+		if (IsIn(Content," "))
+		{
+			Content = SplitAfter(Content,' ');
+		}
 	}
 
 	if (TheKindType == "if")
@@ -757,7 +589,11 @@ String Logic(String Tabs, String TheKindType, String Content)
 			{
 				Complete = Complete+Tabs+"\tcase "+CaseVal+":\n"+Tabs+"\t\t//code here\n"+Tabs+"\t\tbreak;\n";
 			}
-			CaseContent = SplitAfter(CaseContent,'-');
+
+			if (IsIn(CaseContent,"-"))
+			{
+				CaseContent = SplitAfter(CaseContent,'-');
+			}
 		}
 		Complete = Complete+Tabs+"\tdefault:\n"+Tabs+"\t\t//code here\n"+Tabs+"\t\tbreak;\n"+Tabs+"}\n";
 	}
@@ -768,8 +604,18 @@ String GenCode(String Tabs,String GetMe)
 {
 	String TheCode = "";
 	String Args[2];
-	Args[0] = SplitBefore(GetMe,' ');
-	Args[1] = SplitAfter(GetMe,' ');
+
+	if (IsIn(GetMe," "))
+	{
+		Args[0] = SplitBefore(GetMe,' ');
+		Args[1] = SplitAfter(GetMe,' ');
+	}
+	else
+	{
+		Args[0] = GetMe;
+		Args[1] = "";
+	}
+
 	if (StartsWith(Args[0], "class"))
 	{
 		TheCode = Class(Args[0],Args[1]);
@@ -808,15 +654,32 @@ String GenCode(String Tabs,String GetMe)
 	return TheCode;
 }
 
-//C++ Main
-int main()
+//C++ Main...with cli arguments
+int main(int argc, char** argv)
 {
-	banner();
+	//Args were NOT given
+	if (argc == 1)
+	{
+		banner();
+	}
 	String UserIn = "";
 	String Content = "";
 	while (true)
 	{
-		UserIn = raw_input(">>> ");
+		//Args were given
+		if (argc > 1)
+		{
+			UserIn = String(argv[1]);
+			for (int lp = 2; lp < argc; lp++)
+			{
+				UserIn = UserIn + " " + String(argv[lp]);
+			}
+		}
+		else
+		{
+			UserIn = raw_input(">>> ");
+		}
+
 		if (UserIn == "exit()")
 		{
 			break;
@@ -840,6 +703,12 @@ int main()
 			{
 				print(Content);
 			}
+		}
+
+		//Args were given
+		if (argc > 1)
+		{
+			break;
 		}
 	}
 	return 0;

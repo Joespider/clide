@@ -9,8 +9,10 @@
 //Convert std::string to String
 #define String std::string
 
+String ProgName = "";
+
 static void help();
-static String getHelp(String TheName, String TheUser);
+static String getHelp(String TheUser);
 static String getMacros(bool* Conv, bool* getLen);
 static String getImports(bool* fcheck, bool* write, bool* read, bool* random, bool* pipe, bool* shell, bool* threads, bool* sleep, bool* prop, bool* Split, bool* Join, bool* Rev, bool* Vect, bool* Math, bool* getFS);
 static String getMethodDec(bool* rawinput, bool* rand, bool* fcheck, bool* write, bool* read, bool* isin, bool* shell, bool* sleep, bool* prop, bool* Split, bool* Join, bool* Rev, bool* Conv, bool* subStr, bool* getLen, bool* getUpper, bool* getLower, bool* getFS);
@@ -22,8 +24,7 @@ bool IsIn(String Str, String Sub);
 
 static void help()
 {
-	String ProgName = "newC++";
-	String Version = "0.1.61";
+	String Version = "0.1.65";
 	print("Author: Joespider");
 	print("Program: \"" << ProgName << "\"");
 	print("Version: " << Version);
@@ -61,14 +62,15 @@ static void help()
 	print("\t--date-time : enable date and time");
 }
 
-static String getHelp(String TheName, String TheUser)
+static String getHelp(String TheUser)
 {
 	if (TheUser == "")
 	{
 		TheUser = std::getenv("USER");
 	}
 	String HelpDeclare = "static void help();\n";
-	String HelpMethod = "static void help()\n{\n\tString TheName = \""+TheName+"\";\n\tString Version = \"0.0.0\";\n\tprint(\"Author: "+TheUser+"\");\n\tprint(\"Program: \\\"\" << TheName << \"\\\"\");\n\tprint(\"Version: \" << Version);\n\tprint(\"Purpose: \");\n\tprint(\"Usage: \" << TheName << \" <args>\");\n}\n\n";
+	String HelpMethod = "String TheName = \"\";\n";
+	HelpMethod = HelpMethod +"static void help()\n{\n\tString Version = \"0.0.0\";\n\tprint(\"Author: "+TheUser+"\");\n\tprint(\"Program: \\\"\" << TheName << \"\\\"\");\n\tprint(\"Version: \" << Version);\n\tprint(\"Purpose: \");\n\tprint(\"Usage: \" << TheName << \" <args>\");\n}\n\n";
 	return HelpDeclare+"\n"+HelpMethod;
 }
 
@@ -251,7 +253,6 @@ static String getMethodDec(bool* rawinput, bool* rand, bool* fcheck, bool* write
 		Declaration = Declaration+"String SplitBefore(String Str, char splitAt);\n";
 		Declaration = Declaration+"String SplitAfter(String Str, char splitAt);\n";
 		Declaration = Declaration+"std::vector<String> split(String message, char by);\n";
-		Declaration = Declaration+"std::vector<String> split(String message, String by);\n";
 		Declaration = Declaration+"std::vector<String> split(String message, String by, int at);\n";
 		Declaration = Declaration+"std::vector<String> rsplit(String message, String by, int at);\n";
 	}
@@ -382,12 +383,11 @@ static String getMethods(bool* rawinput, bool* rand, bool* fcheck, bool* write, 
 	}
 	if (*Split == true)
 	{
-		StrSplit = "String SplitBefore(String Str, char splitAt)\n{\n\tbool Show = true;\n\tString newString;\n\tint end = Str.length();\n\tif (end != 0)\n\t{\n\t\tfor (int lp = 0; lp != end; lp++)\n\t\t{\n\t\t\tif (Str[lp] == splitAt)\n\t\t\t{\n\t\t\t\tbreak;\n\t\t\t}\n\t\t\telse\n\t\t\t{\n\t\t\t\tnewString = newString+Str[lp];\n\t\t\t}\n\t\t}\n\t}\n\treturn newString;\n}\n\n";
-		StrSplit = StrSplit+"String SplitAfter(String Str, char splitAt)\n{\n\tbool Show = false;\n\tString newString;\n\tint end = Str.length();\n\tif (end != 0)\n\t{\n\t\tfor (int lp = 0; lp != end; lp++)\n\t\t{\n\t\t\tif (Show == true)\n\t\t\t{\n\t\t\t\tnewString = newString+Str[lp];\n\t\t\t}\n\t\t\tif ((Str[lp] == splitAt) && (Show != true))\n\t\t\t{\n\t\t\t\tShow = true;\n\t\t\t}\n\t\t}\n\t}\n\treturn newString;\n}\n\n";
+		StrSplit = "String SplitBefore(String Str, char splitAt)\n{\n\tString newString;\n\tint end = Str.length();\n\tif (end != 0)\n\t{\n\t\tstd::size_t pos = Str.find(splitAt);\n\t\tif (pos != String::npos)\n\t\t{\n\t\t\tnewString = Str.substr(0,pos);\n\t\t}\n\t}\n\treturn newString;\n}\n\n";
+		StrSplit = StrSplit+"String SplitAfter(String Str, char splitAt)\n{\n\tString newString;\n\tint end = Str.length();\n\tif (end != 0)\n\t{\n\t\tstd::size_t pos = Str.find(splitAt);\n\t\tif (pos != String::npos)\n\t\t{\n\t\t\tnewString = Str.substr(pos + 1);\n\t\t}\n\t}\n\treturn newString;\n}\n\n";
 		StrSplit = StrSplit+"std::vector<String> split(String message, char by)\n{\n\tstd::vector<String> vArray;\n\tstd::stringstream ss(message);\n\tString item;\n\twhile (std::getline(ss,item,by))\n\t{\n\t\tvArray.push_back(item);\n\t}\n\treturn vArray;\n}\n\n";
-		StrSplit = StrSplit+"std::vector<String> split(String message, String by)\n{\n\tstd::vector<String> vArray;\n\tint end = message.length();\n\tint subLen = by.length();\n\tString item;\n\tString Push;\n\tbool LetsPush = false;\n\tbool LeftOver = false;\n\tfor (int lp = 0; lp != end; lp++)\n\t{\n\t\tfor (int plc = 0; plc != subLen; plc++)\n\t\t{\n\t\t\titem = item + message[lp+plc];\n\t\t}\n\n\t\tif (item == by)\n\t\t{\n\t\t\tLetsPush = true;\n\t\t\t//jump length of sub string\n\t\t\tlp += subLen;\n\t\t\tif (lp >= end)\n\t\t\t{\n\t\t\t\tLeftOver = true;\n\t\t\t\tbreak;\n\t\t\t}\n\t\t}\n\n\t\t//push new string to vector\n\t\tif (LetsPush == true)\n\t\t{\n\t\t\tLetsPush = false;\n\t\t\tvArray.push_back(Push);\n\t\t\tPush = \"\";\n\t\t}\n\n\t\tif (LetsPush == false)\n\t\t{\n\t\t\tPush = Push + message[lp];\n\t\t}\n\t\titem = \"\";\n\t}\n\n\tif ((LetsPush == true) || (Push != \"\"))\n\t{\n\t\tLetsPush = false;\n\t\tvArray.push_back(Push);\n\t}\n\n\tif (LeftOver == true)\n\t{\n\t\tvArray.push_back(\"\");\n\t}\n\treturn vArray;\n}\n\n";
-		StrSplit = StrSplit+"std::vector<String> split(String message, String by, int at)\n{\n\tstd::vector<String> vArray;\n\tint end = message.length();\n\tint subLen = by.length();\n\tint num = 0;\n\tString item;\n\tString Push;\n\tbool LetsPush = false;\n\tbool LeftOver = false;\n\tfor (int lp = 0; lp != end; lp++)\n\t{\n\t\tfor (int plc = 0; plc != subLen; plc++)\n\t\t{\n\t\t\titem = item + message[lp+plc];\n\t\t}\n\n\t\tif ((item == by) && (num != at))\n\t\t{\n\t\t\tLetsPush = true;\n\t\t\t//jump length of sub string\n\t\t\tlp += subLen;\n\t\t\tif (lp >= end)\n\t\t\t{\n\t\t\t\tLeftOver = true;\n\t\t\t\tbreak;\n\t\t\t}\n\t\t}\n\n\t\t//push new string to vector\n\t\tif (LetsPush == true)\n\t\t{\n\t\t\tLetsPush = false;\n\t\t\tnum++;\n\t\t\tvArray.push_back(Push);\n\t\t\tPush = \"\";\n\t\t}\n\n\t\tif (LetsPush == false)\n\t\t{\n\t\t\tPush = Push + message[lp];\n\t\t}\n\t\titem = \"\";\n\t}\n\n\tif ((LetsPush == true) || (Push != \"\"))\n\t{\n\t\tLetsPush = false;\n\t\tvArray.push_back(Push);\n\t}\n\n\tif (LeftOver == true)\n\t{\n\t\tvArray.push_back(\"\");\n\t}\n\treturn vArray;\n}\n\n";
-		StrSplit = StrSplit+"std::vector<String> rsplit(String message, String by, int at)\n{\n\tstd::vector<String> vArray;\n\tint end = message.length();\n\tint subLen = by.length();\n\tint place = (end - 1);\n\tint num = 0;\n\tString Tmp[at+1];\n\tint tmpSize = sizeof(Tmp)/sizeof(Tmp[0]);\n\tint tmpPlc = (tmpSize - 1);\n\tString item;\n\tString Push;\n\tbool LetsPush = false;\n\tbool LeftOver = false;\n\n\tfor (int lp = 0; lp != end; lp++)\n\t{\n\t\tfor (int plc = 0; plc != subLen; plc++)\n\t\t{\n\t\t\titem = message[place-plc] + item;\n\t\t}\n\n\t\tif ((item == by) && (num != at))\n\t\t{\n\t\t\tLetsPush = true;\n\t\t\tnum++;\n\t\t\t//jump length of sub string\n\t\t\tplace -= subLen;\n\t\t\tlp += subLen;\n\t\t\tif (lp >= end)\n\t\t\t{\n\t\t\t\tLeftOver = true;\n\t\t\t\tbreak;\n\t\t\t}\n\t\t}\n\n\t\t//push new string to vector\n\t\tif (LetsPush == true)\n\t\t{\n\t\t\tLetsPush = false;\n\t\t\tTmp[tmpPlc] = Push;\n\t\t\ttmpPlc -= 1;\n\t\t\tPush = \"\";\n\t\t}\n\n\t\tif (LetsPush == false)\n\t\t{\n\t\t\tPush = message[place] + Push;\n\t\t}\n\t\titem = \"\";\n\t\tplace -= 1;\n\t}\n\n\tif ((LetsPush == true) || (Push != \"\"))\n\t{\n\t\tLetsPush = false;\n\t\tTmp[tmpPlc] = Push;\n\t\ttmpPlc -= 1;\n\t}\n\n\tif (LeftOver == true)\n\t{\n\t\tTmp[tmpPlc] = \"\";\n\t\ttmpPlc -= 1;\n\t}\n\n\tfor (int srch = 0; srch != tmpSize; srch++)\n\t{\n\t\tvArray.push_back(Tmp[srch]);\n\t}\n\treturn vArray;\n}\n\n";
+		StrSplit = StrSplit+"std::vector<String> split(String message, String by, int at=0)\n{\n\tstd::vector <String> vArray;\n\tString sub;\n\tint offset = by.length();\n\tstd::size_t pos = message.find(by);\n\tif (at >= 1)\n\t{\n\t\tfor (int off = 1; off != at; off++)\n\t\t{\n\t\t\tpos = message.find(by,pos+off);\n\t\t}\n\t\tsub = message.substr(0,pos);\n\t\tvArray.push_back(sub);\n\t\tsub = message.substr(pos + offset);\n\t\tvArray.push_back(sub);\n\t}\n\telse\n\t{\n\t\twhile (pos != String::npos)\n\t\t{\n\t\t\tsub = message.substr(0,pos);\n\t\t\tvArray.push_back(sub);\n\t\t\tmessage = message.substr(pos+offset);\n\t\t\tpos = message.find(by);\n\t\t}\n\t\tvArray.push_back(message);\n\t}\n\treturn vArray;\n}\n\n";
+		StrSplit = StrSplit+"std::vector<String> rsplit(String message, String by, int at=1)\n{\n\tstd::vector <String> vArray;\n\tString sub;\n\tint offset = by.length();\n\tstd::size_t pos = message.rfind(by);\n\tif (at > 1)\n\t{\n\t\tfor (int off = 1; off != at; off++)\n\t\t{\n\t\t\tpos = message.rfind(by,pos-off);\n\t\t}\n\t}\n\tsub = message.substr(0,pos);\n\tvArray.push_back(sub);\n\tsub = message.substr(pos + offset);\n\tvArray.push_back(sub);\n\treturn vArray;\n}\n\n";
 	}
 	if (*Join == true)
 	{
@@ -464,7 +464,7 @@ static String getMain(bool* getArgs, bool* getRandom, bool* getPipe, bool* getTh
 
 	if (*getArgs == true)
 	{
-		Main = "//C++ Main...with cli arguments\nint main(int argc, char** argv)\n{\n"+StartRandom+"\tString out = \"\";\n\t//Args were given\n\tif (argc > 1)\n\t{\n\t\t//Loop through Args\n\t\tfor (int i = 1; i < argc; i++)\n\t\t{\n\t\t\tout = String(argv[i]);\n\t\t\tif (out == \"find\")\n\t\t\t{\n\t\t\t\tprint(\"Found\");\n\t\t\t\tbreak;\n\t\t\t}\n\t\t}\n\t}\n\telse\n\t{\n\t\thelp();\n\t}\n\n"+UsePipe+UseThreads+UseVectors+UseMath+"\treturn 0;\n}\n";
+		Main = "//C++ Main...with cli arguments\nint main(int argc, char** argv)\n{\n"+StartRandom+"\tString out = String(argv[0]);\n\n\t//Parsing program name\n\tstd::size_t pos = out.rfind('/');\n\tTheName = out.substr(pos + 1);\n\tout = \"\";\n\n\t//Args were given\n\tif (argc > 1)\n\t{\n\t\t//Loop through Args\n\t\tfor (int i = 1; i < argc; i++)\n\t\t{\n\t\t\tout = String(argv[i]);\n\t\t\tif (out == \"find\")\n\t\t\t{\n\t\t\t\tprint(\"Found\");\n\t\t\t\tbreak;\n\t\t\t}\n\t\t}\n\t}\n\telse\n\t{\n\t\thelp();\n\t}\n\n"+UsePipe+UseThreads+UseVectors+UseMath+"\treturn 0;\n}\n";
 	}
 	else
 	{
@@ -545,7 +545,8 @@ int main(int argc, char** argv)
 	String theUser = "";
 	String theDeclaration = "";
 	String theHelpMethod = "";
-	String UserIn = "";
+	//Getting program path
+	String UserIn = String(argv[0]);
 	String TheExt = ".cpp";
 	String CName = "";
 	String Imports = "";
@@ -553,6 +554,12 @@ int main(int argc, char** argv)
 	String Methods = "";
 	String Main = "";
 	String Content = "";
+
+	//Parsing program name
+	std::size_t pos = UserIn.rfind('/');
+	ProgName = UserIn.substr(pos + 1);
+	UserIn = "";
+
 	if (argc > 1)
 	{
 		//loop through args
@@ -794,7 +801,7 @@ int main(int argc, char** argv)
 					//create help page
 					if (getArgs == true)
 					{
-						theHelpMethod = getHelp(CName,theUser);
+						theHelpMethod = getHelp(theUser);
 					}
 					//generate main file
 					Main = getMain(&getArgs, &getRand, &getPipe, &getThreads, &getVect, &getMath);

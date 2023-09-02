@@ -52,7 +52,7 @@ public class newJava {
 	private static void Help()
 	{
 		String program = "newJava";
-		String version = "0.1.46";
+		String version = "0.1.47";
 		print("Author: Joespider");
 		print("Program: \""+program+"\"");
 		print("Version: "+version);
@@ -544,7 +544,7 @@ public class newJava {
 		}
 		if (getRev == true)
 		{
-			MethodRev.append("\tprivate static String rev(String Str)\n\t{\n\t\tString RevStr = \"\";\n\t\tchar ch;\n\t\tfor (int i=0; i < Str.length(); i++)\n\t\t{\n\t\t\tch = Str.charAt(i);\n\t\t\tRevStr = ch+RevStr;\n\t\t}\n\t\treturn RevStr;\n\t}\n\n");
+			MethodRev.append("\tprivate static String rev(String Str)\n\t{\n\t\tStringBuilder RevStr = new StringBuilder(\"\");\n\t\tchar ch;\n\t\tfor (int i=0; i < Str.length(); i++)\n\t\t{\n\t\t\tch = Str.charAt(i);\n\t\t\tRevStr.insert(0,ch);\n\t\t}\n\t\treturn RevStr.toString();\n\t}\n\n");
 		}
 		if (getShell == true)
 		{

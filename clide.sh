@@ -504,10 +504,11 @@ CodeVersion()
 	fi
 }
 
-CompileAllCodeTemp()
+CompileAllCode()
 {
 	local text
 	local TheLang
+	local Type=$1
 	if [ -d ${LangsDir} ]; then
 		for TheLang in ${LangsDir}/Lang.*;
 		do
@@ -522,7 +523,18 @@ CompileAllCodeTemp()
 						no)
 							;;
 						*)
-							CLI --cpl-ct ${text} | egrep -v "ERROR|HINT"
+							if [ ! -z "${Type}" ]; then
+								case ${Type,,} in
+									shell)
+										CLI --cpl-sh ${text} | egrep -v "ERROR|HINT"
+										;;
+									template)
+										CLI --cpl-ct ${text} | egrep -v "ERROR|HINT"
+										;;
+									*)
+										;;
+								esac
+							fi
 							;;
 					esac
 				fi
@@ -6391,7 +6403,7 @@ CLI()
 					if [ ! -z "${Lang}" ]; then
 						case ${Lang,,} in
 							all)
-								CompileAllCodeTemp
+								CompileAllCode Template
 								Lang="no"
 								;;
 							*)
@@ -6440,7 +6452,15 @@ CLI()
 					local Lang=$1
 					local TheTempCode
 					if [ ! -z "${Lang}" ]; then
-						Lang=$(pgLang $1)
+						case ${Lang,,} in
+							all)
+								CompileAllCode Shell
+								Lang="no"
+								;;
+							*)
+								Lang=$(pgLang $1)
+								;;
+						esac
 
 						case ${Lang} in
 							no)

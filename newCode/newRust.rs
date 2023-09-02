@@ -6,7 +6,7 @@ fn help()
 {
 	println!("Author: Joespider");
 	println!("Program: \"newRust\"");
-	println!("Version: 0.1.22");
+	println!("Version: 0.1.25");
 	println!("Purpose: make new Rust programs");
 	println!("Usage: newRust <args>");
 	println!("\t--user <username> : get username for help page");
@@ -24,7 +24,7 @@ fn help()
 	println!("\t--write-file : enable \"write\" file method");
 	println!("\t--read-file : enable \"read\" file method");
 	println!("\t--is-in : enable string contains methods");
-	println!("\t--user-input : enable \"Raw_Input\" file method");
+	println!("\t--user-input : enable \"raw_input\" file method");
 	println!("\t--split : enable split");
 	println!("\t--join : enable join");
 	println!("\t--thread : enable threading (Main file and project ONLY)");
@@ -44,42 +44,62 @@ fn get_sys_prop(please_get: &str) -> String
 	return value;
 }
 
-fn get_help(thename: String,theuser: String, hasargs: bool) -> String
+fn get_help(theuser: String, hasargs: bool) -> String
 {
 	let mut helpmethod = String::new();
 	if hasargs == true && theuser == ""
 	{
 		let gettheuser = get_sys_prop("USER");
+		helpmethod.push_str("fn get_exec_name() -> Option<String>\n");
+		helpmethod.push_str("{\n");
+		helpmethod.push_str("\tstd::env::current_exe()\n");
+		helpmethod.push_str("\t.ok()\n");
+		helpmethod.push_str("\t.and_then(|pb| pb.file_name().map(|s| s.to_os_string()))\n");
+		helpmethod.push_str("\t.and_then(|s| s.into_string().ok())\n");
+		helpmethod.push_str("}\n");
+		helpmethod.push_str("\n");
 		helpmethod.push_str("fn help()\n");
 		helpmethod.push_str("{\n");
+		helpmethod.push_str("\tlet program_name = get_exec_name().unwrap();\n");
+		helpmethod.push_str("\n");
 		helpmethod.push_str("\tprintln!(\"Author: ");
 		helpmethod.push_str(&gettheuser);
 		helpmethod.push_str("\");\n");
 		helpmethod.push_str("\tprintln!(\"Program: \\\"");
-		helpmethod.push_str(&thename);
-		helpmethod.push_str("\\\"\");\n");
+		helpmethod.push_str("{}");
+		helpmethod.push_str("\\\"\",program_name);\n");
 		helpmethod.push_str("\tprintln!(\"Version: 0.0.0\");\n");
 		helpmethod.push_str("\tprintln!(\"Purpose: \");\n");
 		helpmethod.push_str("\tprintln!(\"Usage: ");
-		helpmethod.push_str(&thename);
-		helpmethod.push_str(" <args>\");\n");
+		helpmethod.push_str("{}");
+		helpmethod.push_str(" <args>\",program_name);\n");
 		helpmethod.push_str("}\n\n");
 	}
 	else if hasargs == true && theuser != ""
 	{
+		helpmethod.push_str("fn get_exec_name() -> Option<String>\n");
+		helpmethod.push_str("{\n");
+		helpmethod.push_str("\tstd::env::current_exe()\n");
+		helpmethod.push_str("\t.ok()\n");
+		helpmethod.push_str("\t.and_then(|pb| pb.file_name().map(|s| s.to_os_string()))\n");
+		helpmethod.push_str("\t.and_then(|s| s.into_string().ok())\n");
+		helpmethod.push_str("}\n");
+		helpmethod.push_str("\n");
 		helpmethod.push_str("fn help()\n");
 		helpmethod.push_str("{\n");
+		helpmethod.push_str("\tlet program_name = get_exec_name().unwrap();\n");
+		helpmethod.push_str("\n");
 		helpmethod.push_str("\tprintln!(\"Author: ");
 		helpmethod.push_str(&theuser);
 		helpmethod.push_str("\");\n");
 		helpmethod.push_str("\tprintln!(\"Program: \\\"");
-		helpmethod.push_str(&thename);
-		helpmethod.push_str("\\\"\");\n");
+		helpmethod.push_str("{}");
+		helpmethod.push_str("\\\"\",program_name);\n");
 		helpmethod.push_str("\tprintln!(\"Version: 0.0.0\");\n");
 		helpmethod.push_str("\tprintln!(\"Purpose: \");\n");
 		helpmethod.push_str("\tprintln!(\"Usage: ");
-		helpmethod.push_str(&thename);
-		helpmethod.push_str(" <args>\");\n");
+		helpmethod.push_str("{}");
+		helpmethod.push_str(" <args>\",program_name);\n");
 		helpmethod.push_str("}\n\n");
 	}
 	else
@@ -397,7 +417,7 @@ fn main()
 		if file_exists == false || no_save == true
 		{
 			let the_imports = get_imports(is_check_file, is_read_file, is_write_file, is_cli, is_pipe, is_prop, is_thread, is_sleep, is_shell);
-			let the_helps = get_help(program_name.to_string(),the_user.to_string(),is_cli);
+			let the_helps = get_help(the_user.to_string(),is_cli);
 			program_name.push_str(".rs");
 			let the_methods = get_methods(is_check_file, is_read_file, is_write_file, get_input_method, is_prop, is_sleep, is_shell, is_rev, is_split, is_in, is_len, is_upper, is_lower);
 			let the_main = get_main(is_main, is_cli, is_pipe, is_thread, is_split, is_join, is_shell);
