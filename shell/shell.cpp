@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.0.23";
+String Version = "0.0.25";
 
 String getOS();
 void Help(String Type);
@@ -320,11 +320,22 @@ String Method(String Tabs, String Name, String Content)
 {
 	String Complete = "";
 	Name = SplitAfter(Name,':');
-	String TheName = SplitBefore(Name,'-');
-	String Type = SplitAfter(Name,'-');
+	String TheName = "";
+	String Type = "";
 	String Params = "";
 	String MethodContent = "";
 	String LastComp = "";
+
+	if (IsIn(Name,"-"))
+	{
+		TheName = SplitBefore(Name,'-');
+		Type = SplitAfter(Name,'-');
+	}
+	else
+	{
+		TheName = Name;
+	}
+
 	while (Content != "")
 	{
 		if (StartsWith(Content, "params"))
@@ -455,11 +466,21 @@ String Parameters(String input,String CalledBy)
 String Loop(String Tabs, String TheKindType, String Content)
 {
 	String Complete = "";
-	TheKindType = SplitAfter(TheKindType,':');
-	String TheName = SplitBefore(TheKindType,'-');
-	String Type = SplitAfter(TheKindType,'-');
+	String TheName = "";
+	String Type = "";
 	String TheCondition = "";
 	String LoopContent = "";
+
+	if (IsIn(TheKindType,":"))
+	{
+		TheKindType = SplitAfter(TheKindType,':');
+	}
+
+	if (IsIn(TheKindType,"-"))
+	{
+		TheName = SplitBefore(TheKindType,'-');
+		Type = SplitAfter(TheKindType,'-');
+	}
 
 	while (Content != "")
 	{
@@ -470,10 +491,17 @@ String Loop(String Tabs, String TheKindType, String Content)
 		}
 		else if ((!StartsWith(Content, "method")) && (!StartsWith(Content, "class")) && (StartsWith(Content, "nest-")))
 		{
-			Content = SplitAfter(Content,'-');
+			if (IsIn(Content,"-"))
+			{
+				Content = SplitAfter(Content,'-');
+			}
 			LoopContent = LoopContent + GenCode(Tabs+"\t",Content);
 		}
-		Content = SplitAfter(Content,' ');
+
+		if (IsIn(Content," "))
+		{
+			Content = SplitAfter(Content,' ');
+		}
 	}
 
 	if (TheKindType == "for")
@@ -494,11 +522,21 @@ String Loop(String Tabs, String TheKindType, String Content)
 String Logic(String Tabs, String TheKindType, String Content)
 {
 	String Complete = "";
-	TheKindType = SplitAfter(TheKindType,':');
-	String TheName = SplitBefore(TheKindType,'-');
-	String Type = SplitAfter(TheKindType,'-');
+	String TheName = "";
+	String Type = "";
 	String TheCondition = "";
 	String LogicContent = "";
+
+	if (IsIn(TheKindType,":"))
+	{
+		TheKindType = SplitAfter(TheKindType,':');
+	}
+
+	if (IsIn(TheKindType,"-"))
+	{
+		TheName = SplitBefore(TheKindType,'-');
+		Type = SplitAfter(TheKindType,'-');
+	}
 
 	while (Content != "")
 	{
@@ -508,10 +546,16 @@ String Logic(String Tabs, String TheKindType, String Content)
 		}
 		else if ((!StartsWith(Content, "method")) && (!StartsWith(Content, "class")) && (StartsWith(Content, "nest-")))
 		{
-			Content = SplitAfter(Content,'-');
+			if (IsIn(Content,"-"))
+			{
+				Content = SplitAfter(Content,'-');
+			}
 			LogicContent = LogicContent + GenCode(Tabs+"\t",Content);
 		}
-		Content = SplitAfter(Content,' ');
+		if (IsIn(Content," "))
+		{
+			Content = SplitAfter(Content,' ');
+		}
 	}
 
 	if (TheKindType == "if")
@@ -545,7 +589,11 @@ String Logic(String Tabs, String TheKindType, String Content)
 			{
 				Complete = Complete+Tabs+"\tcase "+CaseVal+":\n"+Tabs+"\t\t//code here\n"+Tabs+"\t\tbreak;\n";
 			}
-			CaseContent = SplitAfter(CaseContent,'-');
+
+			if (IsIn(CaseContent,"-"))
+			{
+				CaseContent = SplitAfter(CaseContent,'-');
+			}
 		}
 		Complete = Complete+Tabs+"\tdefault:\n"+Tabs+"\t\t//code here\n"+Tabs+"\t\tbreak;\n"+Tabs+"}\n";
 	}
@@ -556,8 +604,18 @@ String GenCode(String Tabs,String GetMe)
 {
 	String TheCode = "";
 	String Args[2];
-	Args[0] = SplitBefore(GetMe,' ');
-	Args[1] = SplitAfter(GetMe,' ');
+
+	if (IsIn(GetMe," "))
+	{
+		Args[0] = SplitBefore(GetMe,' ');
+		Args[1] = SplitAfter(GetMe,' ');
+	}
+	else
+	{
+		Args[0] = GetMe;
+		Args[1] = "";
+	}
+
 	if (StartsWith(Args[0], "class"))
 	{
 		TheCode = Class(Args[0],Args[1]);
@@ -596,15 +654,32 @@ String GenCode(String Tabs,String GetMe)
 	return TheCode;
 }
 
-//C++ Main
-int main()
+//C++ Main...with cli arguments
+int main(int argc, char** argv)
 {
-	banner();
+	//Args were NOT given
+	if (argc == 1)
+	{
+		banner();
+	}
 	String UserIn = "";
 	String Content = "";
 	while (true)
 	{
-		UserIn = raw_input(">>> ");
+		//Args were given
+		if (argc > 1)
+		{
+			UserIn = String(argv[1]);
+			for (int lp = 2; lp < argc; lp++)
+			{
+				UserIn = UserIn + " " + String(argv[lp]);
+			}
+		}
+		else
+		{
+			UserIn = raw_input(">>> ");
+		}
+
 		if (UserIn == "exit()")
 		{
 			break;
@@ -628,6 +703,12 @@ int main()
 			{
 				print(Content);
 			}
+		}
+
+		//Args were given
+		if (argc > 1)
+		{
+			break;
 		}
 	}
 	return 0;
