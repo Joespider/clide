@@ -74,7 +74,7 @@ fn get_help(type_of_help: &str)
 
 fn banner()
 {
-	let version = "0.0.16";
+	let version = "0.0.17";
 //	String cplV = getCplV();
 	let the_os = get_os();
 //	println!(cplV);
@@ -706,36 +706,69 @@ fn raw_input(message: String) -> String
 //Rust main
 fn main()
 {
-	banner();
 	let mut user_in: String;
 	let mut content: String;
+	let mut arg_pull = String::new();
+	let mut arg_count = 0;
+
+	//CLI arguments
+	for args in env::args().skip(1)
+	{
+		arg_pull.push_str(&args);
+		arg_pull.push_str(" ");
+		arg_count += 1;
+	}
+	
+	if arg_count == 0
+	{
+		banner();
+	}
+	else
+	{
+	}
 
 	loop
 	{
-		user_in = raw_input(">>> ".to_string());
-		if user_in == "exit()"
+		//No CLI Arguments given
+		if arg_count == 0
 		{
-			break;
-		}
-		else if user_in == "exit"
-		{
-			println!("Use exit()");
-		}
-		else if user_in == "clear"
-		{
-			clear();
-		}
-		else if starts_with(&user_in, "help")
-		{
-			get_help(&user_in);
+			user_in = raw_input(">>> ".to_string());
 		}
 		else
 		{
-			content = gen_code("",&user_in);
-			if content != ""
+			user_in = arg_pull.trim().to_string();
+		}
+
+		if !user_in.is_empty()
+		{
+			if user_in == "exit()"
 			{
-				println!("{}",content);
+				break;
 			}
+			else if user_in == "exit"
+			{
+				println!("Use exit()");
+			}
+			else if user_in == "clear"
+			{
+				clear();
+			}
+			else if starts_with(&user_in, "help")
+			{
+				get_help(&user_in);
+			}
+			else
+			{
+				content = gen_code("",&user_in);
+				if content != ""
+				{
+					println!("{}",content);
+				}
+			}
+		}
+		if arg_count > 0
+		{
+			break;
 		}
 	}
 }

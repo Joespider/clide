@@ -1007,12 +1007,23 @@ RunCliHelp()
 	local cmd="\$ clide ${cli}"
 	echo ""
 	echo "----------------[(${Head}) cli {${cli}}]----------------"
-	echo -e "Run your compiled code without having a ${Head} session"
-	echo ""
-	echo -e "${cmd} <language> <code> {arguments}"
-	echo -e "${cmd} <language>,<language>,<language> <code> {arguments}\t: \"Run same programs in different langaugaes\""
-	echo -e "${cmd} <code>,<code>,<code> {arguments}\t\t\t\t: \"Run multiple programs\""
-	echo -e "${cmd} -h, --help\t\t\t\t\t\t: \"help page\""
+	case ${cli} in
+		--run)
+			echo -e "Run your compiled code without having a ${Head} session"
+			echo ""
+			echo -e "${cmd} <language> <code> {arguments}"
+			echo -e "${cmd} <language>,<language>,<language> <code> {arguments}\t: \"Run same programs in different langaugaes\""
+			echo -e "${cmd} <code>,<code>,<code> {arguments}\t\t\t\t: \"Run multiple programs\""
+			echo -e "${cmd} -h, --help\t\t\t\t\t\t: \"help page\""
+			;;
+		--shell)
+			echo -e "Run language specific shell code"
+			echo ""
+			echo -e "${cmd} <language> <code> {arguments}\t\t: \"Run shell code\""
+			echo -e "${cmd} --ls\t\t\t\t\t: \"list the availbe shell cod for each language\""
+			echo -e "${cmd} -h, --help\t\t\t\t: \"help page\""
+			;;
+	esac
 	echo "-----------------------------------------------"
 	echo ""
 }
