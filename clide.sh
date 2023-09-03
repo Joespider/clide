@@ -6686,13 +6686,20 @@ CLI()
 				if [ -z "${Lang}" ]; then
 					theHelp RunCliHelp ${UserArg}
 				else
-					Lang=$(pgLang ${Lang})
 					case ${Lang} in
-						no)
+						--ls|--list)
+							main --find shell
 							;;
 						*)
-							InAndOut="yes"
-							Actions ${Lang} "none" "shell"
+							Lang=$(pgLang ${Lang})
+							case ${Lang} in
+								no)
+									;;
+								*)
+									InAndOut="yes"
+									Actions ${Lang} "none" "shell"
+								;;
+							esac
 							;;
 					esac
 				fi
