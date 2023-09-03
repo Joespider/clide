@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.91"
+SupportV="0.1.92"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
@@ -431,7 +431,7 @@ UseC()
 			echo -e "version, -std=<c#>\t\t: compile with a specific version"
 			;;
 		shell)
-			UseC "runCode" "${ShellCodeSrc}"
+			UseC "runCode" "${ShellCodeSrc}" "${@}"
 			;;
 		newCodeHelp)
 			if [ -f ${TemplateCode} ]; then

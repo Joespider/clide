@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.89"
+SupportV="0.1.90"
 Lang=Go
 LangExt=".go"
 #Color Green
@@ -372,7 +372,7 @@ UseGo()
 		CreateHelp)
 			;;
 		shell)
-			UseGo "runCode" "${ShellCodeSrc}"
+			UseGo "runCode" "${ShellCodeSrc}" "${@}"
 			;;
 		newCodeHelp)
 			if [ -f ${TemplateCode} ]; then

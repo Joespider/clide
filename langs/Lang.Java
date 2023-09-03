@@ -3,7 +3,7 @@
 #https://stackoverflow.com/questions/10339637/java-import-cannot-find-symbol
 #https://www.codejava.net/java-core/tools/how-to-compile-package-and-run-a-java-program-using-command-line-tools-javac-jar-and-java
 
-SupportV="0.2.52"
+SupportV="0.2.53"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -414,7 +414,7 @@ UseJava()
 			echo -e "jar, manifest\t\t\t: create ${Lang} Manifest Jar builds"
 			;;
 		shell)
-			UseJava "runCode" "${ShellCodeSrc}"
+			UseJava "runCode" "${ShellCodeSrc}" "${@}"
 			;;
 		newCodeHelp)
 			local project=${CodeProject}

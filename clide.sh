@@ -3477,7 +3477,9 @@ Actions()
 								HelpMenu ${Lang} "${UserIn[@]}"
 								;;
 							*)
-								ManageLangs ${Lang} "shell"
+								#UserIn[0]=""
+								local ShellArgs=( "${UserIn[@]}" )
+								ManageLangs ${Lang} "shell" "${ShellArgs[@]}"
 								;;
 						esac
 						;;
@@ -6697,7 +6699,8 @@ CLI()
 									;;
 								*)
 									InAndOut="yes"
-									Actions ${Lang} "none" "shell"
+									shift
+									Actions ${Lang} "none" "shell" "${@}"
 								;;
 							esac
 							;;

@@ -12,7 +12,7 @@ import java.io.IOException;
 
 //class name
 public class shell {
-	private static String Version = "0.0.11";
+	private static String Version = "0.0.12";
 	private static String TheKind = "";
 	private static String TheName = "";
 	private static String TheKindType = "";
@@ -626,12 +626,32 @@ public class shell {
 	public static void main(String[] args)
 	{
 		int length;
+		int numOfArgs = len(args);
 		String UserIn = "";
-		banner();
 		String Content = "";
+		if (len(args) == 0)
+		{
+			banner();
+		}
+		else
+		{
+			StringBuilder ArgUserIn = new StringBuilder("");
+			ArgUserIn.append(args[0]);
+			for (int lp = 1; lp < numOfArgs; lp++)
+			{
+				ArgUserIn.append(" ");
+				ArgUserIn.append(args[lp]);
+			}
+			UserIn = ArgUserIn.toString();
+		}
+
 		while (true)
 		{
-			UserIn = raw_input(">>> ");
+			if (len(args) == 0)
+			{
+				UserIn = raw_input(">>> ");
+			}
+
 			if (UserIn.equals("exit()"))
 			{
 				break;
@@ -657,6 +677,11 @@ public class shell {
 				{
 					print(Content);
 				}
+			}
+
+			if (len(args) >= 1)
+			{
+				break;
 			}
 		}
 	}
