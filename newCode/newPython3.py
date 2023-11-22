@@ -6,7 +6,7 @@ ProgramName = sys.argv[0]
 if "/" in ProgramName:
 	ProgramName = ProgramName.rsplit("/",1)[1]
 
-VersionNumver = "0.1.33"
+VersionNumver = "0.1.34"
 
 def Help():
 	print("Author: Joespider")
@@ -229,7 +229,7 @@ def Methods(getMain, getRawInput, getShell, getCLI, getCheckFile, getWrite, getR
 	WebRequestMethod = "def GetWebPage(site):\n\treturn requests.get(site)\n\n"
 	WebRequestMethod = WebRequestMethod+"def GetWebStatus(response):\n\treturn response.status_code\n\n"
 	WebRequestMethod = WebRequestMethod+"def GetWebContent(response):\n\treturn response.text\n\n"
-	WebSoupMethod = "def CleanPage(Content):\n\tsoup = BeautifulSoup(Content, 'html.parser')\n\treturn soup.prettify()\n\ndef PageHead(Content,GetContent=False):\n\tsoup = BeautifulSoup(Content, 'html.parser')\n\tif GetContent == True:\n\t\treturn soup.head.contents\n\telse:\n\t\treturn soup.head\n\ndef PageTitle(Content,GetContent=False):\n\tsoup = BeautifulSoup(Content, 'html.parser')\n\tif GetContent == True:\n\t\treturn soup.title.contents\n\telse:\n\t\treturn soup.title\n\ndef PageBody(Content,GetContent=False):\n\tsoup = BeautifulSoup(Content, 'html.parser')\n\tif GetContent == True:\n\t\treturn soup.body.contents\n\telse:\n\t\treturn soup.body\n\ndef GetContent(Content,Type,Id=\"\",Val=\"\",Num=None):\n\tAllContent = []\tsoup = BeautifulSoup(Content, 'html.parser')\n\tif Id == \"\" and Val == \"\":\n\t\tAllContent = soup.find_all(Type)\n\telse:\n\t\tAllContent = soup.find_all(Type, {Id: Val})\n\tif Num != None:\n\t\tif len(AllContent) != 0:\n\t\t\treturn AllContent[Num]\n\t\telse:\n\t\t\treturn AllContent\n\telse:\n\t\treturn AllContent\n\n"
+	WebSoupMethod = "def CleanPage(Content):\n\tsoup = BeautifulSoup(Content, 'html.parser')\n\treturn soup.prettify()\n\ndef PageHead(Content,GetContent=False):\n\tsoup = BeautifulSoup(Content, 'html.parser')\n\tif GetContent == True:\n\t\treturn soup.head.contents\n\telse:\n\t\treturn soup.head\n\ndef PageTitle(Content,GetContent=False):\n\tsoup = BeautifulSoup(Content, 'html.parser')\n\tif GetContent == True:\n\t\treturn soup.title.contents\n\telse:\n\t\treturn soup.title\n\ndef PageBody(Content,GetContent=False):\n\tsoup = BeautifulSoup(Content, 'html.parser')\n\tif GetContent == True:\n\t\treturn soup.body.contents\n\telse:\n\t\treturn soup.body\n\ndef GetContent(Content,Type,Id=\"\",Val=\"\",Num=None):\n\tAllContent = []\n\tsoup = BeautifulSoup(Content, 'html.parser')\n\tif Id == \"\" and Val == \"\":\n\t\tAllContent = soup.find_all(Type)\n\telse:\n\t\tAllContent = soup.find_all(Type, {Id: Val})\n\tif Num != None:\n\t\tif len(AllContent) != 0:\n\t\t\treturn AllContent[Num]\n\t\telse:\n\t\t\treturn AllContent\n\telse:\n\t\treturn AllContent\n\n"
 	JsonMethod = "def LoadJson(Data):\n\tJsonData = json.loads(Data)\n\treturn JsonData\n\n"
 	LengthExample = ""
 

@@ -6,7 +6,7 @@ fn help()
 {
 	println!("Author: Joespider");
 	println!("Program: \"newRust\"");
-	println!("Version: 0.1.25");
+	println!("Version: 0.1.27");
 	println!("Purpose: make new Rust programs");
 	println!("Usage: newRust <args>");
 	println!("\t--user <username> : get username for help page");
@@ -179,8 +179,8 @@ fn get_methods(getcheckfile: bool, getreadfile: bool, getwritefile: bool, getraw
 	}
 	if getsplit == true
 	{
-		themethods.push_str("fn split_before(the_string: &str, split_at: char) -> String\n{\n\tlet mut new_string = String::new();\n\tlet end = the_string.len();\n\tif end != 0\n\t{\n\t\tfor ch in the_string.chars()\n\t\t{\n\t\t\tif ch == split_at\n\t\t\t{\n\t\t\t\tbreak;\n\t\t\t}\n\t\t\telse\n\t\t\t{\n\t\t\t\tnew_string.push_str(&ch.to_string());\n\t\t\t}\n\t\t}\n\t}\n\treturn new_string;\n}\n\n");
-		themethods.push_str("fn split_after(the_string: &str, split_at: char) -> String\n{\n\tlet mut show = false;\n\tlet mut new_string = String::new();\n\tlet end = the_string.len();\n\tif end != 0\n\t{\n\t\tfor ch in the_string.chars()\n\t\t{\n\t\t\tif show == true\n\t\t\t{\n\t\t\t\tnew_string.push_str(&ch.to_string());\n\t\t\t}\n\t\t\tif ch == split_at && show != true\n\t\t\t{\n\t\t\t\tshow = true;\n\t\t\t}\n\t\t}\n\t}\n\treturn new_string;\n}\n\n");
+		themethods.push_str("fn split_before(the_string: &str, split_at: &str) -> String\n{\n\tlet mut new_string = String::new();\n\tlet end = the_string.len();\n\tlet scount = the_string.matches(split_at).count();\n\n\tif end != 0 && scount != 0\n\t{\n\t\tfor part in the_string.split(split_at)\n\t\t{\n\t\t\tnew_string.push_str(&part.to_string());\n\t\t\tbreak;\n\t\t}\n\t}\n\treturn new_string;\n}\n\n");
+		themethods.push_str("fn split_after(the_string: &str, split_at: &str) -> String\n{\n\tlet mut new_string = String::new();\n\tlet end = the_string.len();\n\tlet scount = the_string.matches(split_at).count();\n\tlet mut count = 0;\n\n\tif end != 0 && scount != 0\n\t{\n\t\tfor part in the_string.split(split_at)\n\t\t{\n\t\t\tif count == 1\n\t\t\t{\n\t\t\t\tnew_string.push_str(&part.to_string());\n\t\t\t}\n\t\t\telse if count >= 1\n\t\t\t{\n\t\t\t\tnew_string.push_str(split_at);\n\t\t\t\tnew_string.push_str(&part.to_string());\n\t\t\t}\n\t\t\tcount += 1;\n\t\t}\n\t}\n\treturn new_string;\n}\n\n");
 	}
 	if getwritefile == true
 	{
@@ -193,6 +193,7 @@ fn get_methods(getcheckfile: bool, getreadfile: bool, getwritefile: bool, getraw
 	if getshell == true
 	{
 		themethods.push_str("fn get_os() -> String\n{\n\treturn env::consts::OS.to_string();\n}\n\n");
+		themethods.push_str("fn run_command(cmd: &str) -> String {\n\tlet output = Command::new(cmd)\n//\t\t\t.arg(\"-l\")\n//\t\t\t.arg(\"-a\")\n\t\t\t.output()\n\t\t\t.expect(\"command failed to start\");\n\t\n\tif output.status.success()\n\t{\n\t\treturn String::from_utf8_lossy(&output.stdout).to_string();\n\t}\n\telse\n\t{\n\t\treturn String::from_utf8_lossy(&output.stderr).to_string();\n\t}\n}\n\n");
 	}
 	if getsleep == true
 	{
@@ -250,7 +251,7 @@ fn get_main(getmain: bool, getcli: bool, getpipe: bool, getthread: bool, getspli
 		}
 		if getshell == true
 		{
-			themain.push_str("\nCommand::new(\"ls\")\n\t.arg(\"-l\")\n\t.arg(\"-a\")\n\t.spawn()\n\t.expect(\"ls command failed to start\");\n");
+			themain.push_str("\n\tlet output = Command::new(\"ls\")\n\t\t\t.arg(\"-l\")\n\t\t\t.arg(\"-a\")\n\t\t\t.output()\n\t\t\t.expect(\"ls command failed to start\");\n\n\tif output.status.success()\n\t{\n\t\tprintln!(\"{}\", String::from_utf8_lossy(&output.stdout));\n\t}\n\telse\n\t{\n\t\tprintln!(\"{}\", String::from_utf8_lossy(&output.stderr));\n\t}\n");
 		}
 		themain.push_str("\n}\n");
 	}

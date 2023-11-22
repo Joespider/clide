@@ -3,7 +3,7 @@ use std::process::Command;
 
 fn get_help(type_of_help: &str)
 {
-	let the_type_of_help = split_after(type_of_help,':');
+	let the_type_of_help = split_after(type_of_help,":");
 	match the_type_of_help.as_str()
 	{
 		"class" =>
@@ -74,7 +74,7 @@ fn get_help(type_of_help: &str)
 
 fn banner()
 {
-	let version = "0.0.17";
+	let version = "0.0.20";
 //	String cplV = getCplV();
 	let the_os = get_os();
 //	println!(cplV);
@@ -109,35 +109,49 @@ fn starts_with(str: &str, start: &str) -> bool
 	return str.starts_with(start);
 }
 
-fn split_before(the_string: &str, split_at: char) -> String
+fn split_before(the_string: &str, split_at: &str) -> String
 {
 	let mut new_string = String::new();
-	match the_string.split_once(split_at)
+	let end = the_string.len();
+	let scount = the_string.matches(split_at).count();
+
+	if end != 0 && scount != 0
 	{
-		Some((key, _value)) => {
-			new_string.push_str(key);
-		}
-		None => {
-			new_string.push_str(&the_string.to_string());
+		for part in the_string.split(split_at)
+		{
+			new_string.push_str(&part.to_string());
+			break;
 		}
 	}
 	return new_string;
 }
 
-fn split_after(the_string: &str, split_at: char) -> String
+fn split_after(the_string: &str, split_at: &str) -> String
 {
 	let mut new_string = String::new();
-	match the_string.split_once(split_at)
+	let end = the_string.len();
+	let scount = the_string.matches(split_at).count();
+	let mut count = 0;
+
+	if end != 0 && scount != 0
 	{
-		Some((_key, value)) => {
-			new_string.push_str(value);
-		}
-		None => {
-			new_string.push_str(&the_string.to_string());
+		for part in the_string.split(split_at)
+		{
+			if count == 1
+			{
+				new_string.push_str(&part.to_string());
+			}
+			else if count >= 1
+			{
+				new_string.push_str(split_at);
+				new_string.push_str(&part.to_string());
+			}
+			count += 1;
 		}
 	}
 	return new_string;
 }
+
 /*
 fn ends_with(str: &str, end: &str) -> bool
 {
@@ -157,21 +171,22 @@ fn conver_vars_for_struct(vars: &str) -> String
 	let mut new_struct_vars = String::new();
 	let lines = vars.lines();
 	for line in lines {
-		new = split_after(line,' ');
-		new = split_before(&new,';');
+		new = split_after(line," ");
+		new = split_before(&new,";");
+		new_struct_vars.push_str("\t");
 		new_struct_vars.push_str(&new);
 		new_struct_vars.push_str(",\n");
 	}
 	new_struct_vars.pop();
 	new_struct_vars.pop();
-	new_struct_vars.push_str("\n");
+	new_struct_vars.push_str(",\n");
 	return new_struct_vars;
 }
 
 fn get_struct(name: &str, content: &str) -> String
 {
 	let mut complete = String::new();
-	let the_name = split_after(name,':');
+	let the_name = split_after(name,":");
 	let mut struct_var = gen_code("\t",content);
 	struct_var = conver_vars_for_struct(&struct_var);
 	complete.push_str("struct ");
@@ -194,15 +209,18 @@ fn get_class(name: &str, content: &str) -> String
 {
 	let mut parse_content: String = content.to_string();
 	let mut complete = String::new();
-	let the_name = split_after(name,':');
+	let the_name = split_after(name,":");
 	let mut the_params: String = "".to_string();
 	let mut class_content = String::new();
+//	let mut the_process: String = "".to_string();
 
 	loop
 	{
 		if starts_with(&parse_content, "params")
 		{
-			the_params = get_parameters(&parse_content,"class");
+//			the_process = split_before(&parse_content," ");
+//			the_params = get_parameters(&parse_content,"class");
+			the_params = get_parameters(&split_before(&parse_content," "),"class");
 		}
 		else if starts_with(&parse_content, "method")
 		{
@@ -211,25 +229,30 @@ fn get_class(name: &str, content: &str) -> String
 
 		if is_in(&parse_content, " ")
 		{
-			parse_content = split_after(&parse_content,' ');
+			parse_content = split_after(&parse_content," ");
 		}
 		else
 		{
 			break;
 		}
 	}
-
-	complete.push_str("class ");
+/*
+struct Dog;
+impl Dog {
+ fn bark(&self) {
+   println!(“baf!”);
+ }
+}
+*/
+	println!("{}",the_params);
+	complete.push_str("struct ");
 	complete.push_str(&the_name);
-	complete.push_str(" {\n\nprivate:\n\tprivate variables\n\tint x, y;\npublic:\n\t//class constructor\n\t");
+	complete.push_str(";\n");
+	complete.push_str("impl ");
 	complete.push_str(&the_name);
-	complete.push_str("(");
-	complete.push_str(&the_params);
-	complete.push_str(")\n\t{\n\t\tthis->x = x;\n\t\tthis->y = y;\n\t}\n\n");
+	complete.push_str(" {\n");
 	complete.push_str(&class_content);
-	complete.push_str("\n\t//class desctructor\n\t~");
-	complete.push_str(&the_name);
-	complete.push_str("()\n\t{\n\t}\n};\n");
+	complete.push_str("\n}\n");
 	return complete;
 }
 
@@ -237,17 +260,17 @@ fn get_method(the_tabs: &str, name: &str, content: &str) -> String
 {
 	let mut parse_content: String = content.to_string();
 	let mut complete = String::new();
-
-	let mut the_name: String = split_before(&name,':');
+	let mut the_name: String = split_after(&name,":");
 	let the_type: String;
 	let mut the_params = String::new();
 	let mut method_content = String::new();
+//	let mut the_process: String = "".to_string();
 //	let mut last_comp = "";
 
 	if is_in(name, "-")
 	{
-		the_name = split_before(&the_name,'-');
-		the_type = split_after(name,'-');
+		the_name = split_before(&the_name,"-");
+		the_type = split_after(name,"-");
 	}
 	else
 	{
@@ -258,7 +281,8 @@ fn get_method(the_tabs: &str, name: &str, content: &str) -> String
 	{
 		if starts_with(&parse_content, "params")
 		{
-			the_params.push_str(&get_parameters(&parse_content,"method"));
+//			the_params.push_str(&get_parameters(&parse_content,"method"));
+			the_params.push_str(&get_parameters(&split_before(&parse_content," "),"method"));
 		}
 		else if starts_with(&parse_content, "method") == false && starts_with(&parse_content, "class") == false
 		{
@@ -270,7 +294,7 @@ fn get_method(the_tabs: &str, name: &str, content: &str) -> String
 
 		if is_in(&parse_content, " ")
 		{
-			parse_content = split_after(&parse_content,' ');
+			parse_content = split_after(&parse_content," ");
 		}
 		else
 		{
@@ -307,7 +331,9 @@ fn get_method(the_tabs: &str, name: &str, content: &str) -> String
 		complete.push_str("{\n");
 		complete.push_str(the_tabs);
 		complete.push_str("\t" );
-		complete.push_str("let TheReturn;\n");
+		complete.push_str("let mut TheReturn: ");
+		complete.push_str(&the_type);
+		complete.push_str(";\n");
 		complete.push_str(&method_content);
 		complete.push_str("\n");
 		complete.push_str(the_tabs);
@@ -328,30 +354,30 @@ fn get_variables(the_tabs: &str, input: &str) -> String
 
 	if is_in(input,":") && is_in(input,"-") && is_in(input,"=")
 	{
-		the_type = split_after(input,':');
-		name = split_before(&the_type,'-');
-		var_type = split_after(&the_type,'-');
-		the_value = split_after(&var_type,'=');
-		var_type = split_before(&var_type,'=');
+		the_type = split_after(input,":");
+		name = split_before(&the_type,"-");
+		var_type = split_after(&the_type,"-");
+		the_value = split_after(&var_type,"=");
+		var_type = split_before(&var_type,"=");
 	}
 	else if is_in(input,":") && is_in(input,"=")
 	{
-		the_type = split_after(input,':');
-		name = split_before(&the_type,'=');
-		the_value = split_after(&the_type,'=');
+		the_type = split_after(input,":");
+		name = split_before(&the_type,"=");
+		the_value = split_after(&the_type,"=");
 		var_type = "".to_string();
 	}
 	else if is_in(input,":") && is_in(input,"-")
 	{
-		the_type = split_after(input,':');
-		name = split_before(&the_type,'-');
-		var_type = split_after(&the_type,'-');
+		the_type = split_after(input,":");
+		name = split_before(&the_type,"-");
+		var_type = split_after(&the_type,"-");
 		the_value = "".to_string();
 	}
 	else if is_in(input,":")
 	{
-		the_type = split_after(input,':');
-		name = split_before(&the_type,'-');		
+		the_type = split_after(input,":");
+		name = split_before(&the_type,"-");		
 	}
 
 	if the_value.is_empty()
@@ -391,21 +417,21 @@ fn get_variables(the_tabs: &str, input: &str) -> String
 
 fn get_conditions(input: &str, _called_by: &str) -> String
 {
-	let the_type = split_after(input,':');
+	let the_type = split_after(input,":");
 	return the_type;
 }
 
 fn get_parameters(input: &str, called_by: &str) -> String
 {
-	let mut the_param: String = split_after(&input,':');
+	let mut the_param: String = split_after(&input,":");
 	if called_by == "class" || called_by == "method"
 	{
                 if is_in(&the_param,"-") && is_in(&the_param,",")
                 {
-			let the_name: String = split_before(&the_param,'-');
-			let mut the_type: String = split_after(&the_param,'-');
-			the_type = split_before(&the_type,',');
-			let mut the_more: String = split_after(&the_param,',');
+			let the_name: String = split_before(&the_param,"-");
+			let mut the_type: String = split_after(&the_param,"-");
+			the_type = split_before(&the_type,",");
+			let mut the_more: String = split_after(&the_param,",");
 			let mut ever_more = String::new();
 			ever_more.push_str("params:");
 			ever_more.push_str(&the_more);
@@ -418,8 +444,8 @@ fn get_parameters(input: &str, called_by: &str) -> String
                 }
                 else if is_in(&the_param,"-") && !is_in(&the_param,",")
                 {
-			let the_name: String = split_before(&the_param,'-');
-			let the_type: String = split_after(&the_param,'-');
+			let the_name: String = split_before(&the_param,"-");
+			let the_type: String = split_after(&the_param,"-");
 			the_param = the_type;
 			the_param.push_str(" ");
 			the_param.push_str(&the_name);
@@ -433,9 +459,9 @@ fn get_loop(the_tabs: &str, kind_type: &str, content: &str) -> String
 {
 	let mut parse_content: String = content.to_string();
 	let mut complete = String::new();
-	let the_kind_type = split_after(kind_type,':');
-	let mut _the_name = split_before(&the_kind_type,'-');
-	let mut _the_type = split_after(&the_kind_type,'-');
+	let the_kind_type = split_after(kind_type,":");
+	let mut _the_name = split_before(&the_kind_type,"-");
+	let mut _the_type = split_after(&the_kind_type,"-");
 	let mut the_condition: String = "".to_string();
 	let mut loop_content = String::new();
 
@@ -448,13 +474,13 @@ fn get_loop(the_tabs: &str, kind_type: &str, content: &str) -> String
 		}
 		else if starts_with(&parse_content, "method") == false && starts_with(&parse_content, "class") == false && starts_with(&parse_content, "nest-")
 		{
-			parse_content = split_after(&parse_content,'-');
+			parse_content = split_after(&parse_content,"-");
 			loop_content.push_str(&gen_code(&(the_tabs.to_owned()+"\t"),&parse_content));
 		}
 
 		if is_in(&parse_content, " ")
 		{
-			parse_content = split_after(&parse_content,' ');
+			parse_content = split_after(&parse_content," ");
 		}
 		else
 		{
@@ -514,9 +540,9 @@ fn get_logic(the_tabs: &str, kind_type: &str, content: &str) -> String
 {
 	let mut parse_content: String = content.to_string();
 	let mut complete = String::new();
-	let the_kind_type = split_after(kind_type,':');
-	let _the_name = split_before(&the_kind_type,'-');
-	let _the_type = split_after(&the_kind_type,'-');
+	let the_kind_type = split_after(kind_type,":");
+	let _the_name = split_before(&the_kind_type,"-");
+	let _the_type = split_after(&the_kind_type,"-");
 	let mut the_condition: String = "".to_string();
 	let mut logic_nontent = String::new();
 	let mut case_content: String = "".to_string();
@@ -533,13 +559,13 @@ fn get_logic(the_tabs: &str, kind_type: &str, content: &str) -> String
 			let mut all_tabs = String::new();
 			all_tabs.push_str(the_tabs);
 			all_tabs.push_str("\t");
-			parse_content = split_after(&parse_content,'-');
+			parse_content = split_after(&parse_content,"-");
 			logic_nontent.push_str(&gen_code(&all_tabs,&parse_content));
 		}
 
 		if is_in(&parse_content, " ")
 		{
-			parse_content = split_after(&parse_content,' ');
+			parse_content = split_after(&parse_content," ");
 		}
 		else
 		{
@@ -611,7 +637,7 @@ fn get_logic(the_tabs: &str, kind_type: &str, content: &str) -> String
 		complete.push_str("{\n\n");
 		while case_content != ""
 		{
-			case_val = split_before(&case_content,'-');
+			case_val = split_before(&case_content,"-");
 			if case_val != "switch"
 			{
 				complete.push_str(the_tabs);
@@ -623,7 +649,7 @@ fn get_logic(the_tabs: &str, kind_type: &str, content: &str) -> String
 				complete.push_str(the_tabs);
 				complete.push_str("\t\tbreak;\n");
 			}
-			case_content = split_after(&case_content,'-');
+			case_content = split_after(&case_content,"-");
 		}
 		complete.push_str(the_tabs);
 		complete.push_str("\tdefault:\n");
@@ -645,8 +671,8 @@ fn gen_code(the_tabs: &str,get_me: &str) -> String
 	
 	if is_in(get_me, " ")
 	{
-		arg1 = split_before(get_me,' ');
-		arg2 = split_after(get_me,' ');
+		arg1 = split_before(get_me," ");
+		arg2 = split_after(get_me," ");
 	}
 
 	if starts_with(&arg1, "class")

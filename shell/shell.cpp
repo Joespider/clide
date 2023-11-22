@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.0.25";
+String Version = "0.0.26";
 
 String getOS();
 void Help(String Type);
@@ -184,10 +184,13 @@ void shellExe(String command)
 String getCplV()
 {
 	String cplV = "";
-	cplV = shell("g++ --version 2> /dev/null | head -n 1 | tr -d '\n'");
 	if (cplV == "")
 	{
 		cplV = shell("clang++ --version 2> /dev/null | head -n 1 | tr -d '\n'");
+	}
+	else
+	{
+		cplV = shell("g++ --version 2> /dev/null | head -n 1 | tr -d '\n'");
 	}
 	return cplV;
 }
@@ -295,14 +298,16 @@ String Class(String TheName, String Content)
 	}
 */
 	TheName = SplitAfter(TheName,':');
+	String Process = "";
 	String Params = "";
 	String ClassContent = "";
 	while (Content != "")
 	{
 		if (StartsWith(Content, "params"))
 		{
-			Params =  Parameters(Content,"class");
-
+			Process = SplitBefore(Content,' ');
+//			Params =  Parameters(Content,"class");
+			Params =  Parameters(Process,"class");
 		}
 		else if (StartsWith(Content, "method"))
 		{
@@ -325,6 +330,7 @@ String Method(String Tabs, String Name, String Content)
 	String Params = "";
 	String MethodContent = "";
 	String LastComp = "";
+	String Process = "";
 
 	if (IsIn(Name,"-"))
 	{
@@ -340,7 +346,9 @@ String Method(String Tabs, String Name, String Content)
 	{
 		if (StartsWith(Content, "params"))
 		{
-			Params =  Parameters(Content,"method");
+			Process = SplitBefore(Content,' ');
+//			Params =  Parameters(Content,"method");
+			Params =  Parameters(Process,"method");
 		}
 //		else if ((!StartsWith(Content, "method")) && (!StartsWith(Content, "class")) && (StartsWith(Content, "nest-")))
 		else if ((!StartsWith(Content, "method")) && (!StartsWith(Content, "class")))
