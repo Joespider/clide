@@ -6,7 +6,7 @@ fn help()
 {
 	println!("Author: Joespider");
 	println!("Program: \"newRust\"");
-	println!("Version: 0.1.27");
+	println!("Version: 0.1.28");
 	println!("Purpose: make new Rust programs");
 	println!("Usage: newRust <args>");
 	println!("\t--user <username> : get username for help page");
@@ -29,6 +29,7 @@ fn help()
 	println!("\t--join : enable join");
 	println!("\t--thread : enable threading (Main file and project ONLY)");
 	println!("\t--sleep : enable sleep method");
+	println!("\t--sub-string : enable sub-string methods");
 	println!("\t--get-length : enable \"length\" methods");
 	println!("\t--upper : enable upper case methods");
 	println!("\t--lower : enable lower case methods");
@@ -158,7 +159,7 @@ fn get_imports(getcheckfile: bool, getreadfile: bool, getwritefile: bool, getcli
 	return theimports;
 }
 
-fn get_methods(getcheckfile: bool, getreadfile: bool, getwritefile: bool, getrawinput: bool, getsysprop: bool, getsleep: bool, getshell: bool, getrev: bool, getsplit: bool, getisin: bool, getlen: bool, getupper: bool, getlower: bool) -> String
+fn get_methods(getcheckfile: bool, getreadfile: bool, getwritefile: bool, getrawinput: bool, getsysprop: bool, getsleep: bool, getshell: bool, getrev: bool, getsplit: bool, getsubstr: bool, getisin: bool, getlen: bool, getupper: bool, getlower: bool) -> String
 {
 	let mut themethods = String::new();
 	if getrawinput == true
@@ -181,6 +182,12 @@ fn get_methods(getcheckfile: bool, getreadfile: bool, getwritefile: bool, getraw
 	{
 		themethods.push_str("fn split_before(the_string: &str, split_at: &str) -> String\n{\n\tlet mut new_string = String::new();\n\tlet end = the_string.len();\n\tlet scount = the_string.matches(split_at).count();\n\n\tif end != 0 && scount != 0\n\t{\n\t\tfor part in the_string.split(split_at)\n\t\t{\n\t\t\tnew_string.push_str(&part.to_string());\n\t\t\tbreak;\n\t\t}\n\t}\n\treturn new_string;\n}\n\n");
 		themethods.push_str("fn split_after(the_string: &str, split_at: &str) -> String\n{\n\tlet mut new_string = String::new();\n\tlet end = the_string.len();\n\tlet scount = the_string.matches(split_at).count();\n\tlet mut count = 0;\n\n\tif end != 0 && scount != 0\n\t{\n\t\tfor part in the_string.split(split_at)\n\t\t{\n\t\t\tif count == 1\n\t\t\t{\n\t\t\t\tnew_string.push_str(&part.to_string());\n\t\t\t}\n\t\t\telse if count >= 1\n\t\t\t{\n\t\t\t\tnew_string.push_str(split_at);\n\t\t\t\tnew_string.push_str(&part.to_string());\n\t\t\t}\n\t\t\tcount += 1;\n\t\t}\n\t}\n\treturn new_string;\n}\n\n");
+	}
+	if  getsubstr == true
+	{
+		themethods.push_str("fn rem_first_and_last(value: &str) -> &str\n{\n\tlet mut chars = value.chars();\n\tchars.next();\n\tchars.next_back();\n\treturn chars.as_str();\n}\n\n");
+		themethods.push_str("fn rem_first_char(value: &str, length: u8) -> &str\n{\n\tlet mut chars = value.chars();\n\tif length >= 1\n\t{\n\t\tlet mut cnt = 0;\n\t\twhile cnt != length\n\t\t{\n\t\t\tchars.next();\n\t\t\tcnt += 1;\n\t\t}\n\t}\n\telse\n\t{\n\t\tchars.next();\n\t}\n\n\treturn chars.as_str();\n}\n\n");
+		themethods.push_str("fn rem_last_char(value: &str, length: u8) -> &str\n{\n\tlet mut chars = value.chars();\n\tlet mut cnt = 0;\n\tif length >= 1\n\t{\n\t\twhile cnt != length\n\t\t{\n\t\t\tchars.next_back();\n\t\t\tcnt += 1;\n\t\t}\n\t}\n\telse\n\t{\n\t\tchars.next_back();\n\t}\n\n\treturn chars.as_str();\n}\n\n");
 	}
 	if getwritefile == true
 	{
@@ -295,6 +302,7 @@ fn main()
 	let mut is_len = false;
 	let mut is_split = false;
 	let mut is_join = false;
+	let mut is_sub_str = false;
 	let mut is_sleep = false;
 	let mut is_upper = false;
 	let mut is_lower = false;
@@ -332,6 +340,10 @@ fn main()
 		else if args == "--join"
 		{
 			is_join = true;
+		}
+		else if args == "--sub-string"
+		{
+			is_sub_str = true;
 		}
 		else if args == "--shell"
 		{
@@ -420,7 +432,7 @@ fn main()
 			let the_imports = get_imports(is_check_file, is_read_file, is_write_file, is_cli, is_pipe, is_prop, is_thread, is_sleep, is_shell);
 			let the_helps = get_help(the_user.to_string(),is_cli);
 			program_name.push_str(".rs");
-			let the_methods = get_methods(is_check_file, is_read_file, is_write_file, get_input_method, is_prop, is_sleep, is_shell, is_rev, is_split, is_in, is_len, is_upper, is_lower);
+			let the_methods = get_methods(is_check_file, is_read_file, is_write_file, get_input_method, is_prop, is_sleep, is_shell, is_rev, is_split, is_sub_str, is_in, is_len, is_upper, is_lower);
 			let the_main = get_main(is_main, is_cli, is_pipe, is_thread, is_split, is_join, is_shell);
 			if no_save == false
 			{

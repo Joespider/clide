@@ -24,7 +24,7 @@ bool IsIn(String Str, String Sub);
 
 static void help()
 {
-	String Version = "0.1.65";
+	String Version = "0.1.67";
 	print("Author: Joespider");
 	print("Program: \"" << ProgName << "\"");
 	print("Version: " << Version);
@@ -244,6 +244,8 @@ static String getMethodDec(bool* rawinput, bool* rand, bool* fcheck, bool* write
 	}
 	if (*subStr == true)
 	{
+		Declaration = Declaration+"String removeFirstChars(String value, int length);\n";
+		Declaration = Declaration+"String removeLastChars(String value, int length);\n";
 		Declaration = Declaration+"String SubString(String TheString, int Pos);\n";
 		Declaration = Declaration+"String SubString(String TheString, int Start, int End);\n";
 		Declaration = Declaration+"int Index(String TheString, String SubStr);\n";
@@ -377,7 +379,9 @@ static String getMethods(bool* rawinput, bool* rand, bool* fcheck, bool* write, 
 	}
 	if (*subStr == true)
 	{
-		SubStr = "String SubString(String TheString, int Pos)\n{\n\tString TheSub = TheString.substr(Pos);\n\treturn TheSub;\n}\n\n";
+		SubStr = "String removeFirstChars(String value, int length)\n{\n\tint last = value.length();\n\treturn value.substr(length,last);\n}\n\n";
+		SubStr = SubStr+"String removeLastChars(String value, int length)\n{\n\tint last = value.length();\n\treturn value.substr(0,last-length);\n}\n\n";
+		SubStr = SubStr+"String SubString(String TheString, int Pos)\n{\n\tString TheSub = TheString.substr(Pos);\n\treturn TheSub;\n}\n\n";
 		SubStr = SubStr+"String SubString(String TheString, int Start, int End)\n{\n\tint Len = Start - End;\n\tif (Len <= -1)\n\t{\n\t\tLen = End;\n\t}\n\tString TheSub = TheString.substr(Start,Len);\n\treturn TheSub;\n}\n\n";
 		SubStr = SubStr+"int Index(String TheString, String SubStr)\n{\n\tint place = TheString.find(SubStr);\n\treturn place;\n}\n\n";
 	}

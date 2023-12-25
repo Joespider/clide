@@ -8,7 +8,7 @@ import (
 
 func help() {
 	var ProgName string = "newGo"
-	var Version string = "0.1.29"
+	var Version string = "0.1.31"
 
 	fmt.Println("Author: Joespider")
 	fmt.Println("Program: \""+ProgName+"\"")
@@ -186,7 +186,9 @@ func getMethods(getRawIn bool, getRand bool, getCheck bool, getWrite bool, getRe
 	}
 
 	if getSubStr == true {
-		SubStrMethod = "func SubString(TheString string, Start int, End int) string {\n\tLen := Start + End\n\tif Len >= len(TheString) {\n\t\treturn TheString[Start:End]\n\t} else {\n\t\treturn TheString[Start:Len]\n\t}\n}\n\n"
+		SubStrMethod = "func removeFirstChars(value string, length int) string {\n\treturn value[length:]\n}\n\n"
+		SubStrMethod = SubStrMethod + "func removeLastChars(value string, length int) string {\n\tlast := len(value)\n\treturn value[:last-length]\n}\n\n"
+		SubStrMethod = SubStrMethod + "func SubString(TheString string, Start int, End int) string {\n\tLen := Start + End\n\tif Len >= len(TheString) {\n\t\treturn TheString[Start:End]\n\t} else {\n\t\treturn TheString[Start:Len]\n\t}\n}\n\n"
 		SubStrMethod = SubStrMethod + "func Index(TheString string, SubStr string) int {\n\treturn strings.Index(TheString, SubStr)\n}\n\n"
 	}
 

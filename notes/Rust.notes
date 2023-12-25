@@ -79,3 +79,17 @@ site: https://doc.rust-lang.org/reference/introduction.html
 if a.contains("bc") {
     do_something();
 }
+
+//strip whitespaces
+let message = "   the message   ";
+let mut trimmed = message.trim();
+
+//remove first and last character
+let mut message = "the message";
+let mut chars = message.chars();
+//first character
+chars.next();
+//last character
+chars.next_back();
+//return to old string
+message = chars.as_str().to_string();
