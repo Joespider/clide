@@ -52,7 +52,7 @@ public class newJava {
 	private static void Help()
 	{
 		String program = "newJava";
-		String version = "0.1.47";
+		String version = "0.1.50";
 		print("Author: Joespider");
 		print("Program: \""+program+"\"");
 		print("Version: "+version);
@@ -235,6 +235,10 @@ public class newJava {
 			else if (now.equals("--no-save"))
 			{
 				dontSave = true;
+				if( Class.equals(""))
+				{
+					Class = "Example";
+				}
 			}
 			//enable reverse
 			else if (now.equals("--reverse"))
@@ -571,6 +575,8 @@ public class newJava {
 		}
 		if (getSubStr == true)
 		{
+			MethodSubStr.append("\tprivate static String removeFirstChars(String value, int length)\n\t{\n\t\tint last = value.length();\n\t\treturn value.substring(length,last);\n\t}\n\n");
+			MethodSubStr.append("\tprivate static String removeLastChars(String value, int length)\n\t{\n\t\tint last = value.length();\n\t\treturn value.substring(0,last-length);\n\t}\n\n");
 			MethodSubStr.append("\tprivate static String SubString(String TheString, int Pos)\n\t{\n\t\tString TheSub = TheString.substring(Pos);\n\t\treturn TheSub;\n\t}\n\n");
 			MethodSubStr.append("\tprivate static String SubString(String TheString, int Start, int End)\n\t{\n\t\tString TheSub = TheString.substring(Start,End);\n\t\treturn TheSub;\n\t}\n\n");
 			MethodSubStr.append("\tprivate static int Index(String TheString, String SubStr)\n\t{\n\t\tint place = TheString.indexOf(SubStr);\n\t\treturn place;\n\t}\n\n");

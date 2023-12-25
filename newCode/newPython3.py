@@ -6,7 +6,7 @@ ProgramName = sys.argv[0]
 if "/" in ProgramName:
 	ProgramName = ProgramName.rsplit("/",1)[1]
 
-VersionNumver = "0.1.34"
+VersionNumver = "0.1.36"
 
 def Help():
 	print("Author: Joespider")
@@ -26,6 +26,7 @@ def Help():
 	print("\t--reverse : enable \"reverse\" file method")
 	print("\t--split : enable \"split\" file method")
 	print("\t--join : enable \"join\" file method")
+
 	print("\t--random : enable \"random\" method")
 	print("\t--check-file : enable \"fexists\" file method")
 	print("\t--write-file : enable \"write\" file method")
@@ -58,6 +59,7 @@ def GetArgs():
 		   "read":False,
 		   "split":False,
 		   "join":False,
+		   "substr":False,
 		   "random":False,
 		   "pipe":False,
 		   "rev":False,
@@ -119,6 +121,8 @@ def GetArgs():
 			Returns["join"] = True
 		elif now == "--split":
 			Returns["split"] = True
+		elif now == "--sub-string":
+			Returns["substr"] = True
 		elif now == "--prop":
 			Returns["prop"] = True
 		elif now == "--shell":
@@ -183,7 +187,7 @@ def Imports(getShell, getSys, getRand, getThread, getPipe, getSleep, getTime, ge
 	return TheImports
 
 #Get Methods
-def Methods(getMain, getRawInput, getShell, getCLI, getCheckFile, getWrite, getRead, getRandom, getThread, getPipe, getSleep, getTime, getProp, getSplit, getJoin, getRev, getTypes, getUpper, getLower, getMath, getLength, getWeb, getWebSoup, getJson):
+def Methods(getMain, getRawInput, getShell, getCLI, getCheckFile, getWrite, getRead, getRandom, getThread, getPipe, getSleep, getTime, getProp, getSplit, getJoin, getSubStr, getRev, getTypes, getUpper, getLower, getMath, getLength, getWeb, getWebSoup, getJson):
 	TheMethods = ""
 	#{
 	OSshellMethod = "def Shell(cmd):\n\tOutput = \"\"\n\tTheShell = os.popen(cmd)\n\tOutput = TheShell.read()\n\tTheShell.close()\n\treturn Output\n\ndef Exe(cmd):\n\tos.system(cmd)\n"
@@ -197,6 +201,8 @@ def Methods(getMain, getRawInput, getShell, getCLI, getCheckFile, getWrite, getR
 	SysPropMethod = "def GetSysProp(PleaseGet):\n\tif PleaseGet != \"\":\n\t\treturn os.environ[PleaseGet]\n\telse:\n\t\treturn \"\"\n"
 	SplitMethod = "def Split(message, sBy):\n\tSplitMessage = message.split(sBy)\n\treturn SplitMessage\n"
 	JoinMethod = "def Join(SplitMessage, jBy):\n\tmessage = jBy.join(SplitMessage)\n\treturn message\n"
+	SubStringMethod = "def removeFirstChars(value, length):\n\treturn value[length:]\n\n"
+	SubStringMethod = SubStringMethod + "def removeLastChars(value, length):\n\tlast = len(value)\n\treturn value[:last-length]\n"
 	replaceAllMethod = "def replaceAll(message, sBy, jBy):\n\tSplitMessage = message.split(sBy)\n\tmessage = jBy.join(SplitMessage)\n\treturn message\n\n"
 	replaceAllMethod = replaceAllMethod + "def replaceFirst(message, sBy, jBy):\n\tSplitMessage = message.split(sBy,1)\n\tmessage = jBy.join(SplitMessage)\n\treturn message\n\n"
 	replaceAllMethod = replaceAllMethod + "def replaceLast(message, sBy, jBy):\n\tSplitMessage = message.rsplit(sBy,1)\n\tmessage = jBy.join(SplitMessage)\n\treturn message\n"
@@ -279,6 +285,9 @@ def Methods(getMain, getRawInput, getShell, getCLI, getCheckFile, getWrite, getR
 	#Get Split Method
 	if getSplit == True:
 		TheMethods = TheMethods+SplitMethod+"\n"
+	#Get Sub String Method
+	if getSubStr == True:
+		TheMethods = TheMethods+SubStringMethod+"\n"
 	#Get Join Method
 	if getJoin == True:
 		TheMethods = TheMethods+JoinMethod+"\n"
@@ -345,6 +354,7 @@ def Main():
 	GetPipe = UserArgs["pipe"]
 	GetSplit = UserArgs["split"]
 	GetJoin = UserArgs["join"]
+	GetSubStr = UserArgs["substr"]
 	GetProp = UserArgs["prop"]
 	GetRev = UserArgs["rev"]
 	GetShell = UserArgs["shell"]
@@ -372,7 +382,7 @@ def Main():
 			#Get Imports
 			ProgImports = Imports(GetShell, IsCLI, GetRand, GetThreads, GetPipe, GetSleep, GetTime, GetProp, GetMath, GetCheckFile, GetWeb, GetWebSoup, GetJson)
 			#Get Methods
-			ProgMethods = Methods(IsMain, GetRawInput, GetShell, IsCLI, GetCheckFile, GetWrite, GetRead, GetRand, GetThreads, GetPipe, GetSleep, GetTime, GetProp, GetSplit, GetJoin, GetRev, GetTypes, GetUpper, GetLower, GetMath, GetLength, GetWeb, GetWebSoup, GetJson)
+			ProgMethods = Methods(IsMain, GetRawInput, GetShell, IsCLI, GetCheckFile, GetWrite, GetRead, GetRand, GetThreads, GetPipe, GetSleep, GetTime, GetProp, GetSplit, GetJoin, GetSubStr, GetRev, GetTypes, GetUpper, GetLower, GetMath, GetLength, GetWeb, GetWebSoup, GetJson)
 			if IsCLI == True:
 				TheHelpMethod = getHelp(TheName,TheUser)
 			#Manage Imports
