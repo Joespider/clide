@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.0.26";
+String Version = "0.0.29";
 
 String getOS();
 void Help(String Type);
@@ -77,14 +77,14 @@ void Help(String Type)
 		print("class:<name> param:<params>,<param> var:<vars> method:<name>-<type> param:<params>,<param>");
 		print("");
 		print("{EXAMPLE}");
-		print("class:pizza params:one,two,three method:cheese params:four,five loop:for");
+		print("class:pizza params:one-int,two-bool,three-float method:cheese-std::string params:four-int,five-int loop:for nest-loop:for");
 	}
 	else if (Type == "struct")
 	{
 		print("struct:<name>-<type> var:<var> var:<var>");
 		print("");
 		print("{EXAMPLE}");
-		print("struct:pizza var:topping-String var:number-int");
+		print("struct:pizza var:topping-std::string var:number-int");
 	}
 	else if (Type == "method")
 	{
@@ -280,8 +280,14 @@ String Struct(String TheName, String Content)
 {
 	String Complete = "";
 	String StructVar = "";
+	String Process = "";
 	TheName = SplitAfter(TheName,':');
-	StructVar = StructVar + GenCode("\t",Content);
+	while (StartsWith(Content, "var"))
+	{
+		Process = SplitBefore(Content,' ');
+		Content = SplitAfter(Content,' ');
+		StructVar = StructVar + GenCode("\t",Process);
+	}
 	Complete = "struct {\n"+StructVar+"\n} "+TheName+";\n";
 	return Complete;
 }
@@ -303,7 +309,7 @@ String Class(String TheName, String Content)
 	String ClassContent = "";
 	while (Content != "")
 	{
-		if (StartsWith(Content, "params"))
+		if ((StartsWith(Content, "params")) && (Params == ""))
 		{
 			Process = SplitBefore(Content,' ');
 //			Params =  Parameters(Content,"class");
@@ -314,7 +320,14 @@ String Class(String TheName, String Content)
 			ClassContent = ClassContent + GenCode("\t",Content);
 		}
 
-		Content = SplitAfter(Content,' ');
+		if (IsIn(Content," "))
+		{
+			Content = SplitAfter(Content,' ');
+		}
+		else
+		{
+			break;
+		}
 	}
 
 	Complete = "class "+TheName+" {\n\nprivate:\n\tprivate variables\n\tint x, y;\npublic:\n\t//class constructor\n\t"+TheName+"("+Params+")\n\t{\n\t\tthis->x = x;\n\t\tthis->y = y;\n\t}\n\n"+ClassContent+"\n\t//class desctructor\n\t~"+TheName+"()\n\t{\n\t}\n};\n";
@@ -344,18 +357,36 @@ String Method(String Tabs, String Name, String Content)
 
 	while (Content != "")
 	{
-		if (StartsWith(Content, "params"))
+		if ((StartsWith(Content, "params")) && (Params == ""))
 		{
-			Process = SplitBefore(Content,' ');
+			if (IsIn(Content," "))
+			{
+				Process = SplitBefore(Content,' ');
+			}
+			else
+			{
+				Process = Content;
+			}
 //			Params =  Parameters(Content,"method");
 			Params =  Parameters(Process,"method");
 		}
-//		else if ((!StartsWith(Content, "method")) && (!StartsWith(Content, "class")) && (StartsWith(Content, "nest-")))
-		else if ((!StartsWith(Content, "method")) && (!StartsWith(Content, "class")))
+		else if ((StartsWith(Content, "method")) || (StartsWith(Content, "class")))
+		{
+			break;
+		}
+		else
 		{
 			MethodContent = MethodContent + GenCode(Tabs+"\t",Content);
 		}
-		Content = SplitAfter(Content,' ');
+
+		if (IsIn(Content," "))
+		{
+			Content = SplitAfter(Content,' ');
+		}
+		else
+		{
+			break;
+		}
 	}
 
 	if ((Type == "") || (Type == "void"))
@@ -478,6 +509,7 @@ String Loop(String Tabs, String TheKindType, String Content)
 	String Type = "";
 	String TheCondition = "";
 	String LoopContent = "";
+	String LogicContent = "";
 
 	if (IsIn(TheKindType,":"))
 	{
@@ -497,18 +529,31 @@ String Loop(String Tabs, String TheKindType, String Content)
 			TheCondition = Conditions(Content,TheKindType);
 
 		}
-		else if ((!StartsWith(Content, "method")) && (!StartsWith(Content, "class")) && (StartsWith(Content, "nest-")))
+		else if ((StartsWith(Content, "method")) || (StartsWith(Content, "class")))
 		{
-			if (IsIn(Content,"-"))
+			break;
+		}
+		else if (StartsWith(Content, "nest-"))
+		{
+			LogicContent = Content;
+			if (IsIn(LogicContent,"-"))
 			{
-				Content = SplitAfter(Content,'-');
+				LogicContent = SplitAfter(LogicContent,'-');
+				if (IsIn(LogicContent," "))
+				{
+					LogicContent = SplitBefore(LogicContent,' ');
+				}
 			}
-			LoopContent = LoopContent + GenCode(Tabs+"\t",Content);
+			LoopContent = LoopContent + GenCode(Tabs+"\t",LogicContent);
 		}
 
 		if (IsIn(Content," "))
 		{
 			Content = SplitAfter(Content,' ');
+		}
+		else
+		{
+			break;
 		}
 	}
 
@@ -552,7 +597,11 @@ String Logic(String Tabs, String TheKindType, String Content)
 		{
 			TheCondition = Conditions(Content,TheKindType);
 		}
-		else if ((!StartsWith(Content, "method")) && (!StartsWith(Content, "class")) && (StartsWith(Content, "nest-")))
+		else if ((StartsWith(Content, "method")) || (StartsWith(Content, "class")))
+		{
+			break;
+		}
+		else if (StartsWith(Content, "nest-"))
 		{
 			if (IsIn(Content,"-"))
 			{
@@ -563,6 +612,10 @@ String Logic(String Tabs, String TheKindType, String Content)
 		if (IsIn(Content," "))
 		{
 			Content = SplitAfter(Content,' ');
+		}
+		else
+		{
+			break;
 		}
 	}
 

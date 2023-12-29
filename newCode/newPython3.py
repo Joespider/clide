@@ -23,14 +23,15 @@ def Help():
 	print("\t--prop : enable custom system property")
 	print("\t--pipe : enable piping (Main file ONLY)")
 	print("\t--shell : unix shell")
+	print("\t--files : enable filesystem Python specific code")
 	print("\t--reverse : enable \"reverse\" file method")
 	print("\t--split : enable \"split\" file method")
 	print("\t--join : enable \"join\" file method")
-
 	print("\t--random : enable \"random\" method")
-	print("\t--check-file : enable \"fexists\" file method")
-	print("\t--write-file : enable \"write\" file method")
-	print("\t--read-file : enable \"read\" file method")
+	print("\t--is-in : enable string contains method")
+#	print("\t--check-file : enable \"fexists\" file method")
+#	print("\t--write-file : enable \"write\" file method")
+#	print("\t--read-file : enable \"read\" file method")
 	print("\t--user-input : enable \"raw_input\" method")
 	print("\t--thread : enable threading")
 	print("\t--type : enable data type eval method")
@@ -59,8 +60,10 @@ def GetArgs():
 		   "read":False,
 		   "split":False,
 		   "join":False,
+		   "files":False,
 		   "substr":False,
 		   "random":False,
+		   "isin":False,
 		   "pipe":False,
 		   "rev":False,
 		   "prop":False,
@@ -105,14 +108,16 @@ def GetArgs():
 			Returns["noSave"] = True
 		elif now == "--main":
 			Returns["main"] = True
-		elif now == "--check-file":
-			Returns["check"] = True
-		elif now == "--read-file":
-			Returns["read"] = True
-		elif now == "--write-file":
-			Returns["write"] = True
+#		elif now == "--check-file":
+#			Returns["check"] = True
+#		elif now == "--read-file":
+#			Returns["read"] = True
+#		elif now == "--write-file":
+#			Returns["write"] = True
 		elif now == "--random":
 			Returns["random"] = True
+#		elif now == "--is-in":
+#			Returns["isin"] = True
 		elif now == "--reverse":
 			Returns["rev"] = True
 		elif now == "--pipe":
@@ -123,8 +128,14 @@ def GetArgs():
 			Returns["split"] = True
 		elif now == "--sub-string":
 			Returns["substr"] = True
+			Returns["isin"] = True
 		elif now == "--prop":
 			Returns["prop"] = True
+		elif now == "--files":
+			Returns["files"] = True
+			Returns["check"] = True
+			Returns["read"] = True
+			Returns["write"] = True
 		elif now == "--shell":
 			Returns["shell"] = True
 		elif now == "--thread":
@@ -161,9 +172,9 @@ def getHelp(TheName, TheUser):
 	return HelpMethod
 
 #Get Imports
-def Imports(getShell, getSys, getRand, getThread, getPipe, getSleep, getTime, getProp, getMath, getCheckFile, getWeb, getWebSoup, getJson):
+def Imports(getShell, getSys, getFiles, getRand, getThread, getPipe, getSleep, getTime, getProp, getMath, getCheckFile, getWeb, getWebSoup, getJson):
 	TheImports = ""
-	if getShell == True or getProp == True or getCheckFile == True:
+	if getShell == True or getFiles == True or getProp == True or getCheckFile == True:
 		TheImports = "import os\n"
 	if getSys == True or getPipe == True:
 		TheImports = TheImports+"import sys\n"
@@ -187,10 +198,13 @@ def Imports(getShell, getSys, getRand, getThread, getPipe, getSleep, getTime, ge
 	return TheImports
 
 #Get Methods
-def Methods(getMain, getRawInput, getShell, getCLI, getCheckFile, getWrite, getRead, getRandom, getThread, getPipe, getSleep, getTime, getProp, getSplit, getJoin, getSubStr, getRev, getTypes, getUpper, getLower, getMath, getLength, getWeb, getWebSoup, getJson):
+def Methods(getMain, getRawInput, getShell, getFiles, getCLI, getCheckFile, getWrite, getRead, getRandom, getThread, getPipe, getSleep, getTime, getProp, getSplit, getJoin, getSubStr, getIsIn, getRev, getTypes, getUpper, getLower, getMath, getLength, getWeb, getWebSoup, getJson):
 	TheMethods = ""
 	#{
 	OSshellMethod = "def Shell(cmd):\n\tOutput = \"\"\n\tTheShell = os.popen(cmd)\n\tOutput = TheShell.read()\n\tTheShell.close()\n\treturn Output\n\ndef Exe(cmd):\n\tos.system(cmd)\n"
+	PythonFilesMethod = "def sep():\n\treturn os.sep\n\n"
+	PythonFilesMethod = PythonFilesMethod + "def LS(Dir):\n\tif Dir != \"\":\n\t\tfor file in os.listdir(Dir):\n\t\t\tprint(file)\n\n"
+	PythonFilesMethod = PythonFilesMethod + "def CD(Dir):\n\tif Dir != \"\":\n\t\tos.chdir(Dir)\n"
 	RawInputMethod = "def raw_input(message):\n\treturn input(message)\n"
 	CLImethod = "def Args():\n\tTheArgs = sys.argv\n\tTheArgs.pop(0)\n\treturn TheArgs\n"
 	CheckFileMethod = "def fexists(aFile):\n\treturn os.path.exists(aFile)\n"
@@ -201,6 +215,9 @@ def Methods(getMain, getRawInput, getShell, getCLI, getCheckFile, getWrite, getR
 	SysPropMethod = "def GetSysProp(PleaseGet):\n\tif PleaseGet != \"\":\n\t\treturn os.environ[PleaseGet]\n\telse:\n\t\treturn \"\"\n"
 	SplitMethod = "def Split(message, sBy):\n\tSplitMessage = message.split(sBy)\n\treturn SplitMessage\n"
 	JoinMethod = "def Join(SplitMessage, jBy):\n\tmessage = jBy.join(SplitMessage)\n\treturn message\n"
+	IsInStringMethod = "def IsIn(Str, Sub):\n\tif Sub in Str:\n\t\treturn True\n\telse:\n\t\treturn False\n\n"
+	IsInStringMethod = IsInStringMethod + "def StartsWith(Str, Start):\n\tif Str.startswith(Sub):\n\t\treturn True\n\telse:\n\t\treturn False\n\n"
+	IsInStringMethod = IsInStringMethod + "def EndsWith(Str, End):\n\tif Str.endswith(Sub):\n\t\treturn True\n\telse:\n\t\treturn False\n"
 	SubStringMethod = "def removeFirstChars(value, length):\n\treturn value[length:]\n\n"
 	SubStringMethod = SubStringMethod + "def removeLastChars(value, length):\n\tlast = len(value)\n\treturn value[:last-length]\n"
 	replaceAllMethod = "def replaceAll(message, sBy, jBy):\n\tSplitMessage = message.split(sBy)\n\tmessage = jBy.join(SplitMessage)\n\treturn message\n\n"
@@ -264,6 +281,9 @@ def Methods(getMain, getRawInput, getShell, getCLI, getCheckFile, getWrite, getR
 	#Get Random Method
 	if getRandom == True:
 		TheMethods = TheMethods+RandomMethod+"\n"
+	#Get Python FileSystem
+	if getFiles == True:
+		TheMethods = TheMethods+PythonFilesMethod+"\n"
 	#Get Unix Shell
 	if getShell == True:
 		TheMethods = TheMethods+OSshellMethod+"\n"
@@ -285,6 +305,9 @@ def Methods(getMain, getRawInput, getShell, getCLI, getCheckFile, getWrite, getR
 	#Get Split Method
 	if getSplit == True:
 		TheMethods = TheMethods+SplitMethod+"\n"
+	#Get IsIn String Method
+	if getIsIn == True:
+		TheMethods = TheMethods+IsInStringMethod+"\n"
 	#Get Sub String Method
 	if getSubStr == True:
 		TheMethods = TheMethods+SubStringMethod+"\n"
@@ -351,12 +374,15 @@ def Main():
 	GetRead = UserArgs["read"]
 	GetWrite = UserArgs["write"]
 	GetRand = UserArgs["random"]
+	GetIsIn = UserArgs["isin"]
 	GetPipe = UserArgs["pipe"]
 	GetSplit = UserArgs["split"]
 	GetJoin = UserArgs["join"]
 	GetSubStr = UserArgs["substr"]
+	GetIsIn = UserArgs["isin"]
 	GetProp = UserArgs["prop"]
 	GetRev = UserArgs["rev"]
+	GetFiles = UserArgs["files"]
 	GetShell = UserArgs["shell"]
 	GetThreads = UserArgs["thread"]
 	GetTypes = UserArgs["type"]
@@ -380,9 +406,9 @@ def Main():
 
 		if FileExists == False or noSave == True:
 			#Get Imports
-			ProgImports = Imports(GetShell, IsCLI, GetRand, GetThreads, GetPipe, GetSleep, GetTime, GetProp, GetMath, GetCheckFile, GetWeb, GetWebSoup, GetJson)
+			ProgImports = Imports(GetShell, IsCLI, GetFiles, GetRand, GetThreads, GetPipe, GetSleep, GetTime, GetProp, GetMath, GetCheckFile, GetWeb, GetWebSoup, GetJson)
 			#Get Methods
-			ProgMethods = Methods(IsMain, GetRawInput, GetShell, IsCLI, GetCheckFile, GetWrite, GetRead, GetRand, GetThreads, GetPipe, GetSleep, GetTime, GetProp, GetSplit, GetJoin, GetSubStr, GetRev, GetTypes, GetUpper, GetLower, GetMath, GetLength, GetWeb, GetWebSoup, GetJson)
+			ProgMethods = Methods(IsMain, GetRawInput, GetShell, GetFiles, IsCLI, GetCheckFile, GetWrite, GetRead, GetRand, GetThreads, GetPipe, GetSleep, GetTime, GetProp, GetSplit, GetJoin, GetSubStr, GetIsIn, GetRev, GetTypes, GetUpper, GetLower, GetMath, GetLength, GetWeb, GetWebSoup, GetJson)
 			if IsCLI == True:
 				TheHelpMethod = getHelp(TheName,TheUser)
 			#Manage Imports

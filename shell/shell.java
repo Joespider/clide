@@ -12,7 +12,7 @@ import java.io.IOException;
 
 //class name
 public class shell {
-	private static String Version = "0.0.12";
+	private static String Version = "0.0.13";
 	private static String TheKind = "";
 	private static String TheName = "";
 	private static String TheKindType = "";
@@ -261,7 +261,7 @@ public class shell {
 		StringBuilder ClassContent = new StringBuilder("");
 		while (!Content.equals(""))
 		{
-			if (StartsWith(Content, "params"))
+			if ((StartsWith(Content, "params")) && (Params.equals("")))
 			{
 				Params =  Parameters(Content,"class");
 			}
@@ -299,6 +299,7 @@ public class shell {
 		String TheName = "";
 		String Type = "";
 		String Params = "";
+//		String Process = "";
 		StringBuilder MethodContent = new StringBuilder("");
 		String LastComp = "";
 
@@ -315,11 +316,16 @@ public class shell {
 
 		while (!Content.equals(""))
 		{
-			if (StartsWith(Content, "params"))
+			if ((StartsWith(Content, "params")) && (Params.equals("")))
 			{
+//				Process = SplitBefore(Content," ");
 				Params =  Parameters(Content,"method");
 			}
-			else if ((!StartsWith(Content, "method")) && (!StartsWith(Content, "class")))
+			else if ((StartsWith(Content, "method")) && (StartsWith(Content, "class")))
+			{
+				break;
+			}
+			else
 			{
 				MethodContent.append(GenCode(Tabs+"\t",Content));
 			}
@@ -456,6 +462,12 @@ public class shell {
 			TheName = TheKindType;
 		}
 
+		if (IsIn(TheKindType,"-"))
+		{
+			TheName = SplitBefore(TheKindType,"-");
+			Type = SplitAfter(TheKindType,"-");
+		}
+
 		while (!Content.equals(""))
 		{
 			if (StartsWith(Content, "condition"))
@@ -463,7 +475,11 @@ public class shell {
 				TheCondition = Conditions(Content,TheKindType);
 
 			}
-			else if ((!StartsWith(Content, "method")) && (!StartsWith(Content, "class")) && (StartsWith(Content, "nest-")))
+			else if ((StartsWith(Content, "method")) || (StartsWith(Content, "class")))
+			{
+				break;
+			}
+			else if (StartsWith(Content, "nest-"))
 			{
 				Content = SplitAfter(Content,"-");
 				LoopContent.append(GenCode(Tabs+"\t",Content));
@@ -519,7 +535,11 @@ public class shell {
 			{
 				TheCondition = Conditions(Content,TheKindType);
 			}
-			else if ((!StartsWith(Content, "method")) && (!StartsWith(Content, "class")) && (StartsWith(Content, "nest-")))
+			else if ((StartsWith(Content, "method")) || (StartsWith(Content, "class")))
+			{
+				break;
+			}
+			else if (StartsWith(Content, "nest-"))
 			{
 				Content = SplitAfter(Content,"-");
 				LogicContent.append(GenCode(Tabs+"\t",Content));

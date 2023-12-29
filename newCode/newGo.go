@@ -8,7 +8,7 @@ import (
 
 func help() {
 	var ProgName string = "newGo"
-	var Version string = "0.1.31"
+	var Version string = "0.1.33"
 
 	fmt.Println("Author: Joespider")
 	fmt.Println("Program: \""+ProgName+"\"")
@@ -28,10 +28,13 @@ func help() {
 	fmt.Println("\t--split : enable \"split\" function")
 	fmt.Println("\t--join : enable \"join\" function")
 	fmt.Println("\t--random : enable \"random\" int method")
+	fmt.Println("\t--files : enable filesystem Go specific code")
+/*
 	fmt.Println("\t--check-file : enable \"fexists\" file method")
 	fmt.Println("\t--write-file : enable \"write\" file method")
 	fmt.Println("\t--read-file : enable \"read\" file method")
 	fmt.Println("\t--is-in : enable string contains methods")
+*/
 	fmt.Println("\t--user-input : enable \"raw_input\" method")
 	fmt.Println("\t--thread : enable threading")
 	fmt.Println("\t--sleep : enable \"sleep\" method")
@@ -220,6 +223,8 @@ func getMethods(getRawIn bool, getRand bool, getCheck bool, getWrite bool, getRe
 
 	if  getIsIn == true {
 		IsInMethod = "func IsIn(Str string, Sub string) bool {\n\treturn strings.Contains(Str,Sub)\n}\n\n"
+		IsInMethod = IsInMethod+"func StartsWith(Str string, Sub string) bool {\n\treturn strings.HasPrefix(Str,Sub)\n}\n\n"
+		IsInMethod = IsInMethod+"func EndsWith(Str string, Sub string) bool {\n\treturn strings.HasSuffix(Str,Sub)\n}\n\n"
 	}
 
 	if  getTime == true {
@@ -368,6 +373,13 @@ func main() {
 			getName = false
 			getRand = true
 		//Get Write file method
+		} else if UserIn == "--files" {
+			getName = false
+			getWrite = true
+			getRead = true
+			getCheck = true
+/*
+		//Get Write file method
 		} else if UserIn == "--write-file" {
 			getName = false
 			getWrite = true
@@ -383,6 +395,7 @@ func main() {
 		} else if UserIn == "--is-in" {
 			getName = false
 			getIsIn = true
+*/
 		//Get raw_input method
 		} else if UserIn == "--user-input" {
 			getName = false
@@ -423,6 +436,7 @@ func main() {
 		} else if UserIn == "--sub-string" {
 			getName = false
 			getSubStr = true
+			getIsIn = true
 		//Get Join
 		} else if UserIn == "--join" {
 			getName = false
