@@ -12,7 +12,7 @@ import java.io.IOException;
 
 //class name
 public class shell {
-	private static String Version = "0.0.13";
+	private static String Version = "0.0.14";
 	private static String TheKind = "";
 	private static String TheName = "";
 	private static String TheKindType = "";
@@ -119,8 +119,17 @@ public class shell {
 	{
 		if (Str.contains(splitAt))
 		{
+			StringBuilder SplitContent = new StringBuilder("");
 			String[] newString = split(Str, splitAt, 0);
-			return newString[1];
+			for (int lp = 1; lp != len(newString); lp++)
+			{
+				if (lp != 1)
+				{
+					SplitContent.append(splitAt);
+				}
+				SplitContent.append(newString[lp]);
+			}
+			return SplitContent.toString();
 		}
 		else
 		{
@@ -267,6 +276,8 @@ public class shell {
 			}
 			else if (StartsWith(Content, "method"))
 			{
+//				print(Content);
+//				print(GenCode("\t",Content));
 				ClassContent.append(GenCode("\t",Content));
 			}
 
@@ -279,6 +290,7 @@ public class shell {
 				break;
 			}
 		}
+//		print(ClassContent.toString());
 		Complete = PublicOrPrivate+" class "+TheName+" {\n\n\tprivate static int x;\n\tprivate static int y;\n\n\t//class constructor\n\tpublic "+TheName+"("+Params+")\n\t{\n\t\tthis.x = x;\n\t\tthis.y = y;\n\t}\n\n"+ClassContent.toString()+"\n}\n";
 		return Complete;
 	}
@@ -321,7 +333,7 @@ public class shell {
 //				Process = SplitBefore(Content," ");
 				Params =  Parameters(Content,"method");
 			}
-			else if ((StartsWith(Content, "method")) && (StartsWith(Content, "class")))
+			else if ((StartsWith(Content, "method")) || (StartsWith(Content, "class")))
 			{
 				break;
 			}

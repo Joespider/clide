@@ -52,7 +52,7 @@ public class newJava {
 	private static void Help()
 	{
 		String program = "newJava";
-		String version = "0.1.53";
+		String version = "0.1.54";
 		print("Author: Joespider");
 		print("Program: \""+program+"\"");
 		print("Version: "+version);
@@ -573,7 +573,7 @@ public class newJava {
 			MethodSplit.append("\tprivate static String[] split(String message, String by)\n\t{\n\t\tString[] vArray = message.split(by);\n\t\treturn vArray;\n\t}\n\n");
 			MethodSplit.append("\tprivate static String[] split(String message, String by, int plc)\n\t{\n\t\tString[] vArray = message.split(by,plc);\n\t\treturn vArray;\n\t}\n\n");
 			MethodSplit.append("\tprivate static String SplitBefore(String Str, String splitAt)\n\t{\n\t\tif (Str.contains(splitAt))\n\t\t{\n\t\t\tString[] newString = split(Str, splitAt, 0);\n\t\t\treturn newString[0];\n\t\t}\n\t\telse\n\t\t{\n\t\t\treturn Str;\n\t\t}\n\t}\n\n");
-			MethodSplit.append("\tprivate static String SplitAfter(String Str, String splitAt)\n\t{\n\t\tif (Str.contains(splitAt))\n\t\t{\n\t\t\tString[] newString = split(Str, splitAt, 0);\n\t\t\treturn newString[1];\n\t\t}\n\t\telse\n\t\t{\n\t\t\treturn Str;\n\t\t}\n\t}\n\n");
+			MethodSplit.append("\tprivate static String SplitAfter(String Str, String splitAt)\n\t{\n\t\tif (Str.contains(splitAt))\n\t\t{\n\t\t\tStringBuilder SplitContent = new StringBuilder(\"\");\n\t\t\tString[] newString = split(Str, splitAt, 0);\n\t\t\tfor (int lp = 1; lp != len(newString); lp++)\n\t\t\t{\n\t\t\t\tif (lp != 1)\n\t\t\t\t{\n\t\t\t\t\tSplitContent.append(splitAt);\n\t\t\t\t}\n\t\t\t\tSplitContent.append(newString[lp]);\n\t\t\t}\n\t\t\treturn SplitContent.toString();\n\t\t}\n\t\telse\n\t\t{\n\t\t\treturn Str;\n\t\t}\n\t}\n\n");
 		}
 		if (getConvert == true)
 		{
