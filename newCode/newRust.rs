@@ -6,7 +6,7 @@ fn help()
 {
 	println!("Author: Joespider");
 	println!("Program: \"newRust\"");
-	println!("Version: 0.1.28");
+	println!("Version: 0.1.30");
 	println!("Purpose: make new Rust programs");
 	println!("Usage: newRust <args>");
 	println!("\t--user <username> : get username for help page");
@@ -18,12 +18,15 @@ fn help()
 	println!("\t--prop : enable custom system property");
 	println!("\t--pipe : enable piping (Main file and project ONLY)");
 	println!("\t--shell : unix shell");
+	println!("\t--files : enable filesystem Rust specific code");
 	println!("\t--reverse : enable \"rev\" method");
 	println!("\t--random : enable \"random\" int method");
+/*
 	println!("\t--check-file : enable \"fexists\" file method");
 	println!("\t--write-file : enable \"write\" file method");
 	println!("\t--read-file : enable \"read\" file method");
 	println!("\t--is-in : enable string contains methods");
+*/
 	println!("\t--user-input : enable \"raw_input\" file method");
 	println!("\t--split : enable split");
 	println!("\t--join : enable join");
@@ -344,10 +347,17 @@ fn main()
 		else if args == "--sub-string"
 		{
 			is_sub_str = true;
+			is_in = true;
 		}
 		else if args == "--shell"
 		{
 			is_shell = true;
+		}
+		else if args == "--files"
+		{
+			is_write_file = true;
+			is_read_file = true;
+			is_check_file = true;
 		}
 		else if args == "--cli"
 		{
@@ -362,7 +372,6 @@ fn main()
 		{
 			is_a_random = true;
 		}
-*/
 		else if args == "--write-file"
 		{
 			is_write_file = true;
@@ -375,6 +384,7 @@ fn main()
 		{
 			is_check_file = true;
 		}
+*/
 		else if args == "--user-input"
 		{
 			get_input_method = true;
@@ -399,10 +409,12 @@ fn main()
 		{
 			is_prop = true;
 		}
+/*
 		else if args == "--is-in"
 		{
 			is_in = true;
 		}
+*/
 		else if args == "--sleep"
 		{
 			is_sleep = true;

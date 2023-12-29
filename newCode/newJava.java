@@ -52,7 +52,7 @@ public class newJava {
 	private static void Help()
 	{
 		String program = "newJava";
-		String version = "0.1.50";
+		String version = "0.1.53";
 		print("Author: Joespider");
 		print("Program: \""+program+"\"");
 		print("Version: "+version);
@@ -76,10 +76,12 @@ public class newJava {
 		print("\t--random : enable \"random\" int method");
 		print("\t--shell : unix shell");
 		print("\t--files : enable filesystem Java specific code");
+/*
 		print("\t--check-file : enable \"fexists\" file method");
 		print("\t--write-file : enable \"write\" file method");
-		print("\t--is-in : enable string contains methods");
 		print("\t--read-file : enable \"read\" file method");
+		print("\t--is-in : enable string contains methods");
+*/
 		print("\t--user-input : enable \"raw_input\" method");
 		print("\t--append-array : enable \"append\" array methods");
 		print("\t--thread : enable threading");
@@ -210,6 +212,9 @@ public class newJava {
 			else if (now.equals("--files"))
 			{
 				getFS = true;
+				getCheckFile = true;
+				getWriteFile = true;
+				getReadFile = true;
 			}
 			//enable unix shell
 			else if (now.equals("--shell"))
@@ -221,11 +226,13 @@ public class newJava {
 			{
 				getSleep = true;
 			}
-			//enable CLI Args
+/*
+			//enable Is In methods
 			else if (now.equals("--is-in"))
 			{
 				getIsIn = true;
 			}
+*/
 			//enable CLI Args
 			else if (now.equals("--cli"))
 			{
@@ -299,7 +306,9 @@ public class newJava {
 			else if (now.equals("--sub-string"))
 			{
 				getSubStr = true;
+				getIsIn = true;
 			}
+/*
 			//enable Write file Method
 			else if (now.equals("--check-file"))
 			{
@@ -315,6 +324,7 @@ public class newJava {
 			{
 				getReadFile = true;
 			}
+*/
 			//enable raw_input method
 			else if (now.equals("--user-input"))
 			{
@@ -621,7 +631,7 @@ public class newJava {
 
 		if (getFS == true)
 		{
-			MethodFS.append("\tprivate static String LS(String dir)\n\t{\n\t\tString Line = \"\";\n\t\tString Output = \"\";\n\t\tFile directoryPath;\n\t\tif (dir.equals(\"\"))\n\t\t{\n\t\t\tdirectoryPath = new File(System.getProperty(\"user.dir\"));\n\t\t}\n\t\telse\n\t\t{\n\t\t\tdirectoryPath = new File(dir);\n\t\t}\n\n\t\t//List of all files and directories\n\t\tFile filesList[] = directoryPath.listFiles();\n\t\tif (filesList != null)\n\t\t\n\t\t\tfor(File file : filesList)\n\t\t\t{\n\t\t\t\tLine = file.getName();\n\t\t\t\tif (!Line.startsWith(\".\"))\n\t\t\t\t{\n\t\t\t\t\tOutput = Output+Line+\"\\n\";\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t\treturn Output;\n\t}\n\n");
+			MethodFS.append("\tprivate static String LS(String dir)\n\t{\n\t\tString Line = \"\";\n\t\tString Output = \"\";\n\t\tFile directoryPath;\n\t\tif (dir.equals(\"\"))\n\t\t{\n\t\t\tdirectoryPath = new File(System.getProperty(\"user.dir\"));\n\t\t}\n\t\telse\n\t\t{\n\t\t\tdirectoryPath = new File(dir);\n\t\t}\n\n\t\t//List of all files and directories\n\t\tFile filesList[] = directoryPath.listFiles();\n\t\tif (filesList != null)\n\t\t{\n\t\t\tfor(File file : filesList)\n\t\t\t{\n\t\t\t\tLine = file.getName();\n\t\t\t\tif (!Line.startsWith(\".\"))\n\t\t\t\t{\n\t\t\t\t\tOutput = Output+Line+\"\\n\";\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t\treturn Output;\n\t}\n\n");
 			MethodFS.append("\tprivate static void CD(String dir)\n\t{\n\t\tif (!dir.equals(\"\"))\n\t\t{\n\t\t\tSystem.setProperty(\"user.dir\",dir);\n\t\t}\n\t}\n\n");
 		}
 

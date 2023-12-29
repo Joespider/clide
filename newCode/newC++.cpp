@@ -24,7 +24,7 @@ bool IsIn(String Str, String Sub);
 
 static void help()
 {
-	String Version = "0.1.67";
+	String Version = "0.1.69";
 	print("Author: Joespider");
 	print("Program: \"" << ProgName << "\"");
 	print("Version: " << Version);
@@ -45,10 +45,12 @@ static void help()
 	print("\t--split : enable \"split\" function");
 	print("\t--join : enable \"join\" function");
 	print("\t--random : enable \"random\" int method");
+/*
 	print("\t--check-file : enable \"fexists\" file method");
 	print("\t--write-file : enable \"write\" file method");
 	print("\t--read-file : enable \"read\" file method");
 	print("\t--is-in : enable string contains methods");
+*/
 	print("\t--user-input : enable \"raw_input\" method");
 	print("\t--vectors : enable vector arrays");
 	print("\t--thread : enable threading (Main file ONLY)");
@@ -281,7 +283,7 @@ static String getMethodDec(bool* rawinput, bool* rand, bool* fcheck, bool* write
 	}
 	if (*getFS == true)
 	{
-		Declaration = Declaration+"void ShowFiles(String Dir);\n";
+		Declaration = Declaration+"void LS(String Dir);\n";
 		Declaration = Declaration+"void CD(String Dir);\n";
 	}
 	if (*dateTime == true)
@@ -416,7 +418,7 @@ static String getMethods(bool* rawinput, bool* rand, bool* fcheck, bool* write, 
 	}
 	if (*getFS == true)
 	{
-		TheFileSystem = "void ShowFiles(String Dir)\n{\n\tif (Dir != \"\")\n\t{\n\t\tfor (const auto & entry : std::filesystem::directory_iterator(Dir))\n\t\t{\n\t\t\tprint(entry.path());\n\t\t}\n\t}\n}\n\n";
+		TheFileSystem = "void LS(String Dir)\n{\n\tif (Dir != \"\")\n\t{\n\t\tfor (const auto & entry : std::filesystem::directory_iterator(Dir))\n\t\t{\n\t\t\tprint(entry.path());\n\t\t}\n\t}\n}\n\n";
 		TheFileSystem = TheFileSystem + "void CD(String Dir)\n{\n\tif (Dir != \"\")\n\t{\n\t\tchdir(Dir.c_str());\n\t}\n}\n\n";
 	}
 	if (*dateTime == true)
@@ -641,7 +643,9 @@ int main(int argc, char** argv)
 			{
 				getName = false;
 				getSubStr = true;
+				getIsIn = true;
 			}
+/*
 			//Get Check file method
 			else if (UserIn == "--check-file")
 			{
@@ -666,6 +670,7 @@ int main(int argc, char** argv)
 				getName = false;
 				getIsIn = true;
 			}
+*/
 			//Get raw_input method
 			else if (UserIn == "--user-input")
 			{
@@ -683,6 +688,9 @@ int main(int argc, char** argv)
 			{
 				getName = false;
 				getFS = true;
+				getFCheck = true;
+				getWrite = true;
+				getRead = true;
 			}
 			//Enable Piping
 			else if (UserIn == "--pipe")
