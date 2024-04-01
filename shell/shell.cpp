@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.0.29";
+String Version = "0.0.32";
 
 String getOS();
 void Help(String Type);
@@ -74,10 +74,10 @@ void Help(String Type)
 	if (Type == "class")
 	{
 		print("{Usage}");
-		print("class:<name> param:<params>,<param> var:<vars> method:<name>-<type> param:<params>,<param>");
+		print("class:<name> param:<params>,<param> var(public/private):<vars> method:<name>-<type> param:<params>,<param>");
 		print("");
 		print("{EXAMPLE}");
-		print("class:pizza params:one-int,two-bool,three-float method:cheese-std::string params:four-int,five-int loop:for nest-loop:for");
+		print("class:pizza params:one-int,two-bool,three-float var(private):toppings-int method:cheese-std::string params:four-int,five-int loop:for nest-loop:for");
 	}
 	else if (Type == "struct")
 	{
@@ -88,6 +88,7 @@ void Help(String Type)
 	}
 	else if (Type == "method")
 	{
+		print("method(public/private):<name>-<type> param:<params>,<param>");
 		print("method:<name>-<type> param:<params>,<param>");
 	}
 	else if (Type == "loop")
@@ -111,7 +112,7 @@ void Help(String Type)
 	}
 	else if (Type == "var")
 	{
-		print("var:<name>-<type>=value\tcreate a new variable");
+		print("var(public/private):<name>-<type>=value\tcreate a new variable");
 		print("var:<name>-<type>[<num>]=value\tcreate a new variable as an array");
 		print("var:<name>-<type>(<struct>)=value\tcreate a new variable a data structure");
 		print("var:<name>=value\tassign a new value to an existing variable");
@@ -295,12 +296,16 @@ String Struct(String TheName, String Content)
 String Class(String TheName, String Content)
 {
 	String Complete = "";
+	String PrivateVars = "";
+	String PublicVars = "";
+	String VarContent = "";
 /*
-	String PublicOrPrivate = "public";
-	if (IsIn(TheName,"class-"))
+	String PublicOrPrivate = "";
+	if (StartsWith(TheName,"class("))
+	if (IsIn(TheName,")"))
 	{
-		PublicOrPrivate = SplitAfter(TheName,"-");
-		PublicOrPrivate = SplitBefore(PublicOrPrivate,":");
+		PublicOrPrivate = SplitAfter(TheName,"(");
+		PublicOrPrivate = SplitBefore(PublicOrPrivate,")");
 	}
 */
 	TheName = SplitAfter(TheName,':');
@@ -319,6 +324,23 @@ String Class(String TheName, String Content)
 		{
 			ClassContent = ClassContent + GenCode("\t",Content);
 		}
+		else if (StartsWith(Content, "var"))
+		{
+			if (StartsWith(Content, "var(public)"))
+			{
+				Content = SplitAfter(Content,')');
+				VarContent = SplitBefore(Content,' ');
+				VarContent = "var"+VarContent;
+				PublicVars = PublicVars + GenCode("\t",VarContent);
+			}
+			else if (StartsWith(Content, "var(private)"))
+			{
+				Content = SplitAfter(Content,')');
+				VarContent = SplitBefore(Content,' ');
+				VarContent = "var"+VarContent;
+				PrivateVars = PrivateVars  + GenCode("\t",VarContent);
+			}
+		}
 
 		if (IsIn(Content," "))
 		{
@@ -330,7 +352,16 @@ String Class(String TheName, String Content)
 		}
 	}
 
-	Complete = "class "+TheName+" {\n\nprivate:\n\tprivate variables\n\tint x, y;\npublic:\n\t//class constructor\n\t"+TheName+"("+Params+")\n\t{\n\t\tthis->x = x;\n\t\tthis->y = y;\n\t}\n\n"+ClassContent+"\n\t//class desctructor\n\t~"+TheName+"()\n\t{\n\t}\n};\n";
+	if (PrivateVars != "")
+	{
+		PrivateVars = "private:\n\t//private variables\n"+PrivateVars+"\n";
+	}
+	if (PublicVars != "")
+	{
+		PublicVars = "\n\t//public variables\n"+PublicVars;
+	}
+
+	Complete = "class "+TheName+" {\n\n"+PrivateVars+"public:"+PublicVars+"\n\t//class constructor\n\t"+TheName+"("+Params+")\n\t{\n\t\tthis->x = x;\n\t\tthis->y = y;\n\t}\n\n"+ClassContent+"\n\t//class desctructor\n\t~"+TheName+"()\n\t{\n\t}\n};\n";
 	return Complete;
 }
 

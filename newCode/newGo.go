@@ -8,7 +8,7 @@ import (
 
 func help() {
 	var ProgName string = "newGo"
-	var Version string = "0.1.33"
+	var Version string = "0.1.34"
 
 	fmt.Println("Author: Joespider")
 	fmt.Println("Program: \""+ProgName+"\"")
@@ -170,6 +170,7 @@ func getMethods(getRawIn bool, getRand bool, getCheck bool, getWrite bool, getRe
 	if getShell == true {
 		ShellMethod = "func Shell(command string) string {\n\tif command != \"\" {\n\t\tout, err := exec.Command(command).Output()\n\t\tif err != nil {\n\t\t\treturn \"\"\n\t\t} else {\n\t\t\toutput := string(out[:])\n\t\t\treturn output\n\t\t}\n\t} else {\n\t\treturn \"\"\n\t}\n}\n\n"
 		ShellMethod = ShellMethod+"func Exe() {\n\t//execute\n\tcmd := exec.Command(\"touch\", \"me\")\n\tstdout, err := cmd.Output()\n\n\tif err != nil {\n\t\tfmt.Println(err.Error())\n\t\treturn\n\t}\n\n\tfmt.Print(string(stdout))\n}\n\n"
+		ShellMethod = ShellMethod+"func getOS() string {\n\tos := runtime.GOOS\n\tswitch os {\n\t\tcase \"windows\":\n\t\t\treturn \"Windows\"\n\t\tcase \"darwin\":\n\t\t\treturn \"MAC\"\n\t\tcase \"linux\":\n\t\t\treturn \"Linux\"\n\t\tdefault:\n\t\t\treturn \"Unknown\"\n\t}\n}\n\n"
 	}
 
 	if getSleep == true {

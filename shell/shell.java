@@ -12,7 +12,7 @@ import java.io.IOException;
 
 //class name
 public class shell {
-	private static String Version = "0.0.14";
+	private static String Version = "0.0.18";
 	private static String TheKind = "";
 	private static String TheName = "";
 	private static String TheKindType = "";
@@ -61,15 +61,15 @@ public class shell {
 		}
 		else if (Type.equals("var"))
 		{
-			print("var:<name>-<type>=value\tcreate a new variable");
-			print("var:<name>-<type>[<num>]=value\tcreate a new variable as an array");
-			print("var:<name>-<type>(<struct>)=value\tcreate a new variable a data structure");
+			print("var(public/private):<name>-<type>=value\tcreate a new variable");
+			print("var(public/private):<name>-<type>[<num>]=value\tcreate a new variable as an array");
+			print("var(public/private):<name>-<type>(<struct>)=value\tcreate a new variable a data structure");
 			print("var:<name>=value\tassign a new value to an existing variable");
 			print("");
 			print("{EXAMPLE}");
-			print("var:name-std::string[3]");
-			print("var:name-std::string(vector)");
-			print("var:name-std::string=\"\" var:point-int=0 var:james-std::string=\"James\" var:help-int");
+			print("var(public):name-String[3]");
+			print("var(private):name-String(vector)");
+			print("var:name-String=\"\" var:point-int=0 var:james-String=\"James\" var:help-int");
 		}
 		else
 		{
@@ -257,6 +257,9 @@ public class shell {
 	private static String Class(String TheName, String Content)
 	{
 		String Complete = "";
+		String VarCount = "";
+		String VarContent = "";
+		String Process = "";
 		String PublicOrPrivate = "public";
 		if ((IsIn(TheName,"class(")) && (IsIn(TheName,"):")))
 		{
@@ -267,20 +270,43 @@ public class shell {
 
 		TheName = SplitAfter(TheName,":");
 		String Params = "";
+		StringBuilder PrivateVars = new StringBuilder("");
+		StringBuilder PublicVars = new StringBuilder("");
 		StringBuilder ClassContent = new StringBuilder("");
 		while (!Content.equals(""))
 		{
 			if ((StartsWith(Content, "params")) && (Params.equals("")))
 			{
-				Params =  Parameters(Content,"class");
+				Process = SplitBefore(Content," ");
+				Params =  Parameters(Process,"class");
 			}
 			else if (StartsWith(Content, "method"))
 			{
 //				print(Content);
 //				print(GenCode("\t",Content));
-				ClassContent.append(GenCode("\t",Content));
+				ClassContent.append(GenCode("",Content));
 			}
-
+			else if (StartsWith(Content, "var"))
+			{
+				if (StartsWith(Content, "var(public)"))
+				{
+//					Content = SplitAfter(Content,"\\)");
+					VarContent = SplitBefore(Content," ");
+//					print(VarContent);
+//					VarContent = "var"+VarContent;
+					PublicVars.append(GenCode("\t",VarContent));
+//					PublicVars.append(GenCode("\t",Content));
+				}
+				else if (StartsWith(Content, "var(private)"))
+				{
+//					Content = SplitAfter(Content,"\\)");
+					VarContent = SplitBefore(Content," ");
+//					print(VarContent);
+//					VarContent = "var"+VarContent;
+					PrivateVars.append(GenCode("\t",VarContent));
+//					PrivateVars.append(GenCode("\t",Content));
+				}
+			}
 			if (IsIn(Content," "))
 			{
 				Content = SplitAfter(Content," ");
@@ -290,8 +316,8 @@ public class shell {
 				break;
 			}
 		}
-//		print(ClassContent.toString());
-		Complete = PublicOrPrivate+" class "+TheName+" {\n\n\tprivate static int x;\n\tprivate static int y;\n\n\t//class constructor\n\tpublic "+TheName+"("+Params+")\n\t{\n\t\tthis.x = x;\n\t\tthis.y = y;\n\t}\n\n"+ClassContent.toString()+"\n}\n";
+
+		Complete = PublicOrPrivate+" class "+TheName+" {\n"+PublicVars.toString()+PrivateVars.toString()+"\n\t//class constructor\n\tpublic "+TheName+"("+Params+")\n\t{\n\t\tthis.x = x;\n\t\tthis.y = y;\n\t}\n\n"+ClassContent.toString()+"\n}\n";
 		return Complete;
 	}
 
@@ -311,7 +337,7 @@ public class shell {
 		String TheName = "";
 		String Type = "";
 		String Params = "";
-//		String Process = "";
+		String Process = "";
 		StringBuilder MethodContent = new StringBuilder("");
 		String LastComp = "";
 
@@ -330,8 +356,9 @@ public class shell {
 		{
 			if ((StartsWith(Content, "params")) && (Params.equals("")))
 			{
+				Process = SplitBefore(Content," ");
 //				Process = SplitBefore(Content," ");
-				Params =  Parameters(Content,"method");
+				Params =  Parameters(Process,"method");
 			}
 			else if ((StartsWith(Content, "method")) || (StartsWith(Content, "class")))
 			{
@@ -339,7 +366,7 @@ public class shell {
 			}
 			else
 			{
-				MethodContent.append(GenCode(Tabs+"\t",Content));
+				MethodContent.append(GenCode(Tabs+"\t\t",Content));
 			}
 
 			if (IsIn(Content," "))
@@ -352,7 +379,7 @@ public class shell {
 			}
 		}
 
-		if ((Type.equals("")) || (Type.equals("void")))
+		if ((Type.equals("")) || (Type.equals("void")) || (Type.equals(TheName)))
 		{
 			Complete = Tabs+"\t"+PublicOrPrivate+" static void "+TheName + "("+Params+")\n"+Tabs+"\t{\n"+MethodContent.toString()+"\n"+Tabs+"\t}\n";
 		}
@@ -369,6 +396,14 @@ public class shell {
 		String Name = "";
 		String VarType = "";
 		String Value = "";
+
+		String PublicOrPrivate = "";
+		if ((IsIn(TheName,"var(")) && (IsIn(TheName,"):")))
+		{
+			PublicOrPrivate = SplitAfter(TheName,"var");
+			PublicOrPrivate = SplitBefore(PublicOrPrivate,":");
+			PublicOrPrivate = PublicOrPrivate.substring(1, PublicOrPrivate.length()-1);
+		}
 
 		if (IsIn(input,":") && IsIn(input,"-") && IsIn(input,"="))
 		{
@@ -394,15 +429,36 @@ public class shell {
 		String NewVar = "";
 		if (Value.equals(""))
 		{
-			NewVar = Tabs+VarType+" "+Name+";\n";
+			if (!PublicOrPrivate.equals(""))
+			{
+				NewVar = Tabs+PublicOrPrivate+" "+VarType+" "+Name+";\n";
+			}
+			else
+			{
+				NewVar = Tabs+VarType+" "+Name+";\n";
+			}
 		}
 		else if (VarType.equals(""))
 		{
-			NewVar = Tabs+Name+" = "+Value+";\n";
+			if (!PublicOrPrivate.equals(""))
+			{
+				NewVar = Tabs+PublicOrPrivate+" "+Name+" = "+Value+";\n";
+			}
+			else
+			{
+				NewVar = Tabs+Name+" = "+Value+";\n";
+			}
 		}
 		else
 		{
-			NewVar = Tabs+VarType+" "+Name+" = "+Value+";\n";
+			if (!PublicOrPrivate.equals(""))
+			{
+				NewVar = Tabs+PublicOrPrivate+" "+VarType+" "+Name+" = "+Value+";\n";
+			}
+			else
+			{
+				NewVar = Tabs+VarType+" "+Name+" = "+Value+";\n";
+			}
 		}
 
 		return NewVar;
@@ -451,7 +507,6 @@ public class shell {
 				Params = Type+" "+Name;
 			}
 		}
-
 		return Params;
 	}
 
@@ -494,7 +549,8 @@ public class shell {
 			else if (StartsWith(Content, "nest-"))
 			{
 				Content = SplitAfter(Content,"-");
-				LoopContent.append(GenCode(Tabs+"\t",Content));
+				String LogicContent = SplitBefore(Content," ");
+				LoopContent.append(GenCode(Tabs+"\t",LogicContent));
 			}
 
 			if (IsIn(Content," "))
@@ -616,8 +672,17 @@ public class shell {
 	{
 		StringBuilder TheCode = new StringBuilder("");
 		String[] Args = new String[2];
-		Args[0] = SplitBefore(GetMe," ");
-		Args[1] = SplitAfter(GetMe," ");
+		if (IsIn(GetMe," "))
+		{
+			Args[0] = SplitBefore(GetMe," ");
+			Args[1] = SplitAfter(GetMe," ");
+		}
+		else
+		{
+			Args[0] = GetMe;
+			Args[1] = "";
+		}
+
 		if (StartsWith(Args[0], "class"))
 		{
 			TheCode.append(Class(Args[0],Args[1]));
