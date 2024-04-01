@@ -2341,7 +2341,7 @@ Actions-NoLang()
 				;;
 			read)
 				case ${UserIn[1],,} in
-					config)
+					--config)
 						main "--read" "--config" "session"
 						;;
 					*)
@@ -2350,7 +2350,19 @@ Actions-NoLang()
 				;;
 			edit)
 				case ${UserIn[1],,} in
-					config)
+					--config)
+						main "--edit" "--config"
+						;;
+					*)
+						;;
+				esac
+				;;
+			config)
+				case ${UserIn[1],,} in
+					--read)
+						main "--read" "--config" "session"
+						;;
+					--edit)
 						main "--edit" "--config"
 						;;
 					*)
@@ -3401,6 +3413,7 @@ Actions()
 											TheSrcCode=""
 											#Start IDE
 											Actions-NoLang
+											Protect "done"
 											Lang=${Old}
 											cLang=$(color ${Lang})
 											TheSrcCode=${OldCode}
@@ -3422,6 +3435,7 @@ Actions()
 										TheSrcCode=""
 										#Start IDE
 										Actions-NoLang
+										Protect "done"
 										Lang=${Old}
 										cLang=$(color ${Lang})
 										TheSrcCode=${OldCode}
@@ -3479,7 +3493,25 @@ Actions()
 							*)
 								#UserIn[0]=""
 								local ShellArgs=( "${UserIn[@]}" )
-								ManageLangs ${Lang} "shell" "${ShellArgs[@]}"
+								case ${InAndOut} in
+									no)
+										if [ ! -z "${ShellArgs[1]}" ]; then
+											case ${ShellArgs[1],,} in
+												"help:"*|"help")
+													ManageLangs ${Lang} "shell" "${ShellArgs[@]}"
+													;;
+												*)
+													ManageLangs ${Lang} "shell" "${ShellArgs[@]}" | ${editor} -
+													;;
+											esac
+										else
+											ManageLangs ${Lang} "shell" "${ShellArgs[@]}"
+										fi
+										;;
+									*)
+										ManageLangs ${Lang} "shell" "${ShellArgs[@]}"
+										;;
+								esac
 								;;
 						esac
 						;;
@@ -7149,6 +7181,7 @@ main()
 						no-lang|nl)
 							#Start IDE
 							Actions-NoLang
+							Protect "done"
 							;;
 						#A valid language has been given
 						*)

@@ -6,7 +6,7 @@ ProgramName = sys.argv[0]
 if "/" in ProgramName:
 	ProgramName = ProgramName.rsplit("/",1)[1]
 
-VersionNumver = "0.1.36"
+VersionNumver = "0.1.37"
 
 def Help():
 	print("Author: Joespider")
@@ -176,6 +176,7 @@ def Imports(getShell, getSys, getFiles, getRand, getThread, getPipe, getSleep, g
 	TheImports = ""
 	if getShell == True or getFiles == True or getProp == True or getCheckFile == True:
 		TheImports = "import os\n"
+		TheImports = TheImports + "import platform\n"
 	if getSys == True or getPipe == True:
 		TheImports = TheImports+"import sys\n"
 	if getRand == True:
@@ -201,7 +202,9 @@ def Imports(getShell, getSys, getFiles, getRand, getThread, getPipe, getSleep, g
 def Methods(getMain, getRawInput, getShell, getFiles, getCLI, getCheckFile, getWrite, getRead, getRandom, getThread, getPipe, getSleep, getTime, getProp, getSplit, getJoin, getSubStr, getIsIn, getRev, getTypes, getUpper, getLower, getMath, getLength, getWeb, getWebSoup, getJson):
 	TheMethods = ""
 	#{
-	OSshellMethod = "def Shell(cmd):\n\tOutput = \"\"\n\tTheShell = os.popen(cmd)\n\tOutput = TheShell.read()\n\tTheShell.close()\n\treturn Output\n\ndef Exe(cmd):\n\tos.system(cmd)\n"
+	OSshellMethod = "def Shell(cmd):\n\tOutput = \"\"\n\tTheShell = os.popen(cmd)\n\tOutput = TheShell.read()\n\tTheShell.close()\n\treturn Output\n\n"
+	OSshellMethod = OSshellMethod + "def Exe(cmd):\n\tos.system(cmd)\n\n"
+	OSshellMethod = OSshellMethod + "def getOS():\n\tplatform.system()\n"
 	PythonFilesMethod = "def sep():\n\treturn os.sep\n\n"
 	PythonFilesMethod = PythonFilesMethod + "def LS(Dir):\n\tif Dir != \"\":\n\t\tfor file in os.listdir(Dir):\n\t\t\tprint(file)\n\n"
 	PythonFilesMethod = PythonFilesMethod + "def CD(Dir):\n\tif Dir != \"\":\n\t\tos.chdir(Dir)\n"

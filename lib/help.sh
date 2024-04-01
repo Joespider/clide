@@ -32,8 +32,10 @@ MenuHelp()
 		no-lang)
 			echo ""
 			echo "----------------[(${Lang}) Menu]----------------"
-			echo -e "read config\t\t\t: \"read ${Head} config\""
-			echo -e "edit config\t\t\t: \"edit ${Head} config\""
+			echo -e "config --read\t\t\t: \"read ${Head} config\""
+			echo -e "config --edit\t\t\t: \"edit ${Head} config\""
+			echo -e "read --config\t\t\t: \"read ${Head} config\""
+			echo -e "edit --config\t\t\t: \"edit ${Head} config\""
 			echo -e "version\t\t\t\t: \"Get ${Head} Version\""
 			echo -e "ll, languages\t\t\t: \"Get ${Head} supported languages\""
 			echo -e "\t--cpl, --compile, --run-time\t: \"Get ${Head} supported languages and compiler/intepreter\""

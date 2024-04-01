@@ -74,7 +74,7 @@ fn get_help(type_of_help: &str)
 
 fn banner()
 {
-	let version = "0.0.20";
+	let version = "0.0.21";
 //	String cplV = getCplV();
 	let the_os = get_os();
 //	println!(cplV);
@@ -212,15 +212,15 @@ fn get_class(name: &str, content: &str) -> String
 	let the_name = split_after(name,":");
 	let mut the_params: String = "".to_string();
 	let mut class_content = String::new();
-//	let mut the_process: String = "".to_string();
 
 	loop
 	{
 		if starts_with(&parse_content, "params")
 		{
-//			the_process = split_before(&parse_content," ");
+			let the_process = split_before(&parse_content," ");
 //			the_params = get_parameters(&parse_content,"class");
-			the_params = get_parameters(&split_before(&parse_content," "),"class");
+//			the_params = get_parameters(&split_before(&parse_content," "),"class");
+			the_params = get_parameters(&the_process,"class");
 		}
 		else if starts_with(&parse_content, "method")
 		{
@@ -264,7 +264,6 @@ fn get_method(the_tabs: &str, name: &str, content: &str) -> String
 	let the_type: String;
 	let mut the_params = String::new();
 	let mut method_content = String::new();
-//	let mut the_process: String = "".to_string();
 //	let mut last_comp = "";
 
 	if is_in(name, "-")
@@ -281,8 +280,10 @@ fn get_method(the_tabs: &str, name: &str, content: &str) -> String
 	{
 		if starts_with(&parse_content, "params")
 		{
+			let the_process = split_before(&parse_content," ");
 //			the_params.push_str(&get_parameters(&parse_content,"method"));
-			the_params.push_str(&get_parameters(&split_before(&parse_content," "),"method"));
+//			the_params.push_str(&get_parameters(&split_before(&parse_content," "),"method"));
+			the_params = get_parameters(&the_process,"method");
 		}
 		else if starts_with(&parse_content, "method") == false && starts_with(&parse_content, "class") == false
 		{
@@ -426,8 +427,8 @@ fn get_parameters(input: &str, called_by: &str) -> String
 	let mut the_param: String = split_after(&input,":");
 	if called_by == "class" || called_by == "method"
 	{
-                if is_in(&the_param,"-") && is_in(&the_param,",")
-                {
+		if is_in(&the_param,"-") && is_in(&the_param,",")
+		{
 			let the_name: String = split_before(&the_param,"-");
 			let mut the_type: String = split_after(&the_param,"-");
 			the_type = split_before(&the_type,",");
@@ -441,8 +442,8 @@ fn get_parameters(input: &str, called_by: &str) -> String
 			the_param.push_str(&the_name);
 			the_param.push_str(", ");
 			the_param.push_str(&the_more);
-                }
-                else if is_in(&the_param,"-") && !is_in(&the_param,",")
+		}
+		else if is_in(&the_param,"-") && !is_in(&the_param,",")
                 {
 			let the_name: String = split_before(&the_param,"-");
 			let the_type: String = split_after(&the_param,"-");
@@ -472,10 +473,22 @@ fn get_loop(the_tabs: &str, kind_type: &str, content: &str) -> String
 			the_condition = get_conditions(&parse_content,&the_kind_type);
 
 		}
-		else if starts_with(&parse_content, "method") == false && starts_with(&parse_content, "class") == false && starts_with(&parse_content, "nest-")
+		else if starts_with(&parse_content, "method") == true || starts_with(&parse_content, "class") == true
+		{
+			break;
+		}
+		else if starts_with(&parse_content, "nest-")
 		{
 			parse_content = split_after(&parse_content,"-");
-			loop_content.push_str(&gen_code(&(the_tabs.to_owned()+"\t"),&parse_content));
+			if is_in(&parse_content," ")
+			{
+				let logic_content = split_before(&parse_content," ");
+				loop_content.push_str(&gen_code(&(the_tabs.to_owned()+"\t"),&logic_content));
+			}
+			else
+			{
+				loop_content.push_str(&gen_code(&(the_tabs.to_owned()+"\t"),&parse_content));
+			}
 		}
 
 		if is_in(&parse_content, " ")
@@ -554,7 +567,11 @@ fn get_logic(the_tabs: &str, kind_type: &str, content: &str) -> String
 		{
 			the_condition = get_conditions(&parse_content,&the_kind_type);
 		}
-		else if starts_with(content, "method") == false && starts_with(content, "class") == false && starts_with(content, "nest-")
+		else if starts_with(content, "method") == true || starts_with(content, "class") == true
+		{
+			break;
+		}
+		else if starts_with(content, "nest-")
 		{
 			let mut all_tabs = String::new();
 			all_tabs.push_str(the_tabs);
