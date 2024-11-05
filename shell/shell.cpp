@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.0.32";
+String Version = "0.0.33";
 
 String getOS();
 void Help(String Type);
@@ -540,7 +540,7 @@ String Loop(String Tabs, String TheKindType, String Content)
 	String Type = "";
 	String TheCondition = "";
 	String LoopContent = "";
-	String LogicContent = "";
+	String OtherContent = "";
 
 	if (IsIn(TheKindType,":"))
 	{
@@ -566,16 +566,16 @@ String Loop(String Tabs, String TheKindType, String Content)
 		}
 		else if (StartsWith(Content, "nest-"))
 		{
-			LogicContent = Content;
-			if (IsIn(LogicContent,"-"))
+			OtherContent = Content;
+			if (IsIn(OtherContent,"-"))
 			{
-				LogicContent = SplitAfter(LogicContent,'-');
-				if (IsIn(LogicContent," "))
+				OtherContent = SplitAfter(OtherContent,'-');
+				if (IsIn(OtherContent," "))
 				{
-					LogicContent = SplitBefore(LogicContent,' ');
+					OtherContent = SplitBefore(OtherContent,' ');
 				}
 			}
-			LoopContent = LoopContent + GenCode(Tabs+"\t",LogicContent);
+			LoopContent = LoopContent + GenCode(Tabs+"\t",OtherContent);
 		}
 
 		if (IsIn(Content," "))
@@ -584,6 +584,7 @@ String Loop(String Tabs, String TheKindType, String Content)
 		}
 		else
 		{
+			print(Content);
 			break;
 		}
 	}
@@ -610,6 +611,7 @@ String Logic(String Tabs, String TheKindType, String Content)
 	String Type = "";
 	String TheCondition = "";
 	String LogicContent = "";
+	String OtherContent = "";
 
 	if (IsIn(TheKindType,":"))
 	{
@@ -634,12 +636,18 @@ String Logic(String Tabs, String TheKindType, String Content)
 		}
 		else if (StartsWith(Content, "nest-"))
 		{
-			if (IsIn(Content,"-"))
+			OtherContent = Content;
+			if (IsIn(OtherContent,"-"))
 			{
-				Content = SplitAfter(Content,'-');
+				OtherContent = SplitAfter(OtherContent,'-');
+				if (IsIn(OtherContent," "))
+				{
+					OtherContent = SplitBefore(OtherContent,' ');
+				}
 			}
-			LogicContent = LogicContent + GenCode(Tabs+"\t",Content);
+			LogicContent = LogicContent + GenCode(Tabs+"\t",OtherContent);
 		}
+
 		if (IsIn(Content," "))
 		{
 			Content = SplitAfter(Content,' ');
