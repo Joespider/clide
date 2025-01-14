@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.0.33";
+String Version = "0.0.34";
 
 String getOS();
 void Help(String Type);
@@ -533,14 +533,19 @@ String Parameters(String input,String CalledBy)
 	return Params;
 }
 
+//loop:
 String Loop(String Tabs, String TheKindType, String Content)
 {
+//	bool PleaseStop = false;
+//	String Extra = "";
+	String NestTabs = "";
 	String Complete = "";
 	String TheName = "";
 	String Type = "";
 	String TheCondition = "";
 	String LoopContent = "";
 	String OtherContent = "";
+	String NextElement = "";
 
 	if (IsIn(TheKindType,":"))
 	{
@@ -555,48 +560,89 @@ String Loop(String Tabs, String TheKindType, String Content)
 
 	while (Content != "")
 	{
+		NestTabs = "";
 		if (StartsWith(Content, "condition"))
 		{
 			TheCondition = Conditions(Content,TheKindType);
-
 		}
 		else if ((StartsWith(Content, "method")) || (StartsWith(Content, "class")))
 		{
 			break;
 		}
+		//nest-loop:
 		else if (StartsWith(Content, "nest-"))
 		{
 			OtherContent = Content;
-			if (IsIn(OtherContent,"-"))
+
+			if (IsIn(Content, " "))
 			{
+				NextElement = SplitAfter(OtherContent,' ');
+				if (!StartsWith(NextElement, "nest-nest-"))
+				{
+					NextElement = "";
+				}
+			}
+			NestTabs ="\t";
+
+			//nest-nest-nest-....loop:
+			while (StartsWith(OtherContent, "nest-"))
+			{
+//				NestTabs = NestTabs+"\t";
 				OtherContent = SplitAfter(OtherContent,'-');
+
 				if (IsIn(OtherContent," "))
 				{
 					OtherContent = SplitBefore(OtherContent,' ');
 				}
+//				Content = OtherContent;
 			}
-			LoopContent = LoopContent + GenCode(Tabs+"\t",OtherContent);
+			print(OtherContent+" "+NextElement);
+//			print(Content);
+//			String TheElement = NextElement;
+//			while (StartsWith(TheElement, "nest-nest-"))
+//			if (StartsWith(TheElement, "nest-nest-"))
+//			{
+//				TheElement = SplitAfter(TheElement,' ');
+//				OtherContent = OtherContent+" "+TheElement;
+//				print(OtherContent);
+//				print(Content);
+//			}
+/*
+			Extra = GenCode(Tabs+NestTabs,OtherContent);
+			print("Content:\n"+Extra);
+			print("");
+			LoopContent = LoopContent + Extra;
+*/
+			LoopContent = LoopContent + GenCode(Tabs+NestTabs,OtherContent);
+//			LoopContent = LoopContent + GenCode(Tabs,OtherContent);
 		}
-
+/*
+		if (PleaseStop)
+		{
+			break;
+		}
+*/
 		if (IsIn(Content," "))
 		{
 			Content = SplitAfter(Content,' ');
 		}
 		else
 		{
-			print(Content);
+//			PleaseStop = true;
 			break;
 		}
 	}
-
+	//loop:for
 	if (TheKindType == "for")
 	{
 		Complete = Tabs+"for ("+TheCondition+")\n"+Tabs+"{\n"+Tabs+"\t//do something here\n"+LoopContent+"\n"+Tabs+"}\n";
 	}
+	//loop:do/while
 	else if (TheKindType == "do/while")
 	{
 		Complete = Tabs+"do\n"+Tabs+"{\n"+Tabs+"\t//do something here\n"+LoopContent+Tabs+"}\n"+Tabs+"while ("+TheCondition+");\n";
 	}
+	//loop:while
 	else
 	{
 		Complete = Tabs+"while ("+TheCondition+")\n"+Tabs+"{\n"+Tabs+"\t//do something here\n"+LoopContent+Tabs+"}\n";
@@ -606,6 +652,7 @@ String Loop(String Tabs, String TheKindType, String Content)
 
 String Logic(String Tabs, String TheKindType, String Content)
 {
+	String NestTabs = "";
 	String Complete = "";
 	String TheName = "";
 	String Type = "";
@@ -626,6 +673,7 @@ String Logic(String Tabs, String TheKindType, String Content)
 
 	while (Content != "")
 	{
+		NestTabs = "";
 		if (StartsWith(Content, "condition"))
 		{
 			TheCondition = Conditions(Content,TheKindType);
@@ -636,16 +684,49 @@ String Logic(String Tabs, String TheKindType, String Content)
 		}
 		else if (StartsWith(Content, "nest-"))
 		{
+			/*
+			Ok, here is my idea. See, I know the "nest-" gets stripped
+			But what we don't want is the "nest-logic" to be a part
+			of the recursive nature. So maybe have a break in the string
+			where, if the next word has "nest-", just cut if from being
+			used in the recursion. If the next word is "nest-nest-", then
+			make sure to calculate it. That should make it possible to
+			separate the recursion off from then next instance.
+
+			Example:
+				this would be where you break off right before
+				the "nest-logic:else" and drop it for the recursion
+
+				-(Works) nest-logic:if nest-logic:else
+				current-loop: nest-logic:else
+				recursion: nest-logic:if
+
+				this is an example where you keep the string as is;
+
+				- nest-logic:if nest-nest-logic:else
+				current-loop:
+				recursion: nest-logic:if nest-nest-logic:else
+
+				this is an example where you keep the string as is
+				...until you have a "nest-logic". This is where
+				you cut an append to the parent string
+
+				- nest-logic:if nest-nest-logic:else nest-logic:else
+				current-loop: nest-logic:if nest-nest-else
+				recursion: nest-logic:else
+			*/
+
 			OtherContent = Content;
-			if (IsIn(OtherContent,"-"))
+			while (StartsWith(OtherContent, "nest-"))
 			{
+				NestTabs = NestTabs+"\t";
 				OtherContent = SplitAfter(OtherContent,'-');
 				if (IsIn(OtherContent," "))
 				{
 					OtherContent = SplitBefore(OtherContent,' ');
 				}
 			}
-			LogicContent = LogicContent + GenCode(Tabs+"\t",OtherContent);
+			LogicContent = LogicContent + GenCode(Tabs+NestTabs,OtherContent);
 		}
 
 		if (IsIn(Content," "))
