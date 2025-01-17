@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.0.34";
+String Version = "0.0.35";
 
 String getOS();
 void Help(String Type);
@@ -32,13 +32,8 @@ bool EndsWith(String Str, String End);
 int len(std::vector<String> Vect);
 String SplitBefore(String Str, char splitAt);
 String SplitAfter(String Str, char splitAt);
-/*
-String SplitBefore(String Str, char splitAt);
-String SplitAfter(String Str, char splitAt);
-std::vector<String> split(String message, char by);
 std::vector<String> split(String message, String by, int at);
-std::vector<String> rsplit(String message, String by, int at);
-*/
+
 String Struct(String TheName, String Content);
 String Class(String TheName, String Content);
 String Method(String Tabs, String Name, String Content);
@@ -266,6 +261,37 @@ String SplitAfter(String Str, char splitAt)
 		}
 	}
 	return newString;
+}
+
+std::vector<String> split(String message, String by, int at=0)
+{
+	std::vector <String> vArray;
+	String sub;
+	int offset = by.length();
+	std::size_t pos = message.find(by);
+	if (at >= 1)
+	{
+		for (int off = 1; off != at; off++)
+		{
+			pos = message.find(by,pos+off);
+		}
+		sub = message.substr(0,pos);
+		vArray.push_back(sub);
+		sub = message.substr(pos + offset);
+		vArray.push_back(sub);
+	}
+	else
+	{
+		while (pos != String::npos)
+		{
+			sub = message.substr(0,pos);
+			vArray.push_back(sub);
+			message = message.substr(pos+offset);
+			pos = message.find(by);
+		}
+		vArray.push_back(message);
+	}
+	return vArray;
 }
 
 void banner()
@@ -536,6 +562,7 @@ String Parameters(String input,String CalledBy)
 //loop:
 String Loop(String Tabs, String TheKindType, String Content)
 {
+	bool Last = false;
 //	bool PleaseStop = false;
 //	String Extra = "";
 	String NestTabs = "";
@@ -572,64 +599,60 @@ String Loop(String Tabs, String TheKindType, String Content)
 		//nest-loop:
 		else if (StartsWith(Content, "nest-"))
 		{
-			OtherContent = Content;
-
-			if (IsIn(Content, " "))
+			std::vector<String> cmds = split(Content," nest-loop:");
+			String NewContent = "";
+			int end = len(cmds);
+			int lp = 0;
+			while (lp != end)
 			{
-				NextElement = SplitAfter(OtherContent,' ');
-				if (!StartsWith(NextElement, "nest-nest-"))
+				if (lp == 0)
 				{
-					NextElement = "";
+					OtherContent = cmds[lp];
 				}
-			}
-			NestTabs ="\t";
+				else
+				{
+					if (NewContent == "")
+					{
+						NewContent = "nest-loop:"+cmds[lp];
+					}
+					else
+					{
+						NewContent = NewContent+" nest-loop:"+cmds[lp];
+					}
 
-			//nest-nest-nest-....loop:
+				}
+				lp++;
+			}
+
+			Content = NewContent;
+
 			while (StartsWith(OtherContent, "nest-"))
 			{
-//				NestTabs = NestTabs+"\t";
+				NestTabs = NestTabs+"\t";
 				OtherContent = SplitAfter(OtherContent,'-');
-
+/*
 				if (IsIn(OtherContent," "))
 				{
 					OtherContent = SplitBefore(OtherContent,' ');
 				}
-//				Content = OtherContent;
+*/
 			}
-			print(OtherContent+" "+NextElement);
-//			print(Content);
-//			String TheElement = NextElement;
-//			while (StartsWith(TheElement, "nest-nest-"))
-//			if (StartsWith(TheElement, "nest-nest-"))
-//			{
-//				TheElement = SplitAfter(TheElement,' ');
-//				OtherContent = OtherContent+" "+TheElement;
-//				print(OtherContent);
-//				print(Content);
-//			}
-/*
-			Extra = GenCode(Tabs+NestTabs,OtherContent);
-			print("Content:\n"+Extra);
-			print("");
-			LoopContent = LoopContent + Extra;
-*/
 			LoopContent = LoopContent + GenCode(Tabs+NestTabs,OtherContent);
-//			LoopContent = LoopContent + GenCode(Tabs,OtherContent);
 		}
-/*
-		if (PleaseStop)
+
+		if (Last)
 		{
 			break;
 		}
-*/
-		if (IsIn(Content," "))
+
+		if (!IsIn(Content," "))
+//		if (IsIn(Content," "))
+//		{
+//			Content = SplitAfter(Content,' ');
+//		}
+//		else
 		{
-			Content = SplitAfter(Content,' ');
-		}
-		else
-		{
-//			PleaseStop = true;
-			break;
+			Last = true;
 		}
 	}
 	//loop:for
@@ -652,6 +675,7 @@ String Loop(String Tabs, String TheKindType, String Content)
 
 String Logic(String Tabs, String TheKindType, String Content)
 {
+	bool Last = false;
 	String NestTabs = "";
 	String Complete = "";
 	String TheName = "";
@@ -716,26 +740,63 @@ String Logic(String Tabs, String TheKindType, String Content)
 				recursion: nest-logic:else
 			*/
 
-			OtherContent = Content;
+//			String command = "nest-logic:if nest-nest-logic:if nest-logic:else-if nest-nest-logic:if nest-logic:else nest-nest-logic:if nest-logic:else nest-nest-logic:if";
+//			print("\"Original\" "+command);
+//			print("");
+			std::vector<String> cmds = split(Content," nest-logic:");
+			String NewContent = "";
+			int end = len(cmds);
+			int lp = 0;
+			while (lp != end)
+			{
+				if (lp == 0)
+				{
+					OtherContent = cmds[lp];
+				}
+				else
+				{
+					if (NewContent == "")
+					{
+						NewContent = "nest-logic:"+cmds[lp];
+					}
+					else
+					{
+						NewContent = NewContent+" nest-logic:"+cmds[lp];
+					}
+
+				}
+				lp++;
+			}
+
+			Content = NewContent;
+
 			while (StartsWith(OtherContent, "nest-"))
 			{
 				NestTabs = NestTabs+"\t";
 				OtherContent = SplitAfter(OtherContent,'-');
+/*
 				if (IsIn(OtherContent," "))
 				{
 					OtherContent = SplitBefore(OtherContent,' ');
 				}
+*/
 			}
 			LogicContent = LogicContent + GenCode(Tabs+NestTabs,OtherContent);
 		}
 
-		if (IsIn(Content," "))
-		{
-			Content = SplitAfter(Content,' ');
-		}
-		else
+		if (Last)
 		{
 			break;
+		}
+
+		if (!IsIn(Content," "))
+//		if (IsIn(Content," "))
+//		{
+//			Content = SplitAfter(Content,' ');
+//		}
+//		else
+		{
+			Last = true;
 		}
 	}
 
