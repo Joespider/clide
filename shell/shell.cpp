@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.0.35";
+String Version = "0.0.36";
 
 String getOS();
 void Help(String Type);
@@ -486,21 +486,6 @@ String Variables(String Tabs, String input)
 	}
 
 	String NewVar = "";
-/*
-	//consider adapting variable type to be an array, vetctor, etc.
-	switch (VarType) {
-		case "one":
-			break;
-		case "two":
-			break;
-		case "three":
-			break;
-		case "four":
-			break;
-		default:
-			break;
-	}
-*/
 	if (Value == "")
 	{
 		NewVar = Tabs+VarType+" "+Name+";\n";
@@ -563,16 +548,14 @@ String Parameters(String input,String CalledBy)
 String Loop(String Tabs, String TheKindType, String Content)
 {
 	bool Last = false;
-//	bool PleaseStop = false;
-//	String Extra = "";
 	String NestTabs = "";
 	String Complete = "";
 	String TheName = "";
 	String Type = "";
 	String TheCondition = "";
 	String LoopContent = "";
+	String NewContent = "";
 	String OtherContent = "";
-	String NextElement = "";
 
 	if (IsIn(TheKindType,":"))
 	{
@@ -599,45 +582,57 @@ String Loop(String Tabs, String TheKindType, String Content)
 		//nest-loop:
 		else if (StartsWith(Content, "nest-"))
 		{
-			std::vector<String> cmds = split(Content," nest-loop:");
-			String NewContent = "";
-			int end = len(cmds);
-			int lp = 0;
-			while (lp != end)
+			if ((StartsWith(Content, "nest-nest-")) && (IsIn(Content," ")))
 			{
-				if (lp == 0)
+				NewContent = SplitAfter(Content,' ');
+				OtherContent = SplitBefore(Content,' ');
+			}
+			else if ((StartsWith(Content, "nest-loop:")) && (IsIn(Content," nest-loop:")))
+			{
+				std::vector<String> cmds = split(Content," nest-loop:");
+				int end = len(cmds);
+				int lp = 0;
+				while (lp != end)
 				{
-					OtherContent = cmds[lp];
-				}
-				else
-				{
-					if (NewContent == "")
+					if (lp == 0)
 					{
-						NewContent = "nest-loop:"+cmds[lp];
+						OtherContent = cmds[lp];
 					}
 					else
 					{
-						NewContent = NewContent+" nest-loop:"+cmds[lp];
+						if (NewContent == "")
+						{
+							NewContent = "nest-loop:"+cmds[lp];
+						}
+						else
+						{
+							NewContent = NewContent+" nest-loop:"+cmds[lp];
+						}
 					}
-
+					lp++;
 				}
-				lp++;
 			}
-
+			else
+			{
+				OtherContent = Content;
+			}
 			Content = NewContent;
-
+			NewContent = "";
 			while (StartsWith(OtherContent, "nest-"))
 			{
 				NestTabs = NestTabs+"\t";
 				OtherContent = SplitAfter(OtherContent,'-');
-/*
-				if (IsIn(OtherContent," "))
-				{
-					OtherContent = SplitBefore(OtherContent,' ');
-				}
-*/
 			}
-			LoopContent = LoopContent + GenCode(Tabs+NestTabs,OtherContent);
+		/*
+			"loop:for nest-loop:for nest-loop:while" becomes "nest-loop:for nest-loop:while"
+			This works because it knows how to handle the nest-loop
+			"nest-loop:for nest-loop:while" == "nest-loop:for" "nest-loop:while"
+
+			"logic:if nest-loop:for nest-loop:while" becomes "nest-loop:while"
+			This does NOT work because "nest-loop:for nest-loop:while" becomes "loop:for nest-loop:while"
+			"nest-loop:for nest-loop:while" == "loop:for nest-loop:while"
+		*/
+			LoopContent = LoopContent + GenCode(NestTabs,OtherContent);
 		}
 
 		if (Last)
@@ -646,11 +641,6 @@ String Loop(String Tabs, String TheKindType, String Content)
 		}
 
 		if (!IsIn(Content," "))
-//		if (IsIn(Content," "))
-//		{
-//			Content = SplitAfter(Content,' ');
-//		}
-//		else
 		{
 			Last = true;
 		}
@@ -673,6 +663,7 @@ String Loop(String Tabs, String TheKindType, String Content)
 	return Complete;
 }
 
+//logic:
 String Logic(String Tabs, String TheKindType, String Content)
 {
 	bool Last = false;
@@ -682,6 +673,7 @@ String Logic(String Tabs, String TheKindType, String Content)
 	String Type = "";
 	String TheCondition = "";
 	String LogicContent = "";
+	String NewContent = "";
 	String OtherContent = "";
 
 	if (IsIn(TheKindType,":"))
@@ -708,80 +700,58 @@ String Logic(String Tabs, String TheKindType, String Content)
 		}
 		else if (StartsWith(Content, "nest-"))
 		{
-			/*
-			Ok, here is my idea. See, I know the "nest-" gets stripped
-			But what we don't want is the "nest-logic" to be a part
-			of the recursive nature. So maybe have a break in the string
-			where, if the next word has "nest-", just cut if from being
-			used in the recursion. If the next word is "nest-nest-", then
-			make sure to calculate it. That should make it possible to
-			separate the recursion off from then next instance.
-
-			Example:
-				this would be where you break off right before
-				the "nest-logic:else" and drop it for the recursion
-
-				-(Works) nest-logic:if nest-logic:else
-				current-loop: nest-logic:else
-				recursion: nest-logic:if
-
-				this is an example where you keep the string as is;
-
-				- nest-logic:if nest-nest-logic:else
-				current-loop:
-				recursion: nest-logic:if nest-nest-logic:else
-
-				this is an example where you keep the string as is
-				...until you have a "nest-logic". This is where
-				you cut an append to the parent string
-
-				- nest-logic:if nest-nest-logic:else nest-logic:else
-				current-loop: nest-logic:if nest-nest-else
-				recursion: nest-logic:else
-			*/
-
-//			String command = "nest-logic:if nest-nest-logic:if nest-logic:else-if nest-nest-logic:if nest-logic:else nest-nest-logic:if nest-logic:else nest-nest-logic:if";
-//			print("\"Original\" "+command);
-//			print("");
-			std::vector<String> cmds = split(Content," nest-logic:");
-			String NewContent = "";
-			int end = len(cmds);
-			int lp = 0;
-			while (lp != end)
+			if ((StartsWith(Content, "nest-nest-")) && (IsIn(Content," ")))
 			{
-				if (lp == 0)
+				NewContent = SplitAfter(Content,' ');
+				OtherContent = SplitBefore(Content,' ');
+			}
+			else if ((StartsWith(Content, "nest-logic:")) && (IsIn(Content," nest-logic:")))
+			{
+				std::vector<String> cmds = split(Content," nest-logic:");
+				int end = len(cmds);
+				int lp = 0;
+				while (lp != end)
 				{
-					OtherContent = cmds[lp];
-				}
-				else
-				{
-					if (NewContent == "")
+					if (lp == 0)
 					{
-						NewContent = "nest-logic:"+cmds[lp];
+						OtherContent = cmds[lp];
 					}
 					else
 					{
-						NewContent = NewContent+" nest-logic:"+cmds[lp];
+						if (NewContent == "")
+						{
+							NewContent = "nest-logic:"+cmds[lp];
+						}
+						else
+						{
+							NewContent = NewContent+" nest-logic:"+cmds[lp];
+						}
 					}
-
+					lp++;
 				}
-				lp++;
+			}
+			else
+			{
+				OtherContent = Content;
 			}
 
 			Content = NewContent;
-
+			NewContent = "";
 			while (StartsWith(OtherContent, "nest-"))
 			{
 				NestTabs = NestTabs+"\t";
 				OtherContent = SplitAfter(OtherContent,'-');
-/*
-				if (IsIn(OtherContent," "))
-				{
-					OtherContent = SplitBefore(OtherContent,' ');
-				}
-*/
 			}
-			LogicContent = LogicContent + GenCode(Tabs+NestTabs,OtherContent);
+		/*
+			"loop:for nest-loop:for nest-loop:while" becomes "nest-loop:for nest-loop:while"
+			This works because it knows how to handle the nest-loop
+			"nest-loop:for nest-loop:while" == "nest-loop:for" "nest-loop:while"
+
+			"logic:if nest-loop:for nest-loop:while" becomes "nest-loop:while"
+			This does NOT work because "nest-loop:for nest-loop:while" becomes "loop:for nest-loop:while"
+			"nest-loop:for nest-loop:while" == "loop:for nest-loop:while"
+		*/
+			LogicContent = LogicContent + GenCode(NestTabs,OtherContent);
 		}
 
 		if (Last)
@@ -790,11 +760,6 @@ String Logic(String Tabs, String TheKindType, String Content)
 		}
 
 		if (!IsIn(Content," "))
-//		if (IsIn(Content," "))
-//		{
-//			Content = SplitAfter(Content,' ');
-//		}
-//		else
 		{
 			Last = true;
 		}
