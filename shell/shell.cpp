@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.0.36";
+String Version = "0.0.38";
 
 String getOS();
 void Help(String Type);
@@ -547,10 +547,12 @@ String Parameters(String input,String CalledBy)
 //loop:
 String Loop(String Tabs, String TheKindType, String Content)
 {
+
 	bool Last = false;
 	String NestTabs = "";
 	String Complete = "";
 	String TheName = "";
+	String RootTag = "";
 	String Type = "";
 	String TheCondition = "";
 	String LoopContent = "";
@@ -582,14 +584,16 @@ String Loop(String Tabs, String TheKindType, String Content)
 		//nest-loop:
 		else if (StartsWith(Content, "nest-"))
 		{
-			if ((StartsWith(Content, "nest-nest-")) && (IsIn(Content," ")))
+//	Keep these comments
+//			RootTag = SplitBefore(Content,':');
+			RootTag = SplitBefore(Content,'l');
+//	Keep these comments
+//			if (IsIn(Content," "+RootTag+":"))
+			if (IsIn(Content," "+RootTag+"l"))
 			{
-				NewContent = SplitAfter(Content,' ');
-				OtherContent = SplitBefore(Content,' ');
-			}
-			else if ((StartsWith(Content, "nest-loop:")) && (IsIn(Content," nest-loop:")))
-			{
-				std::vector<String> cmds = split(Content," nest-loop:");
+//	Keep these comments
+//				std::vector<String> cmds = split(Content," "+RootTag+":");
+				std::vector<String> cmds = split(Content," "+RootTag+"l");
 				int end = len(cmds);
 				int lp = 0;
 				while (lp != end)
@@ -602,11 +606,15 @@ String Loop(String Tabs, String TheKindType, String Content)
 					{
 						if (NewContent == "")
 						{
-							NewContent = "nest-loop:"+cmds[lp];
+//	Keep these comments
+//							NewContent = RootTag+":"+cmds[lp];
+							NewContent = RootTag+"l"+cmds[lp];
 						}
 						else
 						{
-							NewContent = NewContent+" nest-loop:"+cmds[lp];
+//	Keep these comments
+//							NewContent = NewContent+" "+RootTag+":"+cmds[lp];
+							NewContent = NewContent+" "+RootTag+"l"+cmds[lp];
 						}
 					}
 					lp++;
@@ -616,22 +624,15 @@ String Loop(String Tabs, String TheKindType, String Content)
 			{
 				OtherContent = Content;
 			}
+
 			Content = NewContent;
 			NewContent = "";
+
 			while (StartsWith(OtherContent, "nest-"))
 			{
 				NestTabs = NestTabs+"\t";
 				OtherContent = SplitAfter(OtherContent,'-');
 			}
-		/*
-			"loop:for nest-loop:for nest-loop:while" becomes "nest-loop:for nest-loop:while"
-			This works because it knows how to handle the nest-loop
-			"nest-loop:for nest-loop:while" == "nest-loop:for" "nest-loop:while"
-
-			"logic:if nest-loop:for nest-loop:while" becomes "nest-loop:while"
-			This does NOT work because "nest-loop:for nest-loop:while" becomes "loop:for nest-loop:while"
-			"nest-loop:for nest-loop:while" == "loop:for nest-loop:while"
-		*/
 			LoopContent = LoopContent + GenCode(NestTabs,OtherContent);
 		}
 
@@ -671,6 +672,7 @@ String Logic(String Tabs, String TheKindType, String Content)
 	String Complete = "";
 	String TheName = "";
 	String Type = "";
+	String RootTag = "";
 	String TheCondition = "";
 	String LogicContent = "";
 	String NewContent = "";
@@ -700,14 +702,16 @@ String Logic(String Tabs, String TheKindType, String Content)
 		}
 		else if (StartsWith(Content, "nest-"))
 		{
-			if ((StartsWith(Content, "nest-nest-")) && (IsIn(Content," ")))
+//	Keep these comments
+//			RootTag = SplitBefore(Content,':');
+			RootTag = SplitBefore(Content,'l');
+//	Keep these comments
+//			if (IsIn(Content," "+RootTag+":"))
+			if (IsIn(Content," "+RootTag+"l"))
 			{
-				NewContent = SplitAfter(Content,' ');
-				OtherContent = SplitBefore(Content,' ');
-			}
-			else if ((StartsWith(Content, "nest-logic:")) && (IsIn(Content," nest-logic:")))
-			{
-				std::vector<String> cmds = split(Content," nest-logic:");
+//	Keep these comments
+//				std::vector<String> cmds = split(Content," "+RootTag+":");
+				std::vector<String> cmds = split(Content," "+RootTag+"l");
 				int end = len(cmds);
 				int lp = 0;
 				while (lp != end)
@@ -720,11 +724,15 @@ String Logic(String Tabs, String TheKindType, String Content)
 					{
 						if (NewContent == "")
 						{
-							NewContent = "nest-logic:"+cmds[lp];
+//	Keep these comments
+//							NewContent = RootTag+":"+cmds[lp];
+							NewContent = RootTag+"l"+cmds[lp];
 						}
 						else
 						{
-							NewContent = NewContent+" nest-logic:"+cmds[lp];
+//	Keep these comments
+//							NewContent = NewContent+" "+RootTag+":"+cmds[lp];
+							NewContent = NewContent+" "+RootTag+"l"+cmds[lp];
 						}
 					}
 					lp++;
@@ -737,20 +745,12 @@ String Logic(String Tabs, String TheKindType, String Content)
 
 			Content = NewContent;
 			NewContent = "";
+
 			while (StartsWith(OtherContent, "nest-"))
 			{
 				NestTabs = NestTabs+"\t";
 				OtherContent = SplitAfter(OtherContent,'-');
 			}
-		/*
-			"loop:for nest-loop:for nest-loop:while" becomes "nest-loop:for nest-loop:while"
-			This works because it knows how to handle the nest-loop
-			"nest-loop:for nest-loop:while" == "nest-loop:for" "nest-loop:while"
-
-			"logic:if nest-loop:for nest-loop:while" becomes "nest-loop:while"
-			This does NOT work because "nest-loop:for nest-loop:while" becomes "loop:for nest-loop:while"
-			"nest-loop:for nest-loop:while" == "loop:for nest-loop:while"
-		*/
 			LogicContent = LogicContent + GenCode(NestTabs,OtherContent);
 		}
 
