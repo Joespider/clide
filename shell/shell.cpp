@@ -3,7 +3,7 @@
 //#include <unistd.h>
 //#include <stdexcept>
 #include <stdio.h>
-//#include <sstream>
+#include <sstream>
 #include <vector>
 
 //#define PressEnter std::cout << "Press \"Enter\" to Continue "; std::cin.get()
@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.0.38";
+String Version = "0.0.40";
 
 String getOS();
 void Help(String Type);
@@ -33,6 +33,10 @@ int len(std::vector<String> Vect);
 String SplitBefore(String Str, char splitAt);
 String SplitAfter(String Str, char splitAt);
 std::vector<String> split(String message, String by, int at);
+std::vector<String> split(String message, char by);
+String join(std::vector<String> Str, String ToJoin);
+String replaceAll(String message, String sBy, String jBy);
+
 
 String Struct(String TheName, String Content);
 String Class(String TheName, String Content);
@@ -294,6 +298,42 @@ std::vector<String> split(String message, String by, int at=0)
 	return vArray;
 }
 
+std::vector<String> split(String message, char by)
+{
+	std::vector<String> vArray;
+	std::stringstream ss(message);
+	String item;
+	while (std::getline(ss,item,by))
+	{
+		vArray.push_back(item);
+	}
+	return vArray;
+}
+
+String join(std::vector<String> Str, String ToJoin)
+{
+	String NewString;
+	int end;
+	end = Str.size();
+	NewString = Str[0];
+
+	for (int lp = 1; lp < end; lp++)
+	{
+		NewString = NewString + ToJoin + Str[lp];
+	}
+	return NewString;
+}
+
+String replaceAll(String message, String sBy, String jBy)
+{
+	std::vector<String> SplitMessage = split(message,sBy);
+	message = join(SplitMessage,jBy);
+	return message;
+}
+
+
+
+
 void banner()
 {
 	String cplV = getCplV();
@@ -505,6 +545,7 @@ String Variables(String Tabs, String input)
 String Conditions(String input,String CalledBy)
 {
 	String Condit = SplitAfter(input,':');
+	Condit = replaceAll(Condit, "|", " ");
 	if (CalledBy == "class")
 	{
 		print("condition: " <<CalledBy);
@@ -694,7 +735,16 @@ String Logic(String Tabs, String TheKindType, String Content)
 		NestTabs = "";
 		if (StartsWith(Content, "condition"))
 		{
-			TheCondition = Conditions(Content,TheKindType);
+			if (IsIn(Content," "))
+			{
+				TheCondition = SplitBefore(Content,' ');
+				Content = SplitAfter(Content,' ');
+			}
+			else
+			{
+				TheCondition = Content;
+			}
+			TheCondition = Conditions(TheCondition,TheKindType);
 		}
 		else if ((StartsWith(Content, "method")) || (StartsWith(Content, "class")))
 		{
