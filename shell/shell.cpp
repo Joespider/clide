@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.0.40";
+String Version = "0.0.42";
 
 String getOS();
 void Help(String Type);
@@ -473,6 +473,11 @@ String Method(String Tabs, String Name, String Content)
 		}
 		else
 		{
+			if (IsIn(Content," method"))
+			{
+				std::vector<String> cmds = split(Content," method");
+				Content = cmds[0];
+			}
 			MethodContent = MethodContent + GenCode(Tabs+"\t",Content);
 		}
 
