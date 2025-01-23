@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.0.42";
+String Version = "0.0.43";
 
 String getOS();
 void Help(String Type);
@@ -595,7 +595,7 @@ String Loop(String Tabs, String TheKindType, String Content)
 {
 
 	bool Last = false;
-	String NestTabs = "";
+//	String NestTabs = "";
 	String Complete = "";
 	String TheName = "";
 	String RootTag = "";
@@ -618,7 +618,7 @@ String Loop(String Tabs, String TheKindType, String Content)
 
 	while (Content != "")
 	{
-		NestTabs = "";
+//		NestTabs = "";
 		if (StartsWith(Content, "condition"))
 		{
 			TheCondition = Conditions(Content,TheKindType);
@@ -676,10 +676,11 @@ String Loop(String Tabs, String TheKindType, String Content)
 
 			while (StartsWith(OtherContent, "nest-"))
 			{
-				NestTabs = NestTabs+"\t";
+//				NestTabs = NestTabs+"\t";
 				OtherContent = SplitAfter(OtherContent,'-');
 			}
-			LoopContent = LoopContent + GenCode(NestTabs,OtherContent);
+//			LoopContent = LoopContent + GenCode(NestTabs,OtherContent);
+			LoopContent = LoopContent + GenCode(Tabs+"\t",OtherContent);
 		}
 
 		if (Last)
@@ -714,7 +715,7 @@ String Loop(String Tabs, String TheKindType, String Content)
 String Logic(String Tabs, String TheKindType, String Content)
 {
 	bool Last = false;
-	String NestTabs = "";
+//	String NestTabs = "";
 	String Complete = "";
 	String TheName = "";
 	String Type = "";
@@ -737,7 +738,7 @@ String Logic(String Tabs, String TheKindType, String Content)
 
 	while (Content != "")
 	{
-		NestTabs = "";
+//		NestTabs = "";
 		if (StartsWith(Content, "condition"))
 		{
 			if (IsIn(Content," "))
@@ -803,10 +804,11 @@ String Logic(String Tabs, String TheKindType, String Content)
 
 			while (StartsWith(OtherContent, "nest-"))
 			{
-				NestTabs = NestTabs+"\t";
+//				NestTabs = NestTabs+"\t";
 				OtherContent = SplitAfter(OtherContent,'-');
 			}
-			LogicContent = LogicContent + GenCode(NestTabs,OtherContent);
+//			LogicContent = LogicContent + GenCode(NestTabs,OtherContent);
+			LogicContent = LogicContent + GenCode(Tabs+"\t",OtherContent);
 		}
 
 		if (Last)
