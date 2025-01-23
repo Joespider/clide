@@ -709,7 +709,7 @@ CliHelp()
 				--read)
 					ReadCliHelp
 					;;
-				--path|--find)
+				--path|--path-src|--path-bin|--find|--find-src|--find-bin)
 					PathCliHelp ${example}
 					;;
 				--shell)
@@ -782,7 +782,11 @@ CliHelp()
 					echo -e "\t--list-cpl <lang>\t\t\t\t: \"List compiled code\""
 					echo -e "\t--lscpl <lang>\t\t\t\t\t: \"List compiled code\""
 					echo -e "\t--find <args>\t\t\t\t\t: \"Find the souce code\""
+					echo -e "\t--find-src <args>\t\t\t\t\t: \"Find the souce code\""
+					echo -e "\t--find-bin <args>\t\t\t\t\t: \"Find the executable\""
 					echo -e "\t--path <args>\t\t\t\t\t: \"Find the souce code\""
+					echo -e "\t--path-src <args>\t\t\t\t\t: \"Find the souce code\""
+					echo -e "\t--path-bin <args>\t\t\t\t\t: \"Find the executable\""
 					echo -e "\t-p, --project <args>\t\t\t\t: \"List or Load Clide Projects\""
 					echo -e "\t-l, --last, --load, --session <name>\t\t: \"Lets start back where we left; that is if you saved it\""
 					echo ""

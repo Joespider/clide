@@ -452,8 +452,8 @@ CodeTemplateVersion()
 								TempNum=$(ManageLangs "${text}" "TemplateVersion" | sed "s/Version/${text}/g" | grep -v found)
 								if [ ! -z "${TempNum}" ]; then
 									#Tab based on size of chars in lable
-									CharCount=$(echo ${text} | wc -m)
-									if [ ${CharCount} -lt 8 ]; then
+									CharCount=$(echo ${#text})
+									if [ ${CharCount} -lt 7 ]; then
 										echo -e "\e[1;3${LangColor}m${text}\e[0m\t\t\e[1;3${LangColor}m${TempNum}\e[0m"
 										#echo -e "\e[1;4${LangColor}m(\e[0m\e[1;3${LangColor}m${text}\e[0m\e[1;4${LangColor}m)\e[0m\t\t{\e[1;3${LangColor}m${TempNum}\e[0m}"
 									else
@@ -5835,11 +5835,12 @@ CLI()
 				fi
 				;;
 			#Search for source code path OR langauge and source code name
-			--find|--path)
+			--find|--find-src|--find-bin|--path|--path-src|--path-bin)
 				if [ -z "${ThePipe}" ]; then
 					shift
 					local Lang=$1
 					local TheSrc=$2
+					local TheBin=$2
 					local CodeDir
 					local srcPath
 					local isCompiled
@@ -5891,7 +5892,17 @@ CLI()
 						#Langauge provided or found
 						if [ ! -z "${Lang}" ]; then
 							if [ ! -z "${TheSrc}" ]; then
-								find -L ${ProgDir} -name ${TheSrc} 2> /dev/null | grep "/src/"
+								case ${UserArg} in
+									--find|--find-src|--path|--path-src)
+										find -L ${ProgDir} -name ${TheSrc} 2> /dev/null | grep "${Lang}/*/src/"
+										;;
+									--find-bin|--path-bin)
+										TheBin=$(ManageLangs ${Lang} "getBin" "${TheSrc}")
+										find -L ${ProgDir} -name ${TheBin} 2> /dev/null | grep "${Lang}/*/bin/"
+										;;
+									*)
+										;;
+								esac
 							else
 								theHelp PathCliHelp ${UserArg}
 							fi

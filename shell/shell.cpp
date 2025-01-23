@@ -3,7 +3,7 @@
 //#include <unistd.h>
 //#include <stdexcept>
 #include <stdio.h>
-//#include <sstream>
+#include <sstream>
 #include <vector>
 
 //#define PressEnter std::cout << "Press \"Enter\" to Continue "; std::cin.get()
@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.0.32";
+String Version = "0.0.42";
 
 String getOS();
 void Help(String Type);
@@ -32,13 +32,12 @@ bool EndsWith(String Str, String End);
 int len(std::vector<String> Vect);
 String SplitBefore(String Str, char splitAt);
 String SplitAfter(String Str, char splitAt);
-/*
-String SplitBefore(String Str, char splitAt);
-String SplitAfter(String Str, char splitAt);
-std::vector<String> split(String message, char by);
 std::vector<String> split(String message, String by, int at);
-std::vector<String> rsplit(String message, String by, int at);
-*/
+std::vector<String> split(String message, char by);
+String join(std::vector<String> Str, String ToJoin);
+String replaceAll(String message, String sBy, String jBy);
+
+
 String Struct(String TheName, String Content);
 String Class(String TheName, String Content);
 String Method(String Tabs, String Name, String Content);
@@ -268,6 +267,73 @@ String SplitAfter(String Str, char splitAt)
 	return newString;
 }
 
+std::vector<String> split(String message, String by, int at=0)
+{
+	std::vector <String> vArray;
+	String sub;
+	int offset = by.length();
+	std::size_t pos = message.find(by);
+	if (at >= 1)
+	{
+		for (int off = 1; off != at; off++)
+		{
+			pos = message.find(by,pos+off);
+		}
+		sub = message.substr(0,pos);
+		vArray.push_back(sub);
+		sub = message.substr(pos + offset);
+		vArray.push_back(sub);
+	}
+	else
+	{
+		while (pos != String::npos)
+		{
+			sub = message.substr(0,pos);
+			vArray.push_back(sub);
+			message = message.substr(pos+offset);
+			pos = message.find(by);
+		}
+		vArray.push_back(message);
+	}
+	return vArray;
+}
+
+std::vector<String> split(String message, char by)
+{
+	std::vector<String> vArray;
+	std::stringstream ss(message);
+	String item;
+	while (std::getline(ss,item,by))
+	{
+		vArray.push_back(item);
+	}
+	return vArray;
+}
+
+String join(std::vector<String> Str, String ToJoin)
+{
+	String NewString;
+	int end;
+	end = Str.size();
+	NewString = Str[0];
+
+	for (int lp = 1; lp < end; lp++)
+	{
+		NewString = NewString + ToJoin + Str[lp];
+	}
+	return NewString;
+}
+
+String replaceAll(String message, String sBy, String jBy)
+{
+	std::vector<String> SplitMessage = split(message,sBy);
+	message = join(SplitMessage,jBy);
+	return message;
+}
+
+
+
+
 void banner()
 {
 	String cplV = getCplV();
@@ -407,6 +473,11 @@ String Method(String Tabs, String Name, String Content)
 		}
 		else
 		{
+			if (IsIn(Content," method"))
+			{
+				std::vector<String> cmds = split(Content," method");
+				Content = cmds[0];
+			}
 			MethodContent = MethodContent + GenCode(Tabs+"\t",Content);
 		}
 
@@ -460,21 +531,6 @@ String Variables(String Tabs, String input)
 	}
 
 	String NewVar = "";
-/*
-	//consider adapting variable type to be an array, vetctor, etc.
-	switch (VarType) {
-		case "one":
-			break;
-		case "two":
-			break;
-		case "three":
-			break;
-		case "four":
-			break;
-		default:
-			break;
-	}
-*/
 	if (Value == "")
 	{
 		NewVar = Tabs+VarType+" "+Name+";\n";
@@ -494,6 +550,7 @@ String Variables(String Tabs, String input)
 String Conditions(String input,String CalledBy)
 {
 	String Condit = SplitAfter(input,':');
+	Condit = replaceAll(Condit, "|", " ");
 	if (CalledBy == "class")
 	{
 		print("condition: " <<CalledBy);
@@ -533,14 +590,20 @@ String Parameters(String input,String CalledBy)
 	return Params;
 }
 
+//loop:
 String Loop(String Tabs, String TheKindType, String Content)
 {
+
+	bool Last = false;
+	String NestTabs = "";
 	String Complete = "";
 	String TheName = "";
+	String RootTag = "";
 	String Type = "";
 	String TheCondition = "";
 	String LoopContent = "";
-	String LogicContent = "";
+	String NewContent = "";
+	String OtherContent = "";
 
 	if (IsIn(TheKindType,":"))
 	{
@@ -555,47 +618,91 @@ String Loop(String Tabs, String TheKindType, String Content)
 
 	while (Content != "")
 	{
+		NestTabs = "";
 		if (StartsWith(Content, "condition"))
 		{
 			TheCondition = Conditions(Content,TheKindType);
-
 		}
 		else if ((StartsWith(Content, "method")) || (StartsWith(Content, "class")))
 		{
 			break;
 		}
+		//nest-loop:
 		else if (StartsWith(Content, "nest-"))
 		{
-			LogicContent = Content;
-			if (IsIn(LogicContent,"-"))
+//	Keep these comments
+//			RootTag = SplitBefore(Content,':');
+			RootTag = SplitBefore(Content,'l');
+//	Keep these comments
+//			if (IsIn(Content," "+RootTag+":"))
+			if (IsIn(Content," "+RootTag+"l"))
 			{
-				LogicContent = SplitAfter(LogicContent,'-');
-				if (IsIn(LogicContent," "))
+//	Keep these comments
+//				std::vector<String> cmds = split(Content," "+RootTag+":");
+				std::vector<String> cmds = split(Content," "+RootTag+"l");
+				int end = len(cmds);
+				int lp = 0;
+				while (lp != end)
 				{
-					LogicContent = SplitBefore(LogicContent,' ');
+					if (lp == 0)
+					{
+						OtherContent = cmds[lp];
+					}
+					else
+					{
+						if (NewContent == "")
+						{
+//	Keep these comments
+//							NewContent = RootTag+":"+cmds[lp];
+							NewContent = RootTag+"l"+cmds[lp];
+						}
+						else
+						{
+//	Keep these comments
+//							NewContent = NewContent+" "+RootTag+":"+cmds[lp];
+							NewContent = NewContent+" "+RootTag+"l"+cmds[lp];
+						}
+					}
+					lp++;
 				}
 			}
-			LoopContent = LoopContent + GenCode(Tabs+"\t",LogicContent);
+			else
+			{
+				OtherContent = Content;
+			}
+
+			Content = NewContent;
+			NewContent = "";
+
+			while (StartsWith(OtherContent, "nest-"))
+			{
+				NestTabs = NestTabs+"\t";
+				OtherContent = SplitAfter(OtherContent,'-');
+			}
+			LoopContent = LoopContent + GenCode(NestTabs,OtherContent);
 		}
 
-		if (IsIn(Content," "))
-		{
-			Content = SplitAfter(Content,' ');
-		}
-		else
+		if (Last)
 		{
 			break;
 		}
-	}
 
+		if (!IsIn(Content," "))
+		{
+			Last = true;
+		}
+	}
+	//loop:for
 	if (TheKindType == "for")
 	{
 		Complete = Tabs+"for ("+TheCondition+")\n"+Tabs+"{\n"+Tabs+"\t//do something here\n"+LoopContent+"\n"+Tabs+"}\n";
 	}
+	//loop:do/while
 	else if (TheKindType == "do/while")
 	{
 		Complete = Tabs+"do\n"+Tabs+"{\n"+Tabs+"\t//do something here\n"+LoopContent+Tabs+"}\n"+Tabs+"while ("+TheCondition+");\n";
 	}
+	//loop:while
 	else
 	{
 		Complete = Tabs+"while ("+TheCondition+")\n"+Tabs+"{\n"+Tabs+"\t//do something here\n"+LoopContent+Tabs+"}\n";
@@ -603,13 +710,19 @@ String Loop(String Tabs, String TheKindType, String Content)
 	return Complete;
 }
 
+//logic:
 String Logic(String Tabs, String TheKindType, String Content)
 {
+	bool Last = false;
+	String NestTabs = "";
 	String Complete = "";
 	String TheName = "";
 	String Type = "";
+	String RootTag = "";
 	String TheCondition = "";
 	String LogicContent = "";
+	String NewContent = "";
+	String OtherContent = "";
 
 	if (IsIn(TheKindType,":"))
 	{
@@ -624,9 +737,19 @@ String Logic(String Tabs, String TheKindType, String Content)
 
 	while (Content != "")
 	{
+		NestTabs = "";
 		if (StartsWith(Content, "condition"))
 		{
-			TheCondition = Conditions(Content,TheKindType);
+			if (IsIn(Content," "))
+			{
+				TheCondition = SplitBefore(Content,' ');
+				Content = SplitAfter(Content,' ');
+			}
+			else
+			{
+				TheCondition = Content;
+			}
+			TheCondition = Conditions(TheCondition,TheKindType);
 		}
 		else if ((StartsWith(Content, "method")) || (StartsWith(Content, "class")))
 		{
@@ -634,19 +757,66 @@ String Logic(String Tabs, String TheKindType, String Content)
 		}
 		else if (StartsWith(Content, "nest-"))
 		{
-			if (IsIn(Content,"-"))
+//	Keep these comments
+//			RootTag = SplitBefore(Content,':');
+			RootTag = SplitBefore(Content,'l');
+//	Keep these comments
+//			if (IsIn(Content," "+RootTag+":"))
+			if (IsIn(Content," "+RootTag+"l"))
 			{
-				Content = SplitAfter(Content,'-');
+//	Keep these comments
+//				std::vector<String> cmds = split(Content," "+RootTag+":");
+				std::vector<String> cmds = split(Content," "+RootTag+"l");
+				int end = len(cmds);
+				int lp = 0;
+				while (lp != end)
+				{
+					if (lp == 0)
+					{
+						OtherContent = cmds[lp];
+					}
+					else
+					{
+						if (NewContent == "")
+						{
+//	Keep these comments
+//							NewContent = RootTag+":"+cmds[lp];
+							NewContent = RootTag+"l"+cmds[lp];
+						}
+						else
+						{
+//	Keep these comments
+//							NewContent = NewContent+" "+RootTag+":"+cmds[lp];
+							NewContent = NewContent+" "+RootTag+"l"+cmds[lp];
+						}
+					}
+					lp++;
+				}
 			}
-			LogicContent = LogicContent + GenCode(Tabs+"\t",Content);
+			else
+			{
+				OtherContent = Content;
+			}
+
+			Content = NewContent;
+			NewContent = "";
+
+			while (StartsWith(OtherContent, "nest-"))
+			{
+				NestTabs = NestTabs+"\t";
+				OtherContent = SplitAfter(OtherContent,'-');
+			}
+			LogicContent = LogicContent + GenCode(NestTabs,OtherContent);
 		}
-		if (IsIn(Content," "))
-		{
-			Content = SplitAfter(Content,' ');
-		}
-		else
+
+		if (Last)
 		{
 			break;
+		}
+
+		if (!IsIn(Content," "))
+		{
+			Last = true;
 		}
 	}
 
