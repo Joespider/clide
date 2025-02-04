@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.0.46";
+String Version = "0.0.52";
 
 String getOS();
 void Help(String Type);
@@ -42,7 +42,7 @@ String Struct(String TheName, String Content);
 String Class(String TheName, String Content);
 String Method(String Tabs, String Name, String Content);
 String GenCode(String Tabs,String GetMe);
-String Variables(String Tabs, String Content);
+String Variables(String Tabs, String TheKindType, String Content);
 String Conditions(String input,String CalledBy);
 String Statements(String Tabs, String TheKindType, String Content);
 String Parameters(String input,String CalledBy);
@@ -120,12 +120,13 @@ void Help(String Type)
 		print("{EXAMPLE}");
 		print(Type+":name-std::string[3]");
 		print(Type+":name-std::string(vector)");
-		print(Type+":name-std::string=\"\" var:point-int=0 var:james-std::string=\"James\" var:help-int");
+		print(Type+":name-std::string=\"\" var:point-int=0 stmt:endline var:james-std::string=\"James\" stmt:endline var:help-int");
 	}
 	else if (Type == "stmt")
 	{
 		print(Type+":<type>");
 		print(Type+":endline\t\tPlace the \";\" at the end of the statement");
+		print(Type+":newline\t\tPlace and empty line");
 		print(Type+":method-<name>\tcall a method and the name of the method");
 	}
 	else
@@ -341,7 +342,9 @@ String replaceAll(String message, String sBy, String jBy)
 
 
 
-
+/*
+	----[shell]----
+*/
 
 
 void banner()
@@ -512,129 +515,6 @@ String Method(String Tabs, String Name, String Content)
 	return Complete;
 }
 
-String Variables(String Tabs, String Content)
-{
-	String NewVar = "";
-	String Type = "";
-	String Name = "";
-	String VarType = "";
-	String Value = "";
-/*
-	String VariableContent = "";
-
-	while (Content != "")
-	{
-		print(Content);
-*/
-		if ((IsIn(Content,":")) && (IsIn(Content,"-")) && (IsIn(Content,"=")) && (!EndsWith(Content, "=")))
-		{
-			print("Nothing");
-			Type = SplitAfter(Content,':');
-			Name = SplitBefore(Type,'-');
-			VarType = SplitAfter(Type,'-');
-			Value = SplitAfter(VarType,'=');
-			VarType = SplitBefore(VarType,'=');
-		}
-		else if ((IsIn(Content,":")) && (IsIn(Content,"-")) && (IsIn(Content,"=")) && (EndsWith(Content, "=")))
-		{
-			Type = SplitAfter(Content,':');
-			Name = SplitBefore(Type,'-');
-			VarType = SplitAfter(Type,'-');
-			VarType = SplitBefore(VarType,'=');
-			NewVar = Tabs+VarType+" "+Name+" = ";
-		}
-		else if ((IsIn(Content,":")) && (!IsIn(Content,"-")) && (IsIn(Content,"=")))
-		{
-			print("Nothing");
-			Type = SplitAfter(Content,':');
-			Name = SplitBefore(Type,'=');
-			Value = SplitAfter(Type,'=');
-		}
-		else if ((IsIn(Content,":")) && (IsIn(Content,"-")) && (!IsIn(Content,"=")))
-		{
-			Type = SplitAfter(Content,':');
-			Name = SplitBefore(Type,'-');
-			VarType = SplitAfter(Type,'-');
-			NewVar = Tabs+VarType+" "+Name;
-		}
-/*
-		if (IsIn(Content," "))
-		{
-			Content = SplitAfter(Content,' ');
-		}
-		else
-		{
-			break;
-		}
-		VariableContent = VariableContent + GenCode(Tabs,Content);
-	}
-*/
-	return NewVar;
-}
-
-String Statements(String Tabs, String TheKindType, String Content)
-{
-	bool Last = false;
-	String Complete = "";
-	String StatementContent = "";
-	String TheName = "";
-	String Name = "";
-	String Process = "";
-	String Params = "";
-
-	if (IsIn(TheKindType,":"))
-	{
-		TheKindType = SplitAfter(TheKindType,':');
-	}
-	if (IsIn(TheKindType,"-"))
-	{
-		TheName = SplitBefore(TheKindType,'-');
-		Name = SplitAfter(TheKindType,'-');
-	}
-	else
-	{
-		TheName = TheKindType;
-	}
-
-	while (Content != "")
-	{
-		if ((StartsWith(Content, "params")) && (Params == ""))
-		{
-			if (IsIn(Content," "))
-			{
-				Process = SplitBefore(Content,' ');
-			}
-			else
-			{
-				Process = Content;
-			}
-//			Params =  Parameters(Content,"method");
-			Params =  Parameters(Process,"method");
-		}
-
-		if (IsIn(Content," "))
-		{
-			Content = SplitAfter(Content,' ');
-		}
-		else
-		{
-			break;
-		}
-		StatementContent = StatementContent + GenCode(Tabs,Content);
-	}
-
-	if (TheName == "method")
-	{
-		Complete = Name+"("+Params+")"+StatementContent;
-	}
-	else if (TheName == "newline")
-	{
-		Complete = StatementContent+";\n";
-	}
-
-	return Complete;
-}
-
 String Conditions(String input,String CalledBy)
 {
 	String Condit = SplitAfter(input,':');
@@ -657,7 +537,7 @@ String Conditions(String input,String CalledBy)
 String Parameters(String input,String CalledBy)
 {
 	String Params = SplitAfter(input,':');
-	if ((CalledBy == "class") || (CalledBy == "method"))
+	if ((CalledBy == "class") || (CalledBy == "method") || (CalledBy == "stmt"))
 	{
 		if ((IsIn(Params,"-")) && (IsIn(Params,",")))
 		{
@@ -705,7 +585,33 @@ String Loop(String Tabs, String TheKindType, String Content)
 
 	while (Content != "")
 	{
-//		print(Content);
+		if ((!StartsWith(Content, "nest-")) && (IsIn(Content," nest-")))
+		{
+			std::vector<String> all = split(Content," nest-");
+			int end = len(all);
+			int lp = 0;
+			while (lp != end)
+			{
+				if (lp == 0)
+				{
+					OtherContent = all[lp];
+				}
+				else if (lp == 1)
+				{
+					NewContent = "nest-"+all[lp];
+				}
+				else
+				{
+					NewContent = NewContent + " nest-"+all[lp];
+				}
+				lp++;
+			}
+			LoopContent = LoopContent + GenCode(Tabs+"\t",OtherContent);
+			Content = NewContent;
+			OtherContent = "";
+			NewContent = "";
+		}
+
 //		NestTabs = "";
 		if (StartsWith(Content, "condition"))
 		{
@@ -790,17 +696,17 @@ String Loop(String Tabs, String TheKindType, String Content)
 	//loop:for
 	if (TheKindType == "for")
 	{
-		Complete = Tabs+"for ("+TheCondition+")\n"+Tabs+"{\n"+Tabs+"\t\n"+LoopContent+"\n"+Tabs+"}\n";
+		Complete = Tabs+"for ("+TheCondition+")\n"+Tabs+"{\n"+LoopContent+Tabs+"}\n";
 	}
 	//loop:do/while
 	else if (TheKindType == "do/while")
 	{
-		Complete = Tabs+"do\n"+Tabs+"{\n"+Tabs+"\t\n"+LoopContent+Tabs+"}\n"+Tabs+"while ("+TheCondition+");\n";
+		Complete = Tabs+"do\n"+Tabs+"{\n"+LoopContent+Tabs+"}\n"+Tabs+"while ("+TheCondition+");\n";
 	}
 	//loop:while
 	else
 	{
-		Complete = Tabs+"while ("+TheCondition+")\n"+Tabs+"{\n"+Tabs+"\t\n"+LoopContent+Tabs+"}\n";
+		Complete = Tabs+"while ("+TheCondition+")\n"+Tabs+"{\n"+LoopContent+Tabs+"}\n";
 	}
 	return Complete;
 }
@@ -832,6 +738,33 @@ String Logic(String Tabs, String TheKindType, String Content)
 
 	while (Content != "")
 	{
+		if ((!StartsWith(Content, "nest-")) && (IsIn(Content," nest-")))
+		{
+			std::vector<String> all = split(Content," nest-");
+			int end = len(all);
+			int lp = 0;
+			while (lp != end)
+			{
+				if (lp == 0)
+				{
+					OtherContent = all[lp];
+				}
+				else if (lp == 1)
+				{
+					NewContent = "nest-"+all[lp];
+				}
+				else
+				{
+					NewContent = NewContent + " nest-"+all[lp];
+				}
+				lp++;
+			}
+			LogicContent = LogicContent + GenCode(Tabs+"\t",OtherContent);
+			Content = NewContent;
+			OtherContent = "";
+			NewContent = "";
+		}
+
 //		NestTabs = "";
 		if (StartsWith(Content, "condition"))
 		{
@@ -924,15 +857,15 @@ String Logic(String Tabs, String TheKindType, String Content)
 
 	if (TheKindType == "if")
 	{
-		Complete = Tabs+"if ("+TheCondition+")\n"+Tabs+"{\n"+Tabs+"\t\n"+LogicContent+Tabs+"}\n";
+		Complete = Tabs+"if ("+TheCondition+")\n"+Tabs+"{\n"+LogicContent+Tabs+"}\n";
 	}
 	else if (TheKindType == "else-if")
 	{
-		Complete = Tabs+"else if ("+TheCondition+")\n"+Tabs+"{\n"+Tabs+"\t\n"+LogicContent+Tabs+"}\n";
+		Complete = Tabs+"else if ("+TheCondition+")\n"+Tabs+"{\n"+LogicContent+Tabs+"}\n";
 	}
 	else if (TheKindType == "else")
 	{
-		Complete = Tabs+"else\n"+Tabs+"{\n"+Tabs+"\t\n"+LogicContent+Tabs+"}\n";
+		Complete = Tabs+"else\n"+Tabs+"{\n"+LogicContent+Tabs+"}\n";
 
 	}
 	else if (TheKindType == "switch-case")
@@ -962,6 +895,172 @@ String Logic(String Tabs, String TheKindType, String Content)
 		Complete = Complete+Tabs+"\tdefault:\n"+Tabs+"\t\t//code here\n"+Tabs+"\t\tbreak;\n"+Tabs+"}\n";
 	}
 	return Complete;
+}
+
+//stmt:
+String Statements(String Tabs, String TheKindType, String Content)
+{
+	bool Last = false;
+	String Complete = "";
+	String StatementContent = "";
+	String OtherContent = "";
+	String TheName = "";
+	String Name = "";
+	String Process = "";
+	String Params = "";
+
+	if (IsIn(TheKindType,":"))
+	{
+		TheKindType = SplitAfter(TheKindType,':');
+	}
+	if (IsIn(TheKindType,"-"))
+	{
+		TheName = SplitBefore(TheKindType,'-');
+		Name = SplitAfter(TheKindType,'-');
+	}
+	else
+	{
+		TheName = TheKindType;
+	}
+
+	while (Content != "")
+	{
+		if ((StartsWith(Content, "params")) && (Params == ""))
+		{
+			if (IsIn(Content," "))
+			{
+				Process = SplitBefore(Content,' ');
+			}
+			else
+			{
+				Process = Content;
+			}
+			Params =  Parameters(Process,"stmt");
+		}
+		else
+		{
+			OtherContent = SplitBefore(Content,' ');
+			StatementContent = StatementContent + GenCode(Tabs,OtherContent);
+			Content = SplitAfter(Content,' ');
+		}
+
+		if (Last)
+		{
+			break;
+		}
+		if (!IsIn(Content," "))
+		{
+			StatementContent = StatementContent + GenCode(Tabs,Content);
+			Last = true;
+		}
+	}
+	if (TheName == "method")
+	{
+		Complete = Name+"("+Params+")"+StatementContent;
+	}
+	else if (TheName == "endline")
+	{
+		Complete = StatementContent+";\n";
+	}
+	else if (TheName == "newline")
+	{
+		Complete = StatementContent+"\n";
+	}
+
+	return Complete;
+}
+
+//var:
+String Variables(String Tabs, String TheKindType, String Content)
+{
+	bool Last = false;
+	String NewVar = "";
+	String Type = "";
+	String Name = "";
+	String VarType = "";
+	String Value = "";
+	String NewContent = "";
+	String VariableContent = "";
+	String OtherContent = "";
+
+//	print(TheKindType+" "+Content);
+
+	while (Content != "")
+	{
+/*
+		VariableContent = VariableContent + GenCode(Tabs,Content);
+		Content = SplitAfter(Content,' ');
+*/
+
+		OtherContent = SplitBefore(Content,' ');
+		Content = SplitAfter(Content,' ');
+		if (StartsWith(Content, "params"))
+		{
+			OtherContent = OtherContent+" "+SplitBefore(Content,' ');
+			Content = SplitAfter(Content,' ');
+		}
+		VariableContent = VariableContent + GenCode(Tabs,OtherContent);
+
+		if (Last)
+		{
+			break;
+		}
+
+		if (!IsIn(Content," "))
+		{
+			VariableContent = VariableContent + GenCode(Tabs,Content);
+			Last = true;
+		}
+	}
+	//var:name-dataType=Value
+	if ((IsIn(TheKindType,":")) && (IsIn(TheKindType,"-")) && (IsIn(TheKindType,"=")) && (!EndsWith(TheKindType, "=")))
+	{
+		Type = SplitAfter(TheKindType,':');
+		Name = SplitBefore(Type,'-');
+		VarType = SplitAfter(Type,'-');
+		Value = SplitAfter(VarType,'=');
+		VarType = SplitBefore(VarType,'=');
+		NewVar = Tabs+VarType+" "+Name+" = "+Value;
+		NewVar = NewVar+VariableContent;
+	}
+	//var:name=Value
+	if ((IsIn(TheKindType,":")) && (!IsIn(TheKindType,"-")) && (IsIn(TheKindType,"=")) && (!EndsWith(TheKindType, "=")))
+	{
+		Type = SplitAfter(TheKindType,':');
+		Name = SplitBefore(Type,'=');
+		Value = SplitAfter(Type,'=');
+		NewVar = Tabs+Name+" = "+Value;
+		NewVar = NewVar+VariableContent;
+	}
+	//var:name-dataType=
+	else if ((IsIn(TheKindType,":")) && (IsIn(TheKindType,"-")) && (EndsWith(TheKindType, "=")))
+	{
+		Type = SplitAfter(TheKindType,':');
+		Name = SplitBefore(Type,'-');
+		VarType = SplitAfter(Type,'-');
+		VarType = SplitBefore(VarType,'=');
+		NewVar = Tabs+VarType+" "+Name+" = ";
+		NewVar = NewVar+VariableContent;
+	}
+	//var:name=
+	else if ((IsIn(TheKindType,":")) && (!IsIn(TheKindType,"-")) && (EndsWith(TheKindType, "=")))
+	{
+		Type = SplitAfter(TheKindType,':');
+		Name = SplitBefore(Type,'=');
+		Value = SplitAfter(Type,'=');
+		NewVar = Tabs+Name+" = ";
+		NewVar = NewVar+VariableContent;
+	}
+	//var:name-dataType
+	else if ((IsIn(TheKindType,":")) && (IsIn(TheKindType,"-")) && (!IsIn(TheKindType,"=")))
+	{
+		Type = SplitAfter(TheKindType,':');
+		Name = SplitBefore(Type,'-');
+		VarType = SplitAfter(Type,'-');
+		NewVar = Tabs+VarType+" "+Name;
+		NewVar = NewVar+VariableContent;
+	}
+	return NewVar;
 }
 
 String GenCode(String Tabs,String GetMe)
@@ -1002,8 +1101,7 @@ String GenCode(String Tabs,String GetMe)
 	}
 	else if (StartsWith(Args[0], "var"))
 	{
-		TheCode = Variables(Tabs,Args[0]);
-		TheCode = TheCode + GenCode(Tabs,Args[1]);
+		TheCode = Variables(Tabs, Args[0], Args[1]);
 	}
 	else if (StartsWith(Args[0], "stmt"))
 	{
