@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.2.12"
+SupportV="0.2.13"
 Lang=Python
 LangExt=".py"
 #Color Yellow
@@ -63,6 +63,7 @@ UsePython()
 	local TemplateCodeSrc=${NewPython%${LangExt}}${LangExt}
 
 	local TemplateCodeArgs=${NewPythonArgs}
+	local ShellCodeSrc="shell"${LangExt}
 
 	local EnvVars=( ${LangRun} ${LangHome} ${LangSrc} ${LangBin} ${LangExt} )
 	local Type=$1
@@ -125,6 +126,9 @@ UsePython()
 			;;
 		getNewCode)
 			echo ${TemplateCodeSrc}
+			;;
+		getShellCode)
+			echo ${ShellCodeSrc}
 			;;
 		getSrcDir)
 			echo ${LangSrc}
@@ -312,7 +316,8 @@ UsePython()
 		CreateHelp)
 			;;
 		shell)
-			${LangRun}
+			UsePython "runCode" "${ShellCodeSrc}" "${@}"
+#			${LangRun}
 			;;
 		newCodeHelp)
 			if [ -f ${TemplateCode} ]; then
