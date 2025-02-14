@@ -6,7 +6,7 @@ ProgramName = sys.argv[0]
 if "/" in ProgramName:
 	ProgramName = ProgramName.rsplit("/",1)[1]
 
-VersionNumver = "0.1.37"
+VersionNumver = "0.1.38"
 
 def Help():
 	print("Author: Joespider")
@@ -116,8 +116,8 @@ def GetArgs():
 #			Returns["write"] = True
 		elif now == "--random":
 			Returns["random"] = True
-#		elif now == "--is-in":
-#			Returns["isin"] = True
+		elif now == "--is-in":
+			Returns["isin"] = True
 		elif now == "--reverse":
 			Returns["rev"] = True
 		elif now == "--pipe":
