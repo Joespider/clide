@@ -178,7 +178,7 @@ UsePython()
 		getDebugVersion)
 			local debugV=$(${LangRun} --version 2>&1 | sed "s/${Lang}/${UseDebugger}/g")
 			if [ ! -z "${debugV}" ]; then
-				echo ${debugV}	
+				echo ${debugV}
 			fi
 			;;
 		getExt)

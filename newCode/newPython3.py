@@ -6,7 +6,7 @@ ProgramName = sys.argv[0]
 if "/" in ProgramName:
 	ProgramName = ProgramName.rsplit("/",1)[1]
 
-VersionNumver = "0.1.38"
+VersionNumver = "0.1.40"
 
 def Help():
 	print("Author: Joespider")
@@ -217,6 +217,8 @@ def Methods(getMain, getRawInput, getShell, getFiles, getCLI, getCheckFile, getW
 	PipeMethod = "def Pipe():\n\tif not sys.stdin.isatty():\n\t\tPipeData = sys.stdin.read().strip()\n\t\treturn PipeData\n\telse:\n\t\treturn \"\"\n"
 	SysPropMethod = "def GetSysProp(PleaseGet):\n\tif PleaseGet != \"\":\n\t\treturn os.environ[PleaseGet]\n\telse:\n\t\treturn \"\"\n"
 	SplitMethod = "def Split(message, sBy):\n\tSplitMessage = message.split(sBy)\n\treturn SplitMessage\n"
+	SplitMethod = SplitMethod + "def BeforeSplit(Str, splitAt):\n\tif splitAt in Str:\n\t\treturn Str.split(splitAt,1)[0]\n\telse:\n\t\treturn \"\"\n\n"
+	SplitMethod = SplitMethod + "def AfterSplit(Str, splitAt):\n\tif splitAt in Str:\n\t\treturn Str.split(splitAt,1)[1]\n\telse:\n\t\treturn \"\"\n"
 	JoinMethod = "def Join(SplitMessage, jBy):\n\tmessage = jBy.join(SplitMessage)\n\treturn message\n"
 	IsInStringMethod = "def IsIn(Str, Sub):\n\tif Sub in Str:\n\t\treturn True\n\telse:\n\t\treturn False\n\n"
 	IsInStringMethod = IsInStringMethod + "def StartsWith(Str, Start):\n\tif Str.startswith(Sub):\n\t\treturn True\n\telse:\n\t\treturn False\n\n"

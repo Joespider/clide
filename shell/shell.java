@@ -12,7 +12,7 @@ import java.io.IOException;
 
 //class name
 public class shell {
-	private static String Version = "0.0.20";
+	private static String Version = "0.0.24";
 	private static String TheKind = "";
 	private static String TheName = "";
 	private static String TheKindType = "";
@@ -20,11 +20,9 @@ public class shell {
 	private static String TheCondition = "";
 	private static String Parameters = "";
 
-
-
 	private static void Help(String Type)
 	{
-		Type = SplitAfter(Type,":");
+		Type = AfterSplit(Type,":");
 		if (Type.equals("class"))
 		{
 			print("{Usage}");
@@ -115,7 +113,7 @@ public class shell {
 		System.out.println(out);
 	}
 
-	private static String SplitBefore(String Str, String splitAt)
+	private static String BeforeSplit(String Str, String splitAt)
 	{
 		if (Str.contains(splitAt))
 		{
@@ -124,11 +122,11 @@ public class shell {
 		}
 		else
 		{
-			return Str;
+			return "";
 		}
 	}
 
-	private static String SplitAfter(String Str, String splitAt)
+	private static String AfterSplit(String Str, String splitAt)
 	{
 		if (Str.contains(splitAt))
 		{
@@ -146,7 +144,7 @@ public class shell {
 		}
 		else
 		{
-			return Str;
+			return "";
 		}
 	}
 
@@ -276,12 +274,12 @@ public class shell {
 		String PublicOrPrivate = "public";
 		if ((IsIn(TheName,"class(")) && (IsIn(TheName,"):")))
 		{
-			PublicOrPrivate = SplitAfter(TheName,"class");
-			PublicOrPrivate = SplitBefore(PublicOrPrivate,":");
+			PublicOrPrivate = AfterSplit(TheName,"class");
+			PublicOrPrivate = BeforeSplit(PublicOrPrivate,":");
 			PublicOrPrivate = PublicOrPrivate.substring(1, PublicOrPrivate.length()-1);
 		}
 
-		TheName = SplitAfter(TheName,":");
+		TheName = AfterSplit(TheName,":");
 		String Params = "";
 		StringBuilder PrivateVars = new StringBuilder("");
 		StringBuilder PublicVars = new StringBuilder("");
@@ -290,7 +288,7 @@ public class shell {
 		{
 			if ((StartsWith(Content, "params")) && (Params.equals("")))
 			{
-				Process = SplitBefore(Content," ");
+				Process = BeforeSplit(Content," ");
 				Params =  Parameters(Process,"class");
 			}
 			else if (StartsWith(Content, "method"))
@@ -301,18 +299,18 @@ public class shell {
 			{
 				if (StartsWith(Content, "var(public)"))
 				{
-					VarContent = SplitBefore(Content," ");
+					VarContent = BeforeSplit(Content," ");
 					PublicVars.append(GenCode("\t",VarContent));
 				}
 				else if (StartsWith(Content, "var(private)"))
 				{
-					VarContent = SplitBefore(Content," ");
+					VarContent = BeforeSplit(Content," ");
 					PrivateVars.append(GenCode("\t",VarContent));
 				}
 			}
 			if (IsIn(Content," "))
 			{
-				Content = SplitAfter(Content," ");
+				Content = AfterSplit(Content," ");
 			}
 			else
 			{
@@ -331,12 +329,12 @@ public class shell {
 		String PublicOrPrivate = "public";
 		if ((IsIn(Name,"method(")) && (IsIn(Name,"):")))
 		{
-			PublicOrPrivate = SplitAfter(Name,"method");
-			PublicOrPrivate = SplitBefore(PublicOrPrivate,":");
+			PublicOrPrivate = AfterSplit(Name,"method");
+			PublicOrPrivate = BeforeSplit(PublicOrPrivate,":");
 			PublicOrPrivate = PublicOrPrivate.substring(1, PublicOrPrivate.length()-1);
 		}
 
-		Name = SplitAfter(Name,":");
+		Name = AfterSplit(Name,":");
 		String TheName = "";
 		String Type = "";
 		String Params = "";
@@ -347,8 +345,8 @@ public class shell {
 
 		if (IsIn(Content,"-"))
 		{
-			TheName = SplitBefore(Name,"-");
-			Type = SplitAfter(Name,"-");
+			TheName = BeforeSplit(Name,"-");
+			Type = AfterSplit(Name,"-");
 		}
 		else
 		{
@@ -359,7 +357,7 @@ public class shell {
 		{
 			if ((StartsWith(Content, "params")) && (Params.equals("")))
 			{
-				Process = SplitBefore(Content," ");
+				Process = BeforeSplit(Content," ");
 				Params =  Parameters(Process,"method");
 			}
 			else if ((StartsWith(Content, "method")) || (StartsWith(Content, "class")))
@@ -373,7 +371,7 @@ public class shell {
 
 			if (IsIn(Content," "))
 			{
-				Content = SplitAfter(Content," ");
+				Content = AfterSplit(Content," ");
 			}
 			else
 			{
@@ -394,10 +392,10 @@ public class shell {
 
 	private static String Conditions(String input,String CalledBy)
 	{
-		String Params = SplitAfter(input,":");
+		String Params = AfterSplit(input,":");
 		if (IsIn(Params,"-"))
 		{
-			Params = SplitAfter(input,":");
+			Params = AfterSplit(input,":");
 		}
 
 		if (CalledBy.equals("class"))
@@ -417,21 +415,21 @@ public class shell {
 
 	private static String Parameters(String input,String CalledBy)
 	{
-		String Params = SplitAfter(input,":");
+		String Params = AfterSplit(input,":");
 		if ((CalledBy.equals("class")) || (CalledBy.equals("method")))
 		{
 			if ((IsIn(Params,"-")) && (IsIn(Params,",")))
 			{
-				String Name = SplitBefore(Params,"-");
-				String Type = SplitAfter(Params,"-");
-				Type = SplitBefore(Type,",");
-				String more = Parameters("params:"+SplitAfter(Params,","),CalledBy);
+				String Name = BeforeSplit(Params,"-");
+				String Type = AfterSplit(Params,"-");
+				Type = BeforeSplit(Type,",");
+				String more = Parameters("params:"+AfterSplit(Params,","),CalledBy);
 				Params = Type+" "+Name+", "+more;
 			}
 			else if ((IsIn(Params,"-")) && (!IsIn(Params,",")))
 			{
-				String Name = SplitBefore(Params,"-");
-				String Type = SplitAfter(Params,"-");
+				String Name = BeforeSplit(Params,"-");
+				String Type = AfterSplit(Params,"-");
 				Params = Type+" "+Name;
 			}
 		}
@@ -454,13 +452,13 @@ public class shell {
 
 		if (IsIn(TheKindType,":"))
 		{
-			TheKindType = SplitAfter(TheKindType,":");
+			TheKindType = AfterSplit(TheKindType,":");
 		}
 
 		if (IsIn(TheKindType,"-"))
 		{
-			TheName = SplitBefore(TheKindType,"-");
-			Type = SplitAfter(TheKindType,"-");
+			TheName = BeforeSplit(TheKindType,"-");
+			Type = AfterSplit(TheKindType,"-");
 		}
 
 		while (!Content.equals(""))
@@ -503,7 +501,7 @@ public class shell {
 			//nest-loop:
 			else if (StartsWith(Content, "nest-"))
 			{
-				RootTag = SplitBefore(Content,"l");
+				RootTag = BeforeSplit(Content,"l");
 				if (IsIn(Content," "+RootTag+"l"))
 				{
 					String[] cmds = split(Content," "+RootTag+"l");
@@ -539,7 +537,7 @@ public class shell {
 
 				while (StartsWith(OtherContent, "nest-"))
 				{
-					OtherContent = SplitAfter(OtherContent,"-");
+					OtherContent = AfterSplit(OtherContent,"-");
 				}
 				LoopContent.append(GenCode(Tabs+"\t",OtherContent));
 			}
@@ -577,76 +575,6 @@ public class shell {
 		return Complete.toString();
 	}
 
-/*
-	private static String Loop(String Tabs, String TheKindType, String Content)
-	{
-		String Complete = "";
-		TheKindType = SplitAfter(TheKindType,":");
-		String TheName = "";
-		String Type = "";
-		String TheCondition = "";
-		StringBuilder LoopContent = new StringBuilder("");
-
-		if (IsIn(Content,"-"))
-		{
-			TheName = SplitBefore(TheKindType,"-");
-			Type = SplitAfter(TheKindType,"-");
-		}
-		else
-		{
-			TheName = TheKindType;
-		}
-
-		if (IsIn(TheKindType,"-"))
-		{
-			TheName = SplitBefore(TheKindType,"-");
-			Type = SplitAfter(TheKindType,"-");
-		}
-
-		while (!Content.equals(""))
-		{
-			if (StartsWith(Content, "condition"))
-			{
-				TheCondition = Conditions(Content,TheKindType);
-
-			}
-			else if ((StartsWith(Content, "method")) || (StartsWith(Content, "class")))
-			{
-				break;
-			}
-			else if (StartsWith(Content, "nest-"))
-			{
-				Content = SplitAfter(Content,"-");
-				String LogicContent = SplitBefore(Content," ");
-				LoopContent.append(GenCode(Tabs+"\t",LogicContent));
-			}
-
-			if (IsIn(Content," "))
-			{
-				Content = SplitAfter(Content," ");
-			}
-			else
-			{
-				break;
-			}
-		}
-
-		if (TheKindType.equals("for"))
-		{
-			Complete = Tabs+"for ("+TheCondition+")\n"+Tabs+"{\n"+Tabs+"\t//do something here\n"+LoopContent+"\n"+Tabs+"}\n";
-		}
-		else if (TheKindType.equals("do/while"))
-		{
-			Complete = Tabs+"do\n"+Tabs+"{\n"+Tabs+"\t//do something here\n"+LoopContent.toString()+Tabs+"}\n"+Tabs+"while ("+TheCondition+");\n";
-		}
-		else
-		{
-			Complete = Tabs+"while ("+TheCondition+")\n"+Tabs+"{\n"+Tabs+"\t//do something here\n"+LoopContent+Tabs+"}\n";
-		}
-		return Complete;
-	}
-*/
-
 	//logic:
 	private static String Logic(String Tabs, String TheKindType, String Content)
 	{
@@ -662,13 +590,13 @@ public class shell {
 
 		if (IsIn(TheKindType,":"))
 		{
-			TheKindType = SplitAfter(TheKindType,":");
+			TheKindType = AfterSplit(TheKindType,":");
 		}
 
 		if (IsIn(TheKindType,"-"))
 		{
-			TheName = SplitBefore(TheKindType,"-");
-			Type = SplitAfter(TheKindType,"-");
+			TheName = BeforeSplit(TheKindType,"-");
+			Type = AfterSplit(TheKindType,"-");
 		}
 
 		while (!Content.equals(""))
@@ -704,8 +632,8 @@ public class shell {
 			{
 				if (IsIn(Content," "))
 				{
-					TheCondition = SplitBefore(Content," ");
-					Content = SplitAfter(Content," ");
+					TheCondition = BeforeSplit(Content," ");
+					Content = AfterSplit(Content," ");
 				}
 				else
 				{
@@ -719,7 +647,7 @@ public class shell {
 			}
 			else if (StartsWith(Content, "nest-"))
 			{
-				RootTag = SplitBefore(Content,"l");
+				RootTag = BeforeSplit(Content,"l");
 				if (IsIn(Content," "+RootTag+"l"))
 				{
 					String[] cmds = split(Content," "+RootTag+"l");
@@ -755,7 +683,7 @@ public class shell {
 
 				while (StartsWith(OtherContent, "nest-"))
 				{
-					OtherContent = SplitAfter(OtherContent,"-");
+					OtherContent = AfterSplit(OtherContent,"-");
 				}
 				LogicContent.append(GenCode(Tabs+"\t",OtherContent));
 			}
@@ -801,7 +729,7 @@ public class shell {
 			Complete.append(Tabs+"switch ("+TheCondition+")\n"+Tabs+"{\n\n");
 			while (!CaseContent.equals(""))
 			{
-				CaseVal = SplitBefore(CaseContent,"-");
+				CaseVal = BeforeSplit(CaseContent,"-");
 				if (CaseVal != "switch")
 				{
 					Complete.append(Tabs+"\tcase "+CaseVal+":\n"+Tabs+"\t\t//code here\n"+Tabs+"\t\tbreak;\n");
@@ -809,7 +737,7 @@ public class shell {
 
 				if (IsIn(CaseContent,"-"))
 				{
-					CaseContent = SplitAfter(CaseContent,"-");
+					CaseContent = AfterSplit(CaseContent,"-");
 				}
 			}
 			Complete.append(Tabs+"\tdefault:\n"+Tabs+"\t\t//code here\n"+Tabs+"\t\tbreak;\n"+Tabs+"}\n");
@@ -817,20 +745,26 @@ public class shell {
 		return Complete.toString();
 	}
 
-/*
-	private static String Logic(String Tabs, String TheKindType, String Content)
+	//stmt:
+	private static String Statements(String Tabs, String TheKindType, String Content)
 	{
-		StringBuilder Complete = new StringBuilder("");
-		TheKindType = SplitAfter(TheKindType,":");
+		boolean Last = false;
+		String Complete = "";
+		StringBuilder StatementContent = new StringBuilder("");
+		String OtherContent = "";
 		String TheName = "";
-		String Type = "";
-		String TheCondition = "";
-		StringBuilder LogicContent = new StringBuilder("");
+		String Name = "";
+		String Process = "";
+		String Params = "";
 
-		if (IsIn(Content,"-"))
+		if (IsIn(TheKindType,":"))
 		{
-			TheName = SplitBefore(TheKindType,"-");
-			Type = SplitAfter(TheKindType,"-");
+			TheKindType = AfterSplit(TheKindType,":");
+		}
+		if (IsIn(TheKindType,"-"))
+		{
+			TheName = BeforeSplit(TheKindType,"-");
+			Name = AfterSplit(TheKindType,"-");
 		}
 		else
 		{
@@ -839,75 +773,54 @@ public class shell {
 
 		while (!Content.equals(""))
 		{
-			if (StartsWith(Content, "condition"))
+			if ((StartsWith(Content, "params")) && (Params.equals("")))
 			{
-				TheCondition = Conditions(Content,TheKindType);
-			}
-			else if ((StartsWith(Content, "method")) || (StartsWith(Content, "class")))
-			{
-				break;
-			}
-			else if (StartsWith(Content, "nest-"))
-			{
-				Content = SplitAfter(Content,"-");
-				LogicContent.append(GenCode(Tabs+"\t",Content));
-			}
-
-			if (IsIn(Content," "))
-			{
-				Content = SplitAfter(Content," ");
-			}
-			else
-			{
-				break;
-			}
-		}
-
-		if (TheKindType.equals("if"))
-		{
-			Complete.append(Tabs+"if ("+TheCondition+")\n"+Tabs+"{\n"+Tabs+"\t//do something here\n"+LogicContent.toString()+Tabs+"}\n");
-		}
-		else if (TheKindType.equals("else-if"))
-		{
-			Complete.append(Tabs+"else if ("+TheCondition+")\n"+Tabs+"{\n"+Tabs+"\t//do something here\n"+LogicContent.toString()+Tabs+"}\n");
-		}
-		else if (TheKindType.equals("else"))
-		{
-			Complete.append(Tabs+"else\n"+Tabs+"{\n"+Tabs+"\t//do something here\n"+LogicContent.toString()+Tabs+"}\n");
-		}
-		else if (TheKindType.equals("switch-case"))
-		{
-			Complete.append(Tabs+"\tcase x:\n"+Tabs+"\t\t//code here\n"+Tabs+"\t\tbreak;");
-
-		}
-		else if (StartsWith(TheKindType, "switch"))
-		{
-			String CaseContent = TheKindType;
-			String CaseVal;
-
-			Complete.append(Tabs+"switch ("+TheCondition+")\n"+Tabs+"{\n\n");
-			while (!CaseContent.equals(""))
-			{
-				CaseVal = SplitBefore(CaseContent,"-");
-				if (CaseVal != "switch")
+				if (IsIn(Content," "))
 				{
-					Complete.append(Tabs+"\tcase "+CaseVal+":\n"+Tabs+"\t\t//code here\n"+Tabs+"\t\tbreak;\n");
-				}
-
-				if (IsIn(CaseContent,"-"))
-				{
-					CaseContent = SplitAfter(CaseContent,"-");
+					Process = BeforeSplit(Content," ");
 				}
 				else
 				{
-					break;
+					Process = Content;
 				}
+				Params =  Parameters(Process,"stmt");
 			}
-			Complete.append(Tabs+"\tdefault:\n"+Tabs+"\t\t//code here\n"+Tabs+"\t\tbreak;\n"+Tabs+"}\n");
+			else
+			{
+				OtherContent = BeforeSplit(Content," ");
+				StatementContent.append(GenCode(Tabs,OtherContent));
+				Content = AfterSplit(Content," ");
+			}
+
+			if (Last)
+			{
+				break;
+			}
+			if (!IsIn(Content," "))
+			{
+				StatementContent.append(GenCode(Tabs,Content));
+				Last = true;
+			}
 		}
-		return Complete.toString();
+		if (TheName.equals("method"))
+		{
+			Complete = Name+"("+Params+")"+StatementContent.toString();
+		}
+		else if (TheName.equals("comment"))
+		{
+			Complete = StatementContent.toString()+Tabs+"#Code goes here\n";
+		}
+		else if (TheName.equals("endline"))
+		{
+			Complete = StatementContent.toString()+";\n";
+		}
+		else if (TheName.equals("newline"))
+		{
+			Complete = StatementContent.toString()+"\n";
+		}
+
+		return Complete;
 	}
-*/
 
 	//var:
 	private static String Variables(String Tabs, String TheKindType, String Content)
@@ -926,15 +839,15 @@ public class shell {
 		{
 /*
 			VariableContent = VariableContent + GenCode(Tabs,Content);
-			Content = SplitAfter(Content," ");
+			Content = AfterSplit(Content," ");
 */
 
-			OtherContent = new StringBuilder(SplitBefore(Content," "));
-			Content = SplitAfter(Content," ");
+			OtherContent = new StringBuilder(BeforeSplit(Content," "));
+			Content = AfterSplit(Content," ");
 			if (StartsWith(Content, "params"))
 			{
-				OtherContent.append(" "+SplitBefore(Content," "));
-				Content = SplitAfter(Content," ");
+				OtherContent.append(" "+BeforeSplit(Content," "));
+				Content = AfterSplit(Content," ");
 			}
 			VariableContent.append(GenCode(Tabs,OtherContent.toString()));
 
@@ -952,128 +865,53 @@ public class shell {
 		//var:name-dataType=Value
 		if ((IsIn(TheKindType,":")) && (IsIn(TheKindType,"-")) && (IsIn(TheKindType,"=")) && (!EndsWith(TheKindType, "=")))
 		{
-			Type = SplitAfter(TheKindType,":");
-			Name = SplitBefore(Type,"-");
-			VarType = SplitAfter(Type,"-");
-			Value = SplitAfter(VarType,"=");
-			VarType = SplitBefore(VarType,"=");
+			Type = AfterSplit(TheKindType,":");
+			Name = BeforeSplit(Type,"-");
+			VarType = AfterSplit(Type,"-");
+			Value = AfterSplit(VarType,"=");
+			VarType = BeforeSplit(VarType,"=");
 			NewVar.append(Tabs+VarType+" "+Name+" = "+Value);
 			NewVar.append(VariableContent.toString());
 		}
 		//var:name=Value
-		if ((IsIn(TheKindType,":")) && (!IsIn(TheKindType,"-")) && (IsIn(TheKindType,"=")) && (!EndsWith(TheKindType, "=")))
+		else if ((IsIn(TheKindType,":")) && (!IsIn(TheKindType,"-")) && (IsIn(TheKindType,"=")) && (!EndsWith(TheKindType, "=")))
 		{
-			Type = SplitAfter(TheKindType,":");
-			Name = SplitBefore(Type,"=");
-			Value = SplitAfter(Type,"=");
+			Type = AfterSplit(TheKindType,":");
+			Name = BeforeSplit(Type,"=");
+			Value = AfterSplit(Type,"=");
 			NewVar.append(Tabs+Name+" = "+Value);
 			NewVar.append(VariableContent.toString());
 		}
 		//var:name-dataType=
 		else if ((IsIn(TheKindType,":")) && (IsIn(TheKindType,"-")) && (EndsWith(TheKindType, "=")))
 		{
-			Type = SplitAfter(TheKindType,":");
-			Name = SplitBefore(Type,"-");
-			VarType = SplitAfter(Type,"-");
-			VarType = SplitBefore(VarType,"=");
+			Type = AfterSplit(TheKindType,":");
+			Name = BeforeSplit(Type,"-");
+			VarType = AfterSplit(Type,"-");
+			VarType = BeforeSplit(VarType,"=");
 			NewVar.append(Tabs+VarType+" "+Name+" = ");
 			NewVar.append(VariableContent.toString());
 		}
 		//var:name=
 		else if ((IsIn(TheKindType,":")) && (!IsIn(TheKindType,"-")) && (EndsWith(TheKindType, "=")))
 		{
-			Type = SplitAfter(TheKindType,":");
-			Name = SplitBefore(Type,"=");
-			Value = SplitAfter(Type,"=");
+			Type = AfterSplit(TheKindType,":");
+			Name = BeforeSplit(Type,"=");
+			Value = AfterSplit(Type,"=");
 			NewVar.append(Tabs+Name+" = ");
 			NewVar.append(VariableContent.toString());
 		}
 		//var:name-dataType
 		else if ((IsIn(TheKindType,":")) && (IsIn(TheKindType,"-")) && (!IsIn(TheKindType,"=")))
 		{
-			Type = SplitAfter(TheKindType,":");
-			Name = SplitBefore(Type,"-");
-			VarType = SplitAfter(Type,"-");
+			Type = AfterSplit(TheKindType,":");
+			Name = BeforeSplit(Type,"-");
+			VarType = AfterSplit(Type,"-");
 			NewVar.append(Tabs+VarType+" "+Name);
 			NewVar.append(VariableContent.toString());
 		}
 		return NewVar.toString();
 	}
-/*
-	private static String Variables(String Tabs, String input)
-	{
-		String Type = "";
-		String Name = "";
-		String VarType = "";
-		String Value = "";
-
-		String PublicOrPrivate = "";
-		if ((IsIn(TheName,"var(")) && (IsIn(TheName,"):")))
-		{
-			PublicOrPrivate = SplitAfter(TheName,"var");
-			PublicOrPrivate = SplitBefore(PublicOrPrivate,":");
-			PublicOrPrivate = PublicOrPrivate.substring(1, PublicOrPrivate.length()-1);
-		}
-
-		if (IsIn(input,":") && IsIn(input,"-") && IsIn(input,"="))
-		{
-			Type = SplitAfter(input,":");
-			Name = SplitBefore(Type,"-");
-			VarType = SplitAfter(Type,"-");
-			Value = SplitAfter(VarType,"=");
-			VarType = SplitBefore(VarType,"=");
-		}
-		else if (IsIn(input,":") && IsIn(input,"="))
-		{
-			Type = SplitAfter(input,":");
-			Name = SplitBefore(Type,"=");
-			Value = SplitAfter(Type,"=");
-		}
-		else if (IsIn(input,":") && IsIn(input,"-"))
-		{
-			Type = SplitAfter(input,":");
-			Name = SplitBefore(Type,"-");
-			VarType= SplitAfter(Type,"-");
-		}
-
-		String NewVar = "";
-		if (Value.equals(""))
-		{
-			if (!PublicOrPrivate.equals(""))
-			{
-				NewVar = Tabs+PublicOrPrivate+" "+VarType+" "+Name+";\n";
-			}
-			else
-			{
-				NewVar = Tabs+VarType+" "+Name+";\n";
-			}
-		}
-		else if (VarType.equals(""))
-		{
-			if (!PublicOrPrivate.equals(""))
-			{
-				NewVar = Tabs+PublicOrPrivate+" "+Name+" = "+Value+";\n";
-			}
-			else
-			{
-				NewVar = Tabs+Name+" = "+Value+";\n";
-			}
-		}
-		else
-		{
-			if (!PublicOrPrivate.equals(""))
-			{
-				NewVar = Tabs+PublicOrPrivate+" "+VarType+" "+Name+" = "+Value+";\n";
-			}
-			else
-			{
-				NewVar = Tabs+VarType+" "+Name+" = "+Value+";\n";
-			}
-		}
-
-		return NewVar;
-	}
-*/
 
 	private static String GenCode(String Tabs,String GetMe)
 	{
@@ -1081,8 +919,8 @@ public class shell {
 		String[] Args = new String[2];
 		if (IsIn(GetMe," "))
 		{
-			Args[0] = SplitBefore(GetMe," ");
-			Args[1] = SplitAfter(GetMe," ");
+			Args[0] = BeforeSplit(GetMe," ");
+			Args[1] = AfterSplit(GetMe," ");
 		}
 		else
 		{
@@ -1109,6 +947,10 @@ public class shell {
 		else if (StartsWith(Args[0], "var"))
 		{
 			TheCode.append(Variables(Tabs, Args[0], Args[1]));
+		}
+		else if (StartsWith(Args[0], "stmt"))
+		{
+			TheCode.append(Statements(Tabs, Args[0], Args[1]));
 		}
 /*
 		else if (StartsWith(Args[0], "condition"))

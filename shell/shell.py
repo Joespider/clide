@@ -2,14 +2,14 @@ import os
 import sys
 import platform
 
-Version = "0.0.1"
+Version = "0.0.4"
 
 def getOS():
 	platform.system()
 
 def Help(Type):
 	if IsIn(Type,":"):
-		Type = SplitAfter(Type,":")
+		Type = AfterSplit(Type,":")
 
 	if Type == "class":
 		print("{Usage}")
@@ -109,14 +109,17 @@ def EndsWith(Str, End):
 	else:
 		return False
 
-def SplitBefore(Str, splitAt):
-	newString = Str.split(splitAt,1)[0]
-	return newString
+def BeforeSplit(Str, splitAt):
+	if splitAt in Str:
+		return Str.split(splitAt,1)[0]
+	else:
+		return ""
 
-
-def SplitAfter(Str, splitAt):
-	newString = Str.split(splitAt,1)[1]
-	return newString
+def AfterSplit(Str, splitAt):
+	if splitAt in Str:
+		return Str.split(splitAt,1)[1]
+	else:
+		return ""
 
 def split(message, by, at=0):
 	vArray = []
@@ -136,6 +139,7 @@ def replaceAll(message, sBy, jBy):
 	message = jBy.join(SplitMessage)
 	return message
 
+
 #	----[shell]----
 
 
@@ -151,14 +155,15 @@ def Struct(TheName, Content):
 	Complete = ""
 	StructVar = ""
 	Process = ""
-	TheName = SplitAfter(TheName,":")
+	TheName = AfterSplit(TheName,":")
 	while StartsWith(Content, "var"):
-		Process = SplitBefore(Content," ")
-		Content = SplitAfter(Content," ")
+		Process = BeforeSplit(Content," ")
+		Content = AfterSplit(Content," ")
 		StructVar = StructVar + GenCode("\t",Process)
 	Complete = "struct {\n"+StructVar+"\n} "+TheName+";\n"
 	return Complete
 
+#class:
 def Class(TheName, Content):
 	Complete = ""
 	PrivateVars = ""
@@ -169,51 +174,52 @@ def Class(TheName, Content):
 #	if (StartsWith(TheName,"class("))
 #	if (IsIn(TheName,")"))
 #	{
-#		PublicOrPrivate = SplitAfter(TheName,"(");
-#		PublicOrPrivate = SplitBefore(PublicOrPrivate,")");
+#		PublicOrPrivate = AfterSplit(TheName,"(");
+#		PublicOrPrivate = BeforeSplit(PublicOrPrivate,")");
 #	}
 
-	TheName = SplitAfter(TheName,":")
+	TheName = AfterSplit(TheName,":")
 	Process = ""
 	Params = ""
 	ClassContent = ""
 	while Content != "":
 		if StartsWith(Content, "params") and Params == "":
-			Process = SplitBefore(Content," ")
-			Params =  Parameters(Process,"class")
+			Process = BeforeSplit(Content," ")
+			Params = ", "+Parameters(Process,"class")
 
 		elif StartsWith(Content, "method"):
-			ClassContent = ClassContent + GenCode("\t",Content)
+			ClassContent = ClassContent + GenCode("\t",Content,"Class")
 
 		elif StartsWith(Content, "var"):
 			if StartsWith(Content, "var(public)"):
-				Content = SplitAfter(Content,")")
-				VarContent = SplitBefore(Content," ")
+				Content = AfterSplit(Content,")")
+				VarContent = BeforeSplit(Content," ")
 				VarContent = "var"+VarContent
 				PublicVars = PublicVars + GenCode("\t",VarContent)
 			elif StartsWith(Content, "var(private)"):
-				Content = SplitAfter(Content,")")
-				VarContent = SplitBefore(Content," ")
+				Content = AfterSplit(Content,")")
+				VarContent = BeforeSplit(Content," ")
 				VarContent = "var"+VarContent
 				PrivateVars = PrivateVars  + GenCode("\t",VarContent)
 
 		if IsIn(Content," "):
-			Content = SplitAfter(Content," ")
+			Content = AfterSplit(Content," ")
 		else:
 			break
 
-	if PrivateVars != "":
-		PrivateVars = "private:\n\t//private variables\n"+PrivateVars+"\n"
+#	if PrivateVars != "":
+#		PrivateVars = "private:\n\t//private variables\n"+PrivateVars+"\n"
+#
+#	if PublicVars != "":
+#		PublicVars = "\n\t//public variables\n"+PublicVars
 
-	if PublicVars != "":
-		PublicVars = "\n\t//public variables\n"+PublicVars
-
-	Complete = "class "+TheName+" {\n\n"+PrivateVars+"public:"+PublicVars+"\n\t//class constructor\n\t"+TheName+"("+Params+")\n\t{\n\t\tthis->x = x;\n\t\tthis->y = y;\n\t}\n\n"+ClassContent+"\n\t//class desctructor\n\t~"+TheName+"()\n\t{\n\t}\n};\n"
+	Complete = "class "+TheName+":\n"+PrivateVars+PublicVars+"\n\t#class constructor\n\tdef __init__(self"+Params+")\n\t\tself.x = x\n\t\tself.y = y\n\n"+ClassContent+"\n"
 	return Complete
 
-def Method(Tabs, Name, Content):
+#method:
+def Method(Tabs, Name, Content, CalledBy):
 	Complete = ""
-	Name = SplitAfter(Name,":")
+	Name = AfterSplit(Name,":")
 	TheName = ""
 	Type = ""
 	Params = ""
@@ -222,18 +228,19 @@ def Method(Tabs, Name, Content):
 	Process = ""
 
 	if IsIn(Name,"-"):
-		TheName = SplitBefore(Name,"-")
-		Type = SplitAfter(Name,"-")
+		TheName = BeforeSplit(Name,"-")
+		Type = AfterSplit(Name,"-")
 	else:
 		TheName = Name
 
 	while Content != "":
 		if StartsWith(Content, "params") and Params == "":
 			if IsIn(Content," "):
-				Process = SplitBefore(Content," ")
+				Process = BeforeSplit(Content," ")
 			else:
 				Process = Content
-			Params =  Parameters(Process,"method")
+
+			Params = Parameters(Process,"method")
 
 		elif StartsWith(Content, "method") or StartsWith(Content, "class"):
 			break
@@ -245,19 +252,25 @@ def Method(Tabs, Name, Content):
 			MethodContent = MethodContent + GenCode(Tabs+"\t",Content)
 
 		if IsIn(Content," "):
-			Content = SplitAfter(Content," ")
+			Content = AfterSplit(Content," ")
 		else:
 			break
 
-	if Type == "" or Type == "void":
-		Complete = Tabs+"void "+TheName + "("+Params+")\n"+Tabs+"{\n"+MethodContent+"\n"+Tabs+"}\n"
+	#Handle Parameters from a class
+	if CalledBy == "Class" and Params != "":
+		Params = "self, "+Params
+	elif CalledBy == "Class" and Params == "":
+		Params = "self"
+
+	if MethodContent != "":
+		Complete = Tabs+"def "+TheName+"("+Params+"):\n"+MethodContent+"\n"
 	else:
-		Complete = Tabs+Type+" "+TheName+"("+Params+")\n"+Tabs+"{\n"+Tabs+"\t" +Type+" TheReturn;\n"+MethodContent+"\n"+Tabs+"\treturn TheReturn;\n"+Tabs+"}\n"
+		Complete = Tabs+"def "+TheName+"("+Params+"):\n"+Tabs+"\t"+GenCode("","stmt:comment")+"\n"+"\n"
 
 	return Complete
 
 def Conditions(input,CalledBy):
-	Condit = SplitAfter(input,":")
+	Condit = AfterSplit(input,":")
 	Condit = replaceAll(Condit, "|", " ")
 	if CalledBy == "class":
 		print("condition: "+CalledBy)
@@ -269,19 +282,21 @@ def Conditions(input,CalledBy):
 	return Condit
 
 def Parameters(input, CalledBy):
-	Params = SplitAfter(input,":")
+	Params = AfterSplit(input,":")
 	if CalledBy == "class" or CalledBy == "method" or CalledBy == "stmt":
 		if IsIn(Params,"-") and IsIn(Params,","):
-			Name = SplitBefore(Params,"-")
-			Type = SplitAfter(Params,"-")
-			Type = SplitBefore(Type,",")
-			more = SplitAfter(Params,",")
+			Name = BeforeSplit(Params,"-")
+			Type = AfterSplit(Params,"-")
+			Type = BeforeSplit(Type,",")
+			more = AfterSplit(Params,",")
 			more = Parameters("params:"+more,CalledBy)
-			Params = Type+" "+Name+", "+more
+			#Params = Type+" "+Name+", "+more
+			Params = Name+", "+more
 		elif IsIn(Params,"-") and not IsIn(Params,","):
-			Name = SplitBefore(Params,"-")
-			Type = SplitAfter(Params,"-")
-			Params = Type+" "+Name
+			Name = BeforeSplit(Params,"-")
+			Type = AfterSplit(Params,"-")
+			#Params = Type+" "+Name
+			Params = Name
 	return Params
 
 #loop:
@@ -297,11 +312,11 @@ def Loop(Tabs, TheKindType, Content):
 	OtherContent = ""
 
 	if IsIn(TheKindType,":"):
-		TheKindType = SplitAfter(TheKindType,":")
+		TheKindType = AfterSplit(TheKindType,":")
 
 	if IsIn(TheKindType,"-"):
-		TheName = SplitBefore(TheKindType,"-")
-		Type = SplitAfter(TheKindType,"-")
+		TheName = BeforeSplit(TheKindType,"-")
+		Type = AfterSplit(TheKindType,"-")
 
 	while Content != "":
 		if not StartsWith(Content, "nest-") and IsIn(Content," nest-"):
@@ -330,7 +345,7 @@ def Loop(Tabs, TheKindType, Content):
 
 		#nest-loop:
 		elif StartsWith(Content, "nest-"):
-			RootTag = SplitBefore(Content,'l')
+			RootTag = BeforeSplit(Content,'l')
 
 			if IsIn(Content," "+RootTag+"l"):
 				cmds = split(Content," "+RootTag+"l")
@@ -352,7 +367,7 @@ def Loop(Tabs, TheKindType, Content):
 			NewContent = ""
 
 			while StartsWith(OtherContent, "nest-"):
-				OtherContent = SplitAfter(OtherContent,"-")
+				OtherContent = AfterSplit(OtherContent,"-")
 
 			LoopContent = LoopContent + GenCode(Tabs+"\t",OtherContent)
 		else:
@@ -367,15 +382,21 @@ def Loop(Tabs, TheKindType, Content):
 
 	#loop:for
 	if TheKindType == "for":
-		Complete = Tabs+"for ("+TheCondition+")\n"+Tabs+"{\n"+LoopContent+Tabs+"}\n"
+		if LoopContent != "":
+			Complete = Tabs+"for "+TheCondition+":\n"+LoopContent
+		else:
+			Complete = Tabs+"for "+TheCondition+":\n"+Tabs+"\t"+GenCode("","stmt:comment")+"\n"
 
-	#loop:do/while
-	elif TheKindType == "do/while":
-		Complete = Tabs+"do\n"+Tabs+"{\n"+LoopContent+Tabs+"}\n"+Tabs+"while ("+TheCondition+");\n"
+#	#loop:do/while
+#	elif TheKindType == "do/while":
+#		Complete = Tabs+"do\n"+Tabs+"{\n"+LoopContent+Tabs+"}\n"+Tabs+"while ("+TheCondition+");\n"
 
 	#loop:while
 	else:
-		Complete = Tabs+"while ("+TheCondition+")\n"+Tabs+"{\n"+LoopContent+Tabs+"}\n"
+		if LoopContent != "":
+			Complete = Tabs+"while "+TheCondition+":\n"+LoopContent
+		else:
+			Complete = Tabs+"while "+TheCondition+":\n"+Tabs+"\t"+GenCode("","stmt:comment")+"\n"
 
 	return Complete
 
@@ -392,11 +413,11 @@ def Logic(Tabs, TheKindType, Content):
 	OtherContent = ""
 
 	if IsIn(TheKindType,":"):
-		TheKindType = SplitAfter(TheKindType,":")
+		TheKindType = AfterSplit(TheKindType,":")
 
 	if IsIn(TheKindType,"-"):
-		TheName = SplitBefore(TheKindType,"-")
-		Type = SplitAfter(TheKindType,"-")
+		TheName = BeforeSplit(TheKindType,"-")
+		Type = AfterSplit(TheKindType,"-")
 
 	while Content != "":
 		if not StartsWith(Content, "nest-") and IsIn(Content," nest-"):
@@ -420,8 +441,8 @@ def Logic(Tabs, TheKindType, Content):
 
 		if StartsWith(Content, "condition"):
 			if IsIn(Content," "):
-				TheCondition = SplitBefore(Content," ")
-				Content = SplitAfter(Content," ")
+				TheCondition = BeforeSplit(Content," ")
+				Content = AfterSplit(Content," ")
 			else:
 				TheCondition = Content
 
@@ -431,7 +452,7 @@ def Logic(Tabs, TheKindType, Content):
 			break
 
 		elif StartsWith(Content, "nest-"):
-			RootTag = SplitBefore(Content,'l')
+			RootTag = BeforeSplit(Content,'l')
 			if IsIn(Content," "+RootTag+"l"):
 				cmds = split(Content," "+RootTag+"l")
 				end = len(cmds)
@@ -452,7 +473,7 @@ def Logic(Tabs, TheKindType, Content):
 			NewContent = ""
 
 			while StartsWith(OtherContent, "nest-"):
-				OtherContent = SplitAfter(OtherContent,"-")
+				OtherContent = AfterSplit(OtherContent,"-")
 
 			LogicContent = LogicContent + GenCode(Tabs+"\t",OtherContent)
 		else:
@@ -466,16 +487,25 @@ def Logic(Tabs, TheKindType, Content):
 			Last = True
 
 	if TheKindType == "if":
-		Complete = Tabs+"if ("+TheCondition+")\n"+Tabs+"{\n"+LogicContent+Tabs+"}\n"
+		if LogicContent != "":
+			Complete = Tabs+"if "+TheCondition+":\n"+LogicContent
+		else:
+			Complete = Tabs+"if "+TheCondition+":\n"+Tabs+"\t"+GenCode("","stmt:comment")+"\n"
 
 	elif TheKindType == "else-if":
-		Complete = Tabs+"elif ("+TheCondition+")\n"+Tabs+"{\n"+LogicContent+Tabs+"}\n"
+		if LogicContent != "":
+			Complete = Tabs+"elif "+TheCondition+":\n"+LogicContent
+		else:
+			Complete = Tabs+"elif "+TheCondition+"\n"+Tabs+"\t"+GenCode("","stmt:comment")+"\n"
 
 	elif TheKindType == "else":
-		Complete = Tabs+"else\n"+Tabs+"{\n"+LogicContent+Tabs+"}\n"
+		if LogicContent != "":
+			Complete = Tabs+"else:\n"+LogicContent
+		else:
+			Complete = Tabs+"else:\n"+Tabs+"\t"+GenCode("","stmt:comment")+"\n"
 
 	elif TheKindType == "switch-case":
-		Complete = Tabs+"\tcase x:\n"+Tabs+"\t\t#code here\n"+Tabs+"\t\tbreak;"
+		Complete = Tabs+"\tcase x:\n"+Tabs+GenCode("","stmt:comment")+"\t\tbreak;"
 
 	elif StartsWith(TheKindType, "switch"):
 		CaseContent = TheKindType
@@ -483,12 +513,12 @@ def Logic(Tabs, TheKindType, Content):
 
 		Complete = Tabs+"switch ("+TheCondition+")\n"+Tabs+"{\n\n"
 		while CaseContent != "":
-			CaseVal = SplitBefore(CaseContent,"-")
+			CaseVal = BeforeSplit(CaseContent,"-")
 			if CaseVal != "switch":
 				Complete = Complete+Tabs+"\tcase "+CaseVal+":\n"+Tabs+"\t\t#code here\n"+Tabs+"\t\tbreak;\n"
 
 			if IsIn(CaseContent,"-"):
-				CaseContent = SplitAfter(CaseContent,"-")
+				CaseContent = AfterSplit(CaseContent,"-")
 
 		Complete = Complete+Tabs+"\tdefault:\n"+Tabs+"\t\t#code here\n"+Tabs+"\t\tbreak;\n"+Tabs+"}\n"
 
@@ -506,11 +536,11 @@ def Statements(Tabs, TheKindType, Content):
 	Params = ""
 
 	if IsIn(TheKindType,":"):
-		TheKindType = SplitAfter(TheKindType,":")
+		TheKindType = AfterSplit(TheKindType,":")
 
 	if IsIn(TheKindType,"-"):
-		TheName = SplitBefore(TheKindType,"-")
-		Name = SplitAfter(TheKindType,"-")
+		TheName = BeforeSplit(TheKindType,"-")
+		Name = AfterSplit(TheKindType,"-")
 
 	else:
 		TheName = TheKindType
@@ -518,15 +548,15 @@ def Statements(Tabs, TheKindType, Content):
 	while Content != "":
 		if StartsWith(Content, "params") and Params == "":
 			if IsIn(Content," "):
-				Process = SplitBefore(Content," ")
+				Process = BeforeSplit(Content," ")
 			else:
 				Process = Content
 
 			Params =  Parameters(Process,"stmt")
 		else:
-			OtherContent = SplitBefore(Content," ")
+			OtherContent = BeforeSplit(Content," ")
 			StatementContent = StatementContent + GenCode(Tabs,OtherContent)
-			Content = SplitAfter(Content," ")
+			Content = AfterSplit(Content," ")
 
 		if Last:
 			break
@@ -536,10 +566,13 @@ def Statements(Tabs, TheKindType, Content):
 			Last = True
 
 	if TheName == "method":
-		Complete = Name+"("+Params+")"+StatementContent;
+		Complete = Name+"("+Params+")"+StatementContent
+
+	elif TheName == "comment":
+		Complete = StatementContent+"#Code goes here"
 
 	elif TheName == "endline":
-		Complete = StatementContent+";\n"
+		Complete = StatementContent+"\n"
 
 	elif TheName == "newline":
 		Complete = StatementContent+"\n"
@@ -562,13 +595,13 @@ def Variables(Tabs, TheKindType, Content):
 
 	while Content != "":
 #		VariableContent = VariableContent + GenCode(Tabs,Content)
-#		Content = SplitAfter(Content," ")
+#		Content = AfterSplit(Content," ")
 
-		OtherContent = SplitBefore(Content," ")
-		Content = SplitAfter(Content," ")
+		OtherContent = BeforeSplit(Content," ")
+		Content = AfterSplit(Content," ")
 		if StartsWith(Content, "params"):
-			OtherContent = OtherContent+" "+SplitBefore(Content," ")
-			Content = SplitAfter(Content," ")
+			OtherContent = OtherContent+" "+BeforeSplit(Content," ")
+			Content = AfterSplit(Content," ")
 
 		VariableContent = VariableContent + GenCode(Tabs,OtherContent)
 
@@ -581,56 +614,57 @@ def Variables(Tabs, TheKindType, Content):
 
 	#var:name-dataType=Value
 	if IsIn(TheKindType,":") and IsIn(TheKindType,"-") and IsIn(TheKindType,"=") and not EndsWith(TheKindType, "="):
-		Type = SplitAfter(TheKindType,":")
-		Name = SplitBefore(Type,"-")
-		VarType = SplitAfter(Type,"-")
-		Value = SplitAfter(VarType,'=')
-		VarType = SplitBefore(VarType,'=')
-		NewVar = Tabs+VarType+" "+Name+" = "+Value
-		NewVar = NewVar+VariableContent
-
-	#var:name=Value
-	if IsIn(TheKindType,":") and not IsIn(TheKindType,"-") and IsIn(TheKindType,"=") and not EndsWith(TheKindType, "="):
-		Type = SplitAfter(TheKindType,":")
-		Name = SplitBefore(Type,'=')
-		Value = SplitAfter(Type,'=')
+		Type = AfterSplit(TheKindType,":")
+		Name = BeforeSplit(Type,"-")
+		VarType = AfterSplit(Type,"-")
+		Value = AfterSplit(VarType,'=')
+		VarType = BeforeSplit(VarType,'=')
 		NewVar = Tabs+Name+" = "+Value
 		NewVar = NewVar+VariableContent
 
+	#var:name=Value
+	elif IsIn(TheKindType,":") and (not IsIn(TheKindType,"-")) and IsIn(TheKindType,"=") and not EndsWith(TheKindType, "="):
+		Type = AfterSplit(TheKindType,":")
+		Name = BeforeSplit(Type,'=')
+		Value = AfterSplit(Type,'=')
+		NewVar = Tabs+Name+" = "+Value
+		NewVar = NewVar+VariableContent
+		print(NewVar)
+
 	#var:name-dataType=
 	elif IsIn(TheKindType,":") and IsIn(TheKindType,"-") and EndsWith(TheKindType, "="):
-		Type = SplitAfter(TheKindType,":")
-		Name = SplitBefore(Type,"-")
-		VarType = SplitAfter(Type,"-")
-		VarType = SplitBefore(VarType,'=')
-		NewVar = Tabs+VarType+" "+Name+" = "
+		Type = AfterSplit(TheKindType,":")
+		Name = BeforeSplit(Type,"-")
+		VarType = AfterSplit(Type,"-")
+		VarType = BeforeSplit(VarType,'=')
+		NewVar = Tabs+Name+" = "
 		NewVar = NewVar+VariableContent
 
 	#var:name=
 	elif IsIn(TheKindType,":") and not IsIn(TheKindType,"-") and EndsWith(TheKindType, "="):
-		Type = SplitAfter(TheKindType,":")
-		Name = SplitBefore(Type,'=')
-		Value = SplitAfter(Type,'=')
+		Type = AfterSplit(TheKindType,":")
+		Name = BeforeSplit(Type,'=')
+		Value = AfterSplit(Type,'=')
 		NewVar = Tabs+Name+" = "
 		NewVar = NewVar+VariableContent
 
 	#var:name-dataType
 	elif IsIn(TheKindType,":") and IsIn(TheKindType,"-") and IsIn(TheKindType,"="):
-		Type = SplitAfter(TheKindType,":")
-		Name = SplitBefore(Type,"-")
-		VarType = SplitAfter(Type,"-")
-		NewVar = Tabs+VarType+" "+Name
+		Type = AfterSplit(TheKindType,":")
+		Name = BeforeSplit(Type,"-")
+		VarType = AfterSplit(Type,"-")
+		NewVar = Tabs+Name
 		NewVar = NewVar+VariableContent
 
 	return NewVar
 
-def GenCode(Tabs,GetMe):
+def GenCode(Tabs,GetMe,CalledBy=""):
 	TheCode = ""
 	Args = ["",""]
 
 	if IsIn(GetMe," "):
-		Args[0] = SplitBefore(GetMe," ")
-		Args[1] = SplitAfter(GetMe," ")
+		Args[0] = BeforeSplit(GetMe," ")
+		Args[1] = AfterSplit(GetMe," ")
 	else:
 		Args[0] = GetMe
 		Args[1] = ""
@@ -642,7 +676,7 @@ def GenCode(Tabs,GetMe):
 		TheCode = Struct(Args[0],Args[1])
 
 	elif StartsWith(Args[0], "method"):
-		TheCode = Method(Tabs,Args[0],Args[1])
+		TheCode = Method(Tabs,Args[0],Args[1],CalledBy)
 
 	elif StartsWith(Args[0], "loop"):
 		TheCode = Loop(Tabs,Args[0],Args[1])
