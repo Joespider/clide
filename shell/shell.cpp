@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.0.55";
+String Version = "0.0.56";
 
 String getOS();
 void Help(String Type);
@@ -717,8 +717,8 @@ String Logic(String Tabs, String TheKindType, String Content)
 	bool Last = false;
 //	String NestTabs = "";
 	String Complete = "";
-	String TheName = "";
-	String Type = "";
+//	String TheName = "";
+//	String Type = "";
 	String RootTag = "";
 	String TheCondition = "";
 	String LogicContent = "";
@@ -729,13 +729,13 @@ String Logic(String Tabs, String TheKindType, String Content)
 	{
 		TheKindType = AfterSplit(TheKindType,':');
 	}
-
+/*
 	if (IsIn(TheKindType,"-"))
 	{
 		TheName = BeforeSplit(TheKindType,'-');
 		Type = AfterSplit(TheKindType,'-');
 	}
-
+*/
 	while (Content != "")
 	{
 		if ((!StartsWith(Content, "nest-")) && (IsIn(Content," nest-")))
