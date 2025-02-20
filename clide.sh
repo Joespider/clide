@@ -2494,8 +2494,6 @@ Actions()
 	local refresh
 	local UserArg
 	local ProjectPrompt
-	local LinesOfSrc
-	local LastNum
 	local GenLines
 	local FirstAction=$1
 	#Pass into array
@@ -3488,7 +3486,11 @@ Actions()
 						refresh="yes"
 						;;
 					gencode)
-						ManageLangs ${Lang} "gencode"
+						#GenLines=$(cat -n ${PathToSrc} | grep "<<shell>>" | cut -f 1)
+						GenLines="just to show it run"
+						if [ ! -z "${GenLines}" ]; then
+							ManageLangs ${Lang} "gencode"
+						fi
 						;;
 					#use the shell of a given language
 					shell)

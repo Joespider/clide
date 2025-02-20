@@ -134,6 +134,9 @@ UseGo()
 			echo ${ShellCodeSrc}
 			;;
 		gencode)
+			local LinesOfSrc
+			local LastNum
+			local GenLines
 			echo "This Code works, but I need to disable it until I can figure out how select the file I need"
 #			LinesOfSrc=$(cat ~/Programs/C++/src/Sleep.cpp | wc -l)
 #			GenLines=$(cat -n ~/Programs/C++/src/Sleep.cpp | grep "<<shell>>" | cut -f 1)
