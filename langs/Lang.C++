@@ -4,7 +4,7 @@
 #Link Libs: https://gist.github.com/gubatron/32f82053596c24b6bec6
 #both https://avikdas.com/2019/12/16/makefiles-for-c-cpp-projects.html
 
-SupportV="0.2.60"
+SupportV="0.2.62"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -161,6 +161,30 @@ UseC++()
 			;;
 		getShellCode)
 			echo ${ShellCodeSrc}
+			;;
+		gencode)
+			echo "This Code works, but I need to disable it until I can figure out how select the file I need"
+#			LinesOfSrc=$(cat ~/Programs/C++/src/Sleep.cpp | wc -l)
+#			GenLines=$(cat -n ~/Programs/C++/src/Sleep.cpp | grep "<<shell>>" | cut -f 1)
+#			if  [ ! -z "${GenLines}" ]; then
+#				for line in ${GenLines};
+#				do
+#					if [ -z "${LastNum}" ]; then
+#						sed -n "1,$((${line} - 1))p" ~/Programs/C++/src/Sleep.cpp
+#					else
+#						case ${line} in
+#							"$((${LastNum} - 1))"|"$((${LastNum} + 1))")
+#								;;
+#							*)
+#								sed -n "$((${LastNum} + 1)),$((${line} - 1))p" ~/Programs/C++/src/Sleep.cpp
+#								;;
+#						esac
+#					fi
+#					echo sed -n "${line}p" ~/Programs/C++/src/Sleep.cpp
+#					LastNum=${line}
+#				done
+#				sed -n "$((${LastNum} + 1)),${LinesOfSrc}p" ~/Programs/C++/src/Sleep.cpp
+#			fi
 			;;
 		#source code directory
 		getSrcDir)

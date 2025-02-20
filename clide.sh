@@ -2494,6 +2494,9 @@ Actions()
 	local refresh
 	local UserArg
 	local ProjectPrompt
+	local LinesOfSrc
+	local LastNum
+	local GenLines
 	local FirstAction=$1
 	#Pass into array
 	local UserIn=( "${@}" )
@@ -3483,6 +3486,9 @@ Actions()
 					cp|copy|rename)
 						CopyOrRename ${Lang} "${UserIn[@]}"
 						refresh="yes"
+						;;
+					gencode)
+						ManageLangs ${Lang} "gencode"
 						;;
 					#use the shell of a given language
 					shell)
@@ -4849,6 +4855,7 @@ loadAuto()
 	comp_list "use" "${pg}"
 	comp_list "project" "build delete discover export files import load list link mode new remove swap select src use save title type update --help"
 	comp_list "package" "get new set list mv move --help"
+	comp_list "gencode" ""
 	comp_list "shell" "--help"
 	comp_list "time" "--help"
 	comp_list "new" "--version -v --help -h --custom -c --show -s"
