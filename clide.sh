@@ -3486,11 +3486,13 @@ Actions()
 						refresh="yes"
 						;;
 					gencode)
+						#check if the file is already backed up, then make one
 						#GenLines=$(cat -n ${PathToSrc} | grep "<<shell>>" | cut -f 1)
 						GenLines="just to show it run"
 						if [ ! -z "${GenLines}" ]; then
 							ManageLangs ${Lang} "gencode"
 						fi
+						#tell user to remove backup if changes are good
 						;;
 					#use the shell of a given language
 					shell)

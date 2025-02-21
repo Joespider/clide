@@ -3,7 +3,7 @@
 #https://stackoverflow.com/questions/10339637/java-import-cannot-find-symbol
 #https://www.codejava.net/java-core/tools/how-to-compile-package-and-run-a-java-program-using-command-line-tools-javac-jar-and-java
 
-SupportV="0.2.54"
+SupportV="0.2.55"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -145,9 +145,9 @@ UseJava()
 			local LastNum
 			local GenLines
 			echo "This Code works, but I need to disable it until I can figure out how select the file I need"
-#			LinesOfSrc=$(cat ~/Programs/C++/src/Sleep.cpp | wc -l)
 #			GenLines=$(cat -n ~/Programs/C++/src/Sleep.cpp | grep "<<shell>>" | cut -f 1)
 #			if  [ ! -z "${GenLines}" ]; then
+#				LinesOfSrc=$(cat ~/Programs/C++/src/Sleep.cpp | wc -l)
 #				for line in ${GenLines};
 #				do
 #					if [ -z "${LastNum}" ]; then

@@ -4,7 +4,7 @@
 #Link Libs: https://gist.github.com/gubatron/32f82053596c24b6bec6
 #both https://avikdas.com/2019/12/16/makefiles-for-c-cpp-projects.html
 
-SupportV="0.2.62"
+SupportV="0.2.63"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -167,9 +167,9 @@ UseC++()
 			local LastNum
 			local GenLines
 			echo "This Code works, but I need to disable it until I can figure out how select the file I need"
-#			LinesOfSrc=$(cat ~/Programs/C++/src/Sleep.cpp | wc -l)
 #			GenLines=$(cat -n ~/Programs/C++/src/Sleep.cpp | grep "<<shell>>" | cut -f 1)
 #			if  [ ! -z "${GenLines}" ]; then
+#				LinesOfSrc=$(cat ~/Programs/C++/src/Sleep.cpp | wc -l)
 #				for line in ${GenLines};
 #				do
 #					if [ -z "${LastNum}" ]; then

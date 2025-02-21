@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.91"
+SupportV="0.1.92"
 Lang=Go
 LangExt=".go"
 #Color Green
@@ -138,9 +138,9 @@ UseGo()
 			local LastNum
 			local GenLines
 			echo "This Code works, but I need to disable it until I can figure out how select the file I need"
-#			LinesOfSrc=$(cat ~/Programs/C++/src/Sleep.cpp | wc -l)
 #			GenLines=$(cat -n ~/Programs/C++/src/Sleep.cpp | grep "<<shell>>" | cut -f 1)
 #			if  [ ! -z "${GenLines}" ]; then
+#				LinesOfSrc=$(cat ~/Programs/C++/src/Sleep.cpp | wc -l)
 #				for line in ${GenLines};
 #				do
 #					if [ -z "${LastNum}" ]; then

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.93"
+SupportV="0.1.94"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
@@ -140,9 +140,9 @@ UseC()
 			local LastNum
 			local GenLines
 			echo "This Code works, but I need to disable it until I can figure out how select the file I need"
-#			LinesOfSrc=$(cat ~/Programs/C++/src/Sleep.cpp | wc -l)
 #			GenLines=$(cat -n ~/Programs/C++/src/Sleep.cpp | grep "<<shell>>" | cut -f 1)
 #			if  [ ! -z "${GenLines}" ]; then
+#				LinesOfSrc=$(cat ~/Programs/C++/src/Sleep.cpp | wc -l)
 #				for line in ${GenLines};
 #				do
 #					if [ -z "${LastNum}" ]; then
