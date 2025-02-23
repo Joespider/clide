@@ -3488,9 +3488,8 @@ Actions()
 					gencode)
 						#check if the file is already backed up, then make one
 						#GenLines=$(cat -n ${PathToSrc} | grep "<<shell>>" | cut -f 1)
-						GenLines="just to show it run"
-						if [ ! -z "${GenLines}" ]; then
-							ManageLangs ${Lang} "gencode"
+						if [ ! -z "${listSrc}" ]; then
+							ManageLangs ${Lang} "gencode" "${TheSrcCode}"
 						fi
 						#tell user to remove backup if changes are good
 						;;
