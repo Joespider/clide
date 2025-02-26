@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.90"
+SupportV="0.1.95"
 Lang=Go
 LangExt=".go"
 #Color Green
@@ -133,6 +133,48 @@ UseGo()
 		getShellCode)
 			echo ${ShellCodeSrc}
 			;;
+		gencode)
+			local LinesOfSrc
+			local LastNum
+			local GenLines
+			local ShellCode
+			local TheCode=${1}
+			TheCode=$(UseGo "removeExt" ${TheCode})
+			TheCode=$(UseGo "FindTheSrc" ${TheCode})
+			GenLines=$(cat -n ${TheCode} | grep "<<shell>>" | cut -f 1)
+			if  [ ! -z "${GenLines}" ]; then
+				echo ""
+				echo "Backup your code here"
+				echo ""
+				LinesOfSrc=$(cat ${TheCode} | wc -l)
+				for line in ${GenLines};
+				do
+					if [ -z "${LastNum}" ]; then
+						sed -n "1,$((${line} - 1))p" ${TheCode}
+					else
+						case ${line} in
+							"$((${LastNum} - 1))"|"$((${LastNum} + 1))")
+								;;
+							*)
+								sed -n "$((${LastNum} + 1)),$((${line} - 1))p" ${TheCode}
+								;;
+						esac
+					fi
+					ShellCode=$(sed -n "${line}p" ${TheCode} | grep "^<<shell>> ")
+					if [ ! -z "${ShellCode}" ]; then
+						echo ${ShellCode} | sed "s/^<<shell>> /\/\/<<shell>> /g"
+						UseGo shell shell $(echo ${ShellCode} | sed "s/^<<shell>> //g")
+					else
+						sed -n "${line}p" ${TheCode}
+					fi
+					LastNum=${line}
+				done
+				sed -n "$((${LastNum} + 1)),${LinesOfSrc}p" ${TheCode}
+				echo ""
+				echo "Restore/Remove your backup code here"
+				echo ""
+			fi
+			;;
 		#source code directory
 		getSrcDir)
 			local project=${CodeProject}
@@ -226,6 +268,53 @@ UseGo()
 						echo ${Lang}
 						;;
 					*)
+						;;
+				esac
+			fi
+			;;
+		FindTheSrc)
+			local name=$1
+			local project=${CodeProject}
+			local CheckForFile
+			local ThePossible
+			local ext
+			if [ ! -z "${name}" ]; then
+				case ${project} in
+					none)
+						case ${Type} in
+							FindTheSrc)
+								if [ -f "${name}${LangExt}" ]; then
+									echo "${name}.go"
+								fi
+								;;
+							*)
+								;;
+						esac
+
+						;;
+					*)
+						case ${Type} in
+							FindTheSrc)
+								ext=${LangExt}
+								ThePossible=".go"
+								;;
+							*)
+								;;
+						esac
+						CheckForFile=$(UseGo "getProjSrc" ${name}${ext} 2> /dev/null)
+						if [ -z "${CheckForFile}" ]; then
+							for ext in ${ThePossible//,/ };
+							do
+								CheckForFile=$(UseGo "getProjSrc" ${name}${ext} 2> /dev/null)
+								if [ ! -z "${CheckForFile}" ]; then
+									echo ${CheckForFile}
+									break
+								fi
+								look=$((${look}+1))
+							done
+						else
+							echo ${CheckForFile}
+						fi
 						;;
 				esac
 			fi

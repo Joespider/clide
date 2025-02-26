@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.0.52";
+String Version = "0.0.56";
 
 String getOS();
 void Help(String Type);
@@ -30,8 +30,8 @@ bool IsIn(String Str, String Sub);
 bool StartsWith(String Str, String Start);
 bool EndsWith(String Str, String End);
 int len(std::vector<String> Vect);
-String SplitBefore(String Str, char splitAt);
-String SplitAfter(String Str, char splitAt);
+String BeforeSplit(String Str, char splitAt);
+String AfterSplit(String Str, char splitAt);
 std::vector<String> split(String message, String by, int at);
 std::vector<String> split(String message, char by);
 String join(std::vector<String> Str, String ToJoin);
@@ -70,7 +70,7 @@ String getOS()
 
 void Help(String Type)
 {
-	Type = SplitAfter(Type,':');
+	Type = AfterSplit(Type,':');
 	if (Type == "class")
 	{
 		print("{Usage}");
@@ -246,7 +246,7 @@ int len(std::vector<String> Vect)
 	return StrLen;
 }
 
-String SplitBefore(String Str, char splitAt)
+String BeforeSplit(String Str, char splitAt)
 {
 	String newString;
 	int end = Str.length();
@@ -261,7 +261,7 @@ String SplitBefore(String Str, char splitAt)
 	return newString;
 }
 
-String SplitAfter(String Str, char splitAt)
+String AfterSplit(String Str, char splitAt)
 {
 	String newString;
 	int end = Str.length();
@@ -361,11 +361,11 @@ String Struct(String TheName, String Content)
 	String Complete = "";
 	String StructVar = "";
 	String Process = "";
-	TheName = SplitAfter(TheName,':');
+	TheName = AfterSplit(TheName,':');
 	while (StartsWith(Content, "var"))
 	{
-		Process = SplitBefore(Content,' ');
-		Content = SplitAfter(Content,' ');
+		Process = BeforeSplit(Content,' ');
+		Content = AfterSplit(Content,' ');
 		StructVar = StructVar + GenCode("\t",Process);
 	}
 	Complete = "struct {\n"+StructVar+"\n} "+TheName+";\n";
@@ -383,11 +383,11 @@ String Class(String TheName, String Content)
 	if (StartsWith(TheName,"class("))
 	if (IsIn(TheName,")"))
 	{
-		PublicOrPrivate = SplitAfter(TheName,"(");
-		PublicOrPrivate = SplitBefore(PublicOrPrivate,")");
+		PublicOrPrivate = AfterSplit(TheName,"(");
+		PublicOrPrivate = BeforeSplit(PublicOrPrivate,")");
 	}
 */
-	TheName = SplitAfter(TheName,':');
+	TheName = AfterSplit(TheName,':');
 	String Process = "";
 	String Params = "";
 	String ClassContent = "";
@@ -395,7 +395,7 @@ String Class(String TheName, String Content)
 	{
 		if ((StartsWith(Content, "params")) && (Params == ""))
 		{
-			Process = SplitBefore(Content,' ');
+			Process = BeforeSplit(Content,' ');
 //			Params =  Parameters(Content,"class");
 			Params =  Parameters(Process,"class");
 		}
@@ -407,15 +407,15 @@ String Class(String TheName, String Content)
 		{
 			if (StartsWith(Content, "var(public)"))
 			{
-				Content = SplitAfter(Content,')');
-				VarContent = SplitBefore(Content,' ');
+				Content = AfterSplit(Content,')');
+				VarContent = BeforeSplit(Content,' ');
 				VarContent = "var"+VarContent;
 				PublicVars = PublicVars + GenCode("\t",VarContent);
 			}
 			else if (StartsWith(Content, "var(private)"))
 			{
-				Content = SplitAfter(Content,')');
-				VarContent = SplitBefore(Content,' ');
+				Content = AfterSplit(Content,')');
+				VarContent = BeforeSplit(Content,' ');
 				VarContent = "var"+VarContent;
 				PrivateVars = PrivateVars  + GenCode("\t",VarContent);
 			}
@@ -423,7 +423,7 @@ String Class(String TheName, String Content)
 
 		if (IsIn(Content," "))
 		{
-			Content = SplitAfter(Content,' ');
+			Content = AfterSplit(Content,' ');
 		}
 		else
 		{
@@ -447,7 +447,7 @@ String Class(String TheName, String Content)
 String Method(String Tabs, String Name, String Content)
 {
 	String Complete = "";
-	Name = SplitAfter(Name,':');
+	Name = AfterSplit(Name,':');
 	String TheName = "";
 	String Type = "";
 	String Params = "";
@@ -457,8 +457,8 @@ String Method(String Tabs, String Name, String Content)
 
 	if (IsIn(Name,"-"))
 	{
-		TheName = SplitBefore(Name,'-');
-		Type = SplitAfter(Name,'-');
+		TheName = BeforeSplit(Name,'-');
+		Type = AfterSplit(Name,'-');
 	}
 	else
 	{
@@ -471,7 +471,7 @@ String Method(String Tabs, String Name, String Content)
 		{
 			if (IsIn(Content," "))
 			{
-				Process = SplitBefore(Content,' ');
+				Process = BeforeSplit(Content,' ');
 			}
 			else
 			{
@@ -496,7 +496,7 @@ String Method(String Tabs, String Name, String Content)
 
 		if (IsIn(Content," "))
 		{
-			Content = SplitAfter(Content,' ');
+			Content = AfterSplit(Content,' ');
 		}
 		else
 		{
@@ -517,7 +517,7 @@ String Method(String Tabs, String Name, String Content)
 
 String Conditions(String input,String CalledBy)
 {
-	String Condit = SplitAfter(input,':');
+	String Condit = AfterSplit(input,':');
 	Condit = replaceAll(Condit, "|", " ");
 	if (CalledBy == "class")
 	{
@@ -536,22 +536,22 @@ String Conditions(String input,String CalledBy)
 
 String Parameters(String input,String CalledBy)
 {
-	String Params = SplitAfter(input,':');
+	String Params = AfterSplit(input,':');
 	if ((CalledBy == "class") || (CalledBy == "method") || (CalledBy == "stmt"))
 	{
 		if ((IsIn(Params,"-")) && (IsIn(Params,",")))
 		{
-			String Name = SplitBefore(Params,'-');
-			String Type = SplitAfter(Params,'-');
-			Type = SplitBefore(Type,',');
-			String more = SplitAfter(Params,',');
+			String Name = BeforeSplit(Params,'-');
+			String Type = AfterSplit(Params,'-');
+			Type = BeforeSplit(Type,',');
+			String more = AfterSplit(Params,',');
 			more = Parameters("params:"+more,CalledBy);
 			Params = Type+" "+Name+", "+more;
 		}
 		else if ((IsIn(Params,"-")) && (!IsIn(Params,",")))
 		{
-			String Name = SplitBefore(Params,'-');
-			String Type = SplitAfter(Params,'-');
+			String Name = BeforeSplit(Params,'-');
+			String Type = AfterSplit(Params,'-');
 			Params = Type+" "+Name;
 		}
 	}
@@ -574,13 +574,13 @@ String Loop(String Tabs, String TheKindType, String Content)
 
 	if (IsIn(TheKindType,":"))
 	{
-		TheKindType = SplitAfter(TheKindType,':');
+		TheKindType = AfterSplit(TheKindType,':');
 	}
 
 	if (IsIn(TheKindType,"-"))
 	{
-		TheName = SplitBefore(TheKindType,'-');
-		Type = SplitAfter(TheKindType,'-');
+		TheName = BeforeSplit(TheKindType,'-');
+		Type = AfterSplit(TheKindType,'-');
 	}
 
 	while (Content != "")
@@ -625,8 +625,8 @@ String Loop(String Tabs, String TheKindType, String Content)
 		else if (StartsWith(Content, "nest-"))
 		{
 //	Keep these comments
-//			RootTag = SplitBefore(Content,':');
-			RootTag = SplitBefore(Content,'l');
+//			RootTag = BeforeSplit(Content,':');
+			RootTag = BeforeSplit(Content,'l');
 //	Keep these comments
 //			if (IsIn(Content," "+RootTag+":"))
 			if (IsIn(Content," "+RootTag+"l"))
@@ -671,7 +671,7 @@ String Loop(String Tabs, String TheKindType, String Content)
 			while (StartsWith(OtherContent, "nest-"))
 			{
 //				NestTabs = NestTabs+"\t";
-				OtherContent = SplitAfter(OtherContent,'-');
+				OtherContent = AfterSplit(OtherContent,'-');
 			}
 //			LoopContent = LoopContent + GenCode(NestTabs,OtherContent);
 			LoopContent = LoopContent + GenCode(Tabs+"\t",OtherContent);
@@ -679,7 +679,7 @@ String Loop(String Tabs, String TheKindType, String Content)
 		else
 		{
 			LoopContent = LoopContent + GenCode(Tabs+"\t",Content);
-//			Content = SplitAfter(Content,' ');
+//			Content = AfterSplit(Content,' ');
 			Content = "";
 		}
 
@@ -717,8 +717,8 @@ String Logic(String Tabs, String TheKindType, String Content)
 	bool Last = false;
 //	String NestTabs = "";
 	String Complete = "";
-	String TheName = "";
-	String Type = "";
+//	String TheName = "";
+//	String Type = "";
 	String RootTag = "";
 	String TheCondition = "";
 	String LogicContent = "";
@@ -727,15 +727,15 @@ String Logic(String Tabs, String TheKindType, String Content)
 
 	if (IsIn(TheKindType,":"))
 	{
-		TheKindType = SplitAfter(TheKindType,':');
+		TheKindType = AfterSplit(TheKindType,':');
 	}
-
+/*
 	if (IsIn(TheKindType,"-"))
 	{
-		TheName = SplitBefore(TheKindType,'-');
-		Type = SplitAfter(TheKindType,'-');
+		TheName = BeforeSplit(TheKindType,'-');
+		Type = AfterSplit(TheKindType,'-');
 	}
-
+*/
 	while (Content != "")
 	{
 		if ((!StartsWith(Content, "nest-")) && (IsIn(Content," nest-")))
@@ -770,8 +770,8 @@ String Logic(String Tabs, String TheKindType, String Content)
 		{
 			if (IsIn(Content," "))
 			{
-				TheCondition = SplitBefore(Content,' ');
-				Content = SplitAfter(Content,' ');
+				TheCondition = BeforeSplit(Content,' ');
+				Content = AfterSplit(Content,' ');
 			}
 			else
 			{
@@ -786,8 +786,8 @@ String Logic(String Tabs, String TheKindType, String Content)
 		else if (StartsWith(Content, "nest-"))
 		{
 //	Keep these comments
-//			RootTag = SplitBefore(Content,':');
-			RootTag = SplitBefore(Content,'l');
+//			RootTag = BeforeSplit(Content,':');
+			RootTag = BeforeSplit(Content,'l');
 //	Keep these comments
 //			if (IsIn(Content," "+RootTag+":"))
 			if (IsIn(Content," "+RootTag+"l"))
@@ -832,7 +832,7 @@ String Logic(String Tabs, String TheKindType, String Content)
 			while (StartsWith(OtherContent, "nest-"))
 			{
 //				NestTabs = NestTabs+"\t";
-				OtherContent = SplitAfter(OtherContent,'-');
+				OtherContent = AfterSplit(OtherContent,'-');
 			}
 //			LogicContent = LogicContent + GenCode(NestTabs,OtherContent);
 			LogicContent = LogicContent + GenCode(Tabs+"\t",OtherContent);
@@ -840,7 +840,7 @@ String Logic(String Tabs, String TheKindType, String Content)
 		else
 		{
 			LogicContent = LogicContent + GenCode(Tabs+"\t",Content);
-//			Content = SplitAfter(Content,' ');
+//			Content = AfterSplit(Content,' ');
 			Content = "";
 		}
 
@@ -881,7 +881,7 @@ String Logic(String Tabs, String TheKindType, String Content)
 		Complete = Tabs+"switch ("+TheCondition+")\n"+Tabs+"{\n\n";
 		while (CaseContent != "")
 		{
-			CaseVal = SplitBefore(CaseContent,'-');
+			CaseVal = BeforeSplit(CaseContent,'-');
 			if (CaseVal != "switch")
 			{
 				Complete = Complete+Tabs+"\tcase "+CaseVal+":\n"+Tabs+"\t\t//code here\n"+Tabs+"\t\tbreak;\n";
@@ -889,7 +889,7 @@ String Logic(String Tabs, String TheKindType, String Content)
 
 			if (IsIn(CaseContent,"-"))
 			{
-				CaseContent = SplitAfter(CaseContent,'-');
+				CaseContent = AfterSplit(CaseContent,'-');
 			}
 		}
 		Complete = Complete+Tabs+"\tdefault:\n"+Tabs+"\t\t//code here\n"+Tabs+"\t\tbreak;\n"+Tabs+"}\n";
@@ -911,12 +911,12 @@ String Statements(String Tabs, String TheKindType, String Content)
 
 	if (IsIn(TheKindType,":"))
 	{
-		TheKindType = SplitAfter(TheKindType,':');
+		TheKindType = AfterSplit(TheKindType,':');
 	}
 	if (IsIn(TheKindType,"-"))
 	{
-		TheName = SplitBefore(TheKindType,'-');
-		Name = SplitAfter(TheKindType,'-');
+		TheName = BeforeSplit(TheKindType,'-');
+		Name = AfterSplit(TheKindType,'-');
 	}
 	else
 	{
@@ -929,7 +929,7 @@ String Statements(String Tabs, String TheKindType, String Content)
 		{
 			if (IsIn(Content," "))
 			{
-				Process = SplitBefore(Content,' ');
+				Process = BeforeSplit(Content,' ');
 			}
 			else
 			{
@@ -939,9 +939,9 @@ String Statements(String Tabs, String TheKindType, String Content)
 		}
 		else
 		{
-			OtherContent = SplitBefore(Content,' ');
+			OtherContent = BeforeSplit(Content,' ');
 			StatementContent = StatementContent + GenCode(Tabs,OtherContent);
-			Content = SplitAfter(Content,' ');
+			Content = AfterSplit(Content,' ');
 		}
 
 		if (Last)
@@ -957,6 +957,10 @@ String Statements(String Tabs, String TheKindType, String Content)
 	if (TheName == "method")
 	{
 		Complete = Name+"("+Params+")"+StatementContent;
+	}
+	else if (TheName == "comment")
+	{
+		Complete = StatementContent+Tabs+"#Code goes here\n";
 	}
 	else if (TheName == "endline")
 	{
@@ -989,15 +993,15 @@ String Variables(String Tabs, String TheKindType, String Content)
 	{
 /*
 		VariableContent = VariableContent + GenCode(Tabs,Content);
-		Content = SplitAfter(Content,' ');
+		Content = AfterSplit(Content,' ');
 */
 
-		OtherContent = SplitBefore(Content,' ');
-		Content = SplitAfter(Content,' ');
+		OtherContent = BeforeSplit(Content,' ');
+		Content = AfterSplit(Content,' ');
 		if (StartsWith(Content, "params"))
 		{
-			OtherContent = OtherContent+" "+SplitBefore(Content,' ');
-			Content = SplitAfter(Content,' ');
+			OtherContent = OtherContent+" "+BeforeSplit(Content,' ');
+			Content = AfterSplit(Content,' ');
 		}
 		VariableContent = VariableContent + GenCode(Tabs,OtherContent);
 
@@ -1015,48 +1019,48 @@ String Variables(String Tabs, String TheKindType, String Content)
 	//var:name-dataType=Value
 	if ((IsIn(TheKindType,":")) && (IsIn(TheKindType,"-")) && (IsIn(TheKindType,"=")) && (!EndsWith(TheKindType, "=")))
 	{
-		Type = SplitAfter(TheKindType,':');
-		Name = SplitBefore(Type,'-');
-		VarType = SplitAfter(Type,'-');
-		Value = SplitAfter(VarType,'=');
-		VarType = SplitBefore(VarType,'=');
+		Type = AfterSplit(TheKindType,':');
+		Name = BeforeSplit(Type,'-');
+		VarType = AfterSplit(Type,'-');
+		Value = AfterSplit(VarType,'=');
+		VarType = BeforeSplit(VarType,'=');
 		NewVar = Tabs+VarType+" "+Name+" = "+Value;
 		NewVar = NewVar+VariableContent;
 	}
 	//var:name=Value
-	if ((IsIn(TheKindType,":")) && (!IsIn(TheKindType,"-")) && (IsIn(TheKindType,"=")) && (!EndsWith(TheKindType, "=")))
+	else if ((IsIn(TheKindType,":")) && (!IsIn(TheKindType,"-")) && (IsIn(TheKindType,"=")) && (!EndsWith(TheKindType, "=")))
 	{
-		Type = SplitAfter(TheKindType,':');
-		Name = SplitBefore(Type,'=');
-		Value = SplitAfter(Type,'=');
+		Type = AfterSplit(TheKindType,':');
+		Name = BeforeSplit(Type,'=');
+		Value = AfterSplit(Type,'=');
 		NewVar = Tabs+Name+" = "+Value;
 		NewVar = NewVar+VariableContent;
 	}
 	//var:name-dataType=
 	else if ((IsIn(TheKindType,":")) && (IsIn(TheKindType,"-")) && (EndsWith(TheKindType, "=")))
 	{
-		Type = SplitAfter(TheKindType,':');
-		Name = SplitBefore(Type,'-');
-		VarType = SplitAfter(Type,'-');
-		VarType = SplitBefore(VarType,'=');
+		Type = AfterSplit(TheKindType,':');
+		Name = BeforeSplit(Type,'-');
+		VarType = AfterSplit(Type,'-');
+		VarType = BeforeSplit(VarType,'=');
 		NewVar = Tabs+VarType+" "+Name+" = ";
 		NewVar = NewVar+VariableContent;
 	}
 	//var:name=
 	else if ((IsIn(TheKindType,":")) && (!IsIn(TheKindType,"-")) && (EndsWith(TheKindType, "=")))
 	{
-		Type = SplitAfter(TheKindType,':');
-		Name = SplitBefore(Type,'=');
-		Value = SplitAfter(Type,'=');
+		Type = AfterSplit(TheKindType,':');
+		Name = BeforeSplit(Type,'=');
+		Value = AfterSplit(Type,'=');
 		NewVar = Tabs+Name+" = ";
 		NewVar = NewVar+VariableContent;
 	}
 	//var:name-dataType
 	else if ((IsIn(TheKindType,":")) && (IsIn(TheKindType,"-")) && (!IsIn(TheKindType,"=")))
 	{
-		Type = SplitAfter(TheKindType,':');
-		Name = SplitBefore(Type,'-');
-		VarType = SplitAfter(Type,'-');
+		Type = AfterSplit(TheKindType,':');
+		Name = BeforeSplit(Type,'-');
+		VarType = AfterSplit(Type,'-');
 		NewVar = Tabs+VarType+" "+Name;
 		NewVar = NewVar+VariableContent;
 	}
@@ -1070,8 +1074,8 @@ String GenCode(String Tabs,String GetMe)
 
 	if (IsIn(GetMe," "))
 	{
-		Args[0] = SplitBefore(GetMe,' ');
-		Args[1] = SplitAfter(GetMe,' ');
+		Args[0] = BeforeSplit(GetMe,' ');
+		Args[1] = AfterSplit(GetMe,' ');
 	}
 	else
 	{

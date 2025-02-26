@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.92"
+SupportV="0.1.97"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
@@ -135,6 +135,52 @@ UseC()
 		getShellCode)
 			echo ${ShellCodeSrc}
 			;;
+		gencode)
+			local LinesOfSrc
+			local LastNum
+			local GenLines
+			local ShellCode
+			local TheCode=${1}
+			TheCode=$(UseC "removeExt" ${TheCode})
+			TheCode=$(UseC "FindTheSrc" ${TheCode})
+			GenLines=$(cat -n ${TheCode} | grep "<<shell>>" | cut -f 1)
+			if  [ ! -z "${GenLines}" ]; then
+				echo ""
+				echo "Backup your code here"
+				echo ""
+				LinesOfSrc=$(cat ${TheCode} | wc -l)
+				for line in ${GenLines};
+				do
+					if [ -z "${LastNum}" ]; then
+						sed -n "1,$((${line} - 1))p" ${TheCode}
+					else
+						case ${line} in
+							"$((${LastNum} - 1))"|"$((${LastNum} + 1))")
+								;;
+							*)
+								sed -n "$((${LastNum} + 1)),$((${line} - 1))p" ${TheCode}
+								;;
+						esac
+					fi
+					ShellCode=$(sed -n "${line}p" ${TheCode} | grep "^<<shell>> ")
+					if [ ! -z "${ShellCode}" ]; then
+						echo ${ShellCode} | sed "s/^<<shell>> /\/\/<<shell>> /g"
+						UseC shell shell $(echo ${ShellCode} | sed "s/^<<shell>> //g")
+					else
+						sed -n "${line}p" ${TheCode}
+					fi
+					LastNum=${line}
+				done
+				sed -n "$((${LastNum} + 1)),${LinesOfSrc}p" ${TheCode}
+				echo ""
+				echo "Restore/Remove your backup code here"
+				echo ""
+			fi
+			;;
+
+
+
+
 		#source code directory
 		getSrcDir)
 			local project=${CodeProject}
@@ -260,6 +306,62 @@ UseC()
 						echo "yes"
 						;;
 					*)
+						;;
+				esac
+			fi
+			;;
+		FindTheSrc|FindTheHeader)
+			local name=$1
+			local project=${CodeProject}
+			local CheckForFile
+			local ThePossible
+			local ext
+			if [ ! -z "${name}" ]; then
+				case ${project} in
+					none)
+						case ${Type} in
+							FindTheSrc)
+								if [ -f "${name}${LangExt}" ]; then
+									echo "${name}.c"
+								fi
+								;;
+							FindTheHeader)
+								if [ -f "${name}.${LangOtherExt}" ]; then
+									echo "${name}.h"
+								fi
+								;;
+							*)
+								;;
+						esac
+
+						;;
+					*)
+						case ${Type} in
+							FindTheSrc)
+								ext=${LangExt}
+								ThePossible=".c"
+								;;
+							FindTheHeader)
+								ext=${LangOtherExt}
+								ThePossible=".h"
+								;;
+							*)
+								;;
+						esac
+						CheckForFile=$(UseC "getProjSrc" ${name}${ext} 2> /dev/null)
+						if [ -z "${CheckForFile}" ]; then
+							for ext in ${ThePossible//,/ };
+							do
+								CheckForFile=$(UseC "getProjSrc" ${name}${ext} 2> /dev/null)
+								if [ ! -z "${CheckForFile}" ]; then
+									echo ${CheckForFile}
+									break
+								fi
+								look=$((${look}+1))
+							done
+						else
+							echo ${CheckForFile}
+						fi
 						;;
 				esac
 			fi

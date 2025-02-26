@@ -2494,6 +2494,7 @@ Actions()
 	local refresh
 	local UserArg
 	local ProjectPrompt
+	local GenLines
 	local FirstAction=$1
 	#Pass into array
 	local UserIn=( "${@}" )
@@ -3483,6 +3484,14 @@ Actions()
 					cp|copy|rename)
 						CopyOrRename ${Lang} "${UserIn[@]}"
 						refresh="yes"
+						;;
+					gencode)
+						#check if the file is already backed up, then make one
+						#GenLines=$(cat -n ${PathToSrc} | grep "<<shell>>" | cut -f 1)
+						if [ ! -z "${listSrc}" ]; then
+							ManageLangs ${Lang} "gencode" "${TheSrcCode}"
+						fi
+						#tell user to remove backup if changes are good
 						;;
 					#use the shell of a given language
 					shell)
@@ -4849,6 +4858,7 @@ loadAuto()
 	comp_list "use" "${pg}"
 	comp_list "project" "build delete discover export files import load list link mode new remove swap select src use save title type update --help"
 	comp_list "package" "get new set list mv move --help"
+	comp_list "gencode" ""
 	comp_list "shell" "--help"
 	comp_list "time" "--help"
 	comp_list "new" "--version -v --help -h --custom -c --show -s"

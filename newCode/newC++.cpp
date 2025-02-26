@@ -24,7 +24,7 @@ bool IsIn(String Str, String Sub);
 
 static void help()
 {
-	String Version = "0.1.69";
+	String Version = "0.1.70";
 	print("Author: Joespider");
 	print("Program: \"" << ProgName << "\"");
 	print("Version: " << Version);
@@ -254,8 +254,8 @@ static String getMethodDec(bool* rawinput, bool* rand, bool* fcheck, bool* write
 	}
 	if (*Split == true)
 	{
-		Declaration = Declaration+"String SplitBefore(String Str, char splitAt);\n";
-		Declaration = Declaration+"String SplitAfter(String Str, char splitAt);\n";
+		Declaration = Declaration+"String BeforeSplit(String Str, char splitAt);\n";
+		Declaration = Declaration+"String AfterSplit(String Str, char splitAt);\n";
 		Declaration = Declaration+"std::vector<String> split(String message, char by);\n";
 		Declaration = Declaration+"std::vector<String> split(String message, String by, int at);\n";
 		Declaration = Declaration+"std::vector<String> rsplit(String message, String by, int at);\n";
@@ -389,8 +389,8 @@ static String getMethods(bool* rawinput, bool* rand, bool* fcheck, bool* write, 
 	}
 	if (*Split == true)
 	{
-		StrSplit = "String SplitBefore(String Str, char splitAt)\n{\n\tString newString;\n\tint end = Str.length();\n\tif (end != 0)\n\t{\n\t\tstd::size_t pos = Str.find(splitAt);\n\t\tif (pos != String::npos)\n\t\t{\n\t\t\tnewString = Str.substr(0,pos);\n\t\t}\n\t}\n\treturn newString;\n}\n\n";
-		StrSplit = StrSplit+"String SplitAfter(String Str, char splitAt)\n{\n\tString newString;\n\tint end = Str.length();\n\tif (end != 0)\n\t{\n\t\tstd::size_t pos = Str.find(splitAt);\n\t\tif (pos != String::npos)\n\t\t{\n\t\t\tnewString = Str.substr(pos + 1);\n\t\t}\n\t}\n\treturn newString;\n}\n\n";
+		StrSplit = "String BeforeSplit(String Str, char splitAt)\n{\n\tString newString;\n\tint end = Str.length();\n\tif (end != 0)\n\t{\n\t\tstd::size_t pos = Str.find(splitAt);\n\t\tif (pos != String::npos)\n\t\t{\n\t\t\tnewString = Str.substr(0,pos);\n\t\t}\n\t}\n\treturn newString;\n}\n\n";
+		StrSplit = StrSplit+"String AfterSplit(String Str, char splitAt)\n{\n\tString newString;\n\tint end = Str.length();\n\tif (end != 0)\n\t{\n\t\tstd::size_t pos = Str.find(splitAt);\n\t\tif (pos != String::npos)\n\t\t{\n\t\t\tnewString = Str.substr(pos + 1);\n\t\t}\n\t}\n\treturn newString;\n}\n\n";
 		StrSplit = StrSplit+"std::vector<String> split(String message, char by)\n{\n\tstd::vector<String> vArray;\n\tstd::stringstream ss(message);\n\tString item;\n\twhile (std::getline(ss,item,by))\n\t{\n\t\tvArray.push_back(item);\n\t}\n\treturn vArray;\n}\n\n";
 		StrSplit = StrSplit+"std::vector<String> split(String message, String by, int at=0)\n{\n\tstd::vector <String> vArray;\n\tString sub;\n\tint offset = by.length();\n\tstd::size_t pos = message.find(by);\n\tif (at >= 1)\n\t{\n\t\tfor (int off = 1; off != at; off++)\n\t\t{\n\t\t\tpos = message.find(by,pos+off);\n\t\t}\n\t\tsub = message.substr(0,pos);\n\t\tvArray.push_back(sub);\n\t\tsub = message.substr(pos + offset);\n\t\tvArray.push_back(sub);\n\t}\n\telse\n\t{\n\t\twhile (pos != String::npos)\n\t\t{\n\t\t\tsub = message.substr(0,pos);\n\t\t\tvArray.push_back(sub);\n\t\t\tmessage = message.substr(pos+offset);\n\t\t\tpos = message.find(by);\n\t\t}\n\t\tvArray.push_back(message);\n\t}\n\treturn vArray;\n}\n\n";
 		StrSplit = StrSplit+"std::vector<String> rsplit(String message, String by, int at=1)\n{\n\tstd::vector <String> vArray;\n\tString sub;\n\tint offset = by.length();\n\tstd::size_t pos = message.rfind(by);\n\tif (at > 1)\n\t{\n\t\tfor (int off = 1; off != at; off++)\n\t\t{\n\t\t\tpos = message.rfind(by,pos-off);\n\t\t}\n\t}\n\tsub = message.substr(0,pos);\n\tvArray.push_back(sub);\n\tsub = message.substr(pos + offset);\n\tvArray.push_back(sub);\n\treturn vArray;\n}\n\n";

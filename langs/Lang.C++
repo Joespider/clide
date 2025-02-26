@@ -4,7 +4,7 @@
 #Link Libs: https://gist.github.com/gubatron/32f82053596c24b6bec6
 #both https://avikdas.com/2019/12/16/makefiles-for-c-cpp-projects.html
 
-SupportV="0.2.60"
+SupportV="0.2.66"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -161,6 +161,48 @@ UseC++()
 			;;
 		getShellCode)
 			echo ${ShellCodeSrc}
+			;;
+		gencode)
+			local LinesOfSrc
+			local LastNum
+			local GenLines
+			local ShellCode
+			local TheCode=${1}
+			TheCode=$(UseC++ "removeExt" ${TheCode})
+			TheCode=$(UseC++ "FindTheSrc" ${TheCode})
+			GenLines=$(cat -n ${TheCode} | grep "<<shell>>" | cut -f 1)
+			if  [ ! -z "${GenLines}" ]; then
+				echo ""
+				echo "Backup your code here"
+				echo ""
+				LinesOfSrc=$(cat ${TheCode} | wc -l)
+				for line in ${GenLines};
+				do
+					if [ -z "${LastNum}" ]; then
+						sed -n "1,$((${line} - 1))p" ${TheCode}
+					else
+						case ${line} in
+							"$((${LastNum} - 1))"|"$((${LastNum} + 1))")
+								;;
+							*)
+								sed -n "$((${LastNum} + 1)),$((${line} - 1))p" ${TheCode}
+								;;
+						esac
+					fi
+					ShellCode=$(sed -n "${line}p" ${TheCode} | grep "^<<shell>> ")
+					if [ ! -z "${ShellCode}" ]; then
+						echo ${ShellCode} | sed "s/^<<shell>> /\/\/<<shell>> /g"
+						UseC++ shell shell $(echo ${ShellCode} | sed "s/^<<shell>> //g")
+					else
+						sed -n "${line}p" ${TheCode}
+					fi
+					LastNum=${line}
+				done
+				sed -n "$((${LastNum} + 1)),${LinesOfSrc}p" ${TheCode}
+				echo ""
+				echo "Restore/Remove your backup code here"
+				echo ""
+			fi
 			;;
 		#source code directory
 		getSrcDir)
@@ -388,31 +430,31 @@ UseC++()
 			local SourceFile=$1
 			if [ ! -z "${SourceFile}" ]; then
 				case ${SourceFile} in
-					*.cpp)
+					*".cpp")
 						echo ${SourceFile%.cpp}
 						;;
-					*.cc)
+					*".cc")
 						echo ${SourceFile%.cc}
 						;;
-					*.cxx)
+					*".cxx")
 						echo ${SourceFile%.cxx}
 						;;
-					*.c++)
+					*".c++")
 						echo ${SourceFile%.c++}
 						;;
-					*.h)
+					*".h")
 						echo ${SourceFile%.h}
 						;;
-					*.hh)
+					*".hh")
 						echo ${SourceFile%.hh}
 						;;
-					*.hpp)
+					*".hpp")
 						echo ${SourceFile%.hpp}
 						;;
-					*.hxx)
+					*".hxx")
 						echo ${SourceFile%.hxx}
 						;;
-					*.h++)
+					*".h++")
 						echo ${SourceFile%.h++}
 						;;
 					*)
