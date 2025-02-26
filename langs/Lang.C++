@@ -4,7 +4,7 @@
 #Link Libs: https://gist.github.com/gubatron/32f82053596c24b6bec6
 #both https://avikdas.com/2019/12/16/makefiles-for-c-cpp-projects.html
 
-SupportV="0.2.66"
+SupportV="0.2.67"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -189,10 +189,13 @@ UseC++()
 								;;
 						esac
 					fi
-					ShellCode=$(sed -n "${line}p" ${TheCode} | grep "^<<shell>> ")
+#					ShellCode=$(sed -n "${line}p" ${TheCode} | grep "^<<shell>> ")
+					ShellCode=$(sed -n "${line}p" ${TheCode} | grep "<<shell>> ")
 					if [ ! -z "${ShellCode}" ]; then
-						echo ${ShellCode} | sed "s/^<<shell>> /\/\/<<shell>> /g"
-						UseC++ shell shell $(echo ${ShellCode} | sed "s/^<<shell>> //g")
+#						echo ${ShellCode} | sed "s/^<<shell>> /\/\/<<shell>> /g"
+						echo ${ShellCode} | sed "s/<<shell>> /\/\/<<shell>> /g"
+#						UseC++ shell shell $(echo ${ShellCode} | sed "s/^<<shell>> //g")
+						UseC++ shell shell $(echo ${ShellCode} | sed "s/<<shell>> //g")
 					else
 						sed -n "${line}p" ${TheCode}
 					fi
