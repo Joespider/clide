@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.61"
+SupportV="0.1.62"
 Lang=Rust
 LangExt=".rs"
 ColorNum=1
@@ -156,6 +156,7 @@ UseRust()
 					fi
 					ShellCode=$(sed -n "${line}p" ${TheCode} | grep "^<<shell>> ")
 					if [ ! -z "${ShellCode}" ]; then
+						echo ${ShellCode} | sed "s/^<<shell>> /\/\/<<shell>> /g"
 						UseRust shell shell $(echo ${ShellCode} | sed "s/^<<shell>> //g")
 					else
 						sed -n "${line}p" ${TheCode}

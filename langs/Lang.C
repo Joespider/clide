@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.96"
+SupportV="0.1.97"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
@@ -164,6 +164,7 @@ UseC()
 					fi
 					ShellCode=$(sed -n "${line}p" ${TheCode} | grep "^<<shell>> ")
 					if [ ! -z "${ShellCode}" ]; then
+						echo ${ShellCode} | sed "s/^<<shell>> /\/\/<<shell>> /g"
 						UseC shell shell $(echo ${ShellCode} | sed "s/^<<shell>> //g")
 					else
 						sed -n "${line}p" ${TheCode}

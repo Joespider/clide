@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.94"
+SupportV="0.1.95"
 Lang=Go
 LangExt=".go"
 #Color Green
@@ -162,6 +162,7 @@ UseGo()
 					fi
 					ShellCode=$(sed -n "${line}p" ${TheCode} | grep "^<<shell>> ")
 					if [ ! -z "${ShellCode}" ]; then
+						echo ${ShellCode} | sed "s/^<<shell>> /\/\/<<shell>> /g"
 						UseGo shell shell $(echo ${ShellCode} | sed "s/^<<shell>> //g")
 					else
 						sed -n "${line}p" ${TheCode}

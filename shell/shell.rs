@@ -141,7 +141,7 @@ fn starts_with(the_string: &str, start: &str) -> bool
 		return false;
 	}
 }
-/*
+
 fn ends_with(the_string: &str, end: &str) -> bool
 {
 	if the_string.ends_with(end)
@@ -153,7 +153,6 @@ fn ends_with(the_string: &str, end: &str) -> bool
 		return false;
 	}
 }
-*/
 
 fn raw_input(message: &str) -> String
 {
@@ -260,41 +259,42 @@ fn banner()
 {
 	let cpl_version = get_cpl_version();
 	let the_os = get_os();
-	let version = "0.0.5";
+	let version = "0.0.7";
 	println!("{}",cpl_version);
 	println!("[Rust {}] on {}",version,the_os);
 	println!("Type \"help\" for more information.");
 }
-/*
+
 fn gen_struct(the_name: &str, the_content: &str) -> String
 {
 	let mut the_complete = String::new();
-	String StructVar = "";
-	String Process = "";
-	the_name = after_split(the_name,";");
-	while (starts_with(the_content, "var"))
+	let mut struct_var = String::new();
+	let mut the_process: String;
+//	let new_name = after_split(the_name,";");
+	let mut passed_content = the_content.to_string();
+
+	while starts_with(&passed_content, "var")
 	{
-		Process = before_split(the_content," ");
-		the_content = after_split(the_content," ");
-		StructVar.push_str(&gen_code("\t",Process));
+		the_process = before_split(&passed_content," ");
+		passed_content = after_split(&passed_content," ");
+		struct_var.push_str(&gen_code("\t",&the_process));
 	}
 	the_complete.push_str("struct {\n");
-	the_complete.push_str(&StructVar);
+	the_complete.push_str(&struct_var);
 	the_complete.push_str("\n} ");
 	the_complete.push_str(&the_name);
 	the_complete.push_str(";\n");
 
 	return the_complete;
 }
-*/
-/*
+
 fn gen_class(the_name: &str, the_content: &str) -> String
 {
 	let mut the_complete = String::new();
 	let mut the_private_vars = String::new();
 	let mut the_public_vars = String::new();
-	String VarContent = "";
-*/
+	let mut var_content = String::new();
+
 /*
 	String PublicOrPrivate = "";
 	if (starts_with(the_name,"class("))
@@ -304,44 +304,45 @@ fn gen_class(the_name: &str, the_content: &str) -> String
 		PublicOrPrivate = before_split(PublicOrPrivate,")");
 	}
 */
-/*
 
-	the_name = after_split(the_name,";");
-	String Process = "";
-	String Params = "";
+//	let new_name = after_split(the_name,";");
+	let mut the_process: String;
+	let mut the_params = String::from("");
 	let mut class_content = String::new();
-	while (the_content != "")
+	let mut passed_content = the_content.to_string();
+
+	while passed_content != ""
 	{
-		if ((starts_with(the_content, "params")) && (Params == ""))
+		if starts_with(&passed_content, "params") && the_params == ""
 		{
-			Process = before_split(the_content," ");
-			Params =  Parameters(Process,"class");
+			the_process = before_split(&passed_content," ");
+			the_params = gen_parameters(&the_process,"class");
 		}
-		else if (starts_with(the_content, "method"))
+		else if starts_with(&passed_content, "method")
 		{
-			class_content.push_str(&gen_code("\t",the_content));
+			class_content.push_str(&gen_code("\t",&passed_content));
 		}
-		else if (starts_with(the_content, "var"))
+		else if starts_with(&passed_content, "var")
 		{
-			if (starts_with(the_content, "var(public)"))
+			if starts_with(&passed_content, "var(public)")
 			{
-				the_content = after_split(the_content,")");
-				VarContent = before_split(the_content," ");
-				VarContent = "var"+VarContent;
-				the_public_vars.push_str(&gen_code("\t",VarContent));
+				passed_content = after_split(&passed_content,")");
+				var_content.push_str("var");
+				var_content.push_str(&before_split(&passed_content," "));
+				the_public_vars.push_str(&gen_code("\t",&var_content));
 			}
-			else if (starts_with(the_content, "var(private)"))
+			else if starts_with(&passed_content, "var(private)")
 			{
-				the_content = after_split(the_content,")");
-				VarContent = before_split(the_content," ");
-				VarContent = "var"+VarContent;
-				the_private_vars.push_str(&gen_code("\t",VarContent));
+				passed_content = after_split(&passed_content,")");
+				var_content.push_str("var");
+				var_content.push_str(&before_split(&passed_content," "));
+				the_private_vars.push_str(&gen_code("\t",&var_content));
 			}
 		}
 
-		if (is_in(the_content," "))
+		if is_in(&passed_content," ")
 		{
-			the_content = after_split(the_content," ");
+			passed_content = after_split(&passed_content," ");
 		}
 		else
 		{
@@ -349,17 +350,17 @@ fn gen_class(the_name: &str, the_content: &str) -> String
 		}
 	}
 
-	if (the_private_vars != "")
+	if the_private_vars != ""
 	{
 		the_private_vars.push_str("private:\n\t//private variables\n");
-		the_private_vars.push_str(&the_private_vars);
+//		the_private_vars.push_str(&the_private_vars);
 		the_private_vars.push_str("\n");
 	}
-	if (the_public_vars != "")
+	if the_public_vars != ""
 	{
-		the_public_vars = "\n\t//public variables\n"+the_public_vars;
+		the_public_vars.push_str("\n\t//public variables\n");
+//		the_public_vars.push_str(&the_public_vars);
 	}
-
 	the_complete.push_str("class ");
 	the_complete.push_str(&the_name);
 	the_complete.push_str(" {\n\n");
@@ -369,67 +370,70 @@ fn gen_class(the_name: &str, the_content: &str) -> String
 	the_complete.push_str("\n\t//class constructor\n\t");
 	the_complete.push_str(&the_name);
 	the_complete.push_str("(");
-	the_complete.push_str(&Params);
+	the_complete.push_str(&the_params);
 	the_complete.push_str(")\n\t{\n\t\tthis->x = x;\n\t\tthis->y = y;\n\t}\n\n");
 	the_complete.push_str(&class_content);
 	the_complete.push_str("\n\t//class desctructor\n\t~");
 	the_complete.push_str(&the_name);
 	the_complete.push_str("()\n\t{\n\t}\n};\n");
+
 	return the_complete;
 }
 
 fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 {
+	let new_tabs = [the_tabs,"\t"].concat();
 	let mut the_complete = String::new();
-	name = after_split(name,";");
-	String the_name = "";
-	String Type = "";
-	String Params = "";
+	let new_name = after_split(name,":");
+	let the_name: String;
+	let mut the_type = String::new();
+	let mut the_params = String::new();
 	let mut method_content = String::new();
-	String LastComp = "";
-	String Process = "";
+//	let mut last_comp = String::new();
+	let mut the_process = String::new();
+	let mut passed_content = the_content.to_string();
 
-	if (is_in(Name,"-"))
+	if is_in(&new_name,"-")
 	{
-		the_name = before_split(name,"-");
-		Type = after_split(name,"-");
+		the_name = before_split(&new_name,"-");
+		the_type.push_str(&after_split(&new_name,"-"));
 	}
 	else
 	{
-		the_name = name;
+		the_name = new_name.clone();
 	}
 
-	while (the_content != "")
+	while passed_content != ""
 	{
-		if ((starts_with(the_content, "params")) && (Params == ""))
+		if starts_with(&passed_content, "params") && the_params == ""
 		{
-			if (is_in(the_content," "))
+			if is_in(&passed_content," ")
 			{
-				Process = before_split(the_content," ");
+				the_process.push_str(&before_split(&passed_content," "));
 			}
 			else
 			{
-				Process = the_content;
+				the_process = passed_content.clone();
 			}
-			Params =  Parameters(Process,"method");
+			the_params = gen_parameters(&the_process,"method");
 		}
-		else if ((starts_with(the_content, "method")) || (starts_with(the_content, "class")))
+		else if starts_with(&passed_content, "method") || starts_with(&passed_content, "class")
 		{
 			break;
 		}
 		else
 		{
-			if (is_in(the_content," method"))
+			if is_in(&passed_content," method")
 			{
-				std::vector<String> cmds = split(the_content," method");
-				the_content = cmds[0];
+				let cmds: Vec<&str> = passed_content.split(" method").collect();
+				passed_content = cmds[0].to_string();
 			}
-			method_content.push_str(&gen_code(new_tabs,the_content));
+			method_content.push_str(&gen_code(&new_tabs,&passed_content));
 		}
 
-		if (is_in(the_content," "))
+		if is_in(&passed_content," ")
 		{
-			the_content = after_split(the_content," ");
+			passed_content = after_split(&passed_content," ");
 		}
 		else
 		{
@@ -437,13 +441,13 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 		}
 	}
 
-	if ((Type == "") || (Type == "void"))
+	if the_type == "" || the_type == "void"
 	{
 		the_complete.push_str(the_tabs);
 		the_complete.push_str("void ");
 		the_complete.push_str(&the_name);
 		the_complete.push_str("(");
-		the_complete.push_str(&Params);
+		the_complete.push_str(&the_params);
 		the_complete.push_str(")\n");
 		the_complete.push_str(the_tabs);
 		the_complete.push_str("{\n");
@@ -455,17 +459,17 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 	else
 	{
 		the_complete.push_str(the_tabs);
-		the_complete.push_str(&Type);
+		the_complete.push_str(&the_type);
 		the_complete.push_str(" ");
 		the_complete.push_str(&the_name);
 		the_complete.push_str("(");
-		the_complete.push_str(&Params);
+		the_complete.push_str(&the_params);
 		the_complete.push_str(")\n");
 		the_complete.push_str(the_tabs);
 		the_complete.push_str("{\n");
 		the_complete.push_str(the_tabs);
 		the_complete.push_str("\t");
-		the_complete.push_str(&Type);
+		the_complete.push_str(&the_type);
 		the_complete.push_str(" TheReturn;\n");
 		the_complete.push_str(&method_content);
 		the_complete.push_str("\n");
@@ -476,7 +480,6 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 	}
 	return the_complete;
 }
-*/
 
 fn gen_conditions(input: &str,called_by: &str) -> String
 {
@@ -661,7 +664,7 @@ fn gen_loop(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 	}
 
 	//loop:for
-	if the_kind_type == "for"
+	if new_kind == "for"
 	{
 		the_complete.push_str(the_tabs);
 		the_complete.push_str("for (");
@@ -674,7 +677,7 @@ fn gen_loop(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 		the_complete.push_str("}\n");
 	}
 	//loop:do/while
-	else if the_kind_type == "do/while"
+	else if new_kind == "do/while"
 	{
 		the_complete.push_str(the_tabs);
 		the_complete.push_str("do\n");
@@ -932,22 +935,21 @@ fn gen_logic(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 */
 	return the_complete;
 }
-/*
+
 //stmt:
 fn gen_statements(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 {
 	let mut the_last = false;
-	let mut new_kind: String = the_kind_type.to_string();
+	let mut new_kind = the_kind_type.to_string();
 	let mut the_complete = String::new();
 	let mut statement_content = String::new();
-	let other_content = String::new();
-	let mut passed_content = the_content.to_string();
+	let mut other_content: String;
+//	let mut other_content: &str;
 	let mut the_name = String::new();
 	let mut name = String::new();
-	let mut the_process = String::new();
-	let mut the_params = String::new();
+	let mut the_process: String;
+	let mut the_params  = String::from("");
 	let mut passed_content = the_content.to_string();
-
 
 	if is_in(&new_kind,":")
 	{
@@ -956,12 +958,12 @@ fn gen_statements(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Str
 
 	if is_in(&new_kind,"-")
 	{
-		the_name = before_split(&new_kind,"-");
-		name = after_split(&new_kind,"-");
+		the_name.push_str(&before_split(&new_kind,"-"));
+		name.push_str(&after_split(&new_kind,"-"));
 	}
 	else
 	{
-		the_name = the_kind_type.to_string();
+		the_name.push_str(&new_kind);
 	}
 
 	while passed_content != ""
@@ -974,7 +976,7 @@ fn gen_statements(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Str
 			}
 			else
 			{
-				the_process = passed_content;
+				the_process = passed_content.clone();
 			}
 			the_params = gen_parameters(&the_process,"stmt");
 		}
@@ -1016,102 +1018,119 @@ fn gen_statements(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Str
 
 	return the_complete;
 }
-*/
-/*
+
 //var:
-fn gen_variables(the_tabs: &str, String the_kind_type, the_content: &str) -> String
+fn gen_variables(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 {
-	bool the_last = false;
-	String NewVar = "";
-	String Type = "";
-	String Name = "";
-	String VarType = "";
-	String Value = "";
-	String the_new_content = "";
-	String VariableContent = "";
-	String the_other_content = "".to_string();
+	let mut the_last = false;
+	let mut new_var = String::new();
+	let mut the_type = String::new();
+	let mut the_name = String::new();
+	let mut var_type = String::new();
+	let mut the_value = String::new();
+//	let the_new_content = String::new();
+	let mut variable_content = String::new();
+	let mut the_other_content = String::new();
+	let mut passed_content = the_content.to_string();
 
-//	println!(the_kind_type+" "+the_content);
-
-	while (the_content != "")
+	while the_content != ""
 	{
-*/
 /*
-		VariableContent = VariableContent + gen_code(the_tabs,the_content);
+		variable_content.push_str(&gen_code(the_tabs,the_content));
 		the_content = after_split(the_content," ");
 */
-/*
-		the_other_content = before_split(the_content," ");
-		the_content = after_split(the_content," ");
-		if (starts_with(Content, "params"))
+		the_other_content.push_str(&before_split(the_content," "));
+		passed_content = after_split(&passed_content," ");
+		if starts_with(&passed_content, "params")
 		{
-			the_other_content = the_other_content+" "+before_split(the_content," ");
-			the_content = after_split(the_content," ");
+			the_other_content.push_str(" ");
+			the_other_content.push_str(&before_split(the_content," "));
+			passed_content = after_split(&passed_content," ");
 		}
-		VariableContent = VariableContent + gen_code(the_tabs,the_other_content);
+		variable_content.push_str(&gen_code(the_tabs,&the_other_content));
 
-		if (the_last)
+		if the_last
 		{
 			break;
 		}
 
-		if (!is_in(the_content," "))
+		if !is_in(the_content," ")
 		{
-			VariableContent = VariableContent + gen_code(the_tabs,the_content);
+			variable_content.push_str(&gen_code(the_tabs,the_content));
 			the_last = true;
 		}
+		the_other_content = String::new();
 	}
 	//var:name-dataType=Value
-	if ((is_in(the_kind_type,":")) && (is_in(the_kind_type,"-")) && (is_in(the_kind_type,"=")) && (!EndsWith(the_kind_type, "=")))
+	if is_in(the_kind_type,":") && is_in(the_kind_type,"-") && is_in(the_kind_type,"=") && !ends_with(the_kind_type, "=")
 	{
-		Type = after_split(the_kind_type,";");
-		Name = before_split(Type,"-");
-		VarType = after_split(Type,"-");
-		Value = after_split(VarType,"=");
-		VarType = before_split(VarType,"=");
-		NewVar = the_tabs+VarType+" "+Name+" = "+Value;
-		NewVar = NewVar+VariableContent;
+		the_type.push_str(&after_split(the_kind_type,";"));
+		the_name.push_str(&before_split(&the_type,"-"));
+		var_type.push_str(&after_split(&the_type,"-"));
+		the_value.push_str(&after_split(&var_type,"="));
+		var_type = String::new();
+		var_type.push_str(&before_split(&var_type,"="));
+		new_var.push_str(the_tabs);
+		new_var.push_str(&var_type);
+		new_var.push_str(" ");
+		new_var.push_str(&the_name);
+		new_var.push_str(" = ");
+		new_var.push_str(&the_value);
+		new_var.push_str(&variable_content);
 	}
 	//var:name=Value
-	if ((is_in(the_kind_type,":")) && (!is_in(the_kind_type,"-")) && (is_in(the_kind_type,"=")) && (!EndsWith(the_kind_type, "=")))
+	else if is_in(the_kind_type,":") && !is_in(the_kind_type,"-") && is_in(the_kind_type,"=") && !ends_with(the_kind_type, "=")
 	{
-		Type = after_split(the_kind_type,";");
-		Name = before_split(Type,"=");
-		Value = after_split(Type,"=");
-		NewVar = the_tabs+Name+" = "+Value;
-		NewVar = NewVar+VariableContent;
+		the_type.push_str(&after_split(the_kind_type,";"));
+		the_name.push_str(&before_split(&the_type,"="));
+		the_value = after_split(&the_type,"=");
+		new_var.push_str(the_tabs);
+		new_var.push_str(&the_name);
+		new_var.push_str(" = ");
+		new_var.push_str(&the_value);
+		new_var.push_str(&variable_content);
 	}
 	//var:name-dataType=
-	else if ((is_in(the_kind_type,":")) && (is_in(the_kind_type,"-")) && (EndsWith(the_kind_type, "=")))
+	else if is_in(the_kind_type,":") && is_in(the_kind_type,"-") && ends_with(the_kind_type, "=")
 	{
-		Type = after_split(the_kind_type,";");
-		Name = before_split(Type,"-");
-		VarType = after_split(Type,"-");
-		VarType = before_split(VarType,"=");
-		NewVar = the_tabs+VarType+" "+Name+" = ";
-		NewVar = NewVar+VariableContent;
+		the_type.push_str(&after_split(the_kind_type,";"));
+		the_name.push_str(&before_split(&the_type,"-"));
+		var_type.push_str(&after_split(&the_type,"-"));
+		var_type = String::new();
+		var_type.push_str(&before_split(&var_type,"="));
+		new_var.push_str(the_tabs);
+		new_var.push_str(&var_type);
+		new_var.push_str(" ");
+		new_var.push_str(&the_name);
+		new_var.push_str(" = ");
+		new_var.push_str(&variable_content);
 	}
 	//var:name=
-	else if ((is_in(the_kind_type,":")) && (!is_in(the_kind_type,"-")) && (EndsWith(the_kind_type, "=")))
+	else if is_in(the_kind_type,":") && !is_in(the_kind_type,"-") && ends_with(the_kind_type, "=")
 	{
-		Type = after_split(the_kind_type,";");
-		Name = before_split(Type,"=");
-		Value = after_split(Type,"=");
-		NewVar = the_tabs+Name+" = ";
-		NewVar = NewVar+VariableContent;
+		the_type.push_str(&after_split(the_kind_type,";"));
+		the_name.push_str(&before_split(&the_type,"="));
+		//Value = after_split(the_type,"=");
+		new_var.push_str(the_tabs);
+		new_var.push_str(&the_name);
+		new_var.push_str(" = ");
+		new_var.push_str(&variable_content);
 	}
 	//var:name-dataType
-	else if ((is_in(the_kind_type,":")) && (is_in(the_kind_type,"-")) && (!is_in(the_kind_type,"=")))
+	else if is_in(the_kind_type,":") && is_in(the_kind_type,"-") && !is_in(the_kind_type,"=")
 	{
-		Type = after_split(the_kind_type,";");
-		Name = before_split(Type,"-");
-		VarType = after_split(Type,"-");
-		NewVar = the_tabs+VarType+" "+Name;
-		NewVar = NewVar+VariableContent;
+		the_type.push_str(&after_split(the_kind_type,";"));
+		the_name.push_str(&before_split(&the_type,"-"));
+		var_type = after_split(&the_type,"-");
+		new_var.push_str(the_tabs);
+		new_var.push_str(&var_type);
+		new_var.push_str(" ");
+		new_var.push_str(&the_name);
+		new_var.push_str(&variable_content);
 	}
-	return NewVar;
+	return new_var;
 }
-*/
+
 fn gen_code(the_tabs: &str, get_me: &str) -> String
 {
 //	println!("parameters: {} {}",the_tabs,get_me);
@@ -1129,22 +1148,20 @@ fn gen_code(the_tabs: &str, get_me: &str) -> String
 		the_args[0] = get_me.to_string();
 		the_args[1] = "".to_string();
 	}
-/*
-	if (starts_with(the_args[0], "class"))
+
+	if starts_with(&the_args[0], "class")
 	{
-		the_code.push_str(gen_class(the_args[0],the_args[1]));
+		the_code.push_str(&gen_class(&the_args[0],&the_args[1]));
 	}
-	else if (starts_with(the_args[0], "struct"))
+	else if starts_with(&the_args[0], "struct")
 	{
-		the_code.push_str(get_struct(the_args[0],the_args[1]));
+		the_code.push_str(&gen_struct(&the_args[0],&the_args[1]));
 	}
-	else if (starts_with(the_args[0], "method"))
+	else if starts_with(&the_args[0], "method")
 	{
-		the_code.push_str(gen_method(the_tabs,the_args[0],the_args[1]));
+		the_code.push_str(&gen_method(&the_tabs,&the_args[0],&the_args[1]));
 	}
 	else if starts_with(&the_args[0], "loop")
-*/
-	if starts_with(&the_args[0], "loop")
 	{
 		the_code.push_str(&gen_loop(&the_tabs, &the_args[0], &the_args[1]));
 	}
@@ -1152,7 +1169,6 @@ fn gen_code(the_tabs: &str, get_me: &str) -> String
 	{
 		the_code.push_str(&gen_logic(&the_tabs, &the_args[0], &the_args[1]));
 	}
-/*
 	else if starts_with(&the_args[0], "var")
 	{
 		the_code.push_str(&gen_variables(&the_tabs, &the_args[0], &the_args[1]));
@@ -1161,16 +1177,17 @@ fn gen_code(the_tabs: &str, get_me: &str) -> String
 	{
 		the_code.push_str(&gen_statements(&the_tabs, &the_args[0], &the_args[1]));
 	}
-	else if (starts_with(the_args[0], "condition"))
+/*
+	else if starts_with(&the_args[0], "condition")
 	{
-		the_code.push_str(gen_conditions(the_args[0]));
+		the_code.push_str(&gen_conditions(&the_args[0]));
 	}
-*/
+
 	else if starts_with(&the_args[0], "params")
 	{
 		the_code.push_str(&gen_parameters(&the_tabs, &the_args[0]));
 	}
-
+*/
 	return the_code;
 }
 
@@ -1228,12 +1245,18 @@ fn main()
 			}
 		}
 
-		finished_content = gen_code("",&user_in);
-		if finished_content != ""
+		if starts_with(&user_in, "help")
 		{
-			println!("{}",finished_content);
+			the_help(&user_in);
 		}
-
+		else
+		{
+			finished_content = gen_code("",&user_in);
+			if finished_content != ""
+			{
+				println!("{}",finished_content);
+			}
+		}
 		if arg_count > 0
 		{
 			break;

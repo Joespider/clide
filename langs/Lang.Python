@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.2.17"
+SupportV="0.2.18"
 Lang=Python
 LangExt=".py"
 #Color Yellow
@@ -159,6 +159,7 @@ UsePython()
 					fi
 					ShellCode=$(sed -n "${line}p" ${TheCode} | grep "^<<shell>> ")
 					if [ ! -z "${ShellCode}" ]; then
+						echo ${ShellCode} | sed "s/^<<shell>> /\/\/<<shell>> /g"
 						UsePython shell shell $(echo ${ShellCode} | sed "s/^<<shell>> //g")
 					else
 						sed -n "${line}p" ${TheCode}
