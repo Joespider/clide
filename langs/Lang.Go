@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.95"
+SupportV="0.1.97"
 Lang=Go
 LangExt=".go"
 #Color Green
@@ -133,6 +133,21 @@ UseGo()
 		getShellCode)
 			echo ${ShellCodeSrc}
 			;;
+		gencodeSave)
+			local HasSponge
+			local TheCode=${1}
+			HasSponge=$(which sponge 2> /dev/null)
+			if [ ! -z "${HasSponge}" ]; then
+				TheCode=$(UseGo "removeExt" ${TheCode})
+				TheCode=$(UseGo "FindTheSrc" ${TheCode})
+				GenLines=$(cat -n ${TheCode} | grep "<<shell>>" | cut -f 1)
+				if  [ ! -z "${GenLines}" ]; then
+					UseGo "gencode" ${TheCode} | sponge ${TheCode}
+				fi
+			else
+				echo "Please install \"sponge\" from the \"moreutils\" package"
+			fi
+			;;
 		gencode)
 			local LinesOfSrc
 			local LastNum
@@ -143,9 +158,6 @@ UseGo()
 			TheCode=$(UseGo "FindTheSrc" ${TheCode})
 			GenLines=$(cat -n ${TheCode} | grep "<<shell>>" | cut -f 1)
 			if  [ ! -z "${GenLines}" ]; then
-				echo ""
-				echo "Backup your code here"
-				echo ""
 				LinesOfSrc=$(cat ${TheCode} | wc -l)
 				for line in ${GenLines};
 				do
@@ -170,9 +182,6 @@ UseGo()
 					LastNum=${line}
 				done
 				sed -n "$((${LastNum} + 1)),${LinesOfSrc}p" ${TheCode}
-				echo ""
-				echo "Restore/Remove your backup code here"
-				echo ""
 			fi
 			;;
 		#source code directory

@@ -3486,11 +3486,26 @@ Actions()
 						refresh="yes"
 						;;
 					gencode)
-						#check if the file is already backed up, then make one
-						#GenLines=$(cat -n ${PathToSrc} | grep "<<shell>>" | cut -f 1)
-						if [ ! -z "${listSrc}" ]; then
-							ManageLangs ${Lang} "gencode" "${TheSrcCode}"
-						fi
+						case ${UserIn[1]} in
+							--help)
+								HelpMenu ${Lang} "${UserIn[@]}"
+								;;
+							--keep|--save)
+								if [ ! -z "${listSrc}" ]; then
+									ManageLangs ${Lang} "gencodeSave" "${TheSrcCode}"
+								fi
+								;;
+							*)
+								if [ ! -z "${listSrc}" ]; then
+									errorCode "WARNING"
+									errorCode "WARNING" "Make sure you backup your code before saving"
+									echo ""
+									ManageLangs ${Lang} "gencode" "${TheSrcCode}"
+									echo ""
+									errorCode "WARNING"
+									errorCode "WARNING" "Make sure you backup your code before saving"
+								fi
+						esac
 						#tell user to remove backup if changes are good
 						;;
 					#use the shell of a given language
@@ -4858,7 +4873,7 @@ loadAuto()
 	comp_list "use" "${pg}"
 	comp_list "project" "build delete discover export files import load list link mode new remove swap select src use save title type update --help"
 	comp_list "package" "get new set list mv move --help"
-	comp_list "gencode" ""
+	comp_list "gencode" "--help --keep --save"
 	comp_list "shell" "--help"
 	comp_list "time" "--help"
 	comp_list "new" "--version -v --help -h --custom -c --show -s"
