@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.63"
+SupportV="0.1.64"
 Lang=Rust
 LangExt=".rs"
 ColorNum=1
@@ -127,6 +127,21 @@ UseRust()
 		getShellCode)
 			echo ${ShellCodeSrc}
 			;;
+		gencodeSave)
+			local HasSponge
+			local TheCode=${1}
+			HasSponge=$(which sponge 2> /dev/null)
+			if [ ! -z "${HasSponge}" ]; then
+				TheCode=$(UseRust "removeExt" ${TheCode})
+				TheCode=$(UseRust "FindTheSrc" ${TheCode})
+				GenLines=$(cat -n ${TheCode} | grep "<<shell>>" | cut -f 1)
+				if  [ ! -z "${GenLines}" ]; then
+					UseRust "gencode" ${TheCode} | sponge ${TheCode}
+				fi
+			else
+				echo "Please install \"sponge\" from the \"moreutils\" package"
+			fi
+			;;
 		gencode)
 			local LinesOfSrc
 			local LastNum
@@ -137,9 +152,6 @@ UseRust()
 			TheCode=$(UseRust "FindTheSrc" ${TheCode})
 			GenLines=$(cat -n ${TheCode} | grep "<<shell>>" | cut -f 1)
 			if  [ ! -z "${GenLines}" ]; then
-				echo ""
-				echo "Backup your code here"
-				echo ""
 				LinesOfSrc=$(cat ${TheCode} | wc -l)
 				for line in ${GenLines};
 				do
@@ -154,22 +166,16 @@ UseRust()
 								;;
 						esac
 					fi
-#					ShellCode=$(sed -n "${line}p" ${TheCode} | grep "^<<shell>> ")
-					ShellCode=$(sed -n "${line}p" ${TheCode} | grep "<<shell>> ")
+					ShellCode=$(sed -n "${line}p" ${TheCode} | grep "^<<shell>> ")
 					if [ ! -z "${ShellCode}" ]; then
-#						echo ${ShellCode} | sed "s/^<<shell>> /\/\/<<shell>> /g"
-						echo ${ShellCode} | sed "s/<<shell>> /\/\/<<shell>> /g"
-#						UseRust shell shell $(echo ${ShellCode} | sed "s/^<<shell>> //g")
-						UseRust shell shell $(echo ${ShellCode} | sed "s/<<shell>> //g")
+						echo ${ShellCode} | sed "s/^<<shell>> /\/\/<<shell>> /g"
+						UseRust shell shell $(echo ${ShellCode} | sed "s/^<<shell>> //g")
 					else
 						sed -n "${line}p" ${TheCode}
 					fi
 					LastNum=${line}
 				done
 				sed -n "$((${LastNum} + 1)),${LinesOfSrc}p" ${TheCode}
-				echo ""
-				echo "Restore/Remove your backup code here"
-				echo ""
 			fi
 			;;
 		getSrcDir)

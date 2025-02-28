@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.98"
+SupportV="0.1.99"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
@@ -135,6 +135,21 @@ UseC()
 		getShellCode)
 			echo ${ShellCodeSrc}
 			;;
+		gencodeSave)
+			local HasSponge
+			local TheCode=${1}
+			HasSponge=$(which sponge 2> /dev/null)
+			if [ ! -z "${HasSponge}" ]; then
+				TheCode=$(UseC "removeExt" ${TheCode})
+				TheCode=$(UseC "FindTheSrc" ${TheCode})
+				GenLines=$(cat -n ${TheCode} | grep "<<shell>>" | cut -f 1)
+				if  [ ! -z "${GenLines}" ]; then
+					UseC "gencode" ${TheCode} | sponge ${TheCode}
+				fi
+			else
+				echo "Please install \"sponge\" from the \"moreutils\" package"
+			fi
+			;;
 		gencode)
 			local LinesOfSrc
 			local LastNum
@@ -145,9 +160,6 @@ UseC()
 			TheCode=$(UseC "FindTheSrc" ${TheCode})
 			GenLines=$(cat -n ${TheCode} | grep "<<shell>>" | cut -f 1)
 			if  [ ! -z "${GenLines}" ]; then
-				echo ""
-				echo "Backup your code here"
-				echo ""
 				LinesOfSrc=$(cat ${TheCode} | wc -l)
 				for line in ${GenLines};
 				do
@@ -162,28 +174,18 @@ UseC()
 								;;
 						esac
 					fi
-#					ShellCode=$(sed -n "${line}p" ${TheCode} | grep "^<<shell>> ")
-					ShellCode=$(sed -n "${line}p" ${TheCode} | grep "<<shell>> ")
+					ShellCode=$(sed -n "${line}p" ${TheCode} | grep "^<<shell>> ")
 					if [ ! -z "${ShellCode}" ]; then
-#						echo ${ShellCode} | sed "s/^<<shell>> /\/\/<<shell>> /g"
-						echo ${ShellCode} | sed "s/<<shell>> /\/\/<<shell>> /g"
-#						UseC shell shell $(echo ${ShellCode} | sed "s/^<<shell>> //g")
-						UseC shell shell $(echo ${ShellCode} | sed "s/<<shell>> //g")
+						echo ${ShellCode} | sed "s/^<<shell>> /\/\/<<shell>> /g"
+						UseC shell shell $(echo ${ShellCode} | sed "s/^<<shell>> //g")
 					else
 						sed -n "${line}p" ${TheCode}
 					fi
 					LastNum=${line}
 				done
 				sed -n "$((${LastNum} + 1)),${LinesOfSrc}p" ${TheCode}
-				echo ""
-				echo "Restore/Remove your backup code here"
-				echo ""
 			fi
 			;;
-
-
-
-
 		#source code directory
 		getSrcDir)
 			local project=${CodeProject}
