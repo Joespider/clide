@@ -8,7 +8,7 @@ import (
 
 func help() {
 	var ProgName string = "newGo"
-	var Version string = "0.1.34"
+	var Version string = "0.1.37"
 
 	fmt.Println("Author: Joespider")
 	fmt.Println("Program: \""+ProgName+"\"")
@@ -85,7 +85,8 @@ func getImports(UserInput bool, check bool, write bool, read bool, random bool, 
 	}
 
 	if getShell == true {
-		ForShell = "\t\"os/exec\"\n"
+		ForShell = "\t\"runtime\"\n"
+		ForShell = ForShell + "\t\"os/exec\"\n"
 	}
 
 	if UserInput == true || getPipe == true {
@@ -149,7 +150,7 @@ func getMethods(getRawIn bool, getRand bool, getCheck bool, getWrite bool, getRe
 	var DateAndTime string = ""
 
 	if getRawIn == true {
-		UserInput = "func raw_input(Message string) string {\n\tvar UserIn string\n\tfmt.Print(Message)\n\treader := bufio.NewReader(os.Stdin)\n\tUserIn, _ = reader.ReadString('\\n')\n\treturn UserIn\n}\n\n"
+		UserInput = "func raw_input(Message string) string {\n\tvar UserIn string\n\tfmt.Print(Message)\n\treader := bufio.NewReader(os.Stdin)\n\tUserIn, _ = reader.ReadString('\\n')\n\tif UserIn != \"\" {\n\t\tUserIn = UserIn[:len(UserIn)-1]\n\t}\n\treturn UserIn\n}\n\n"
 	}
 
 	if getCheck == true {
@@ -202,6 +203,8 @@ func getMethods(getRawIn bool, getRand bool, getCheck bool, getWrite bool, getRe
 
 	if getSplit == true {
 		SplitMethod = "func split(Str string, sBy string) []string {\n\tArray := strings.Split(Str, sBy)\n\treturn Array\n}\n\n"
+		SplitMethod = SplitMethod + "func BeforeSplit(Str string, splitAt string) string {\n\tif strings.Contains(Str,splitAt) {\n\t\tvar result []string  = strings.SplitAfterN(Str, splitAt,2)\n\t\tvar newResult string = result[0]\n\t\tnewResult = newResult[:len(newResult)-1]\n\t\treturn newResult\n\t} else {\n\t\treturn \"\"\n\t}\n}\n\n"
+		SplitMethod = SplitMethod + "func AfterSplit(Str string, splitAt string) string {\n\tif strings.Contains(Str,splitAt) {\n\t\tvar result []string  = strings.SplitAfterN(Str, splitAt,2)\n\t\treturn result[1]\n\t} else {\n\t\treturn \"\"\n\t}\n}\n\n"
 	}
 
 	if getJoin == true {

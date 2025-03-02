@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.0.56";
+String Version = "0.0.57";
 
 String getOS();
 void Help(String Type);
@@ -396,7 +396,6 @@ String Class(String TheName, String Content)
 		if ((StartsWith(Content, "params")) && (Params == ""))
 		{
 			Process = BeforeSplit(Content,' ');
-//			Params =  Parameters(Content,"class");
 			Params =  Parameters(Process,"class");
 		}
 		else if (StartsWith(Content, "method"))
@@ -452,7 +451,7 @@ String Method(String Tabs, String Name, String Content)
 	String Type = "";
 	String Params = "";
 	String MethodContent = "";
-	String LastComp = "";
+//	String LastComp = "";
 	String Process = "";
 
 	if (IsIn(Name,"-"))
@@ -477,7 +476,6 @@ String Method(String Tabs, String Name, String Content)
 			{
 				Process = Content;
 			}
-//			Params =  Parameters(Content,"method");
 			Params =  Parameters(Process,"method");
 		}
 		else if ((StartsWith(Content, "method")) || (StartsWith(Content, "class")))
@@ -562,11 +560,9 @@ String Parameters(String input,String CalledBy)
 String Loop(String Tabs, String TheKindType, String Content)
 {
 	bool Last = false;
-//	String NestTabs = "";
 	String Complete = "";
-	String TheName = "";
 	String RootTag = "";
-	String Type = "";
+//	String Type = "";
 	String TheCondition = "";
 	String LoopContent = "";
 	String NewContent = "";
@@ -575,12 +571,6 @@ String Loop(String Tabs, String TheKindType, String Content)
 	if (IsIn(TheKindType,":"))
 	{
 		TheKindType = AfterSplit(TheKindType,':');
-	}
-
-	if (IsIn(TheKindType,"-"))
-	{
-		TheName = BeforeSplit(TheKindType,'-');
-		Type = AfterSplit(TheKindType,'-');
 	}
 
 	while (Content != "")
@@ -612,7 +602,6 @@ String Loop(String Tabs, String TheKindType, String Content)
 			NewContent = "";
 		}
 
-//		NestTabs = "";
 		if (StartsWith(Content, "condition"))
 		{
 			TheCondition = Conditions(Content,TheKindType);
@@ -624,15 +613,9 @@ String Loop(String Tabs, String TheKindType, String Content)
 		//nest-loop:
 		else if (StartsWith(Content, "nest-"))
 		{
-//	Keep these comments
-//			RootTag = BeforeSplit(Content,':');
 			RootTag = BeforeSplit(Content,'l');
-//	Keep these comments
-//			if (IsIn(Content," "+RootTag+":"))
 			if (IsIn(Content," "+RootTag+"l"))
 			{
-//	Keep these comments
-//				std::vector<String> cmds = split(Content," "+RootTag+":");
 				std::vector<String> cmds = split(Content," "+RootTag+"l");
 				int end = len(cmds);
 				int lp = 0;
@@ -646,14 +629,10 @@ String Loop(String Tabs, String TheKindType, String Content)
 					{
 						if (NewContent == "")
 						{
-//	Keep these comments
-//							NewContent = RootTag+":"+cmds[lp];
 							NewContent = RootTag+"l"+cmds[lp];
 						}
 						else
 						{
-//	Keep these comments
-//							NewContent = NewContent+" "+RootTag+":"+cmds[lp];
 							NewContent = NewContent+" "+RootTag+"l"+cmds[lp];
 						}
 					}
@@ -670,16 +649,13 @@ String Loop(String Tabs, String TheKindType, String Content)
 
 			while (StartsWith(OtherContent, "nest-"))
 			{
-//				NestTabs = NestTabs+"\t";
 				OtherContent = AfterSplit(OtherContent,'-');
 			}
-//			LoopContent = LoopContent + GenCode(NestTabs,OtherContent);
 			LoopContent = LoopContent + GenCode(Tabs+"\t",OtherContent);
 		}
 		else
 		{
 			LoopContent = LoopContent + GenCode(Tabs+"\t",Content);
-//			Content = AfterSplit(Content,' ');
 			Content = "";
 		}
 
@@ -715,10 +691,7 @@ String Loop(String Tabs, String TheKindType, String Content)
 String Logic(String Tabs, String TheKindType, String Content)
 {
 	bool Last = false;
-//	String NestTabs = "";
 	String Complete = "";
-//	String TheName = "";
-//	String Type = "";
 	String RootTag = "";
 	String TheCondition = "";
 	String LogicContent = "";
@@ -729,13 +702,6 @@ String Logic(String Tabs, String TheKindType, String Content)
 	{
 		TheKindType = AfterSplit(TheKindType,':');
 	}
-/*
-	if (IsIn(TheKindType,"-"))
-	{
-		TheName = BeforeSplit(TheKindType,'-');
-		Type = AfterSplit(TheKindType,'-');
-	}
-*/
 	while (Content != "")
 	{
 		if ((!StartsWith(Content, "nest-")) && (IsIn(Content," nest-")))
@@ -765,7 +731,6 @@ String Logic(String Tabs, String TheKindType, String Content)
 			NewContent = "";
 		}
 
-//		NestTabs = "";
 		if (StartsWith(Content, "condition"))
 		{
 			if (IsIn(Content," "))
@@ -785,15 +750,9 @@ String Logic(String Tabs, String TheKindType, String Content)
 		}
 		else if (StartsWith(Content, "nest-"))
 		{
-//	Keep these comments
-//			RootTag = BeforeSplit(Content,':');
 			RootTag = BeforeSplit(Content,'l');
-//	Keep these comments
-//			if (IsIn(Content," "+RootTag+":"))
 			if (IsIn(Content," "+RootTag+"l"))
 			{
-//	Keep these comments
-//				std::vector<String> cmds = split(Content," "+RootTag+":");
 				std::vector<String> cmds = split(Content," "+RootTag+"l");
 				int end = len(cmds);
 				int lp = 0;
@@ -807,14 +766,10 @@ String Logic(String Tabs, String TheKindType, String Content)
 					{
 						if (NewContent == "")
 						{
-//	Keep these comments
-//							NewContent = RootTag+":"+cmds[lp];
 							NewContent = RootTag+"l"+cmds[lp];
 						}
 						else
 						{
-//	Keep these comments
-//							NewContent = NewContent+" "+RootTag+":"+cmds[lp];
 							NewContent = NewContent+" "+RootTag+"l"+cmds[lp];
 						}
 					}
@@ -831,16 +786,13 @@ String Logic(String Tabs, String TheKindType, String Content)
 
 			while (StartsWith(OtherContent, "nest-"))
 			{
-//				NestTabs = NestTabs+"\t";
 				OtherContent = AfterSplit(OtherContent,'-');
 			}
-//			LogicContent = LogicContent + GenCode(NestTabs,OtherContent);
 			LogicContent = LogicContent + GenCode(Tabs+"\t",OtherContent);
 		}
 		else
 		{
 			LogicContent = LogicContent + GenCode(Tabs+"\t",Content);
-//			Content = AfterSplit(Content,' ');
 			Content = "";
 		}
 
@@ -983,19 +935,12 @@ String Variables(String Tabs, String TheKindType, String Content)
 	String Name = "";
 	String VarType = "";
 	String Value = "";
-	String NewContent = "";
+//	String NewContent = "";
 	String VariableContent = "";
 	String OtherContent = "";
 
-//	print(TheKindType+" "+Content);
-
 	while (Content != "")
 	{
-/*
-		VariableContent = VariableContent + GenCode(Tabs,Content);
-		Content = AfterSplit(Content,' ');
-*/
-
 		OtherContent = BeforeSplit(Content,' ');
 		Content = AfterSplit(Content,' ');
 		if (StartsWith(Content, "params"))

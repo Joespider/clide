@@ -259,7 +259,7 @@ fn banner()
 {
 	let cpl_version = get_cpl_version();
 	let the_os = get_os();
-	let version = "0.0.7";
+	let version = "0.0.9";
 	println!("{}",cpl_version);
 	println!("[Rust {}] on {}",version,the_os);
 	println!("Type \"help\" for more information.");
@@ -270,7 +270,7 @@ fn gen_struct(the_name: &str, the_content: &str) -> String
 	let mut the_complete = String::new();
 	let mut struct_var = String::new();
 	let mut the_process: String;
-//	let new_name = after_split(the_name,";");
+//	let new_name = after_split(the_name,":");
 	let mut passed_content = the_content.to_string();
 
 	while starts_with(&passed_content, "var")
@@ -305,7 +305,7 @@ fn gen_class(the_name: &str, the_content: &str) -> String
 	}
 */
 
-//	let new_name = after_split(the_name,";");
+//	let new_name = after_split(the_name,":");
 	let mut the_process: String;
 	let mut the_params = String::from("");
 	let mut class_content = String::new();
@@ -503,7 +503,7 @@ fn gen_conditions(input: &str,called_by: &str) -> String
 
 fn gen_parameters(input: &str, called_by: &str) -> String
 {
-	let mut the_params = after_split(input,";");
+	let mut the_params = after_split(input,":");
 	if called_by == "class" || called_by == "method" || called_by == "stmt"
 	{
 		if is_in(&the_params,"-") && is_in(&the_params,",")
@@ -884,11 +884,11 @@ fn gen_logic(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 		the_complete.push_str("\t\tbreak;");
 
 	}
-/*
-	else if starts_with(new_kind, "switch")
+
+	else if starts_with(&new_kind, "switch")
 	{
 		let mut the_case_content = new_kind;
-		let mut the_case_val;
+		let mut the_case_val: String;
 
 		the_complete.push_str(the_tabs);
 		the_complete.push_str("switch (");
@@ -899,12 +899,12 @@ fn gen_logic(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 
 		loop
 		{
-			the_case_val = &before_split(the_case_content,"-");
+			the_case_val = before_split(&the_case_content,"-");
 			if the_case_val != "switch"
 			{
 				the_complete.push_str(the_tabs);
 				the_complete.push_str("\tcase ");
-				the_complete.push_str(the_case_val);
+				the_complete.push_str(&the_case_val);
 				the_complete.push_str(":\n");
 				the_complete.push_str(the_tabs);
 				the_complete.push_str("\t\t//code here\n");
@@ -912,9 +912,9 @@ fn gen_logic(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 				the_complete.push_str("\t\tbreak;\n");
 			}
 
-			if is_in(the_case_content,"-")
+			if is_in(&the_case_content,"-")
 			{
-				the_case_content = &after_split(the_case_content,"-");
+				the_case_content = after_split(&the_case_content,"-");
 			}
 
 			if the_case_content != ""
@@ -932,7 +932,7 @@ fn gen_logic(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 		the_complete.push_str(the_tabs);
 		the_complete.push_str("}\n");
 	}
-*/
+
 	return the_complete;
 }
 
@@ -945,25 +945,25 @@ fn gen_statements(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Str
 	let mut statement_content = String::new();
 	let mut other_content: String;
 //	let mut other_content: &str;
-	let mut the_name = String::new();
-	let mut name = String::new();
+	let the_name: String;
+	let mut name = String::from("");
 	let mut the_process: String;
-	let mut the_params  = String::from("");
+	let mut the_params = String::from("");
 	let mut passed_content = the_content.to_string();
 
 	if is_in(&new_kind,":")
 	{
-		new_kind = after_split(&new_kind,";");
+		new_kind = after_split(&new_kind,":");
 	}
 
 	if is_in(&new_kind,"-")
 	{
-		the_name.push_str(&before_split(&new_kind,"-"));
-		name.push_str(&after_split(&new_kind,"-"));
+		the_name = before_split(&new_kind,"-");
+		name = after_split(&new_kind,"-");
 	}
 	else
 	{
-		the_name.push_str(&new_kind);
+		the_name = new_kind;
 	}
 
 	while passed_content != ""
@@ -1024,27 +1024,23 @@ fn gen_variables(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Stri
 {
 	let mut the_last = false;
 	let mut new_var = String::new();
-	let mut the_type = String::new();
-	let mut the_name = String::new();
-	let mut var_type = String::new();
-	let mut the_value = String::new();
+	let the_type: String;
+	let the_name: String;
+	let mut var_type: String;
+	let the_value: String;
 //	let the_new_content = String::new();
 	let mut variable_content = String::new();
-	let mut the_other_content = String::new();
+	let mut the_other_content: String;
 	let mut passed_content = the_content.to_string();
 
-	while the_content != ""
+	while passed_content != ""
 	{
-/*
-		variable_content.push_str(&gen_code(the_tabs,the_content));
-		the_content = after_split(the_content," ");
-*/
-		the_other_content.push_str(&before_split(the_content," "));
+		the_other_content = String::from(&before_split(&passed_content," "));
 		passed_content = after_split(&passed_content," ");
 		if starts_with(&passed_content, "params")
 		{
 			the_other_content.push_str(" ");
-			the_other_content.push_str(&before_split(the_content," "));
+			the_other_content.push_str(&before_split(&passed_content," "));
 			passed_content = after_split(&passed_content," ");
 		}
 		variable_content.push_str(&gen_code(the_tabs,&the_other_content));
@@ -1054,50 +1050,52 @@ fn gen_variables(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Stri
 			break;
 		}
 
-		if !is_in(the_content," ")
+		if !is_in(&passed_content," ")
 		{
-			variable_content.push_str(&gen_code(the_tabs,the_content));
+			variable_content.push_str(&gen_code(the_tabs,&passed_content));
 			the_last = true;
 		}
-		the_other_content = String::new();
 	}
 	//var:name-dataType=Value
 	if is_in(the_kind_type,":") && is_in(the_kind_type,"-") && is_in(the_kind_type,"=") && !ends_with(the_kind_type, "=")
 	{
-		the_type.push_str(&after_split(the_kind_type,";"));
-		the_name.push_str(&before_split(&the_type,"-"));
-		var_type.push_str(&after_split(&the_type,"-"));
-		the_value.push_str(&after_split(&var_type,"="));
-		var_type = String::new();
-		var_type.push_str(&before_split(&var_type,"="));
+		the_type = String::from(&after_split(the_kind_type,":"));
+		the_name = String::from(&before_split(&the_type,"-"));
+		var_type = String::from(&after_split(&the_type,"-"));
+		the_value = String::from(&after_split(&var_type,"="));
+		var_type = String::from(&before_split(&var_type,"="));
+
 		new_var.push_str(the_tabs);
 		new_var.push_str(&var_type);
 		new_var.push_str(" ");
 		new_var.push_str(&the_name);
 		new_var.push_str(" = ");
+
 		new_var.push_str(&the_value);
 		new_var.push_str(&variable_content);
 	}
 	//var:name=Value
 	else if is_in(the_kind_type,":") && !is_in(the_kind_type,"-") && is_in(the_kind_type,"=") && !ends_with(the_kind_type, "=")
 	{
-		the_type.push_str(&after_split(the_kind_type,";"));
-		the_name.push_str(&before_split(&the_type,"="));
+		the_type = String::from(&after_split(the_kind_type,":"));
+		the_name = String::from(&before_split(&the_type,"="));
 		the_value = after_split(&the_type,"=");
+
 		new_var.push_str(the_tabs);
 		new_var.push_str(&the_name);
 		new_var.push_str(" = ");
 		new_var.push_str(&the_value);
+
 		new_var.push_str(&variable_content);
 	}
 	//var:name-dataType=
 	else if is_in(the_kind_type,":") && is_in(the_kind_type,"-") && ends_with(the_kind_type, "=")
 	{
-		the_type.push_str(&after_split(the_kind_type,";"));
-		the_name.push_str(&before_split(&the_type,"-"));
-		var_type.push_str(&after_split(&the_type,"-"));
-		var_type = String::new();
-		var_type.push_str(&before_split(&var_type,"="));
+		the_type = String::from(&after_split(the_kind_type,":"));
+		the_name = String::from(&before_split(&the_type,"-"));
+		var_type = String::from(&after_split(&the_type,"-"));
+		var_type = String::from(&before_split(&var_type,"="));
+
 		new_var.push_str(the_tabs);
 		new_var.push_str(&var_type);
 		new_var.push_str(" ");
@@ -1108,9 +1106,10 @@ fn gen_variables(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Stri
 	//var:name=
 	else if is_in(the_kind_type,":") && !is_in(the_kind_type,"-") && ends_with(the_kind_type, "=")
 	{
-		the_type.push_str(&after_split(the_kind_type,";"));
-		the_name.push_str(&before_split(&the_type,"="));
+		the_type = String::from(&after_split(the_kind_type,":"));
+		the_name = String::from(&before_split(&the_type,"="));
 		//Value = after_split(the_type,"=");
+
 		new_var.push_str(the_tabs);
 		new_var.push_str(&the_name);
 		new_var.push_str(" = ");
@@ -1119,9 +1118,10 @@ fn gen_variables(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Stri
 	//var:name-dataType
 	else if is_in(the_kind_type,":") && is_in(the_kind_type,"-") && !is_in(the_kind_type,"=")
 	{
-		the_type.push_str(&after_split(the_kind_type,";"));
-		the_name.push_str(&before_split(&the_type,"-"));
+		the_type = String::from(&after_split(the_kind_type,":"));
+		the_name = String::from(&before_split(&the_type,"-"));
 		var_type = after_split(&the_type,"-");
+
 		new_var.push_str(the_tabs);
 		new_var.push_str(&var_type);
 		new_var.push_str(" ");
@@ -1133,8 +1133,6 @@ fn gen_variables(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Stri
 
 fn gen_code(the_tabs: &str, get_me: &str) -> String
 {
-//	println!("parameters: {} {}",the_tabs,get_me);
-
 	let mut the_code = String::new();
 	let mut the_args: [String; 2] = ["".to_string(),"".to_string()];
 
@@ -1182,7 +1180,6 @@ fn gen_code(the_tabs: &str, get_me: &str) -> String
 	{
 		the_code.push_str(&gen_conditions(&the_args[0]));
 	}
-
 	else if starts_with(&the_args[0], "params")
 	{
 		the_code.push_str(&gen_parameters(&the_tabs, &the_args[0]));
