@@ -3,7 +3,7 @@
 #https://stackoverflow.com/questions/10339637/java-import-cannot-find-symbol
 #https://www.codejava.net/java-core/tools/how-to-compile-package-and-run-a-java-program-using-command-line-tools-javac-jar-and-java
 
-SupportV="0.2.60"
+SupportV="0.2.61"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -139,6 +139,12 @@ UseJava()
 			;;
 		getShellCode)
 			echo ${ShellCodeSrc}
+			;;
+		gencodeShow)
+			local TheCode=${1}
+			TheCode=$(UseJava "removeExt" ${TheCode})
+			TheCode=$(UseJava "FindTheSrc" ${TheCode})
+			cat -n ${TheCode} | grep "<<shell>>"
 			;;
 		gencodeSave)
 			local HasSponge

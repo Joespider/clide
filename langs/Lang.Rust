@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.64"
+SupportV="0.1.65"
 Lang=Rust
 LangExt=".rs"
 ColorNum=1
@@ -126,6 +126,12 @@ UseRust()
 			;;
 		getShellCode)
 			echo ${ShellCodeSrc}
+			;;
+		gencodeShow)
+			local TheCode=${1}
+			TheCode=$(UseRust "removeExt" ${TheCode})
+			TheCode=$(UseRust "FindTheSrc" ${TheCode})
+			cat -n ${TheCode} | grep "<<shell>>"
 			;;
 		gencodeSave)
 			local HasSponge

@@ -259,7 +259,7 @@ fn banner()
 {
 	let cpl_version = get_cpl_version();
 	let the_os = get_os();
-	let version = "0.0.9";
+	let version = "0.0.10";
 	println!("{}",cpl_version);
 	println!("[Rust {}] on {}",version,the_os);
 	println!("Type \"help\" for more information.");
@@ -444,7 +444,7 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 	if the_type == "" || the_type == "void"
 	{
 		the_complete.push_str(the_tabs);
-		the_complete.push_str("void ");
+		the_complete.push_str("fn ");
 		the_complete.push_str(&the_name);
 		the_complete.push_str("(");
 		the_complete.push_str(&the_params);
@@ -459,22 +459,21 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 	else
 	{
 		the_complete.push_str(the_tabs);
-		the_complete.push_str(&the_type);
-		the_complete.push_str(" ");
+		the_complete.push_str("fn ");
 		the_complete.push_str(&the_name);
 		the_complete.push_str("(");
 		the_complete.push_str(&the_params);
-		the_complete.push_str(")\n");
-		the_complete.push_str(the_tabs);
-		the_complete.push_str("{\n");
-		the_complete.push_str(the_tabs);
-		the_complete.push_str("\t");
+		the_complete.push_str(") -> ");
 		the_complete.push_str(&the_type);
-		the_complete.push_str(" TheReturn;\n");
+		the_complete.push_str("\n{\n");
+		the_complete.push_str(the_tabs);
+		the_complete.push_str("\tlet the_return: ");
+		the_complete.push_str(&the_type);
+		the_complete.push_str(";\n");
 		the_complete.push_str(&method_content);
 		the_complete.push_str("\n");
 		the_complete.push_str(the_tabs);
-		the_complete.push_str("\treturn TheReturn;\n");
+		the_complete.push_str("\treturn the_return;\n");
 		the_complete.push_str(the_tabs);
 		the_complete.push_str("}\n");
 	}
@@ -501,35 +500,48 @@ fn gen_conditions(input: &str,called_by: &str) -> String
 	return condit;
 }
 
+//params:
 fn gen_parameters(input: &str, called_by: &str) -> String
 {
-	let mut the_params = after_split(input,":");
+	let name: String;
+	let the_params = after_split(input,":");
+	let mut new_params = String::new();
 	if called_by == "class" || called_by == "method" || called_by == "stmt"
 	{
+		//param-type,param-type,param-type
 		if is_in(&the_params,"-") && is_in(&the_params,",")
 		{
-			let name = before_split(&the_params,"-");
+			//param
+			name = before_split(&the_params,"-");
+			//type,param-type,param-type
 			let mut the_type = after_split(&the_params,"-");
+			//type
 			the_type = before_split(&the_type,",");
-			let mut more = after_split(&the_params,",");
-			let new_params = ["params:",&more].concat();
-			more = gen_parameters(&new_params,called_by);
-			the_params.push_str(&the_type);
-			the_params.push_str(" ");
-			the_params.push_str(&name);
-			the_params.push_str(", ");
-			the_params.push_str(&more);
+
+			//param-type,param-type
+			//recursion to get more parameters
+			let more: String = gen_parameters(&["params:",&after_split(&the_params,",")].concat(),called_by);
+
+			//param: type, param: type, param: type
+			new_params.push_str(&name);
+			new_params.push_str(": ");
+			new_params.push_str(&the_type);
+			new_params.push_str(", ");
+			new_params.push_str(&more);
 		}
+		//param-type
 		else if is_in(&the_params,"-") && !is_in(&the_params,",")
 		{
-			let name = before_split(&the_params,"-");
+			name = before_split(&the_params,"-");
 			let the_type = after_split(&the_params,"-");
-			the_params.push_str(&the_type);
-			the_params.push_str(" ");
-			the_params.push_str(&name);
+
+			//param: type
+			new_params.push_str(&name);
+			new_params.push_str(": ");
+			new_params.push_str(&the_type);
 		}
 	}
-	return the_params;
+	return new_params;
 }
 
 //loop:
@@ -554,16 +566,30 @@ fn gen_loop(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 
 	while passed_content != ""
 	{
+		//nest-<type> <other content>
+		//{or}
+		//<other content> nest-<type>
 		if !starts_with(&passed_content, "nest-") && is_in(&passed_content," nest-")
 		{
+			//This section is meant to make sure the recursion is handled correctly
+			//The nested loops and logic statements are split accordingly
+
+			//split string wherever a " nest-" is located
+			//ALL "nest-" are ignored...notice there is no space before the "nest-"
 			let cmds: Vec<&str> = passed_content.split(" nest-").collect();
 			let mut lp = 0;
 			for item in &cmds
 			{
+				//This content will be processed as content for loop
 				if lp == 0
 				{
+					//nest-<type>
+					//{or}
+					//<other content>
 					other_content = item.to_string();
 				}
+				//The remaining content is for the next loop
+				//nest-<type> <other content> nest-<type> <other content>
 				else if lp == 1
 				{
 					new_content.push_str("nest-");
@@ -576,8 +602,11 @@ fn gen_loop(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 				}
 				lp += 1;
 			}
+			//Generate the loop content
 			loop_content.push_str(&gen_code(&new_tabs,&other_content));
+			//The remaning content gets processed
 			passed_content = new_content.to_string();
+			//reset old and new content
 			other_content = "".to_string();
 			new_content = "".to_string();
 		}
@@ -595,16 +624,27 @@ fn gen_loop(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 			}
 			the_condition = gen_conditions(&the_condition,&new_kind);
 		}
+		//stop recursive loop if the next element is a "method" or a "class"
 		else if starts_with(&passed_content, "method") || starts_with(&passed_content, "class")
 		{
 			break;
 		}
+		//nest-<type>
 		else if starts_with(&passed_content, "nest-")
 		{
+			//"nest-loop" becomes ["nest-", "oop"]
+			//{or}
+			//"nest-logic" becomes "nest-", "ogic"]
 			root_tag = before_split(&passed_content,"l");
 			new_root_tag = [" ",&root_tag,"l"].concat();
+			//check of " nest-l" is in content
 			if is_in(&passed_content,&new_root_tag)
 			{
+				//This section is meant to separate the "nest-loop" from the "nest-logic"
+				//loops won't process logic and vise versa
+
+				//split string wherever a " nest-l" is located
+				//ALL "nest-l" are ignored...notice there is no space before the "nest-l"
 				let cmds: Vec<&str> = passed_content.split(&new_root_tag).collect();
 				let mut lp = 0;
 				for item in &cmds
@@ -632,6 +672,8 @@ fn gen_loop(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 					lp += 1;
 				}
 			}
+
+			//no " nest-l" found
 			else
 			{
 				other_content = passed_content.to_string();
@@ -640,25 +682,31 @@ fn gen_loop(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 			passed_content = new_content.to_string();
 			new_content = "".to_string();
 
+			//"nest-loop" and "nest-nest-loop" becomes "loop"
 			while starts_with(&other_content, "nest-")
 			{
 				other_content = after_split(&other_content,"-");
 			}
 			loop_content.push_str(&gen_code(&new_tabs,&other_content));
 		}
+
+		//no nested content
 		else
 		{
 			loop_content.push_str(&gen_code(&new_tabs,&passed_content));
 			passed_content = "".to_string();
 		}
 
+		//no content left to process
 		if the_last
 		{
 			break;
 		}
 
+		//one last thing to process
 		if !is_in(&passed_content," ")
 		{
+			//kill after one more loop
 			the_last = true;
 		}
 	}
@@ -667,9 +715,9 @@ fn gen_loop(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 	if new_kind == "for"
 	{
 		the_complete.push_str(the_tabs);
-		the_complete.push_str("for (");
+		the_complete.push_str("for ");
 		the_complete.push_str(&the_condition);
-		the_complete.push_str(")\n");
+		the_complete.push_str("\n");
 		the_complete.push_str(the_tabs);
 		the_complete.push_str("{\n");
 		the_complete.push_str(&loop_content);
@@ -687,19 +735,28 @@ fn gen_loop(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 		the_complete.push_str(the_tabs);
 		the_complete.push_str("}\n");
 		the_complete.push_str(the_tabs);
-		the_complete.push_str("while (");
+		the_complete.push_str("while ");
 		the_complete.push_str(&the_condition);
-		the_complete.push_str(");\n");
+		the_complete.push_str(";\n");
 	}
-	//loop:while
+	//loop:do/while
+	else if new_kind == "while"
+	{
+		the_complete.push_str(the_tabs);
+		the_complete.push_str("while ");
+		the_complete.push_str(&the_condition);
+		the_complete.push_str("\n");
+		the_complete.push_str(the_tabs);
+		the_complete.push_str("{\n");
+		the_complete.push_str(&loop_content);
+		the_complete.push_str(the_tabs);
+		the_complete.push_str("}\n");
+	}
+	//loop:
 	else
 	{
 		the_complete.push_str(the_tabs);
-		the_complete.push_str("while (");
-		the_complete.push_str(&the_condition);
-		the_complete.push_str(")\n");
-		the_complete.push_str(the_tabs);
-		the_complete.push_str("{\n");
+		the_complete.push_str("loop\n{\n");
 		the_complete.push_str(&loop_content);
 		the_complete.push_str(the_tabs);
 		the_complete.push_str("}\n");
@@ -842,9 +899,9 @@ fn gen_logic(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 	if new_kind == "if"
 	{
 		the_complete.push_str(the_tabs);
-		the_complete.push_str("if (");
+		the_complete.push_str("if ");
 		the_complete.push_str(&the_condition);
-		the_complete.push_str(")\n");
+		the_complete.push_str("\n");
 		the_complete.push_str(the_tabs);
 		the_complete.push_str("{\n");
 		the_complete.push_str(&logic_content);
@@ -854,9 +911,9 @@ fn gen_logic(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 	else if new_kind == "else-if"
 	{
 		the_complete.push_str(the_tabs);
-		the_complete.push_str("else if (");
+		the_complete.push_str("else if ");
 		the_complete.push_str(&the_condition);
-		the_complete.push_str(")\n");
+		the_complete.push_str("\n");
 		the_complete.push_str(the_tabs);
 		the_complete.push_str("{\n");
 		the_complete.push_str(&logic_content);
@@ -1066,9 +1123,10 @@ fn gen_variables(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Stri
 		var_type = String::from(&before_split(&var_type,"="));
 
 		new_var.push_str(the_tabs);
-		new_var.push_str(&var_type);
-		new_var.push_str(" ");
+		new_var.push_str("let ");
 		new_var.push_str(&the_name);
+		new_var.push_str(": ");
+		new_var.push_str(&var_type);
 		new_var.push_str(" = ");
 
 		new_var.push_str(&the_value);
@@ -1097,9 +1155,10 @@ fn gen_variables(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Stri
 		var_type = String::from(&before_split(&var_type,"="));
 
 		new_var.push_str(the_tabs);
-		new_var.push_str(&var_type);
-		new_var.push_str(" ");
+		new_var.push_str("let ");
 		new_var.push_str(&the_name);
+		new_var.push_str(": ");
+		new_var.push_str(&var_type);
 		new_var.push_str(" = ");
 		new_var.push_str(&variable_content);
 	}
