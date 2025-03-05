@@ -3490,6 +3490,11 @@ Actions()
 							--help)
 								HelpMenu ${Lang} "${UserIn[@]}"
 								;;
+							--lines)
+								if [ ! -z "${listSrc}" ]; then
+									ManageLangs ${Lang} "gencodeShow" "${TheSrcCode}"
+								fi
+								;;
 							--keep|--save)
 								if [ ! -z "${listSrc}" ]; then
 									ManageLangs ${Lang} "gencodeSave" "${TheSrcCode}"
@@ -4873,7 +4878,7 @@ loadAuto()
 	comp_list "use" "${pg}"
 	comp_list "project" "build delete discover export files import load list link mode new remove swap select src use save title type update --help"
 	comp_list "package" "get new set list mv move --help"
-	comp_list "gencode" "--help --keep --save"
+	comp_list "gencode" "--help --keep --save --lines"
 	comp_list "shell" "--help"
 	comp_list "time" "--help"
 	comp_list "new" "--version -v --help -h --custom -c --show -s"

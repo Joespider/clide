@@ -356,6 +356,10 @@ void banner()
 	print("Type \"help\" for more information.");
 }
 
+/*
+<<shell>> method:DataType-String logic:if condition:Type\|==\|\"String\" stmt:dtType=\"std::string\"
+*/
+
 String Struct(String TheName, String Content)
 {
 	String Complete = "";
@@ -519,37 +523,50 @@ String Conditions(String input,String CalledBy)
 	Condit = replaceAll(Condit, "|", " ");
 	if (CalledBy == "class")
 	{
-		print("condition: " <<CalledBy);
+		print(Condit);
 	}
 	else if (CalledBy == "method")
 	{
-		print("condition: " <<CalledBy);
+		print(Condit);
 	}
-	else if (CalledBy == "loop")
+	else if ((CalledBy == "loop") || (CalledBy == "logic"))
 	{
-		print("condition: " <<CalledBy);
+		print(Condit);
 	}
 	return Condit;
 }
 
+//params:
 String Parameters(String input,String CalledBy)
 {
 	String Params = AfterSplit(input,':');
 	if ((CalledBy == "class") || (CalledBy == "method") || (CalledBy == "stmt"))
 	{
+		//param-type,param-type,param-type
 		if ((IsIn(Params,"-")) && (IsIn(Params,",")))
 		{
+			//param
 			String Name = BeforeSplit(Params,'-');
+			//type,param-type,param-type
 			String Type = AfterSplit(Params,'-');
+			//type
 			Type = BeforeSplit(Type,',');
+			//param-type,param-type
 			String more = AfterSplit(Params,',');
+
+			//recursion to get more parameters
 			more = Parameters("params:"+more,CalledBy);
+			//type param, type param, type param
 			Params = Type+" "+Name+", "+more;
 		}
+		//param-type
 		else if ((IsIn(Params,"-")) && (!IsIn(Params,",")))
 		{
+			//param
 			String Name = BeforeSplit(Params,'-');
+			//type
 			String Type = AfterSplit(Params,'-');
+			//type param
 			Params = Type+" "+Name;
 		}
 	}
@@ -568,24 +585,41 @@ String Loop(String Tabs, String TheKindType, String Content)
 	String NewContent = "";
 	String OtherContent = "";
 
+	//loop:<type>
 	if (IsIn(TheKindType,":"))
 	{
+		//loop
 		TheKindType = AfterSplit(TheKindType,':');
 	}
 
+	//content for loop
 	while (Content != "")
 	{
+		//nest-<type> <other content>
+		//{or}
+		//<other content> nest-<type>
 		if ((!StartsWith(Content, "nest-")) && (IsIn(Content," nest-")))
 		{
+			//This section is meant to make sure the recursion is handled correctly
+			//The nested loops and logic statements are split accordingly
+
+			//split string wherever a " nest-" is located
+			//ALL "nest-" are ignored...notice there is no space before the "nest-"
 			std::vector<String> all = split(Content," nest-");
 			int end = len(all);
 			int lp = 0;
 			while (lp != end)
 			{
+				//This content will be processed as content for loop
 				if (lp == 0)
 				{
+					//nest-<type>
+					//{or}
+					//<other content>
 					OtherContent = all[lp];
 				}
+				//The remaining content is for the next loop
+				//nest-<type> <other content> nest-<type> <other content>
 				else if (lp == 1)
 				{
 					NewContent = "nest-"+all[lp];
@@ -596,8 +630,11 @@ String Loop(String Tabs, String TheKindType, String Content)
 				}
 				lp++;
 			}
+			//Generate the loop content
 			LoopContent = LoopContent + GenCode(Tabs+"\t",OtherContent);
+			//The remaning content gets processed
 			Content = NewContent;
+			//reset old and new content
 			OtherContent = "";
 			NewContent = "";
 		}
@@ -606,16 +643,26 @@ String Loop(String Tabs, String TheKindType, String Content)
 		{
 			TheCondition = Conditions(Content,TheKindType);
 		}
+		//stop recursive loop if the next element is a "method" or a "class"
 		else if ((StartsWith(Content, "method")) || (StartsWith(Content, "class")))
 		{
 			break;
 		}
-		//nest-loop:
+		//nest-<type>
 		else if (StartsWith(Content, "nest-"))
 		{
+			//"nest-loop" becomes ["nest-", "oop"]
+			//{or}
+			//"nest-logic" becomes ["nest-", "ogic"]
 			RootTag = BeforeSplit(Content,'l');
+			//check of " nest-l" is in content
 			if (IsIn(Content," "+RootTag+"l"))
 			{
+				//This section is meant to separate the "nest-loop" from the "nest-logic"
+				//loops won't process logic and vise versa
+
+				//split string wherever a " nest-l" is located
+				//ALL "nest-l" are ignored...notice there is no space before the "nest-l"
 				std::vector<String> cmds = split(Content," "+RootTag+"l");
 				int end = len(cmds);
 				int lp = 0;
@@ -639,6 +686,8 @@ String Loop(String Tabs, String TheKindType, String Content)
 					lp++;
 				}
 			}
+
+			//no " nest-l" found
 			else
 			{
 				OtherContent = Content;
@@ -647,28 +696,35 @@ String Loop(String Tabs, String TheKindType, String Content)
 			Content = NewContent;
 			NewContent = "";
 
+			//"nest-loop" and "nest-nest-loop" becomes "loop"
 			while (StartsWith(OtherContent, "nest-"))
 			{
 				OtherContent = AfterSplit(OtherContent,'-');
 			}
 			LoopContent = LoopContent + GenCode(Tabs+"\t",OtherContent);
 		}
+
+		//no nested content
 		else
 		{
 			LoopContent = LoopContent + GenCode(Tabs+"\t",Content);
 			Content = "";
 		}
 
+		//no content left to process
 		if (Last)
 		{
 			break;
 		}
 
+		//one last thing to process
 		if (!IsIn(Content," "))
 		{
+			//kill after one more loop
 			Last = true;
 		}
 	}
+
 	//loop:for
 	if (TheKindType == "for")
 	{

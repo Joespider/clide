@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.97"
+SupportV="0.1.98"
 Lang=Go
 LangExt=".go"
 #Color Green
@@ -132,6 +132,12 @@ UseGo()
 			;;
 		getShellCode)
 			echo ${ShellCodeSrc}
+			;;
+		gencodeShow)
+			local TheCode=${1}
+			TheCode=$(UseGo "removeExt" ${TheCode})
+			TheCode=$(UseGo "FindTheSrc" ${TheCode})
+			cat -n ${TheCode} | grep "<<shell>>"
 			;;
 		gencodeSave)
 			local HasSponge

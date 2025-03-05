@@ -263,7 +263,7 @@ def Method(Tabs, Name, Content, CalledBy):
 		Params = "self"
 
 	if MethodContent != "":
-		Complete = Tabs+"def "+TheName+"("+Params+"):\n"+MethodContent+"\n"
+		Complete = Tabs+"def "+TheName+"("+Params+"):\n"+MethodContent+"\n\treturn TheReturn"
 	else:
 		Complete = Tabs+"def "+TheName+"("+Params+"):\n"+Tabs+"\t"+GenCode("","stmt:comment")+"\n"+"\n"
 
@@ -281,22 +281,27 @@ def Conditions(input,CalledBy):
 
 	return Condit
 
+#params:
 def Parameters(input, CalledBy):
 	Params = AfterSplit(input,":")
 	if CalledBy == "class" or CalledBy == "method" or CalledBy == "stmt":
+		#param-type,param-type,param-type
 		if IsIn(Params,"-") and IsIn(Params,","):
+			#param
 			Name = BeforeSplit(Params,"-")
-			Type = AfterSplit(Params,"-")
-			Type = BeforeSplit(Type,",")
+			#param-type,param-type
 			more = AfterSplit(Params,",")
+			#recursion to get more parameters
 			more = Parameters("params:"+more,CalledBy)
-			#Params = Type+" "+Name+", "+more
+			#param, param, param
 			Params = Name+", "+more
+		#param-type
 		elif IsIn(Params,"-") and not IsIn(Params,","):
-			Name = BeforeSplit(Params,"-")
-			Type = AfterSplit(Params,"-")
-			#Params = Type+" "+Name
-			Params = Name
+			#param
+			Params = BeforeSplit(Params,"-")
+		#param
+		#No code is needed to handle no data type
+
 	return Params
 
 #loop:

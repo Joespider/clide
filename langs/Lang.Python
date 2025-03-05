@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.2.20"
+SupportV="0.2.21"
 Lang=Python
 LangExt=".py"
 #Color Yellow
@@ -129,6 +129,12 @@ UsePython()
 			;;
 		getShellCode)
 			echo ${ShellCodeSrc}
+			;;
+		gencodeShow)
+			local TheCode=${1}
+			TheCode=$(UsePython "removeExt" ${TheCode})
+			TheCode=$(UsePython "FindTheSrc" ${TheCode})
+			cat -n ${TheCode} | grep "<<shell>>"
 			;;
 		gencodeSave)
 			local HasSponge

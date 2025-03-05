@@ -12,7 +12,7 @@ import java.io.IOException;
 
 //class name
 public class shell {
-	private static String Version = "0.0.24";
+	private static String Version = "0.0.25";
 	private static String TheKind = "";
 	private static String TheName = "";
 	private static String TheKindType = "";
@@ -413,23 +413,35 @@ public class shell {
 		return Params;
 	}
 
+	//params:
 	private static String Parameters(String input,String CalledBy)
 	{
 		String Params = AfterSplit(input,":");
 		if ((CalledBy.equals("class")) || (CalledBy.equals("method")))
 		{
+			//param-type,param-type,param-type
 			if ((IsIn(Params,"-")) && (IsIn(Params,",")))
 			{
+				//param
 				String Name = BeforeSplit(Params,"-");
+				//type,param-type,param-type
 				String Type = AfterSplit(Params,"-");
+				//type
 				Type = BeforeSplit(Type,",");
+				//param-type,param-type
+				//recursion to get more parameters
 				String more = Parameters("params:"+AfterSplit(Params,","),CalledBy);
+				//type param, type param, type param
 				Params = Type+" "+Name+", "+more;
 			}
+			//param-type
 			else if ((IsIn(Params,"-")) && (!IsIn(Params,",")))
 			{
+				//param
 				String Name = BeforeSplit(Params,"-");
+				//type
 				String Type = AfterSplit(Params,"-");
+				//type param
 				Params = Type+" "+Name;
 			}
 		}
@@ -450,8 +462,10 @@ public class shell {
 		StringBuilder NewContent = new StringBuilder("");
 		String OtherContent = "";
 
+		//loop:<type>
 		if (IsIn(TheKindType,":"))
 		{
+			//loop
 			TheKindType = AfterSplit(TheKindType,":");
 		}
 
@@ -461,19 +475,34 @@ public class shell {
 			Type = AfterSplit(TheKindType,"-");
 		}
 
+		//content for loop
 		while (!Content.equals(""))
 		{
+			//nest-<type> <other content>
+			//{or}
+			//<other content> nest-<type>
 			if ((!StartsWith(Content, "nest-")) && (IsIn(Content," nest-")))
 			{
+				//This section is meant to make sure the recursion is handled correctly
+				//The nested loops and logic statements are split accordingly
+
+				//split string wherever a " nest-" is located
+				//ALL "nest-" are ignored...notice there is no space before the "nest-"
 				String[] all = split(Content," nest-");
 				int end = len(all);
 				int lp = 0;
 				while (lp != end)
 				{
+					//This content will be processed as content for loop
 					if (lp == 0)
 					{
+						//nest-<type>
+						//{or}
+						//<other content>
 						OtherContent = all[lp];
 					}
+					//The remaining content is for the next loop
+					//nest-<type> <other content> nest-<type> <other content>
 					else if (lp == 1)
 					{
 						NewContent.append("nest-"+all[lp]);
@@ -484,8 +513,11 @@ public class shell {
 					}
 					lp++;
 				}
+				//Generate the loop content
 				LoopContent.append(GenCode(Tabs+"\t",OtherContent));
+				//The remaning content gets processed
 				Content = NewContent.toString();
+				//reset old and new content
 				OtherContent = "";
 				NewContent = new StringBuilder("");
 			}
@@ -494,6 +526,7 @@ public class shell {
 			{
 				TheCondition = Conditions(Content,TheKindType);
 			}
+			//stop recursive loop if the next element is a "method" or a "class"
 			else if ((StartsWith(Content, "method")) || (StartsWith(Content, "class")))
 			{
 				break;
@@ -501,9 +534,18 @@ public class shell {
 			//nest-loop:
 			else if (StartsWith(Content, "nest-"))
 			{
+				//"nest-loop" becomes ["nest-", "oop"]
+				//{or}
+				//"nest-logic" becomes ["nest-", "ogic"]
 				RootTag = BeforeSplit(Content,"l");
+				//check of " nest-l" is in content
 				if (IsIn(Content," "+RootTag+"l"))
 				{
+					//This section is meant to separate the "nest-loop" from the "nest-logic"
+					//loops won't process logic and vise versa
+
+					//split string wherever a " nest-l" is located
+					//ALL "nest-l" are ignored...notice there is no space before the "nest-l"
 					String[] cmds = split(Content," "+RootTag+"l");
 					int end = len(cmds);
 					int lp = 0;
@@ -527,6 +569,7 @@ public class shell {
 						lp++;
 					}
 				}
+				//no " nest-l" found
 				else
 				{
 					OtherContent = Content;
@@ -534,26 +577,31 @@ public class shell {
 
 				Content = NewContent.toString();
 				NewContent = new StringBuilder("");
-
+				//"nest-loop" and "nest-nest-loop" becomes "loop"
 				while (StartsWith(OtherContent, "nest-"))
 				{
 					OtherContent = AfterSplit(OtherContent,"-");
 				}
 				LoopContent.append(GenCode(Tabs+"\t",OtherContent));
 			}
+
+			//no nested content
 			else
 			{
 				LoopContent.append(GenCode(Tabs+"\t",Content));
 				Content = "";
 			}
 
+			//no content left to process
 			if (Last)
 			{
 				break;
 			}
 
+			//one last thing to process
 			if (!IsIn(Content," "))
 			{
+				//kill after one more loop
 				Last = true;
 			}
 		}

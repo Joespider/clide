@@ -4,7 +4,7 @@
 #Link Libs: https://gist.github.com/gubatron/32f82053596c24b6bec6
 #both https://avikdas.com/2019/12/16/makefiles-for-c-cpp-projects.html
 
-SupportV="0.2.68"
+SupportV="0.2.69"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -161,6 +161,12 @@ UseC++()
 			;;
 		getShellCode)
 			echo ${ShellCodeSrc}
+			;;
+		gencodeShow)
+			local TheCode=${1}
+			TheCode=$(UseC++ "removeExt" ${TheCode})
+			TheCode=$(UseC++ "FindTheSrc" ${TheCode})
+			cat -n ${TheCode} | grep "<<shell>>"
 			;;
 		gencodeSave)
 			local HasSponge

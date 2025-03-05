@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.99"
+SupportV="0.2.0"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
@@ -134,6 +134,12 @@ UseC()
 			;;
 		getShellCode)
 			echo ${ShellCodeSrc}
+			;;
+		gencodeShow)
+			local TheCode=${1}
+			TheCode=$(UseC "removeExt" ${TheCode})
+			TheCode=$(UseC "FindTheSrc" ${TheCode})
+			cat -n ${TheCode} | grep "<<shell>>"
 			;;
 		gencodeSave)
 			local HasSponge
