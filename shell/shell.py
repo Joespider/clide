@@ -2,7 +2,7 @@ import os
 import sys
 import platform
 
-Version = "0.0.4"
+Version = "0.0.5"
 
 def getOS():
 	platform.system()
@@ -602,8 +602,10 @@ def Variables(Tabs, TheKindType, Content):
 #		VariableContent = VariableContent + GenCode(Tabs,Content)
 #		Content = AfterSplit(Content," ")
 
-		OtherContent = BeforeSplit(Content," ")
-		Content = AfterSplit(Content," ")
+		if IsIn(Content," "):
+			OtherContent = BeforeSplit(Content," ")
+			Content = AfterSplit(Content," ")
+
 		if StartsWith(Content, "params"):
 			OtherContent = OtherContent+" "+BeforeSplit(Content," ")
 			Content = AfterSplit(Content," ")

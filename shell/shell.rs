@@ -259,7 +259,7 @@ fn banner()
 {
 	let cpl_version = get_cpl_version();
 	let the_os = get_os();
-	let version = "0.0.10";
+	let version = "0.0.12";
 	println!("{}",cpl_version);
 	println!("[Rust {}] on {}",version,the_os);
 	println!("Type \"help\" for more information.");
@@ -380,6 +380,7 @@ fn gen_class(the_name: &str, the_content: &str) -> String
 	return the_complete;
 }
 
+//method:
 fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 {
 	let new_tabs = [the_tabs,"\t"].concat();
@@ -393,13 +394,17 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 	let mut the_process = String::new();
 	let mut passed_content = the_content.to_string();
 
+	//method:<name>-<type>
 	if is_in(&new_name,"-")
 	{
+		//get method name
 		the_name = before_split(&new_name,"-");
 		the_type.push_str(&after_split(&new_name,"-"));
 	}
+	//method:<name>
 	else
 	{
+		//get method name
 		the_name = new_name.clone();
 	}
 
@@ -417,14 +422,18 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 			}
 			the_params = gen_parameters(&the_process,"method");
 		}
+		//ignore content if calling a "method" or a "class"
 		else if starts_with(&passed_content, "method") || starts_with(&passed_content, "class")
 		{
 			break;
 		}
 		else
 		{
+			//This is called when a called from the "class" method        
+			// EX: class:name method:first method:second
 			if is_in(&passed_content," method")
 			{
+				//Only account for the first method content
 				let cmds: Vec<&str> = passed_content.split(" method").collect();
 				passed_content = cmds[0].to_string();
 			}
@@ -441,6 +450,7 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 		}
 	}
 
+	//build method based on content
 	if the_type == "" || the_type == "void"
 	{
 		the_complete.push_str(the_tabs);
@@ -1037,12 +1047,6 @@ fn gen_statements(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Str
 			}
 			the_params = gen_parameters(&the_process,"stmt");
 		}
-		else
-		{
-			other_content = before_split(&passed_content," ");
-			statement_content.push_str(&gen_code(the_tabs,&other_content));
-			passed_content = after_split(&passed_content," ");
-		}
 
 		if the_last
 		{
@@ -1052,6 +1056,12 @@ fn gen_statements(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Str
 		{
 			statement_content.push_str(&gen_code(the_tabs,&passed_content));
 			the_last = true;
+		}
+		else
+		{
+			other_content = before_split(&passed_content," ");
+			statement_content.push_str(&gen_code(the_tabs,&other_content));
+			passed_content = after_split(&passed_content," ");
 		}
 	}
 	if the_name == "method"
@@ -1087,20 +1097,17 @@ fn gen_variables(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Stri
 	let the_value: String;
 //	let the_new_content = String::new();
 	let mut variable_content = String::new();
-	let mut the_other_content: String;
+	let mut the_other_content = String::from("");
 	let mut passed_content = the_content.to_string();
 
 	while passed_content != ""
 	{
-		the_other_content = String::from(&before_split(&passed_content," "));
-		passed_content = after_split(&passed_content," ");
 		if starts_with(&passed_content, "params")
 		{
 			the_other_content.push_str(" ");
 			the_other_content.push_str(&before_split(&passed_content," "));
 			passed_content = after_split(&passed_content," ");
 		}
-		variable_content.push_str(&gen_code(the_tabs,&the_other_content));
 
 		if the_last
 		{
@@ -1111,6 +1118,12 @@ fn gen_variables(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Stri
 		{
 			variable_content.push_str(&gen_code(the_tabs,&passed_content));
 			the_last = true;
+		}
+		else
+		{
+			the_other_content = String::from(&before_split(&passed_content," "));
+			variable_content.push_str(&gen_code(the_tabs,&the_other_content));
+			passed_content = after_split(&passed_content," ");
 		}
 	}
 	//var:name-dataType=Value

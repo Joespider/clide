@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.0.57";
+String Version = "0.0.62";
 
 String getOS();
 void Help(String Type);
@@ -125,6 +125,7 @@ void Help(String Type)
 	else if (Type == "stmt")
 	{
 		print(Type+":<type>");
+		print(Type+":method\t\tcall a method");
 		print(Type+":endline\t\tPlace the \";\" at the end of the statement");
 		print(Type+":newline\t\tPlace and empty line");
 		print(Type+":method-<name>\tcall a method and the name of the method");
@@ -357,7 +358,7 @@ void banner()
 }
 
 /*
-<<shell>> method:DataType-String logic:if condition:Type\|==\|\"String\" stmt:dtType=\"std::string\"
+<<shell>> method:DataType-String logic:if condition:Type|==|"String" var:dtType-std::string stmt:endline stmt:newline
 */
 
 String Struct(String TheName, String Content)
@@ -375,6 +376,7 @@ String Struct(String TheName, String Content)
 	Complete = "struct {\n"+StructVar+"\n} "+TheName+";\n";
 	return Complete;
 }
+
 
 String Class(String TheName, String Content)
 {
@@ -447,24 +449,29 @@ String Class(String TheName, String Content)
 	return Complete;
 }
 
+//method:
 String Method(String Tabs, String Name, String Content)
 {
+	bool Last = false;
 	String Complete = "";
 	Name = AfterSplit(Name,':');
 	String TheName = "";
 	String Type = "";
 	String Params = "";
 	String MethodContent = "";
-//	String LastComp = "";
 	String Process = "";
 
+	//method:<name>-<type>
 	if (IsIn(Name,"-"))
 	{
+		//get method name
 		TheName = BeforeSplit(Name,'-');
 		Type = AfterSplit(Name,'-');
 	}
+	//method:<name>
 	else
 	{
+		//get method name
 		TheName = Name;
 	}
 
@@ -482,18 +489,33 @@ String Method(String Tabs, String Name, String Content)
 			}
 			Params =  Parameters(Process,"method");
 		}
+		//ignore content if calling a "method" or a "class"
 		else if ((StartsWith(Content, "method")) || (StartsWith(Content, "class")))
 		{
 			break;
 		}
 		else
 		{
+			//This is called when a called from the "class" method
+			// EX: class:name method:first method:second
 			if (IsIn(Content," method"))
 			{
+				//Only account for the first method content
 				std::vector<String> cmds = split(Content," method");
 				Content = cmds[0];
 			}
 			MethodContent = MethodContent + GenCode(Tabs+"\t",Content);
+//			print(Content);
+			/*
+			Uuncommenting the line below does fix a problem, however this breaks any
+			content that could be in a method. This May or May Not be an issue. TBD
+			*/
+//			Content = "";
+		}
+
+		if (Last)
+		{
+			break;
 		}
 
 		if (IsIn(Content," "))
@@ -502,10 +524,12 @@ String Method(String Tabs, String Name, String Content)
 		}
 		else
 		{
-			break;
+			Content = "";
+			Last = true;
 		}
 	}
 
+	//build method based on content
 	if ((Type == "") || (Type == "void"))
 	{
 		Complete = Tabs+"void "+TheName + "("+Params+")\n"+Tabs+"{\n"+MethodContent+"\n"+Tabs+"}\n";
@@ -579,7 +603,6 @@ String Loop(String Tabs, String TheKindType, String Content)
 	bool Last = false;
 	String Complete = "";
 	String RootTag = "";
-//	String Type = "";
 	String TheCondition = "";
 	String LoopContent = "";
 	String NewContent = "";
@@ -595,6 +618,20 @@ String Loop(String Tabs, String TheKindType, String Content)
 	//content for loop
 	while (Content != "")
 	{
+		if (StartsWith(Content, "condition"))
+		{
+			if (IsIn(Content," "))
+			{
+				TheCondition = BeforeSplit(Content,' ');
+				Content = AfterSplit(Content,' ');
+			}
+			else
+			{
+				TheCondition = Content;
+			}
+			TheCondition = Conditions(TheCondition,TheKindType);
+		}
+
 		//nest-<type> <other content>
 		//{or}
 		//<other content> nest-<type>
@@ -639,12 +676,8 @@ String Loop(String Tabs, String TheKindType, String Content)
 			NewContent = "";
 		}
 
-		if (StartsWith(Content, "condition"))
-		{
-			TheCondition = Conditions(Content,TheKindType);
-		}
 		//stop recursive loop if the next element is a "method" or a "class"
-		else if ((StartsWith(Content, "method")) || (StartsWith(Content, "class")))
+		if ((StartsWith(Content, "method")) || (StartsWith(Content, "class")))
 		{
 			break;
 		}
@@ -694,20 +727,32 @@ String Loop(String Tabs, String TheKindType, String Content)
 			}
 
 			Content = NewContent;
-			NewContent = "";
 
 			//"nest-loop" and "nest-nest-loop" becomes "loop"
 			while (StartsWith(OtherContent, "nest-"))
 			{
 				OtherContent = AfterSplit(OtherContent,'-');
 			}
+
 			LoopContent = LoopContent + GenCode(Tabs+"\t",OtherContent);
+			//nest-stmt: or nest-var:
+			if (StartsWith(OtherContent, "stmt:") || (StartsWith(OtherContent, "var:")))
+			{
+				/*
+				This code works, however, it does mean that parent recursion
+				does not have any content. Only nested statements give content to
+				*/
+				OtherContent = "";
+				Content = "";
+			}
+
+			NewContent = "";
 		}
 
 		//no nested content
 		else
 		{
-			LoopContent = LoopContent + GenCode(Tabs+"\t",Content);
+//			LoopContent = LoopContent + GenCode(Tabs+"\t",Content);
 			Content = "";
 		}
 
@@ -760,6 +805,21 @@ String Logic(String Tabs, String TheKindType, String Content)
 	}
 	while (Content != "")
 	{
+		if (StartsWith(Content, "condition"))
+		{
+			if (IsIn(Content," "))
+			{
+				TheCondition = BeforeSplit(Content,' ');
+				Content = AfterSplit(Content,' ');
+			}
+			else
+			{
+				TheCondition = Content;
+			}
+			TheCondition = Conditions(TheCondition,TheKindType);
+		}
+
+		//This part of the code is meant to separate the nested content with the current content
 		if ((!StartsWith(Content, "nest-")) && (IsIn(Content," nest-")))
 		{
 			std::vector<String> all = split(Content," nest-");
@@ -781,34 +841,24 @@ String Logic(String Tabs, String TheKindType, String Content)
 				}
 				lp++;
 			}
+			//Process the current content so as to keep from redoing said content
 			LogicContent = LogicContent + GenCode(Tabs+"\t",OtherContent);
 			Content = NewContent;
 			OtherContent = "";
 			NewContent = "";
 		}
 
-		if (StartsWith(Content, "condition"))
-		{
-			if (IsIn(Content," "))
-			{
-				TheCondition = BeforeSplit(Content,' ');
-				Content = AfterSplit(Content,' ');
-			}
-			else
-			{
-				TheCondition = Content;
-			}
-			TheCondition = Conditions(TheCondition,TheKindType);
-		}
-		else if ((StartsWith(Content, "method")) || (StartsWith(Content, "class")))
+		if ((StartsWith(Content, "method")) || (StartsWith(Content, "class")))
 		{
 			break;
 		}
+		//This is to handle nested loops and logic
 		else if (StartsWith(Content, "nest-"))
 		{
 			RootTag = BeforeSplit(Content,'l');
 			if (IsIn(Content," "+RootTag+"l"))
 			{
+				//split up the loops and logic accordingly
 				std::vector<String> cmds = split(Content," "+RootTag+"l");
 				int end = len(cmds);
 				int lp = 0;
@@ -838,17 +888,29 @@ String Logic(String Tabs, String TheKindType, String Content)
 			}
 
 			Content = NewContent;
-			NewContent = "";
 
 			while (StartsWith(OtherContent, "nest-"))
 			{
 				OtherContent = AfterSplit(OtherContent,'-');
 			}
+
 			LogicContent = LogicContent + GenCode(Tabs+"\t",OtherContent);
+			//nest-stmt: or nest-var:
+			if (StartsWith(OtherContent, "stmt:") || (StartsWith(OtherContent, "var:")))
+			{
+				/*
+				This code works, however, it does mean that parent recursion
+				does not have any content. Only nested statements give content to
+				*/
+				OtherContent = "";
+				Content = "";
+			}
+
+			NewContent = "";
 		}
 		else
 		{
-			LogicContent = LogicContent + GenCode(Tabs+"\t",Content);
+//			LogicContent = LogicContent + GenCode(Tabs+"\t",Content);
 			Content = "";
 		}
 
@@ -933,6 +995,7 @@ String Statements(String Tabs, String TheKindType, String Content)
 
 	while (Content != "")
 	{
+		//This handles the parameters of the statements
 		if ((StartsWith(Content, "params")) && (Params == ""))
 		{
 			if (IsIn(Content," "))
@@ -945,23 +1008,30 @@ String Statements(String Tabs, String TheKindType, String Content)
 			}
 			Params =  Parameters(Process,"stmt");
 		}
+
+		if (Last)
+		{
+			break;
+		}
+
+		while (StartsWith(Content, "nest-"))
+		{
+			Content = AfterSplit(Content,'-');
+		}
+
+		if (!IsIn(Content," "))
+		{
+			StatementContent = StatementContent + GenCode(Tabs,Content);
+			Last = true;
+		}
 		else
 		{
 			OtherContent = BeforeSplit(Content,' ');
 			StatementContent = StatementContent + GenCode(Tabs,OtherContent);
 			Content = AfterSplit(Content,' ');
 		}
-
-		if (Last)
-		{
-			break;
-		}
-		if (!IsIn(Content," "))
-		{
-			StatementContent = StatementContent + GenCode(Tabs,Content);
-			Last = true;
-		}
 	}
+
 	if (TheName == "method")
 	{
 		Complete = Name+"("+Params+")"+StatementContent;
@@ -991,30 +1061,38 @@ String Variables(String Tabs, String TheKindType, String Content)
 	String Name = "";
 	String VarType = "";
 	String Value = "";
-//	String NewContent = "";
 	String VariableContent = "";
 	String OtherContent = "";
 
 	while (Content != "")
 	{
-		OtherContent = BeforeSplit(Content,' ');
-		Content = AfterSplit(Content,' ');
 		if (StartsWith(Content, "params"))
 		{
 			OtherContent = OtherContent+" "+BeforeSplit(Content,' ');
 			Content = AfterSplit(Content,' ');
 		}
-		VariableContent = VariableContent + GenCode(Tabs,OtherContent);
 
 		if (Last)
 		{
 			break;
 		}
 
+		while (StartsWith(Content, "nest-"))
+		{
+			Content = AfterSplit(Content,'-');
+		}
+
+//		print(OtherContent);
 		if (!IsIn(Content," "))
 		{
 			VariableContent = VariableContent + GenCode(Tabs,Content);
 			Last = true;
+		}
+		else
+		{
+			OtherContent = BeforeSplit(Content,' ');
+			VariableContent = VariableContent + GenCode(Tabs,OtherContent);
+			Content = AfterSplit(Content,' ');
 		}
 	}
 	//var:name-dataType=Value
@@ -1115,7 +1193,7 @@ String GenCode(String Tabs,String GetMe)
 /*
 	else if (StartsWith(Args[0], "condition"))
 	{
-		TheCode = Conditions(Args[0]);
+		TheCode = Conditions(Args[0], Args[1]);
 	}
 	else if (StartsWith(Args[0], "params"))
 	{

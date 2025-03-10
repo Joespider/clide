@@ -195,7 +195,7 @@ func replaceAll(Str string, sBy string, ToJoin string) string {
 func banner() {
 	var cplV string = getCplV()
 	var theOS string = getOS()
-	var Version string = "0.0.4"
+	var Version string = "0.0.5"
 	fmt.Println(cplV)
 	fmt.Println("[Go " + Version +"] on " + theOS)
 	fmt.Println("Type \"help\" for more information.")
@@ -720,13 +720,11 @@ func Variables(Tabs string, TheKindType string, Content string) string {
 	var OtherContent string
 
 	for Content != "" {
-		OtherContent = BeforeSplit(Content," ")
-		Content = AfterSplit(Content," ")
+
 		if StartsWith(Content, "params") {
 			OtherContent = OtherContent+" "+BeforeSplit(Content," ")
 			Content = AfterSplit(Content," ")
 		}
-		VariableContent = VariableContent + GenCode(Tabs,OtherContent)
 
 		if Last {
 			break
@@ -735,6 +733,10 @@ func Variables(Tabs string, TheKindType string, Content string) string {
 		if !IsIn(Content," ") {
 			VariableContent = VariableContent + GenCode(Tabs,Content)
 			Last = true
+		} else {
+			OtherContent = BeforeSplit(Content," ")
+			VariableContent = VariableContent + GenCode(Tabs,OtherContent)
+			Content = AfterSplit(Content," ")
 		}
 	}
 	//var:name-dataType=Value

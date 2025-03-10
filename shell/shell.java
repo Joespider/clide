@@ -12,7 +12,7 @@ import java.io.IOException;
 
 //class name
 public class shell {
-	private static String Version = "0.0.25";
+	private static String Version = "0.0.27";
 	private static String TheKind = "";
 	private static String TheName = "";
 	private static String TheKindType = "";
@@ -890,14 +890,11 @@ public class shell {
 			Content = AfterSplit(Content," ");
 */
 
-			OtherContent = new StringBuilder(BeforeSplit(Content," "));
-			Content = AfterSplit(Content," ");
 			if (StartsWith(Content, "params"))
 			{
 				OtherContent.append(" "+BeforeSplit(Content," "));
 				Content = AfterSplit(Content," ");
 			}
-			VariableContent.append(GenCode(Tabs,OtherContent.toString()));
 
 			if (Last)
 			{
@@ -908,6 +905,12 @@ public class shell {
 			{
 				VariableContent.append(GenCode(Tabs,Content));
 				Last = true;
+			}
+			else
+			{
+				OtherContent = new StringBuilder(BeforeSplit(Content," "));
+				VariableContent.append(GenCode(Tabs,OtherContent.toString()));
+				Content = AfterSplit(Content," ");
 			}
 		}
 		//var:name-dataType=Value
