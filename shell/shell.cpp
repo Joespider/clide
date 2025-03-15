@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.0.63";
+String Version = "0.0.65";
 
 String getOS();
 void Help(String Type);
@@ -90,6 +90,8 @@ void Help(String Type)
 	{
 		print(Type+"(public/private):<name>-<type> param:<params>,<param>");
 		print(Type+":<name>-<type> param:<params>,<param>");
+		print(Type+":<name>-<type> param:<params>,<param> var:<name>-type stmt:<name>-<type>");
+		print(Type+":<name>-<type> param:<params>,<param> method-var:<name>-type method-stmt:<name>-<type>");
 	}
 	else if (Type == "loop")
 	{
@@ -99,7 +101,6 @@ void Help(String Type)
 		print(Type+":for");
 		print(Type+":do/while");
 		print(Type+":while");
-
 	}
 	else if (Type == "logic")
 	{
@@ -141,6 +142,7 @@ void Help(String Type)
 		print("var\t\t:\t\"Create a variable\"");
 		print("stmt\t\t:\t\"Create a statment\"");
 		print("nest-<type>\t:\t\"next element is nested in previous element\"");
+		print("method-<type>\t:\t\"assigne the next element to method content only\"");
 		print("");
 		print("help:<type>");
 	}
@@ -387,6 +389,17 @@ EX:  method:<name> method-var:length method-stmt:method-help logic:if logic-var:
 */
 
 
+String ReplaceTag(String Content, String Tag)
+{
+	//Parse Content as long as there is a Tag found at the beginning
+	if (StartsWith(Content, Tag))
+	{
+		//removing tag
+		Content = AfterSplit(Content,'-');
+	}
+	return Content;
+}
+
 void banner()
 {
 	String cplV = getCplV();
@@ -443,7 +456,7 @@ String Class(String TheName, String Content)
 			Process = BeforeSplit(Content,' ');
 			Params =  Parameters(Process,"class");
 		}
-		else if (StartsWith(Content, "method"))
+		else if (StartsWith(Content, "method:"))
 		{
 			ClassContent = ClassContent + GenCode("\t",Content);
 		}
@@ -492,12 +505,15 @@ String Class(String TheName, String Content)
 String Method(String Tabs, String Name, String Content)
 {
 	bool Last = false;
+	bool CanSplit = true;
 	String Complete = "";
 	Name = AfterSplit(Name,':');
 	String TheName = "";
 	String Type = "";
 	String Params = "";
 	String MethodContent = "";
+	String OtherContent = "";
+	String NewContent = "";
 	String Process = "";
 
 	//method:<name>-<type>
@@ -529,7 +545,7 @@ String Method(String Tabs, String Name, String Content)
 			Params =  Parameters(Process,"method");
 		}
 		//ignore content if calling a "method" or a "class"
-		else if ((StartsWith(Content, "method")) || (StartsWith(Content, "class")))
+		else if ((StartsWith(Content, "method:")) || (StartsWith(Content, "class:")))
 		{
 			break;
 		}
@@ -537,21 +553,51 @@ String Method(String Tabs, String Name, String Content)
 		{
 			//This is called when a called from the "class" method
 			// EX: class:name method:first method:second
-			if (IsIn(Content," method"))
+			if (IsIn(Content," method:"))
 			{
 				//Only account for the first method content
-				std::vector<String> cmds = split(Content," method");
+				std::vector<String> cmds = split(Content," method:");
 				Content = cmds[0];
 			}
-			MethodContent = MethodContent + GenCode(Tabs+"\t",Content);
-//			print(Content);
-			/*
-			Uuncommenting the line below does fix a problem, however this breaks any
-			content that could be in a method. This May or May Not be an issue. TBD
-			*/
-//			Content = "";
-		}
 
+			if (IsIn(Content," method-"))
+			{
+				std::vector<String> all = split(Content," method-");
+				bool noMore = false;
+				int end = len(all);
+				int lp = 0;
+				while (lp != end)
+				{
+					if (lp == 0)
+					{
+						OtherContent = all[lp];
+					}
+					else if (lp == 1)
+					{
+						NewContent = all[lp];
+					}
+					else
+					{
+						NewContent = NewContent + " "+all[lp];
+					}
+					lp++;
+				}
+//				OtherContent = ReplaceTag(OtherContent, "method-");
+				CanSplit = false;
+			}
+			else
+			{
+				OtherContent = Content;
+				CanSplit = true;
+			}
+			OtherContent = ReplaceTag(OtherContent, "method-");
+
+			MethodContent = MethodContent + GenCode(Tabs+"\t",OtherContent);
+			Content = NewContent;
+
+			OtherContent = "";
+			NewContent = "";
+		}
 		if (Last)
 		{
 			break;
@@ -559,7 +605,10 @@ String Method(String Tabs, String Name, String Content)
 
 		if (IsIn(Content," "))
 		{
-			Content = AfterSplit(Content,' ');
+			if (CanSplit)
+			{
+				Content = AfterSplit(Content,' ');
+			}
 		}
 		else
 		{
@@ -716,7 +765,7 @@ String Loop(String Tabs, String TheKindType, String Content)
 		}
 
 		//stop recursive loop if the next element is a "method" or a "class"
-		if ((StartsWith(Content, "method")) || (StartsWith(Content, "class")))
+		if ((StartsWith(Content, "method:")) || (StartsWith(Content, "class:")))
 		{
 			break;
 		}
@@ -831,6 +880,7 @@ String Loop(String Tabs, String TheKindType, String Content)
 String Logic(String Tabs, String TheKindType, String Content)
 {
 	bool Last = false;
+//	bool CanSplit = true;
 	String Complete = "";
 	String RootTag = "";
 	String TheCondition = "";
@@ -887,7 +937,7 @@ String Logic(String Tabs, String TheKindType, String Content)
 			NewContent = "";
 		}
 
-		if ((StartsWith(Content, "method")) || (StartsWith(Content, "class")))
+		if ((StartsWith(Content, "method:")) || (StartsWith(Content, "class:")))
 		{
 			break;
 		}
@@ -949,7 +999,6 @@ String Logic(String Tabs, String TheKindType, String Content)
 		}
 		else
 		{
-//			LogicContent = LogicContent + GenCode(Tabs+"\t",Content);
 			Content = "";
 		}
 
@@ -1201,31 +1250,31 @@ String GenCode(String Tabs,String GetMe)
 		Args[1] = "";
 	}
 
-	if (StartsWith(Args[0], "class"))
+	if (StartsWith(Args[0], "class:"))
 	{
 		TheCode = Class(Args[0],Args[1]);
 	}
-	else if (StartsWith(Args[0], "struct"))
+	else if (StartsWith(Args[0], "struct:"))
 	{
 		TheCode = Struct(Args[0],Args[1]);
 	}
-	else if (StartsWith(Args[0], "method"))
+	else if (StartsWith(Args[0], "method:"))
 	{
 		TheCode = Method(Tabs,Args[0],Args[1]);
 	}
-	else if (StartsWith(Args[0], "loop"))
+	else if (StartsWith(Args[0], "loop:"))
 	{
 		TheCode = Loop(Tabs,Args[0],Args[1]);
 	}
-	else if (StartsWith(Args[0], "logic"))
+	else if (StartsWith(Args[0], "logic:"))
 	{
 		TheCode = Logic(Tabs,Args[0],Args[1]);
 	}
-	else if (StartsWith(Args[0], "var"))
+	else if (StartsWith(Args[0], "var:"))
 	{
 		TheCode = Variables(Tabs, Args[0], Args[1]);
 	}
-	else if (StartsWith(Args[0], "stmt"))
+	else if (StartsWith(Args[0], "stmt:"))
 	{
 		TheCode = Statements(Tabs, Args[0], Args[1]);
 	}
