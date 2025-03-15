@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.0.65";
+String Version = "0.0.66";
 
 String getOS();
 void Help(String Type);
@@ -38,14 +38,16 @@ String join(std::vector<String> Str, String ToJoin);
 String replaceAll(String message, String sBy, String jBy);
 
 
+void banner();
+String ReplaceTag(String Content, String Tag);
+String Conditions(String input,String CalledBy);
+String Parameters(String input,String CalledBy);
 String Struct(String TheName, String Content);
 String Class(String TheName, String Content);
 String Method(String Tabs, String Name, String Content);
 String GenCode(String Tabs,String GetMe);
 String Variables(String Tabs, String TheKindType, String Content);
-String Conditions(String input,String CalledBy);
 String Statements(String Tabs, String TheKindType, String Content);
-String Parameters(String input,String CalledBy);
 String Loop(String Tabs, String TheKindType, String Content);
 String Logic(String Tabs, String TheKindType, String Content);
 
@@ -391,8 +393,37 @@ EX:  method:<name> method-var:length method-stmt:method-help logic:if logic-var:
 
 String ReplaceTag(String Content, String Tag)
 {
+	if (IsIn(Content," "))
+	{
+		String NewContent = "";
+		String Next = "";
+		std::vector<String> all = split(Content," ");
+		int end = len(all);
+		int lp = 0;
+		while (lp != end)
+		{
+			Next = all[lp];
+			//element starts with tag
+			if (StartsWith(Next, Tag))
+			{
+				//remove tag
+				Next = AfterSplit(Next,'-');
+			}
+
+			if (NewContent == "")
+			{
+				NewContent = Next;
+			}
+			else
+			{
+				NewContent = NewContent+" "+Next;
+			}
+			lp++;
+		}
+		Content = NewContent;
+	}
 	//Parse Content as long as there is a Tag found at the beginning
-	if (StartsWith(Content, Tag))
+	else if (StartsWith(Content, Tag))
 	{
 		//removing tag
 		Content = AfterSplit(Content,'-');
@@ -412,6 +443,63 @@ void banner()
 /*
 <<shell>> method:DataType-String logic:if condition:Type|==|"String" var:dtType-std::string stmt:endline stmt:newline
 */
+
+//condition:
+String Conditions(String input,String CalledBy)
+{
+	String Condit = AfterSplit(input,':');
+	Condit = replaceAll(Condit, "|", " ");
+	if (CalledBy == "class")
+	{
+		print(Condit);
+	}
+	else if (CalledBy == "method")
+	{
+		print(Condit);
+	}
+	else if ((CalledBy == "loop") || (CalledBy == "logic"))
+	{
+		print(Condit);
+	}
+	return Condit;
+}
+
+//params:
+String Parameters(String input,String CalledBy)
+{
+	String Params = AfterSplit(input,':');
+	if ((CalledBy == "class") || (CalledBy == "method") || (CalledBy == "stmt"))
+	{
+		//param-type,param-type,param-type
+		if ((IsIn(Params,"-")) && (IsIn(Params,",")))
+		{
+			//param
+			String Name = BeforeSplit(Params,'-');
+			//type,param-type,param-type
+			String Type = AfterSplit(Params,'-');
+			//type
+			Type = BeforeSplit(Type,',');
+			//param-type,param-type
+			String more = AfterSplit(Params,',');
+
+			//recursion to get more parameters
+			more = Parameters("params:"+more,CalledBy);
+			//type param, type param, type param
+			Params = Type+" "+Name+", "+more;
+		}
+		//param-type
+		else if ((IsIn(Params,"-")) && (!IsIn(Params,",")))
+		{
+			//param
+			String Name = BeforeSplit(Params,'-');
+			//type
+			String Type = AfterSplit(Params,'-');
+			//type param
+			Params = Type+" "+Name;
+		}
+	}
+	return Params;
+}
 
 String Struct(String TheName, String Content)
 {
@@ -560,29 +648,40 @@ String Method(String Tabs, String Name, String Content)
 				Content = cmds[0];
 			}
 
-			if (IsIn(Content," method-"))
+//			if (IsIn(Content," method-"))
+			if (StartsWith(Content, "method-"))
 			{
-				std::vector<String> all = split(Content," method-");
+				std::vector<String> all = split(Content," ");
 				bool noMore = false;
 				int end = len(all);
 				int lp = 0;
 				while (lp != end)
 				{
-					if (lp == 0)
+					if ((StartsWith(all[lp], "method-")) && (noMore == false))
 					{
-						OtherContent = all[lp];
-					}
-					else if (lp == 1)
-					{
-						NewContent = all[lp];
+						if (OtherContent == "")
+						{
+							OtherContent = all[lp];
+						}
+						else
+						{
+							OtherContent = OtherContent+" "+all[lp];
+						}
 					}
 					else
 					{
-						NewContent = NewContent + " "+all[lp];
+						if (NewContent == "")
+						{
+							NewContent = all[lp];
+						}
+						else
+						{
+							NewContent = NewContent+" "+all[lp];
+						}
+						noMore = true;
 					}
 					lp++;
 				}
-//				OtherContent = ReplaceTag(OtherContent, "method-");
 				CanSplit = false;
 			}
 			else
@@ -590,6 +689,7 @@ String Method(String Tabs, String Name, String Content)
 				OtherContent = Content;
 				CanSplit = true;
 			}
+
 			OtherContent = ReplaceTag(OtherContent, "method-");
 
 			MethodContent = MethodContent + GenCode(Tabs+"\t",OtherContent);
@@ -627,62 +727,6 @@ String Method(String Tabs, String Name, String Content)
 		Complete = Tabs+Type+" "+TheName+"("+Params+")\n"+Tabs+"{\n"+Tabs+"\t" +Type+" TheReturn;\n"+MethodContent+"\n"+Tabs+"\treturn TheReturn;\n"+Tabs+"}\n";
 	}
 	return Complete;
-}
-
-String Conditions(String input,String CalledBy)
-{
-	String Condit = AfterSplit(input,':');
-	Condit = replaceAll(Condit, "|", " ");
-	if (CalledBy == "class")
-	{
-		print(Condit);
-	}
-	else if (CalledBy == "method")
-	{
-		print(Condit);
-	}
-	else if ((CalledBy == "loop") || (CalledBy == "logic"))
-	{
-		print(Condit);
-	}
-	return Condit;
-}
-
-//params:
-String Parameters(String input,String CalledBy)
-{
-	String Params = AfterSplit(input,':');
-	if ((CalledBy == "class") || (CalledBy == "method") || (CalledBy == "stmt"))
-	{
-		//param-type,param-type,param-type
-		if ((IsIn(Params,"-")) && (IsIn(Params,",")))
-		{
-			//param
-			String Name = BeforeSplit(Params,'-');
-			//type,param-type,param-type
-			String Type = AfterSplit(Params,'-');
-			//type
-			Type = BeforeSplit(Type,',');
-			//param-type,param-type
-			String more = AfterSplit(Params,',');
-
-			//recursion to get more parameters
-			more = Parameters("params:"+more,CalledBy);
-			//type param, type param, type param
-			Params = Type+" "+Name+", "+more;
-		}
-		//param-type
-		else if ((IsIn(Params,"-")) && (!IsIn(Params,",")))
-		{
-			//param
-			String Name = BeforeSplit(Params,'-');
-			//type
-			String Type = AfterSplit(Params,'-');
-			//type param
-			Params = Type+" "+Name;
-		}
-	}
-	return Params;
 }
 
 //loop:
@@ -755,6 +799,9 @@ String Loop(String Tabs, String TheKindType, String Content)
 				}
 				lp++;
 			}
+
+			OtherContent = ReplaceTag(OtherContent, "loop-");
+
 			//Generate the loop content
 			LoopContent = LoopContent + GenCode(Tabs+"\t",OtherContent);
 			//The remaning content gets processed
@@ -822,6 +869,7 @@ String Loop(String Tabs, String TheKindType, String Content)
 				OtherContent = AfterSplit(OtherContent,'-');
 			}
 
+			OtherContent = ReplaceTag(OtherContent, "loop-");
 			LoopContent = LoopContent + GenCode(Tabs+"\t",OtherContent);
 			//nest-stmt: or nest-var:
 			if (StartsWith(OtherContent, "stmt:") || (StartsWith(OtherContent, "var:")))
@@ -930,6 +978,9 @@ String Logic(String Tabs, String TheKindType, String Content)
 				}
 				lp++;
 			}
+
+			OtherContent = ReplaceTag(OtherContent, "logic-");
+
 			//Process the current content so as to keep from redoing said content
 			LogicContent = LogicContent + GenCode(Tabs+"\t",OtherContent);
 			Content = NewContent;
@@ -982,6 +1033,8 @@ String Logic(String Tabs, String TheKindType, String Content)
 			{
 				OtherContent = AfterSplit(OtherContent,'-');
 			}
+
+			OtherContent = ReplaceTag(OtherContent, "logic-");
 
 			LogicContent = LogicContent + GenCode(Tabs+"\t",OtherContent);
 			//nest-stmt: or nest-var:
@@ -1170,7 +1223,6 @@ String Variables(String Tabs, String TheKindType, String Content)
 			Content = AfterSplit(Content,'-');
 		}
 
-//		print(OtherContent);
 		if (!IsIn(Content," "))
 		{
 			VariableContent = VariableContent + GenCode(Tabs,Content);
