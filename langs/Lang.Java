@@ -3,7 +3,7 @@
 #https://stackoverflow.com/questions/10339637/java-import-cannot-find-symbol
 #https://www.codejava.net/java-core/tools/how-to-compile-package-and-run-a-java-program-using-command-line-tools-javac-jar-and-java
 
-SupportV="0.2.61"
+SupportV="0.2.62"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -139,6 +139,28 @@ UseJava()
 			;;
 		getShellCode)
 			echo ${ShellCodeSrc}
+			;;
+		gencodeOnly)
+			local LinesOfSrc
+			local LastNum
+			local GenLines
+			local ShellCode
+			local TheCode=${1}
+			TheCode=$(UseJava "removeExt" ${TheCode})
+			TheCode=$(UseJava "FindTheSrc" ${TheCode})
+			GenLines=$(cat -n ${TheCode} | grep "<<shell>>" | cut -f 1)
+			if  [ ! -z "${GenLines}" ]; then
+				LinesOfSrc=$(cat ${TheCode} | wc -l)
+				for line in ${GenLines};
+				do
+					ShellCode=$(sed -n "${line}p" ${TheCode} | grep "^<<shell>> ")
+					if [ ! -z "${ShellCode}" ]; then
+						echo ${ShellCode} | sed "s/^<<shell>> /\/\/<<shell>> /g"
+						UseJava shell shell $(echo ${ShellCode} | sed "s/^<<shell>> //g")
+					fi
+					LastNum=${line}
+				done
+			fi
 			;;
 		gencodeShow)
 			local TheCode=${1}

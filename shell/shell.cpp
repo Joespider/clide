@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.0.66";
+String Version = "0.0.68";
 
 String getOS();
 void Help(String Type);
@@ -352,48 +352,9 @@ String replaceAll(String message, String sBy, String jBy)
 */
 
 
-/*
-	----[Notes: Start]----
-	Ok, here are just some thoughts I have about the direction of shell code in general
-	*) classes (class:) should only be able to call variables (var:) and methods (method:) but cannot call anything else
-	*) methods (method:) cannot call classes (class:) or methods (method:), but can call everything else
-	*) logic and loops are can only call themselves, but no data structures (class: method: struct: etc.).
-		--) nested loops and logic are called with "nest-" prepended (nest-logic: or nest-loop:)
-	*) variables (var:) and statements (stmt:) can be called by anything
-	*) code is generated left to right, where left is the base struture and right is the content. However, while "nest-" tells the code
-	to put a logic/loop statement inside a logic/loop statement, it does no account for variables or statements. Alternative, the placement
-	of statements/variables, could be identified with a prepended decloration.
-
-EX: method:<name> logic:if logic-var:time-int= logic-stmt:method-start nest-logic:if nest-logic-stmt:method-end nest-logic:else nest-logic-stmt:method-reset nest-loop:for nest-loop-stmt:method-count
-
-	method:<name>
-		logic:if
-			logic-var:time-int= logic-stmt:method-start
-			nest-logic:if nest-logic-stmt:method-end
-			nest-logic:else nest-logic-stmt:method-reset
-			nest-loop:for nest-loop-stmt:method-count
-	{OR}
-
-EX:  method:<name> method-var:length method-stmt:method-help logic:if logic-var:time-int= logic-stmt:method-start nest-logic:if nest-logic-stmt:method-end nest-logic:else nest-logic-stmt:method-reset nest-loop:for nest-loop-stmt:method-count method-stmt:done
-
-	method:<name>
-		method-var:length method-stmt:method-help					<<becomes>>	var:length stmt:method-help
-		logic:if logic-var:time-int= logic-stmt:method-start				<<becomes>>	logic:if var:time-int= stmt:method-start
-			nest-logic:if nest-logic-stmt:method-end				<<becomes>>	logic:if stmt:method-end
-			nest-logic:else nest-logic-stmt:method-reset				<<becomes>>	logic:else stmt:method-reset
-			nest-loop:for nest-loop-stmt:method-count				<<becomes>>	loop:for stmt:method-count
-		method-stmt:done								<<becomes>>	stmt:done
-	{And}
-	method:<name> method-var:length method-stmt:method-help {Code} method-stmt:done		<<becomes>>	method:<name> var:length stmt:method-help {Code} stmt:done
-
-	*) I need to work on the user experience in order to better code how this tool works. Other than that, I am happy with the direction of this tool
-	----[Notes: End]----
-*/
-
-
 String ReplaceTag(String Content, String Tag)
 {
-	if (IsIn(Content," "))
+	if ((IsIn(Content," ")) && (StartsWith(Content, Tag)))
 	{
 		String NewContent = "";
 		String Next = "";
@@ -441,7 +402,7 @@ void banner()
 }
 
 /*
-<<shell>> method:DataType-String logic:if condition:Type|==|"String" var:dtType-std::string stmt:endline stmt:newline
+<<shell>> method:DataType-String logic:if condition:Type|==|"String" logic-var:dtType-std::string logic-stmt:endline logic-stmt:newline
 */
 
 //condition:
@@ -691,7 +652,6 @@ String Method(String Tabs, String Name, String Content)
 			}
 
 			OtherContent = ReplaceTag(OtherContent, "method-");
-
 			MethodContent = MethodContent + GenCode(Tabs+"\t",OtherContent);
 			Content = NewContent;
 
@@ -750,6 +710,7 @@ String Loop(String Tabs, String TheKindType, String Content)
 	//content for loop
 	while (Content != "")
 	{
+		Content = ReplaceTag(Content, "loop-");
 		if (StartsWith(Content, "condition"))
 		{
 			if (IsIn(Content," "))
@@ -799,9 +760,9 @@ String Loop(String Tabs, String TheKindType, String Content)
 				}
 				lp++;
 			}
-
+/*
 			OtherContent = ReplaceTag(OtherContent, "loop-");
-
+*/
 			//Generate the loop content
 			LoopContent = LoopContent + GenCode(Tabs+"\t",OtherContent);
 			//The remaning content gets processed
@@ -868,8 +829,9 @@ String Loop(String Tabs, String TheKindType, String Content)
 			{
 				OtherContent = AfterSplit(OtherContent,'-');
 			}
-
+/*
 			OtherContent = ReplaceTag(OtherContent, "loop-");
+*/
 			LoopContent = LoopContent + GenCode(Tabs+"\t",OtherContent);
 			//nest-stmt: or nest-var:
 			if (StartsWith(OtherContent, "stmt:") || (StartsWith(OtherContent, "var:")))
@@ -942,6 +904,8 @@ String Logic(String Tabs, String TheKindType, String Content)
 	}
 	while (Content != "")
 	{
+		Content = ReplaceTag(Content, "logic-");
+
 		if (StartsWith(Content, "condition"))
 		{
 			if (IsIn(Content," "))
@@ -978,9 +942,9 @@ String Logic(String Tabs, String TheKindType, String Content)
 				}
 				lp++;
 			}
-
+/*
 			OtherContent = ReplaceTag(OtherContent, "logic-");
-
+*/
 			//Process the current content so as to keep from redoing said content
 			LogicContent = LogicContent + GenCode(Tabs+"\t",OtherContent);
 			Content = NewContent;
@@ -1033,9 +997,9 @@ String Logic(String Tabs, String TheKindType, String Content)
 			{
 				OtherContent = AfterSplit(OtherContent,'-');
 			}
-
+/*
 			OtherContent = ReplaceTag(OtherContent, "logic-");
-
+*/
 			LogicContent = LogicContent + GenCode(Tabs+"\t",OtherContent);
 			//nest-stmt: or nest-var:
 			if (StartsWith(OtherContent, "stmt:") || (StartsWith(OtherContent, "var:")))

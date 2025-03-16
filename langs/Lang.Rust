@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.65"
+SupportV="0.1.66"
 Lang=Rust
 LangExt=".rs"
 ColorNum=1
@@ -126,6 +126,28 @@ UseRust()
 			;;
 		getShellCode)
 			echo ${ShellCodeSrc}
+			;;
+		gencodeOnly)
+			local LinesOfSrc
+			local LastNum
+			local GenLines
+			local ShellCode
+			local TheCode=${1}
+			TheCode=$(UseRust "removeExt" ${TheCode})
+			TheCode=$(UseRust "FindTheSrc" ${TheCode})
+			GenLines=$(cat -n ${TheCode} | grep "<<shell>>" | cut -f 1)
+			if  [ ! -z "${GenLines}" ]; then
+				LinesOfSrc=$(cat ${TheCode} | wc -l)
+				for line in ${GenLines};
+				do
+					ShellCode=$(sed -n "${line}p" ${TheCode} | grep "^<<shell>> ")
+					if [ ! -z "${ShellCode}" ]; then
+						echo ${ShellCode} | sed "s/^<<shell>> /\/\/<<shell>> /g"
+						UseRust shell shell $(echo ${ShellCode} | sed "s/^<<shell>> //g")
+					fi
+					LastNum=${line}
+				done
+			fi
 			;;
 		gencodeShow)
 			local TheCode=${1}
