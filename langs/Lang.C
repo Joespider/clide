@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.2.0"
+SupportV="0.2.01"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
@@ -134,6 +134,28 @@ UseC()
 			;;
 		getShellCode)
 			echo ${ShellCodeSrc}
+			;;
+		gencodeOnly)
+			local LinesOfSrc
+			local LastNum
+			local GenLines
+			local ShellCode
+			local TheCode=${1}
+			TheCode=$(UseC "removeExt" ${TheCode})
+			TheCode=$(UseC "FindTheSrc" ${TheCode})
+			GenLines=$(cat -n ${TheCode} | grep "<<shell>>" | cut -f 1)
+			if  [ ! -z "${GenLines}" ]; then
+				LinesOfSrc=$(cat ${TheCode} | wc -l)
+				for line in ${GenLines};
+				do
+					ShellCode=$(sed -n "${line}p" ${TheCode} | grep "^<<shell>> ")
+					if [ ! -z "${ShellCode}" ]; then
+						echo ${ShellCode} | sed "s/^<<shell>> /\/\/<<shell>> /g"
+						UseC shell shell $(echo ${ShellCode} | sed "s/^<<shell>> //g")
+					fi
+					LastNum=${line}
+				done
+			fi
 			;;
 		gencodeShow)
 			local TheCode=${1}
