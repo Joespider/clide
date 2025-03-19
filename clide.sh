@@ -3729,8 +3729,27 @@ Actions()
 					#Edit new source code...Read code without editing
 					${editor}|edit|ed|${ReadBy}|read)
 						case ${UserIn[1]} in
-							--help)
-								HelpMenu ${Lang} "${UserIn[@]}"
+							"--"*)
+								case ${UserIn[1]} in
+									--line)
+										case ${UserArg} in
+											#Edit new source code
+											${editor}|edit|ed)
+												if [ ! -z "${UserIn[2]}" ]; then
+													echo ManageLangs ${Lang} "editCode" ${UserIn[1]} ${UserIn[2]} ${UserIn[3]}
+												else
+													errorCode "WARNING"
+													errorCode "WARNING" "Please provide the line number you wish to edit"
+												fi
+												;;
+											*)
+												;;
+										esac
+										;;
+									--help|*)
+										HelpMenu ${Lang} "${UserIn[@]}"
+										;;
+								esac
 								;;
 							#edit non-langugage source files
 							non-lang)
@@ -6166,6 +6185,7 @@ CLI()
 					local Action=$1
 					local Lang=$2
 					local Code
+					local EditLine
 					local confirm=$3
 					case ${Action} in
 						#clide --edit --config <arg>
@@ -6250,6 +6270,41 @@ CLI()
 									#clide --edit --help
 									-h|--help)
 										theHelp EditCliHelp
+										;;
+									#clide --edit --line <lang> <src> <line>
+									--line)
+										Lang=$(pgLang "$2")
+										Code="$3"
+										EditLine="$4"
+										if [ -z "${EditLine}" ]; then
+											Lang=$(SelectLangByCode $2)
+											Code=$2
+											EditLine="$3"
+											shift
+											if [ ! -z "${EditLine}" ]; then
+												main --edit "${Action}" "${Lang}" "${Code}" "${EditLine}"
+											fi
+										else
+											case ${Lang} in
+												no)
+													errorCode "lang" "cli-not-supported" "$1"
+													;;
+												*)
+													local CodeDir=$(pgDir ${Lang})
+													if [ ! -z "${CodeDir}" ] && [ ! -z "${EditLine}" ]; then
+														cd ${CodeDir}
+														TheSrcCode=$(selectCode ${Lang} ${Code})
+														if [ ! -z "${TheSrcCode}" ]; then
+															ManageLangs ${Lang} "editCode" "${Action}" "${EditLine}"
+														else
+															errorCode "cli-cpl" "none"
+														fi
+													else
+														errorCode "cli-cpl" "none"
+													fi
+													;;
+											esac
+										fi
 										;;
 									*)
 										Lang=$(pgLang $1)

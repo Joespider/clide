@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.2.06"
+SupportV="0.2.08"
 Lang=Bash
 LangExt=".sh"
 ColorNum=2
@@ -520,6 +520,7 @@ UseBash()
 			local newName
 			local DirPath
 			local TheSrcDir
+			local EditLine="$2"
 			local ReadOrEdit
 			local UseProjectTemplate
 
@@ -530,6 +531,16 @@ UseBash()
 					ReadOrEdit=${ReadBy}
 					;;
 				editCode)
+					case ${num} in
+						--line)
+							num="$3"
+							if [ ! -z "${EditLine}" ]; then
+								EditLine="+${EditLine}"
+							fi
+							;;
+						*)
+							;;
+					esac
 					ReadOrEdit=${editor}
 					;;
 				*)
@@ -562,7 +573,17 @@ UseBash()
 											*"${num}"*)
 												#Choose file from list of choices
 												num=$(echo -e "${src//,/\\n}" | grep ${num})
-												${ReadOrEdit} ${num}
+												case ${ReadOrEdit,,} in
+													nano)
+														${ReadOrEdit} -l "${EditLine}" ${num}
+														;;
+													vi)
+														${ReadOrEdit} "+set number" "${EditLine}" ${num}
+														;;
+													*)
+														${ReadOrEdit} ${num}
+														;;
+												esac
 												;;
 											*)
 												#Error
@@ -585,7 +606,17 @@ UseBash()
 								*)
 									#Read or Write Code
 									#{
-									${ReadOrEdit} ${src}
+									case ${ReadOrEdit,,} in
+										nano)
+											${ReadOrEdit} -l "${EditLine}" ${src}
+											;;
+										vi)
+											${ReadOrEdit} "+set number" "${EditLine}" ${src}
+											;;
+										*)
+											${ReadOrEdit} ${src}
+											;;
+									esac
 									#}
 									;;
 							esac
@@ -644,7 +675,17 @@ UseBash()
 									if [ -f ${src} ]; then
 										#Read or Write Code
 										#{
-										${ReadOrEdit} ${src}
+										case ${ReadOrEdit,,} in
+											nano)
+												${ReadOrEdit} -l "${EditLine}" ${src}
+												;;
+											vi)
+												${ReadOrEdit} "+set number" "${EditLine}" ${src}
+												;;
+											*)
+												${ReadOrEdit} ${src}
+												;;
+										esac
 										#}
 									fi
 									;;
@@ -659,7 +700,17 @@ UseBash()
 											src=$(find ${TheSrcDir} -name ${src} 2> /dev/null | tr '\n' '|' | cut -d '|' -f ${Select})
 											#Read or Write Code
 											#{
-											${ReadOrEdit} ${src}
+											case ${ReadOrEdit,,} in
+												nano)
+													${ReadOrEdit} -l "${EditLine}" ${src}
+													;;
+												vi)
+													${ReadOrEdit} "+set number" "${EditLine}" ${src}
+													;;
+												*)
+													${ReadOrEdit} ${src}
+													;;
+											esac
 											#}
 										fi
 									fi

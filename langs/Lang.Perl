@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.2.03"
+SupportV="0.2.05"
 Lang=Perl
 LangExt=".pl"
 #Color Purple
@@ -465,7 +465,7 @@ UsePerl()
 				*)
 					;;
 			esac
-	
+
 			if [ -f ${ThePath}/${name}${LangExt} ]; then
 				echo ${ThePath}/${name}${LangExt}
 			else
@@ -486,6 +486,7 @@ UsePerl()
 		editCode|readCode)
 			local src=${TheCode}
 			local num=$1
+			local EditLine="$2"
 			local ReadOrEdit
 
 			#Select the tool
@@ -495,6 +496,16 @@ UsePerl()
 					ReadOrEdit=${ReadBy}
 					;;
 				editCode)
+					case ${num} in
+						--line)
+							num="$3"
+							if [ ! -z "${EditLine}" ]; then
+								EditLine="+${EditLine}"
+							fi
+							;;
+						*)
+							;;
+					esac
 					ReadOrEdit=${editor}
 					;;
 				*)
@@ -525,10 +536,30 @@ UsePerl()
 									*"${num}"*)
 										case ${num} in
 											*"${LangExt}")
-												${ReadOrEdit} ${num}
+												case ${ReadOrEdit,,} in
+													nano)
+														${ReadOrEdit} -l "${EditLine}" ${num}
+														;;
+													vi)
+														${ReadOrEdit} "+set number" "${EditLine}" ${num}
+														;;
+													*)
+														${ReadOrEdit} ${num}
+														;;
+												esac
 												;;
 											*)
-												${ReadOrEdit} "${num}${LangExt}"
+												case ${ReadOrEdit,,} in
+													nano)
+														${ReadOrEdit} -l "${EditLine}" "${num}${LangExt}"
+														;;
+													vi)
+														${ReadOrEdit} "+set number" "${EditLine}" "${num}${LangExt}"
+														;;
+													*)
+														${ReadOrEdit} "${num}${LangExt}"
+														;;
+												esac
 												;;
 										esac
 										;;
@@ -551,7 +582,17 @@ UsePerl()
 							fi
 							;;
 						*)
-							${ReadOrEdit} ${src}
+							case ${ReadOrEdit,,} in
+								nano)
+									${ReadOrEdit} -l "${EditLine}" ${src}
+									;;
+								vi)
+									${ReadOrEdit} "+set number" "${EditLine}" ${src}
+									;;
+								*)
+									${ReadOrEdit} ${src}
+									;;
+							esac
 							;;
 					esac
 					;;

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.0.02"
+SupportV="0.0.04"
 Lang=Php
 LangExt=".php"
 ColorNum=5
@@ -488,7 +488,7 @@ UsePhp()
 				*)
 					;;
 			esac
-	
+
 			if [ -f ${ThePath}/${name}${LangExt} ] ; then
 				echo ${ThePath}/${name}${LangExt}
 			elif [ -f ${ThePath}/${project}${LangExt} ]; then
@@ -515,6 +515,7 @@ UsePhp()
 			local newName
 			local DirPath
 			local TheSrcDir
+			local EditLine="$2"
 			local ReadOrEdit
 			local UseProjectTemplate
 
@@ -525,6 +526,16 @@ UsePhp()
 					ReadOrEdit=${ReadBy}
 					;;
 				editCode)
+					case ${num} in
+						--line)
+							num="$3"
+							if [ ! -z "${EditLine}" ]; then
+								EditLine="+${EditLine}"
+							fi
+							;;
+						*)
+							;;
+					esac
 					ReadOrEdit=${editor}
 					;;
 				*)
@@ -555,7 +566,17 @@ UsePhp()
 									if [[ "${src}" == *"${num}"* ]]; then
 										#Choose file from list of choices
 										num=$(echo -e "${src//,/\\n}" | grep ${num})
-										${ReadOrEdit} ${num}
+										case ${ReadOrEdit,,} in
+											nano)
+												${ReadOrEdit} -l "${EditLine}" ${num}
+												;;
+											vi)
+												${ReadOrEdit} "+set number" "${EditLine}" ${num}
+												;;
+											*)
+												${ReadOrEdit} ${num}
+												;;
+										esac
 									else
 										#Error
 										#{
@@ -575,7 +596,17 @@ UsePhp()
 							else
 								#Read or Write Code
 								#{
-								${ReadOrEdit} ${src}
+								case ${ReadOrEdit,,} in
+									nano)
+										${ReadOrEdit} -l "${EditLine}" ${src}
+										;;
+									vi)
+										${ReadOrEdit} "+set number" "${EditLine}" ${src}
+										;;
+									*)
+										${ReadOrEdit} ${src}
+										;;
+								esac
 								#}
 							fi
 							;;
@@ -627,7 +658,17 @@ UsePhp()
 									if [ -f ${src} ]; then
 										#Read or Write Code
 										#{
-										${ReadOrEdit} ${src}
+										case ${ReadOrEdit,,} in
+											nano)
+												${ReadOrEdit} -l "${EditLine}" ${src}
+												;;
+											vi)
+												${ReadOrEdit} "+set number" "${EditLine}" ${src}
+												;;
+											*)
+												${ReadOrEdit} ${src}
+												;;
+										esac
 										#}
 									fi
 									;;
@@ -642,7 +683,17 @@ UsePhp()
 											src=$(find ${TheSrcDir} -name ${src} 2> /dev/null | tr '\n' '|' | cut -d '|' -f ${Select})
 											#Read or Write Code
 											#{
-											${ReadOrEdit} ${src}
+											case ${ReadOrEdit,,} in
+												nano)
+													${ReadOrEdit} -l "${EditLine}" ${src}
+													;;
+												vi)
+													${ReadOrEdit} "+set number" "${EditLine}" ${src}
+													;;
+												*)
+													${ReadOrEdit} ${src}
+													;;
+											esac
 											#}
 										fi
 									fi

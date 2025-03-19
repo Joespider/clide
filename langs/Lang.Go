@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.99"
+SupportV="0.2.01"
 Lang=Go
 LangExt=".go"
 #Color Green
@@ -715,6 +715,7 @@ UseGo()
 			local newName
 			local DirPath
 			local TheSrcDir
+			local EditLine="$2"
 			local ReadOrEdit
 			local UseProjectTemplate
 
@@ -725,6 +726,16 @@ UseGo()
 					ReadOrEdit=${ReadBy}
 					;;
 				editCode)
+					case ${num} in
+						--line)
+							num="$3"
+							if [ ! -z "${EditLine}" ]; then
+								EditLine="+${EditLine}"
+							fi
+							;;
+						*)
+							;;
+					esac
 					ReadOrEdit=${editor}
 					;;
 				*)
@@ -757,7 +768,17 @@ UseGo()
 											*"${num}"*)
 												#Choose file from list of choices
 												num=$(echo -e "${src//,/\\n}" | grep ${num})
-												${ReadOrEdit} ${num}
+												case ${ReadOrEdit,,} in
+													nano)
+														${ReadOrEdit} -l "${EditLine}" ${num}
+														;;
+													vi)
+														${ReadOrEdit} "+set number" "${EditLine}" ${num}
+														;;
+													*)
+														${ReadOrEdit} ${num}
+														;;
+												esac
 												;;
 											*)
 												#Error
@@ -780,7 +801,17 @@ UseGo()
 								*)
 									#Read or Write Code
 									#{
-									${ReadOrEdit} ${src}
+									case ${ReadOrEdit,,} in
+										nano)
+											${ReadOrEdit} -l "${EditLine}" ${src}
+											;;
+										vi)
+											${ReadOrEdit} "+set number" "${EditLine}" ${src}
+											;;
+										*)
+											${ReadOrEdit} ${src}
+											;;
+									esac
 									#}
 									;;
 							esac
@@ -839,7 +870,17 @@ UseGo()
 									if [ -f ${src} ]; then
 										#Read or Write Code
 										#{
-										${ReadOrEdit} ${src}
+										case ${ReadOrEdit,,} in
+											nano)
+												${ReadOrEdit} -l "${EditLine}" ${src}
+												;;
+											vi)
+												${ReadOrEdit} "+set number" "${EditLine}" ${src}
+												;;
+											*)
+												${ReadOrEdit} ${src}
+												;;
+										esac
 										#}
 									fi
 									;;
@@ -854,7 +895,17 @@ UseGo()
 											src=$(find ${TheSrcDir} -name ${src} 2> /dev/null | tr '\n' '|' | cut -d '|' -f ${Select})
 											#Read or Write Code
 											#{
-											${ReadOrEdit} ${src}
+											case ${ReadOrEdit,,} in
+												nano)
+													${ReadOrEdit} -l "${EditLine}" ${src}
+													;;
+												vi)
+													${ReadOrEdit} "+set number" "${EditLine}" ${src}
+													;;
+												*)
+													${ReadOrEdit} ${src}
+													;;
+											esac
 											#}
 										fi
 									fi

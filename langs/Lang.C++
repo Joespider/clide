@@ -4,7 +4,7 @@
 #Link Libs: https://gist.github.com/gubatron/32f82053596c24b6bec6
 #both https://avikdas.com/2019/12/16/makefiles-for-c-cpp-projects.html
 
-SupportV="0.2.71"
+SupportV="0.2.73"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -1110,6 +1110,7 @@ UseC++()
 			local DirPath
 			local TheSrcDir
 			local TheHeaderDir
+			local EditLine="$2"
 			local ReadOrEdit
 			local HasAnExt
 
@@ -1120,6 +1121,16 @@ UseC++()
 					ReadOrEdit=${ReadBy}
 					;;
 				editCode)
+					case ${num} in
+						--line)
+							num="$3"
+							if [ ! -z "${EditLine}" ]; then
+								EditLine="+${EditLine}"
+							fi
+							;;
+						*)
+							;;
+					esac
 					ReadOrEdit=${editor}
 					;;
 				*)
@@ -1153,7 +1164,17 @@ UseC++()
 											*"${num}"*)
 												#Choose file from list of choices
 												num=$(echo -e "${src//,/\\n}" | grep ${num})
-												${ReadOrEdit} ${num}
+												case ${ReadOrEdit,,} in
+													nano)
+														${ReadOrEdit} -l "${EditLine}" ${num}
+														;;
+													vi)
+														${ReadOrEdit} "+set number" "${EditLine}" ${num}
+														;;
+													*)
+														${ReadOrEdit} "${EditLine}" ${num}
+														;;
+												esac
 												;;
 											*)
 												#Error
@@ -1176,7 +1197,17 @@ UseC++()
 								*)
 									#Read or Write Code
 									#{
-									${ReadOrEdit} ${src}
+									case ${ReadOrEdit,,} in
+										nano)
+											${ReadOrEdit} -l "${EditLine}" ${src}
+											;;
+										vi)
+											${ReadOrEdit} "+set number" "${EditLine}" ${src}
+											;;
+										*)
+											${ReadOrEdit} "${EditLine}" ${src}
+											;;
+									esac
 									#}
 									;;
 							esac
@@ -1235,7 +1266,17 @@ UseC++()
 									if [ -f ${src} ]; then
 										#Read or Write Code
 										#{
-										${ReadOrEdit} ${src}
+										case ${ReadOrEdit,,} in
+											nano)
+												${ReadOrEdit} -l  "${EditLine}" ${src}
+												;;
+											vi)
+												${ReadOrEdit} "+set number" "${EditLine}" ${src}
+												;;
+											*)
+												${ReadOrEdit} "${EditLine}" ${src}
+												;;
+										esac
 										#}
 									fi
 									;;
@@ -1250,7 +1291,17 @@ UseC++()
 											src=$(find ${TheSrcDir} ${TheHeaderDir} -name ${src} 2> /dev/null | tr '\n' '|' | cut -d '|' -f ${Select})
 											#Read or Write Code
 											#{
-											${ReadOrEdit} ${src}
+											case ${ReadOrEdit,,} in
+												nano)
+													${ReadOrEdit} -l "${EditLine}" ${src}
+													;;
+												vi)
+													${ReadOrEdit} "+set number" "${EditLine}" ${src}
+													;;
+												*)
+													${ReadOrEdit} "${EditLine}" ${src}
+													;;
+											esac
 											#}
 										fi
 									fi

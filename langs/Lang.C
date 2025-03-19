@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.2.01"
+SupportV="0.2.02"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
@@ -912,6 +912,7 @@ UseC()
 			local DirPath
 			local TheSrcDir
 			local TheHeaderDir
+			local EditLine="$2"
 			local ReadOrEdit
 			local UseProjectTemplate
 
@@ -922,6 +923,16 @@ UseC()
 					ReadOrEdit=${ReadBy}
 					;;
 				editCode)
+					case ${num} in
+						--line)
+							num="$3"
+							if [ ! -z "${EditLine}" ]; then
+								EditLine="+${EditLine}"
+							fi
+							;;
+						*)
+							;;
+					esac
 					ReadOrEdit=${editor}
 					;;
 				*)
@@ -954,7 +965,17 @@ UseC()
 											*"${num}"*)
 												#Choose file from list of choices
 												num=$(echo -e "${src//,/\\n}" | grep ${num})
-												${ReadOrEdit} ${num}
+												case ${ReadOrEdit,,} in
+													nano)
+														${ReadOrEdit} -l "${EditLine}" ${num}
+														;;
+													vi)
+														${ReadOrEdit} "+set number" "${EditLine}" ${num}
+														;;
+													*)
+														${ReadOrEdit} ${num}
+														;;
+												esac
 												;;
 											*)
 												#Error
@@ -977,7 +998,17 @@ UseC()
 								*)
 									#Read or Write Code
 									#{
-									${ReadOrEdit} ${src}
+									case ${ReadOrEdit,,} in
+										nano)
+											${ReadOrEdit} -l "${EditLine}" ${src}
+											;;
+										vi)
+											${ReadOrEdit} "+set number" "${EditLine}" ${src}
+											;;
+										*)
+											${ReadOrEdit} ${src}
+											;;
+									esac
 									#}
 									;;
 							esac
@@ -1037,7 +1068,17 @@ UseC()
 									if [ -f ${src} ]; then
 										#Read or Write Code
 										#{
-										${ReadOrEdit} ${src}
+										case ${ReadOrEdit,,} in
+											nano)
+												${ReadOrEdit} -l "${EditLine}" ${src}
+												;;
+											vi)
+												${ReadOrEdit} "+set number" "${EditLine}" ${src}
+												;;
+											*)
+												${ReadOrEdit} ${src}
+												;;
+										esac
 										#}
 									fi
 									;;
@@ -1052,7 +1093,17 @@ UseC()
 											src=$(find ${TheSrcDir} ${TheHeaderDir} -name ${src} 2> /dev/null | tr '\n' '|' | cut -d '|' -f ${Select})
 											#Read or Write Code
 											#{
-											${ReadOrEdit} ${src}
+											case ${ReadOrEdit,,} in
+												nano)
+													${ReadOrEdit} -l "${EditLine}" ${src}
+													;;
+												vi)
+													${ReadOrEdit} "+set number" "${EditLine}" ${src}
+													;;
+												*)
+													${ReadOrEdit} ${src}
+													;;
+											esac
 											#}
 										fi
 									fi

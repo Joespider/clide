@@ -3,7 +3,7 @@
 #https://stackoverflow.com/questions/10339637/java-import-cannot-find-symbol
 #https://www.codejava.net/java-core/tools/how-to-compile-package-and-run-a-java-program-using-command-line-tools-javac-jar-and-java
 
-SupportV="0.2.62"
+SupportV="0.2.64"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -784,6 +784,7 @@ UseJava()
 			local newName
 			local DirPath
 			local TheSrcDir
+			local EditLine="$2"
 			local ReadOrEdit
 			local UseProjectTemplate
 			local NumFound
@@ -795,6 +796,16 @@ UseJava()
 					ReadOrEdit=${ReadBy}
 					;;
 				editCode)
+					case ${num} in
+						--line)
+							num="$3"
+							if [ ! -z "${EditLine}" ]; then
+								EditLine="+${EditLine}"
+							fi
+							;;
+						*)
+							;;
+					esac
 					ReadOrEdit=${editor}
 					;;
 				*)
@@ -830,13 +841,33 @@ UseJava()
 													*"${LangExt}")
 														#Read or Write Code
 														#{
-														${ReadOrEdit} ${num}
+														case ${ReadOrEdit,,} in
+															nano)
+																${ReadOrEdit} -l "${EditLine}" ${num}
+																;;
+															vi)
+																${ReadOrEdit} "+set number" "${EditLine}" ${num}
+																;;
+															*)
+																${ReadOrEdit} ${num}
+																;;
+														esac
 														#}
 														;;
 													*)
 														#Read or Write Code
 														#{
-														${ReadOrEdit} "${num}${LangExt}"
+														case ${ReadOrEdit,,} in
+															nano)
+																${ReadOrEdit} -l "${EditLine}" "${num}${LangExt}"
+																;;
+															vi)
+																${ReadOrEdit} "+set number" "${EditLine}" "${num}${LangExt}"
+																;;
+															*)
+																${ReadOrEdit} "${num}${LangExt}"
+																;;
+														esac
 														#}
 														;;
 												esac
@@ -862,7 +893,17 @@ UseJava()
 								*)
 									#Read or Write Code
 									#{
-									${ReadOrEdit} ${src}
+									case ${ReadOrEdit,,} in
+										nano)
+											${ReadOrEdit} -l "${EditLine}" ${src}
+											;;
+										vi)
+											${ReadOrEdit} "+set number" "${EditLine}" ${src}
+											;;
+										*)
+											${ReadOrEdit} ${src}
+											;;
+									esac
 									#}
 									;;
 							esac
@@ -925,7 +966,17 @@ UseJava()
 									if [ -f ${TheFile} ]; then
 										#Read or Write Code
 										#{
-										${ReadOrEdit} ${TheFile}
+										case ${ReadOrEdit,,} in
+											nano)
+												${ReadOrEdit} -l "${EditLine}" ${TheFile}
+												;;
+											vi)
+												${ReadOrEdit} "+set number" "${EditLine}" ${TheFile}
+												;;
+											*)
+												${ReadOrEdit} ${TheFile}
+												;;
+										esac
 										#}
 									fi
 									;;
@@ -948,7 +999,17 @@ UseJava()
 											TheFile=$(UseJava "getProjSrc" ${TheFile} 2> /dev/null | tr '\n' '|' | cut -d '|' -f ${Select})
 											#Read or Write Code
 											#{
-											${ReadOrEdit} ${TheFile}
+											case ${ReadOrEdit,,} in
+												nano)
+													${ReadOrEdit} -l "${EditLine}" ${TheFile}
+													;;
+												vi)
+													${ReadOrEdit} "+set number" "${EditLine}" ${TheFile}
+													;;
+												*)
+													${ReadOrEdit} ${TheFile}
+													;;
+											esac
 											#}
 										fi
 									fi
