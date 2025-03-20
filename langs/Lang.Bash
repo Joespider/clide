@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.2.08"
+SupportV="0.2.09"
 Lang=Bash
 LangExt=".sh"
 ColorNum=2
@@ -528,6 +528,7 @@ UseBash()
 			#{
 			case ${Type} in
 				readCode)
+					EditLine=""
 					ReadOrEdit=${ReadBy}
 					;;
 				editCode)
@@ -539,6 +540,7 @@ UseBash()
 							fi
 							;;
 						*)
+							EditLine=""
 							;;
 					esac
 					ReadOrEdit=${editor}
@@ -575,10 +577,18 @@ UseBash()
 												num=$(echo -e "${src//,/\\n}" | grep ${num})
 												case ${ReadOrEdit,,} in
 													nano)
-														${ReadOrEdit} -l "${EditLine}" ${num}
+														if [ ! -z "${EditLine}" ]; then
+															${ReadOrEdit} -l "${EditLine}" ${num}
+														else
+															${ReadOrEdit} -l ${num}
+														fi
 														;;
 													vi)
-														${ReadOrEdit} "+set number" "${EditLine}" ${num}
+														if [ ! -z "${EditLine}" ]; then
+															${ReadOrEdit} "+set number" "${EditLine}" ${num}
+														else
+															${ReadOrEdit} "+set number" ${num}
+														fi
 														;;
 													*)
 														${ReadOrEdit} ${num}
@@ -608,10 +618,18 @@ UseBash()
 									#{
 									case ${ReadOrEdit,,} in
 										nano)
-											${ReadOrEdit} -l "${EditLine}" ${src}
+											if [ ! -z "${EditLine}" ]; then
+												${ReadOrEdit} -l "${EditLine}" ${src}
+											else
+												${ReadOrEdit} -l ${src}
+											fi
 											;;
 										vi)
-											${ReadOrEdit} "+set number" "${EditLine}" ${src}
+											if [ ! -z "${EditLine}" ]; then
+												${ReadOrEdit} "+set number" "${EditLine}" ${src}
+											else
+												${ReadOrEdit} "+set number" ${src}
+											fi
 											;;
 										*)
 											${ReadOrEdit} ${src}
@@ -677,10 +695,18 @@ UseBash()
 										#{
 										case ${ReadOrEdit,,} in
 											nano)
-												${ReadOrEdit} -l "${EditLine}" ${src}
+												if [ ! -z "${EditLine}" ]; then
+													${ReadOrEdit} -l "${EditLine}" ${src}
+												else
+													${ReadOrEdit} -l ${src}
+												fi
 												;;
 											vi)
-												${ReadOrEdit} "+set number" "${EditLine}" ${src}
+												if [ ! -z "${EditLine}" ]; then
+													${ReadOrEdit} "+set number" "${EditLine}" ${src}
+												else
+													${ReadOrEdit} "+set number" ${src}
+												fi
 												;;
 											*)
 												${ReadOrEdit} ${src}
@@ -702,10 +728,18 @@ UseBash()
 											#{
 											case ${ReadOrEdit,,} in
 												nano)
-													${ReadOrEdit} -l "${EditLine}" ${src}
+													if [ ! -z "${EditLine}" ]; then
+														${ReadOrEdit} -l "${EditLine}" ${src}
+													else
+														${ReadOrEdit} -l ${src}
+													fi
 													;;
 												vi)
-													${ReadOrEdit} "+set number" "${EditLine}" ${src}
+													if [ ! -z "${EditLine}" ]; then
+														${ReadOrEdit} "+set number" "${EditLine}" ${src}
+													else
+														${ReadOrEdit} "+set number" ${src}
+													fi
 													;;
 												*)
 													${ReadOrEdit} ${src}

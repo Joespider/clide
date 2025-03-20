@@ -3,7 +3,7 @@
 #https://stackoverflow.com/questions/10339637/java-import-cannot-find-symbol
 #https://www.codejava.net/java-core/tools/how-to-compile-package-and-run-a-java-program-using-command-line-tools-javac-jar-and-java
 
-SupportV="0.2.64"
+SupportV="0.2.65"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -793,6 +793,7 @@ UseJava()
 			#{
 			case ${Type} in
 				readCode)
+					EditLine=""
 					ReadOrEdit=${ReadBy}
 					;;
 				editCode)
@@ -804,6 +805,7 @@ UseJava()
 							fi
 							;;
 						*)
+							EditLine=""
 							;;
 					esac
 					ReadOrEdit=${editor}
@@ -843,10 +845,18 @@ UseJava()
 														#{
 														case ${ReadOrEdit,,} in
 															nano)
-																${ReadOrEdit} -l "${EditLine}" ${num}
+																if [ ! -z "${EditLine}" ]; then
+																	${ReadOrEdit} -l "${EditLine}" ${num}
+																else
+																	${ReadOrEdit} -l ${num}
+																fi
 																;;
 															vi)
-																${ReadOrEdit} "+set number" "${EditLine}" ${num}
+																if [ ! -z "${EditLine}" ]; then
+																	${ReadOrEdit} "+set number" "${EditLine}" ${num}
+																else
+																	${ReadOrEdit} "+set number" ${num}
+																fi
 																;;
 															*)
 																${ReadOrEdit} ${num}
@@ -859,10 +869,18 @@ UseJava()
 														#{
 														case ${ReadOrEdit,,} in
 															nano)
-																${ReadOrEdit} -l "${EditLine}" "${num}${LangExt}"
+																if [ ! -z "${EditLine}" ]; then
+																	${ReadOrEdit} -l "${EditLine}" "${num}${LangExt}"
+																else
+																	${ReadOrEdit} -l "${num}${LangExt}"
+																fi
 																;;
 															vi)
-																${ReadOrEdit} "+set number" "${EditLine}" "${num}${LangExt}"
+																if [ ! -z "${EditLine}" ]; then
+																	${ReadOrEdit} "+set number" "${EditLine}" "${num}${LangExt}"
+																else
+																	${ReadOrEdit} "+set number" "${num}${LangExt}"
+																fi
 																;;
 															*)
 																${ReadOrEdit} "${num}${LangExt}"
@@ -895,10 +913,18 @@ UseJava()
 									#{
 									case ${ReadOrEdit,,} in
 										nano)
-											${ReadOrEdit} -l "${EditLine}" ${src}
+											if [ ! -z "${EditLine}" ]; then
+												${ReadOrEdit} -l "${EditLine}" ${src}
+											else
+												${ReadOrEdit} -l ${src}
+											fi
 											;;
 										vi)
-											${ReadOrEdit} "+set number" "${EditLine}" ${src}
+											if [ ! -z "${EditLine}" ]; then
+												${ReadOrEdit} "+set number" "${EditLine}" ${src}
+											else
+												${ReadOrEdit} "+set number" ${src}
+											fi
 											;;
 										*)
 											${ReadOrEdit} ${src}
@@ -968,10 +994,18 @@ UseJava()
 										#{
 										case ${ReadOrEdit,,} in
 											nano)
-												${ReadOrEdit} -l "${EditLine}" ${TheFile}
+												if [ ! -z "${EditLine}" ]; then
+													${ReadOrEdit} -l "${EditLine}" ${TheFile}
+												else
+													${ReadOrEdit} -l ${TheFile}
+												fi
 												;;
 											vi)
-												${ReadOrEdit} "+set number" "${EditLine}" ${TheFile}
+												if [ ! -z "${EditLine}" ]; then
+													${ReadOrEdit} "+set number" "${EditLine}" ${TheFile}
+												else
+													${ReadOrEdit} "+set number" ${TheFile}
+												fi
 												;;
 											*)
 												${ReadOrEdit} ${TheFile}
@@ -1001,10 +1035,18 @@ UseJava()
 											#{
 											case ${ReadOrEdit,,} in
 												nano)
-													${ReadOrEdit} -l "${EditLine}" ${TheFile}
+													if [ ! -z "${EditLine}" ]; then
+														${ReadOrEdit} -l "${EditLine}" ${TheFile}
+													else
+														${ReadOrEdit} -l ${TheFile}
+													fi
 													;;
 												vi)
-													${ReadOrEdit} "+set number" "${EditLine}" ${TheFile}
+													if [ ! -z "${EditLine}" ]; then
+														${ReadOrEdit} "+set number" "${EditLine}" ${TheFile}
+													else
+														${ReadOrEdit} "+set number" ${TheFile}
+													fi
 													;;
 												*)
 													${ReadOrEdit} ${TheFile}

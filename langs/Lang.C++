@@ -4,7 +4,7 @@
 #Link Libs: https://gist.github.com/gubatron/32f82053596c24b6bec6
 #both https://avikdas.com/2019/12/16/makefiles-for-c-cpp-projects.html
 
-SupportV="0.2.73"
+SupportV="0.2.74"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -1118,6 +1118,7 @@ UseC++()
 			#{
 			case ${Type} in
 				readCode)
+					EditLine=""
 					ReadOrEdit=${ReadBy}
 					;;
 				editCode)
@@ -1129,6 +1130,7 @@ UseC++()
 							fi
 							;;
 						*)
+							EditLine=""
 							;;
 					esac
 					ReadOrEdit=${editor}
@@ -1166,13 +1168,21 @@ UseC++()
 												num=$(echo -e "${src//,/\\n}" | grep ${num})
 												case ${ReadOrEdit,,} in
 													nano)
-														${ReadOrEdit} -l "${EditLine}" ${num}
+														if [ ! -z "${EditLine}" ]; then
+															${ReadOrEdit} -l "${EditLine}" ${num}
+														else
+															${ReadOrEdit} -l ${num}
+														fi
 														;;
 													vi)
-														${ReadOrEdit} "+set number" "${EditLine}" ${num}
+														if [ ! -z "${EditLine}" ]; then
+															${ReadOrEdit} "+set number" "${EditLine}" ${num}
+														else
+															${ReadOrEdit} "+set number" ${num}
+														fi
 														;;
 													*)
-														${ReadOrEdit} "${EditLine}" ${num}
+														${ReadOrEdit} ${num}
 														;;
 												esac
 												;;
@@ -1199,13 +1209,21 @@ UseC++()
 									#{
 									case ${ReadOrEdit,,} in
 										nano)
-											${ReadOrEdit} -l "${EditLine}" ${src}
+											if [ ! -z "${EditLine}" ]; then
+												${ReadOrEdit} -l "${EditLine}" ${src}
+											else
+												${ReadOrEdit} -l ${src}
+											fi
 											;;
 										vi)
-											${ReadOrEdit} "+set number" "${EditLine}" ${src}
+											if [ ! -z "${EditLine}" ]; then
+												${ReadOrEdit} "+set number" "${EditLine}" ${src}
+											else
+												${ReadOrEdit} "+set number" ${src}
+											fi
 											;;
 										*)
-											${ReadOrEdit} "${EditLine}" ${src}
+											${ReadOrEdit} ${src}
 											;;
 									esac
 									#}
@@ -1268,13 +1286,21 @@ UseC++()
 										#{
 										case ${ReadOrEdit,,} in
 											nano)
-												${ReadOrEdit} -l  "${EditLine}" ${src}
+												if [ ! -z "${EditLine}" ]; then
+													${ReadOrEdit} -l "${EditLine}" ${src}
+												else
+													${ReadOrEdit} -l ${src}
+												fi
 												;;
 											vi)
-												${ReadOrEdit} "+set number" "${EditLine}" ${src}
+												if [ ! -z "${EditLine}" ]; then
+													${ReadOrEdit} "+set number" "${EditLine}" ${src}
+												else
+													${ReadOrEdit} "+set number" ${src}
+												fi
 												;;
 											*)
-												${ReadOrEdit} "${EditLine}" ${src}
+												${ReadOrEdit} ${src}
 												;;
 										esac
 										#}
@@ -1293,13 +1319,21 @@ UseC++()
 											#{
 											case ${ReadOrEdit,,} in
 												nano)
-													${ReadOrEdit} -l "${EditLine}" ${src}
+													if [ ! -z "${EditLine}" ]; then
+														${ReadOrEdit} -l "${EditLine}" ${src}
+													else
+														${ReadOrEdit} -l ${src}
+													fi
 													;;
 												vi)
-													${ReadOrEdit} "+set number" "${EditLine}" ${src}
+													if [ ! -z "${EditLine}" ]; then
+														${ReadOrEdit} "+set number" "${EditLine}" ${src}
+													else
+														${ReadOrEdit} "+set number" ${src}
+													fi
 													;;
 												*)
-													${ReadOrEdit} "${EditLine}" ${src}
+													${ReadOrEdit} ${src}
 													;;
 											esac
 											#}

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.0.04"
+SupportV="0.0.05"
 Lang=Php
 LangExt=".php"
 ColorNum=5
@@ -523,6 +523,7 @@ UsePhp()
 			#{
 			case ${Type} in
 				readCode)
+					EditLine=""
 					ReadOrEdit=${ReadBy}
 					;;
 				editCode)
@@ -534,6 +535,7 @@ UsePhp()
 							fi
 							;;
 						*)
+							EditLine=""
 							;;
 					esac
 					ReadOrEdit=${editor}
@@ -568,10 +570,18 @@ UsePhp()
 										num=$(echo -e "${src//,/\\n}" | grep ${num})
 										case ${ReadOrEdit,,} in
 											nano)
-												${ReadOrEdit} -l "${EditLine}" ${num}
+												if [ ! -z "${EditLine}" ]; then
+													${ReadOrEdit} -l "${EditLine}" ${num}
+												else
+													${ReadOrEdit} -l ${num}
+												fi
 												;;
 											vi)
-												${ReadOrEdit} "+set number" "${EditLine}" ${num}
+												if [ ! -z "${EditLine}" ]; then
+													${ReadOrEdit} "+set number" "${EditLine}" ${num}
+												else
+													${ReadOrEdit} "+set number" ${num}
+												fi
 												;;
 											*)
 												${ReadOrEdit} ${num}
@@ -598,10 +608,18 @@ UsePhp()
 								#{
 								case ${ReadOrEdit,,} in
 									nano)
-										${ReadOrEdit} -l "${EditLine}" ${src}
+										if [ ! -z "${EditLine}" ]; then
+											${ReadOrEdit} -l "${EditLine}" ${src}
+										else
+											${ReadOrEdit} -l ${src}
+										fi
 										;;
 									vi)
-										${ReadOrEdit} "+set number" "${EditLine}" ${src}
+										if [ ! -z "${EditLine}" ]; then
+											${ReadOrEdit} "+set number" "${EditLine}" ${src}
+										else
+											${ReadOrEdit} "+set number" ${src}
+										fi
 										;;
 									*)
 										${ReadOrEdit} ${src}
@@ -660,10 +678,18 @@ UsePhp()
 										#{
 										case ${ReadOrEdit,,} in
 											nano)
-												${ReadOrEdit} -l "${EditLine}" ${src}
+												if [ ! -z "${EditLine}" ]; then
+													${ReadOrEdit} -l "${EditLine}" ${src}
+												else
+													${ReadOrEdit} -l ${src}
+												fi
 												;;
 											vi)
-												${ReadOrEdit} "+set number" "${EditLine}" ${src}
+												if [ ! -z "${EditLine}" ]; then
+													${ReadOrEdit} "+set number" "${EditLine}" ${src}
+												else
+													${ReadOrEdit} "+set number" ${src}
+												fi
 												;;
 											*)
 												${ReadOrEdit} ${src}
@@ -685,10 +711,18 @@ UsePhp()
 											#{
 											case ${ReadOrEdit,,} in
 												nano)
-													${ReadOrEdit} -l "${EditLine}" ${src}
+													if [ ! -z "${EditLine}" ]; then
+														${ReadOrEdit} -l "${EditLine}" ${src}
+													else
+														${ReadOrEdit} -l ${src}
+													fi
 													;;
 												vi)
-													${ReadOrEdit} "+set number" "${EditLine}" ${src}
+													if [ ! -z "${EditLine}" ]; then
+														${ReadOrEdit} "+set number" "${EditLine}" ${src}
+													else
+														${ReadOrEdit} "+set number" ${src}
+													fi
 													;;
 												*)
 													${ReadOrEdit} ${src}

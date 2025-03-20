@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.2.05"
+SupportV="0.2.06"
 Lang=Perl
 LangExt=".pl"
 #Color Purple
@@ -493,6 +493,7 @@ UsePerl()
 			#{
 			case ${Type} in
 				readCode)
+					EditLine=""
 					ReadOrEdit=${ReadBy}
 					;;
 				editCode)
@@ -504,6 +505,7 @@ UsePerl()
 							fi
 							;;
 						*)
+							EditLine=""
 							;;
 					esac
 					ReadOrEdit=${editor}
@@ -538,10 +540,18 @@ UsePerl()
 											*"${LangExt}")
 												case ${ReadOrEdit,,} in
 													nano)
-														${ReadOrEdit} -l "${EditLine}" ${num}
+														if [ ! -z "${EditLine}" ]; then
+															${ReadOrEdit} -l "${EditLine}" ${num}
+														else
+															${ReadOrEdit} -l ${num}
+														fi
 														;;
 													vi)
-														${ReadOrEdit} "+set number" "${EditLine}" ${num}
+														if [ ! -z "${EditLine}" ]; then
+															${ReadOrEdit} "+set number" "${EditLine}" ${num}
+														else
+															${ReadOrEdit} "+set number" ${num}
+														fi
 														;;
 													*)
 														${ReadOrEdit} ${num}
@@ -551,10 +561,18 @@ UsePerl()
 											*)
 												case ${ReadOrEdit,,} in
 													nano)
-														${ReadOrEdit} -l "${EditLine}" "${num}${LangExt}"
+														if [ ! -z "${EditLine}" ]; then
+															${ReadOrEdit} -l "${EditLine}" "${num}${LangExt}"
+														else
+															${ReadOrEdit} -l "${num}${LangExt}"
+														fi
 														;;
 													vi)
-														${ReadOrEdit} "+set number" "${EditLine}" "${num}${LangExt}"
+														if [ ! -z "${EditLine}" ]; then
+															${ReadOrEdit} "+set number" "${EditLine}" "${num}${LangExt}"
+														else
+															${ReadOrEdit} "+set number" "${num}${LangExt}"
+														fi
 														;;
 													*)
 														${ReadOrEdit} "${num}${LangExt}"
@@ -584,10 +602,18 @@ UsePerl()
 						*)
 							case ${ReadOrEdit,,} in
 								nano)
-									${ReadOrEdit} -l "${EditLine}" ${src}
+									if [ ! -z "${EditLine}" ]; then
+										${ReadOrEdit} -l "${EditLine}" ${src}
+									else
+										${ReadOrEdit} -l ${src}
+									fi
 									;;
 								vi)
-									${ReadOrEdit} "+set number" "${EditLine}" ${src}
+									if [ ! -z "${EditLine}" ]; then
+										${ReadOrEdit} "+set number" "${EditLine}" ${src}
+									else
+										${ReadOrEdit} "+set number" ${src}
+									fi
 									;;
 								*)
 									${ReadOrEdit} ${src}
