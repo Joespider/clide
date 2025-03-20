@@ -3,7 +3,7 @@
 #https://stackoverflow.com/questions/10339637/java-import-cannot-find-symbol
 #https://www.codejava.net/java-core/tools/how-to-compile-package-and-run-a-java-program-using-command-line-tools-javac-jar-and-java
 
-SupportV="0.2.62"
+SupportV="0.2.65"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -784,6 +784,7 @@ UseJava()
 			local newName
 			local DirPath
 			local TheSrcDir
+			local EditLine="$2"
 			local ReadOrEdit
 			local UseProjectTemplate
 			local NumFound
@@ -792,9 +793,21 @@ UseJava()
 			#{
 			case ${Type} in
 				readCode)
+					EditLine=""
 					ReadOrEdit=${ReadBy}
 					;;
 				editCode)
+					case ${num} in
+						--line)
+							num="$3"
+							if [ ! -z "${EditLine}" ]; then
+								EditLine="+${EditLine}"
+							fi
+							;;
+						*)
+							EditLine=""
+							;;
+					esac
 					ReadOrEdit=${editor}
 					;;
 				*)
@@ -830,13 +843,49 @@ UseJava()
 													*"${LangExt}")
 														#Read or Write Code
 														#{
-														${ReadOrEdit} ${num}
+														case ${ReadOrEdit,,} in
+															nano)
+																if [ ! -z "${EditLine}" ]; then
+																	${ReadOrEdit} -l "${EditLine}" ${num}
+																else
+																	${ReadOrEdit} -l ${num}
+																fi
+																;;
+															vi)
+																if [ ! -z "${EditLine}" ]; then
+																	${ReadOrEdit} "+set number" "${EditLine}" ${num}
+																else
+																	${ReadOrEdit} "+set number" ${num}
+																fi
+																;;
+															*)
+																${ReadOrEdit} ${num}
+																;;
+														esac
 														#}
 														;;
 													*)
 														#Read or Write Code
 														#{
-														${ReadOrEdit} "${num}${LangExt}"
+														case ${ReadOrEdit,,} in
+															nano)
+																if [ ! -z "${EditLine}" ]; then
+																	${ReadOrEdit} -l "${EditLine}" "${num}${LangExt}"
+																else
+																	${ReadOrEdit} -l "${num}${LangExt}"
+																fi
+																;;
+															vi)
+																if [ ! -z "${EditLine}" ]; then
+																	${ReadOrEdit} "+set number" "${EditLine}" "${num}${LangExt}"
+																else
+																	${ReadOrEdit} "+set number" "${num}${LangExt}"
+																fi
+																;;
+															*)
+																${ReadOrEdit} "${num}${LangExt}"
+																;;
+														esac
 														#}
 														;;
 												esac
@@ -862,7 +911,25 @@ UseJava()
 								*)
 									#Read or Write Code
 									#{
-									${ReadOrEdit} ${src}
+									case ${ReadOrEdit,,} in
+										nano)
+											if [ ! -z "${EditLine}" ]; then
+												${ReadOrEdit} -l "${EditLine}" ${src}
+											else
+												${ReadOrEdit} -l ${src}
+											fi
+											;;
+										vi)
+											if [ ! -z "${EditLine}" ]; then
+												${ReadOrEdit} "+set number" "${EditLine}" ${src}
+											else
+												${ReadOrEdit} "+set number" ${src}
+											fi
+											;;
+										*)
+											${ReadOrEdit} ${src}
+											;;
+									esac
 									#}
 									;;
 							esac
@@ -925,7 +992,25 @@ UseJava()
 									if [ -f ${TheFile} ]; then
 										#Read or Write Code
 										#{
-										${ReadOrEdit} ${TheFile}
+										case ${ReadOrEdit,,} in
+											nano)
+												if [ ! -z "${EditLine}" ]; then
+													${ReadOrEdit} -l "${EditLine}" ${TheFile}
+												else
+													${ReadOrEdit} -l ${TheFile}
+												fi
+												;;
+											vi)
+												if [ ! -z "${EditLine}" ]; then
+													${ReadOrEdit} "+set number" "${EditLine}" ${TheFile}
+												else
+													${ReadOrEdit} "+set number" ${TheFile}
+												fi
+												;;
+											*)
+												${ReadOrEdit} ${TheFile}
+												;;
+										esac
 										#}
 									fi
 									;;
@@ -948,7 +1033,25 @@ UseJava()
 											TheFile=$(UseJava "getProjSrc" ${TheFile} 2> /dev/null | tr '\n' '|' | cut -d '|' -f ${Select})
 											#Read or Write Code
 											#{
-											${ReadOrEdit} ${TheFile}
+											case ${ReadOrEdit,,} in
+												nano)
+													if [ ! -z "${EditLine}" ]; then
+														${ReadOrEdit} -l "${EditLine}" ${TheFile}
+													else
+														${ReadOrEdit} -l ${TheFile}
+													fi
+													;;
+												vi)
+													if [ ! -z "${EditLine}" ]; then
+														${ReadOrEdit} "+set number" "${EditLine}" ${TheFile}
+													else
+														${ReadOrEdit} "+set number" ${TheFile}
+													fi
+													;;
+												*)
+													${ReadOrEdit} ${TheFile}
+													;;
+											esac
 											#}
 										fi
 									fi

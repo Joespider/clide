@@ -3729,8 +3729,34 @@ Actions()
 					#Edit new source code...Read code without editing
 					${editor}|edit|ed|${ReadBy}|read)
 						case ${UserIn[1]} in
-							--help)
-								HelpMenu ${Lang} "${UserIn[@]}"
+							"--"*)
+								case ${UserIn[1]} in
+									--line)
+										case ${UserArg} in
+											#Edit new source code
+											${editor}|edit|ed)
+												if [ ! -z "${UserIn[2]}" ]; then
+													EditLineNum=$(echo ${UserIn[2]} | sed "s/[^0-9]//g")
+													if [ ! -z "${EditLineNum}" ]; then
+														ManageLangs ${Lang} "editCode" "--line" ${EditLineNum} ${UserIn[3]}
+													else
+														errorCode "WARNING"
+														errorCode "WARNING" "Please provide the line number you wish to edit"
+													fi
+												else
+													errorCode "WARNING"
+													errorCode "WARNING" "Please provide the line number you wish to edit"
+												fi
+												EditLineNum=""
+												;;
+											*)
+												;;
+										esac
+										;;
+									--help|*)
+										HelpMenu ${Lang} "${UserIn[@]}"
+										;;
+								esac
 								;;
 							#edit non-langugage source files
 							non-lang)
@@ -4887,7 +4913,7 @@ loadAuto()
 	comp_list "shell" "--help"
 	comp_list "time" "--help"
 	comp_list "new" "--version -v --help -h --custom -c --show -s"
-	comp_list "${editor} ed edit edrst" "non-lang --help"
+	comp_list "${editor} ed edit edrst" "non-lang --help --line"
 	comp_list "add" "--help"
 	comp_list "${ReadBy} read" "non-lang --help"
 	comp_list "search" "--help"
@@ -6166,6 +6192,7 @@ CLI()
 					local Action=$1
 					local Lang=$2
 					local Code
+					local EditLine
 					local confirm=$3
 					case ${Action} in
 						#clide --edit --config <arg>
@@ -6239,6 +6266,43 @@ CLI()
 								fi
 							else
 								theHelp EditCliHelp
+							fi
+							;;
+						#clide --edit --line <lang> <src> <line>
+						--line)
+							Lang=$(pgLang "$2")
+							Code="$3"
+							EditLine="$4"
+							EditLineNum=$(echo ${EditLineNum} | sed "s/[^0-9]//g")
+							if [ -z "${EditLine}" ]; then
+								Lang=$(SelectLangByCode $2)
+								Code=$2
+								EditLine="$3"
+								EditLineNum=$(echo ${EditLineNum} | sed "s/[^0-9]//g")
+								shift
+								if [ ! -z "${EditLine}" ]; then
+									main --edit "${Action}" "${Lang}" "${Code}" "${EditLine}"
+								fi
+							else
+								case ${Lang} in
+									no)
+										errorCode "lang" "cli-not-supported" "$1"
+										;;
+									*)
+										local CodeDir=$(pgDir ${Lang})
+										if [ ! -z "${CodeDir}" ] && [ ! -z "${EditLine}" ]; then
+											cd ${CodeDir}
+											TheSrcCode=$(selectCode ${Lang} ${Code})
+											if [ ! -z "${TheSrcCode}" ]; then
+												ManageLangs ${Lang} "editCode" "${Action}" "${EditLine}"
+											else
+												errorCode "cli-cpl" "none"
+											fi
+										else
+											errorCode "cli-cpl" "none"
+									fi
+									;;
+								esac
 							fi
 							;;
 						#clide --edit <lang> <src>

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.2.03"
+SupportV="0.2.06"
 Lang=Perl
 LangExt=".pl"
 #Color Purple
@@ -465,7 +465,7 @@ UsePerl()
 				*)
 					;;
 			esac
-	
+
 			if [ -f ${ThePath}/${name}${LangExt} ]; then
 				echo ${ThePath}/${name}${LangExt}
 			else
@@ -486,15 +486,28 @@ UsePerl()
 		editCode|readCode)
 			local src=${TheCode}
 			local num=$1
+			local EditLine="$2"
 			local ReadOrEdit
 
 			#Select the tool
 			#{
 			case ${Type} in
 				readCode)
+					EditLine=""
 					ReadOrEdit=${ReadBy}
 					;;
 				editCode)
+					case ${num} in
+						--line)
+							num="$3"
+							if [ ! -z "${EditLine}" ]; then
+								EditLine="+${EditLine}"
+							fi
+							;;
+						*)
+							EditLine=""
+							;;
+					esac
 					ReadOrEdit=${editor}
 					;;
 				*)
@@ -525,10 +538,46 @@ UsePerl()
 									*"${num}"*)
 										case ${num} in
 											*"${LangExt}")
-												${ReadOrEdit} ${num}
+												case ${ReadOrEdit,,} in
+													nano)
+														if [ ! -z "${EditLine}" ]; then
+															${ReadOrEdit} -l "${EditLine}" ${num}
+														else
+															${ReadOrEdit} -l ${num}
+														fi
+														;;
+													vi)
+														if [ ! -z "${EditLine}" ]; then
+															${ReadOrEdit} "+set number" "${EditLine}" ${num}
+														else
+															${ReadOrEdit} "+set number" ${num}
+														fi
+														;;
+													*)
+														${ReadOrEdit} ${num}
+														;;
+												esac
 												;;
 											*)
-												${ReadOrEdit} "${num}${LangExt}"
+												case ${ReadOrEdit,,} in
+													nano)
+														if [ ! -z "${EditLine}" ]; then
+															${ReadOrEdit} -l "${EditLine}" "${num}${LangExt}"
+														else
+															${ReadOrEdit} -l "${num}${LangExt}"
+														fi
+														;;
+													vi)
+														if [ ! -z "${EditLine}" ]; then
+															${ReadOrEdit} "+set number" "${EditLine}" "${num}${LangExt}"
+														else
+															${ReadOrEdit} "+set number" "${num}${LangExt}"
+														fi
+														;;
+													*)
+														${ReadOrEdit} "${num}${LangExt}"
+														;;
+												esac
 												;;
 										esac
 										;;
@@ -551,7 +600,25 @@ UsePerl()
 							fi
 							;;
 						*)
-							${ReadOrEdit} ${src}
+							case ${ReadOrEdit,,} in
+								nano)
+									if [ ! -z "${EditLine}" ]; then
+										${ReadOrEdit} -l "${EditLine}" ${src}
+									else
+										${ReadOrEdit} -l ${src}
+									fi
+									;;
+								vi)
+									if [ ! -z "${EditLine}" ]; then
+										${ReadOrEdit} "+set number" "${EditLine}" ${src}
+									else
+										${ReadOrEdit} "+set number" ${src}
+									fi
+									;;
+								*)
+									${ReadOrEdit} ${src}
+									;;
+							esac
 							;;
 					esac
 					;;
