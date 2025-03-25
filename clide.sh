@@ -3535,7 +3535,7 @@ Actions()
 													ManageLangs ${Lang} "shell" "${ShellArgs[@]}"
 													;;
 												*)
-													ManageLangs ${Lang} "shell" "${ShellArgs[@]}" | ${editor} -
+													ManageLangs ${Lang} "shell" "${ShellArgs[@]}" | ${editor} -l -
 													;;
 											esac
 										else

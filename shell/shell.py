@@ -2,7 +2,7 @@ import os
 import sys
 import platform
 
-Version = "0.0.5"
+Version = "0.0.7"
 
 def getOS():
 	platform.system()
@@ -143,6 +143,34 @@ def replaceAll(message, sBy, jBy):
 #	----[shell]----
 
 
+def ReplaceTag(Content, Tag):
+	if IsIn(Content," ") and StartsWith(Content, Tag):
+		NewContent = "";
+		Next = "";
+		all = split(Content," ")
+		end = len(all)
+		lp = 0
+		while lp != end:
+			Next = all[lp]
+			#element starts with tag
+			if StartsWith(Next, Tag):
+				#remove tag
+				Next = AfterSplit(Next,"-")
+
+			if NewContent == "":
+				NewContent = Next
+			else:
+				NewContent = NewContent+" "+Next
+			lp += 1
+		Content = NewContent
+
+	#Parse Content as long as there is a Tag found at the beginning
+	elif StartsWith(Content, Tag):
+		#removing tag
+		Content = AfterSplit(Content,"-")
+	return Content
+
+
 
 def banner():
 	cplV = getCplV()
@@ -218,18 +246,24 @@ def Class(TheName, Content):
 
 #method:
 def Method(Tabs, Name, Content, CalledBy):
+	Last = False
+	CanSplit = True
 	Complete = ""
 	Name = AfterSplit(Name,":")
 	TheName = ""
 	Type = ""
 	Params = ""
 	MethodContent = ""
+	OtherContent = ""
+	NewContent = ""
 	LastComp = ""
 	Process = ""
 
+	#method:<name>-<type>
 	if IsIn(Name,"-"):
 		TheName = BeforeSplit(Name,"-")
 		Type = AfterSplit(Name,"-")
+	#method:<name>
 	else:
 		TheName = Name
 
@@ -241,20 +275,53 @@ def Method(Tabs, Name, Content, CalledBy):
 				Process = Content
 
 			Params = Parameters(Process,"method")
-
-		elif StartsWith(Content, "method") or StartsWith(Content, "class"):
+		#ignore content if calling a "method" or a "class"
+		elif StartsWith(Content, "method:") or StartsWith(Content, "class:"):
 			break
 		else:
-			if IsIn(Content," method"):
-				cmds = split(Content," method")
+			#This is called when a called from the "class" method
+			# EX: class:name method:first method:second
+			if IsIn(Content," method:"):
+				cmds = split(Content," method:")
 				Content = cmds[0]
+			if StartsWith(Content, "method-"):
+				all = split(Content," ")
+				noMore = False
+				end = len(all)
+				lp = 0
+				while lp != end:
+					if StartsWith(all[lp], "method-") and noMore == False:
+						if OtherContent == "":
+							OtherContent = all[lp]
+						else:
+							OtherContent = OtherContent+" "+all[lp]
+					else:
+						if NewContent == "":
+							NewContent = all[lp]
+						else:
+							NewContent = NewContent+" "+all[lp]
+						noMore = True
+					lp += 1
+				CanSplit = False
+			else:
+				OtherContent = Content
+				CanSplit = True
 
-			MethodContent = MethodContent + GenCode(Tabs+"\t",Content)
+			OtherContent = ReplaceTag(OtherContent, "method-")
+			MethodContent = MethodContent + GenCode(Tabs+"\t",OtherContent)
+			Content = NewContent
+
+			OtherContent = ""
+			NewContent = ""
+		if Last:
+			break
 
 		if IsIn(Content," "):
-			Content = AfterSplit(Content," ")
+			if CanSplit:
+				Content = AfterSplit(Content," ")
 		else:
-			break
+			Content = ""
+			Last = True
 
 	#Handle Parameters from a class
 	if CalledBy == "Class" and Params != "":
@@ -306,16 +373,16 @@ def Parameters(input, CalledBy):
 
 #loop:
 def Loop(Tabs, TheKindType, Content):
+
 	Last = False
 	Complete = ""
-	TheName = ""
 	RootTag = ""
-	Type = ""
 	TheCondition = ""
 	LoopContent = ""
 	NewContent = ""
 	OtherContent = ""
 
+	#loop:<type>
 	if IsIn(TheKindType,":"):
 		TheKindType = AfterSplit(TheKindType,":")
 
@@ -323,36 +390,68 @@ def Loop(Tabs, TheKindType, Content):
 		TheName = BeforeSplit(TheKindType,"-")
 		Type = AfterSplit(TheKindType,"-")
 
+	#content for loop
 	while Content != "":
+		Content = ReplaceTag(Content, "loop-")
+
+		if StartsWith(Content, "condition:"):
+			if IsIn(Content," "):
+				TheCondition = BeforeSplit(Content," ");
+				Content = AfterSplit(Content," ")
+			else:
+				TheCondition = Content
+			TheCondition = Conditions(TheCondition,TheKindType)
+
+		#nest-<type> <other content>
+		#{or}
+		#<other content> nest-<type>
 		if not StartsWith(Content, "nest-") and IsIn(Content," nest-"):
+			#This section is meant to make sure the recursion is handled correctly
+			#The nested loops and logic statements are split accordingly
+
+			#split string wherever a " nest-" is located
+			#ALL "nest-" are ignored...notice there is no space before the "nest-"
 			all = split(Content," nest-")
 			end = len(all)
 			lp = 0
 			while lp != end:
+				#This content will be processed as content for loop
 				if lp == 0:
+					#nest-<type>
+					#{or}
+					#<other content>
 					OtherContent = all[lp]
+				#The remaining content is for the next loop
+				#nest-<type> <other content> nest-<type> <other content>
 				elif lp == 1:
 					NewContent = "nest-"+all[lp]
 				else:
 					NewContent = NewContent + " nest-"+all[lp]
 				lp += 1
-
+			#Generate the loop content
 			LoopContent = LoopContent + GenCode(Tabs+"\t",OtherContent)
+			#The remaning content gets processed
 			Content = NewContent
+			#reset old and new content
 			OtherContent = ""
 			NewContent = ""
 
-		if StartsWith(Content, "condition"):
-			TheCondition = Conditions(Content,TheKindType)
-
-		elif StartsWith(Content, "method") or StartsWith(Content, "class"):
+		#stop recursive loop if the next element is a "method" or a "class"
+		if StartsWith(Content, "method:") or StartsWith(Content, "class:"):
 			break
-
-		#nest-loop:
+		#nest-<type>
 		elif StartsWith(Content, "nest-"):
+			#"nest-loop" becomes ["nest-", "oop"]
+			#{or}
+			#"nest-logic" becomes ["nest-", "ogic"]
 			RootTag = BeforeSplit(Content,'l')
-
+			#check of " nest-l" is in content
 			if IsIn(Content," "+RootTag+"l"):
+				#This section is meant to separate the "nest-loop" from the "nest-logic"
+				#loops won't process logic and vise versa
+
+				#split string wherever a " nest-l" is located
+				#ALL "nest-l" are ignored...notice there is no space before the "nest-l"
 				cmds = split(Content," "+RootTag+"l")
 				end = len(cmds)
 				lp = 0
@@ -365,26 +464,44 @@ def Loop(Tabs, TheKindType, Content):
 						else:
 							NewContent = NewContent+" "+RootTag+"l"+cmds[lp]
 					lp += 1
+
+			#no " nest-l" found
 			else:
 				OtherContent = Content
 
 			Content = NewContent
-			NewContent = ""
 
+			#"nest-loop" and "nest-nest-loop" becomes "loop"
 			while StartsWith(OtherContent, "nest-"):
 				OtherContent = AfterSplit(OtherContent,"-")
 
 			LoopContent = LoopContent + GenCode(Tabs+"\t",OtherContent)
-		else:
+			#nest-stmt: or nest-var:
+			if StartsWith(OtherContent, "stmt:") or StartsWith(OtherContent, "var:"):
+				#This code works, however, it does mean that parent recursion
+				#does not have any content. Only nested statements give content to
+				OtherContent = ""
+				Content = ""
+
+			NewContent = ""
+
+		elif StartsWith(Content, "loop-") or StartsWith(Content, "var:") or StartsWith(Content, "stmt:"):
+			Content = ReplaceTag(Content, "loop-")
 			LoopContent = LoopContent + GenCode(Tabs+"\t",Content)
 			Content = ""
 
+		#no nested content
+		else:
+			Content = ""
+
+		#no content left to process
 		if Last:
 			break
 
+		#one last thing to process
 		if not IsIn(Content," "):
+			#kill after one more loop
 			Last = True
-
 	#loop:for
 	if TheKindType == "for":
 		if LoopContent != "":
@@ -409,8 +526,6 @@ def Loop(Tabs, TheKindType, Content):
 def Logic(Tabs, TheKindType, Content):
 	Last = False
 	Complete = ""
-	TheName = ""
-	Type = ""
 	RootTag = ""
 	TheCondition = ""
 	LogicContent = ""
@@ -420,11 +535,18 @@ def Logic(Tabs, TheKindType, Content):
 	if IsIn(TheKindType,":"):
 		TheKindType = AfterSplit(TheKindType,":")
 
-	if IsIn(TheKindType,"-"):
-		TheName = BeforeSplit(TheKindType,"-")
-		Type = AfterSplit(TheKindType,"-")
-
 	while Content != "":
+		Content = ReplaceTag(Content, "logic-")
+
+		if StartsWith(Content, "condition:"):
+			if IsIn(Content," "):
+				TheCondition = BeforeSplit(Content," ")
+				Content = AfterSplit(Content," ")
+			else:
+				TheCondition = Content
+			TheCondition = Conditions(TheCondition,TheKindType)
+
+		#This part of the code is meant to separate the nested content with the current content
 		if not StartsWith(Content, "nest-") and IsIn(Content," nest-"):
 			all = split(Content," nest-")
 			end = len(all)
@@ -432,33 +554,24 @@ def Logic(Tabs, TheKindType, Content):
 			while lp != end:
 				if lp == 0:
 					OtherContent = all[lp]
-
 				elif lp == 1:
 					NewContent = "nest-"+all[lp]
-
 				else:
 					NewContent = NewContent + " nest-"+all[lp]
 				lp += 1
+			#Process the current content so as to keep from redoing said content
 			LogicContent = LogicContent + GenCode(Tabs+"\t",OtherContent)
 			Content = NewContent
 			OtherContent = ""
 			NewContent = ""
 
-		if StartsWith(Content, "condition"):
-			if IsIn(Content," "):
-				TheCondition = BeforeSplit(Content," ")
-				Content = AfterSplit(Content," ")
-			else:
-				TheCondition = Content
-
-			TheCondition = Conditions(TheCondition,TheKindType)
-
-		elif StartsWith(Content, "method") or StartsWith(Content, "class"):
+		if StartsWith(Content, "method:") or StartsWith(Content, "class:"):
 			break
-
+		#This is to handle nested loops and logic
 		elif StartsWith(Content, "nest-"):
-			RootTag = BeforeSplit(Content,'l')
+			RootTag = BeforeSplit(Content,"l")
 			if IsIn(Content," "+RootTag+"l"):
+				#split up the loops and logic accordingly
 				cmds = split(Content," "+RootTag+"l")
 				end = len(cmds)
 				lp = 0
@@ -475,14 +588,25 @@ def Logic(Tabs, TheKindType, Content):
 				OtherContent = Content
 
 			Content = NewContent
-			NewContent = ""
 
 			while StartsWith(OtherContent, "nest-"):
 				OtherContent = AfterSplit(OtherContent,"-")
 
 			LogicContent = LogicContent + GenCode(Tabs+"\t",OtherContent)
-		else:
+			#nest-stmt: or nest-var:
+			if StartsWith(OtherContent, "stmt:") or StartsWith(OtherContent, "var:"):
+				#This code works, however, it does mean that parent recursion
+				#does not have any content. Only nested statements give content to
+
+				OtherContent = ""
+				Content = ""
+			NewContent = ""
+
+		elif StartsWith(Content, "logic-") or StartsWith(Content, "var:") or StartsWith(Content, "stmt:"):
+			Content = ReplaceTag(Content, "logic-")
 			LogicContent = LogicContent + GenCode(Tabs+"\t",Content)
+			Content = ""
+		else:
 			Content = ""
 
 		if Last:
@@ -551,24 +675,27 @@ def Statements(Tabs, TheKindType, Content):
 		TheName = TheKindType
 
 	while Content != "":
+		#This handles the parameters of the statements
 		if StartsWith(Content, "params") and Params == "":
 			if IsIn(Content," "):
 				Process = BeforeSplit(Content," ")
 			else:
 				Process = Content
-
 			Params =  Parameters(Process,"stmt")
-		else:
-			OtherContent = BeforeSplit(Content," ")
-			StatementContent = StatementContent + GenCode(Tabs,OtherContent)
-			Content = AfterSplit(Content," ")
 
 		if Last:
 			break
 
+		while StartsWith(Content, "nest-"):
+			Content = AfterSplit(Content,"-")
+
 		if not IsIn(Content," "):
 			StatementContent = StatementContent + GenCode(Tabs,Content)
 			Last = True
+		else:
+			OtherContent = BeforeSplit(Content," ")
+			StatementContent = StatementContent + GenCode(Tabs,OtherContent)
+			Content = AfterSplit(Content," ")
 
 	if TheName == "method":
 		Complete = Name+"("+Params+")"+StatementContent
@@ -592,48 +719,42 @@ def Variables(Tabs, TheKindType, Content):
 	Name = ""
 	VarType = ""
 	Value = ""
-	NewContent = ""
 	VariableContent = ""
 	OtherContent = ""
 
-#	print(TheKindType+" "+Content);
-
 	while Content != "":
-#		VariableContent = VariableContent + GenCode(Tabs,Content)
-#		Content = AfterSplit(Content," ")
-
-		if IsIn(Content," "):
-			OtherContent = BeforeSplit(Content," ")
-			Content = AfterSplit(Content," ")
-
 		if StartsWith(Content, "params"):
 			OtherContent = OtherContent+" "+BeforeSplit(Content," ")
 			Content = AfterSplit(Content," ")
 
-		VariableContent = VariableContent + GenCode(Tabs,OtherContent)
-
 		if Last:
 			break
+
+		while StartsWith(Content, "nest-"):
+			Content = AfterSplit(Content,"-")
 
 		if not IsIn(Content," "):
 			VariableContent = VariableContent + GenCode(Tabs,Content)
 			Last = True
-
+		else:
+			OtherContent = BeforeSplit(Content," ")
+			VariableContent = VariableContent + GenCode(Tabs,OtherContent)
+			Content = AfterSplit(Content," ")
 	#var:name-dataType=Value
 	if IsIn(TheKindType,":") and IsIn(TheKindType,"-") and IsIn(TheKindType,"=") and not EndsWith(TheKindType, "="):
 		Type = AfterSplit(TheKindType,":")
 		Name = BeforeSplit(Type,"-")
 		VarType = AfterSplit(Type,"-")
-		Value = AfterSplit(VarType,'=')
-		VarType = BeforeSplit(VarType,'=')
+		Value = AfterSplit(VarType,"=")
+		VarType = BeforeSplit(VarType,"=")
 		NewVar = Tabs+Name+" = "+Value
 		NewVar = NewVar+VariableContent
 
 	#var:name=Value
 	elif IsIn(TheKindType,":") and (not IsIn(TheKindType,"-")) and IsIn(TheKindType,"=") and not EndsWith(TheKindType, "="):
 		Type = AfterSplit(TheKindType,":")
-		Name = BeforeSplit(Type,'=')
-		Value = AfterSplit(Type,'=')
+		Name = BeforeSplit(Type,"=")
+		Value = AfterSplit(Type,"=")
 		NewVar = Tabs+Name+" = "+Value
 		NewVar = NewVar+VariableContent
 		print(NewVar)
@@ -643,15 +764,15 @@ def Variables(Tabs, TheKindType, Content):
 		Type = AfterSplit(TheKindType,":")
 		Name = BeforeSplit(Type,"-")
 		VarType = AfterSplit(Type,"-")
-		VarType = BeforeSplit(VarType,'=')
+		VarType = BeforeSplit(VarType,"=")
 		NewVar = Tabs+Name+" = "
 		NewVar = NewVar+VariableContent
 
 	#var:name=
 	elif IsIn(TheKindType,":") and not IsIn(TheKindType,"-") and EndsWith(TheKindType, "="):
 		Type = AfterSplit(TheKindType,":")
-		Name = BeforeSplit(Type,'=')
-		Value = AfterSplit(Type,'=')
+		Name = BeforeSplit(Type,"=")
+		Value = AfterSplit(Type,"=")
 		NewVar = Tabs+Name+" = "
 		NewVar = NewVar+VariableContent
 
@@ -676,25 +797,25 @@ def GenCode(Tabs,GetMe,CalledBy=""):
 		Args[0] = GetMe
 		Args[1] = ""
 
-	if StartsWith(Args[0], "class"):
+	if StartsWith(Args[0], "class:"):
 		TheCode = Class(Args[0],Args[1])
 
-	elif StartsWith(Args[0], "struct"):
+	elif StartsWith(Args[0], "struct:"):
 		TheCode = Struct(Args[0],Args[1])
 
-	elif StartsWith(Args[0], "method"):
+	elif StartsWith(Args[0], "method:"):
 		TheCode = Method(Tabs,Args[0],Args[1],CalledBy)
 
-	elif StartsWith(Args[0], "loop"):
+	elif StartsWith(Args[0], "loop:"):
 		TheCode = Loop(Tabs,Args[0],Args[1])
 
-	elif StartsWith(Args[0], "logic"):
+	elif StartsWith(Args[0], "logic:"):
 		TheCode = Logic(Tabs,Args[0],Args[1])
 
-	elif StartsWith(Args[0], "var"):
+	elif StartsWith(Args[0], "var:"):
 		TheCode = Variables(Tabs, Args[0], Args[1])
 
-	elif StartsWith(Args[0], "stmt"):
+	elif StartsWith(Args[0], "stmt:"):
 		TheCode = Statements(Tabs, Args[0], Args[1])
 
 #	elif StartsWith(Args[0], "condition"):

@@ -191,11 +191,42 @@ func replaceAll(Str string, sBy string, ToJoin string) string {
 	----[shell]----
 */
 
+func ReplaceTag(Content string, Tag string) string {
+	if ((IsIn(Content," ")) && (StartsWith(Content, Tag))) {
+		var NewContent string = ""
+		var Next string = ""
+		var all []string = split(Content," ")
+		var end int = len(all)
+		var lp int = 0
+		for lp != end {
+			Next = all[lp]
+			//element starts with tag
+			if (StartsWith(Next, Tag)) {
+				//remove tag
+				Next = AfterSplit(Next,"-")
+			}
+
+			if (NewContent == "") {
+				NewContent = Next
+			} else 	{
+				NewContent = NewContent+" "+Next
+			}
+			lp++
+		}
+		Content = NewContent
+	//Parse Content as long as there is a Tag found at the beginning
+	} else if (StartsWith(Content, Tag)) {
+		//removing tag
+		Content = AfterSplit(Content,"-")
+	}
+	return Content;
+}
+
 
 func banner() {
 	var cplV string = getCplV()
 	var theOS string = getOS()
-	var Version string = "0.0.5"
+	var Version string = "0.0.6"
 	fmt.Println(cplV)
 	fmt.Println("[Go " + Version +"] on " + theOS)
 	fmt.Println("Type \"help\" for more information.")
@@ -295,11 +326,11 @@ func Method(Tabs string, Name string, Content string) string {
 				Process = Content
 			}
 			Params =  Parameters(Process,"method")
-		} else if StartsWith(Content, "method") || StartsWith(Content, "class") {
+		} else if StartsWith(Content, "method:") || StartsWith(Content, "class:") {
 			break
 		} else {
-			if IsIn(Content," method") {
-				var cmds []string = split(Content," method")
+			if IsIn(Content," method:") {
+				var cmds []string = split(Content," method:")
 				Content = cmds[0]
 			}
 			MethodContent = MethodContent + GenCode(Tabs+"\t",Content)
@@ -420,10 +451,10 @@ func Loop(Tabs string, TheKindType string, Content string) string {
 			NewContent = ""
 		}
 
-		if StartsWith(Content, "condition") {
+		if StartsWith(Content, "condition:") {
 			TheCondition = Conditions(Content,TheKindType)
 		//stop recursive loop if the next element is a "method" or a "class"
-		} else if StartsWith(Content, "method") || StartsWith(Content, "class") {
+		} else if StartsWith(Content, "method:") || StartsWith(Content, "class:") {
 			break
 		//nest-<type>
 		} else if StartsWith(Content, "nest-") 	{
@@ -556,7 +587,7 @@ func Logic(Tabs string, TheKindType string, Content string) string {
 			NewContent = ""
 		}
 
-		if StartsWith(Content, "condition") {
+		if StartsWith(Content, "condition:") {
 			if IsIn(Content," ") {
 				TheCondition = BeforeSplit(Content," ")
 				Content = AfterSplit(Content," ")
@@ -564,7 +595,7 @@ func Logic(Tabs string, TheKindType string, Content string) string {
 				TheCondition = Content
 			}
 			TheCondition = Conditions(TheCondition,TheKindType)
-		} else if StartsWith(Content, "method") || StartsWith(Content, "class") {
+		} else if StartsWith(Content, "method:") || StartsWith(Content, "class:") {
 			break
 		} else if StartsWith(Content, "nest-") {
 			RootTag = BeforeSplit(Content,"l")
@@ -794,25 +825,25 @@ func GenCode(Tabs string, GetMe string) string {
 		Args[1] = ""
 	}
 
-	if StartsWith(Args[0], "class") {
+	if StartsWith(Args[0], "class:") {
 		TheCode = Class(Args[0],Args[1])
 
-	} else if StartsWith(Args[0], "struct") {
+	} else if StartsWith(Args[0], "struct:") {
 		TheCode = Struct(Args[0],Args[1])
 
-	} else if StartsWith(Args[0], "method") {
+	} else if StartsWith(Args[0], "method:") {
 		TheCode = Method(Tabs,Args[0],Args[1])
 
-	} else if StartsWith(Args[0], "loop") {
+	} else if StartsWith(Args[0], "loop:") {
 		TheCode = Loop(Tabs,Args[0],Args[1])
 
-	} else if StartsWith(Args[0], "logic") {
+	} else if StartsWith(Args[0], "logic:") {
 		TheCode = Logic(Tabs,Args[0],Args[1])
 
-	} else if StartsWith(Args[0], "var") {
+	} else if StartsWith(Args[0], "var:") {
 		TheCode = Variables(Tabs, Args[0], Args[1])
 
-	} else if StartsWith(Args[0], "stmt") {
+	} else if StartsWith(Args[0], "stmt:") {
 		TheCode = Statements(Tabs, Args[0], Args[1])
 	}
 /*
