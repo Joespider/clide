@@ -24,7 +24,7 @@ bool IsIn(String Str, String Sub);
 
 static void help()
 {
-	String Version = "0.1.71";
+	String Version = "0.1.72";
 	print("Author: Joespider");
 	print("Program: \"" + ProgName + "\"");
 	print("Version: " + Version);
@@ -462,7 +462,7 @@ static String getMain(bool* getArgs, bool* getRandom, bool* getPipe, bool* getTh
 
 	if (*getVectors == true)
 	{
-		UseVectors = "/*\n\t//string vectors\n\tstd::vector<String> TheStrVect;\n\t//append string\n\tTheStrVect.push_back(\"one\");\n\n\tstd::vector<std::thread> TheThreadVect;\n\t//append Thread\n\tTheThreadVect.push_back(move(ThreadName));\n\n\t//int vectors\n\tstd::vector<int> TheIntVect;\n\t//append int\n\tTheIntVect.push_back(1);\n\t//int vectors\n\n\t//double vectors\n\tstd::vector<double> TheDblVect;\n\t//append double\n\tTheDblVect.push_back(1.0);\n\n\t//Vector length\n\tint TheStrVectLen = TheStrVect.size();\n\tint TheThreadVectLen = TheThreadVect.size();\n\tint TheIntVectLen = TheIntVect.size();\n\tint TheDblVectLen = TheDblVect.size();\n*/\n\n";
+		UseVectors = "/*\n\t//string vectors\n\tstd::vector<String> TheStrVect;\n\t//append string\n\tTheStrVect.push_back(\"one\");\n\n\tstd::vector<std::thread> TheThreadVect;\n\t//append Thread\n\tTheThreadVect.push_back(std::move(ThreadName));\n\n\t//int vectors\n\tstd::vector<int> TheIntVect;\n\t//append int\n\tTheIntVect.push_back(1);\n\t//int vectors\n\n\t//double vectors\n\tstd::vector<double> TheDblVect;\n\t//append double\n\tTheDblVect.push_back(1.0);\n\n\t//Vector length\n\tint TheStrVectLen = TheStrVect.size();\n\tint TheThreadVectLen = TheThreadVect.size();\n\tint TheIntVectLen = TheIntVect.size();\n\tint TheDblVectLen = TheDblVect.size();\n*/\n\n";
 	}
 
 	if (*getMath == true)
