@@ -2,7 +2,7 @@ import os
 import sys
 import platform
 
-Version = "0.0.7"
+Version = "0.0.8"
 
 def getOS():
 	platform.system()
@@ -703,10 +703,7 @@ def Statements(Tabs, TheKindType, Content):
 	elif TheName == "comment":
 		Complete = StatementContent+"#Code goes here"
 
-	elif TheName == "endline":
-		Complete = StatementContent+"\n"
-
-	elif TheName == "newline":
+	elif TheName == "endline" or TheName == "newline":
 		Complete = StatementContent+"\n"
 
 	return Complete;

@@ -401,7 +401,7 @@ void banner()
 }
 
 /*
-<<shell>> method:DataType-String logic:if condition:Type|==|"String" logic-var:dtType-String logic-stmt:endline logic-stmt:newline
+<<shell>> method:DataType-String logic:if condition:Type|==|"String" logic-var:dtType-String logic-stmt:endline logic-stmt:newline logic:else-if
 */
 
 //condition:
@@ -608,7 +608,6 @@ String Method(String Tabs, String Name, String Content)
 				Content = cmds[0];
 			}
 
-//			if (IsIn(Content," method-"))
 			if (StartsWith(Content, "method-"))
 			{
 				std::vector<String> all = split(Content," ");
@@ -617,6 +616,7 @@ String Method(String Tabs, String Name, String Content)
 				int lp = 0;
 				while (lp != end)
 				{
+					//This processes ONLY method-<content>
 					if ((StartsWith(all[lp], "method-")) && (noMore == false))
 					{
 						if (OtherContent == "")
@@ -651,7 +651,21 @@ String Method(String Tabs, String Name, String Content)
 			}
 
 			OtherContent = ReplaceTag(OtherContent, "method-");
+
+			std::vector<String> cmds = split(OtherContent," ");
+			int end = len(cmds);
+			int lp = 0;
+			while (lp != end)
+			{
+				if ((StartsWith(cmds[lp],"logic:")) || (StartsWith(cmds[lp],"loop:")))
+				{
+					print(cmds[lp]);
+				}
+				lp++;
+			}
+
 			MethodContent = MethodContent + GenCode(Tabs+"\t",OtherContent);
+			print(NewContent);
 			Content = NewContent;
 
 			OtherContent = "";

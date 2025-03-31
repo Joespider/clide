@@ -1,6 +1,2 @@
 #Version tracking
-#Increment by 1 number per category
-#1st # = Overflow
-#2nd # = Additional features
-#3rd # = Bug/code tweaks/fixes
-export clideVersion="0.94.64"
+export clideVersion="0.94.66"

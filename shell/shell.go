@@ -192,7 +192,7 @@ func replaceAll(Str string, sBy string, ToJoin string) string {
 */
 
 func ReplaceTag(Content string, Tag string) string {
-	if ((IsIn(Content," ")) && (StartsWith(Content, Tag))) {
+	if IsIn(Content," ") && StartsWith(Content, Tag) {
 		var NewContent string = ""
 		var Next string = ""
 		var all []string = split(Content," ")
@@ -201,12 +201,12 @@ func ReplaceTag(Content string, Tag string) string {
 		for lp != end {
 			Next = all[lp]
 			//element starts with tag
-			if (StartsWith(Next, Tag)) {
+			if StartsWith(Next, Tag) {
 				//remove tag
 				Next = AfterSplit(Next,"-")
 			}
 
-			if (NewContent == "") {
+			if NewContent == "" {
 				NewContent = Next
 			} else 	{
 				NewContent = NewContent+" "+Next
@@ -226,7 +226,7 @@ func ReplaceTag(Content string, Tag string) string {
 func banner() {
 	var cplV string = getCplV()
 	var theOS string = getOS()
-	var Version string = "0.0.6"
+	var Version string = "0.0.8"
 	fmt.Println(cplV)
 	fmt.Println("[Go " + Version +"] on " + theOS)
 	fmt.Println("Type \"help\" for more information.")
@@ -303,18 +303,25 @@ func Class(TheName string, Content string) string {
 }
 
 func Method(Tabs string, Name string, Content string) string {
+	var Last bool = false
+        var CanSplit bool = true
 	var Complete string
 	Name = AfterSplit(Name,":")
 	var TheName string
 	var Type string
 	var Params string
 	var MethodContent string
+        var OtherContent string
+        var NewContent string
 	var Process string
 
+	//method:<name>-<type>
 	if IsIn(Name,"-") {
 		TheName = BeforeSplit(Name,"-")
 		Type = AfterSplit(Name,"-")
+	//method:<name>
 	} else {
+		//get method name
 		TheName = Name
 	}
 
@@ -326,27 +333,72 @@ func Method(Tabs string, Name string, Content string) string {
 				Process = Content
 			}
 			Params =  Parameters(Process,"method")
+		//ignore content if calling a "method" or a "class"
 		} else if StartsWith(Content, "method:") || StartsWith(Content, "class:") {
 			break
 		} else {
+			//This is called when a called from the "class" method
+			// EX: class:name method:first method:second
 			if IsIn(Content," method:") {
+				//Only account for the first method content
 				var cmds []string = split(Content," method:")
 				Content = cmds[0]
 			}
-			MethodContent = MethodContent + GenCode(Tabs+"\t",Content)
+
+			if StartsWith(Content, "method-") {
+				var all []string = split(Content," ")
+				var noMore bool = false
+				var end int = len(all)
+				var lp int = 0
+				for lp != end {
+					if StartsWith(all[lp], "method-") && noMore == false {
+						if OtherContent == "" {
+							OtherContent = all[lp]
+						} else {
+							OtherContent = OtherContent+" "+all[lp]
+						}
+					} else {
+						if NewContent == "" {
+							NewContent = all[lp]
+						} else {
+							NewContent = NewContent+" "+all[lp]
+						}
+						noMore = true
+					}
+					lp++
+				}
+				CanSplit = false
+			} else {
+				OtherContent = Content
+				CanSplit = true
+			}
+
+			OtherContent = ReplaceTag(OtherContent, "method-")
+			MethodContent = MethodContent + GenCode(Tabs+"\t",OtherContent)
+			Content = NewContent
+
+			OtherContent = ""
+			NewContent = ""
+		}
+
+		if Last {
+			break
 		}
 
 		if IsIn(Content," ") {
-			Content = AfterSplit(Content," ")
+			if CanSplit {
+				Content = AfterSplit(Content," ")
+			}
 		} else {
-			break
+			Content = ""
+			Last = true
 		}
 	}
 
 	if Type == "" || Type == "void" {
 		Complete = Tabs+"func "+TheName+"("+Params+") {\n"+MethodContent+"\n"+Tabs+"}\n"
 	} else {
-		Complete = Tabs+"func "+TheName+"("+Params+") "+Type+" {\n"+Tabs+"\tvar TheReturn "+Type+";\n"+MethodContent+"\n"+Tabs+"\treturn TheReturn;\n"+Tabs+"}\n"
+		Complete = Tabs+"func "+TheName+"("+Params+") "+Type+" {\n"+Tabs+"\tvar TheReturn "+Type+"\n"+MethodContent+"\n"+Tabs+"\treturn TheReturn\n"+Tabs+"}\n"
 	}
 	return Complete
 }
@@ -398,6 +450,7 @@ func Parameters(input string, CalledBy string) string {
 
 //loop:
 func Loop(Tabs string, TheKindType string, Content string) string {
+
 	var Last bool = false
 	var Complete string
 	var RootTag string
@@ -414,6 +467,18 @@ func Loop(Tabs string, TheKindType string, Content string) string {
 
 	//content for loop
 	for Content != "" {
+		Content = ReplaceTag(Content, "loop-")
+
+		if StartsWith(Content, "condition") {
+			if IsIn(Content," ") {
+				TheCondition = BeforeSplit(Content," ")
+				Content = AfterSplit(Content," ")
+			} else {
+				TheCondition = Content
+			}
+			TheCondition = Conditions(TheCondition,TheKindType)
+		}
+
 		//nest-<type> <other content>
 		//{or}
 		//<other content> nest-<type>
@@ -451,10 +516,8 @@ func Loop(Tabs string, TheKindType string, Content string) string {
 			NewContent = ""
 		}
 
-		if StartsWith(Content, "condition:") {
-			TheCondition = Conditions(Content,TheKindType)
 		//stop recursive loop if the next element is a "method" or a "class"
-		} else if StartsWith(Content, "method:") || StartsWith(Content, "class:") {
+		if StartsWith(Content, "method:") || StartsWith(Content, "class:") {
 			break
 		//nest-<type>
 		} else if StartsWith(Content, "nest-") 	{
@@ -511,9 +574,23 @@ func Loop(Tabs string, TheKindType string, Content string) string {
 			}
 
 			LoopContent = LoopContent + GenCode(Tabs+"\t",OtherContent)
+			//nest-stmt: or nest-var:
+			if StartsWith(OtherContent, "stmt:") || StartsWith(OtherContent, "var:") {
+				/*
+				This code works, however, it does mean that parent recursion
+				does not have any content. Only nested statements give content to
+				*/
+				OtherContent = ""
+				Content = ""
+			}
+
+			NewContent = ""
+		} else if StartsWith(Content, "loop-") || StartsWith(Content, "var:") || StartsWith(Content, "stmt:") {
+			Content = ReplaceTag(Content, "loop-")
+			LoopContent = LoopContent + GenCode(Tabs+"\t",Content)
+			Content = ""
 		//no nested content
 		} else {
-			LoopContent = LoopContent + GenCode(Tabs+"\t",Content)
 			Content = ""
 		}
 
@@ -567,6 +644,19 @@ func Logic(Tabs string, TheKindType string, Content string) string {
 */
 
 	for Content != "" {
+
+		Content = ReplaceTag(Content, "logic-")
+
+		if StartsWith(Content, "condition") {
+			if IsIn(Content," ") {
+				TheCondition = BeforeSplit(Content," ")
+				Content = AfterSplit(Content," ")
+			} else {
+				TheCondition = Content
+			}
+			TheCondition = Conditions(TheCondition,TheKindType)
+		}
+
 		if !StartsWith(Content, "nest-") && IsIn(Content," nest-") {
 			var all []string = split(Content," nest-")
 			var end int = len(all)
@@ -587,15 +677,7 @@ func Logic(Tabs string, TheKindType string, Content string) string {
 			NewContent = ""
 		}
 
-		if StartsWith(Content, "condition:") {
-			if IsIn(Content," ") {
-				TheCondition = BeforeSplit(Content," ")
-				Content = AfterSplit(Content," ")
-			} else {
-				TheCondition = Content
-			}
-			TheCondition = Conditions(TheCondition,TheKindType)
-		} else if StartsWith(Content, "method:") || StartsWith(Content, "class:") {
+		if StartsWith(Content, "method:") || StartsWith(Content, "class:") {
 			break
 		} else if StartsWith(Content, "nest-") {
 			RootTag = BeforeSplit(Content,"l")
@@ -639,9 +721,24 @@ func Logic(Tabs string, TheKindType string, Content string) string {
 				//remove the line break from the last "if"
 				LogicContent = LogicContent[:len(LogicContent)-1]
 			}
-			LogicContent = LogicContent + GenCode(Tabs+"\t",OtherContent)
-		} else {
 
+			LogicContent = LogicContent + GenCode(Tabs+"\t",OtherContent);
+			//nest-stmt: or nest-var:
+			if StartsWith(OtherContent, "stmt:") || StartsWith(OtherContent, "var:") {
+				/*
+				This code works, however, it does mean that parent recursion
+				does not have any content. Only nested statements give content to
+				*/
+				OtherContent = ""
+				Content = ""
+			}
+
+			NewContent = ""
+		} else if StartsWith(Content, "logic-") || StartsWith(Content, "var:") || StartsWith(Content, "stmt:") {
+			Content = ReplaceTag(Content, "logic-")
+			LogicContent = LogicContent + GenCode(Tabs+"\t",Content)
+			Content = ""
+		} else {
 			LogicContent = LogicContent + GenCode(Tabs+"\t",Content)
 			Content = ""
 		}
@@ -706,6 +803,7 @@ func Statements(Tabs string, TheKindType string, Content string) string {
 	}
 
 	for Content != "" {
+		//This handles the parameters of the statements
 		if StartsWith(Content, "params") && Params == "" {
 			if IsIn(Content," ") {
 				Process = BeforeSplit(Content," ")
@@ -713,21 +811,26 @@ func Statements(Tabs string, TheKindType string, Content string) string {
 				Process = Content
 			}
 			Params =  Parameters(Process,"stmt")
-		} else {
-			OtherContent = BeforeSplit(Content," ")
-			StatementContent = StatementContent + GenCode(Tabs,OtherContent)
-			Content = AfterSplit(Content," ")
 		}
 
 		if Last {
 			break
 		}
 
+		for StartsWith(Content, "nest-") {
+			Content = AfterSplit(Content,"-")
+		}
+
 		if !IsIn(Content," ") {
 			StatementContent = StatementContent + GenCode(Tabs,Content)
 			Last = true
+		} else {
+			OtherContent = BeforeSplit(Content," ")
+			StatementContent = StatementContent + GenCode(Tabs,OtherContent)
+			Content = AfterSplit(Content," ")
 		}
 	}
+
 	if TheName == "method" {
 		Complete = Name+"("+Params+")"+StatementContent
 	} else if TheName == "comment" {
@@ -759,6 +862,10 @@ func Variables(Tabs string, TheKindType string, Content string) string {
 
 		if Last {
 			break
+		}
+
+		for StartsWith(Content, "nest-") {
+			Content = AfterSplit(Content,"-")
 		}
 
 		if !IsIn(Content," ") {

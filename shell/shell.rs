@@ -294,6 +294,11 @@ fn replace_tag(the_content: &str, the_tag: &str) -> String
 		//removing tag
 		the_new_content = after_split(&passed_content,"-");
 	}
+
+	if the_new_content == ""
+	{
+		the_new_content = passed_content.clone();
+	}
 	return the_new_content;
 }
 
@@ -301,7 +306,7 @@ fn banner()
 {
 	let cpl_version = get_cpl_version();
 	let the_os = get_os();
-	let version = "0.0.14";
+	let version = "0.0.15";
 	println!("{}",cpl_version);
 	println!("[Rust {}] on {}",version,the_os);
 	println!("Type \"help\" for more information.");
@@ -576,7 +581,9 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 		the_complete.push_str(&the_params);
 		the_complete.push_str(") -> ");
 		the_complete.push_str(&the_type);
-		the_complete.push_str("\n{\n");
+		the_complete.push_str("\n");
+		the_complete.push_str(the_tabs);
+		the_complete.push_str("{\n");
 		the_complete.push_str(the_tabs);
 		the_complete.push_str("\tlet the_return: ");
 		the_complete.push_str(&the_type);
