@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.0.68";
+String Version = "0.0.70";
 
 String getOS();
 void Help(String Type);
@@ -346,7 +346,6 @@ String replaceAll(String message, String sBy, String jBy)
 }
 
 
-
 /*
 	----[shell]----
 */
@@ -402,7 +401,7 @@ void banner()
 }
 
 /*
-<<shell>> method:DataType-String logic:if condition:Type|==|"String" logic-var:dtType-std::string logic-stmt:endline logic-stmt:newline
+<<shell>> method:DataType-String logic:if condition:Type|==|"String" logic-var:dtType-String logic-stmt:endline logic-stmt:newline logic:else-if
 */
 
 //condition:
@@ -609,7 +608,6 @@ String Method(String Tabs, String Name, String Content)
 				Content = cmds[0];
 			}
 
-//			if (IsIn(Content," method-"))
 			if (StartsWith(Content, "method-"))
 			{
 				std::vector<String> all = split(Content," ");
@@ -618,6 +616,7 @@ String Method(String Tabs, String Name, String Content)
 				int lp = 0;
 				while (lp != end)
 				{
+					//This processes ONLY method-<content>
 					if ((StartsWith(all[lp], "method-")) && (noMore == false))
 					{
 						if (OtherContent == "")
@@ -652,6 +651,42 @@ String Method(String Tabs, String Name, String Content)
 			}
 
 			OtherContent = ReplaceTag(OtherContent, "method-");
+
+			String ParseContent = "";
+
+			std::vector<String> cmds = split(OtherContent," ");
+			int end = len(cmds);
+			int lp = 0;
+			while (lp != end)
+			{
+				//starts with "logic:" or "loop:"
+				if ((StartsWith(cmds[lp],"logic:")) || (StartsWith(cmds[lp],"loop:")))
+				{
+					//Only process code that starts with "logic:" or "loop:"
+					if (ParseContent != "")
+					{
+						//process content
+						MethodContent = MethodContent + GenCode(Tabs+"\t",ParseContent);
+					}
+					//Reset content
+					ParseContent = cmds[lp];
+				}
+				//start another line to process
+				else
+				{
+					//append content
+					ParseContent = ParseContent +" "+ cmds[lp];
+				}
+
+				lp++;
+			}
+
+			//process the rest
+			if (ParseContent != "")
+			{
+				OtherContent = ParseContent;
+			}
+
 			MethodContent = MethodContent + GenCode(Tabs+"\t",OtherContent);
 			Content = NewContent;
 
@@ -711,6 +746,7 @@ String Loop(String Tabs, String TheKindType, String Content)
 	while (Content != "")
 	{
 		Content = ReplaceTag(Content, "loop-");
+
 		if (StartsWith(Content, "condition"))
 		{
 			if (IsIn(Content," "))
@@ -760,9 +796,6 @@ String Loop(String Tabs, String TheKindType, String Content)
 				}
 				lp++;
 			}
-/*
-			OtherContent = ReplaceTag(OtherContent, "loop-");
-*/
 			//Generate the loop content
 			LoopContent = LoopContent + GenCode(Tabs+"\t",OtherContent);
 			//The remaning content gets processed
@@ -847,10 +880,16 @@ String Loop(String Tabs, String TheKindType, String Content)
 			NewContent = "";
 		}
 
+		else if ((StartsWith(Content, "loop-")) || (StartsWith(Content, "var:")) || (StartsWith(Content, "stmt:")))
+		{
+			Content = ReplaceTag(Content, "loop-");
+			LoopContent = LoopContent + GenCode(Tabs+"\t",Content);
+			Content = "";
+		}
+
 		//no nested content
 		else
 		{
-//			LoopContent = LoopContent + GenCode(Tabs+"\t",Content);
 			Content = "";
 		}
 
@@ -890,7 +929,6 @@ String Loop(String Tabs, String TheKindType, String Content)
 String Logic(String Tabs, String TheKindType, String Content)
 {
 	bool Last = false;
-//	bool CanSplit = true;
 	String Complete = "";
 	String RootTag = "";
 	String TheCondition = "";
@@ -904,6 +942,7 @@ String Logic(String Tabs, String TheKindType, String Content)
 	}
 	while (Content != "")
 	{
+
 		Content = ReplaceTag(Content, "logic-");
 
 		if (StartsWith(Content, "condition"))
@@ -942,9 +981,6 @@ String Logic(String Tabs, String TheKindType, String Content)
 				}
 				lp++;
 			}
-/*
-			OtherContent = ReplaceTag(OtherContent, "logic-");
-*/
 			//Process the current content so as to keep from redoing said content
 			LogicContent = LogicContent + GenCode(Tabs+"\t",OtherContent);
 			Content = NewContent;
@@ -1013,6 +1049,12 @@ String Logic(String Tabs, String TheKindType, String Content)
 			}
 
 			NewContent = "";
+		}
+		else if ((StartsWith(Content, "logic-")) || (StartsWith(Content, "var:")) || (StartsWith(Content, "stmt:")))
+		{
+			Content = ReplaceTag(Content, "logic-");
+			LogicContent = LogicContent + GenCode(Tabs+"\t",Content);
+			Content = "";
 		}
 		else
 		{

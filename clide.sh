@@ -3535,7 +3535,7 @@ Actions()
 													ManageLangs ${Lang} "shell" "${ShellArgs[@]}"
 													;;
 												*)
-													ManageLangs ${Lang} "shell" "${ShellArgs[@]}" | ${editor} -
+													ManageLangs ${Lang} "shell" "${ShellArgs[@]}" | ${editor} -l -
 													;;
 											esac
 										else
@@ -6270,14 +6270,14 @@ CLI()
 							;;
 						#clide --edit --line <lang> <src> <line>
 						--line)
-							Lang=$(pgLang "$2")
-							Code="$3"
-							EditLine="$4"
+							EditLine="$2"
+							Lang=$(pgLang "$3")
+							Code="$4"
 							EditLineNum=$(echo ${EditLineNum} | sed "s/[^0-9]//g")
 							if [ -z "${EditLine}" ]; then
-								Lang=$(SelectLangByCode $2)
-								Code=$2
-								EditLine="$3"
+								EditLine="$2"
+								Lang=$(SelectLangByCode $3)
+								Code=$3
 								EditLineNum=$(echo ${EditLineNum} | sed "s/[^0-9]//g")
 								shift
 								if [ ! -z "${EditLine}" ]; then

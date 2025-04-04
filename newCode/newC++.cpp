@@ -24,12 +24,12 @@ bool IsIn(String Str, String Sub);
 
 static void help()
 {
-	String Version = "0.1.70";
+	String Version = "0.1.72";
 	print("Author: Joespider");
-	print("Program: \"" << ProgName << "\"");
-	print("Version: " << Version);
+	print("Program: \"" + ProgName + "\"");
+	print("Version: " + Version);
 	print("Purpose: make new C++ programs");
-	print("Usage: " << ProgName << " <args>");
+	print("Usage: " + ProgName + " <args>");
 	print("\t--user <username>: get username for help page");
 	print("\t-n <name> : program name");
 	print("\t--name <name> : program name");
@@ -72,7 +72,7 @@ static String getHelp(String TheUser)
 	}
 	String HelpDeclare = "static void help();\n";
 	String HelpMethod = "String TheName = \"\";\n";
-	HelpMethod = HelpMethod +"static void help()\n{\n\tString Version = \"0.0.0\";\n\tprint(\"Author: "+TheUser+"\");\n\tprint(\"Program: \\\"\" << TheName << \"\\\"\");\n\tprint(\"Version: \" << Version);\n\tprint(\"Purpose: \");\n\tprint(\"Usage: \" << TheName << \" <args>\");\n}\n\n";
+	HelpMethod = HelpMethod +"static void help()\n{\n\tString Version = \"0.0.0\";\n\tprint(\"Author: "+TheUser+"\");\n\tprint(\"Program: \\\"\" + TheName + \"\\\"\");\n\tprint(\"Version: \" + Version);\n\tprint(\"Purpose: \");\n\tprint(\"Usage: \" + TheName + \" <args>\");\n}\n\n";
 	return HelpDeclare+"\n"+HelpMethod;
 }
 
@@ -217,6 +217,7 @@ static String getMethodDec(bool* rawinput, bool* rand, bool* fcheck, bool* write
 		Declaration = Declaration+"String shell(String command);\n";
 		Declaration = Declaration+"void shellExe(String command);\n";
 		Declaration = Declaration+"String getOS();\n";
+		Declaration = Declaration+"String getUser();\n";
 	}
 	if (*sleep == true)
 	{
@@ -352,6 +353,7 @@ static String getMethods(bool* rawinput, bool* rand, bool* fcheck, bool* write, 
 		TheShell = "String shell(String command)\n{\n\tchar buffer[128];\n\tString result = \"\";\n\n\t// Open pipe to file\n\tFILE* pipe = popen(command.c_str(), \"r\");\n\tif (!pipe)\n\t{\n\t\treturn \"popen failed!\";\n\t}\n\n\t// read till end of process:\n\twhile (!feof(pipe))\n\t{\n\t\t// use buffer to read and add to result\n\t\tif (fgets(buffer, 128, pipe) != NULL)\n\t\t{\n\t\t\tresult += buffer;\n\t\t}\n\t}\n\n\tpclose(pipe);\n\treturn result;\n}\n\n";
 		TheShell = TheShell+"void shellExe(String command)\n{\n\tsystem(command.c_str());\n}\n\n";
 		TheShell = TheShell+"String getOS()\n{\n\t#ifdef _WIN32\n\treturn \"Windows 32-bit\";\n\t#elif _WIN64\n\treturn \"Windows 64-bit\";\n\t#elif __APPLE__ || __MACH__\n\treturn \"Mac OSX\";\n\t#elif __linux__\n\treturn \"Linux\";\n\t#elif __FreeBSD__\n\treturn \"FreeBSD\";\n\t#elif __unix || __unix__\n\treturn \"Unix\";\n\t#else\n\treturn \"Other\";\n\t#endif\n}\n\n";
+		TheShell = TheShell+"String getUser()\n{\n\tString theOS = getOS();\n\tif ((theOS == \"Windows 32-bit\") || (theOS == \"Windows 64-bit\"))\n\t{\n\t\treturn getenv(\"USERNAME\");\n\t}\n\telse if (theOS == \"Linux\")\n\t{\n\t\treturn getenv(\"USER\");\n\t}\n\telse\n\t{\n\t\treturn \"\";\n\t}\n}\n\n";
 	}
 	if (*sleep == true)
 	{
@@ -460,7 +462,7 @@ static String getMain(bool* getArgs, bool* getRandom, bool* getPipe, bool* getTh
 
 	if (*getVectors == true)
 	{
-		UseVectors = "/*\n\t//string vectors\n\tstd::vector<String> TheStrVect;\n\t//append string\n\tTheStrVect.push_back(\"one\");\n\n\tstd::vector<std::thread> TheThreadVect;\n\t//append Thread\n\tTheThreadVect.push_back(move(ThreadName));\n\n\t//int vectors\n\tstd::vector<int> TheIntVect;\n\t//append int\n\tTheIntVect.push_back(1);\n\t//int vectors\n\n\t//double vectors\n\tstd::vector<double> TheDblVect;\n\t//append double\n\tTheDblVect.push_back(1.0);\n\n\t//Vector length\n\tint TheStrVectLen = TheStrVect.size();\n\tint TheThreadVectLen = TheThreadVect.size();\n\tint TheIntVectLen = TheIntVect.size();\n\tint TheDblVectLen = TheDblVect.size();\n*/\n\n";
+		UseVectors = "/*\n\t//string vectors\n\tstd::vector<String> TheStrVect;\n\t//append string\n\tTheStrVect.push_back(\"one\");\n\n\tstd::vector<std::thread> TheThreadVect;\n\t//append Thread\n\tTheThreadVect.push_back(std::move(ThreadName));\n\n\t//int vectors\n\tstd::vector<int> TheIntVect;\n\t//append int\n\tTheIntVect.push_back(1);\n\t//int vectors\n\n\t//double vectors\n\tstd::vector<double> TheDblVect;\n\t//append double\n\tTheDblVect.push_back(1.0);\n\n\t//Vector length\n\tint TheStrVectLen = TheStrVect.size();\n\tint TheThreadVectLen = TheThreadVect.size();\n\tint TheIntVectLen = TheIntVect.size();\n\tint TheDblVectLen = TheDblVect.size();\n*/\n\n";
 	}
 
 	if (*getMath == true)

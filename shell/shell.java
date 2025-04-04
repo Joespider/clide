@@ -12,7 +12,7 @@ import java.io.IOException;
 
 //class name
 public class shell {
-	private static String Version = "0.0.27";
+	private static String Version = "0.0.31";
 	private static String TheKind = "";
 	private static String TheName = "";
 	private static String TheKindType = "";
@@ -160,6 +160,11 @@ public class shell {
 		return vArray;
 	}
 
+	private static String replaceAll(String message, String sBy, String jBy)
+	{
+		String NewMessage = message.replaceAll(sBy,jBy);
+		return NewMessage;
+	}
 	private static boolean IsIn(String Str, String Sub)
 	{
 		boolean found = false;
@@ -251,10 +256,61 @@ public class shell {
 		return ShellOut;
 	}
 
+
+
+/*
+	----[shell]----
+*/
+
+
+	private static String ReplaceTag(String Content, String Tag)
+	{
+		if ((IsIn(Content," ")) && (StartsWith(Content, Tag)))
+		{
+			StringBuilder NewContent = new StringBuilder("");
+			String Next = "";
+			String[] all = split(Content," ");
+			int end = len(all);
+			int lp = 0;
+			while (lp != end)
+			{
+				Next = all[lp];
+				//element starts with tag
+				if (StartsWith(Next, Tag))
+				{
+					//remove tag
+					Next = AfterSplit(Next,"-");
+				}
+
+				if (NewContent.toString().equals(""))
+				{
+					NewContent.append(Next);
+				}
+				else
+				{
+					NewContent.append(" ");
+					NewContent.append(Next);
+				}
+				lp++;
+			}
+			Content = NewContent.toString();
+		}
+		//Parse Content as long as there is a Tag found at the beginning
+		else if (StartsWith(Content, Tag))
+		{
+			//removing tag
+			Content = AfterSplit(Content,"-");
+		}
+		return Content;
+	}
+
 	private static String getCpl()
 	{
 		return Shell("javac --version");
 	}
+/*
+<<shell>> method:DataType-String logic:if condition:Type|==|"String" logic-var:dtType-String logic-stmt:endline logic-stmt:newline logic:else-if
+*/
 
 	private static void banner()
 	{
@@ -324,6 +380,8 @@ public class shell {
 
 	private static String Method(String Tabs, String Name, String Content)
 	{
+		boolean Last = false;
+		boolean CanSplit = true;
 		String Complete = "";
 
 		String PublicOrPrivate = "public";
@@ -340,42 +398,145 @@ public class shell {
 		String Params = "";
 		String Process = "";
 		StringBuilder MethodContent = new StringBuilder("");
+		StringBuilder OtherContent = new StringBuilder("");
+		StringBuilder NewContent = new StringBuilder("");
 		String LastComp = "";
 
-
+		//method:<name>-<type>
 		if (IsIn(Content,"-"))
 		{
+			//get method name
 			TheName = BeforeSplit(Name,"-");
 			Type = AfterSplit(Name,"-");
 		}
+		//method:<name>
 		else
 		{
+			//get method name
 			TheName = Name;
 		}
-
 		while (!Content.equals(""))
 		{
-			if ((StartsWith(Content, "params")) && (Params.equals("")))
+			if ((StartsWith(Content, "params:")) && (Params.equals("")))
 			{
 				Process = BeforeSplit(Content," ");
 				Params =  Parameters(Process,"method");
 			}
-			else if ((StartsWith(Content, "method")) || (StartsWith(Content, "class")))
+			else if ((StartsWith(Content, "method:")) || (StartsWith(Content, "class:")))
 			{
 				break;
 			}
 			else
 			{
-				MethodContent.append(GenCode(Tabs+"\t\t",Content));
+				//This is called when a called from the "class" method
+				// EX: class:name method:first method:second
+				if (IsIn(Content," method:"))
+				{
+					String[] cmds = split(Content," methid:");
+					Content = cmds[0];
+				}
+
+				if (StartsWith(Content, "method-"))
+				{
+					String[] all = split(Content," ");
+					boolean noMore = false;
+					int end = len(all);
+					int lp = 0;
+					while (lp != end)
+					{
+						if ((StartsWith(all[lp], "method-")) && (noMore == false))
+						{
+							if (OtherContent.toString().equals(""))
+							{
+								OtherContent.append(all[lp]);
+							}
+							else
+							{
+								OtherContent.append(" ");
+								OtherContent.append(all[lp]);
+							}
+						}
+						else
+						{
+							if (NewContent.toString().equals(""))
+							{
+								NewContent.append(all[lp]);
+							}
+							else
+							{
+								NewContent.append(" ");
+								NewContent.append(all[lp]);
+							}
+							noMore = true;
+						}
+						lp++;
+					}
+					CanSplit = false;
+				}
+				else
+				{
+					OtherContent = new StringBuilder(Content);
+					CanSplit = true;
+				}
+				OtherContent = new StringBuilder(ReplaceTag(OtherContent.toString(), "method-"));
+
+				StringBuilder ParseContent = new StringBuilder("");
+
+				String[] cmds = split(OtherContent.toString()," ");
+				int end = len(cmds);
+				int lp = 0;
+				while (lp != end)
+				{
+					//starts with "logic:" or "loop:"
+					if ((StartsWith(cmds[lp],"logic:")) || (StartsWith(cmds[lp],"loop:")))
+					{
+						//Only process code that starts with "logic:" or "loop:"
+						if (ParseContent.toString() != "")
+						{
+							//process content
+							MethodContent.append(GenCode(Tabs+"\t\t",ParseContent.toString()));
+						}
+						//Reset content
+						ParseContent = new StringBuilder(cmds[lp]);
+					}
+					//start another line to process
+					else
+					{
+						//append content
+						ParseContent.append(" ");
+						ParseContent.append(cmds[lp]);
+					}
+					lp++;
+				}
+
+				//process the rest
+				if (ParseContent.toString() != "")
+				{
+					OtherContent = new StringBuilder(ParseContent.toString());
+				}
+
+				MethodContent.append(GenCode(Tabs+"\t\t",OtherContent.toString()));
+				Content = NewContent.toString();
+
+				OtherContent = new StringBuilder("");
+				NewContent = new StringBuilder("");
+			}
+			if (Last)
+			{
+				break;
 			}
 
 			if (IsIn(Content," "))
 			{
-				Content = AfterSplit(Content," ");
+				if (CanSplit)
+				{
+					Content = AfterSplit(Content," ");
+				}
 			}
 			else
 			{
-				break;
+				Content = "";
+				Last = true;
 			}
 		}
 
@@ -392,10 +553,11 @@ public class shell {
 
 	private static String Conditions(String input,String CalledBy)
 	{
-		String Params = AfterSplit(input,":");
-		if (IsIn(Params,"-"))
+		String Condit = "";
+		if (IsIn(input,":"))
 		{
-			Params = AfterSplit(input,":");
+			Condit = AfterSplit(input,":");
+			Condit = replaceAll(Condit,"|", " ");
 		}
 
 		if (CalledBy.equals("class"))
@@ -410,7 +572,7 @@ public class shell {
 		{
 			print("parameters: "+CalledBy);
 		}
-		return Params;
+		return Condit;
 	}
 
 	//params:
@@ -478,6 +640,22 @@ public class shell {
 		//content for loop
 		while (!Content.equals(""))
 		{
+			Content = ReplaceTag(Content,"loop-");
+
+			if (StartsWith(Content, "condition:"))
+			{
+				if (IsIn(Content," "))
+				{
+					TheCondition = BeforeSplit(Content," ");
+					Content = AfterSplit(Content," ");
+				}
+				else
+				{
+					TheCondition = Content;
+				}
+				TheCondition = Conditions(TheCondition,TheKindType);
+			}
+
 			//nest-<type> <other content>
 			//{or}
 			//<other content> nest-<type>
@@ -522,12 +700,54 @@ public class shell {
 				NewContent = new StringBuilder("");
 			}
 
-			if (StartsWith(Content, "condition"))
+			//nest-<type> <other content>
+			//{or}
+			//<other content> nest-<type>
+			if ((!StartsWith(Content,"nest-")) && (IsIn(Content," nest-")))
 			{
-				TheCondition = Conditions(Content,TheKindType);
+				//This section is meant to make sure the recursion is handled correctly
+				//The nested loops and logic statements are split accordingly
+
+				//split string wherever a " nest-" is located
+				//ALL "nest-" are ignored...notice there is no space before the "nest-"
+				String[] all = split(Content," nest-");
+				int end = len(all);
+				int lp = 0;
+				while (lp != end)
+				{
+					//This content will be processed as content for loop
+					if (lp == 0)
+					{
+						//nest-<type>
+						//{or}
+						//<other content>
+						OtherContent = all[lp];
+					}
+					//The remaining content is for the next loop
+					//nest-<type> <other content> nest-<type> <other content>
+					else if (lp == 1)
+					{
+						NewContent.append("nest-");
+						NewContent.append(all[lp]);
+					}
+					else
+					{
+						NewContent.append(" nest-");
+						NewContent.append(all[lp]);
+					}
+					lp++;
+				}
+				//Generate the loop content
+				LoopContent.append(GenCode(Tabs+"\t",OtherContent));
+				//The remaning content gets processed
+				Content = NewContent.toString();
+				//reset old and new content
+				OtherContent = "";
+				NewContent = new StringBuilder("");
 			}
+
 			//stop recursive loop if the next element is a "method" or a "class"
-			else if ((StartsWith(Content, "method")) || (StartsWith(Content, "class")))
+			if ((StartsWith(Content, "method:")) || (StartsWith(Content, "class:")))
 			{
 				break;
 			}
@@ -576,13 +796,33 @@ public class shell {
 				}
 
 				Content = NewContent.toString();
-				NewContent = new StringBuilder("");
 				//"nest-loop" and "nest-nest-loop" becomes "loop"
 				while (StartsWith(OtherContent, "nest-"))
 				{
 					OtherContent = AfterSplit(OtherContent,"-");
 				}
+
 				LoopContent.append(GenCode(Tabs+"\t",OtherContent));
+
+				//nest-stmt: or nest-var:
+				if (StartsWith(OtherContent, "stmt:") || (StartsWith(OtherContent, "var:")))
+				{
+					/*
+					This code works, however, it does mean that parent recursion
+					does not have any content. Only nested statements give content to
+					*/
+					OtherContent = "";
+					Content = "";
+				}
+
+				NewContent = new StringBuilder("");
+			}
+
+			else if ((StartsWith(Content, "loop-")) || (StartsWith(Content, "var:")) || (StartsWith(Content, "stmt:")))
+			{
+				Content = ReplaceTag(Content, "loop-");
+				LoopContent.append(GenCode(Tabs+"\t",Content));
+				Content = "";
 			}
 
 			//no nested content
@@ -649,32 +889,8 @@ public class shell {
 
 		while (!Content.equals(""))
 		{
-			if ((!StartsWith(Content, "nest-")) && (IsIn(Content," nest-")))
-			{
-				String[] all = split(Content," nest-");
-				int end = len(all);
-				int lp = 0;
-				while (lp != end)
-				{
-					if (lp == 0)
-					{
-						OtherContent = all[lp];
-					}
-					else if (lp == 1)
-					{
-						NewContent.append("nest-"+all[lp]);
-					}
-					else
-					{
-						NewContent.append(" nest-"+all[lp]);
-					}
-					lp++;
-				}
-				LogicContent.append(GenCode(Tabs+"\t",OtherContent));
-				Content = NewContent.toString();
-				OtherContent = "";
-				NewContent = new StringBuilder("");
-			}
+			Content = ReplaceTag(Content, "logic-");
+
 
 			if (StartsWith(Content, "condition"))
 			{
@@ -689,15 +905,117 @@ public class shell {
 				}
 				TheCondition = Conditions(TheCondition,TheKindType);
 			}
-			else if ((StartsWith(Content, "method")) || (StartsWith(Content, "class")))
+
+			//nest-<type> <other content>
+			//{or}
+			//<other content> nest-<type>
+			if ((!StartsWith(Content, "nest-")) && (IsIn(Content," nest-")))
+			{
+				//This section is meant to make sure the recursion is handled correctly
+				//The nested loops and logic statements are split accordingly
+
+				//split string wherever a " nest-" is located
+				//ALL "nest-" are ignored...notice there is no space before the "nest-"
+				String[] all = split(Content," nest-");
+				int end = len(all);
+				int lp = 0;
+				while (lp != end)
+				{
+					//This content will be processed as content for loop
+					if (lp == 0)
+					{
+						//nest-<type>
+						//{or}
+						//<other content>
+						OtherContent = all[lp];
+					}
+					//The remaining content is for the next loop
+					//nest-<type> <other content> nest-<type> <other content>
+					else if (lp == 1)
+					{
+						NewContent.append("nest-"+all[lp]);
+					}
+					else
+					{
+						NewContent.append(" nest-"+all[lp]);
+					}
+					lp++;
+				}
+				//Generate the logic content
+				LogicContent.append(GenCode(Tabs+"\t",OtherContent));
+				//The remaning content gets processed
+				Content = NewContent.toString();
+				//reset old and new content
+				OtherContent = "";
+				NewContent = new StringBuilder("");
+			}
+
+			//nest-<type> <other content>
+			//{or}
+			//<other content> nest-<type>
+			if ((!StartsWith(Content,"nest-")) && (IsIn(Content," nest-")))
+			{
+				//This section is meant to make sure the recursion is handled correctly
+				//The nested loops and logic statements are split accordingly
+
+				//split string wherever a " nest-" is located
+				//ALL "nest-" are ignored...notice there is no space before the "nest-"
+				String[] all = split(Content," nest-");
+				int end = len(all);
+				int lp = 0;
+				while (lp != end)
+				{
+					//This content will be processed as content for loop
+					if (lp == 0)
+					{
+						//nest-<type>
+						//{or}
+						//<other content>
+						OtherContent = all[lp];
+					}
+					//The remaining content is for the next loop
+					//nest-<type> <other content> nest-<type> <other content>
+					else if (lp == 1)
+					{
+						NewContent.append("nest-");
+						NewContent.append(all[lp]);
+					}
+					else
+					{
+						NewContent.append(" nest-");
+						NewContent.append(all[lp]);
+					}
+					lp++;
+				}
+				//Generate the logic content
+				LogicContent.append(GenCode(Tabs+"\t",OtherContent));
+				//The remaning content gets processed
+				Content = NewContent.toString();
+				//reset old and new content
+				OtherContent = "";
+				NewContent = new StringBuilder("");
+			}
+
+			//stop recursive loop if the next element is a "method" or a "class"
+			if ((StartsWith(Content, "method:")) || (StartsWith(Content, "class:")))
 			{
 				break;
 			}
+			//nest-loop:
 			else if (StartsWith(Content, "nest-"))
 			{
+				//"nest-loop" becomes ["nest-", "oop"]
+				//{or}
+				//"nest-logic" becomes ["nest-", "ogic"]
 				RootTag = BeforeSplit(Content,"l");
+				//check of " nest-l" is in content
 				if (IsIn(Content," "+RootTag+"l"))
 				{
+					//This section is meant to separate the "nest-loop" from the "nest-logic"
+					//loops won't process logic and vise versa
+
+					//split string wherever a " nest-l" is located
+					//ALL "nest-l" are ignored...notice there is no space before the "nest-l"
 					String[] cmds = split(Content," "+RootTag+"l");
 					int end = len(cmds);
 					int lp = 0;
@@ -709,7 +1027,7 @@ public class shell {
 						}
 						else
 						{
-							if (NewContent.toString().equals(""))
+							if (NewContent.equals(""))
 							{
 								NewContent.append(RootTag+"l"+cmds[lp]);
 							}
@@ -721,33 +1039,57 @@ public class shell {
 						lp++;
 					}
 				}
+				//no " nest-l" found
 				else
 				{
 					OtherContent = Content;
 				}
 
 				Content = NewContent.toString();
-				NewContent = new StringBuilder("");
-
+				//"nest-logic" and "nest-nest-logic" becomes "logic"
 				while (StartsWith(OtherContent, "nest-"))
 				{
 					OtherContent = AfterSplit(OtherContent,"-");
 				}
+
 				LogicContent.append(GenCode(Tabs+"\t",OtherContent));
+
+				//nest-stmt: or nest-var:
+				if (StartsWith(OtherContent, "stmt:") || (StartsWith(OtherContent, "var:")))
+				{
+					/*
+					This code works, however, it does mean that parent recursion
+					does not have any content. Only nested statements give content to
+					*/
+					OtherContent = "";
+					Content = "";
+				}
+
+				NewContent = new StringBuilder("");
 			}
+			else if ((StartsWith(Content, "logic-")) || (StartsWith(Content, "var:")) || (StartsWith(Content, "stmt:")))
+			{
+				Content = ReplaceTag(Content, "logic-");
+				LogicContent.append(GenCode(Tabs+"\t",Content));
+				Content = "";
+			}
+			//no nested content
 			else
 			{
 				LogicContent.append(GenCode(Tabs+"\t",Content));
 				Content = "";
 			}
 
+			//no content left to process
 			if (Last)
 			{
 				break;
 			}
 
+			//one last thing to process
 			if (!IsIn(Content," "))
 			{
+				//kill after one more loop
 				Last = true;
 			}
 		}
@@ -821,7 +1163,7 @@ public class shell {
 
 		while (!Content.equals(""))
 		{
-			if ((StartsWith(Content, "params")) && (Params.equals("")))
+			if ((StartsWith(Content, "params:")) && (Params.equals("")))
 			{
 				if (IsIn(Content," "))
 				{
@@ -833,23 +1175,30 @@ public class shell {
 				}
 				Params =  Parameters(Process,"stmt");
 			}
+
+			if (Last)
+			{
+				break;
+			}
+
+			while (StartsWith(Content, "nest-"))
+			{
+				Content = AfterSplit(Content,"-");
+			}
+
+			if (!IsIn(Content," "))
+			{
+				StatementContent.append(GenCode(Tabs,Content));
+				Last = true;
+			}
 			else
 			{
 				OtherContent = BeforeSplit(Content," ");
 				StatementContent.append(GenCode(Tabs,OtherContent));
 				Content = AfterSplit(Content," ");
 			}
-
-			if (Last)
-			{
-				break;
-			}
-			if (!IsIn(Content," "))
-			{
-				StatementContent.append(GenCode(Tabs,Content));
-				Last = true;
-			}
 		}
+
 		if (TheName.equals("method"))
 		{
 			Complete = Name+"("+Params+")"+StatementContent.toString();
@@ -899,6 +1248,11 @@ public class shell {
 			if (Last)
 			{
 				break;
+			}
+
+			while (StartsWith(Content, "nest-"))
+			{
+				Content = AfterSplit(Content,"-");
 			}
 
 			if (!IsIn(Content," "))
@@ -979,27 +1333,27 @@ public class shell {
 			Args[1] = "";
 		}
 
-		if (StartsWith(Args[0], "class"))
+		if (StartsWith(Args[0], "class:"))
 		{
 			TheCode.append(Class(Args[0],Args[1]));
 		}
-		else if (StartsWith(Args[0], "method"))
+		else if (StartsWith(Args[0], "method:"))
 		{
 			TheCode.append(Method(Tabs,Args[0],Args[1]));
 		}
-		else if (StartsWith(Args[0], "loop"))
+		else if (StartsWith(Args[0], "loop:"))
 		{
 			TheCode.append(Loop(Tabs,Args[0],Args[1]));
 		}
-		else if (StartsWith(Args[0], "logic"))
+		else if (StartsWith(Args[0], "logic:"))
 		{
 			TheCode.append(Logic(Tabs, Args[0], Args[1]));
 		}
-		else if (StartsWith(Args[0], "var"))
+		else if (StartsWith(Args[0], "var:"))
 		{
 			TheCode.append(Variables(Tabs, Args[0], Args[1]));
 		}
-		else if (StartsWith(Args[0], "stmt"))
+		else if (StartsWith(Args[0], "stmt:"))
 		{
 			TheCode.append(Statements(Tabs, Args[0], Args[1]));
 		}
