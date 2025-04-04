@@ -302,6 +302,10 @@ fn replace_tag(the_content: &str, the_tag: &str) -> String
 	return the_new_content;
 }
 
+/*
+<<shell>> method:DataType-String logic:if condition:Type|==|"String" logic-var:dtType-String logic-stmt:endline logic-stmt:newline logic:else-if
+*/
+
 fn banner()
 {
 	let cpl_version = get_cpl_version();
@@ -530,6 +534,40 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 			}
 
 			the_other_content = replace_tag(&the_other_content, "method-");
+
+			let mut parse_content = String::from("");
+
+			let cmds: Vec<&str> = the_other_content.split(" ").collect();
+			for item in &cmds
+			{
+				//starts with "logic:" or "loop:"
+				if starts_with(item,"logic:") || starts_with(item,"loop:")
+				{
+					//Only process code that starts with "logic:" or "loop:"
+					if parse_content != ""
+					{
+						//process content
+						method_content.push_str(&gen_code(&new_tabs,&parse_content));
+					}
+					//Reset content
+					parse_content = String::from("");
+					parse_content.push_str(item);
+				}
+				//start another line to process
+				else
+				{
+					//append content
+					parse_content.push_str(" ");
+					parse_content.push_str(item);
+				}
+			}
+
+			//process the rest
+			if parse_content != ""
+			{
+				the_other_content = parse_content.clone();
+			}
+
 			method_content.push_str(&gen_code(&new_tabs,&the_other_content));
 			passed_content = new_content.clone();
 

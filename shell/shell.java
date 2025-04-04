@@ -12,7 +12,7 @@ import java.io.IOException;
 
 //class name
 public class shell {
-	private static String Version = "0.0.30";
+	private static String Version = "0.0.31";
 	private static String TheKind = "";
 	private static String TheName = "";
 	private static String TheKindType = "";
@@ -308,6 +308,9 @@ public class shell {
 	{
 		return Shell("javac --version");
 	}
+/*
+<<shell>> method:DataType-String logic:if condition:Type|==|"String" logic-var:dtType-String logic-stmt:endline logic-stmt:newline logic:else-if
+*/
 
 	private static void banner()
 	{
@@ -476,6 +479,42 @@ public class shell {
 					CanSplit = true;
 				}
 				OtherContent = new StringBuilder(ReplaceTag(OtherContent.toString(), "method-"));
+
+				StringBuilder ParseContent = new StringBuilder("");
+
+				String[] cmds = split(OtherContent.toString()," ");
+				int end = len(cmds);
+				int lp = 0;
+				while (lp != end)
+				{
+					//starts with "logic:" or "loop:"
+					if ((StartsWith(cmds[lp],"logic:")) || (StartsWith(cmds[lp],"loop:")))
+					{
+						//Only process code that starts with "logic:" or "loop:"
+						if (ParseContent.toString() != "")
+						{
+							//process content
+							MethodContent.append(GenCode(Tabs+"\t\t",ParseContent.toString()));
+						}
+						//Reset content
+						ParseContent = new StringBuilder(cmds[lp]);
+					}
+					//start another line to process
+					else
+					{
+						//append content
+						ParseContent.append(" ");
+						ParseContent.append(cmds[lp]);
+					}
+					lp++;
+				}
+
+				//process the rest
+				if (ParseContent.toString() != "")
+				{
+					OtherContent = new StringBuilder(ParseContent.toString());
+				}
+
 				MethodContent.append(GenCode(Tabs+"\t\t",OtherContent.toString()));
 				Content = NewContent.toString();
 

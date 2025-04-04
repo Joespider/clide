@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.0.69";
+String Version = "0.0.70";
 
 String getOS();
 void Help(String Type);
@@ -652,20 +652,42 @@ String Method(String Tabs, String Name, String Content)
 
 			OtherContent = ReplaceTag(OtherContent, "method-");
 
+			String ParseContent = "";
+
 			std::vector<String> cmds = split(OtherContent," ");
 			int end = len(cmds);
 			int lp = 0;
 			while (lp != end)
 			{
+				//starts with "logic:" or "loop:"
 				if ((StartsWith(cmds[lp],"logic:")) || (StartsWith(cmds[lp],"loop:")))
 				{
-					print(cmds[lp]);
+					//Only process code that starts with "logic:" or "loop:"
+					if (ParseContent != "")
+					{
+						//process content
+						MethodContent = MethodContent + GenCode(Tabs+"\t",ParseContent);
+					}
+					//Reset content
+					ParseContent = cmds[lp];
 				}
+				//start another line to process
+				else
+				{
+					//append content
+					ParseContent = ParseContent +" "+ cmds[lp];
+				}
+
 				lp++;
 			}
 
+			//process the rest
+			if (ParseContent != "")
+			{
+				OtherContent = ParseContent;
+			}
+
 			MethodContent = MethodContent + GenCode(Tabs+"\t",OtherContent);
-			print(NewContent);
 			Content = NewContent;
 
 			OtherContent = "";

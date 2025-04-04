@@ -2,7 +2,7 @@ import os
 import sys
 import platform
 
-Version = "0.0.8"
+Version = "0.0.9"
 
 def getOS():
 	platform.system()
@@ -169,8 +169,9 @@ def ReplaceTag(Content, Tag):
 		#removing tag
 		Content = AfterSplit(Content,"-")
 	return Content
-
-
+"""
+<<shell>> method:DataType-String logic:if condition:Type|==|"String" logic-var:dtType-String logic-stmt:endline logic-stmt:newline logic:else-if
+"""
 
 def banner():
 	cplV = getCplV()
@@ -308,6 +309,31 @@ def Method(Tabs, Name, Content, CalledBy):
 				CanSplit = True
 
 			OtherContent = ReplaceTag(OtherContent, "method-")
+			ParseContent = ""
+
+			cmds = split(OtherContent," ")
+			end = len(cmds)
+			lp = 0
+			while lp != end:
+				#starts with "logic:" or "loop:"
+				if StartsWith(cmds[lp],"logic:") or StartsWith(cmds[lp],"loop:"):
+					#Only process code that starts with "logic:" or "loop:"
+					if ParseContent != "":
+						#process content
+						MethodContent = MethodContent + GenCode(Tabs+"\t",ParseContent)
+					#Reset content
+					ParseContent = cmds[lp]
+				#start another line to process
+				else:
+					#append content
+					ParseContent = ParseContent +" "+ cmds[lp]
+
+				lp += 1
+
+			#process the rest
+			if ParseContent != "":
+				OtherContent = ParseContent
+
 			MethodContent = MethodContent + GenCode(Tabs+"\t",OtherContent)
 			Content = NewContent
 
