@@ -39,6 +39,7 @@ String replaceAll(String message, String sBy, String jBy);
 
 
 void banner();
+String DataType(String Type);
 String ReplaceTag(String Content, String Tag);
 String Conditions(String input,String CalledBy);
 String Parameters(String input,String CalledBy);
@@ -72,6 +73,7 @@ String getOS()
 
 void Help(String Type)
 {
+	//note to self, need to re-write help page
 	Type = AfterSplit(Type,':');
 	if (Type == "class")
 	{
@@ -383,7 +385,7 @@ String ReplaceTag(String Content, String Tag)
 		Content = NewContent;
 	}
 	//Parse Content as long as there is a Tag found at the beginning
-	else if (StartsWith(Content, Tag))
+	else if ((!IsIn(Content," ")) && (StartsWith(Content, Tag)))
 	{
 		//removing tag
 		Content = AfterSplit(Content,'-');
@@ -401,14 +403,67 @@ void banner()
 }
 
 /*
-<<shell>> method:DataType-String logic:if condition:Type|==|"String" logic-var:dtType-String logic-stmt:endline logic-stmt:newline logic:else-if
+<<shell>> method:Translate-String params:Input-String method-var:Action-String="" method-stmt:endline logic-stmt:newline logic:if condition:IsIn(Input,"(-spc)")) nest-logic:if condition:Action(-eq)"if"(-or)Action(-eq)"else-if"(-or)Action(-eq)"else" logic-nest-var:NewTag="logic:" logic-nest-stmt:endline nest-logic:else-if condition:Action(-eq)"while"(-or)Action(-eq)"for"(-or)Action(-eq)"do/while" nest-logic-var:NewTag="logic:" nest-logic-stmt:endline nest-logic:else nest-logic-var:NewTag=Input nest-logic-stmt:endline
 */
+
+//<<shell>> method:DataType-String params:Type-String logic:if condition:(Type(-eq)"String"(-or)Type(-eq)"string") logic-var:TheReturn="std::string" logic-stmt:endline logic:else-if condition:Type(-eq)"boolean" logic-var:Type="bool" logic-stmt:endline logic:else logic-var:TheReturn=Type logic-stmt:endline
+String DataType(String Type)
+{
+	String NewDataType;
+	//handle strings
+	if ((Type == "String") || (Type == "string"))
+	{
+		NewDataType = "std::string";
+	}
+	else if (Type == "boolean")
+	{
+		NewDataType = "bool";
+	}
+	else
+	{
+		NewDataType = Type;
+	}
+
+	return NewDataType;
+}
 
 //condition:
 String Conditions(String input,String CalledBy)
 {
 	String Condit = AfterSplit(input,':');
-	Condit = replaceAll(Condit, "|", " ");
+
+	if (IsIn(Condit,"(-eq)"))
+	{
+		Condit = replaceAll(Condit, "(-eq)"," == ");
+	}
+
+	if (IsIn(Condit,"(-or)"))
+	{
+		Condit = replaceAll(Condit, "(-or)",") || (");
+		Condit = "("+Condit+")";
+	}
+
+	if (IsIn(Condit,"(-and)"))
+	{
+		Condit = replaceAll(Condit, "(-and)",") && (");
+		Condit = "("+Condit+")";
+	}
+
+	if (IsIn(Condit,"(-not)"))
+	{
+		Condit = replaceAll(Condit, "(-not)","!");
+	}
+
+	if (IsIn(Condit,"(-ne)"))
+	{
+		Condit = replaceAll(Condit, "(-ne)"," != ");
+	}
+
+	if (IsIn(Condit,"(-spc)"))
+	{
+		Condit = replaceAll(Condit, "(-spc)"," ");
+	}
+
 	if (CalledBy == "class")
 	{
 		print(Condit);
@@ -444,6 +499,8 @@ String Parameters(String input,String CalledBy)
 
 			//recursion to get more parameters
 			more = Parameters("params:"+more,CalledBy);
+			//Converting data type to correct C++ type
+			Type = DataType(Type);
 			//type param, type param, type param
 			Params = Type+" "+Name+", "+more;
 		}
@@ -454,6 +511,8 @@ String Parameters(String input,String CalledBy)
 			String Name = BeforeSplit(Params,'-');
 			//type
 			String Type = AfterSplit(Params,'-');
+			//Converting data type to correct C++ type
+			Type = DataType(Type);
 			//type param
 			Params = Type+" "+Name;
 		}
@@ -570,6 +629,8 @@ String Method(String Tabs, String Name, String Content)
 		//get method name
 		TheName = BeforeSplit(Name,'-');
 		Type = AfterSplit(Name,'-');
+		//Converting data type to correct C++ type
+		Type = DataType(Type);
 	}
 	//method:<name>
 	else
@@ -660,7 +721,7 @@ String Method(String Tabs, String Name, String Content)
 			while (lp != end)
 			{
 				//starts with "logic:" or "loop:"
-				if ((StartsWith(cmds[lp],"logic:")) || (StartsWith(cmds[lp],"loop:")))
+				if ((StartsWith(cmds[lp],"logic:")) || (StartsWith(cmds[lp],"loop:")) || (StartsWith(cmds[lp],"var:")) || (StartsWith(cmds[lp],"stmt:")))
 				{
 					//Only process code that starts with "logic:" or "loop:"
 					if (ParseContent != "")
@@ -1249,6 +1310,8 @@ String Variables(String Tabs, String TheKindType, String Content)
 		VarType = AfterSplit(Type,'-');
 		Value = AfterSplit(VarType,'=');
 		VarType = BeforeSplit(VarType,'=');
+		//Converting data type to correct C++ type
+		VarType = DataType(VarType);
 		NewVar = Tabs+VarType+" "+Name+" = "+Value;
 		NewVar = NewVar+VariableContent;
 	}
@@ -1268,6 +1331,8 @@ String Variables(String Tabs, String TheKindType, String Content)
 		Name = BeforeSplit(Type,'-');
 		VarType = AfterSplit(Type,'-');
 		VarType = BeforeSplit(VarType,'=');
+		//Converting data type to correct C++ type
+		VarType = DataType(VarType);
 		NewVar = Tabs+VarType+" "+Name+" = ";
 		NewVar = NewVar+VariableContent;
 	}
@@ -1286,6 +1351,8 @@ String Variables(String Tabs, String TheKindType, String Content)
 		Type = AfterSplit(TheKindType,':');
 		Name = BeforeSplit(Type,'-');
 		VarType = AfterSplit(Type,'-');
+		//Converting data type to correct C++ type
+		VarType = DataType(VarType);
 		NewVar = Tabs+VarType+" "+Name;
 		NewVar = NewVar+VariableContent;
 	}

@@ -240,14 +240,25 @@ fn join(std::vector<String> Str, String ToJoin) -> String
 	}
 	return NewString;
 }
-
-fn replace_all(String message, String sBy, String jBy) -> String
-{
-	std::vector<String> SplitMessage = split(message,sBy);
-	message = join(SplitMessage,jBy);
-	return message;
-}
 */
+fn replace_all(message: &str, s_by: &str, j_by: &str) -> String
+{
+	let mut new_message = String::from("");
+	let split_message: Vec<&str> = message.split(s_by).collect();
+	for item in &split_message
+	{
+		if new_message == ""
+		{
+			new_message.push_str(item);
+		}
+		else
+		{
+			new_message.push_str(j_by);
+			new_message.push_str(item);
+		}
+	}
+	return new_message;
+}
 
 
 /*
@@ -289,7 +300,7 @@ fn replace_tag(the_content: &str, the_tag: &str) -> String
 		the_new_content = new_content;
 	}
 	//Parse Content as long as there is a Tag found at the beginning
-	else if starts_with(&passed_content, the_tag)
+	else if !is_in(&passed_content," ") && starts_with(&passed_content, the_tag)
 	{
 		//removing tag
 		the_new_content = after_split(&passed_content,"-");
@@ -302,18 +313,132 @@ fn replace_tag(the_content: &str, the_tag: &str) -> String
 	return the_new_content;
 }
 
-/*
-<<shell>> method:DataType-String logic:if condition:Type|==|"String" logic-var:dtType-String logic-stmt:endline logic-stmt:newline logic:else-if
-*/
-
 fn banner()
 {
 	let cpl_version = get_cpl_version();
 	let the_os = get_os();
-	let version = "0.0.15";
+	let version = "0.0.18";
 	println!("{}",cpl_version);
 	println!("[Rust {}] on {}",version,the_os);
 	println!("Type \"help\" for more information.");
+}
+
+//<<shell>> method:DataType-String params:Type-String,CalledBy-String logic:if condition:Type(-eq)"String"(-or)Type(-eq)"std::string" logic-var:TheReturn="String" logic-stmt:endline logic:else-if condition:Type(-eq)"boolean" logic-var:Type="bool" logic-stmt:endline logic:else logic-var:TheReturn=Type logic-stmt:endline
+fn data_type(the_type: &str, called_by: &str) -> String
+{
+	println!("Called By: {}",called_by);
+	if the_type == "String" || the_type == "std::string"
+	{
+		return "String".to_string();
+	}
+	else if the_type == "boolean"
+	{
+		return "bool".to_string();
+	}
+	else
+	{
+		return the_type.to_string();
+	}
+}
+
+fn gen_conditions(input: &str,called_by: &str) -> String
+{
+	let mut condit = after_split(&input,":");
+
+	if is_in(&condit,"(-eq)")
+	{
+		condit = replace_all(&condit, "(-eq)"," == ");
+	}
+
+	if is_in(&condit,"(-or)")
+	{
+		condit = replace_all(&condit, "(-or)"," || ");
+	}
+
+	if is_in(&condit,"(-and)")
+	{
+		condit = replace_all(&condit, "(-and)"," && ");
+	}
+
+	if is_in(&condit,"(-not)")
+	{
+		condit = replace_all(&condit, "(-not)","!");
+	}
+
+	if is_in(&condit,"(-ne)")
+	{
+		condit = replace_all(&condit, "(-ne)"," != ");
+	}
+/*
+	if starts_with(condit, "(")
+	{
+		condit = condit[1:len(Condit)]
+	}
+
+	if ends_with(condit, ")")
+	{
+		condit = condit[:len(Condit)-1]
+	}
+*/
+	if called_by == "class"
+	{
+		println!("condition: {}",called_by);
+	}
+	else if called_by == "method"
+	{
+		println!("condition: {}",called_by);
+	}
+	else if called_by == "loop"
+	{
+		println!("condition: {}", called_by);
+	}
+	return condit;
+}
+
+//params:
+fn gen_parameters(input: &str, called_by: &str) -> String
+{
+	let name: String;
+	let the_params = after_split(input,":");
+	let mut new_params = String::new();
+	if called_by == "class" || called_by == "method" || called_by == "stmt"
+	{
+		//param-type,param-type,param-type
+		if is_in(&the_params,"-") && is_in(&the_params,",")
+		{
+			//param
+			name = before_split(&the_params,"-");
+			//type,param-type,param-type
+			let mut the_type = after_split(&the_params,"-");
+			//type
+			the_type = before_split(&the_type,",");
+			the_type = data_type(&the_type, "params");
+
+			//param-type,param-type
+			//recursion to get more parameters
+			let more: String = gen_parameters(&["params:",&after_split(&the_params,",")].concat(),called_by);
+
+			//param: type, param: type, param: type
+			new_params.push_str(&name);
+			new_params.push_str(": ");
+			new_params.push_str(&the_type);
+			new_params.push_str(", ");
+			new_params.push_str(&more);
+		}
+		//param-type
+		else if is_in(&the_params,"-") && !is_in(&the_params,",")
+		{
+			name = before_split(&the_params,"-");
+			let mut the_type = after_split(&the_params,"-");
+			the_type = data_type(&the_type, "params");
+
+			//param: type
+			new_params.push_str(&name);
+			new_params.push_str(": ");
+			new_params.push_str(&the_type);
+		}
+	}
+	return new_params;
 }
 
 fn gen_struct(the_name: &str, the_content: &str) -> String
@@ -541,7 +666,7 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 			for item in &cmds
 			{
 				//starts with "logic:" or "loop:"
-				if starts_with(item,"logic:") || starts_with(item,"loop:")
+				if starts_with(item,"logic:") || starts_with(item,"loop:") || starts_with(item,"var:") || starts_with(item,"stmt:")
 				{
 					//Only process code that starts with "logic:" or "loop:"
 					if parse_content != ""
@@ -634,70 +759,6 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 		the_complete.push_str("}\n");
 	}
 	return the_complete;
-}
-
-fn gen_conditions(input: &str,called_by: &str) -> String
-{
-//	let mut condit = after_split(&input,":");
-	let condit = after_split(&input,":");
-//	condit = replace_all(condit, "|", " ");
-	if called_by == "class"
-	{
-		println!("condition: {}",called_by);
-	}
-	else if called_by == "method"
-	{
-		println!("condition: {}",called_by);
-	}
-	else if called_by == "loop"
-	{
-		println!("condition: {}", called_by);
-	}
-	return condit;
-}
-
-//params:
-fn gen_parameters(input: &str, called_by: &str) -> String
-{
-	let name: String;
-	let the_params = after_split(input,":");
-	let mut new_params = String::new();
-	if called_by == "class" || called_by == "method" || called_by == "stmt"
-	{
-		//param-type,param-type,param-type
-		if is_in(&the_params,"-") && is_in(&the_params,",")
-		{
-			//param
-			name = before_split(&the_params,"-");
-			//type,param-type,param-type
-			let mut the_type = after_split(&the_params,"-");
-			//type
-			the_type = before_split(&the_type,",");
-
-			//param-type,param-type
-			//recursion to get more parameters
-			let more: String = gen_parameters(&["params:",&after_split(&the_params,",")].concat(),called_by);
-
-			//param: type, param: type, param: type
-			new_params.push_str(&name);
-			new_params.push_str(": ");
-			new_params.push_str(&the_type);
-			new_params.push_str(", ");
-			new_params.push_str(&more);
-		}
-		//param-type
-		else if is_in(&the_params,"-") && !is_in(&the_params,",")
-		{
-			name = before_split(&the_params,"-");
-			let the_type = after_split(&the_params,"-");
-
-			//param: type
-			new_params.push_str(&name);
-			new_params.push_str(": ");
-			new_params.push_str(&the_type);
-		}
-	}
-	return new_params;
 }
 
 //loop:

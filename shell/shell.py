@@ -2,7 +2,7 @@ import os
 import sys
 import platform
 
-Version = "0.0.9"
+Version = "0.0.11"
 
 def getOS():
 	platform.system()
@@ -165,12 +165,12 @@ def ReplaceTag(Content, Tag):
 		Content = NewContent
 
 	#Parse Content as long as there is a Tag found at the beginning
-	elif StartsWith(Content, Tag):
+	elif not IsIn(Content," ") and StartsWith(Content, Tag):
 		#removing tag
 		Content = AfterSplit(Content,"-")
 	return Content
 """
-<<shell>> method:DataType-String logic:if condition:Type|==|"String" logic-var:dtType-String logic-stmt:endline logic-stmt:newline logic:else-if
+<<shell>> method:DataType-String params:Type-String method-var:TheReturn=""
 """
 
 def banner():
@@ -179,6 +179,55 @@ def banner():
 	print(cplV)
 	print("[python " + str(Version) + "] on " + str(theOS))
 	print("Type \"help\" for more information.")
+
+def Conditions(input,CalledBy):
+	Condit = AfterSplit(input,":")
+	if IsIn(Condit,"(-eq)"):
+		Condit = replaceAll(Condit, "(-eq)"," == ")
+
+	if IsIn(Condit,"(-or)"):
+		Condit = replaceAll(Condit, "(-or)"," or ")
+
+	if IsIn(Condit,"(-and)"):
+		Condit = replaceAll(Condit, "(-and)"," and ")
+
+	if IsIn(Condit,"(-not)"):
+		Condit = replaceAll(Condit, "(-not)","!")
+
+	if IsIn(Condit,"(-ne)"):
+		Condit = replaceAll(Condit, "(-ne)"," != ")
+
+	if CalledBy == "class":
+		print("condition: "+CalledBy)
+	elif CalledBy == "method":
+		print("condition: "+CalledBy)
+	elif CalledBy == "loop":
+		print("condition: "+CalledBy)
+
+	return Condit
+
+#params:
+def Parameters(input, CalledBy):
+	Params = AfterSplit(input,":")
+	if CalledBy == "class" or CalledBy == "method" or CalledBy == "stmt":
+		#param-type,param-type,param-type
+		if IsIn(Params,"-") and IsIn(Params,","):
+			#param
+			Name = BeforeSplit(Params,"-")
+			#param-type,param-type
+			more = AfterSplit(Params,",")
+			#recursion to get more parameters
+			more = Parameters("params:"+more,CalledBy)
+			#param, param, param
+			Params = Name+", "+more
+		#param-type
+		elif IsIn(Params,"-") and not IsIn(Params,","):
+			#param
+			Params = BeforeSplit(Params,"-")
+		#param
+		#No code is needed to handle no data type
+
+	return Params
 
 def Struct(TheName, Content):
 	Complete = ""
@@ -316,7 +365,7 @@ def Method(Tabs, Name, Content, CalledBy):
 			lp = 0
 			while lp != end:
 				#starts with "logic:" or "loop:"
-				if StartsWith(cmds[lp],"logic:") or StartsWith(cmds[lp],"loop:"):
+				if StartsWith(cmds[lp],"logic:") or StartsWith(cmds[lp],"loop:") or StartsWith(cmds[lp],"var:") or StartsWith(cmds[lp],"stmt:"):
 					#Only process code that starts with "logic:" or "loop:"
 					if ParseContent != "":
 						#process content
@@ -361,41 +410,6 @@ def Method(Tabs, Name, Content, CalledBy):
 		Complete = Tabs+"def "+TheName+"("+Params+"):\n"+Tabs+"\t"+GenCode("","stmt:comment")+"\n"+"\n"
 
 	return Complete
-
-def Conditions(input,CalledBy):
-	Condit = AfterSplit(input,":")
-	Condit = replaceAll(Condit, "|", " ")
-	if CalledBy == "class":
-		print("condition: "+CalledBy)
-	elif CalledBy == "method":
-		print("condition: "+CalledBy)
-	elif CalledBy == "loop":
-		print("condition: "+CalledBy)
-
-	return Condit
-
-#params:
-def Parameters(input, CalledBy):
-	Params = AfterSplit(input,":")
-	if CalledBy == "class" or CalledBy == "method" or CalledBy == "stmt":
-		#param-type,param-type,param-type
-		if IsIn(Params,"-") and IsIn(Params,","):
-			#param
-			Name = BeforeSplit(Params,"-")
-			#param-type,param-type
-			more = AfterSplit(Params,",")
-			#recursion to get more parameters
-			more = Parameters("params:"+more,CalledBy)
-			#param, param, param
-			Params = Name+", "+more
-		#param-type
-		elif IsIn(Params,"-") and not IsIn(Params,","):
-			#param
-			Params = BeforeSplit(Params,"-")
-		#param
-		#No code is needed to handle no data type
-
-	return Params
 
 #loop:
 def Loop(Tabs, TheKindType, Content):
@@ -780,7 +794,6 @@ def Variables(Tabs, TheKindType, Content):
 		Value = AfterSplit(Type,"=")
 		NewVar = Tabs+Name+" = "+Value
 		NewVar = NewVar+VariableContent
-		print(NewVar)
 
 	#var:name-dataType=
 	elif IsIn(TheKindType,":") and IsIn(TheKindType,"-") and EndsWith(TheKindType, "="):
