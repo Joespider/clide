@@ -12,7 +12,7 @@ import java.io.IOException;
 
 //class name
 public class shell {
-	private static String Version = "0.0.34";
+	private static String Version = "0.0.35";
 	private static String TheKind = "";
 	private static String TheName = "";
 	private static String TheKindType = "";
@@ -342,7 +342,7 @@ public class shell {
 		print("Type \"help\" for more information.");
 	}
 /*
-<<shell>> method:Translate-String params:Input-String method-var:Action-String="" method-stmt:endline logic-stmt:newline logic:if logic-condition:IsIn(Input,"(-spc)")) nest-logic:if condition:Action(-eq)"if"(-or)Action(-eq)"else-if"(-or)Action(-eq)"else" logic-nest-var:NewTag="logic:" logic-nest-stmt:endline nest-logic:else-if logic-condition:Action(-eq)"while"(-or)Action(-eq)"for"(-or)Action(-eq)"do/while" logic-var:NewTag="loop:" logic-stmt:endline nest-logic:else logic-var:NewTag=Input logic-stmt:endline
+<<shell>> method:Translate-String params:Input-String method-var:Action-String="" method-stmt:endline method-stmt:newline logic:if logic-condition:IsIn(Input,"(-spc)")) nest-logic:if condition:Action(-eq)"if"(-or)Action(-eq)"else-if"(-or)Action(-eq)"else" logic-nest-var:NewTag="logic:" logic-nest-stmt:endline nest-logic:else-if logic-condition:Action(-eq)"while"(-or)Action(-eq)"for"(-or)Action(-eq)"do/while" logic-var:NewTag="loop:" logic-stmt:endline nest-logic:else logic-var:NewTag=Input logic-stmt:endline
 */
 
 /*
@@ -403,6 +403,11 @@ public class shell {
 			if (IsIn(Condit,"(-ne)"))
 			{
 				Condit = replaceAll(Condit, "\\(-ne\\)"," != ");
+			}
+
+			if (IsIn(Condit,"(-spc)"))
+			{
+				Condit = replaceAll(Condit, "\\(-spc\\)"," ");
 			}
 /*
 			if (IsIn(Condit,"\")"))

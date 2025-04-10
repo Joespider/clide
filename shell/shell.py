@@ -2,7 +2,7 @@ import os
 import sys
 import platform
 
-Version = "0.0.11"
+Version = "0.0.12"
 
 def getOS():
 	platform.system()
@@ -202,6 +202,9 @@ def Conditions(input,CalledBy):
 
 	if IsIn(Condit,"(-ne)"):
 		Condit = replaceAll(Condit, "(-ne)"," != ")
+
+	if IsIn(Condit,"(-spc)"):
+		Condit = replaceAll(Condit, "(-spc)"," ")
 
 	if CalledBy == "class":
 		print("condition: "+CalledBy)
