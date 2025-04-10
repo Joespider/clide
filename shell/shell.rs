@@ -317,7 +317,7 @@ fn banner()
 {
 	let cpl_version = get_cpl_version();
 	let the_os = get_os();
-	let version = "0.0.18";
+	let version = "0.0.19";
 	println!("{}",cpl_version);
 	println!("[Rust {}] on {}",version,the_os);
 	println!("Type \"help\" for more information.");
@@ -372,6 +372,11 @@ fn gen_conditions(input: &str,called_by: &str) -> String
 	if is_in(&condit,"(-ne)")
 	{
 		condit = replace_all(&condit, "(-ne)"," != ");
+	}
+
+	if is_in(&condit,"(-spc)")
+	{
+		condit = replace_all(&condit, "(-spc)"," ");
 	}
 /*
 	if starts_with(condit, "(")

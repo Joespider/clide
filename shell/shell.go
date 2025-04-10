@@ -226,14 +226,14 @@ func ReplaceTag(Content string, Tag string) string {
 func banner() {
 	var cplV string = getCplV()
 	var theOS string = getOS()
-	var Version string = "0.0.13"
+	var Version string = "0.0.14"
 	fmt.Println(cplV)
 	fmt.Println("[Go " + Version +"] on " + theOS)
 	fmt.Println("Type \"help\" for more information.")
 }
 
 /*
-<<shell>> method:Translate-String params:Input-String method-var:Action-String="" method-stmt:endline logic-stmt:newline logic:if logic-condition:IsIn(Input,"(-spc)")) nest-logic:if condition:Action(-eq)"if"(-or)Action(-eq)"else-if"(-or)Action(-eq)"else" logic-nest-var:NewTag="logic:" logic-nest-stmt:endline nest-logic:else-if logic-condition:Action(-eq)"while"(-or)Action(-eq)"for"(-or)Action(-eq)"do/while" logic-var:NewTag="loop:" logic-stmt:endline nest-logic:else logic-var:NewTag=Input logic-stmt:endline
+<<shell>> method:Translate-String params:Input-String method-var:Action-String="" method-stmt:endline method-stmt:newline logic:if logic-condition:IsIn(Input,"(-spc)")) nest-logic:if condition:Action(-eq)"if"(-or)Action(-eq)"else-if"(-or)Action(-eq)"else" logic-nest-var:NewTag="logic:" logic-nest-stmt:endline nest-logic:else-if logic-condition:Action(-eq)"while"(-or)Action(-eq)"for"(-or)Action(-eq)"do/while" logic-var:NewTag="loop:" logic-stmt:endline nest-logic:else logic-var:NewTag=Input logic-stmt:endline
 */
 
 //<<shell>> method:DataType-String params:Type-String logic:if condition:(Type(-eq)"String"(-or)Type(-eq)"std::string") logic-var:TheReturn="string" logic-stmt:endline logic:else-if condition:Type(-eq)"boolean" logic-var:Type="bool" logic-stmt:endline logic:else logic-var:TheReturn=Type logic-stmt:endline
@@ -272,6 +272,10 @@ func Conditions(input string, CalledBy string) string {
 
 	if IsIn(Condit,"(-ne)") {
 		Condit = replaceAll(Condit, "(-ne)"," != ")
+	}
+
+	if IsIn(Condit,"(-spc)") {
+		Condit = replaceAll(Condit, "(-spc)"," ")
 	}
 
 	if StartsWith(Condit, "(") {
