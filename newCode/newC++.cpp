@@ -24,7 +24,7 @@ bool IsIn(String Str, String Sub);
 
 static void help()
 {
-	String Version = "0.1.72";
+	String Version = "0.1.74";
 	print("Author: Joespider");
 	print("Program: \"" + ProgName + "\"");
 	print("Version: " + Version);
@@ -352,8 +352,8 @@ static String getMethods(bool* rawinput, bool* rand, bool* fcheck, bool* write, 
 	{
 		TheShell = "String shell(String command)\n{\n\tchar buffer[128];\n\tString result = \"\";\n\n\t// Open pipe to file\n\tFILE* pipe = popen(command.c_str(), \"r\");\n\tif (!pipe)\n\t{\n\t\treturn \"popen failed!\";\n\t}\n\n\t// read till end of process:\n\twhile (!feof(pipe))\n\t{\n\t\t// use buffer to read and add to result\n\t\tif (fgets(buffer, 128, pipe) != NULL)\n\t\t{\n\t\t\tresult += buffer;\n\t\t}\n\t}\n\n\tpclose(pipe);\n\treturn result;\n}\n\n";
 		TheShell = TheShell+"void shellExe(String command)\n{\n\tsystem(command.c_str());\n}\n\n";
-		TheShell = TheShell+"String getOS()\n{\n\t#ifdef _WIN32\n\treturn \"Windows 32-bit\";\n\t#elif _WIN64\n\treturn \"Windows 64-bit\";\n\t#elif __APPLE__ || __MACH__\n\treturn \"Mac OSX\";\n\t#elif __linux__\n\treturn \"Linux\";\n\t#elif __FreeBSD__\n\treturn \"FreeBSD\";\n\t#elif __unix || __unix__\n\treturn \"Unix\";\n\t#else\n\treturn \"Other\";\n\t#endif\n}\n\n";
-		TheShell = TheShell+"String getUser()\n{\n\tString theOS = getOS();\n\tif ((theOS == \"Windows 32-bit\") || (theOS == \"Windows 64-bit\"))\n\t{\n\t\treturn getenv(\"USERNAME\");\n\t}\n\telse if (theOS == \"Linux\")\n\t{\n\t\treturn getenv(\"USER\");\n\t}\n\telse\n\t{\n\t\treturn \"\";\n\t}\n}\n\n";
+		TheShell = TheShell+"String getOS()\n{\n\t#if defined(_WIN32) || defined(_WIN64)\n\t\treturn \"Windows\";\n\t#elif __APPLE__ || __MACH__\n\t\treturn \"Mac OSX\";\n\t#elif __linux__\n\t\treturn \"Linux\";\n\t#elif __FreeBSD__\n\t\treturn \"FreeBSD\";\n\t#elif __unix || __unix__\n\t\treturn \"Unix\";\n\t#else\n\t\treturn \"Other\";\n\t#endif\n}\n\n";
+		TheShell = TheShell+"String getUser()\n{\n\tString theOS = getOS();\n\tif (theOS == \"Windows\")\n\t{\n\t\treturn getenv(\"USERNAME\");\n\t}\n\telse if (theOS == \"Linux\")\n\t{\n\t\treturn getenv(\"USER\");\n\t}\n\telse\n\t{\n\t\treturn \"\";\n\t}\n}\n\n";
 	}
 	if (*sleep == true)
 	{

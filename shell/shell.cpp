@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.0.70";
+String Version = "0.0.71";
 
 String getOS();
 void Help(String Type);
@@ -403,7 +403,7 @@ void banner()
 }
 
 /*
-<<shell>> method:Translate-String params:Input-String method-var:Action-String="" method-stmt:endline logic-stmt:newline logic:if condition:IsIn(Input,"(-spc)")) nest-logic:if condition:Action(-eq)"if"(-or)Action(-eq)"else-if"(-or)Action(-eq)"else" logic-nest-var:NewTag="logic:" logic-nest-stmt:endline nest-logic:else-if condition:Action(-eq)"while"(-or)Action(-eq)"for"(-or)Action(-eq)"do/while" nest-logic-var:NewTag="logic:" nest-logic-stmt:endline nest-logic:else nest-logic-var:NewTag=Input nest-logic-stmt:endline
+<<shell>> method:Translate-String params:Input-String method-var:Action-String="" method-stmt:endline logic-stmt:newline logic:if logic-condition:IsIn(Input,"(-spc)")) nest-logic:if condition:Action(-eq)"if"(-or)Action(-eq)"else-if"(-or)Action(-eq)"else" logic-nest-var:NewTag="logic:" logic-nest-stmt:endline nest-logic:else-if logic-condition:Action(-eq)"while"(-or)Action(-eq)"for"(-or)Action(-eq)"do/while" logic-var:NewTag="loop:" logic-stmt:endline nest-logic:else logic-var:NewTag=Input logic-stmt:endline
 */
 
 //<<shell>> method:DataType-String params:Type-String logic:if condition:(Type(-eq)"String"(-or)Type(-eq)"string") logic-var:TheReturn="std::string" logic-stmt:endline logic:else-if condition:Type(-eq)"boolean" logic-var:Type="bool" logic-stmt:endline logic:else logic-var:TheReturn=Type logic-stmt:endline
@@ -1001,6 +1001,7 @@ String Logic(String Tabs, String TheKindType, String Content)
 	{
 		TheKindType = AfterSplit(TheKindType,':');
 	}
+
 	while (Content != "")
 	{
 
