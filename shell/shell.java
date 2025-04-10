@@ -12,7 +12,7 @@ import java.io.IOException;
 
 //class name
 public class shell {
-	private static String Version = "0.0.31";
+	private static String Version = "0.0.34";
 	private static String TheKind = "";
 	private static String TheName = "";
 	private static String TheKindType = "";
@@ -162,8 +162,15 @@ public class shell {
 
 	private static String replaceAll(String message, String sBy, String jBy)
 	{
-		String NewMessage = message.replaceAll(sBy,jBy);
+		String[] SplitMessage = split(message,sBy);
+		String NewMessage = join(SplitMessage,jBy);
 		return NewMessage;
+	}
+
+	private static String join(String[] Str, String ToJoin)
+	{
+		String message = String.join(ToJoin, Str);
+		return message;
 	}
 	private static boolean IsIn(String Str, String Sub)
 	{
@@ -201,6 +208,23 @@ public class shell {
 	{
 		int length = word.length();
 		return length;
+	}
+
+	//Append content to array
+	private static String[] Append(String[] ArrayName, String content)
+	{
+		int i = ArrayName.length;
+		//growing temp array
+		String[] temp = new String[i];
+		//copying ArrayName array into temp array.
+		System.arraycopy(ArrayName, 0, temp, 0, i);
+		//creating a new array
+		ArrayName = new String[i+1];
+		//copying temp array into ArrayName
+		System.arraycopy(temp, 0, ArrayName, 0, i);
+		//storing user input in the arrayn
+		ArrayName[i] = content;
+		return ArrayName;
 	}
 
 	private static String Shell(String command)
@@ -296,7 +320,7 @@ public class shell {
 			Content = NewContent.toString();
 		}
 		//Parse Content as long as there is a Tag found at the beginning
-		else if (StartsWith(Content, Tag))
+		else if ((!IsIn(Content," ")) && (StartsWith(Content, Tag)))
 		{
 			//removing tag
 			Content = AfterSplit(Content,"-");
@@ -308,9 +332,6 @@ public class shell {
 	{
 		return Shell("javac --version");
 	}
-/*
-<<shell>> method:DataType-String logic:if condition:Type|==|"String" logic-var:dtType-String logic-stmt:endline logic-stmt:newline logic:else-if
-*/
 
 	private static void banner()
 	{
@@ -319,6 +340,130 @@ public class shell {
 		print(cplV);
 		print("[Java "+Version+"] on "+ theOS);
 		print("Type \"help\" for more information.");
+	}
+/*
+<<shell>> method:Translate-String params:Input-String method-var:Action-String="" method-stmt:endline logic-stmt:newline logic:if logic-condition:IsIn(Input,"(-spc)")) nest-logic:if condition:Action(-eq)"if"(-or)Action(-eq)"else-if"(-or)Action(-eq)"else" logic-nest-var:NewTag="logic:" logic-nest-stmt:endline nest-logic:else-if logic-condition:Action(-eq)"while"(-or)Action(-eq)"for"(-or)Action(-eq)"do/while" logic-var:NewTag="loop:" logic-stmt:endline nest-logic:else logic-var:NewTag=Input logic-stmt:endline
+*/
+
+/*
+<<shell>> method:DataType-string params:Type-string logic:if condition:Type(-eq)"string"(-or)Type(-eq)"std::string" logic-var:TheReturn="String" logic-stmt:endline logic:else-if condition:Type(-eq)"bool" logic-var:TheReturn="boolean" logic-stmt:endline logic:else logic-var:TheReturn=Type logic-stmt:endline
+*/
+	public static String DataType(String Type)
+	{
+		String TheReturn;
+		if ((Type.equals("string")) || (Type.equals("std::string")))
+		{
+			TheReturn = "String";
+		}
+		else if (Type.equals("bool"))
+		{
+			TheReturn = "boolean";
+		}
+		else
+		{
+			TheReturn = Type;
+		}
+
+		return TheReturn;
+	}
+
+	private static String Conditions(String input,String CalledBy)
+	{
+		String Condit = "";
+		if (IsIn(input,":"))
+		{
+			Condit = AfterSplit(input,":");
+
+			if (IsIn(Condit,"(-eq)\""))
+			{
+				Condit = replaceAll(Condit, "\\(-eq\\)\"",".equals(\"");
+			}
+			else if (IsIn(Condit,"(-eq)"))
+			{
+				Condit = replaceAll(Condit, "\\(-eq\\)"," == ");
+			}
+
+			if (IsIn(Condit,"(-or)"))
+			{
+				Condit = replaceAll(Condit, "\\(-or\\)",") || (");
+				Condit = "("+Condit+")";
+			}
+
+			if (IsIn(Condit,"(-and)"))
+			{
+				Condit = replaceAll(Condit, "\\(-and\\)",") && (");
+				Condit = "("+Condit+")";
+			}
+
+			if (IsIn(Condit,"(-not)"))
+			{
+				Condit = replaceAll(Condit, "\\(-not\\)","!");
+			}
+
+			if (IsIn(Condit,"(-ne)"))
+			{
+				Condit = replaceAll(Condit, "\\(-ne\\)"," != ");
+			}
+/*
+			if (IsIn(Condit,"\")"))
+			{
+				print(Condit);
+				Condit = replaceAll(Condit, "\"\\)","\"))");
+				print(Condit);
+			}
+*/
+		}
+
+		if (CalledBy.equals("class"))
+		{
+			print("parameters: "+CalledBy);
+		}
+		else if (CalledBy.equals("method"))
+		{
+			print("parameters: "+CalledBy);
+		}
+		else if (CalledBy.equals("loop"))
+		{
+			print("parameters: "+CalledBy);
+		}
+		return Condit;
+	}
+
+	//params:
+	private static String Parameters(String input,String CalledBy)
+	{
+		String Params = AfterSplit(input,":");
+		if ((CalledBy.equals("class")) || (CalledBy.equals("method")))
+		{
+			//param-type,param-type,param-type
+			if ((IsIn(Params,"-")) && (IsIn(Params,",")))
+			{
+				//param
+				String Name = BeforeSplit(Params,"-");
+				//type,param-type,param-type
+				String Type = AfterSplit(Params,"-");
+				//type
+				Type = BeforeSplit(Type,",");
+				Type = DataType(Type);
+				//param-type,param-type
+				//recursion to get more parameters
+				String more = Parameters("params:"+AfterSplit(Params,","),CalledBy);
+				//type param, type param, type param
+				Params = Type+" "+Name+", "+more;
+			}
+			//param-type
+			else if ((IsIn(Params,"-")) && (!IsIn(Params,",")))
+			{
+				//param
+				String Name = BeforeSplit(Params,"-");
+				//type
+				String Type = AfterSplit(Params,"-");
+				Type = DataType(Type);
+				//type param
+				Params = Type+" "+Name;
+			}
+		}
+		return Params;
 	}
 
 	private static String Class(String TheName, String Content)
@@ -408,6 +553,7 @@ public class shell {
 			//get method name
 			TheName = BeforeSplit(Name,"-");
 			Type = AfterSplit(Name,"-");
+			Type = DataType(Type);
 		}
 		//method:<name>
 		else
@@ -488,7 +634,7 @@ public class shell {
 				while (lp != end)
 				{
 					//starts with "logic:" or "loop:"
-					if ((StartsWith(cmds[lp],"logic:")) || (StartsWith(cmds[lp],"loop:")))
+					if ((StartsWith(cmds[lp],"logic:")) || (StartsWith(cmds[lp],"loop:")) || (StartsWith(cmds[lp],"var:")) || (StartsWith(cmds[lp],"stmt:")))
 					{
 						//Only process code that starts with "logic:" or "loop:"
 						if (ParseContent.toString() != "")
@@ -550,66 +696,6 @@ public class shell {
 		}
 		return Complete;
 	}
-
-	private static String Conditions(String input,String CalledBy)
-	{
-		String Condit = "";
-		if (IsIn(input,":"))
-		{
-			Condit = AfterSplit(input,":");
-			Condit = replaceAll(Condit,"|", " ");
-		}
-
-		if (CalledBy.equals("class"))
-		{
-			print("parameters: "+CalledBy);
-		}
-		else if (CalledBy.equals("method"))
-		{
-			print("parameters: "+CalledBy);
-		}
-		else if (CalledBy.equals("loop"))
-		{
-			print("parameters: "+CalledBy);
-		}
-		return Condit;
-	}
-
-	//params:
-	private static String Parameters(String input,String CalledBy)
-	{
-		String Params = AfterSplit(input,":");
-		if ((CalledBy.equals("class")) || (CalledBy.equals("method")))
-		{
-			//param-type,param-type,param-type
-			if ((IsIn(Params,"-")) && (IsIn(Params,",")))
-			{
-				//param
-				String Name = BeforeSplit(Params,"-");
-				//type,param-type,param-type
-				String Type = AfterSplit(Params,"-");
-				//type
-				Type = BeforeSplit(Type,",");
-				//param-type,param-type
-				//recursion to get more parameters
-				String more = Parameters("params:"+AfterSplit(Params,","),CalledBy);
-				//type param, type param, type param
-				Params = Type+" "+Name+", "+more;
-			}
-			//param-type
-			else if ((IsIn(Params,"-")) && (!IsIn(Params,",")))
-			{
-				//param
-				String Name = BeforeSplit(Params,"-");
-				//type
-				String Type = AfterSplit(Params,"-");
-				//type param
-				Params = Type+" "+Name;
-			}
-		}
-		return Params;
-	}
-
 
 	//loop:
 	private static String Loop(String Tabs, String TheKindType, String Content)
@@ -1275,6 +1361,7 @@ public class shell {
 			VarType = AfterSplit(Type,"-");
 			Value = AfterSplit(VarType,"=");
 			VarType = BeforeSplit(VarType,"=");
+			VarType = DataType(VarType);
 			NewVar.append(Tabs+VarType+" "+Name+" = "+Value);
 			NewVar.append(VariableContent.toString());
 		}
@@ -1294,6 +1381,7 @@ public class shell {
 			Name = BeforeSplit(Type,"-");
 			VarType = AfterSplit(Type,"-");
 			VarType = BeforeSplit(VarType,"=");
+			VarType = DataType(VarType);
 			NewVar.append(Tabs+VarType+" "+Name+" = ");
 			NewVar.append(VariableContent.toString());
 		}
@@ -1312,6 +1400,7 @@ public class shell {
 			Type = AfterSplit(TheKindType,":");
 			Name = BeforeSplit(Type,"-");
 			VarType = AfterSplit(Type,"-");
+			VarType = DataType(VarType);
 			NewVar.append(Tabs+VarType+" "+Name);
 			NewVar.append(VariableContent.toString());
 		}

@@ -215,7 +215,7 @@ func ReplaceTag(Content string, Tag string) string {
 		}
 		Content = NewContent
 	//Parse Content as long as there is a Tag found at the beginning
-	} else if (StartsWith(Content, Tag)) {
+	} else if !IsIn(Content," ") && StartsWith(Content, Tag) {
 		//removing tag
 		Content = AfterSplit(Content,"-")
 	}
@@ -226,15 +226,105 @@ func ReplaceTag(Content string, Tag string) string {
 func banner() {
 	var cplV string = getCplV()
 	var theOS string = getOS()
-	var Version string = "0.0.9"
+	var Version string = "0.0.13"
 	fmt.Println(cplV)
 	fmt.Println("[Go " + Version +"] on " + theOS)
 	fmt.Println("Type \"help\" for more information.")
 }
 
 /*
-<<shell>> method:DataType-String logic:if condition:Type|==|"String" logic-var:dtType-String logic-stmt:endline logic-stmt:newline logic:else-if
+<<shell>> method:Translate-String params:Input-String method-var:Action-String="" method-stmt:endline logic-stmt:newline logic:if logic-condition:IsIn(Input,"(-spc)")) nest-logic:if condition:Action(-eq)"if"(-or)Action(-eq)"else-if"(-or)Action(-eq)"else" logic-nest-var:NewTag="logic:" logic-nest-stmt:endline nest-logic:else-if logic-condition:Action(-eq)"while"(-or)Action(-eq)"for"(-or)Action(-eq)"do/while" logic-var:NewTag="loop:" logic-stmt:endline nest-logic:else logic-var:NewTag=Input logic-stmt:endline
 */
+
+//<<shell>> method:DataType-String params:Type-String logic:if condition:(Type(-eq)"String"(-or)Type(-eq)"std::string") logic-var:TheReturn="string" logic-stmt:endline logic:else-if condition:Type(-eq)"boolean" logic-var:Type="bool" logic-stmt:endline logic:else logic-var:TheReturn=Type logic-stmt:endline
+func DataType(Type string) string {
+	var TheReturn string
+	if Type == "String" || Type == "std::string" {
+		TheReturn = "string"
+	} else if Type == "boolean" {
+		Type = "bool"
+	} else {
+		TheReturn = Type
+	}
+
+	return TheReturn
+}
+
+
+func Conditions(input string, CalledBy string) string {
+	var Condit string = AfterSplit(input,":")
+
+	if IsIn(Condit,"(-eq)") {
+		Condit = replaceAll(Condit, "(-eq)"," == ")
+	}
+
+	if IsIn(Condit,"(-or)") {
+		Condit = replaceAll(Condit, "(-or)"," || ")
+	}
+
+	if IsIn(Condit,"(-and)") {
+		Condit = replaceAll(Condit, "(-and)"," && ")
+	}
+
+	if IsIn(Condit,"(-not)") {
+		Condit = replaceAll(Condit, "(-not)","!")
+	}
+
+	if IsIn(Condit,"(-ne)") {
+		Condit = replaceAll(Condit, "(-ne)"," != ")
+	}
+
+	if StartsWith(Condit, "(") {
+		Condit = Condit[1:len(Condit)]
+	}
+
+	if EndsWith(Condit, ")") {
+		Condit = Condit[:len(Condit)-1]
+	}
+
+	if CalledBy == "class" {
+		fmt.Println("condition: " + CalledBy)
+	} else if CalledBy == "method" {
+		fmt.Println("condition: " + CalledBy)
+	} else if CalledBy == "loop" {
+		fmt.Println("condition: " + CalledBy)
+	}
+	return Condit
+}
+
+//params:
+func Parameters(input string, CalledBy string) string {
+	var Params string = AfterSplit(input,":")
+	if CalledBy == "class" || CalledBy == "method" || CalledBy == "stmt" {
+		//param-type,param-type,param-type
+		if IsIn(Params,"-") && IsIn(Params,",") {
+			//param
+			var Name string = BeforeSplit(Params,"-")
+			//type,param-type,param-type
+			var Type string = AfterSplit(Params,"-")
+			//type
+			Type = BeforeSplit(Type,",")
+			Type = DataType(Type)
+			//param-type,param-type
+			var more string = AfterSplit(Params,",")
+
+			//recursion to get more parameters
+			more = Parameters("params:"+more,CalledBy)
+			//type param, type param, type param
+			Params = Name+" "+Type+", "+more
+		//param-type
+		} else if IsIn(Params,"-") && !IsIn(Params,",") {
+			//param
+			var Name string = BeforeSplit(Params,"-")
+			//type
+			var Type string = AfterSplit(Params,"-")
+			Type = DataType(Type)
+			//type param
+			Params = Name+" "+Type
+		}
+	}
+	return Params
+}
 
 func Struct(TheName string, Content string) string {
 	var Complete string
@@ -323,6 +413,9 @@ func Method(Tabs string, Name string, Content string) string {
 	if IsIn(Name,"-") {
 		TheName = BeforeSplit(Name,"-")
 		Type = AfterSplit(Name,"-")
+		//converting data type
+		Type = DataType(Type)
+
 	//method:<name>
 	} else {
 		//get method name
@@ -339,6 +432,7 @@ func Method(Tabs string, Name string, Content string) string {
 			Params =  Parameters(Process,"method")
 		//ignore content if calling a "method" or a "class"
 		} else if StartsWith(Content, "method:") || StartsWith(Content, "class:") {
+
 			break
 		} else {
 			//This is called when a called from the "class" method
@@ -385,9 +479,16 @@ func Method(Tabs string, Name string, Content string) string {
 			var lp int = 0
 			for lp != end {
 				//starts with "logic:" or "loop:"
-				if StartsWith(cmds[lp],"logic:") || StartsWith(cmds[lp],"loop:") {
+				if StartsWith(cmds[lp],"logic:") || StartsWith(cmds[lp],"loop:") || StartsWith(cmds[lp],"var:") || StartsWith(cmds[lp],"stmt:") {
 					//Only process code that starts with "logic:" or "loop:"
 					if ParseContent != "" {
+
+						//if the next element is "logic:else" or "logic:else-if"
+						if StartsWith(ParseContent, "logic:else") {
+							//remove the line break from the last "if"
+							MethodContent = MethodContent[:len(MethodContent)-1]
+						}
+
 						//process content
 						MethodContent = MethodContent + GenCode(Tabs+"\t",ParseContent)
 					}
@@ -405,6 +506,12 @@ func Method(Tabs string, Name string, Content string) string {
 			//process the rest
 			if ParseContent != "" {
 				OtherContent = ParseContent
+			}
+
+			//if the next element is "logic:else" or "logic:else-if"
+			if StartsWith(OtherContent, "logic:else") {
+				//remove the line break from the last "if"
+				MethodContent = MethodContent[:len(MethodContent)-1]
 			}
 
 			MethodContent = MethodContent + GenCode(Tabs+"\t",OtherContent)
@@ -434,51 +541,6 @@ func Method(Tabs string, Name string, Content string) string {
 		Complete = Tabs+"func "+TheName+"("+Params+") "+Type+" {\n"+Tabs+"\tvar TheReturn "+Type+"\n"+MethodContent+"\n"+Tabs+"\treturn TheReturn\n"+Tabs+"}\n"
 	}
 	return Complete
-}
-
-func Conditions(input string, CalledBy string) string {
-	var Condit string = AfterSplit(input,":")
-	Condit = replaceAll(Condit, "|", " ")
-	if CalledBy == "class" {
-		fmt.Println("condition: " + CalledBy)
-	} else if CalledBy == "method" {
-		fmt.Println("condition: " + CalledBy)
-	} else if CalledBy == "loop" {
-		fmt.Println("condition: " + CalledBy)
-	}
-	return Condit
-}
-
-//params:
-func Parameters(input string, CalledBy string) string {
-	var Params string = AfterSplit(input,":")
-	if CalledBy == "class" || CalledBy == "method" || CalledBy == "stmt" {
-		//param-type,param-type,param-type
-		if IsIn(Params,"-") && IsIn(Params,",") {
-			//param
-			var Name string = BeforeSplit(Params,"-")
-			//type,param-type,param-type
-			var Type string = AfterSplit(Params,"-")
-			//type
-			Type = BeforeSplit(Type,",")
-			//param-type,param-type
-			var more string = AfterSplit(Params,",")
-
-			//recursion to get more parameters
-			more = Parameters("params:"+more,CalledBy)
-			//type param, type param, type param
-			Params = Name+" "+Type+", "+more
-		//param-type
-		} else if IsIn(Params,"-") && !IsIn(Params,",") {
-			//param
-			var Name string = BeforeSplit(Params,"-")
-			//type
-			var Type string = AfterSplit(Params,"-")
-			//type param
-			Params = Name+" "+Type
-		}
-	}
-	return Params
 }
 
 //loop:
@@ -917,6 +979,8 @@ func Variables(Tabs string, TheKindType string, Content string) string {
 		VarType = AfterSplit(Type,"-")
 		Value = AfterSplit(VarType,"=")
 		VarType = BeforeSplit(VarType,"=")
+		//converting data type
+		VarType = DataType(VarType)
 		NewVar = Tabs+"var "+Name+" "+VarType+" = "+Value
 		NewVar = NewVar+VariableContent
 	//var:name=Value
@@ -932,6 +996,8 @@ func Variables(Tabs string, TheKindType string, Content string) string {
 		Name = BeforeSplit(Type,"-")
 		VarType = AfterSplit(Type,"-")
 		VarType = BeforeSplit(VarType,"=")
+		//converting data type
+		VarType = DataType(VarType)
 		NewVar = Tabs+"var "+Name+" "+VarType+" = "
 		NewVar = NewVar+VariableContent
 	//var:name=
@@ -946,6 +1012,8 @@ func Variables(Tabs string, TheKindType string, Content string) string {
 		Type = AfterSplit(TheKindType,":")
 		Name = BeforeSplit(Type,"-")
 		VarType = AfterSplit(Type,"-")
+		//converting data type
+		VarType = DataType(VarType)
 		NewVar = Tabs+"var "+Name+" "+VarType
 		NewVar = NewVar+VariableContent
 	}
