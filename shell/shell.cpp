@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.0.72";
+String Version = "0.0.73";
 
 String getOS();
 void Help(String Type);
@@ -404,7 +404,7 @@ void banner()
 
 /*
 //<<shell>> method:TranslateTag-String params:Input-String method-var:Action-String="" method-stmt:endline method-stmt:newline logic:if logic-condition:IsIn(Input,"(-spc)")) nest-logic:if condition:Action(-eq)"if"(-or)Action(-eq)"else-if"(-or)Action(-eq)"else" logic-nest-var:NewTag="logic:" logic-nest-stmt:endline nest-logic:else-if logic-condition:Action(-eq)"while"(-or)Action(-eq)"for"(-or)Action(-eq)"do/while" logic-var:NewTag="loop:" logic-stmt:endline nest-logic:else logic-var:NewTag=Input logic-stmt:endline
-<<shell>> method:TranslateTag-String params:Input-String m-var:Action-String="" m-stmt:endline m-var:Value-String="" m-stmt:endline m-var:NewTag-String="" m-stmt:endline m-var:TheDataType-String="" m-stmt:endline m-var:Nest-String="" m-stmt:endline m-var:ContentFor-String="" m-stmt:endline m-stmt:newline if:IsIn(Input,":") lg-stmt:method-AfterSplit lg-stmt:endline else lg-var:Action=Input lg-stmt:endline m-stmt:newline else-if:StartsWith(Action,"lg-") lg-var:Action= lg-stmt:method-AfterSplit lg-stmt:endline lg-var:ContentFor="logic-" lg-stmt:endline m-stmt:newline else-if:StartsWith(Action,"lp-") lg-var:Action= lg-stmt:method-AfterSplit lg-stmt:endline lg-var:ContentFor="loop-" lg-stmt:endline m-stmt:newline else-if:StartsWith(Action,"m-") lg-var:Action= lg-stmt:method-AfterSplit lg-stmt:endline lg-var:ContentFor="method-" lg-stmt:endline m-stmt:newline while:StartsWith(Action,">") lp-var:Action= lp-stmt:method-AfterSplit lp-stmt:endline lp-var:Nest="nest-"+Nest lp-stmt:endline m-stmt:newline if:Action(-eq)"if"(-or)Action(-eq)"else-if" lg-var:NewTag= lg-stmt:method-AfterSplit lg-stmt:endline lg-var:Nest="logic:"+Nest lg-stmt:endline else-if:Action(-eq)"else" lg-var:NewTag= lg-stmt:method-AfterSplit lg-stmt:endline lg-var:Nest="method-"+Nest lg-stmt:endline else-if:Action(-eq)"while"(-or)Action(-eq)"for"(-or)Action(-eq)"do/while" else lg->if:Value(-ne)"" lg->else
+<<shell>> [string]TranslateTag:Input-String m-(string)Action:"" m-el m-(string)Value:"" m-el m-(String)NewTag:"" m-el m-(string)TheDataType:"" m-el m-(String)Nest:"" m-el m-(String)ContentFor:"" m-el m-nl if:IsIn(Input,":") lg-stmt:method-AfterSplit lg-el else lg-var:Action=Input lg-el m-nl else-if:StartsWith(Action,"lg-") lg-var:Action= lg-stmt:method-AfterSplit lg-el lg-stmt:ContentFor="logic-" lg-el m-nl else-if:StartsWith(Action,"lp-") lg-var:Action= lg-stmt:method-AfterSplit lg-el lg-var:ContentFor="loop-" lg-el m-nl else-if:StartsWith(Action,"m-") lg-var:Action= lg-stmt:method-AfterSplit lg-el lg-var:ContentFor="method-" lg-el m-nl while:StartsWith(Action,">") lp-var:Action= lp-stmt:method-AfterSplit lp-el lp-var:Nest="nest-"+Nest lp-stmt:endline m-el if:Action(-eq)"if"(-or)Action(-eq)"else-if" lg-var:NewTag= lg-stmt:method-AfterSplit lg-el lg-var:Nest="logic:"+Nest lg-el else-if:Action(-eq)"else" lg-var:NewTag= lg-stmt:method-AfterSplit lg-el lg-var:Nest="method-"+Nest lg-el else-if:Action(-eq)"while"(-or)Action(-eq)"for"(-or)Action(-eq)"do/while" else lg->if:Value(-ne)"" lg->else
 */
 
 
@@ -412,13 +412,13 @@ void banner()
 /*
 > = nest-
 if:i(-eq)0 = logic:if condit:i(-eq)0
-[lp]if:i(-eq)0 = logic-logic:if condit:i(-eq)0
+lg-if:i(-eq)0 = logic-logic:if condit:i(-eq)0
 {class}|{cl}
-{method}|{m}
-{function}|{f}
-[int]count:0 = var:count-int=0 stmt:endline
-[std::string]message:"here" = var:message-std::string="here" stmt:endline
-[method]message:say = var:message= stmt:method-say
+[int]number:(int)one,(int)teo = method:number method-param:one-int,two,-int
+(int)count:0 = var:count-int=0
+(std::string)message:"here" = var:message-std::string="here"
+el = stmt:endline
+nl = stmt:newline
 */
 
 String TranslateTag(String Input)
@@ -426,8 +426,9 @@ String TranslateTag(String Input)
 	String TheReturn = "";
 	String Action = "";
 	String Value = "";
+	String VarName = "";
 	String NewTag = "";
-//	String TheDataType = "";
+	String TheDataType = "";
 	String Nest = "";
 	String ContentFor = "";
 
@@ -479,6 +480,57 @@ String TranslateTag(String Input)
 		NewTag = "loop:"+Action;
 		Value = "loop-condition:"+Value;
 		TheReturn = ContentFor+Nest+NewTag+" "+Value;
+	}
+	else if ((StartsWith(Action, "{")) && (IsIn(Input,"}")))
+	{
+		TheDataType = BeforeSplit(Action,'}');
+		TheDataType = AfterSplit(TheDataType,'{');
+		Action = AfterSplit(Action,'}');
+		if (Value != "")
+		{
+			TheReturn = "class:"+Action+"-"+TheDataType+" params:"+Value;
+		}
+		else
+		{
+			TheReturn = "class:"+Action+"-"+TheDataType;
+		}
+	}
+	else if ((StartsWith(Action, "[")) && (IsIn(Input,"]")))
+	{
+		TheDataType = BeforeSplit(Action,']');
+		TheDataType = AfterSplit(TheDataType,'[');
+		print(TheDataType);
+		Action = AfterSplit(Action,']');
+		if (Value != "")
+		{
+			TheReturn = ContentFor+"method:"+Action+"-"+TheDataType+" params:"+Value;
+		}
+		else
+		{
+			TheReturn = ContentFor+"method:"+Action+"-"+TheDataType;
+		}
+	}
+	else if ((StartsWith(Action, "(")) && (IsIn(Input,")")))
+	{
+		TheDataType = BeforeSplit(Action,')');
+		TheDataType = AfterSplit(TheDataType,'(');
+		Action = AfterSplit(Action,')');
+		if (Value != "")
+		{
+			TheReturn = ContentFor+"var:"+Action+"-"+TheDataType+"="+Value;
+		}
+		else
+		{
+			TheReturn = ContentFor+"var:"+Action+"-"+TheDataType;
+		}
+	}
+	else if (Action == "el")
+	{
+		TheReturn = ContentFor+"stmt:endline";
+	}
+	else if (Action == "nl")
+	{
+		TheReturn = ContentFor+"stmt:newline";
 	}
 	else
 	{
