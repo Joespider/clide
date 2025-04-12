@@ -226,15 +226,68 @@ func ReplaceTag(Content string, Tag string) string {
 func banner() {
 	var cplV string = getCplV()
 	var theOS string = getOS()
-	var Version string = "0.0.14"
+	var Version string = "0.0.17"
 	fmt.Println(cplV)
 	fmt.Println("[Go " + Version +"] on " + theOS)
 	fmt.Println("Type \"help\" for more information.")
 }
 
 /*
-<<shell>> method:Translate-String params:Input-String method-var:Action-String="" method-stmt:endline method-stmt:newline logic:if logic-condition:IsIn(Input,"(-spc)")) nest-logic:if condition:Action(-eq)"if"(-or)Action(-eq)"else-if"(-or)Action(-eq)"else" logic-nest-var:NewTag="logic:" logic-nest-stmt:endline nest-logic:else-if logic-condition:Action(-eq)"while"(-or)Action(-eq)"for"(-or)Action(-eq)"do/while" logic-var:NewTag="loop:" logic-stmt:endline nest-logic:else logic-var:NewTag=Input logic-stmt:endline
+<<shell>> method:TranslateTag-String params:Input-String m-var:Action-String="" m-stmt:endline m-var:Value-String="" m-stmt:endline m-var:NewTag-String="" m-stmt:endline m-var:TheDataType-String="" m-stmt:endline m-var:Nest-String="" m-stmt:endline m-var:ContentFor-String="" m-stmt:endline m-stmt:newline if:IsIn(Input,":") lg-stmt:method-AfterSplit lg-stmt:endline else lg-var:Action=Input lg-stmt:endline m-stmt:newline else-if:StartsWith(Action,"lg-") lg-var:Action= lg-stmt:method-AfterSplit lg-stmt:endline lg-var:ContentFor="logic-" lg-stmt:endline m-stmt:newline else-if:StartsWith(Action,"lp-") lg-var:Action= lg-stmt:method-AfterSplit lg-stmt:endline lg-var:ContentFor="loop-" lg-stmt:endline m-stmt:newline else-if:StartsWith(Action,"m-") lg-var:Action= lg-stmt:method-AfterSplit lg-stmt:endline lg-var:ContentFor="method-" lg-stmt:endline m-stmt:newline while:StartsWith(Action,">") lp-var:Action= lp-stmt:method-AfterSplit lp-stmt:endline lp-var:Nest="nest-"+Nest lp-stmt:endline m-stmt:newline if:Action(-eq)"if"(-or)Action(-eq)"else-if" lg-var:NewTag= lg-stmt:method-AfterSplit lg-stmt:endline lg-var:Nest="logic:"+Nest lg-stmt:endline else-if:Action(-eq)"else" lg-var:NewTag= lg-stmt:method-AfterSplit lg-stmt:endline lg-var:Nest="method-"+Nest lg-stmt:endline else-if:Action(-eq)"while"(-or)Action(-eq)"for"(-or)Action(-eq)"do/while" else lg->if:Value(-ne)"" lg->else
 */
+func TranslateTag(Input string) string {
+	var TheReturn string = ""
+	var Action string = ""
+	var Value string = ""
+	var NewTag string = ""
+//	var TheDataType string = ""
+	var Nest string = ""
+	var ContentFor string = ""
+
+	if IsIn(Input,":") {
+		Action = BeforeSplit(Input,":")
+		Value = AfterSplit(Input,":")
+	} else {
+		Action = Input
+	}
+
+	if StartsWith(Action,"lg-") {
+		Action = AfterSplit(Action,"-")
+		ContentFor = "logic-"
+	} else if StartsWith(Action,"lp-") {
+		Action = AfterSplit(Action,"-")
+		ContentFor = "logic-"
+	} else if StartsWith(Action,"m-") {
+		Action = AfterSplit(Action,"-")
+		ContentFor = "method-"
+	}
+
+	for StartsWith(Action,">") {
+		Action = AfterSplit(Action,">")
+		Nest = "nest-"+Nest
+	}
+
+	if Action == "if" || Action == "else-if" {
+		NewTag = "logic:"+Action
+		Value = "logic-condition:"+Value
+		TheReturn = ContentFor+Nest+NewTag+" "+Value
+	} else if Action == "else" {
+		NewTag = "logic:"+Action
+		TheReturn = ContentFor+Nest+NewTag
+	} else if Action == "while" || Action == "for" ||  Action == "do/while" {
+		NewTag = "loop:"+Action
+		Value = "loop-condition:"+Value
+		TheReturn = ContentFor+Nest+NewTag+" "+Value
+	} else {
+		if Value != "" {
+			TheReturn = ContentFor+Nest+Action+":"+Value
+		} else {
+			TheReturn = ContentFor+Nest+Input
+		}
+	}
+
+	return TheReturn
+}
 
 //<<shell>> method:DataType-String params:Type-String logic:if condition:(Type(-eq)"String"(-or)Type(-eq)"std::string") logic-var:TheReturn="string" logic-stmt:endline logic:else-if condition:Type(-eq)"boolean" logic-var:Type="bool" logic-stmt:endline logic:else logic-var:TheReturn=Type logic-stmt:endline
 func DataType(Type string) string {
@@ -268,6 +321,22 @@ func Conditions(input string, CalledBy string) string {
 
 	if IsIn(Condit,"(-not)") {
 		Condit = replaceAll(Condit, "(-not)","!")
+	}
+
+	if IsIn(Condit,"(-ge)") {
+		Condit = replaceAll(Condit, "(-ge)"," >= ")
+	}
+
+	if IsIn(Condit,"(-gt)") {
+		Condit = replaceAll(Condit, "(-gt)"," > ")
+	}
+
+	if IsIn(Condit,"(-le)") {
+		Condit = replaceAll(Condit, "(-le)"," <= ")
+	}
+
+	if IsIn(Condit,"(-lt)") {
+		Condit = replaceAll(Condit, "(-lt)"," > ")
 	}
 
 	if IsIn(Condit,"(-ne)") {
@@ -1088,9 +1157,9 @@ func main() {
 		if len(args) >= 1 {
 			for arg := range args {
 				if UserIn == "" {
-					UserIn = args[arg]
+					UserIn = TranslateTag(args[arg])
 				} else {
-					UserIn = UserIn + " " + args[arg]
+					UserIn = UserIn + " " + TranslateTag(args[arg])
 				}
 			}
 		} else 	{

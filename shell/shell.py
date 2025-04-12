@@ -2,7 +2,7 @@ import os
 import sys
 import platform
 
-Version = "0.0.12"
+Version = "0.0.14"
 
 def getOS():
 	platform.system()
@@ -171,12 +171,12 @@ def ReplaceTag(Content, Tag):
 	return Content
 
 """
-<<shell>> method:Translate-String params:Input-String method-var:Action-String="" method-stmt:endline logic-stmt:newline logic:if logic-condition:IsIn(Input,"(-spc)")) nest-logic:if condition:Action(-eq)"if"(-or)Action(-eq)"else-if"(-or)Action(-eq)"else" logic-nest-var:NewTag="logic:" logic-nest-stmt:endline nest-logic:else-if logic-condition:Action(-eq)"while"(-or)Action(-eq)"for"(-or)Action(-eq)"do/while" logic-var:NewTag="loop:" logic-stmt:endline nest-logic:else logic-var:NewTag=Input logic-stmt:endline
+<<shell>> method:TranslateTag-String params:Input-String method-var:Action-String="" method-stmt:endline method-var:Value-String="" method-stmt:endline method-var:NewTag-String="" method-stmt:endline method-var:TheDataType-String="" method-stmt:endline method-var:Nest-String="" method-stmt:endline method-var:ContentFor-String="" method-stmt:endline method-stmt:newline logic:if logic-condition:IsIn(Input,":") logic-stmt:method-AfterSplit logic-stmt:endline logic:else logic-var:Action=Input logic-stmt:endline method-stmt:newline logic:else-if logic-condition:StartsWith(Action,"lg-") logic-var:Action= logic-stmt:method-AfterSplit logic-stmt:endline logic-var:ContentFor="logic-" logic-stmt:endline method-stmt:newline logic:else-if logic-condition:StartsWith(Action,"lp-") logic-var:Action= logic-stmt:method-AfterSplit logic-stmt:endline logic-var:ContentFor="loop-" logic-stmt:endline method-stmt:newline logic:else-if logic-condition:StartsWith(Action,"m-") logic-var:Action= logic-stmt:method-AfterSplit logic-stmt:endline logic-var:ContentFor="method-" logic-stmt:endline method-stmt:newline loop:while loop-condition:StartsWith(Action,">") loop-var:Action= loop-stmt:method-AfterSplit loop-stmt:endline loop-var:Nest="nest-"+Nest loop-stmt:endline method-stmt:newline logic:if logic-condition:Action(-eq)"if"(-or)Action(-eq)"else-if" logic-var:NewTag= logic-stmt:method-AfterSplit logic-stmt:endline logic-var:Nest="logic:"+Nest logic-stmt:endline logic:else-if logic-condition:Action(-eq)"else" logic-var:NewTag= logic-stmt:method-AfterSplit logic-stmt:endline logic-var:Nest="method-"+Nest logic-stmt:endline logic:else-if logic-condition:Action(-eq)"while"(-or)Action(-eq)"for"(-or)Action(-eq)"do/while" logic:else logic-nest-logic:if logic-condition:Value(-ne)"" logic-nest-logic:else
 """
 
 
 """
-<<shell>> method:DataType-String params:Type-String method-var:TheReturn=""
+<<shell>> method:DataType-String params:Type-String if:Type(-eq)"String"(-or)Type(-eq)"string" lg-var:TheReturn="std::string" lg-stmt:endline else-if:Type(-eq)"boolean" lg-var:Type="bool" lg-stmt:endline else lg-var:TheReturn=Type lg-stmt:endline
 """
 
 def banner():
@@ -199,6 +199,18 @@ def Conditions(input,CalledBy):
 
 	if IsIn(Condit,"(-not)"):
 		Condit = replaceAll(Condit, "(-not)","!")
+
+	if IsIn(Condit,"(-le)"):
+		Condit = replaceAll(Condit, "(-le)"," >= ")
+
+	if IsIn(Condit,"(-lt)"):
+		Condit = replaceAll(Condit, "(-ne)"," > ")
+
+	if IsIn(Condit,"(-ge)"):
+		Condit = replaceAll(Condit, "(-ge)"," >= ")
+
+	if IsIn(Condit,"(-gt)"):
+		Condit = replaceAll(Condit, "(-gt)"," > ")
 
 	if IsIn(Condit,"(-ne)"):
 		Condit = replaceAll(Condit, "(-ne)"," != ")

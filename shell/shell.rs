@@ -317,14 +317,14 @@ fn banner()
 {
 	let cpl_version = get_cpl_version();
 	let the_os = get_os();
-	let version = "0.0.19";
+	let version = "0.0.20";
 	println!("{}",cpl_version);
 	println!("[Rust {}] on {}",version,the_os);
 	println!("Type \"help\" for more information.");
 }
 
 /*
-<<shell>> method:Translate-String params:Input-String method-var:Action-String="" method-stmt:endline logic-stmt:newline logic:if logic-condition:IsIn(Input,"(-spc)")) nest-logic:if condition:Action(-eq)"if"(-or)Action(-eq)"else-if"(-or)Action(-eq)"else" logic-nest-var:NewTag="logic:" logic-nest-stmt:endline nest-logic:else-if logic-condition:Action(-eq)"while"(-or)Action(-eq)"for"(-or)Action(-eq)"do/while" logic-var:NewTag="loop:" logic-stmt:endline nest-logic:else logic-var:NewTag=Input logic-stmt:endline
+//<<shell>> method:TranslateTag-String params:Input-String method-var:Action-String="" method-stmt:endline method-var:Value-String="" method-stmt:endline method-var:NewTag-String="" method-stmt:endline method-var:TheDataType-String="" method-stmt:endline method-var:Nest-String="" method-stmt:endline method-var:ContentFor-String="" method-stmt:endline method-stmt:newline logic:if logic-condition:IsIn(Input,":") logic:else method-stmt:newline loop:while loop-condition:StartsWith(Action,">") method-stmt:newline logic:else-if logic-condition:StartsWith(Action,"lg-") method-stmt:newline logic:else-if logic-condition:StartsWith(Action,"lp-") method-stmt:newline logic:else-if logic-condition:StartsWith(Action,"m-") method-stmt:newline logic:if logic-condition:Action(-eq)"if"(-or)Action(-eq)"else-if" logic:else-if logic-condition:Action(-eq)"else" logic:else-if logic-condition:Action(-eq)"while"(-or)Action(-eq)"for"(or)Action(-eq)"do/while" logic:else logic-nest-logic:if logic-condition:Value(-ne)"" logic-nest-logic:else
 */
 
 //<<shell>> method:DataType-String params:Type-String,CalledBy-String logic:if condition:Type(-eq)"String"(-or)Type(-eq)"std::string" logic-var:TheReturn="String" logic-stmt:endline logic:else-if condition:Type(-eq)"boolean" logic-var:Type="bool" logic-stmt:endline logic:else logic-var:TheReturn=Type logic-stmt:endline
@@ -367,6 +367,26 @@ fn gen_conditions(input: &str,called_by: &str) -> String
 	if is_in(&condit,"(-not)")
 	{
 		condit = replace_all(&condit, "(-not)","!");
+	}
+
+	if is_in(&condit,"(-ge)")
+	{
+		condit = replace_all(&condit, "(-ge)"," >= ");
+	}
+
+	if is_in(&condit,"(-gt)")
+	{
+		condit = replace_all(&condit, "(-gt)"," > ");
+	}
+
+	if is_in(&condit,"(-le)")
+	{
+		condit = replace_all(&condit, "(-le)"," <= ");
+	}
+
+	if is_in(&condit,"(-lt)")
+	{
+		condit = replace_all(&condit, "(-lt)"," < ");
 	}
 
 	if is_in(&condit,"(-ne)")
