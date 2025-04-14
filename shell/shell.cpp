@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.0.73";
+String Version = "0.0.74";
 
 String getOS();
 void Help(String Type);
@@ -424,23 +424,13 @@ nl = stmt:newline
 String TranslateTag(String Input)
 {
 	String TheReturn = "";
-	String Action = "";
+	String Action = Input;
 	String Value = "";
 	String VarName = "";
 	String NewTag = "";
 	String TheDataType = "";
 	String Nest = "";
 	String ContentFor = "";
-
-	if (IsIn(Input,":"))
-	{
-		Action = BeforeSplit(Input,':');
-		Value = AfterSplit(Input,':');
-	}
-	else
-	{
-		Action = Input;
-	}
 
 	if (StartsWith(Action, "lg-"))
 	{
@@ -464,19 +454,25 @@ String TranslateTag(String Input)
 		Nest = "nest-"+Nest;
 	}
 
-	if ((Action == "if") || (Action == "else-if"))
+	if ((StartsWith(Action, "if:")) || (StartsWith(Action, "else-if:")))
 	{
+		Value = AfterSplit(Action,':');
+		Action = BeforeSplit(Action,':');
 		NewTag = "logic:"+Action;
 		Value = "logic-condition:"+Value;
 		TheReturn = ContentFor+Nest+NewTag+" "+Value;
 	}
 	else if (Action == "else")
 	{
+		Value = AfterSplit(Action,':');
+		Action = BeforeSplit(Action,':');
 		NewTag = "logic:"+Action;
 		TheReturn = ContentFor+Nest+NewTag;
 	}
-	else if ((Action == "while") || (Action == "for") || (Action == "do/while"))
+	else if ((StartsWith(Action, "while:")) || (StartsWith(Action, "for:")) || (StartsWith(Action, "do/while:")))
 	{
+		Value = AfterSplit(Action,':');
+		Action = BeforeSplit(Action,':');
 		NewTag = "loop:"+Action;
 		Value = "loop-condition:"+Value;
 		TheReturn = ContentFor+Nest+NewTag+" "+Value;
@@ -486,6 +482,11 @@ String TranslateTag(String Input)
 		TheDataType = BeforeSplit(Action,'}');
 		TheDataType = AfterSplit(TheDataType,'{');
 		Action = AfterSplit(Action,'}');
+		if (IsIn(Action,":"))
+		{
+			Value = AfterSplit(Action,':');
+			Action = BeforeSplit(Action,':');
+		}
 		if (Value != "")
 		{
 			TheReturn = "class:"+Action+"-"+TheDataType+" params:"+Value;
@@ -499,8 +500,13 @@ String TranslateTag(String Input)
 	{
 		TheDataType = BeforeSplit(Action,']');
 		TheDataType = AfterSplit(TheDataType,'[');
-		print(TheDataType);
 		Action = AfterSplit(Action,']');
+		if (IsIn(Action,":"))
+		{
+			Value = AfterSplit(Action,':');
+			Action = BeforeSplit(Action,':');
+		}
+		print(TheDataType);
 		if (Value != "")
 		{
 			TheReturn = ContentFor+"method:"+Action+"-"+TheDataType+" params:"+Value;
@@ -515,6 +521,13 @@ String TranslateTag(String Input)
 		TheDataType = BeforeSplit(Action,')');
 		TheDataType = AfterSplit(TheDataType,'(');
 		Action = AfterSplit(Action,')');
+
+		if (IsIn(Action,":"))
+		{
+			Value = AfterSplit(Action,':');
+			Action = BeforeSplit(Action,':');
+		}
+
 		if (Value != "")
 		{
 			TheReturn = ContentFor+"var:"+Action+"-"+TheDataType+"="+Value;
