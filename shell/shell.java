@@ -12,7 +12,7 @@ import java.io.IOException;
 
 //class name
 public class shell {
-	private static String Version = "0.0.35";
+	private static String Version = "0.0.36";
 	private static String TheKind = "";
 	private static String TheName = "";
 	private static String TheKindType = "";
@@ -342,11 +342,100 @@ public class shell {
 		print("Type \"help\" for more information.");
 	}
 /*
-<<shell>> method:Translate-String params:Input-String method-var:Action-String="" method-stmt:endline method-stmt:newline logic:if logic-condition:IsIn(Input,"(-spc)")) nest-logic:if condition:Action(-eq)"if"(-or)Action(-eq)"else-if"(-or)Action(-eq)"else" logic-nest-var:NewTag="logic:" logic-nest-stmt:endline nest-logic:else-if logic-condition:Action(-eq)"while"(-or)Action(-eq)"for"(-or)Action(-eq)"do/while" logic-var:NewTag="loop:" logic-stmt:endline nest-logic:else logic-var:NewTag=Input logic-stmt:endline
+<<shell>> method:TranslateTag-String params:Input-String m-var:Action-String="" m-stmt:endline m-var:Value-String="" m-stmt:endline m-var:NewTag-String="" m-stmt:endline m-var:TheDataType-String="" m-stmt:endline m-var:Nest-String="" m-stmt:endline m-var:ContentFor-String="" m-stmt:endline m-stmt:newline if:IsIn(Input,":") lg-stmt:method-AfterSplit lg-stmt:endline else lg-var:Action=Input lg-stmt:endline m-stmt:newline else-if:StartsWith(Action,"lg-") lg-var:Action= lg-stmt:method-AfterSplit lg-stmt:endline lg-var:ContentFor="logic-" lg-stmt:endline m-stmt:newline else-if:StartsWith(Action,"lp-") lg-var:Action= lg-stmt:method-AfterSplit lg-stmt:endline lg-var:ContentFor="loop-" lg-stmt:endline m-stmt:newline else-if:StartsWith(Action,"m-") lg-var:Action= lg-stmt:method-AfterSplit lg-stmt:endline lg-var:ContentFor="method-" lg-stmt:endline m-stmt:newline while:StartsWith(Action,">") lp-var:Action= lp-stmt:method-AfterSplit lp-stmt:endline lp-var:Nest="nest-"+Nest lp-stmt:endline m-stmt:newline if:Action(-eq)"if"(-or)Action(-eq)"else-if" lg-var:NewTag= lg-stmt:method-AfterSplit lg-stmt:endline lg-var:Nest="logic:"+Nest lg-stmt:endline else-if:Action(-eq)"else" lg-var:NewTag= lg-stmt:method-AfterSplit lg-stmt:endline lg-var:Nest="method-"+Nest lg-stmt:endline else-if:Action(-eq)"while"(-or)Action(-eq)"for"(-or)Action(-eq)"do/while" else lg->if:Value(-ne)"" lg->else
 */
+	public static String TranslateTag(String Input)
+	{
+		StringBuilder TheReturn = new StringBuilder("");
+		String Action = "";
+		String Value = "";
+		String NewTag = "";
+		String TheDataType = "";
+		StringBuilder Nest = new StringBuilder("");
+		String ContentFor = "";
+
+		if (IsIn(Input,":"))
+		{
+			Action = BeforeSplit(Input,":");
+			Value = AfterSplit(Input,":");
+		}
+		else
+		{
+			Action = Input;
+		}
+
+		if (StartsWith(Action,"lg-"))
+		{
+			Action = AfterSplit(Action,"-");
+			ContentFor = "logic-";
+		}
+		else if (StartsWith(Action,"lp-"))
+		{
+			Action = AfterSplit(Action,"-");
+			ContentFor = "loop-";
+		}
+		else if (StartsWith(Action,"m-"))
+		{
+			Action = AfterSplit(Action,"-");
+			ContentFor = "method-";
+		}
+
+		while (StartsWith(Action,">"))
+		{
+			Action = AfterSplit(Action,">");
+			Nest.append("nest-");
+		}
+
+		if ((Action.equals("if")) || (Action.equals("else-if")))
+		{
+			NewTag = "logic:"+Action;
+			Value = "logic-condition:"+Value;
+			TheReturn.append(ContentFor);
+			TheReturn.append(Nest.toString());
+			TheReturn.append(NewTag);
+			TheReturn.append(" ");
+			TheReturn.append(Value);
+		}
+		else if (Action.equals("else"))
+		{
+			NewTag = "logic:"+Action;
+			TheReturn.append(ContentFor);
+			TheReturn.append(Nest.toString());
+			TheReturn.append(NewTag);
+		}
+		else if ((Action.equals("while")) || (Action.equals("for") || Action.equals("do/while")))
+		{
+			NewTag = "loop:"+Action;
+			Value = "loop-condition:"+Value;
+			TheReturn.append(ContentFor);
+			TheReturn.append(Nest.toString());
+			TheReturn.append(NewTag);
+			TheReturn.append(" ");
+			TheReturn.append(Value);
+		}
+		else
+		{
+			if (!Value.equals(""))
+			{
+				TheReturn.append(ContentFor);
+				TheReturn.append(Nest);
+				TheReturn.append(Action);
+				TheReturn.append(":");
+				TheReturn.append(Value);
+			}
+			else
+			{
+				TheReturn.append(ContentFor);
+				TheReturn.append(Nest.toString());
+				TheReturn.append(Input);
+			}
+		}
+
+		return TheReturn.toString();
+	}
 
 /*
-<<shell>> method:DataType-string params:Type-string logic:if condition:Type(-eq)"string"(-or)Type(-eq)"std::string" logic-var:TheReturn="String" logic-stmt:endline logic:else-if condition:Type(-eq)"bool" logic-var:TheReturn="boolean" logic-stmt:endline logic:else logic-var:TheReturn=Type logic-stmt:endline
+//<<shell>> method:DataType-string params:Type-string logic:if condition:Type(-eq)"string"(-or)Type(-eq)"std::string" logic-var:TheReturn="String" logic-stmt:endline logic:else-if condition:Type(-eq)"bool" logic-var:TheReturn="boolean" logic-stmt:endline logic:else logic-var:TheReturn=Type logic-stmt:endline
 */
 	public static String DataType(String Type)
 	{
@@ -398,6 +487,26 @@ public class shell {
 			if (IsIn(Condit,"(-not)"))
 			{
 				Condit = replaceAll(Condit, "\\(-not\\)","!");
+			}
+
+			if (IsIn(Condit,"(-ge)"))
+			{
+				Condit = replaceAll(Condit, "\\(-ge\\)"," >= ");
+			}
+
+			if (IsIn(Condit,"(-gt)"))
+			{
+				Condit = replaceAll(Condit, "\\(-gt\\)"," > ");
+			}
+
+			if (IsIn(Condit,"(-le)"))
+			{
+				Condit = replaceAll(Condit, "\\(-le\\)"," <= ");
+			}
+
+			if (IsIn(Condit,"(-lt)"))
+			{
+				Condit = replaceAll(Condit, "\\(-lt\\)"," < ");
 			}
 
 			if (IsIn(Condit,"(-ne)"))
@@ -1480,11 +1589,11 @@ public class shell {
 		else
 		{
 			StringBuilder ArgUserIn = new StringBuilder("");
-			ArgUserIn.append(args[0]);
+			ArgUserIn.append(TranslateTag(args[0]));
 			for (int lp = 1; lp < numOfArgs; lp++)
 			{
 				ArgUserIn.append(" ");
-				ArgUserIn.append(args[lp]);
+				ArgUserIn.append(TranslateTag(args[lp]));
 			}
 			UserIn = ArgUserIn.toString();
 		}
