@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.0.74";
+String Version = "0.0.75";
 
 String getOS();
 void Help(String Type);
@@ -471,8 +471,6 @@ String TranslateTag(String Input)
 	}
 	else if ((StartsWith(Action, "while:")) || (StartsWith(Action, "for:")) || (StartsWith(Action, "do/while:")))
 	{
-		Value = AfterSplit(Action,':');
-		Action = BeforeSplit(Action,':');
 		NewTag = "loop:"+Action;
 		Value = "loop-condition:"+Value;
 		TheReturn = ContentFor+Nest+NewTag+" "+Value;
