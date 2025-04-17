@@ -464,8 +464,6 @@ String TranslateTag(String Input)
 	}
 	else if (Action == "else")
 	{
-		Value = AfterSplit(Action,':');
-		Action = BeforeSplit(Action,':');
 		NewTag = "logic:"+Action;
 		TheReturn = ContentFor+Nest+NewTag;
 	}
