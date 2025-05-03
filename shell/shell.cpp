@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.0.77";
+String Version = "0.0.78";
 
 String getOS();
 void Help(String Type);
@@ -403,21 +403,7 @@ void banner()
 }
 
 /*
-<<shell>> [string]TranslateTag:(String)Input []-(string)Action:Input []-el []-(string)Value:"" []-el []-(string)VarName:"" []-el []-(String)NewTag:"" []-el []-(string)TheDataType:"" []-el []-(String)Nest:"" []-el []-(String)ContentFor:"" []-el []-nl if:StartsWith(Action,"+-") +-var:Action= +-stmt:method-AfterSplit +-el +-var:Action=Input +-el []-nl else-if:StartsWith(Action,"o-") +-var:Action= +-stmt:method-AfterSplit +-el +-stmt:ContentFor="logic-" +-el []-nl else-if:StartsWith(Action,"[]-") +-var:Action= +-stmt:method-AfterSplit +-el +-var:ContentFor="loop-" +-el []-nl else-if:StartsWith(Action,"[]-") +-var:Action= +-stmt:method-AfterSplit +-el +-var:ContentFor="method-" +-el []-nl while:StartsWith(Action,">") o-var:Action= o-stmt:method-AfterSplit o-el o-var:Nest="nest-"+Nest o-stmt:endline []-el if:Action(-eq)"if"(-or)Action(-eq)"else-if" +-var:NewTag= +-stmt:method-AfterSplit +-el +-var:Nest="logic:"+Nest +-el else-if:Action(-eq)"else" +-var:NewTag= +-stmt:method-AfterSplit +-el +-var:Nest="method-"+Nest +-el else-if:Action(-eq)"while"(-or)Action(-eq)"for"(-or)Action(-eq)"do/while" else +->if:Value(-ne)"" +->else
-*/
-
-
-
-/*
-> = nest-
-if:i(-eq)0 = logic:if condit:i(-eq)0
-lg-if:i(-eq)0 = logic-logic:if condit:i(-eq)0
-{class}|{cl}
-[int]number:(int)one,(int)teo = method:number method-param:one-int,two,-int
-(int)count:0 = var:count-int=0
-(std::string)message:"here" = var:message-std::string="here"
-el = stmt:endline
-nl = stmt:newline
+<<shell>> [string]TranslateTag:(String)Input []-tab []-(string)Action:Input []-el []-tab []-(string)Value:"" []-el []-tab []-(string)VarName:"" []-el []-tab []-(String)NewTag:"" []-el []-tab []-(string)TheDataType:"" []-el []-tab []-(String)Nest:"" []-el []-tab []-(String)ContentFor:"" []-el []-nl if:StartsWith(Action,"+-") +-tab +-tab +-var:Action= +-stmt:method-AfterSplit +-params:Action,'-' +-el +-tab +-tab +-var:ContentFor="logic-" +-el []-nl else-if:StartsWith(Action,"o-") +-tab +-tab +-var:Action= +-stmt:method-AfterSplit +-params:Action,'-' +-el +-tab +-tab +-var:ContentFor="loop-" +-el []-nl else-if:StartsWith(Action,"[]-") +-tab +-tab +-var:Action= +-stmt:method-AfterSplit +-params:Action,'-' +-el +-tab +-tab +-var:ContentFor="method-" +-el []-nl while:StartsWith(Action,">") o-tab o-tab o-var:Action= o-stmt:method-AfterSplit o-params:Action,'>' o-el o-tab o-tab o-var:Nest="nest-"+Nest o-stmt:endline []-el if:Action(-eq)"if"(-or)Action(-eq)"else-if" +-tab +-tab +-var:NewTag= +-stmt:method-AfterSplit +-el +-tab +-tab +-var:Nest="logic:"+Nest +-el else-if:Action(-eq)"else" +-tab +-tab +-var:NewTag= +-stmt:method-AfterSplit +-el +-tab +-tab +-var:Nest="method-"+Nest +-el else-if:Action(-eq)"while"(-or)Action(-eq)"for"(-or)Action(-eq)"do/while" +-tab +-tab +-var:NewTag= +-stmt:method-AfterSplit +-params:Action,'-' +-el +-tab +-tab +-var:Value= +-tab +-tab +-var:TheReturn= +-tab +-tab +-var:ContentFor="method-" +-el []-nl else +->if:Value(-ne)"" +->else
 */
 
 String TranslateTag(String Input)
@@ -630,7 +616,7 @@ String Conditions(String input,String CalledBy)
 	{
 		Condit = replaceAll(Condit, "(-spc)"," ");
 	}
-
+/*
 	if (CalledBy == "class")
 	{
 		print(Condit);
@@ -643,6 +629,7 @@ String Conditions(String input,String CalledBy)
 	{
 		print(Condit);
 	}
+*/
 	return Condit;
 }
 
@@ -650,6 +637,7 @@ String Conditions(String input,String CalledBy)
 String Parameters(String input,String CalledBy)
 {
 	String Params = AfterSplit(input,':');
+
 	if ((CalledBy == "class") || (CalledBy == "method") || (CalledBy == "stmt"))
 	{
 		//param-type,param-type,param-type
@@ -1177,7 +1165,6 @@ String Logic(String Tabs, String TheKindType, String Content)
 
 	while (Content != "")
 	{
-
 		Content = ReplaceTag(Content, "logic-");
 
 		if (StartsWith(Content, "condition"))
@@ -1285,9 +1272,10 @@ String Logic(String Tabs, String TheKindType, String Content)
 
 			NewContent = "";
 		}
-		else if ((StartsWith(Content, "logic-")) || (StartsWith(Content, "var:")) || (StartsWith(Content, "stmt:")))
+		else if ((StartsWith(Content, "var:")) || (StartsWith(Content, "stmt:")))
+//		else if ((StartsWith(Content, "logic-")) || (StartsWith(Content, "var:")) || (StartsWith(Content, "stmt:")))
 		{
-			Content = ReplaceTag(Content, "logic-");
+//			Content = ReplaceTag(Content, "logic-");
 			LogicContent = LogicContent + GenCode(Tabs+"\t",Content);
 			Content = "";
 		}
@@ -1408,8 +1396,13 @@ String Statements(String Tabs, String TheKindType, String Content)
 		else
 		{
 			OtherContent = BeforeSplit(Content,' ');
-			StatementContent = StatementContent + GenCode(Tabs,OtherContent);
 			Content = AfterSplit(Content,' ');
+			if (StartsWith(Content, "params:"))
+			{
+				OtherContent = OtherContent+" "+BeforeSplit(Content,' ');
+				Content = AfterSplit(Content,' ');
+			}
+			StatementContent = StatementContent + GenCode(Tabs,OtherContent);
 		}
 	}
 
@@ -1431,7 +1424,7 @@ String Statements(String Tabs, String TheKindType, String Content)
 	}
 	else if (TheName == "tab")
 	{
-		Complete = StatementContent+"\t";
+		Complete = "\t"+StatementContent;
 	}
 
 	return Complete;
