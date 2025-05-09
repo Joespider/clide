@@ -24,7 +24,7 @@ bool IsIn(String Str, String Sub);
 
 static void help()
 {
-	String Version = "0.1.74";
+	String Version = "0.1.75";
 	print("Author: Joespider");
 	print("Program: \"" + ProgName + "\"");
 	print("Version: " + Version);
@@ -286,6 +286,8 @@ static String getMethodDec(bool* rawinput, bool* rand, bool* fcheck, bool* write
 	{
 		Declaration = Declaration+"void LS(String Dir);\n";
 		Declaration = Declaration+"void CD(String Dir);\n";
+		Declaration = Declaration+"void CP(String Old, String New)\n";
+
 	}
 	if (*dateTime == true)
 	{
@@ -422,6 +424,7 @@ static String getMethods(bool* rawinput, bool* rand, bool* fcheck, bool* write, 
 	{
 		TheFileSystem = "void LS(String Dir)\n{\n\tif (Dir != \"\")\n\t{\n\t\tfor (const auto & entry : std::filesystem::directory_iterator(Dir))\n\t\t{\n\t\t\tprint(entry.path());\n\t\t}\n\t}\n}\n\n";
 		TheFileSystem = TheFileSystem + "void CD(String Dir)\n{\n\tif (Dir != \"\")\n\t{\n\t\tchdir(Dir.c_str());\n\t}\n}\n\n";
+		TheFileSystem = TheFileSystem + "void CP(String Old, String New)\n{\n\tString data;\n\tstd::ifstream read_file{ Old };\n\tstd::ofstream save_file{ New };\n\tif (read_file && save_file)\n\t{\n\t\twhile (std::getline(read_file, data))\n\t\t{\n\t\t\tsave_file << data << \"\\n\";\n\t\t}\n\t}\n\t//Close\n\tread_file.close();\n\tsave_file.close();\n}\n\n";
 	}
 	if (*dateTime == true)
 	{

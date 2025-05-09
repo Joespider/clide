@@ -12,7 +12,7 @@ import java.io.IOException;
 
 //class name
 public class shell {
-	private static String Version = "0.0.36";
+	private static String Version = "0.0.38";
 	private static String TheKind = "";
 	private static String TheName = "";
 	private static String TheKindType = "";
@@ -117,8 +117,21 @@ public class shell {
 	{
 		if (Str.contains(splitAt))
 		{
-			String[] newString = split(Str, splitAt, 0);
-			return newString[0];
+			if (splitAt.equals(")"))
+			{
+				String[] newString = split(Str, "\\)", 0);
+				return newString[0];
+			}
+			else if (splitAt.equals("("))
+			{
+				String[] newString = split(Str, "\\(", 0);
+				return newString[0];
+			}
+			else
+			{
+				String[] newString = split(Str, splitAt, 0);
+				return newString[0];
+			}
 		}
 		else
 		{
@@ -131,7 +144,21 @@ public class shell {
 		if (Str.contains(splitAt))
 		{
 			StringBuilder SplitContent = new StringBuilder("");
-			String[] newString = split(Str, splitAt, 0);
+			String[] newString;
+
+			if (splitAt.equals(")"))
+			{
+				newString = split(Str, "\\)", 0);
+			}
+			else if (splitAt.equals("("))
+			{
+				newString = split(Str, "\\(", 0);
+			}
+			else
+			{
+				newString = split(Str, splitAt, 0);
+			}
+
 			for (int lp = 1; lp != len(newString); lp++)
 			{
 				if (lp != 1)
@@ -342,7 +369,7 @@ public class shell {
 		print("Type \"help\" for more information.");
 	}
 /*
-<<shell>> method:TranslateTag-String params:Input-String m-var:Action-String="" m-stmt:endline m-var:Value-String="" m-stmt:endline m-var:NewTag-String="" m-stmt:endline m-var:TheDataType-String="" m-stmt:endline m-var:Nest-String="" m-stmt:endline m-var:ContentFor-String="" m-stmt:endline m-stmt:newline if:IsIn(Input,":") lg-stmt:method-AfterSplit lg-stmt:endline else lg-var:Action=Input lg-stmt:endline m-stmt:newline else-if:StartsWith(Action,"lg-") lg-var:Action= lg-stmt:method-AfterSplit lg-stmt:endline lg-var:ContentFor="logic-" lg-stmt:endline m-stmt:newline else-if:StartsWith(Action,"lp-") lg-var:Action= lg-stmt:method-AfterSplit lg-stmt:endline lg-var:ContentFor="loop-" lg-stmt:endline m-stmt:newline else-if:StartsWith(Action,"m-") lg-var:Action= lg-stmt:method-AfterSplit lg-stmt:endline lg-var:ContentFor="method-" lg-stmt:endline m-stmt:newline while:StartsWith(Action,">") lp-var:Action= lp-stmt:method-AfterSplit lp-stmt:endline lp-var:Nest="nest-"+Nest lp-stmt:endline m-stmt:newline if:Action(-eq)"if"(-or)Action(-eq)"else-if" lg-var:NewTag= lg-stmt:method-AfterSplit lg-stmt:endline lg-var:Nest="logic:"+Nest lg-stmt:endline else-if:Action(-eq)"else" lg-var:NewTag= lg-stmt:method-AfterSplit lg-stmt:endline lg-var:Nest="method-"+Nest lg-stmt:endline else-if:Action(-eq)"while"(-or)Action(-eq)"for"(-or)Action(-eq)"do/while" else lg->if:Value(-ne)"" lg->else
+<<shell>> method:(string)TranslateTag params:(String)Input method-stmt:tab method-var:(string)Action=Input method-stmt:endline method-stmt:tab method-var:(string)Value="" method-stmt:endline method-stmt:tab method-var:(string)VarName="" method-stmt:endline method-stmt:tab method-var:(String)NewTag="" method-stmt:endline method-stmt:tab method-var:(string)TheDataType="" method-stmt:endline method-stmt:tab method-var:(String)Nest="" method-stmt:endline method-stmt:tab method-var:(String)ContentFor="" method-stmt:endline method-stmt:newline logic:if logic-condition:StartsWith(Action,"+-") logic-stmt:tab logic-stmt:tab logic-var:Action= logic-stmt:method-AfterSplit logic-params:Action,'-' logic-stmt:endline logic-stmt:tab logic-stmt:tab logic-var:ContentFor="logic-" logic-stmt:endline method-stmt:newline logic:else-if logic-condition:StartsWith(Action,"o-") logic-stmt:tab logic-stmt:tab logic-var:Action= logic-stmt:method-AfterSplit logic-params:Action,'-' logic-stmt:endline logic-stmt:tab logic-stmt:tab logic-var:ContentFor="loop-" logic-stmt:endline method-stmt:newline logic:else-if logic-condition:StartsWith(Action,"[]-") logic-stmt:tab logic-stmt:tab logic-var:Action= logic-stmt:method-AfterSplit logic-params:Action,'-' logic-stmt:endline logic-stmt:tab logic-stmt:tab logic-var:ContentFor="method-" logic-stmt:endline method-stmt:newline loop:while loop-condition:StartsWith(Action,">") loop-stmt:tab loop-stmt:tab loop-var:Action= loop-stmt:method-AfterSplit loop-params:Action,'>' loop-stmt:endline loop-stmt:tab loop-stmt:tab loop-var:Nest="nest-"+Nest loop-stmt:endline logic:if logic-condition:StartsWith(Action,"if")(-or)StartsWith(Action,"else-if") logic-stmt:tab logic-stmt:tab logic-var:Value= logic-stmt:method-AfterSplit logic-params:Action,':' logic-stmt:endline logic-stmt:tab logic-stmt:tab logic-var:Action= logic-stmt:method-BeforeSplit logic-params:Action,':' logic-stmt:endline logic-stmt:tab logic-stmt:tab logic-var:Nest="logic:"+Nest logic-stmt:endline logic-stmt:tab logic-stmt:tab logic-var:Value="logic-condition:"+Value logic-stmt:endline logic-stmt:tab logic-stmt:tab logic-var:TheReturn=ContentFor+Nest+NewTag+"(-spc)"+Value logic-stmt:endline logic:else-if logic-condition:Action(-eq)"else" logic-stmt:tab logic-stmt:tab logic-var:NewTag="logic:"+Action logic-stmt:endline logic-stmt:tab logic-stmt:tab logic-var:TheReturng=ContentFor+Nest+NewTag logic-stmt:endline logic:else-if logic-condition:StartsWith(Action,"while:")(-or)StartsWith(Action,"for:"(-or)StartsWith(Action,"do/while:") logic-stmt:tab logic-stmt:tab logic-var:Value= logic-stmt:method-AfterSplit logic-params:Action,':' logic-stmt:endline logic-stmt:tab logic-stmt:tab logic-var:Action= logic-stmt:method-BeforeSplit logic-params:Action,':' logic-stmt:endline logic-stmt:tab logic-stmt:tab logic-var:Nest="loop:"+Nest logic-stmt:endline logic-stmt:tab logic-stmt:tab logic-var:Value="loop-condition:"+Value logic-stmt:endline logic-stmt:tab logic-stmt:tab logic-var:TheReturn=ContentFor+Nest+NewTag+"(-spc)"+Value logic-stmt:endline logic:else-if logic-condition:StartsWith(Action,"{")(-and)IsIn(Action,"}") logic-stmt:tab logic-stmt:tab logic-var:TheDataType= logic-stmt:method-BeforeSplit logic-params:Action,'}' logic-stmt:endline logic-stmt:tab logic-stmt:tab logic-var:TheDataType= logic-stmt:method-AfterSplit logic-params:Action,'{' logic-stmt:endline logic-stmt:tab logic-stmt:tab logic-var:Action= logic-stmt:method-AfterSplit logic-params:Action,'{' logic-stmt:endline logic-nest-logic:if logic-condition:IsIn(Action,":") logic-stmt:tab logic-stmt:tab logic-stmt:tab logic-var:Value= logic-stmt:method-AfterSplit logic-params:Action,':' logic-stmt:endline logic-stmt:tab logic-stmt:tab logic-stmt:tab logic-var:Action= logic-stmt:method-BeforeSplit logic-params:Action,':' logic-stmt:endline logic-nest-logic:if logic-condition:Value(-ne)"" logic-stmt:tab logic-stmt:tab logic-stmt:tab logic-var:TheReturn="class:("+TheDataType+")"+Action+"(-spc)params:"+Value logic-stmt:endline logic-nest-logic:else logic-stmt:tab logic-stmt:tab logic-stmt:tab logic-var:TheReturn="class:("+TheDataType+")"+Action logic-stmt:endline logic:else-if logic-condition:StartsWith(Action,"[")(-and)IsIn(Action,"]") logic-stmt:tab logic-stmt:tab logic-var:TheDataType= logic-stmt:method-BeforeSplit logic-params:Action,']' logic-stmt:endline logic-stmt:tab logic-stmt:tab logic-var:TheDataType= logic-stmt:method-AfterSplit logic-params:TheDataType,'[' logic-stmt:endline logic-stmt:tab logic-stmt:tab logic-var:Action= logic-stmt:method-AfterSplit logic-params:Action,']' logic-stmt:endline logic-nest-logic:if logic-condition:IsIn(Action,":") logic-stmt:tab logic-stmt:tab logic-stmt:tab logic-var:Value= logic-stmt:method-AfterSplit+-params:Action,':' logic-stmt:endline logic-stmt:tab logic-stmt:tab logic-stmt:tab logic-var:Action= logic-stmt:method-BeforeSplit logic-params:Action,':' logic-stmt:endline logic-nest-logic:if logic-condition:Value(-ne)"" logic-stmt:tab logic-stmt:tab logic-stmt:tab logic-var:TheReturn=ContentFor+"method:("+TheDataType+")"+Action+"="+Value logic-stmt:endline logic-nest-logic:else logic-stmt:tab logic-stmt:tab logic-stmt:tab logic-var:TheReturn=ContentFor+"method:("+TheDataType+")"+Action logic-stmt:endline logic:else-if logic-condition:StartsWith(Action,"(")(-and)IsIn(Action,")") logic-stmt:tab logic-stmt:tab logic-var:TheDataType= logic-stmt:method-BeforeSplit logic-params:Action,')' logic-stmt:endline logic-stmt:tab logic-stmt:tab logic-var:TheDataType= logic-stmt:method-AfterSplit logic-params:TheDataType,'(' logic-stmt:endline logic-stmt:tab logic-stmt:tab logic-var:Action= logic-stmt:method-AfterSplit logic-params:Action,')' logic-stmt:endline logic-nest-logic:if logic-condition:IsIn(Action,":") logic-stmt:tab logic-stmt:tab logic-stmt:tab logic-var:Value= logic-stmt:method-AfterSplit logic-params:Action,':' logic-stmt:endline logic-stmt:tab logic-stmt:tab logic-stmt:tab logic-var:Action= logic-stmt:method-BeforeSplit logic-params:Action,':' logic-stmt:endline logic-nest-logic:if logic-condition:Value(-ne)"" logic-stmt:tab logic-stmt:tab logic-stmt:tab logic-var:TheReturn=ContentFor+"var:("+TheDataType+")"+Action+"="+Value logic-stmt:endline logic-nest-logic:else logic-stmt:tab logic-stmt:tab logic-stmt:tab logic-var:TheReturn=ContentFor+"var:("+TheDataType+")"+Action logic-stmt:endline logic:else-if logic-condition:Action(-eq)"el") logic-stmt:tab logic-stmt:tab logic-var:TheReturn=ContentFor+"stmt:endline" logic-stmt:endline logic:else-if logic-condition:Action(-eq)"nl") logic-stmt:tab logic-stmt:tab logic-var:TheReturn=ContentFor+"stmt:newline" logic-stmt:endline logic:else-if logic-condition:Action(-eq)"tab") logic-stmt:tab logic-stmt:tab logic-var:TheReturn=ContentFor+"stmt:"+Action logic-stmt:endline logic:else logic-nest-logic:if logic-condition:Value(-ne)"" logic-stmt:tab logic-stmt:tab logic-stmt:tab logic-var:TheReturn=ContentFor+Nest+Action+":"+Value logic-stmt:endline logic-nest-logic:else logic-stmt:tab logic-stmt:tab logic-stmt:tab logic-var:TheReturn=ContentFor+Nest+Action logic-stmt:endline
 */
 	public static String TranslateTag(String Input)
 	{
@@ -547,36 +574,43 @@ public class shell {
 	private static String Parameters(String input,String CalledBy)
 	{
 		String Params = AfterSplit(input,":");
-		if ((CalledBy.equals("class")) || (CalledBy.equals("method")))
+		if ((CalledBy.equals("class")) || (CalledBy.equals("method")) || (CalledBy.equals("stmt")))
 		{
 			//param-type,param-type,param-type
-			if ((IsIn(Params,"-")) && (IsIn(Params,",")))
+			if ((StartsWith(Params,"(")) && (IsIn(Params,")")) && (IsIn(Params,",")))
 			{
 				//param
-				String Name = BeforeSplit(Params,"-");
+				String Name = AfterSplit(Params,")");
 				//type,param-type,param-type
-				String Type = AfterSplit(Params,"-");
-				//type
-				Type = BeforeSplit(Type,",");
-				Type = DataType(Type);
+				String Type = BeforeSplit(Params,")");
+				Type = AfterSplit(Type,"(");
+
+				Name = BeforeSplit(Name,",");
 				//param-type,param-type
+				String more = AfterSplit(Name,",");
+
 				//recursion to get more parameters
-				String more = Parameters("params:"+AfterSplit(Params,","),CalledBy);
+				more = Parameters("params:"+more,CalledBy);
+				//Converting data type to correct C++ type
+				Type = DataType(Type);
 				//type param, type param, type param
 				Params = Type+" "+Name+", "+more;
 			}
 			//param-type
-			else if ((IsIn(Params,"-")) && (!IsIn(Params,",")))
+			else if ((StartsWith(Params,"(")) && (IsIn(Params,")")))
 			{
 				//param
-				String Name = BeforeSplit(Params,"-");
-				//type
-				String Type = AfterSplit(Params,"-");
+				String Name = AfterSplit(Params,")");
+				 //type
+				String Type = BeforeSplit(Params,")");
+				Type = AfterSplit(Type,"(");
+				//Converting data type to correct C++ type
 				Type = DataType(Type);
 				//type param
 				Params = Type+" "+Name;
 			}
 		}
+
 		return Params;
 	}
 
@@ -644,6 +678,7 @@ public class shell {
 		String Complete = "";
 
 		String PublicOrPrivate = "public";
+
 		if ((IsIn(Name,"method(")) && (IsIn(Name,"):")))
 		{
 			PublicOrPrivate = AfterSplit(Name,"method");
@@ -661,12 +696,14 @@ public class shell {
 		StringBuilder NewContent = new StringBuilder("");
 		String LastComp = "";
 
-		//method:<name>-<type>
-		if (IsIn(Content,"-"))
+		//method:(<type>)<name>
+		if ((StartsWith(Name,"(")) && (IsIn(Name,")")))
 		{
+			Type = BeforeSplit(Name,")");
+			Type = AfterSplit(Type,"(");
 			//get method name
-			TheName = BeforeSplit(Name,"-");
-			Type = AfterSplit(Name,"-");
+			TheName = AfterSplit(Name,")");
+			//Converting data type to correct C++ type
 			Type = DataType(Type);
 		}
 		//method:<name>
@@ -675,13 +712,22 @@ public class shell {
 			//get method name
 			TheName = Name;
 		}
+
 		while (!Content.equals(""))
 		{
 			if ((StartsWith(Content, "params:")) && (Params.equals("")))
 			{
-				Process = BeforeSplit(Content," ");
+				if (IsIn(Content," "))
+				{
+					Process = BeforeSplit(Content," ");
+				}
+				else
+				{
+					Process = Content;
+				}
 				Params =  Parameters(Process,"method");
 			}
+			//ignore content if calling a "method" or a "class"
 			else if ((StartsWith(Content, "method:")) || (StartsWith(Content, "class:")))
 			{
 				break;
@@ -741,14 +787,16 @@ public class shell {
 				OtherContent = new StringBuilder(ReplaceTag(OtherContent.toString(), "method-"));
 
 				StringBuilder ParseContent = new StringBuilder("");
+				String Corrected = "";
 
 				String[] cmds = split(OtherContent.toString()," ");
 				int end = len(cmds);
 				int lp = 0;
 				while (lp != end)
 				{
+					Corrected = ReplaceTag(cmds[lp], "method-");
 					//starts with "logic:" or "loop:"
-					if ((StartsWith(cmds[lp],"logic:")) || (StartsWith(cmds[lp],"loop:")) || (StartsWith(cmds[lp],"var:")) || (StartsWith(cmds[lp],"stmt:")))
+					if ((StartsWith(Corrected,"logic:")) || (StartsWith(Corrected,"loop:")) || (StartsWith(Corrected,"var:")) || (StartsWith(Corrected,"stmt:")))
 					{
 						//Only process code that starts with "logic:" or "loop:"
 						if (ParseContent.toString() != "")
@@ -757,14 +805,14 @@ public class shell {
 							MethodContent.append(GenCode(Tabs+"\t\t",ParseContent.toString()));
 						}
 						//Reset content
-						ParseContent = new StringBuilder(cmds[lp]);
+						ParseContent = new StringBuilder(Corrected);
 					}
 					//start another line to process
 					else
 					{
 						//append content
 						ParseContent.append(" ");
-						ParseContent.append(cmds[lp]);
+						ParseContent.append(Corrected);
 					}
 					lp++;
 				}
@@ -825,7 +873,7 @@ public class shell {
 		String OtherContent = "";
 
 		//loop:<type>
-		if (IsIn(TheKindType,":"))
+		if (StartsWith(TheKindType,"loop:"))
 		{
 			//loop
 			TheKindType = AfterSplit(TheKindType,":");
@@ -842,7 +890,7 @@ public class shell {
 		{
 			Content = ReplaceTag(Content,"loop-");
 
-			if (StartsWith(Content, "condition:"))
+			if (StartsWith(Content, "condition"))
 			{
 				if (IsIn(Content," "))
 				{
@@ -900,109 +948,72 @@ public class shell {
 				NewContent = new StringBuilder("");
 			}
 
-			//nest-<type> <other content>
-			//{or}
-			//<other content> nest-<type>
-			if ((!StartsWith(Content,"nest-")) && (IsIn(Content," nest-")))
-			{
-				//This section is meant to make sure the recursion is handled correctly
-				//The nested loops and logic statements are split accordingly
-
-				//split string wherever a " nest-" is located
-				//ALL "nest-" are ignored...notice there is no space before the "nest-"
-				String[] all = split(Content," nest-");
-				int end = len(all);
-				int lp = 0;
-				while (lp != end)
-				{
-					//This content will be processed as content for loop
-					if (lp == 0)
-					{
-						//nest-<type>
-						//{or}
-						//<other content>
-						OtherContent = all[lp];
-					}
-					//The remaining content is for the next loop
-					//nest-<type> <other content> nest-<type> <other content>
-					else if (lp == 1)
-					{
-						NewContent.append("nest-");
-						NewContent.append(all[lp]);
-					}
-					else
-					{
-						NewContent.append(" nest-");
-						NewContent.append(all[lp]);
-					}
-					lp++;
-				}
-				//Generate the loop content
-				LoopContent.append(GenCode(Tabs+"\t",OtherContent));
-				//The remaning content gets processed
-				Content = NewContent.toString();
-				//reset old and new content
-				OtherContent = "";
-				NewContent = new StringBuilder("");
-			}
 
 			//stop recursive loop if the next element is a "method" or a "class"
 			if ((StartsWith(Content, "method:")) || (StartsWith(Content, "class:")))
 			{
 				break;
 			}
-			//nest-loop:
-			else if (StartsWith(Content, "nest-"))
+			//nest-<type>
+			else if (StartsWith(Content,"nest-"))
 			{
-				//"nest-loop" becomes ["nest-", "oop"]
-				//{or}
-				//"nest-logic" becomes ["nest-", "ogic"]
 				RootTag = BeforeSplit(Content,"l");
 				//check of " nest-l" is in content
 				if (IsIn(Content," "+RootTag+"l"))
 				{
-					//This section is meant to separate the "nest-loop" from the "nest-logic"
-					//loops won't process logic and vise versa
+					//This section is meant to make sure the recursion is handled correctly
+					//The nested loops and logic statements are split accordingly
 
-					//split string wherever a " nest-l" is located
-					//ALL "nest-l" are ignored...notice there is no space before the "nest-l"
-					String[] cmds = split(Content," "+RootTag+"l");
-					int end = len(cmds);
+					//split string wherever a " nest-" is located
+					//ALL "nest-" are ignored...notice there is no space before the "nest-"
+					String[] all = split(Content," "+RootTag+"l");
+					int end = len(all);
 					int lp = 0;
 					while (lp != end)
 					{
+						//This content will be processed as content for loop
 						if (lp == 0)
 						{
-							OtherContent = cmds[lp];
+							//nest-<type>
+							//{or}
+							//<other content>
+							OtherContent = all[lp];
 						}
+						//The remaining content is for the next loop
+						//nest-<type> <other content> nest-<type> <other content>
 						else
 						{
 							if (NewContent.equals(""))
 							{
-								NewContent.append(RootTag+"l"+cmds[lp]);
+								NewContent.append(RootTag);
+								NewContent.append("l");
+								NewContent.append(all[lp]);
 							}
 							else
 							{
-								NewContent.append(" "+RootTag+"l"+cmds[lp]);
+								NewContent.append(" ");
+								NewContent.append(RootTag);
+								NewContent.append("l");
+								NewContent.append(all[lp]);
 							}
 						}
 						lp++;
 					}
 				}
-				//no " nest-l" found
 				else
 				{
 					OtherContent = Content;
 				}
 
 				Content = NewContent.toString();
+
 				//"nest-loop" and "nest-nest-loop" becomes "loop"
-				while (StartsWith(OtherContent, "nest-"))
+				while (StartsWith(OtherContent.toString(), "nest-"))
 				{
 					OtherContent = AfterSplit(OtherContent,"-");
 				}
-
-				LoopContent.append(GenCode(Tabs+"\t",OtherContent));
+				//Generate the loop content
+				LoopContent.append(GenCode(Tabs+"\t",OtherContent.toString()));
 
 				//nest-stmt: or nest-var:
 				if (StartsWith(OtherContent, "stmt:") || (StartsWith(OtherContent, "var:")))
@@ -1028,7 +1039,6 @@ public class shell {
 			//no nested content
 			else
 			{
-				LoopContent.append(GenCode(Tabs+"\t",Content));
 				Content = "";
 			}
 
@@ -1076,15 +1086,9 @@ public class shell {
 		StringBuilder NewContent = new StringBuilder("");
 		String OtherContent = "";
 
-		if (IsIn(TheKindType,":"))
+		if (StartsWith(TheKindType,"logic:"))
 		{
 			TheKindType = AfterSplit(TheKindType,":");
-		}
-
-		if (IsIn(TheKindType,"-"))
-		{
-			TheName = BeforeSplit(TheKindType,"-");
-			Type = AfterSplit(TheKindType,"-");
 		}
 
 		while (!Content.equals(""))
@@ -1138,52 +1142,6 @@ public class shell {
 					else
 					{
 						NewContent.append(" nest-"+all[lp]);
-					}
-					lp++;
-				}
-				//Generate the logic content
-				LogicContent.append(GenCode(Tabs+"\t",OtherContent));
-				//The remaning content gets processed
-				Content = NewContent.toString();
-				//reset old and new content
-				OtherContent = "";
-				NewContent = new StringBuilder("");
-			}
-
-			//nest-<type> <other content>
-			//{or}
-			//<other content> nest-<type>
-			if ((!StartsWith(Content,"nest-")) && (IsIn(Content," nest-")))
-			{
-				//This section is meant to make sure the recursion is handled correctly
-				//The nested loops and logic statements are split accordingly
-
-				//split string wherever a " nest-" is located
-				//ALL "nest-" are ignored...notice there is no space before the "nest-"
-				String[] all = split(Content," nest-");
-				int end = len(all);
-				int lp = 0;
-				while (lp != end)
-				{
-					//This content will be processed as content for loop
-					if (lp == 0)
-					{
-						//nest-<type>
-						//{or}
-						//<other content>
-						OtherContent = all[lp];
-					}
-					//The remaining content is for the next loop
-					//nest-<type> <other content> nest-<type> <other content>
-					else if (lp == 1)
-					{
-						NewContent.append("nest-");
-						NewContent.append(all[lp]);
-					}
-					else
-					{
-						NewContent.append(" nest-");
-						NewContent.append(all[lp]);
 					}
 					lp++;
 				}
@@ -1267,29 +1225,26 @@ public class shell {
 
 				NewContent = new StringBuilder("");
 			}
-			else if ((StartsWith(Content, "logic-")) || (StartsWith(Content, "var:")) || (StartsWith(Content, "stmt:")))
+
+			else if ((StartsWith(Content, "var:")) || (StartsWith(Content, "stmt:")))
+//			else if ((StartsWith(Content, "logic-")) || (StartsWith(Content, "var:")) || (StartsWith(Content, "stmt:")))
 			{
-				Content = ReplaceTag(Content, "logic-");
+//				Content = ReplaceTag(Content, "logic-");
 				LogicContent.append(GenCode(Tabs+"\t",Content));
 				Content = "";
 			}
-			//no nested content
 			else
 			{
-				LogicContent.append(GenCode(Tabs+"\t",Content));
 				Content = "";
 			}
 
-			//no content left to process
 			if (Last)
 			{
 				break;
 			}
 
-			//one last thing to process
 			if (!IsIn(Content," "))
 			{
-				//kill after one more loop
 				Last = true;
 			}
 		}
@@ -1341,13 +1296,13 @@ public class shell {
 		boolean Last = false;
 		String Complete = "";
 		StringBuilder StatementContent = new StringBuilder("");
-		String OtherContent = "";
+		StringBuilder OtherContent = new StringBuilder("");
 		String TheName = "";
 		String Name = "";
 		String Process = "";
 		String Params = "";
 
-		if (IsIn(TheKindType,":"))
+		if (StartsWith(TheKindType, "stmt:"))
 		{
 			TheKindType = AfterSplit(TheKindType,":");
 		}
@@ -1393,9 +1348,17 @@ public class shell {
 			}
 			else
 			{
-				OtherContent = BeforeSplit(Content," ");
-				StatementContent.append(GenCode(Tabs,OtherContent));
+				OtherContent = new StringBuilder(BeforeSplit(Content," "));
 				Content = AfterSplit(Content," ");
+				if (StartsWith(Content, "params:"))
+				{
+					OtherContent.append(" ");
+					OtherContent.append(BeforeSplit(Content," "));
+					StatementContent.append(GenCode(Tabs,OtherContent.toString()));
+
+					Content = AfterSplit(Content," ");
+				}
+				StatementContent.append(GenCode(Tabs,OtherContent.toString()));
 			}
 		}
 
@@ -1415,6 +1378,10 @@ public class shell {
 		{
 			Complete = StatementContent.toString()+"\n";
 		}
+		else if (TheName.equals("tab"))
+		{
+			Complete = "\t"+StatementContent.toString();
+		}
 
 		return Complete;
 	}
@@ -1423,6 +1390,7 @@ public class shell {
 	private static String Variables(String Tabs, String TheKindType, String Content)
 	{
 		boolean Last = false;
+		boolean MakeEqual = false;
 		StringBuilder NewVar = new StringBuilder("");
 		String Type = "";
 		String Name = "";
@@ -1432,18 +1400,14 @@ public class shell {
 		StringBuilder VariableContent = new StringBuilder("");
 		StringBuilder OtherContent = new StringBuilder("");
 
+		if (StartsWith(TheKindType, "var:"))
+		{
+			TheKindType = AfterSplit(TheKindType,":");
+		}
+
 		while (!Content.equals(""))
 		{
-/*
-			VariableContent = VariableContent + GenCode(Tabs,Content);
-			Content = AfterSplit(Content," ");
-*/
-
-			if (StartsWith(Content, "params"))
-			{
-				OtherContent.append(" "+BeforeSplit(Content," "));
-				Content = AfterSplit(Content," ");
-			}
+			//All params are removed
 
 			if (Last)
 			{
@@ -1463,61 +1427,53 @@ public class shell {
 			else
 			{
 				OtherContent = new StringBuilder(BeforeSplit(Content," "));
-				VariableContent.append(GenCode(Tabs,OtherContent.toString()));
 				Content = AfterSplit(Content," ");
+				if (StartsWith(Content, "params:"))
+				{
+					OtherContent.append(" ");
+					OtherContent.append(BeforeSplit(Content," "));
+					Content = AfterSplit(Content," ");
+				}
+				VariableContent.append(GenCode(Tabs,OtherContent.toString()));
 			}
 		}
-		//var:name-dataType=Value
-		if ((IsIn(TheKindType,":")) && (IsIn(TheKindType,"-")) && (IsIn(TheKindType,"=")) && (!EndsWith(TheKindType, "=")))
+
+		//Pull Variable Type
+		if ((StartsWith(TheKindType,"(")) && (IsIn(TheKindType,")")))
 		{
-			Type = AfterSplit(TheKindType,":");
-			Name = BeforeSplit(Type,"-");
-			VarType = AfterSplit(Type,"-");
-			Value = AfterSplit(VarType,"=");
-			VarType = BeforeSplit(VarType,"=");
+			VarType = BeforeSplit(TheKindType,")");
+			VarType = AfterSplit(VarType,"(");
 			VarType = DataType(VarType);
-			NewVar.append(Tabs+VarType+" "+Name+" = "+Value);
-			NewVar.append(VariableContent.toString());
+			TheKindType = AfterSplit(TheKindType,")");
+			Name = TheKindType;
 		}
-		//var:name=Value
-		else if ((IsIn(TheKindType,":")) && (!IsIn(TheKindType,"-")) && (IsIn(TheKindType,"=")) && (!EndsWith(TheKindType, "=")))
+
+		//Assign Value
+		if (IsIn(TheKindType,"="))
 		{
-			Type = AfterSplit(TheKindType,":");
-			Name = BeforeSplit(Type,"=");
-			Value = AfterSplit(Type,"=");
-			NewVar.append(Tabs+Name+" = "+Value);
-			NewVar.append(VariableContent.toString());
+			MakeEqual = true;
+			Name = BeforeSplit(TheKindType,"=");
+			Value = AfterSplit(TheKindType,"=");
 		}
-		//var:name-dataType=
-		else if ((IsIn(TheKindType,":")) && (IsIn(TheKindType,"-")) && (EndsWith(TheKindType, "=")))
+
+		if (VarType != "")
 		{
-			Type = AfterSplit(TheKindType,":");
-			Name = BeforeSplit(Type,"-");
-			VarType = AfterSplit(Type,"-");
-			VarType = BeforeSplit(VarType,"=");
-			VarType = DataType(VarType);
-			NewVar.append(Tabs+VarType+" "+Name+" = ");
-			NewVar.append(VariableContent.toString());
+			NewVar.append(VarType);
+			NewVar.append(" ");
 		}
-		//var:name=
-		else if ((IsIn(TheKindType,":")) && (!IsIn(TheKindType,"-")) && (EndsWith(TheKindType, "=")))
+
+		if (MakeEqual == true)
 		{
-			Type = AfterSplit(TheKindType,":");
-			Name = BeforeSplit(Type,"=");
-			Value = AfterSplit(Type,"=");
-			NewVar.append(Tabs+Name+" = ");
-			NewVar.append(VariableContent.toString());
+			NewVar.append(Name);
+			NewVar.append(" = ");
+			NewVar.append(Value);
 		}
-		//var:name-dataType
-		else if ((IsIn(TheKindType,":")) && (IsIn(TheKindType,"-")) && (!IsIn(TheKindType,"=")))
+		else
 		{
-			Type = AfterSplit(TheKindType,":");
-			Name = BeforeSplit(Type,"-");
-			VarType = AfterSplit(Type,"-");
-			VarType = DataType(VarType);
-			NewVar.append(Tabs+VarType+" "+Name);
-			NewVar.append(VariableContent.toString());
+			NewVar.append(Name);
 		}
+		NewVar.append(VariableContent);
+
 		return NewVar.toString();
 	}
 
