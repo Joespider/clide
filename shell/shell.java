@@ -12,7 +12,7 @@ import java.io.IOException;
 
 //class name
 public class shell {
-	private static String Version = "0.0.38";
+	private static String Version = "0.0.40";
 	private static String TheKind = "";
 	private static String TheName = "";
 	private static String TheKindType = "";
@@ -127,6 +127,16 @@ public class shell {
 				String[] newString = split(Str, "\\(", 0);
 				return newString[0];
 			}
+			else if (splitAt.equals("]"))
+			{
+				String[] newString = split(Str, "\\]", 0);
+				return newString[0];
+			}
+			else if (splitAt.equals("["))
+			{
+				String[] newString = split(Str, "\\[", 0);
+				return newString[0];
+			}
 			else
 			{
 				String[] newString = split(Str, splitAt, 0);
@@ -153,6 +163,14 @@ public class shell {
 			else if (splitAt.equals("("))
 			{
 				newString = split(Str, "\\(", 0);
+			}
+			else if (splitAt.equals("]"))
+			{
+				newString = split(Str, "\\]", 0);
+			}
+			else if (splitAt.equals("["))
+			{
+				newString = split(Str, "\\[", 0);
 			}
 			else
 			{
@@ -369,8 +387,197 @@ public class shell {
 		print("Type \"help\" for more information.");
 	}
 /*
-<<shell>> method:(string)TranslateTag params:(String)Input method-stmt:tab method-var:(string)Action=Input method-stmt:endline method-stmt:tab method-var:(string)Value="" method-stmt:endline method-stmt:tab method-var:(string)VarName="" method-stmt:endline method-stmt:tab method-var:(String)NewTag="" method-stmt:endline method-stmt:tab method-var:(string)TheDataType="" method-stmt:endline method-stmt:tab method-var:(String)Nest="" method-stmt:endline method-stmt:tab method-var:(String)ContentFor="" method-stmt:endline method-stmt:newline logic:if logic-condition:StartsWith(Action,"+-") logic-stmt:tab logic-stmt:tab logic-var:Action= logic-stmt:method-AfterSplit logic-params:Action,'-' logic-stmt:endline logic-stmt:tab logic-stmt:tab logic-var:ContentFor="logic-" logic-stmt:endline method-stmt:newline logic:else-if logic-condition:StartsWith(Action,"o-") logic-stmt:tab logic-stmt:tab logic-var:Action= logic-stmt:method-AfterSplit logic-params:Action,'-' logic-stmt:endline logic-stmt:tab logic-stmt:tab logic-var:ContentFor="loop-" logic-stmt:endline method-stmt:newline logic:else-if logic-condition:StartsWith(Action,"[]-") logic-stmt:tab logic-stmt:tab logic-var:Action= logic-stmt:method-AfterSplit logic-params:Action,'-' logic-stmt:endline logic-stmt:tab logic-stmt:tab logic-var:ContentFor="method-" logic-stmt:endline method-stmt:newline loop:while loop-condition:StartsWith(Action,">") loop-stmt:tab loop-stmt:tab loop-var:Action= loop-stmt:method-AfterSplit loop-params:Action,'>' loop-stmt:endline loop-stmt:tab loop-stmt:tab loop-var:Nest="nest-"+Nest loop-stmt:endline logic:if logic-condition:StartsWith(Action,"if")(-or)StartsWith(Action,"else-if") logic-stmt:tab logic-stmt:tab logic-var:Value= logic-stmt:method-AfterSplit logic-params:Action,':' logic-stmt:endline logic-stmt:tab logic-stmt:tab logic-var:Action= logic-stmt:method-BeforeSplit logic-params:Action,':' logic-stmt:endline logic-stmt:tab logic-stmt:tab logic-var:Nest="logic:"+Nest logic-stmt:endline logic-stmt:tab logic-stmt:tab logic-var:Value="logic-condition:"+Value logic-stmt:endline logic-stmt:tab logic-stmt:tab logic-var:TheReturn=ContentFor+Nest+NewTag+"(-spc)"+Value logic-stmt:endline logic:else-if logic-condition:Action(-eq)"else" logic-stmt:tab logic-stmt:tab logic-var:NewTag="logic:"+Action logic-stmt:endline logic-stmt:tab logic-stmt:tab logic-var:TheReturng=ContentFor+Nest+NewTag logic-stmt:endline logic:else-if logic-condition:StartsWith(Action,"while:")(-or)StartsWith(Action,"for:"(-or)StartsWith(Action,"do/while:") logic-stmt:tab logic-stmt:tab logic-var:Value= logic-stmt:method-AfterSplit logic-params:Action,':' logic-stmt:endline logic-stmt:tab logic-stmt:tab logic-var:Action= logic-stmt:method-BeforeSplit logic-params:Action,':' logic-stmt:endline logic-stmt:tab logic-stmt:tab logic-var:Nest="loop:"+Nest logic-stmt:endline logic-stmt:tab logic-stmt:tab logic-var:Value="loop-condition:"+Value logic-stmt:endline logic-stmt:tab logic-stmt:tab logic-var:TheReturn=ContentFor+Nest+NewTag+"(-spc)"+Value logic-stmt:endline logic:else-if logic-condition:StartsWith(Action,"{")(-and)IsIn(Action,"}") logic-stmt:tab logic-stmt:tab logic-var:TheDataType= logic-stmt:method-BeforeSplit logic-params:Action,'}' logic-stmt:endline logic-stmt:tab logic-stmt:tab logic-var:TheDataType= logic-stmt:method-AfterSplit logic-params:Action,'{' logic-stmt:endline logic-stmt:tab logic-stmt:tab logic-var:Action= logic-stmt:method-AfterSplit logic-params:Action,'{' logic-stmt:endline logic-nest-logic:if logic-condition:IsIn(Action,":") logic-stmt:tab logic-stmt:tab logic-stmt:tab logic-var:Value= logic-stmt:method-AfterSplit logic-params:Action,':' logic-stmt:endline logic-stmt:tab logic-stmt:tab logic-stmt:tab logic-var:Action= logic-stmt:method-BeforeSplit logic-params:Action,':' logic-stmt:endline logic-nest-logic:if logic-condition:Value(-ne)"" logic-stmt:tab logic-stmt:tab logic-stmt:tab logic-var:TheReturn="class:("+TheDataType+")"+Action+"(-spc)params:"+Value logic-stmt:endline logic-nest-logic:else logic-stmt:tab logic-stmt:tab logic-stmt:tab logic-var:TheReturn="class:("+TheDataType+")"+Action logic-stmt:endline logic:else-if logic-condition:StartsWith(Action,"[")(-and)IsIn(Action,"]") logic-stmt:tab logic-stmt:tab logic-var:TheDataType= logic-stmt:method-BeforeSplit logic-params:Action,']' logic-stmt:endline logic-stmt:tab logic-stmt:tab logic-var:TheDataType= logic-stmt:method-AfterSplit logic-params:TheDataType,'[' logic-stmt:endline logic-stmt:tab logic-stmt:tab logic-var:Action= logic-stmt:method-AfterSplit logic-params:Action,']' logic-stmt:endline logic-nest-logic:if logic-condition:IsIn(Action,":") logic-stmt:tab logic-stmt:tab logic-stmt:tab logic-var:Value= logic-stmt:method-AfterSplit+-params:Action,':' logic-stmt:endline logic-stmt:tab logic-stmt:tab logic-stmt:tab logic-var:Action= logic-stmt:method-BeforeSplit logic-params:Action,':' logic-stmt:endline logic-nest-logic:if logic-condition:Value(-ne)"" logic-stmt:tab logic-stmt:tab logic-stmt:tab logic-var:TheReturn=ContentFor+"method:("+TheDataType+")"+Action+"="+Value logic-stmt:endline logic-nest-logic:else logic-stmt:tab logic-stmt:tab logic-stmt:tab logic-var:TheReturn=ContentFor+"method:("+TheDataType+")"+Action logic-stmt:endline logic:else-if logic-condition:StartsWith(Action,"(")(-and)IsIn(Action,")") logic-stmt:tab logic-stmt:tab logic-var:TheDataType= logic-stmt:method-BeforeSplit logic-params:Action,')' logic-stmt:endline logic-stmt:tab logic-stmt:tab logic-var:TheDataType= logic-stmt:method-AfterSplit logic-params:TheDataType,'(' logic-stmt:endline logic-stmt:tab logic-stmt:tab logic-var:Action= logic-stmt:method-AfterSplit logic-params:Action,')' logic-stmt:endline logic-nest-logic:if logic-condition:IsIn(Action,":") logic-stmt:tab logic-stmt:tab logic-stmt:tab logic-var:Value= logic-stmt:method-AfterSplit logic-params:Action,':' logic-stmt:endline logic-stmt:tab logic-stmt:tab logic-stmt:tab logic-var:Action= logic-stmt:method-BeforeSplit logic-params:Action,':' logic-stmt:endline logic-nest-logic:if logic-condition:Value(-ne)"" logic-stmt:tab logic-stmt:tab logic-stmt:tab logic-var:TheReturn=ContentFor+"var:("+TheDataType+")"+Action+"="+Value logic-stmt:endline logic-nest-logic:else logic-stmt:tab logic-stmt:tab logic-stmt:tab logic-var:TheReturn=ContentFor+"var:("+TheDataType+")"+Action logic-stmt:endline logic:else-if logic-condition:Action(-eq)"el") logic-stmt:tab logic-stmt:tab logic-var:TheReturn=ContentFor+"stmt:endline" logic-stmt:endline logic:else-if logic-condition:Action(-eq)"nl") logic-stmt:tab logic-stmt:tab logic-var:TheReturn=ContentFor+"stmt:newline" logic-stmt:endline logic:else-if logic-condition:Action(-eq)"tab") logic-stmt:tab logic-stmt:tab logic-var:TheReturn=ContentFor+"stmt:"+Action logic-stmt:endline logic:else logic-nest-logic:if logic-condition:Value(-ne)"" logic-stmt:tab logic-stmt:tab logic-stmt:tab logic-var:TheReturn=ContentFor+Nest+Action+":"+Value logic-stmt:endline logic-nest-logic:else logic-stmt:tab logic-stmt:tab logic-stmt:tab logic-var:TheReturn=ContentFor+Nest+Action logic-stmt:endline
+<<shell>> [string]TranslateTag:(String)Input []-tab []-(string)Action:Input []-el []-tab []-(string)Value:"" []-el []-tab []-(string)VarName:"" []-el []-tab []-(String)NewTag:"" []-el []-tab []-(string)TheDataType:"" []-el []-tab []-(String)Nest:"" []-el []-tab []-(String)ContentFor:"" []-el []-nl if:StartsWith(Action,"+-") +-tab +-tab +-var:Action= +-stmt:method-AfterSplit +-params:Action,"-" +-el +-tab +-tab +-var:ContentFor="logic-" +-el []-nl else-if:StartsWith(Action,"o-") +-tab +-tab +-var:Action= +-stmt:method-AfterSplit +-params:Action,"-" +-el +-tab +-tab +-var:ContentFor="loop-" +-el []-nl else-if:StartsWith(Action,"[]-") +-tab +-tab +-var:Action= +-stmt:method-AfterSplit +-params:Action,"-" +-el +-tab +-tab +-var:ContentFor="method-" +-el []-nl while:StartsWith(Action,">") o-tab o-tab o-var:Action= o-stmt:method-AfterSplit o-params:Action,">" o-el o-tab o-tab o-var:Nest="nest-"+Action o-stmt:endline if:StartsWith(Action,"if")(-or)StartsWith(Action,"else-if") +-tab +-tab +-var:Value= +-stmt:method-AfterSplit +-params:Action,":" +-el +-tab +-tab +-var:Action= +-stmt:method-BeforeSplit +-params:Action,":" +-el +-tab +-tab +-var:Nest="logic:"+Nest +-el +-tab +-tab +-var:Value="logic-condition:"+Value +-el +-tab +-tab +-var:TheReturn=ContentFor+Nest+NewTag+"(-spc)"+Value +-el else-if:Action(-eq)"else" +-tab +-tab +-var:NewTag="logic:"+Action +-el +-tab +-tab +-var:TheReturng=ContentFor+Nest+NewTag +-el else-if:StartsWith(Action,"while:")(-or)StartsWith(Action,"for:"(-or)StartsWith(Action,"do/while:") +-tab +-tab +-var:Value= +-stmt:method-AfterSplit +-params:Action,":" +-el +-tab +-tab +-var:Action= +-stmt:method-BeforeSplit +-params:Action,":" +-el +-tab +-tab +-var:Nest="loop:"+Nest +-el +-tab +-tab +-var:Value="loop-condition:"+Value +-el +-tab +-tab +-var:TheReturn=ContentFor+Nest+NewTag+"(-spc)"+Value +-el else-if:StartsWith(Action,"{")(-and)IsIn(Action,"}") +-tab +-tab +-var:TheDataType= +-stmt:method-BeforeSplit +-params:Action,"}" +-el +-tab +-tab +-var:TheDataType= +-stmt:method-AfterSplit +-params:Action,"{" +-el +-tab +-tab +-var:Action= +-stmt:method-AfterSplit +-params:Action,"{" +-el +->if:IsIn(Action,":") +-tab +-tab +-tab +-var:Value= +-stmt:method-AfterSplit +-params:Action,":" +-el +-tab +-tab +-tab +-var:Action= +-stmt:method-BeforeSplit +-params:Action,":" +-el +->if:Value(-ne)"" +-tab +-tab +-tab +-var:TheReturn="class:("+TheDataType+")"+Action+"(-spc)params:"+Value +-el +->else +-tab +-tab +-tab +-var:TheReturn="class:("+TheDataType+")"+Action +-el else-if:StartsWith(Action,"[")(-and)IsIn(Action,"]") +-tab +-tab +-var:TheDataType= +-stmt:method-BeforeSplit +-params:Action,"]" +-el +-tab +-tab +-var:TheDataType= +-stmt:method-AfterSplit +-params:TheDataType,"[" +-el +-tab +-tab +-var:Action= +-stmt:method-AfterSplit +-params:Action,"]" +-el +->if:IsIn(Action,":") +-tab +-tab +-tab +-var:Value= +-stmt:method-AfterSplit+-params:Action,":" +-el +-tab +-tab +-tab +-var:Action= +-stmt:method-BeforeSplit +-params:Action,":" +-el +->if:Value(-ne)"" +-tab +-tab +-tab +-var:TheReturn=ContentFor+"method:("+TheDataType+")"+Action+"="+Value +-el +->else +-tab +-tab +-tab +-var:TheReturn=ContentFor+"method:("+TheDataType+")"+Action +-el else-if:StartsWith(Action,"(")(-and)IsIn(Action,")") +-tab +-tab +-var:TheDataType= +-stmt:method-BeforeSplit +-params:Action,")" +-el +-tab +-tab +-var:TheDataType= +-stmt:method-AfterSplit +-params:TheDataType,"(" +-el +-tab +-tab +-var:Action= +-stmt:method-AfterSplit +-params:Action,")" +-el +->if:IsIn(Action,":") +-tab +-tab +-tab +-var:Value= +-stmt:method-AfterSplit +-params:Action,":" +-el +-tab +-tab +-tab +-var:Action= +-stmt:method-BeforeSplit +-params:Action,":" +-el +->if:Value(-ne)"" +-tab +-tab +-tab +-var:TheReturn=ContentFor+"var:("+TheDataType+")"+Action+"="+Value +-el +->else +-tab +-tab +-tab +-var:TheReturn=ContentFor+"var:("+TheDataType+")"+Action +-el else-if:Action(-eq)"el") +-tab +-tab +-var:TheReturn=ContentFor+"stmt:endline" +-el else-if:Action(-eq)"nl") +-tab +-tab +-var:TheReturn=ContentFor+"stmt:newline" +-el else-if:Action(-eq)"tab") +-tab +-tab +-var:TheReturn=ContentFor+"stmt:"+Action +-el else +->if:Value(-ne)"" +-tab +-tab +-tab +-var:TheReturn=ContentFor+Nest+Action+":"+Value +-el +->else +-tab +-tab +-tab +-var:TheReturn=ContentFor+Nest+Action +-el
 */
+	public static String TranslateTag(String Input)
+	{
+		StringBuilder TheReturn = new StringBuilder("");
+		String Action = Input;
+		String Value = "";
+		String VarName = "";
+		String NewTag = "";
+		String TheDataType = "";
+		String Nest = "";
+		String ContentFor = "";
+
+		if (StartsWith(Action,"+-"))
+		{
+			Action = AfterSplit(Action,"-");
+			ContentFor = "logic-";
+		}
+
+		else if (StartsWith(Action,"o-"))
+		{
+			Action = AfterSplit(Action,"-");
+			ContentFor = "loop-";
+		}
+
+		else if (StartsWith(Action,"[]-"))
+		{
+			Action = AfterSplit(Action,"-");
+			ContentFor = "method-";
+		}
+
+		while (StartsWith(Action,">"))
+		{
+			Action = AfterSplit(Action,">");
+			Nest = "nest-"+Nest;
+		}
+		if ((StartsWith(Action,"if:")) || (StartsWith(Action,"else-if:")))
+		{
+			Value = AfterSplit(Action,":");
+			Action = BeforeSplit(Action,":");
+			Nest = "logic:"+Action;
+			Value = "logic-condition:"+Value;
+			TheReturn.append(ContentFor);
+			TheReturn.append(Nest);
+			TheReturn.append(NewTag);
+			TheReturn.append(" ");
+			TheReturn.append(Value);
+		}
+		else if (Action.equals("else"))
+		{
+			NewTag = "logic:"+Action;
+			TheReturn.append(ContentFor);
+			TheReturn.append(Nest);
+			TheReturn.append(NewTag);
+		}
+		else if ((StartsWith(Action,"while:")) || (StartsWith(Action,"for:")) || (StartsWith(Action,"do/while:")))
+		{
+			Value = AfterSplit(Action,":");
+			Action = BeforeSplit(Action,":");
+			Nest = "loop:"+Nest;
+			Value = "loop-condition:"+Value;
+			TheReturn.append(ContentFor);
+			TheReturn.append(Nest);
+			TheReturn.append(NewTag);
+			TheReturn.append(" ");
+			TheReturn.append(Value);
+		}
+		else if ((StartsWith(Action,"{")) && (IsIn(Action,"}")))
+		{
+			TheDataType = BeforeSplit(Action,"}");
+			TheDataType = AfterSplit(Action,"{");
+			Action = AfterSplit(Action,"{");
+			if (IsIn(Action,":"))
+			{
+				Value = AfterSplit(Action,":");
+				Action = BeforeSplit(Action,":");
+			}
+			if (!(Value.equals("")))
+			{
+				TheReturn.append("class:(");
+				TheReturn.append(TheDataType);
+				TheReturn.append(")");
+				TheReturn.append(Action);
+				TheReturn.append(" params:");
+				TheReturn.append(Value);
+			}
+			else
+			{
+				TheReturn.append("class:(");
+				TheReturn.append(TheDataType);
+				TheReturn.append(")");
+				TheReturn.append(Action);
+			}
+		}
+		else if ((StartsWith(Action,"[")) && (IsIn(Action,"]")))
+		{
+			TheDataType = BeforeSplit(Action,"]");
+			TheDataType = AfterSplit(TheDataType,"[");
+			Action = AfterSplit(Action,"]");
+			if (IsIn(Action,":"))
+			{
+				Value = AfterSplit(Action,":");
+				Action = BeforeSplit(Action,":");
+			}
+			if (!(Value.equals("")))
+			{
+				TheReturn.append(ContentFor);
+				TheReturn.append("method:(");
+				TheReturn.append(TheDataType);
+				TheReturn.append(")");
+				TheReturn.append(Action);
+				TheReturn.append("=");
+				TheReturn.append(Value);
+			}
+			else
+			{
+				TheReturn.append(ContentFor);
+				TheReturn.append("method:(");
+				TheReturn.append(TheDataType);
+				TheReturn.append(")");
+				TheReturn.append(Action);
+			}
+		}
+		else if ((StartsWith(Action,"(")) && (IsIn(Action,")")))
+		{
+			TheDataType = BeforeSplit(Action,")");
+			TheDataType = AfterSplit(TheDataType,"(");
+			Action = AfterSplit(Action,")");
+			if (IsIn(Action,":"))
+			{
+				Value = AfterSplit(Action,":");
+				Action = BeforeSplit(Action,":");
+			}
+
+			if (!(Value.equals("")))
+			{
+				TheReturn.append(ContentFor);
+				TheReturn.append("var:(");
+				TheReturn.append(TheDataType);
+				TheReturn.append(")");
+				TheReturn.append(Action);
+				TheReturn.append("=");
+				TheReturn.append(Value);
+			}
+			else
+			{
+				TheReturn.append(ContentFor);
+				TheReturn.append("var:(");
+				TheReturn.append(TheDataType);
+				TheReturn.append(")");
+				TheReturn.append(Action);
+			}
+		}
+		else if (Action.equals("el"))
+		{
+			TheReturn.append(ContentFor);
+			TheReturn.append("stmt:endline");
+		}
+		else if (Action.equals("nl"))
+		{
+			TheReturn.append(ContentFor);
+			TheReturn.append("stmt:newline");
+		}
+		else if (Action.equals("tab"))
+		{
+			TheReturn.append(ContentFor);
+			TheReturn.append("stmt:");
+			TheReturn.append(Action);
+		}
+		else
+		{
+			if (!(Value.equals("")))
+			{
+				TheReturn.append(ContentFor);
+				TheReturn.append(Nest);
+				TheReturn.append(Action);
+				TheReturn.append(":");
+				TheReturn.append(Value);
+			}
+			else
+			{
+				TheReturn.append(ContentFor);
+				TheReturn.append(Nest);
+				TheReturn.append(Action);
+			}
+		}
+
+		return TheReturn.toString();
+	}
+
+/*
 	public static String TranslateTag(String Input)
 	{
 		StringBuilder TheReturn = new StringBuilder("");
@@ -460,7 +667,7 @@ public class shell {
 
 		return TheReturn.toString();
 	}
-
+*/
 /*
 //<<shell>> method:DataType-string params:Type-string logic:if condition:Type(-eq)"string"(-or)Type(-eq)"std::string" logic-var:TheReturn="String" logic-stmt:endline logic:else-if condition:Type(-eq)"bool" logic-var:TheReturn="boolean" logic-stmt:endline logic:else logic-var:TheReturn=Type logic-stmt:endline
 */
@@ -537,6 +744,11 @@ public class shell {
 			}
 
 			if (IsIn(Condit,"(-ne)"))
+			{
+				Condit = replaceAll(Condit, "\\(-ne\\)"," != ");
+			}
+
+			if (IsIn(Condit,"(-ne)\""))
 			{
 				Condit = replaceAll(Condit, "\\(-ne\\)"," != ");
 			}
@@ -1095,7 +1307,6 @@ public class shell {
 		{
 			Content = ReplaceTag(Content, "logic-");
 
-
 			if (StartsWith(Content, "condition"))
 			{
 				if (IsIn(Content," "))
@@ -1290,101 +1501,99 @@ public class shell {
 		return Complete.toString();
 	}
 
-	//stmt:
-	private static String Statements(String Tabs, String TheKindType, String Content)
+//stmt:
+private static String Statements(String Tabs, String TheKindType, String Content)
+{
+	boolean Last = false;
+	String Complete = "";
+	StringBuilder StatementContent = new StringBuilder("");
+	StringBuilder OtherContent = new StringBuilder("");
+	String TheName = "";
+	String Name = "";
+	String Process = "";
+	String Params = "";
+
+	if (StartsWith(TheKindType, "stmt:"))
 	{
-		boolean Last = false;
-		String Complete = "";
-		StringBuilder StatementContent = new StringBuilder("");
-		StringBuilder OtherContent = new StringBuilder("");
-		String TheName = "";
-		String Name = "";
-		String Process = "";
-		String Params = "";
+		TheKindType = AfterSplit(TheKindType,":");
+	}
+	if (IsIn(TheKindType,"-"))
+	{
+		TheName = BeforeSplit(TheKindType,"-");
+		Name = AfterSplit(TheKindType,"-");
+	}
+	else
+	{
+		TheName = TheKindType;
+	}
 
-		if (StartsWith(TheKindType, "stmt:"))
+	while (!Content.equals(""))
+	{
+		if ((StartsWith(Content, "params:")) && (Params.equals("")))
 		{
-			TheKindType = AfterSplit(TheKindType,":");
-		}
-		if (IsIn(TheKindType,"-"))
-		{
-			TheName = BeforeSplit(TheKindType,"-");
-			Name = AfterSplit(TheKindType,"-");
-		}
-		else
-		{
-			TheName = TheKindType;
-		}
-
-		while (!Content.equals(""))
-		{
-			if ((StartsWith(Content, "params:")) && (Params.equals("")))
+			if (IsIn(Content," "))
 			{
-				if (IsIn(Content," "))
-				{
-					Process = BeforeSplit(Content," ");
-				}
-				else
-				{
-					Process = Content;
-				}
-				Params =  Parameters(Process,"stmt");
-			}
-
-			if (Last)
-			{
-				break;
-			}
-
-			while (StartsWith(Content, "nest-"))
-			{
-				Content = AfterSplit(Content,"-");
-			}
-
-			if (!IsIn(Content," "))
-			{
-				StatementContent.append(GenCode(Tabs,Content));
-				Last = true;
+				Process = BeforeSplit(Content," ");
 			}
 			else
 			{
-				OtherContent = new StringBuilder(BeforeSplit(Content," "));
-				Content = AfterSplit(Content," ");
-				if (StartsWith(Content, "params:"))
-				{
-					OtherContent.append(" ");
-					OtherContent.append(BeforeSplit(Content," "));
-					StatementContent.append(GenCode(Tabs,OtherContent.toString()));
-
-					Content = AfterSplit(Content," ");
-				}
-				StatementContent.append(GenCode(Tabs,OtherContent.toString()));
+				Process = Content;
 			}
+			Params =  Parameters(Process,"stmt");
 		}
 
-		if (TheName.equals("method"))
+		if (Last)
 		{
-			Complete = Name+"("+Params+")"+StatementContent.toString();
-		}
-		else if (TheName.equals("comment"))
-		{
-			Complete = StatementContent.toString()+Tabs+"#Code goes here\n";
-		}
-		else if (TheName.equals("endline"))
-		{
-			Complete = StatementContent.toString()+";\n";
-		}
-		else if (TheName.equals("newline"))
-		{
-			Complete = StatementContent.toString()+"\n";
-		}
-		else if (TheName.equals("tab"))
-		{
-			Complete = "\t"+StatementContent.toString();
+			break;
 		}
 
-		return Complete;
+		while (StartsWith(Content, "nest-"))
+		{
+			Content = AfterSplit(Content,"-");
+		}
+
+		if (!IsIn(Content," "))
+		{
+			StatementContent.append(GenCode(Tabs,Content));
+			Last = true;
+		}
+		else
+		{
+			OtherContent = new StringBuilder(BeforeSplit(Content," "));
+			Content = AfterSplit(Content," ");
+			if (StartsWith(Content, "params:"))
+			{
+				OtherContent.append(" ");
+				OtherContent.append(BeforeSplit(Content," "));
+				Content = AfterSplit(Content," ");
+			}
+			StatementContent.append(GenCode(Tabs,OtherContent.toString()));
+		}
 	}
+
+	if (TheName.equals("method"))
+	{
+		Complete = Name+"("+Params+")"+StatementContent.toString();
+	}
+	else if (TheName.equals("comment"))
+	{
+		Complete = StatementContent.toString()+Tabs+"#Code goes here\n";
+	}
+	else if (TheName.equals("endline"))
+	{
+		Complete = StatementContent.toString()+";\n";
+	}
+	else if (TheName.equals("newline"))
+	{
+		Complete = StatementContent.toString()+"\n";
+	}
+	else if (TheName.equals("tab"))
+	{
+		Complete = "\t"+StatementContent.toString();
+	}
+
+	return Complete;
+}
 
 	//var:
 	private static String Variables(String Tabs, String TheKindType, String Content)
