@@ -103,7 +103,7 @@ fn get_cpl_version() -> String
 	let rustc_version = Command::new("rustc").arg("--version").output().expect("command failed to start");
 	let cargo_version = Command::new("cargo").arg("--version").output().expect("command failed to start");
 	
-	if (rustc_version.status.success()) && (cargo_version.status.success())
+	if rustc_version.status.success() && cargo_version.status.success()
 	{
 		let rustc = String::from_utf8_lossy(&rustc_version.stdout).to_string();
 		let cargo = String::from_utf8_lossy(&cargo_version.stdout).to_string();
@@ -317,7 +317,7 @@ fn banner()
 {
 	let cpl_version = get_cpl_version();
 	let the_os = get_os();
-	let version = "0.0.20";
+	let version = "0.0.21";
 	println!("{}",cpl_version);
 	println!("[Rust {}] on {}",version,the_os);
 	println!("Type \"help\" for more information.");
@@ -326,6 +326,207 @@ fn banner()
 /*
 //<<shell>> method:TranslateTag-String params:Input-String method-var:Action-String="" method-stmt:endline method-var:Value-String="" method-stmt:endline method-var:NewTag-String="" method-stmt:endline method-var:TheDataType-String="" method-stmt:endline method-var:Nest-String="" method-stmt:endline method-var:ContentFor-String="" method-stmt:endline method-stmt:newline logic:if logic-condition:IsIn(Input,":") logic:else method-stmt:newline loop:while loop-condition:StartsWith(Action,">") method-stmt:newline logic:else-if logic-condition:StartsWith(Action,"lg-") method-stmt:newline logic:else-if logic-condition:StartsWith(Action,"lp-") method-stmt:newline logic:else-if logic-condition:StartsWith(Action,"m-") method-stmt:newline logic:if logic-condition:Action(-eq)"if"(-or)Action(-eq)"else-if" logic:else-if logic-condition:Action(-eq)"else" logic:else-if logic-condition:Action(-eq)"while"(-or)Action(-eq)"for"(or)Action(-eq)"do/while" logic:else logic-nest-logic:if logic-condition:Value(-ne)"" logic-nest-logic:else
 */
+fn translate_tag(input: &str) -> String
+{
+	let mut the_return = String::new();
+	let mut action = String::from(input);
+	let mut value = String::new();
+//	let mut the_var_name = String::new();
+	let mut new_tag = String::new();
+	let mut the_data_type = String::from("");
+	let mut the_nest = String::new();
+	let mut content_for = "";
+
+	if starts_with(&action, "+-")
+	{
+		action = after_split(&action,"-");
+		content_for = "logic-";
+	}
+	else if starts_with(&action, "o-")
+	{
+		action = after_split(&action,"-");
+		content_for = "loop-";
+	}
+	else if starts_with(&action, "[]-")
+	{
+		action = after_split(&action,"-");
+		content_for = "method-";
+	}
+
+	// ">" becomes "nest-"
+	while starts_with(&action, ">")
+	{
+		action = after_split(&action,">");
+		the_nest.push_str("nest-");
+	}
+	if starts_with(&action, "if:") || starts_with(&action, "else-if:")
+	{
+		let tmp_value = after_split(&action,":");
+		action = before_split(&action,":");
+		new_tag.push_str("logic:");
+		new_tag.push_str(&action);
+		value.push_str("logic-condition:");
+		value.push_str(&tmp_value);
+		the_return.push_str(content_for);
+		the_return.push_str(&the_nest);
+		the_return.push_str(&new_tag);
+		the_return.push_str(" ");
+		the_return.push_str(&value);
+	}
+	else if action == "else"
+	{
+		new_tag.push_str("logic:");
+		new_tag.push_str(&action);
+		the_return.push_str(&content_for);
+		the_return.push_str(&the_nest);
+		the_return.push_str(&new_tag);
+	}
+	else if starts_with(&action, "while:") || starts_with(&action, "for:") || starts_with(&action, "do/while:")
+	{
+		let tmp_value = after_split(&action,":");
+		action = before_split(&action,":");
+		new_tag.push_str("loop:");
+		new_tag.push_str(&action);
+		value.push_str("loop-condition:");
+		value.push_str(&tmp_value);
+		the_return.push_str(&content_for);
+		the_return.push_str(&the_nest);
+		the_return.push_str(&new_tag);
+		the_return.push_str(" ");
+		the_return.push_str(&value);
+	}
+	else if starts_with(&action, "{") && is_in(&action,"}")
+	{
+		let tmp_action = &action.to_owned();
+		action = after_split(&action,"}");
+		if is_in(&action,":")
+		{
+			value = after_split(&action,":");
+			action = before_split(&action,":");
+		}
+
+		if value != ""
+		{
+			the_data_type = before_split(tmp_action,"}");
+			the_data_type = after_split(&the_data_type,"{");
+			the_return.push_str("class:(");
+			the_return.push_str(&the_data_type);
+			the_return.push_str(")");
+			the_return.push_str(&action);
+			the_return.push_str(" params:");
+			the_return.push_str(&value);
+		}
+		else
+		{
+			the_data_type = before_split(tmp_action,"}");
+			the_data_type = after_split(&the_data_type,"{");
+			the_return.push_str("class:(");
+			the_return.push_str(&the_data_type);
+			the_return.push_str(")");
+			the_return.push_str(&action);
+		}
+	}
+	else if starts_with(&action, "[") && is_in(&action,"]")
+	{
+		let tmp_action = &action.to_owned();
+		action = after_split(&action,"]");
+		if is_in(&action,":")
+		{
+			value = after_split(&action,":");
+			action = before_split(&action,":");
+		}
+
+		if value != ""
+		{
+			the_return.push_str(content_for);
+			the_return.push_str("method:(");
+			the_return.push_str(&the_data_type);
+			the_return.push_str(")");
+			the_return.push_str(&action);
+			the_return.push_str(" params:");
+			the_return.push_str(&value);
+		}
+		else
+		{
+			the_data_type = before_split(tmp_action,"]");
+			the_data_type = after_split(&the_data_type,"[");
+			the_return.push_str(content_for);
+			the_return.push_str("method:(");
+			the_return.push_str(&the_data_type);
+			the_return.push_str(")");
+			the_return.push_str(&action);
+		}
+	}
+	else if starts_with(&action, "(") && is_in(&action,")")
+	{
+		let tmp_action = &action.to_owned();
+		action = after_split(&action,")");
+
+		if is_in(&action,":")
+		{
+			value = after_split(&action,":");
+			action = before_split(&action,":");
+		}
+
+		if value != ""
+		{
+			the_data_type = before_split(tmp_action,")");
+			the_data_type = after_split(&the_data_type,"(");
+			the_return.push_str(content_for);
+			the_return.push_str("var:(");
+			the_return.push_str(&the_data_type);
+			the_return.push_str(")");
+			the_return.push_str(&action);
+			the_return.push_str("=");
+			the_return.push_str(&value);
+		}
+		else
+		{
+			the_data_type = before_split(tmp_action,")");
+			the_data_type = after_split(&the_data_type,"(");
+			the_return.push_str(content_for);
+			the_return.push_str("var:(");
+			the_return.push_str(&the_data_type);
+			the_return.push_str(")");
+			the_return.push_str(&action);
+		}
+	}
+	else if action == "el"
+	{
+		the_return.push_str(content_for);
+		the_return.push_str("stmt:endline");
+	}
+	else if action == "nl"
+	{
+		the_return.push_str(content_for);
+		the_return.push_str("stmt:newline");
+	}
+	else if action == "tab"
+	{
+		the_return.push_str(content_for);
+		the_return.push_str("stmt:");
+		the_return.push_str(&action);
+	}
+	else
+	{
+		if value != ""
+		{
+			the_return.push_str(content_for);
+			the_return.push_str(&the_nest);
+			the_return.push_str(&action);
+			the_return.push_str(":");
+			the_return.push_str(&value);
+		}
+		else
+		{
+			the_return.push_str(content_for);
+			the_return.push_str(&the_nest);
+			the_return.push_str(&action);
+		}
+	}
+
+	return the_return.to_string();
+}
 
 //<<shell>> method:DataType-String params:Type-String,CalledBy-String logic:if condition:Type(-eq)"String"(-or)Type(-eq)"std::string" logic-var:TheReturn="String" logic-stmt:endline logic:else-if condition:Type(-eq)"boolean" logic-var:Type="bool" logic-stmt:endline logic:else logic-var:TheReturn=Type logic-stmt:endline
 fn data_type(the_type: &str, called_by: &str) -> String
@@ -1558,13 +1759,15 @@ fn main()
 		for args in env::args().skip(1)
 		{
 			if arg_count == 0
-			{
-				user_in.push_str(&args);
+			{ 
+//				user_in.push_str(&args);
+				user_in.push_str(&translate_tag(&args));
 			}
 			else
 			{
 				user_in.push_str(" ");
-				user_in.push_str(&args);
+//				user_in.push_str(&args);
+				user_in.push_str(&translate_tag(&args));
 			}
 			arg_count += 1;
 		}
