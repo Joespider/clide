@@ -317,14 +317,14 @@ fn banner()
 {
 	let cpl_version = get_cpl_version();
 	let the_os = get_os();
-	let version = "0.0.21";
+	let version = "0.0.23";
 	println!("{}",cpl_version);
 	println!("[Rust {}] on {}",version,the_os);
 	println!("Type \"help\" for more information.");
 }
 
 /*
-//<<shell>> method:TranslateTag-String params:Input-String method-var:Action-String="" method-stmt:endline method-var:Value-String="" method-stmt:endline method-var:NewTag-String="" method-stmt:endline method-var:TheDataType-String="" method-stmt:endline method-var:Nest-String="" method-stmt:endline method-var:ContentFor-String="" method-stmt:endline method-stmt:newline logic:if logic-condition:IsIn(Input,":") logic:else method-stmt:newline loop:while loop-condition:StartsWith(Action,">") method-stmt:newline logic:else-if logic-condition:StartsWith(Action,"lg-") method-stmt:newline logic:else-if logic-condition:StartsWith(Action,"lp-") method-stmt:newline logic:else-if logic-condition:StartsWith(Action,"m-") method-stmt:newline logic:if logic-condition:Action(-eq)"if"(-or)Action(-eq)"else-if" logic:else-if logic-condition:Action(-eq)"else" logic:else-if logic-condition:Action(-eq)"while"(-or)Action(-eq)"for"(or)Action(-eq)"do/while" logic:else logic-nest-logic:if logic-condition:Value(-ne)"" logic-nest-logic:else
+<<shell>> method:TranslateTag-String params:Input-String method-var:Action-String="" method-stmt:endline method-var:Value-String="" method-stmt:endline method-var:NewTag-String="" method-stmt:endline method-var:TheDataType-String="" method-stmt:endline method-var:Nest-String="" method-stmt:endline method-var:ContentFor-String="" method-stmt:endline method-stmt:newline logic:if logic-condition:IsIn(Input,":") logic:else method-stmt:newline loop:while loop-condition:StartsWith(Action,">") method-stmt:newline logic:else-if logic-condition:StartsWith(Action,"lg-") method-stmt:newline logic:else-if logic-condition:StartsWith(Action,"lp-") method-stmt:newline logic:else-if logic-condition:StartsWith(Action,"m-") method-stmt:newline logic:if logic-condition:Action(-eq)"if"(-or)Action(-eq)"else-if" logic:else-if logic-condition:Action(-eq)"else" logic:else-if logic-condition:Action(-eq)"while"(-or)Action(-eq)"for"(-or)Action(-eq)"do/while" logic:else logic-nest-logic:if logic-condition:Value(-ne)"" logic-nest-logic:else
 */
 fn translate_tag(input: &str) -> String
 {
@@ -528,10 +528,41 @@ fn translate_tag(input: &str) -> String
 	return the_return.to_string();
 }
 
+fn handle_names(the_name: &str) -> String
+{
+//	let s = "Hello world!";
+	let char_vec: Vec<char> = the_name.chars().collect();
+	let mut the_return = String::new();
+	let mut found = false;
+	for c in char_vec
+	{
+		if c.is_alphabetic() == false
+		{
+			found = false;
+		}
+
+		if c.is_uppercase() && found == false
+		{
+			the_return.push_str(&c.to_lowercase().to_string());
+			found = true;
+		}
+		else if c.is_uppercase() && found == true
+		{
+			the_return.push_str("_");
+			the_return.push_str(&c.to_lowercase().to_string());
+		}
+		else
+		{
+			the_return.push_str(&c.to_string());
+		}
+	}
+	return the_return.to_string();
+}
+
 //<<shell>> method:DataType-String params:Type-String,CalledBy-String logic:if condition:Type(-eq)"String"(-or)Type(-eq)"std::string" logic-var:TheReturn="String" logic-stmt:endline logic:else-if condition:Type(-eq)"boolean" logic-var:Type="bool" logic-stmt:endline logic:else logic-var:TheReturn=Type logic-stmt:endline
 fn data_type(the_type: &str, called_by: &str) -> String
 {
-	println!("Called By: {}",called_by);
+	println!("{}",called_by);
 	if the_type == "String" || the_type == "std::string"
 	{
 		return "String".to_string();
@@ -548,7 +579,7 @@ fn data_type(the_type: &str, called_by: &str) -> String
 
 fn gen_conditions(input: &str,called_by: &str) -> String
 {
-	let mut condit = after_split(&input,":");
+	let mut condit = handle_names(&after_split(&input,":"));
 
 	if is_in(&condit,"(-eq)")
 	{
@@ -637,7 +668,7 @@ fn gen_parameters(input: &str, called_by: &str) -> String
 		if is_in(&the_params,"-") && is_in(&the_params,",")
 		{
 			//param
-			name = before_split(&the_params,"-");
+			name = handle_names(&before_split(&the_params,"-"));
 			//type,param-type,param-type
 			let mut the_type = after_split(&the_params,"-");
 			//type
@@ -658,7 +689,7 @@ fn gen_parameters(input: &str, called_by: &str) -> String
 		//param-type
 		else if is_in(&the_params,"-") && !is_in(&the_params,",")
 		{
-			name = before_split(&the_params,"-");
+			name = handle_names(&before_split(&the_params,"-"));
 			let mut the_type = after_split(&the_params,"-");
 			the_type = data_type(&the_type, "params");
 
@@ -768,7 +799,7 @@ fn gen_class(the_name: &str, the_content: &str) -> String
 //		the_public_vars.push_str(&the_public_vars);
 	}
 	the_complete.push_str("class ");
-	the_complete.push_str(&the_name);
+	the_complete.push_str(&handle_names(&the_name));
 	the_complete.push_str(" {\n\n");
 	the_complete.push_str(&the_private_vars);
 	the_complete.push_str("public:");
@@ -807,14 +838,14 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 	if is_in(&new_name,"-")
 	{
 		//get method name
-		the_name = before_split(&new_name,"-");
+		the_name = handle_names(&before_split(&new_name,"-"));
 		the_type.push_str(&after_split(&new_name,"-"));
 	}
 	//method:<name>
 	else
 	{
 		//get method name
-		the_name = new_name.clone();
+		the_name = handle_names(&new_name.clone());
 	}
 
 	while passed_content != ""
@@ -954,7 +985,7 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 	{
 		the_complete.push_str(the_tabs);
 		the_complete.push_str("fn ");
-		the_complete.push_str(&the_name);
+		the_complete.push_str(&handle_names(&the_name));
 		the_complete.push_str("(");
 		the_complete.push_str(&the_params);
 		the_complete.push_str(")\n");
@@ -969,7 +1000,7 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 	{
 		the_complete.push_str(the_tabs);
 		the_complete.push_str("fn ");
-		the_complete.push_str(&the_name);
+		the_complete.push_str(&handle_names(&the_name));
 		the_complete.push_str("(");
 		the_complete.push_str(&the_params);
 		the_complete.push_str(") -> ");
@@ -1497,7 +1528,7 @@ fn gen_statements(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Str
 
 	if is_in(&new_kind,"-")
 	{
-		the_name = before_split(&new_kind,"-");
+		the_name = handle_names(&before_split(&new_kind,"-"));
 		name = after_split(&new_kind,"-");
 	}
 	else
@@ -1623,7 +1654,7 @@ fn gen_variables(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Stri
 
 		new_var.push_str(the_tabs);
 		new_var.push_str("let ");
-		new_var.push_str(&the_name);
+		new_var.push_str(&handle_names(&the_name));
 		new_var.push_str(": ");
 		new_var.push_str(&var_type);
 		new_var.push_str(" = ");
@@ -1639,7 +1670,7 @@ fn gen_variables(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Stri
 		the_value = after_split(&the_type,"=");
 
 		new_var.push_str(the_tabs);
-		new_var.push_str(&the_name);
+		new_var.push_str(&handle_names(&the_name));
 		new_var.push_str(" = ");
 		new_var.push_str(&the_value);
 
@@ -1655,7 +1686,7 @@ fn gen_variables(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Stri
 
 		new_var.push_str(the_tabs);
 		new_var.push_str("let ");
-		new_var.push_str(&the_name);
+		new_var.push_str(&handle_names(&the_name));
 		new_var.push_str(": ");
 		new_var.push_str(&var_type);
 		new_var.push_str(" = ");
@@ -1669,7 +1700,7 @@ fn gen_variables(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Stri
 		//Value = after_split(the_type,"=");
 
 		new_var.push_str(the_tabs);
-		new_var.push_str(&the_name);
+		new_var.push_str(&handle_names(&the_name));
 		new_var.push_str(" = ");
 		new_var.push_str(&variable_content);
 	}
@@ -1683,7 +1714,7 @@ fn gen_variables(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Stri
 		new_var.push_str(the_tabs);
 		new_var.push_str(&var_type);
 		new_var.push_str(" ");
-		new_var.push_str(&the_name);
+		new_var.push_str(&handle_names(&the_name));
 		new_var.push_str(&variable_content);
 	}
 	return new_var;
