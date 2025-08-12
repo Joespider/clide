@@ -317,14 +317,14 @@ fn banner()
 {
 	let cpl_version = get_cpl_version();
 	let the_os = get_os();
-	let version = "0.0.23";
+	let version = "0.0.25";
 	println!("{}",cpl_version);
 	println!("[Rust {}] on {}",version,the_os);
 	println!("Type \"help\" for more information.");
 }
 
 /*
-<<shell>> method:TranslateTag-String params:Input-String method-var:Action-String="" method-stmt:endline method-var:Value-String="" method-stmt:endline method-var:NewTag-String="" method-stmt:endline method-var:TheDataType-String="" method-stmt:endline method-var:Nest-String="" method-stmt:endline method-var:ContentFor-String="" method-stmt:endline method-stmt:newline logic:if logic-condition:IsIn(Input,":") logic:else method-stmt:newline loop:while loop-condition:StartsWith(Action,">") method-stmt:newline logic:else-if logic-condition:StartsWith(Action,"lg-") method-stmt:newline logic:else-if logic-condition:StartsWith(Action,"lp-") method-stmt:newline logic:else-if logic-condition:StartsWith(Action,"m-") method-stmt:newline logic:if logic-condition:Action(-eq)"if"(-or)Action(-eq)"else-if" logic:else-if logic-condition:Action(-eq)"else" logic:else-if logic-condition:Action(-eq)"while"(-or)Action(-eq)"for"(-or)Action(-eq)"do/while" logic:else logic-nest-logic:if logic-condition:Value(-ne)"" logic-nest-logic:else
+<<shell>> [String]TranslateTag:(String)Input []-(String)Action []-el []-(String)Value []-el []-(String)NewTag []-el []-(String)TheDataType []-el []-(String)Nest []-el []-(String)ContentFor []-el []-nl if:IsIn(Input,":") else []-nl while:StartsWith(Action,">") []-nl else-if:StartsWith(Action,"lg-") []-nl else-if:StartsWith(Action,"lp-") []-nl else-if:StartsWith(Action,"m-") []-nl if:Action(-eq)"if"(-or)Action(-eq)"else-if" else-if:Action(-eq)"else" else-if:Action(-eq)"while"(-or)Action(-eq)"for"(-or)Action(-eq)"do/while" else +->if:Value(-ne)"" +->else
 */
 fn translate_tag(input: &str) -> String
 {
@@ -399,6 +399,7 @@ fn translate_tag(input: &str) -> String
 	{
 		let tmp_action = &action.to_owned();
 		action = after_split(&action,"}");
+
 		if is_in(&action,":")
 		{
 			value = after_split(&action,":");
@@ -432,12 +433,20 @@ fn translate_tag(input: &str) -> String
 		action = after_split(&action,"]");
 		if is_in(&action,":")
 		{
+			the_data_type = before_split(tmp_action,"]");
+			the_data_type = after_split(&the_data_type,"[");
 			value = after_split(&action,":");
 			action = before_split(&action,":");
 		}
 
+//		println!("{}",the_data_type);
+
 		if value != ""
 		{
+/*
+			the_data_type = before_split(tmp_action,"]");
+			the_data_type = after_split(&the_data_type,"[");
+*/
 			the_return.push_str(content_for);
 			the_return.push_str("method:(");
 			the_return.push_str(&the_data_type);
@@ -448,8 +457,10 @@ fn translate_tag(input: &str) -> String
 		}
 		else
 		{
+/*
 			the_data_type = before_split(tmp_action,"]");
 			the_data_type = after_split(&the_data_type,"[");
+*/
 			the_return.push_str(content_for);
 			the_return.push_str("method:(");
 			the_return.push_str(&the_data_type);
@@ -817,7 +828,7 @@ fn gen_class(the_name: &str, the_content: &str) -> String
 	return the_complete;
 }
 
-//method:
+//wmethod:
 fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 {
 	let mut the_last = false;
@@ -834,12 +845,14 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 	let mut the_other_content = String::from("");
 	let mut new_content = String::from("");
 
-	//method:<name>-<type>
-	if is_in(&new_name,"-")
+	//method:(<type>)<name>
+	if starts_with(&new_name,"(") && is_in(&new_name,")")
 	{
+		the_type = after_split(&before_split(&new_name,")"),"(");
 		//get method name
-		the_name = handle_names(&before_split(&new_name,"-"));
-		the_type.push_str(&after_split(&new_name,"-"));
+		the_name = handle_names(&after_split(&new_name,")"));
+		//Converting data type to correct C++ type
+		the_type = data_type(&the_type,"");
 	}
 	//method:<name>
 	else
