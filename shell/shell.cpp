@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.0.76";
+String Version = "0.0.79";
 
 String getOS();
 void Help(String Type);
@@ -81,21 +81,21 @@ void Help(String Type)
 		print(Type+":<name> param:<params>,<param> var(public/private):<vars> method:<name>-<type> param:<params>,<param>");
 		print("");
 		print("{EXAMPLE}");
-		print(Type+":pizza params:one-int,two-bool,three-float var(private):toppings-int method:cheese-std::string params:four-int,five-int loop:for nest-loop:for");
+		print(Type+":pizza params:(int)one,(bool)two,(float)three var(private):(int)toppings method:(std::string)cheese params:(int)four,(int)five loop:for nest-loop:for");
 	}
 	else if (Type == "struct")
 	{
 		print(Type+":<name>-<type> var:<var> var:<var>");
 		print("");
 		print("{EXAMPLE}");
-		print(Type+":pizza var:topping-std::string var:number-int");
+		print(Type+":pizza var:(std::string)topping var:(int)number");
 	}
 	else if (Type == "method")
 	{
-		print(Type+"(public/private):<name>-<type> param:<params>,<param>");
-		print(Type+":<name>-<type> param:<params>,<param>");
-		print(Type+":<name>-<type> param:<params>,<param> var:<name>-type stmt:<name>-<type>");
-		print(Type+":<name>-<type> param:<params>,<param> method-var:<name>-type method-stmt:<name>-<type>");
+//		print(Type+"(public/private):<name>-<type> param:<params>,<param>");
+		print(Type+":(<type>)<name> param:<params>,<param>");
+		print(Type+":(<type>)<name> param:<params>,<param> var:(<type>)<name> stmt:(type)<name>");
+		print(Type+":(<type>)<name> param:<params>,<param> method-var:(<type>)<name> method-stmt:(<type>)<name>");
 	}
 	else if (Type == "loop")
 	{
@@ -117,15 +117,15 @@ void Help(String Type)
 	}
 	else if (Type == "var")
 	{
-		print(Type+"(public/private):<name>-<type>=value\tcreate a new variable");
-		print(Type+":<name>-<type>[<num>]=value\tcreate a new variable as an array");
-		print(Type+":<name>-<type>(<struct>)=value\tcreate a new variable a data structure");
+//		print(Type+"(public/private):<name>-<type>=value\tcreate a new variable");
+//		print(Type+":(<type>)<name>[<num>]=value\tcreate a new variable as an array");
+//		print(Type+":(<type>{<struct>})<name>=value\tcreate a new variable a data structure");
 		print(Type+":<name>=value\tassign a new value to an existing variable");
 		print("");
 		print("{EXAMPLE}");
-		print(Type+":name-std::string[3]");
-		print(Type+":name-std::string(vector)");
-		print(Type+":name-std::string=\"\" var:point-int=0 stmt:endline var:james-std::string=\"James\" stmt:endline var:help-int");
+//		print(Type+":name-std::string[3]");
+//		print(Type+":name-std::string(vector)");
+		print(Type+":(std::string)name=\"\" var:(int)point=0 stmt:endline var:james-std::string=\"James\" stmt:endline var:help-int");
 	}
 	else if (Type == "stmt")
 	{
@@ -403,21 +403,7 @@ void banner()
 }
 
 /*
-<<shell>> [string]TranslateTag:Input-String []-(string)Action:Input []-el []-(string)Value:"" []-el []-(string)VarName:"" []-el []-(String)NewTag:"" []-el []-(string)TheDataType:"" []-el []-(String)Nest:"" []-el []-(String)ContentFor:"" []-el []-nl if:StartsWith(Action,"+-") +-var:Action= +-stmt:method-AfterSplit +-el +-var:Action=Input +-el []-nl else-if:StartsWith(Action,"o-") +-var:Action= +-stmt:method-AfterSplit +-el +-stmt:ContentFor="logic-" +-el []-nl else-if:StartsWith(Action,"[]-") +-var:Action= +-stmt:method-AfterSplit +-el +-var:ContentFor="loop-" +-el []-nl else-if:StartsWith(Action,"[]-") +-var:Action= +-stmt:method-AfterSplit +-el +-var:ContentFor="method-" +-el []-nl while:StartsWith(Action,">") o-var:Action= o-stmt:method-AfterSplit o-el o-var:Nest="nest-"+Nest o-stmt:endline []-el if:Action(-eq)"if"(-or)Action(-eq)"else-if" +-var:NewTag= +-stmt:method-AfterSplit +-el +-var:Nest="logic:"+Nest +-el else-if:Action(-eq)"else" +-var:NewTag= +-stmt:method-AfterSplit +-el +-var:Nest="method-"+Nest +-el else-if:Action(-eq)"while"(-or)Action(-eq)"for"(-or)Action(-eq)"do/while" else +->if:Value(-ne)"" +->else
-*/
-
-
-
-/*
-> = nest-
-if:i(-eq)0 = logic:if condit:i(-eq)0
-lg-if:i(-eq)0 = logic-logic:if condit:i(-eq)0
-{class}|{cl}
-[int]number:(int)one,(int)teo = method:number method-param:one-int,two,-int
-(int)count:0 = var:count-int=0
-(std::string)message:"here" = var:message-std::string="here"
-el = stmt:endline
-nl = stmt:newline
+<<shell>> [string]TranslateTag:(String)Input []-tab []-(string)Action:Input []-el []-tab []-(string)Value:"" []-el []-tab []-(string)VarName:"" []-el []-tab []-(String)NewTag:"" []-el []-tab []-(string)TheDataType:"" []-el []-tab []-(String)Nest:"" []-el []-tab []-(String)ContentFor:"" []-el []-nl if:StartsWith(Action,"+-") +-tab +-tab +-var:Action= +-stmt:method-AfterSplit +-params:Action,'-' +-el +-tab +-tab +-var:ContentFor="logic-" +-el []-nl else-if:StartsWith(Action,"o-") +-tab +-tab +-var:Action= +-stmt:method-AfterSplit +-params:Action,'-' +-el +-tab +-tab +-var:ContentFor="loop-" +-el []-nl else-if:StartsWith(Action,"[]-") +-tab +-tab +-var:Action= +-stmt:method-AfterSplit +-params:Action,'-' +-el +-tab +-tab +-var:ContentFor="method-" +-el []-nl while:StartsWith(Action,">") o-tab o-tab o-var:Action= o-stmt:method-AfterSplit o-params:Action,'>' o-el o-tab o-tab o-var:Nest="nest-"+Action o-stmt:endline if:StartsWith(Action,"if")(-or)StartsWith(Action,"else-if") +-tab +-tab +-var:Value= +-stmt:method-AfterSplit +-params:Action,':' +-el +-tab +-tab +-var:Action= +-stmt:method-BeforeSplit +-params:Action,':' +-el +-tab +-tab +-var:Nest="logic:"+Nest +-el +-tab +-tab +-var:Value="logic-condition:"+Value +-el +-tab +-tab +-var:TheReturn=ContentFor+Nest+NewTag+"(-spc)"+Value +-el else-if:Action(-eq)"else" +-tab +-tab +-var:NewTag="logic:"+Action +-el +-tab +-tab +-var:TheReturng=ContentFor+Nest+NewTag +-el else-if:StartsWith(Action,"while:")(-or)StartsWith(Action,"for:"(-or)StartsWith(Action,"do/while:") +-tab +-tab +-var:Value= +-stmt:method-AfterSplit +-params:Action,':' +-el +-tab +-tab +-var:Action= +-stmt:method-BeforeSplit +-params:Action,':' +-el +-tab +-tab +-var:Nest="loop:"+Nest +-el +-tab +-tab +-var:Value="loop-condition:"+Value +-el +-tab +-tab +-var:TheReturn=ContentFor+Nest+NewTag+"(-spc)"+Value +-el else-if:StartsWith(Action,"{")(-and)IsIn(Action,"}") +-tab +-tab +-var:TheDataType= +-stmt:method-BeforeSplit +-params:Action,'}' +-el +-tab +-tab +-var:TheDataType= +-stmt:method-AfterSplit +-params:Action,'{' +-el +-tab +-tab +-var:Action= +-stmt:method-AfterSplit +-params:Action,'{' +-el +->if:IsIn(Action,":") +-tab +-tab +-tab +-var:Value= +-stmt:method-AfterSplit +-params:Action,':' +-el +-tab +-tab +-tab +-var:Action= +-stmt:method-BeforeSplit +-params:Action,':' +-el +->if:Value(-ne)"" +-tab +-tab +-tab +-var:TheReturn="class:("+TheDataType+")"+Action+"(-spc)params:"+Value +-el +->else +-tab +-tab +-tab +-var:TheReturn="class:("+TheDataType+")"+Action +-el else-if:StartsWith(Action,"[")(-and)IsIn(Action,"]") +-tab +-tab +-var:TheDataType= +-stmt:method-BeforeSplit +-params:Action,']' +-el +-tab +-tab +-var:TheDataType= +-stmt:method-AfterSplit +-params:TheDataType,'[' +-el +-tab +-tab +-var:Action= +-stmt:method-AfterSplit +-params:Action,']' +-el +->if:IsIn(Action,":") +-tab +-tab +-tab +-var:Value= +-stmt:method-AfterSplit+-params:Action,':' +-el +-tab +-tab +-tab +-var:Action= +-stmt:method-BeforeSplit +-params:Action,':' +-el +->if:Value(-ne)"" +-tab +-tab +-tab +-var:TheReturn=ContentFor+"method:("+TheDataType+")"+Action+"="+Value +-el +->else +-tab +-tab +-tab +-var:TheReturn=ContentFor+"method:("+TheDataType+")"+Action +-el else-if:StartsWith(Action,"(")(-and)IsIn(Action,")") +-tab +-tab +-var:TheDataType= +-stmt:method-BeforeSplit +-params:Action,')' +-el +-tab +-tab +-var:TheDataType= +-stmt:method-AfterSplit +-params:TheDataType,'(' +-el +-tab +-tab +-var:Action= +-stmt:method-AfterSplit +-params:Action,')' +-el +->if:IsIn(Action,":") +-tab +-tab +-tab +-var:Value= +-stmt:method-AfterSplit +-params:Action,':' +-el +-tab +-tab +-tab +-var:Action= +-stmt:method-BeforeSplit +-params:Action,':' +-el +->if:Value(-ne)"" +-tab +-tab +-tab +-var:TheReturn=ContentFor+"var:("+TheDataType+")"+Action+"="+Value +-el +->else +-tab +-tab +-tab +-var:TheReturn=ContentFor+"var:("+TheDataType+")"+Action +-el else-if:Action(-eq)"el") +-tab +-tab +-var:TheReturn=ContentFor+"stmt:endline" +-el else-if:Action(-eq)"nl") +-tab +-tab +-var:TheReturn=ContentFor+"stmt:newline" +-el else-if:Action(-eq)"tab") +-tab +-tab +-var:TheReturn=ContentFor+"stmt:"+Action +-el else +->if:Value(-ne)"" +-tab +-tab +-tab +-var:TheReturn=ContentFor+Nest+Action+":"+Value +-el +->else +-tab +-tab +-tab +-var:TheReturn=ContentFor+Nest+Action +-el
 */
 
 String TranslateTag(String Input)
@@ -453,7 +439,6 @@ String TranslateTag(String Input)
 		Action = AfterSplit(Action,'>');
 		Nest = "nest-"+Nest;
 	}
-
 	if ((StartsWith(Action, "if:")) || (StartsWith(Action, "else-if:")))
 	{
 		Value = AfterSplit(Action,':');
@@ -469,6 +454,8 @@ String TranslateTag(String Input)
 	}
 	else if ((StartsWith(Action, "while:")) || (StartsWith(Action, "for:")) || (StartsWith(Action, "do/while:")))
 	{
+		Value = AfterSplit(Action,':');
+		Action = BeforeSplit(Action,':');
 		NewTag = "loop:"+Action;
 		Value = "loop-condition:"+Value;
 		TheReturn = ContentFor+Nest+NewTag+" "+Value;
@@ -485,11 +472,11 @@ String TranslateTag(String Input)
 		}
 		if (Value != "")
 		{
-			TheReturn = "class:"+Action+"-"+TheDataType+" params:"+Value;
+			TheReturn = "class:("+TheDataType+")"+Action+" params:"+Value;
 		}
 		else
 		{
-			TheReturn = "class:"+Action+"-"+TheDataType;
+			TheReturn = "class:("+TheDataType+")"+Action;
 		}
 	}
 	else if ((StartsWith(Action, "[")) && (IsIn(Action,"]")))
@@ -502,14 +489,14 @@ String TranslateTag(String Input)
 			Value = AfterSplit(Action,':');
 			Action = BeforeSplit(Action,':');
 		}
-//		print(TheDataType);
+
 		if (Value != "")
 		{
-			TheReturn = ContentFor+"method:"+Action+"-"+TheDataType+" params:"+Value;
+			TheReturn = ContentFor+"method:("+TheDataType+")"+Action+" params:"+Value;
 		}
 		else
 		{
-			TheReturn = ContentFor+"method:"+Action+"-"+TheDataType;
+			TheReturn = ContentFor+"method:("+TheDataType+")"+Action;
 		}
 	}
 	else if ((StartsWith(Action, "(")) && (IsIn(Action,")")))
@@ -526,11 +513,11 @@ String TranslateTag(String Input)
 
 		if (Value != "")
 		{
-			TheReturn = ContentFor+"var:"+Action+"-"+TheDataType+"="+Value;
+			TheReturn = ContentFor+"var:("+TheDataType+")"+Action+"="+Value;
 		}
 		else
 		{
-			TheReturn = ContentFor+"var:"+Action+"-"+TheDataType;
+			TheReturn = ContentFor+"var:("+TheDataType+")"+Action;
 		}
 	}
 	else if (Action == "el")
@@ -630,7 +617,7 @@ String Conditions(String input,String CalledBy)
 	{
 		Condit = replaceAll(Condit, "(-spc)"," ");
 	}
-
+/*
 	if (CalledBy == "class")
 	{
 		print(Condit);
@@ -643,6 +630,7 @@ String Conditions(String input,String CalledBy)
 	{
 		print(Condit);
 	}
+*/
 	return Condit;
 }
 
@@ -650,19 +638,21 @@ String Conditions(String input,String CalledBy)
 String Parameters(String input,String CalledBy)
 {
 	String Params = AfterSplit(input,':');
+
 	if ((CalledBy == "class") || (CalledBy == "method") || (CalledBy == "stmt"))
 	{
 		//param-type,param-type,param-type
-		if ((IsIn(Params,"-")) && (IsIn(Params,",")))
+		if ((StartsWith(Params,"(")) && (IsIn(Params,")")) && (IsIn(Params,",")))
 		{
 			//param
-			String Name = BeforeSplit(Params,'-');
+			String Name = AfterSplit(Params,')');
 			//type,param-type,param-type
-			String Type = AfterSplit(Params,'-');
-			//type
-			Type = BeforeSplit(Type,',');
+			String Type = BeforeSplit(Params,')');
+			Type = AfterSplit(Type,'(');
+
+			Name = BeforeSplit(Name,',');
 			//param-type,param-type
-			String more = AfterSplit(Params,',');
+			String more = AfterSplit(Name,',');
 
 			//recursion to get more parameters
 			more = Parameters("params:"+more,CalledBy);
@@ -672,12 +662,13 @@ String Parameters(String input,String CalledBy)
 			Params = Type+" "+Name+", "+more;
 		}
 		//param-type
-		else if ((IsIn(Params,"-")) && (!IsIn(Params,",")))
+		else if ((StartsWith(Params,"(")) && (IsIn(Params,")")))
 		{
 			//param
-			String Name = BeforeSplit(Params,'-');
+			String Name = AfterSplit(Params,')');
 			//type
-			String Type = AfterSplit(Params,'-');
+			String Type = BeforeSplit(Params,')');
+			Type = AfterSplit(Type,'(');
 			//Converting data type to correct C++ type
 			Type = DataType(Type);
 			//type param
@@ -725,7 +716,7 @@ String Class(String TheName, String Content)
 	String ClassContent = "";
 	while (Content != "")
 	{
-		if ((StartsWith(Content, "params")) && (Params == ""))
+		if ((StartsWith(Content, "params:")) && (Params == ""))
 		{
 			Process = BeforeSplit(Content,' ');
 			Params =  Parameters(Process,"class");
@@ -790,12 +781,13 @@ String Method(String Tabs, String Name, String Content)
 	String NewContent = "";
 	String Process = "";
 
-	//method:<name>-<type>
-	if (IsIn(Name,"-"))
+	//method:(<type>)<name>
+	if ((StartsWith(Name,"(")) && (IsIn(Name,")")))
 	{
+		Type = BeforeSplit(Name,')');
+		Type = AfterSplit(Type,'(');
 		//get method name
-		TheName = BeforeSplit(Name,'-');
-		Type = AfterSplit(Name,'-');
+		TheName = AfterSplit(Name,')');
 		//Converting data type to correct C++ type
 		Type = DataType(Type);
 	}
@@ -808,7 +800,7 @@ String Method(String Tabs, String Name, String Content)
 
 	while (Content != "")
 	{
-		if ((StartsWith(Content, "params")) && (Params == ""))
+		if ((StartsWith(Content, "params:")) && (Params == ""))
 		{
 			if (IsIn(Content," "))
 			{
@@ -967,7 +959,7 @@ String Loop(String Tabs, String TheKindType, String Content)
 	String OtherContent = "";
 
 	//loop:<type>
-	if (IsIn(TheKindType,":"))
+	if (StartsWith(TheKindType, "loop:"))
 	{
 		//loop
 		TheKindType = AfterSplit(TheKindType,':');
@@ -1167,14 +1159,13 @@ String Logic(String Tabs, String TheKindType, String Content)
 	String NewContent = "";
 	String OtherContent = "";
 
-	if (IsIn(TheKindType,":"))
+	if (StartsWith(TheKindType, "logic:"))
 	{
 		TheKindType = AfterSplit(TheKindType,':');
 	}
 
 	while (Content != "")
 	{
-
 		Content = ReplaceTag(Content, "logic-");
 
 		if (StartsWith(Content, "condition"))
@@ -1282,9 +1273,10 @@ String Logic(String Tabs, String TheKindType, String Content)
 
 			NewContent = "";
 		}
-		else if ((StartsWith(Content, "logic-")) || (StartsWith(Content, "var:")) || (StartsWith(Content, "stmt:")))
+		else if ((StartsWith(Content, "var:")) || (StartsWith(Content, "stmt:")))
+//		else if ((StartsWith(Content, "logic-")) || (StartsWith(Content, "var:")) || (StartsWith(Content, "stmt:")))
 		{
-			Content = ReplaceTag(Content, "logic-");
+//			Content = ReplaceTag(Content, "logic-");
 			LogicContent = LogicContent + GenCode(Tabs+"\t",Content);
 			Content = "";
 		}
@@ -1357,7 +1349,7 @@ String Statements(String Tabs, String TheKindType, String Content)
 	String Process = "";
 	String Params = "";
 
-	if (IsIn(TheKindType,":"))
+	if (StartsWith(TheKindType, "stmt:"))
 	{
 		TheKindType = AfterSplit(TheKindType,':');
 	}
@@ -1374,7 +1366,7 @@ String Statements(String Tabs, String TheKindType, String Content)
 	while (Content != "")
 	{
 		//This handles the parameters of the statements
-		if ((StartsWith(Content, "params")) && (Params == ""))
+		if ((StartsWith(Content, "params:")) && (Params == ""))
 		{
 			if (IsIn(Content," "))
 			{
@@ -1405,8 +1397,13 @@ String Statements(String Tabs, String TheKindType, String Content)
 		else
 		{
 			OtherContent = BeforeSplit(Content,' ');
-			StatementContent = StatementContent + GenCode(Tabs,OtherContent);
 			Content = AfterSplit(Content,' ');
+			if (StartsWith(Content, "params:"))
+			{
+				OtherContent = OtherContent+" "+BeforeSplit(Content,' ');
+				Content = AfterSplit(Content,' ');
+			}
+			StatementContent = StatementContent + GenCode(Tabs,OtherContent);
 		}
 	}
 
@@ -1428,7 +1425,7 @@ String Statements(String Tabs, String TheKindType, String Content)
 	}
 	else if (TheName == "tab")
 	{
-		Complete = StatementContent+"\t";
+		Complete = "\t"+StatementContent;
 	}
 
 	return Complete;
@@ -1438,25 +1435,24 @@ String Statements(String Tabs, String TheKindType, String Content)
 String Variables(String Tabs, String TheKindType, String Content)
 {
 	bool Last = false;
+	bool MakeEqual = false;
 	String NewVar = "";
-	String Type = "";
 	String Name = "";
 	String VarType = "";
 	String Value = "";
 	String VariableContent = "";
 	String OtherContent = "";
 
+	if (StartsWith(TheKindType, "var:"))
+	{
+		TheKindType = AfterSplit(TheKindType,':');
+	}
+
+
 	while (Content != "")
 	{
 		//All params are removed
-/*
-		if (StartsWith(Content, "params"))
-		{
-			OtherContent = OtherContent+" "+BeforeSplit(Content,' ');
-			Content = AfterSplit(Content,' ');
-			print(OtherContent+" vs "+Content);
-		}
-*/
+
 		if (Last)
 		{
 			break;
@@ -1476,7 +1472,7 @@ String Variables(String Tabs, String TheKindType, String Content)
 		{
 			OtherContent = BeforeSplit(Content,' ');
 			Content = AfterSplit(Content,' ');
-			if (StartsWith(Content, "params"))
+			if (StartsWith(Content, "params:"))
 			{
 				OtherContent = OtherContent+" "+BeforeSplit(Content,' ');
 				Content = AfterSplit(Content,' ');
@@ -1484,60 +1480,42 @@ String Variables(String Tabs, String TheKindType, String Content)
 			VariableContent = VariableContent + GenCode(Tabs,OtherContent);
 		}
 	}
-	//var:name-dataType=Value
-	if ((IsIn(TheKindType,":")) && (IsIn(TheKindType,"-")) && (IsIn(TheKindType,"=")) && (!EndsWith(TheKindType, "=")))
+
+	//Pull Variable Type
+	if ((StartsWith(TheKindType,"(")) && (IsIn(TheKindType,")")))
 	{
-		Type = AfterSplit(TheKindType,':');
-		Name = BeforeSplit(Type,'-');
-		VarType = AfterSplit(Type,'-');
-		Value = AfterSplit(VarType,'=');
-		VarType = BeforeSplit(VarType,'=');
-		//Converting data type to correct C++ type
+		VarType = BeforeSplit(TheKindType,')');
+		VarType = AfterSplit(VarType,'(');
 		VarType = DataType(VarType);
-		NewVar = Tabs+VarType+" "+Name+" = "+Value;
-		NewVar = NewVar+VariableContent;
+		TheKindType = AfterSplit(TheKindType,')');
+		Name = TheKindType;
 	}
-	//var:name=Value
-	else if ((IsIn(TheKindType,":")) && (!IsIn(TheKindType,"-")) && (IsIn(TheKindType,"=")) && (!EndsWith(TheKindType, "=")))
+
+	//Assign Value
+	if (IsIn(TheKindType,"="))
 	{
-		Type = AfterSplit(TheKindType,':');
-		Name = BeforeSplit(Type,'=');
-		Value = AfterSplit(Type,'=');
-		NewVar = Tabs+Name+" = "+Value;
-		NewVar = NewVar+VariableContent;
+		MakeEqual = true;
+		Name = BeforeSplit(TheKindType,'=');
+		Value = AfterSplit(TheKindType,'=');
 	}
-	//var:name-dataType=
-	else if ((IsIn(TheKindType,":")) && (IsIn(TheKindType,"-")) && (EndsWith(TheKindType, "=")))
+
+	if (VarType != "")
 	{
-		Type = AfterSplit(TheKindType,':');
-		Name = BeforeSplit(Type,'-');
-		VarType = AfterSplit(Type,'-');
-		VarType = BeforeSplit(VarType,'=');
-		//Converting data type to correct C++ type
-		VarType = DataType(VarType);
-		NewVar = Tabs+VarType+" "+Name+" = ";
-		NewVar = NewVar+VariableContent;
+		NewVar = VarType+" ";
 	}
-	//var:name=
-	else if ((IsIn(TheKindType,":")) && (!IsIn(TheKindType,"-")) && (EndsWith(TheKindType, "=")))
+
+	if (MakeEqual == true)
 	{
-		Type = AfterSplit(TheKindType,':');
-		Name = BeforeSplit(Type,'=');
-		Value = AfterSplit(Type,'=');
-		NewVar = Tabs+Name+" = ";
-		NewVar = NewVar+VariableContent;
+		NewVar = NewVar+Name+" = "+Value;
 	}
-	//var:name-dataType
-	else if ((IsIn(TheKindType,":")) && (IsIn(TheKindType,"-")) && (!IsIn(TheKindType,"=")))
+	else
 	{
-		Type = AfterSplit(TheKindType,':');
-		Name = BeforeSplit(Type,'-');
-		VarType = AfterSplit(Type,'-');
-		//Converting data type to correct C++ type
-		VarType = DataType(VarType);
-		NewVar = Tabs+VarType+" "+Name;
-		NewVar = NewVar+VariableContent;
+		NewVar = NewVar+Name;
 	}
+	NewVar = NewVar+VariableContent;
+/*
+var:(dataType)name=Value var:name=Value var:(dataType)name= var:name= var:(dataType)name
+*/
 	return NewVar;
 }
 

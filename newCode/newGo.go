@@ -8,7 +8,7 @@ import (
 
 func help() {
 	var ProgName string = "newGo"
-	var Version string = "0.1.37"
+	var Version string = "0.1.38"
 
 	fmt.Println("Author: Joespider")
 	fmt.Println("Program: \""+ProgName+"\"")
@@ -36,7 +36,7 @@ func help() {
 	fmt.Println("\t--is-in : enable string contains methods")
 */
 	fmt.Println("\t--user-input : enable \"raw_input\" method")
-	fmt.Println("\t--thread : enable threading")
+	fmt.Println("\t--thread : enable threading (Main file ONLY)")
 	fmt.Println("\t--sleep : enable \"sleep\" method")
 	fmt.Println("\t--get-length : enable \"length\" examples (Main file ONLY)")
 	fmt.Println("\t--casting : enable data type conversion methods")

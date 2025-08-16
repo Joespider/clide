@@ -673,6 +673,7 @@ CliHelp()
 			echo -e "-c, --config\t\t\t\t: \"Read my configuration\""
 			echo -e "-ll, --languages\t\t\t: \"List the languages I know\""
 			echo -e "\t--cpl, --compile, --run-time\t: \"List the languages I know AND how I know it\""
+			echo -e "\t--gencode\t: \"Generate the code inside of source code\""
 			echo -e "--type <args>\t\t\t\t: \"Show Language Info\""
 			echo -e "-h, --help\t\t\t\t: \"Get to know me better\""
 			echo ""
@@ -690,6 +691,9 @@ CliHelp()
 					;;
 				--edit)
 					EditCliHelp
+					;;
+				--gencode)
+					gencodeCliHelp ${example}
 					;;
 				--cpl|--compile)
 					cplCliHelp ${example}
@@ -762,6 +766,7 @@ CliHelp()
 					echo -e "\t--read-ct <lang>\t\t\t\t: \"Read a given language's new code template\""
 					echo -e "\t--run-ct <lang>\t\t\t\t\t: \"Run a given language's new code template\""
 					echo -e "\t--cpl, --compile <args>\t\t\t\t: \"Compile source code\""
+					echo -e "\t--gencode <args>\t\t\t\t: \"Generate code from source code\""
 					echo -e "\t\t--args <compile args>\t\t\t: \"Compile with one-time-use args\""
 					echo -e "\t\t--get-args\t\t\t\t: \"Get the compile args\""
 					echo -e "\t--cpl-run, --car <args>\t\t\t\t: \"Compile and run source code\""
@@ -1086,6 +1091,23 @@ EditRestoreCliHelp()
 	echo ""
 	echo -e "${cmd} <language> <code>"
 	echo -e "${cmd} <code> {arguments}"
+	echo -e "${cmd} -h, --help\t\t\t: \"help page\""
+	echo "-----------------------------------------------"
+	echo ""
+}
+
+gencodeCliHelp()
+{
+	local cli="$1"
+	local cmd="\$ clide ${cli}"
+	echo ""
+	echo "----------------[(${Head}) cli {${cli}}]----------------"
+	echo -e "\"Generate your code without having a session\""
+	echo ""
+	echo -e "${cmd} <language> <code>"
+	echo -e "${cmd} <code>"
+	echo -e "${cmd} --<type> <language> <code>\t: \"generate code from source code\""
+	echo -e "${cmd} --<type> <code>\t\t: \"generate code from source code\""
 	echo -e "${cmd} -h, --help\t\t\t: \"help page\""
 	echo "-----------------------------------------------"
 	echo ""

@@ -6623,6 +6623,66 @@ CLI()
 					fi
 				fi
 				;;
+			--gencode)
+				if [ -z "${ThePipe}" ]; then
+					shift
+					local Lang
+					local Code=$2
+					#clide --gencode <code>.<ext>
+					if [ -z "${Code}" ]; then
+						Lang=$(SelectLangByCode $1)
+						if [ ! -z "${Lang}" ]; then
+							Code=$1
+							case ${Code} in
+								-h|--help)
+									theHelp cplCliHelp
+									;;
+								*)
+									if [ ! -z "${Code}" ]; then
+										main --gencode "${Lang}" "${Code}"
+									fi
+									;;
+							esac
+						else
+							theHelp cplCliHelp
+						fi
+					# $ clide --gencode <lang> <code> or $ clide --gencode <lang>
+					else
+						case ${Code} in
+							#clide --gencode <code>
+							-*)
+								Lang=$(SelectLangByCode $1)
+								Code=$1
+								;;
+							# $ clide --gencode <lang> <code> or $ clide --gencode <code>
+							*)
+								Lang=$(pgLang $1)
+								;;
+						esac
+
+						case ${Lang} in
+							no)
+								errorCode "lang" "cli-not-supported" "$1"
+								;;
+							*)
+								local CodeDir=$(pgDir ${Lang})
+								if [ ! -z "${CodeDir}" ] && [ -d "${CodeDir}" ]; then
+									cd ${CodeDir}
+									TheSrcCode=$(selectCode ${Lang} ${Code})
+									if [ ! -z "${Code}" ]; then
+										InAndOut="yes"
+										Actions ${Lang} ${Code} "gencode"
+									else
+										errorCode "cli-gencode" "none"
+									fi
+								else
+									errorCode "cli-gencode" "none"
+								fi
+								;;
+						esac
+					fi
+				fi
+				;;
 			#compile code without entering cl[ide]
 			#clide --cpl <lang> <code> <args>
 			--cpl|--compile)
