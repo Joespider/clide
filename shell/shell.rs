@@ -141,7 +141,7 @@ fn starts_with(the_string: &str, start: &str) -> bool
 		return false;
 	}
 }
-
+/*
 fn ends_with(the_string: &str, end: &str) -> bool
 {
 	if the_string.ends_with(end)
@@ -153,7 +153,7 @@ fn ends_with(the_string: &str, end: &str) -> bool
 		return false;
 	}
 }
-
+*/
 fn raw_input(message: &str) -> String
 {
 	use std::io::{stdin,stdout,Write};
@@ -317,14 +317,14 @@ fn banner()
 {
 	let cpl_version = get_cpl_version();
 	let the_os = get_os();
-	let version = "0.0.25";
+	let version = "0.0.27";
 	println!("{}",cpl_version);
 	println!("[Rust {}] on {}",version,the_os);
 	println!("Type \"help\" for more information.");
 }
 
 /*
-<<shell>> [String]TranslateTag:(String)Input []-(String)Action []-el []-(String)Value []-el []-(String)NewTag []-el []-(String)TheDataType []-el []-(String)Nest []-el []-(String)ContentFor []-el []-nl if:IsIn(Input,":") else []-nl while:StartsWith(Action,">") []-nl else-if:StartsWith(Action,"lg-") []-nl else-if:StartsWith(Action,"lp-") []-nl else-if:StartsWith(Action,"m-") []-nl if:Action(-eq)"if"(-or)Action(-eq)"else-if" else-if:Action(-eq)"else" else-if:Action(-eq)"while"(-or)Action(-eq)"for"(-or)Action(-eq)"do/while" else +->if:Value(-ne)"" +->else
+<<shell>> [string]TranslateTag:(String)Input []-tab []-(string)Action:Input []-el []-tab []-(string)Value:"" []-el []-tab []-(string)VarName:"" []-el []-tab []-(String)NewTag:"" []-el []-tab []-(string)TheDataType:"" []-el []-tab []-(String)Nest:"" []-el []-tab []-(String)ContentFor:"" []-el []-nl if:StartsWith(Action,"+-") +-tab +-tab +-var:Action= +-stmt:method-AfterSplit +-params:Action,'-' +-el +-tab +-tab +-var:ContentFor="logic-" +-el []-nl else-if:StartsWith(Action,"o-") +-tab +-tab +-var:Action= +-stmt:method-AfterSplit +-params:Action,'-' +-el +-tab +-tab +-var:ContentFor="loop-" +-el []-nl else-if:StartsWith(Action,"[]-") +-tab +-tab +-var:Action= +-stmt:method-AfterSplit +-params:Action,'-' +-el +-tab +-tab +-var:ContentFor="method-" +-el []-nl while:StartsWith(Action,">") o-tab o-tab o-var:Action= o-stmt:method-AfterSplit o-params:Action,'>' o-el o-tab o-tab o-var:Nest="nest-"+Action o-stmt:endline if:StartsWith(Action,"if")(-or)StartsWith(Action,"else-if") +-tab +-tab +-var:Value= +-stmt:method-AfterSplit +-params:Action,':' +-el +-tab +-tab +-var:Action= +-stmt:method-BeforeSplit +-params:Action,':' +-el +-tab +-tab +-var:Nest="logic:"+Nest +-el +-tab +-tab +-var:Value="logic-condition:"+Value +-el +-tab +-tab +-var:TheReturn=ContentFor+Nest+NewTag+"(-spc)"+Value +-el else-if:Action(-eq)"else" +-tab +-tab +-var:NewTag="logic:"+Action +-el +-tab +-tab +-var:TheReturng=ContentFor+Nest+NewTag +-el else-if:StartsWith(Action,"while:")(-or)StartsWith(Action,"for:"(-or)StartsWith(Action,"do/while:") +-tab +-tab +-var:Value= +-stmt:method-AfterSplit +-params:Action,':' +-el +-tab +-tab +-var:Action= +-stmt:method-BeforeSplit +-params:Action,':' +-el +-tab +-tab +-var:Nest="loop:"+Nest +-el +-tab +-tab +-var:Value="loop-condition:"+Value +-el +-tab +-tab +-var:TheReturn=ContentFor+Nest+NewTag+"(-spc)"+Value +-el else-if:StartsWith(Action,"{")(-and)IsIn(Action,"}") +-tab +-tab +-var:TheDataType= +-stmt:method-BeforeSplit +-params:Action,'}' +-el +-tab +-tab +-var:TheDataType= +-stmt:method-AfterSplit +-params:Action,'{' +-el +-tab +-tab +-var:Action= +-stmt:method-AfterSplit +-params:Action,'{' +-el +->if:IsIn(Action,":") +-tab +-tab +-tab +-var:Value= +-stmt:method-AfterSplit +-params:Action,':' +-el +-tab +-tab +-tab +-var:Action= +-stmt:method-BeforeSplit +-params:Action,':' +-el +->if:Value(-ne)"" +-tab +-tab +-tab +-var:TheReturn="class:("+TheDataType+")"+Action+"(-spc)params:"+Value +-el +->else +-tab +-tab +-tab +-var:TheReturn="class:("+TheDataType+")"+Action +-el else-if:StartsWith(Action,"[")(-and)IsIn(Action,"]") +-tab +-tab +-var:TheDataType= +-stmt:method-BeforeSplit +-params:Action,']' +-el +-tab +-tab +-var:TheDataType= +-stmt:method-AfterSplit +-params:TheDataType,'[' +-el +-tab +-tab +-var:Action= +-stmt:method-AfterSplit +-params:Action,']' +-el +->if:IsIn(Action,":") +-tab +-tab +-tab +-var:Value= +-stmt:method-AfterSplit+-params:Action,':' +-el +-tab +-tab +-tab +-var:Action= +-stmt:method-BeforeSplit +-params:Action,':' +-el +->if:Value(-ne)"" +-tab +-tab +-tab +-var:TheReturn=ContentFor+"method:("+TheDataType+")"+Action+"="+Value +-el +->else +-tab +-tab +-tab +-var:TheReturn=ContentFor+"method:("+TheDataType+")"+Action +-el else-if:StartsWith(Action,"(")(-and)IsIn(Action,")") +-tab +-tab +-var:TheDataType= +-stmt:method-BeforeSplit +-params:Action,')' +-el +-tab +-tab +-var:TheDataType= +-stmt:method-AfterSplit +-params:TheDataType,'(' +-el +-tab +-tab +-var:Action= +-stmt:method-AfterSplit +-params:Action,')' +-el +->if:IsIn(Action,":") +-tab +-tab +-tab +-var:Value= +-stmt:method-AfterSplit +-params:Action,':' +-el +-tab +-tab +-tab +-var:Action= +-stmt:method-BeforeSplit +-params:Action,':' +-el +->if:Value(-ne)"" +-tab +-tab +-tab +-var:TheReturn=ContentFor+"var:("+TheDataType+")"+Action+"="+Value +-el +->else +-tab +-tab +-tab +-var:TheReturn=ContentFor+"var:("+TheDataType+")"+Action +-el else-if:Action(-eq)"el") +-tab +-tab +-var:TheReturn=ContentFor+"stmt:endline" +-el else-if:Action(-eq)"nl") +-tab +-tab +-var:TheReturn=ContentFor+"stmt:newline" +-el else-if:Action(-eq)"tab") +-tab +-tab +-var:TheReturn=ContentFor+"stmt:"+Action +-el else +->if:Value(-ne)"" +-tab +-tab +-tab +-var:TheReturn=ContentFor+Nest+Action+":"+Value +-el +->else +-tab +-tab +-tab +-var:TheReturn=ContentFor+Nest+Action +-el
 */
 fn translate_tag(input: &str) -> String
 {
@@ -828,7 +828,7 @@ fn gen_class(the_name: &str, the_content: &str) -> String
 	return the_complete;
 }
 
-//wmethod:
+//method:
 fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 {
 	let mut the_last = false;
@@ -932,15 +932,17 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 				can_split = true;
 			}
 
-			the_other_content = replace_tag(&the_other_content, "method-");
+//			the_other_content = replace_tag(&the_other_content, "method-");
 
 			let mut parse_content = String::from("");
 
 			let cmds: Vec<&str> = the_other_content.split(" ").collect();
 			for item in &cmds
 			{
+				let corrected = replace_tag(&item, "method-").clone();
+
 				//starts with "logic:" or "loop:"
-				if starts_with(item,"logic:") || starts_with(item,"loop:") || starts_with(item,"var:") || starts_with(item,"stmt:")
+				if starts_with(&corrected,"logic:") || starts_with(&corrected,"loop:") || starts_with(&corrected,"var:") || starts_with(&corrected,"stmt:")
 				{
 					//Only process code that starts with "logic:" or "loop:"
 					if parse_content != ""
@@ -950,7 +952,7 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 					}
 					//Reset content
 					parse_content = String::from("");
-					parse_content.push_str(item);
+					parse_content.push_str(&corrected);
 				}
 				//start another line to process
 				else
@@ -1534,7 +1536,7 @@ fn gen_statements(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Str
 	let mut the_params = String::from("");
 	let mut passed_content = the_content.to_string();
 
-	if is_in(&new_kind,":")
+	if starts_with(&new_kind, "stmt:")
 	{
 		new_kind = after_split(&new_kind,":");
 	}
@@ -1583,8 +1585,17 @@ fn gen_statements(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Str
 		else
 		{
 			the_other_content = before_split(&passed_content," ");
-			statement_content.push_str(&gen_code(the_tabs,&the_other_content));
 			passed_content = after_split(&passed_content," ");
+			if starts_with(&passed_content, "params:")
+			{
+				let mut newer_other_content = String::from("");
+				newer_other_content.push_str(&the_other_content);
+				newer_other_content.push_str(" ");
+				newer_other_content.push_str(&before_split(&passed_content," "));
+				the_other_content = newer_other_content.to_string();
+				passed_content = after_split(&passed_content," ");
+			}
+			statement_content.push_str(&gen_code(the_tabs,&the_other_content));
 		}
 	}
 
@@ -1606,6 +1617,11 @@ fn gen_statements(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Str
 		the_complete.push_str(&statement_content);
 		the_complete.push_str("\n");
 	}
+	else if the_name == "tab"
+	{
+		the_complete.push_str("\t");
+		the_complete.push_str(&statement_content);
+	}
 
 	return the_complete;
 }
@@ -1614,25 +1630,26 @@ fn gen_statements(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Str
 fn gen_variables(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 {
 	let mut the_last = false;
+	let mut make_equal = false;
+	let mut new_kind = the_kind_type.to_string();
 	let mut new_var = String::new();
-	let the_type: String;
-	let the_name: String;
-	let mut var_type: String;
-	let the_value: String;
+//	let the_type: String;
+	let mut the_name = String::from("");
+	let mut var_type = String::from("");
+	let mut the_value = String::from("");
 //	let the_new_content = String::new();
 	let mut variable_content = String::new();
-	let mut the_other_content = String::from("");
+//	let mut the_other_content = String::from("");
+	let mut the_other_content: String;
 	let mut passed_content = the_content.to_string();
+
+	if starts_with(&new_kind, "var:")
+	{
+		new_kind = after_split(&new_kind,":");
+	}
 
 	while passed_content != ""
 	{
-		if starts_with(&passed_content, "params:")
-		{
-			the_other_content.push_str(" ");
-			the_other_content.push_str(&before_split(&passed_content," "));
-			passed_content = after_split(&passed_content," ");
-		}
-
 		if the_last
 		{
 			break;
@@ -1650,86 +1667,55 @@ fn gen_variables(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Stri
 		}
 		else
 		{
-			the_other_content = String::from(&before_split(&passed_content," "));
-			variable_content.push_str(&gen_code(the_tabs,&the_other_content));
+			the_other_content = before_split(&passed_content," ");
 			passed_content = after_split(&passed_content," ");
+			if starts_with(&passed_content, "params:")
+			{
+				let mut newer_other_content = String::from("");
+				newer_other_content.push_str(&the_other_content);
+				newer_other_content.push_str(" ");
+				newer_other_content.push_str(&before_split(&passed_content," "));
+				the_other_content = newer_other_content.to_string();
+				passed_content = after_split(&passed_content," ");
+			}
+			variable_content.push_str(&gen_code(the_tabs,&the_other_content));
 		}
 	}
 
-	//var:name-dataType=Value
-	if is_in(the_kind_type,":") && is_in(the_kind_type,"-") && is_in(the_kind_type,"=") && !ends_with(the_kind_type, "=")
+	//Pull Variable Type
+	if starts_with(&new_kind,"(") && is_in(&new_kind,")")
 	{
-		the_type = String::from(&after_split(the_kind_type,":"));
-		the_name = String::from(&before_split(&the_type,"-"));
-		var_type = String::from(&after_split(&the_type,"-"));
-		the_value = String::from(&after_split(&var_type,"="));
-		var_type = String::from(&before_split(&var_type,"="));
-
-		new_var.push_str(the_tabs);
-		new_var.push_str("let ");
-		new_var.push_str(&handle_names(&the_name));
-		new_var.push_str(": ");
-		new_var.push_str(&var_type);
-		new_var.push_str(" = ");
-
-		new_var.push_str(&the_value);
-		new_var.push_str(&variable_content);
+		var_type = String::from(&data_type(&after_split(&before_split(&new_kind,")"),"("),"var"));
+		new_kind = after_split(&new_kind,")");
+		the_name = String::from(new_kind.clone());
 	}
-	//var:name=Value
-	else if is_in(the_kind_type,":") && !is_in(the_kind_type,"-") && is_in(the_kind_type,"=") && !ends_with(the_kind_type, "=")
+
+	//Assign Value
+	if is_in(&new_kind,"=")
 	{
-		the_type = String::from(&after_split(the_kind_type,":"));
-		the_name = String::from(&before_split(&the_type,"="));
-		the_value = after_split(&the_type,"=");
-
-		new_var.push_str(the_tabs);
-		new_var.push_str(&handle_names(&the_name));
-		new_var.push_str(" = ");
-		new_var.push_str(&the_value);
-
-		new_var.push_str(&variable_content);
+		make_equal = true;
+		the_name = before_split(&new_kind,"=");
+		the_value = after_split(&new_kind,"=");
 	}
-	//var:name-dataType=
-	else if is_in(the_kind_type,":") && is_in(the_kind_type,"-") && ends_with(the_kind_type, "=")
-	{
-		the_type = String::from(&after_split(the_kind_type,":"));
-		the_name = String::from(&before_split(&the_type,"-"));
-		var_type = String::from(&after_split(&the_type,"-"));
-		var_type = String::from(&before_split(&var_type,"="));
 
-		new_var.push_str(the_tabs);
-		new_var.push_str("let ");
-		new_var.push_str(&handle_names(&the_name));
-		new_var.push_str(": ");
-		new_var.push_str(&var_type);
-		new_var.push_str(" = ");
-		new_var.push_str(&variable_content);
-	}
-	//var:name=
-	else if is_in(the_kind_type,":") && !is_in(the_kind_type,"-") && ends_with(the_kind_type, "=")
+	if var_type != ""
 	{
-		the_type = String::from(&after_split(the_kind_type,":"));
-		the_name = String::from(&before_split(&the_type,"="));
-		//Value = after_split(the_type,"=");
-
-		new_var.push_str(the_tabs);
-		new_var.push_str(&handle_names(&the_name));
-		new_var.push_str(" = ");
-		new_var.push_str(&variable_content);
-	}
-	//var:name-dataType
-	else if is_in(the_kind_type,":") && is_in(the_kind_type,"-") && !is_in(the_kind_type,"=")
-	{
-		the_type = String::from(&after_split(the_kind_type,":"));
-		the_name = String::from(&before_split(&the_type,"-"));
-		var_type = after_split(&the_type,"-");
-
-		new_var.push_str(the_tabs);
 		new_var.push_str(&var_type);
 		new_var.push_str(" ");
-		new_var.push_str(&handle_names(&the_name));
-		new_var.push_str(&variable_content);
 	}
+
+	if make_equal == true
+	{
+		new_var.push_str(&the_name);
+		new_var.push_str(" = ");
+		new_var.push_str(&the_value);
+	}
+	else
+	{
+		new_var.push_str(&the_name);
+	}
+	new_var.push_str(&variable_content);
+
 	return new_var;
 }
 
