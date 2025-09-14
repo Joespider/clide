@@ -56,16 +56,20 @@ fn the_help(the_type: &str)
 	}
 	else if new_the_type == "var"
 	{
-		println!("{}(public/private):<name>-<type>=value\tcreate a new variable",new_the_type);
-		println!("{}:<name>-<type>[<num>]=value\tcreate a new variable as an array",new_the_type);
-		println!("{}:<name>-<type>(<struct>)=value\tcreate a new variable a data structure",new_the_type);
-		println!("{}:<name>=value\tassign a new value to an existing variable",new_the_type);
+//		println!("{}(public/private):<name>-<type>=value\tcreate a new variable",new_the_type);
+//		println!("{}:<name>-<type>[<num>]=value\tcreate a new variable as an array",new_the_type);
+//		println!("{}:<name>-<type>(<struct>)=value\tcreate a new variable a data structure",new_the_type);
+//		println!("{}:<name>=value\tassign a new value to an existing variable",new_the_type);
+//		println!("");
 
 		println!("");
 		println!("{{EXAMPLE}}");
-		println!("{}:name-std::string[3]",new_the_type);
-		println!("{}:name-std::string(vector)",new_the_type);
-		println!("{}:name-std::string=\"\" var:point-int=0 stmt:endline var:james-std::string=\"James\" stmt:endline var:help-int",new_the_type);
+//		println!("{}:name-std::string[3]",new_the_type);
+//		println!("{}:name-std::string(vector)",new_the_type);
+//		println!("{}:name-std::string=\"\" var:point-int=0 stmt:endline var:james-std::string=\"James\" stmt:endline var:help-int",new_the_type);
+		println!("<<shell>> (std::string)name=\"\" el (int)point=0 el (std::string)james=\"James\" el (int)help el help=0");
+		println!("{{OUTPUT}}");
+		example("(std::string)name=\"\" el (int)point=0 el (std::string)james=\"James\" el (int)help el help=0");
 	}
 	else if new_the_type == "stmt"
 	{
@@ -286,25 +290,30 @@ fn replace_all(message: &str, s_by: &str, j_by: &str) -> String
 */
 
 
-fn replace_tag(the_content: &str, the_tag: &str) -> String
+fn replace_tag(the_content: &str, the_tag: &str, all: bool) -> String
 {
 	let mut the_new_content = String::from("");
 	let passed_content = the_content.to_string();
 
 	if is_in(&passed_content," ") && starts_with(&passed_content, the_tag)
 	{
+		let mut remove = true;
 		let mut new_content = String::new();
 		let mut the_next: String;
 
-		let all: Vec<&str> = passed_content.split(" ").collect();
-		for item in &all
+		let all_items: Vec<&str> = passed_content.split(" ").collect();
+		for item in &all_items
 		{
 			the_next = item.to_string();
 			//element starts with tag
-			if starts_with(&the_next, the_tag)
+			if starts_with(&the_next, the_tag) && remove == true
 			{
 				//remove tag
 				the_next = after_split(&the_next,"-");
+				if all
+				{
+					remove = false;
+				}
 			}
 
 			if new_content == ""
@@ -337,7 +346,7 @@ fn banner()
 {
 	let cpl_version = get_cpl_version();
 	let the_os = get_os();
-	let version = "0.0.31";
+	let version = "0.0.33";
 	println!("{}",cpl_version);
 	println!("[Rust {}] on {}",version,the_os);
 	println!("Type \"help\" for more information.");
@@ -968,7 +977,7 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 			let cmds: Vec<&str> = the_other_content.split(" ").collect();
 			for item in &cmds
 			{
-				let corrected = replace_tag(&item, "method-").clone();
+				let corrected = replace_tag(&item, "method-",false).clone();
 
 				//starts with "logic:" or "loop:"
 				if starts_with(&corrected,"logic:") || starts_with(&corrected,"loop:") || starts_with(&corrected,"var:") || starts_with(&corrected,"stmt:")
@@ -1088,7 +1097,7 @@ fn gen_loop(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 
 	while passed_content != ""
 	{
-		passed_content = replace_tag(&passed_content, "loop-");
+		passed_content = replace_tag(&passed_content, "loop-",true);
 
 		if starts_with(&passed_content, "condition:")
 		{
@@ -1228,7 +1237,7 @@ fn gen_loop(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 		}
 		else if starts_with(&passed_content, "loop-") || starts_with(&passed_content, "var:") || starts_with(&passed_content, "stmt:")
 		{
-			passed_content = replace_tag(&passed_content, "loop-");
+			passed_content = replace_tag(&passed_content, "loop-",true);
 			loop_content.push_str(&gen_code(&new_tabs,&passed_content));
 			passed_content = "".to_string();
 		}
@@ -1324,7 +1333,7 @@ fn gen_logic(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 
 	while passed_content != ""
 	{
-		passed_content = replace_tag(&passed_content, "logic-");
+		passed_content = replace_tag(&passed_content, "logic-",true);
 
 		if starts_with(&passed_content, "condition:")
 		{
@@ -1431,9 +1440,10 @@ fn gen_logic(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 			}
 			new_content = "".to_string();
 		}
-		else if starts_with(&passed_content, "logic-") || starts_with(&passed_content, "var:") || starts_with(&passed_content, "stmt:")
+		else if starts_with(&passed_content, "var:") || starts_with(&passed_content, "stmt:")
+//		else if starts_with(&passed_content, "logic-") || starts_with(&passed_content, "var:") || starts_with(&passed_content, "stmt:")
 		{
-			passed_content = replace_tag(&passed_content, "logic-");
+//			passed_content = replace_tag(&passed_content, "logic-");
 			logic_content.push_str(&gen_code(&new_tabs,&passed_content));
 			passed_content = "".to_string();
 		}
@@ -1804,6 +1814,33 @@ fn gen_code(the_tabs: &str, get_me: &str) -> String
 	}
 */
 	return the_code;
+}
+
+/*
+<<shell>> []Example:(String)tag while:true o-if:IsIn el
+// params:Type-String if:Type(-eq)"String"(-or)Type(-eq)"string" +-var:TheReturn="std::string" +-stmt:endline else-if:Type(-eq)"boolean" +-var:Type="bool" +-stmt:endline else +-var:TheReturn=Type +-stmt:endline
+*/
+fn example(tag: &str)
+{
+	let mut user_in = String::new();
+	if is_in(tag, " ")
+	{
+		let all: Vec<&str> = tag.split(" ").collect();
+		for item in &all
+		{
+			if user_in == ""
+			{
+				user_in.push_str(&translate_tag(&item));
+			}
+			else
+			{
+				user_in.push_str(&translate_tag(" "));
+				user_in.push_str(&translate_tag(&item));
+			}
+		}
+	}
+	user_in.push_str(&gen_code("", &user_in));
+	println!("{}",user_in);
 }
 
 fn main()

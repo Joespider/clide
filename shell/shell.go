@@ -55,15 +55,21 @@ func help(Type string) {
 		fmt.Println(Type+":else-if")
 		fmt.Println(Type+":switch")
 	} else if Type == "var" {
-		fmt.Println(Type+"(public/private):<name>-<type>=value\tcreate a new variable")
-		fmt.Println(Type+":<name>-<type>[<num>]=value\tcreate a new variable as an array")
-		fmt.Println(Type+":<name>-<type>(<struct>)=value\tcreate a new variable a data structure")
-		fmt.Println(Type+":<name>=value\tassign a new value to an existing variable")
+//		fmt.Println(Type+"(public/private):<name>-<type>=value\tcreate a new variable")
+//		fmt.Println(Type+":(<type>)<name>[<num>]=value\tcreate a new variable as an array")
+//		fmt.Println(Type+":(<type>{<struct>})<name>=value\tcreate a new variable a data structure")
+//		fmt.Println(Type+":<name>=value\tassign a new value to an existing variable")
+//		fmt.Println("")
+		fmt.Println("(<type>)<name>=value\tassign a new value to a variable")
+		fmt.Println("<name>=value\tassign a new value to an existing variable")
 		fmt.Println("")
 		fmt.Println("{EXAMPLE}")
-		fmt.Println(Type+":name-std::string[3]")
-		fmt.Println(Type+":name-std::string(vector)")
-		fmt.Println(Type+":name-std::string=\"\" var:point-int=0 stmt:endline var:james-std::string=\"James\" stmt:endline var:help-int")
+//		fmt.Println(Type+":name-std::string[3]")
+//		fmt.Println(Type+":name-std::string(vector)")
+//		fmt.Println(Type+":(std::string)name=\"\" var:(int)point=0 stmt:endline var:james-std::string=\"James\" stmt:endline var:help-int")
+		fmt.Println("<<shell>> (std::string)name=\"\" el (int)point=0 el (std::string)james=\"James\" el (int)help el help=0")
+		fmt.Println("{OUTPUT}")
+		Example("(std::string)name=\"\" el (int)point=0 el (std::string)james=\"James\" el (int)help el help=0")
 	} else if Type == "stmt" {
 		fmt.Println(Type+":<type>")
 		fmt.Println(Type+":endline\t\tPlace the \"\" at the end of the statement")
@@ -191,8 +197,9 @@ func replaceAll(Str string, sBy string, ToJoin string) string {
 	----[shell]----
 */
 
-func ReplaceTag(Content string, Tag string) string {
+func ReplaceTag(Content string, Tag string, All bool) string {
 	if IsIn(Content," ") && StartsWith(Content, Tag) {
+		var remove bool = true
 		var NewContent string = ""
 		var Next string = ""
 		var all []string = split(Content," ")
@@ -201,9 +208,12 @@ func ReplaceTag(Content string, Tag string) string {
 		for lp != end {
 			Next = all[lp]
 			//element starts with tag
-			if StartsWith(Next, Tag) {
+			if StartsWith(Next, Tag) && remove == true {
 				//remove tag
 				Next = AfterSplit(Next,"-")
+				if All {
+					remove = false
+				}
 			}
 
 			if NewContent == "" {
@@ -226,7 +236,7 @@ func ReplaceTag(Content string, Tag string) string {
 func banner() {
 	var cplV string = getCplV()
 	var theOS string = getOS()
-	var Version string = "0.0.17"
+	var Version string = "0.0.18"
 	fmt.Println(cplV)
 	fmt.Println("[Go " + Version +"] on " + theOS)
 	fmt.Println("Type \"help\" for more information.")
@@ -544,15 +554,17 @@ func Method(Tabs string, Name string, Content string) string {
 				CanSplit = true
 			}
 
-			OtherContent = ReplaceTag(OtherContent, "method-")
-			var ParseContent string = ""
+//			OtherContent = ReplaceTag(OtherContent, "method-")
 
+			var ParseContent string = ""
+			var Corrected string = ""
 			var cmds []string = split(OtherContent," ")
 			var end int = len(cmds)
 			var lp int = 0
 			for lp != end {
+				Corrected = ReplaceTag(cmds[lp], "method-", false)
 				//starts with "logic:" or "loop:"
-				if StartsWith(cmds[lp],"logic:") || StartsWith(cmds[lp],"loop:") || StartsWith(cmds[lp],"var:") || StartsWith(cmds[lp],"stmt:") {
+				if StartsWith(Corrected,"logic:") || StartsWith(cmds[lp],"loop:") || StartsWith(cmds[lp],"var:") || StartsWith(Corrected,"stmt:") {
 					//Only process code that starts with "logic:" or "loop:"
 					if ParseContent != "" {
 
@@ -566,11 +578,11 @@ func Method(Tabs string, Name string, Content string) string {
 						MethodContent = MethodContent + GenCode(Tabs+"\t",ParseContent)
 					}
 					//Reset content
-					ParseContent = cmds[lp]
+					ParseContent = Corrected
 				//start another line to process
 				} else {
 					//append content
-					ParseContent = ParseContent +" "+ cmds[lp]
+					ParseContent = ParseContent +" "+ Corrected
 				}
 
 				lp++
@@ -618,7 +630,6 @@ func Method(Tabs string, Name string, Content string) string {
 
 //loop:
 func Loop(Tabs string, TheKindType string, Content string) string {
-
 	var Last bool = false
 	var Complete string
 	var RootTag string
@@ -635,7 +646,7 @@ func Loop(Tabs string, TheKindType string, Content string) string {
 
 	//content for loop
 	for Content != "" {
-		Content = ReplaceTag(Content, "loop-")
+		Content = ReplaceTag(Content, "loop-",true)
 
 		if StartsWith(Content, "condition") {
 			if IsIn(Content," ") {
@@ -754,7 +765,7 @@ func Loop(Tabs string, TheKindType string, Content string) string {
 
 			NewContent = ""
 		} else if StartsWith(Content, "loop-") || StartsWith(Content, "var:") || StartsWith(Content, "stmt:") {
-			Content = ReplaceTag(Content, "loop-")
+			Content = ReplaceTag(Content, "loop-",true)
 			LoopContent = LoopContent + GenCode(Tabs+"\t",Content)
 			Content = ""
 		//no nested content
@@ -813,7 +824,7 @@ func Logic(Tabs string, TheKindType string, Content string) string {
 
 	for Content != "" {
 
-		Content = ReplaceTag(Content, "logic-")
+		Content = ReplaceTag(Content, "logic-",true)
 
 		if StartsWith(Content, "condition") {
 			if IsIn(Content," ") {
@@ -902,8 +913,9 @@ func Logic(Tabs string, TheKindType string, Content string) string {
 			}
 
 			NewContent = ""
-		} else if StartsWith(Content, "logic-") || StartsWith(Content, "var:") || StartsWith(Content, "stmt:") {
-			Content = ReplaceTag(Content, "logic-")
+		} else if StartsWith(Content, "var:") || StartsWith(Content, "stmt:") {
+//		} else if StartsWith(Content, "logic-") || StartsWith(Content, "var:") || StartsWith(Content, "stmt:") {
+//			Content = ReplaceTag(Content, "logic-")
 			LogicContent = LogicContent + GenCode(Tabs+"\t",Content)
 			Content = ""
 		} else {
@@ -1138,6 +1150,27 @@ func GenCode(Tabs string, GetMe string) string {
 	}
 */
 	return TheCode
+}
+
+func Example(tag string) {
+	var UserIn string = ""
+	if IsIn(tag," ") {
+		var all []string = split(tag," ")
+		var end int = len(all)
+		var lp int = 0
+		for lp != end {
+			if UserIn == "" {
+				UserIn = TranslateTag(all[lp])
+			} else {
+				UserIn = UserIn + " " +TranslateTag(all[lp])
+			}
+			lp++
+		}
+	}
+	fmt.Println(UserIn)
+	UserIn = GenCode("",UserIn)
+
+	fmt.Println(UserIn)
 }
 
 //main

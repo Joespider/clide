@@ -12,7 +12,7 @@ import java.io.IOException;
 
 //class name
 public class shell {
-	private static String Version = "0.0.40";
+	private static String Version = "0.0.41";
 	private static String TheKind = "";
 	private static String TheName = "";
 	private static String TheKindType = "";
@@ -63,15 +63,21 @@ public class shell {
 		}
 		else if (Type.equals("var"))
 		{
-			print(Type+"(public/private):<name>-<type>=value\tcreate a new variable");
-			print(Type+":<name>-<type>[<num>]=value\tcreate a new variable as an array");
-			print(Type+":<name>-<type>(<struct>)=value\tcreate a new variable a data structure");
-			print(Type+":<name>=value\tassign a new value to an existing variable");
+//			print(Type+"(public/private):<name>-<type>=value\tcreate a new variable");
+//			print(Type+":(<type>)<name>[<num>]=value\tcreate a new variable as an array");
+//			print(Type+":(<type>{<struct>})<name>=value\tcreate a new variable a data structure");
+//			print(Type+":<name>=value\tassign a new value to an existing variable");
+//			print("");
+			print("(<type>)<name>=value\tassign a new value to a variable");
+			print("<name>=value\tassign a new value to an existing variable");
 			print("");
 			print("{EXAMPLE}");
-			print(Type+":name-std::string[3]");
-			print(Type+":name-std::string(vector)");
-			print(Type+":name-std::string=\"\" var:point-int=0 stmt:endline var:james-std::string=\"James\" stmt:endline var:help-int");
+//			print(Type+":name-std::string[3]");
+//			print(Type+":name-std::string(vector)");
+//			print(Type+":(std::string)name=\"\" var:(int)point=0 stmt:endline var:james-std::string=\"James\" stmt:endline var:help-int");
+			print("<<shell>> (std::string)name=\"\" el (int)point=0 el (std::string)james=\"James\" el (int)help el help=0");
+			print("{OUTPUT}");
+			Example("(std::string)name=\"\" el (int)point=0 el (std::string)james=\"James\" el (int)help el help=0");
 		}
 		else if (Type.equals("stmt"))
 		{
@@ -332,23 +338,28 @@ public class shell {
 */
 
 
-	private static String ReplaceTag(String Content, String Tag)
+	private static String ReplaceTag(String Content, String Tag, boolean all)
 	{
 		if ((IsIn(Content," ")) && (StartsWith(Content, Tag)))
 		{
+			boolean remove = true;
 			StringBuilder NewContent = new StringBuilder("");
 			String Next = "";
-			String[] all = split(Content," ");
-			int end = len(all);
+			String[] all_items = split(Content," ");
+			int end = len(all_items);
 			int lp = 0;
 			while (lp != end)
 			{
-				Next = all[lp];
+				Next = all_items[lp];
 				//element starts with tag
-				if (StartsWith(Next, Tag))
+				if (StartsWith(Next, Tag) && (remove == true))
 				{
 					//remove tag
 					Next = AfterSplit(Next,"-");
+					if (all)
+					{
+						remove = false;
+					}
 				}
 
 				if (NewContent.toString().equals(""))
@@ -996,7 +1007,7 @@ public class shell {
 					OtherContent = new StringBuilder(Content);
 					CanSplit = true;
 				}
-				OtherContent = new StringBuilder(ReplaceTag(OtherContent.toString(), "method-"));
+//				OtherContent = new StringBuilder(ReplaceTag(OtherContent.toString(), "method-"));
 
 				StringBuilder ParseContent = new StringBuilder("");
 				String Corrected = "";
@@ -1006,7 +1017,7 @@ public class shell {
 				int lp = 0;
 				while (lp != end)
 				{
-					Corrected = ReplaceTag(cmds[lp], "method-");
+					Corrected = ReplaceTag(cmds[lp], "method-",false);
 					//starts with "logic:" or "loop:"
 					if ((StartsWith(Corrected,"logic:")) || (StartsWith(Corrected,"loop:")) || (StartsWith(Corrected,"var:")) || (StartsWith(Corrected,"stmt:")))
 					{
@@ -1100,7 +1111,7 @@ public class shell {
 		//content for loop
 		while (!Content.equals(""))
 		{
-			Content = ReplaceTag(Content,"loop-");
+			Content = ReplaceTag(Content,"loop-",true);
 
 			if (StartsWith(Content, "condition"))
 			{
@@ -1243,7 +1254,7 @@ public class shell {
 
 			else if ((StartsWith(Content, "loop-")) || (StartsWith(Content, "var:")) || (StartsWith(Content, "stmt:")))
 			{
-				Content = ReplaceTag(Content, "loop-");
+				Content = ReplaceTag(Content, "loop-",true);
 				LoopContent.append(GenCode(Tabs+"\t",Content));
 				Content = "";
 			}
@@ -1305,7 +1316,7 @@ public class shell {
 
 		while (!Content.equals(""))
 		{
-			Content = ReplaceTag(Content, "logic-");
+			Content = ReplaceTag(Content, "logic-",true);
 
 			if (StartsWith(Content, "condition"))
 			{
@@ -1501,99 +1512,99 @@ public class shell {
 		return Complete.toString();
 	}
 
-//stmt:
-private static String Statements(String Tabs, String TheKindType, String Content)
-{
-	boolean Last = false;
-	String Complete = "";
-	StringBuilder StatementContent = new StringBuilder("");
-	StringBuilder OtherContent = new StringBuilder("");
-	String TheName = "";
-	String Name = "";
-	String Process = "";
-	String Params = "";
+	//stmt:
+	private static String Statements(String Tabs, String TheKindType, String Content)
+	{
+		boolean Last = false;
+		String Complete = "";
+		StringBuilder StatementContent = new StringBuilder("");
+		StringBuilder OtherContent = new StringBuilder("");
+		String TheName = "";
+		String Name = "";
+		String Process = "";
+		String Params = "";
 
-	if (StartsWith(TheKindType, "stmt:"))
-	{
-		TheKindType = AfterSplit(TheKindType,":");
-	}
-	if (IsIn(TheKindType,"-"))
-	{
-		TheName = BeforeSplit(TheKindType,"-");
-		Name = AfterSplit(TheKindType,"-");
-	}
-	else
-	{
-		TheName = TheKindType;
-	}
-
-	while (!Content.equals(""))
-	{
-		if ((StartsWith(Content, "params:")) && (Params.equals("")))
+		if (StartsWith(TheKindType, "stmt:"))
 		{
-			if (IsIn(Content," "))
-			{
-				Process = BeforeSplit(Content," ");
-			}
-			else
-			{
-				Process = Content;
-			}
-			Params =  Parameters(Process,"stmt");
+			TheKindType = AfterSplit(TheKindType,":");
 		}
-
-		if (Last)
+		if (IsIn(TheKindType,"-"))
 		{
-			break;
-		}
-
-		while (StartsWith(Content, "nest-"))
-		{
-			Content = AfterSplit(Content,"-");
-		}
-
-		if (!IsIn(Content," "))
-		{
-			StatementContent.append(GenCode(Tabs,Content));
-			Last = true;
+			TheName = BeforeSplit(TheKindType,"-");
+			Name = AfterSplit(TheKindType,"-");
 		}
 		else
 		{
-			OtherContent = new StringBuilder(BeforeSplit(Content," "));
-			Content = AfterSplit(Content," ");
-			if (StartsWith(Content, "params:"))
-			{
-				OtherContent.append(" ");
-				OtherContent.append(BeforeSplit(Content," "));
-				Content = AfterSplit(Content," ");
-			}
-			StatementContent.append(GenCode(Tabs,OtherContent.toString()));
+			TheName = TheKindType;
 		}
-	}
 
-	if (TheName.equals("method"))
-	{
-		Complete = Name+"("+Params+")"+StatementContent.toString();
-	}
-	else if (TheName.equals("comment"))
-	{
-		Complete = StatementContent.toString()+Tabs+"#Code goes here\n";
-	}
-	else if (TheName.equals("endline"))
-	{
-		Complete = StatementContent.toString()+";\n";
-	}
-	else if (TheName.equals("newline"))
-	{
-		Complete = StatementContent.toString()+"\n";
-	}
-	else if (TheName.equals("tab"))
-	{
-		Complete = "\t"+StatementContent.toString();
-	}
+		while (!Content.equals(""))
+		{
+			if ((StartsWith(Content, "params:")) && (Params.equals("")))
+			{
+				if (IsIn(Content," "))
+				{
+					Process = BeforeSplit(Content," ");
+				}
+				else
+				{
+					Process = Content;
+				}
+				Params =  Parameters(Process,"stmt");
+			}
 
-	return Complete;
-}
+			if (Last)
+			{
+				break;
+			}
+
+			while (StartsWith(Content, "nest-"))
+			{
+				Content = AfterSplit(Content,"-");
+			}
+
+			if (!IsIn(Content," "))
+			{
+				StatementContent.append(GenCode(Tabs,Content));
+				Last = true;
+			}
+			else
+			{
+				OtherContent = new StringBuilder(BeforeSplit(Content," "));
+				Content = AfterSplit(Content," ");
+				if (StartsWith(Content, "params:"))
+				{
+					OtherContent.append(" ");
+					OtherContent.append(BeforeSplit(Content," "));
+					Content = AfterSplit(Content," ");
+				}
+				StatementContent.append(GenCode(Tabs,OtherContent.toString()));
+			}
+		}
+
+		if (TheName.equals("method"))
+		{
+			Complete = Name+"("+Params+")"+StatementContent.toString();
+		}
+		else if (TheName.equals("comment"))
+		{
+			Complete = StatementContent.toString()+Tabs+"#Code goes here\n";
+		}
+		else if (TheName.equals("endline"))
+		{
+			Complete = StatementContent.toString()+";\n";
+		}
+		else if (TheName.equals("newline"))
+		{
+			Complete = StatementContent.toString()+"\n";
+		}
+		else if (TheName.equals("tab"))
+		{
+			Complete = "\t"+StatementContent.toString();
+		}
+
+		return Complete;
+	}
 
 	//var:
 	private static String Variables(String Tabs, String TheKindType, String Content)
@@ -1684,6 +1695,33 @@ private static String Statements(String Tabs, String TheKindType, String Content
 		NewVar.append(VariableContent);
 
 		return NewVar.toString();
+	}
+
+	private static void Example(String tag)
+	{
+		String Result;
+		StringBuilder UserIn = new StringBuilder("");
+		if (IsIn(tag," "))
+		{
+			String[] all = split(tag," ");
+			int end = len(all);
+			int lp = 0;
+			while (lp != end)
+			{
+				if (UserIn.toString().equals(""))
+				{
+					UserIn.append(TranslateTag(all[lp]));
+				}
+				else
+				{
+					UserIn.append(" ");
+					UserIn.append(TranslateTag(all[lp]));
+				}
+				lp++;
+			}
+		}
+		Result = GenCode("",UserIn.toString());
+		print(Result);
 	}
 
 	private static String GenCode(String Tabs,String GetMe)

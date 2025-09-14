@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.0.79";
+String Version = "0.0.80";
 
 String getOS();
 void Help(String Type);
@@ -40,7 +40,7 @@ String replaceAll(String message, String sBy, String jBy);
 
 void banner();
 String DataType(String Type);
-String ReplaceTag(String Content, String Tag);
+String ReplaceTag(String Content, String Tag, bool All);
 String Conditions(String input,String CalledBy);
 String Parameters(String input,String CalledBy);
 String Struct(String TheName, String Content);
@@ -51,6 +51,7 @@ String Variables(String Tabs, String TheKindType, String Content);
 String Statements(String Tabs, String TheKindType, String Content);
 String Loop(String Tabs, String TheKindType, String Content);
 String Logic(String Tabs, String TheKindType, String Content);
+void Example(String tag);
 
 String getOS()
 {
@@ -120,12 +121,18 @@ void Help(String Type)
 //		print(Type+"(public/private):<name>-<type>=value\tcreate a new variable");
 //		print(Type+":(<type>)<name>[<num>]=value\tcreate a new variable as an array");
 //		print(Type+":(<type>{<struct>})<name>=value\tcreate a new variable a data structure");
-		print(Type+":<name>=value\tassign a new value to an existing variable");
+//		print(Type+":<name>=value\tassign a new value to an existing variable");
+//		print("");
+		print("(<type>)<name>=value\tassign a new value to a variable");
+		print("<name>=value\tassign a new value to an existing variable");
 		print("");
 		print("{EXAMPLE}");
 //		print(Type+":name-std::string[3]");
 //		print(Type+":name-std::string(vector)");
-		print(Type+":(std::string)name=\"\" var:(int)point=0 stmt:endline var:james-std::string=\"James\" stmt:endline var:help-int");
+//		print(Type+":(std::string)name=\"\" var:(int)point=0 stmt:endline var:james-std::string=\"James\" stmt:endline var:help-int");
+		print("<<shell>> (std::string)name=\"\" el (int)point=0 el (std::string)james=\"James\" el (int)help el help=0");
+		print("{OUTPUT}");
+		Example("(std::string)name=\"\" el (int)point=0 el (std::string)james=\"James\" el (int)help el help=0");
 	}
 	else if (Type == "stmt")
 	{
@@ -352,11 +359,11 @@ String replaceAll(String message, String sBy, String jBy)
 	----[shell]----
 */
 
-
-String ReplaceTag(String Content, String Tag)
+String ReplaceTag(String Content, String Tag, bool All)
 {
 	if ((IsIn(Content," ")) && (StartsWith(Content, Tag)))
 	{
+		bool remove = true;
 		String NewContent = "";
 		String Next = "";
 		std::vector<String> all = split(Content," ");
@@ -366,10 +373,14 @@ String ReplaceTag(String Content, String Tag)
 		{
 			Next = all[lp];
 			//element starts with tag
-			if (StartsWith(Next, Tag))
+			if (StartsWith(Next, Tag) && (remove == true))
 			{
 				//remove tag
 				Next = AfterSplit(Next,'-');
+				if (All)
+				{
+					remove = false;
+				}
 			}
 
 			if (NewContent == "")
@@ -403,7 +414,7 @@ void banner()
 }
 
 /*
-<<shell>> [string]TranslateTag:(String)Input []-tab []-(string)Action:Input []-el []-tab []-(string)Value:"" []-el []-tab []-(string)VarName:"" []-el []-tab []-(String)NewTag:"" []-el []-tab []-(string)TheDataType:"" []-el []-tab []-(String)Nest:"" []-el []-tab []-(String)ContentFor:"" []-el []-nl if:StartsWith(Action,"+-") +-tab +-tab +-var:Action= +-stmt:method-AfterSplit +-params:Action,'-' +-el +-tab +-tab +-var:ContentFor="logic-" +-el []-nl else-if:StartsWith(Action,"o-") +-tab +-tab +-var:Action= +-stmt:method-AfterSplit +-params:Action,'-' +-el +-tab +-tab +-var:ContentFor="loop-" +-el []-nl else-if:StartsWith(Action,"[]-") +-tab +-tab +-var:Action= +-stmt:method-AfterSplit +-params:Action,'-' +-el +-tab +-tab +-var:ContentFor="method-" +-el []-nl while:StartsWith(Action,">") o-tab o-tab o-var:Action= o-stmt:method-AfterSplit o-params:Action,'>' o-el o-tab o-tab o-var:Nest="nest-"+Action o-stmt:endline if:StartsWith(Action,"if")(-or)StartsWith(Action,"else-if") +-tab +-tab +-var:Value= +-stmt:method-AfterSplit +-params:Action,':' +-el +-tab +-tab +-var:Action= +-stmt:method-BeforeSplit +-params:Action,':' +-el +-tab +-tab +-var:Nest="logic:"+Nest +-el +-tab +-tab +-var:Value="logic-condition:"+Value +-el +-tab +-tab +-var:TheReturn=ContentFor+Nest+NewTag+"(-spc)"+Value +-el else-if:Action(-eq)"else" +-tab +-tab +-var:NewTag="logic:"+Action +-el +-tab +-tab +-var:TheReturng=ContentFor+Nest+NewTag +-el else-if:StartsWith(Action,"while:")(-or)StartsWith(Action,"for:"(-or)StartsWith(Action,"do/while:") +-tab +-tab +-var:Value= +-stmt:method-AfterSplit +-params:Action,':' +-el +-tab +-tab +-var:Action= +-stmt:method-BeforeSplit +-params:Action,':' +-el +-tab +-tab +-var:Nest="loop:"+Nest +-el +-tab +-tab +-var:Value="loop-condition:"+Value +-el +-tab +-tab +-var:TheReturn=ContentFor+Nest+NewTag+"(-spc)"+Value +-el else-if:StartsWith(Action,"{")(-and)IsIn(Action,"}") +-tab +-tab +-var:TheDataType= +-stmt:method-BeforeSplit +-params:Action,'}' +-el +-tab +-tab +-var:TheDataType= +-stmt:method-AfterSplit +-params:Action,'{' +-el +-tab +-tab +-var:Action= +-stmt:method-AfterSplit +-params:Action,'{' +-el +->if:IsIn(Action,":") +-tab +-tab +-tab +-var:Value= +-stmt:method-AfterSplit +-params:Action,':' +-el +-tab +-tab +-tab +-var:Action= +-stmt:method-BeforeSplit +-params:Action,':' +-el +->if:Value(-ne)"" +-tab +-tab +-tab +-var:TheReturn="class:("+TheDataType+")"+Action+"(-spc)params:"+Value +-el +->else +-tab +-tab +-tab +-var:TheReturn="class:("+TheDataType+")"+Action +-el else-if:StartsWith(Action,"[")(-and)IsIn(Action,"]") +-tab +-tab +-var:TheDataType= +-stmt:method-BeforeSplit +-params:Action,']' +-el +-tab +-tab +-var:TheDataType= +-stmt:method-AfterSplit +-params:TheDataType,'[' +-el +-tab +-tab +-var:Action= +-stmt:method-AfterSplit +-params:Action,']' +-el +->if:IsIn(Action,":") +-tab +-tab +-tab +-var:Value= +-stmt:method-AfterSplit+-params:Action,':' +-el +-tab +-tab +-tab +-var:Action= +-stmt:method-BeforeSplit +-params:Action,':' +-el +->if:Value(-ne)"" +-tab +-tab +-tab +-var:TheReturn=ContentFor+"method:("+TheDataType+")"+Action+"="+Value +-6el +->else +-tab +-tab +-tab +-var:TheReturn=ContentFor+"method:("+TheDataType+")"+Action +-el else-if:StartsWith(Action,"(")(-and)IsIn(Action,")") +-tab +-tab +-var:TheDataType= +-stmt:method-BeforeSplit +-params:Action,')' +-el +-tab +-tab +-var:TheDataType= +-stmt:method-AfterSplit +-params:TheDataType,'(' +-el +-tab +-tab +-var:Action= +-stmt:method-AfterSplit +-params:Action,')' +-el +->if:IsIn(Action,":") +-tab +-tab +-tab +-var:Value= +-stmt:method-AfterSplit +-params:Action,':' +-el +-tab +-tab +-tab +-var:Action= +-stmt:method-BeforeSplit +-params:Action,':' +-el +->if:Value(-ne)"" +-tab +-tab +-tab +-var:TheReturn=ContentFor+"var:("+TheDataType+")"+Action+"="+Value +-el +->else +-tab +-tab +-tab +-var:TheReturn=ContentFor+"var:("+TheDataType+")"+Action +-el else-if:Action(-eq)"el" +-tab +-tab +-var:TheReturn=ContentFor+"stmt:endline" +-el else-if:Action(-eq)"nl" +-tab +-tab +-var:TheReturn=ContentFor+"stmt:newline" +-el else-if:Action(-eq)"tab" +-tab +-tab +-var:TheReturn=ContentFor+"stmt:"+Action +-el else +->if:Value(-ne)"" +-tab +-tab +-tab +-var:TheReturn=ContentFor+Nest+Action+":"+Value +-el +->else +-tab +-tab +-tab +-var:TheReturn=ContentFor+Nest+Action +-el
+//<<shell>> [string]TranslateTag:(String)Input []-tab []-(string)Action:Input []-el []-tab []-(string)Value:"" []-el []-tab []-(string)VarName:"" []-el []-tab []-(String)NewTag:"" []-el []-tab []-(string)TheDataType:"" []-el []-tab []-(String)Nest:"" []-el []-tab []-(String)ContentFor:"" []-el []-nl if:StartsWith(Action,"+-") +-tab +-tab +-var:Action= +-stmt:method-AfterSplit +-params:Action,'-' +-el +-tab +-tab +-var:ContentFor="logic-" +-el []-nl else-if:StartsWith(Action,"o-") +-tab +-tab +-var:Action= +-stmt:method-AfterSplit +-params:Action,'-' +-el +-tab +-tab +-var:ContentFor="loop-" +-el []-nl else-if:StartsWith(Action,"[]-") +-tab +-tab +-var:Action= +-stmt:method-AfterSplit +-params:Action,'-' +-el +-tab +-tab +-var:ContentFor="method-" +-el []-nl while:StartsWith(Action,">") o-tab o-tab o-var:Action= o-stmt:method-AfterSplit o-params:Action,'>' o-el o-tab o-tab o-var:Nest="nest-"+Action o-stmt:endline if:StartsWith(Action,"if")(-or)StartsWith(Action,"else-if") +-tab +-tab +-var:Value= +-stmt:method-AfterSplit +-params:Action,':' +-el +-tab +-tab +-var:Action= +-stmt:method-BeforeSplit +-params:Action,':' +-el +-tab +-tab +-var:Nest="logic:"+Nest +-el +-tab +-tab +-var:Value="logic-condition:"+Value +-el +-tab +-tab +-var:TheReturn=ContentFor+Nest+NewTag+"(-spc)"+Value +-el else-if:Action(-eq)"else" +-tab +-tab +-var:NewTag="logic:"+Action +-el +-tab +-tab +-var:TheReturng=ContentFor+Nest+NewTag +-el else-if:StartsWith(Action,"while:")(-or)StartsWith(Action,"for:"(-or)StartsWith(Action,"do/while:") +-tab +-tab +-var:Value= +-stmt:method-AfterSplit +-params:Action,':' +-el +-tab +-tab +-var:Action= +-stmt:method-BeforeSplit +-params:Action,':' +-el +-tab +-tab +-var:Nest="loop:"+Nest +-el +-tab +-tab +-var:Value="loop-condition:"+Value +-el +-tab +-tab +-var:TheReturn=ContentFor+Nest+NewTag+"(-spc)"+Value +-el else-if:StartsWith(Action,"{")(-and)IsIn(Action,"}") +-tab +-tab +-var:TheDataType= +-stmt:method-BeforeSplit +-params:Action,'}' +-el +-tab +-tab +-var:TheDataType= +-stmt:method-AfterSplit +-params:Action,'{' +-el +-tab +-tab +-var:Action= +-stmt:method-AfterSplit +-params:Action,'{' +-el +->if:IsIn(Action,":") +-tab +-tab +-tab +-var:Value= +-stmt:method-AfterSplit +-params:Action,':' +-el +-tab +-tab +-tab +-var:Action= +-stmt:method-BeforeSplit +-params:Action,':' +-el +->if:Value(-ne)"" +-tab +-tab +-tab +-var:TheReturn="class:("+TheDataType+")"+Action+"(-spc)params:"+Value +-el +->else +-tab +-tab +-tab +-var:TheReturn="class:("+TheDataType+")"+Action +-el else-if:StartsWith(Action,"[")(-and)IsIn(Action,"]") +-tab +-tab +-var:TheDataType= +-stmt:method-BeforeSplit +-params:Action,']' +-el +-tab +-tab +-var:TheDataType= +-stmt:method-AfterSplit +-params:TheDataType,'[' +-el +-tab +-tab +-var:Action= +-stmt:method-AfterSplit +-params:Action,']' +-el +->if:IsIn(Action,":") +-tab +-tab +-tab +-var:Value= +-stmt:method-AfterSplit+-params:Action,':' +-el +-tab +-tab +-tab +-var:Action= +-stmt:method-BeforeSplit +-params:Action,':' +-el +->if:Value(-ne)"" +-tab +-tab +-tab +-var:TheReturn=ContentFor+"method:("+TheDataType+")"+Action+"="+Value +-6el +->else +-tab +-tab +-tab +-var:TheReturn=ContentFor+"method:("+TheDataType+")"+Action +-el else-if:StartsWith(Action,"(")(-and)IsIn(Action,")") +-tab +-tab +-var:TheDataType= +-stmt:method-BeforeSplit +-params:Action,')' +-el +-tab +-tab +-var:TheDataType= +-stmt:method-AfterSplit +-params:TheDataType,'(' +-el +-tab +-tab +-var:Action= +-stmt:method-AfterSplit +-params:Action,')' +-el +->if:IsIn(Action,":") +-tab +-tab +-tab +-var:Value= +-stmt:method-AfterSplit +-params:Action,':' +-el +-tab +-tab +-tab +-var:Action= +-stmt:method-BeforeSplit +-params:Action,':' +-el +->if:Value(-ne)"" +-tab +-tab +-tab +-var:TheReturn=ContentFor+"var:("+TheDataType+")"+Action+"="+Value +-el +->else +-tab +-tab +-tab +-var:TheReturn=ContentFor+"var:("+TheDataType+")"+Action +-el else-if:Action(-eq)"el" +-tab +-tab +-var:TheReturn=ContentFor+"stmt:endline" +-el else-if:Action(-eq)"nl" +-tab +-tab +-var:TheReturn=ContentFor+"stmt:newline" +-el else-if:Action(-eq)"tab" +-tab +-tab +-var:TheReturn=ContentFor+"stmt:"+Action +-el else +->if:Value(-ne)"" +-tab +-tab +-tab +-var:TheReturn=ContentFor+Nest+Action+":"+Value +-el +->else +-tab +-tab +-tab +-var:TheReturn=ContentFor+Nest+Action +-el
 */
 
 String TranslateTag(String Input)
@@ -543,7 +554,6 @@ String TranslateTag(String Input)
 			TheReturn = ContentFor+Nest+Action;
 		}
 	}
-
 	return TheReturn;
 }
 
@@ -873,15 +883,13 @@ String Method(String Tabs, String Name, String Content)
 //			OtherContent = ReplaceTag(OtherContent, "method-");
 
 			String ParseContent = "";
-
 			String Corrected = "";
-
 			std::vector<String> cmds = split(OtherContent," ");
 			int end = len(cmds);
 			int lp = 0;
 			while (lp != end)
 			{
-				Corrected = ReplaceTag(cmds[lp], "method-");
+				Corrected = ReplaceTag(cmds[lp], "method-",false);
 				//starts with "logic:" or "loop:"
 				if ((StartsWith(Corrected,"logic:")) || (StartsWith(Corrected,"loop:")) || (StartsWith(Corrected,"var:")) || (StartsWith(Corrected,"stmt:")))
 				{
@@ -968,7 +976,7 @@ String Loop(String Tabs, String TheKindType, String Content)
 	//content for loop
 	while (Content != "")
 	{
-		Content = ReplaceTag(Content, "loop-");
+		Content = ReplaceTag(Content, "loop-",true);
 
 		if (StartsWith(Content, "condition"))
 		{
@@ -1054,7 +1062,7 @@ String Loop(String Tabs, String TheKindType, String Content)
 				while (lp != end)
 				{
 					if (lp == 0)
-					{
+						{
 						OtherContent = cmds[lp];
 					}
 					else
@@ -1105,7 +1113,7 @@ String Loop(String Tabs, String TheKindType, String Content)
 
 		else if ((StartsWith(Content, "loop-")) || (StartsWith(Content, "var:")) || (StartsWith(Content, "stmt:")))
 		{
-			Content = ReplaceTag(Content, "loop-");
+			Content = ReplaceTag(Content, "loop-",true);
 			LoopContent = LoopContent + GenCode(Tabs+"\t",Content);
 			Content = "";
 		}
@@ -1166,7 +1174,7 @@ String Logic(String Tabs, String TheKindType, String Content)
 
 	while (Content != "")
 	{
-		Content = ReplaceTag(Content, "logic-");
+		Content = ReplaceTag(Content, "logic-",true);
 
 		if (StartsWith(Content, "condition"))
 		{
@@ -1513,9 +1521,7 @@ String Variables(String Tabs, String TheKindType, String Content)
 		NewVar = NewVar+Name;
 	}
 	NewVar = NewVar+VariableContent;
-/*
-var:(dataType)name=Value var:name=Value var:(dataType)name= var:name= var:(dataType)name
-*/
+
 	return NewVar;
 }
 
@@ -1574,6 +1580,36 @@ String GenCode(String Tabs,String GetMe)
 	}
 */
 	return TheCode;
+}
+
+/*
+<<shell>> []Example:(String)tag while:true o-if:IsIn el
+// params:Type-String if:Type(-eq)"String"(-or)Type(-eq)"string" +-var:TheReturn="std::string" +-stmt:endline else-if:Type(-eq)"boolean" +-var:Type="bool" +-stmt:endline else +-var:TheReturn=Type +-stmt:endline
+*/
+void Example(String tag)
+{
+	String UserIn = "";
+	if (IsIn(tag," "))
+	{
+		std::vector<String> all = split(tag," ");
+		int end = len(all);
+		int lp = 0;
+		while (lp != end)
+		{
+			if (UserIn == "")
+			{
+				UserIn = TranslateTag(all[lp]);
+			}
+			else
+			{
+				UserIn = UserIn + " " + TranslateTag(all[lp]);
+			}
+			lp++;
+		}
+	}
+	UserIn = GenCode("",UserIn);
+
+	print(UserIn);
 }
 
 //C++ Main...with cli arguments
