@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.0.81";
+String Version = "0.0.82";
 
 String getOS();
 void Help(String Type);
@@ -476,11 +476,11 @@ String TranslateTag(String Input)
 		}
 		if (Value != "")
 		{
-			TheReturn = "class:("+TheDataType+")"+Action+" params:"+Value;
+			TheReturn = "class:"+Action+" params:"+Value;
 		}
 		else
 		{
-			TheReturn = "class:("+TheDataType+")"+Action;
+			TheReturn = "class:"+Action;
 		}
 	}
 	else if ((StartsWith(Action, "[")) && (IsIn(Action,"]")))
@@ -1664,12 +1664,10 @@ int main(int argc, char** argv)
 		{
 //			UserIn = String(argv[1]);
 			UserIn = TranslateTag(String(argv[1]));
-
 			for (int lp = 2; lp < argc; lp++)
 			{
 //				UserIn = UserIn + " " + String(argv[lp]);
 				UserIn = UserIn + " " + TranslateTag(String(argv[lp]));
-
 			}
 /*
 			print(UserIn);
@@ -1679,6 +1677,7 @@ int main(int argc, char** argv)
 		else
 		{
 			UserIn = raw_input(">>> ");
+			UserIn = TranslateTag(UserIn);
 		}
 
 		if (UserIn == "exit()")
@@ -1692,6 +1691,10 @@ int main(int argc, char** argv)
 		else if (UserIn == "clear")
 		{
 			clear();
+		}
+		else if (((UserIn == "-v") && (argc == 2)) || ((UserIn == "--version") && (argc == 2)) || ((UserIn == "version") && (argc == 1)))
+		{
+			print(Version);
 		}
 		else if (StartsWith(UserIn, "help"))
 		{
