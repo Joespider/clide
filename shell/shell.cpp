@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.0.82";
+String Version = "0.0.84";
 
 String getOS();
 void Help(String Type);
@@ -97,6 +97,8 @@ void Help(String Type)
 		print("");
 		Example("[String]help:(String)one,(int)two");
 		Example("[String-Message]help:(String)one,(int)two");
+		Example("[String-Eat]FoodAndDrink:(String)Item if:true >if:[IsDrink]:drink(-eq)true >>if:drink(-eq)\"coke\" >>else >else-if:[IsFood]:drink(-eq)true >else >>if: >>else []-nl []-tab []-[help]:me []-el if: +-tab +-tab +-[helper]:me +-el");
+		Example("[String-Eat]FoodAndDrink:(String)Item if:true >if:[IsDrink]:drink(-eq)true >>if:drink(-eq)\"coke\" >>else >else-if:[IsFood]:drink(-eq)true >else >>if: >>else +-nl +-tab +-[help]:me +-el if: +-tab +-tab +-[helper]:me +-el");
 	}
 	else if (Type == "loop")
 	{
@@ -114,6 +116,7 @@ void Help(String Type)
 		Example("if:Type(-spc)==(-spc)\"String\"");
 		Example("else-if:Type(-eq)\"String\"");
 		Example("else");
+		Example("if:true tab (String)drink= [Pop]:one,two el >if:[IsString]:drink(-eq)true tab tab (String)result= [Help]: el >>if:drink(-eq)\"coke\" >>nl >>else >nl >else-if:[IsInt]:drink(-eq)false >nl >else >>if: >>nl >>else >nl");
 //		print(Type+":switch");
 	}
 	else if (Type == "var")
@@ -493,8 +496,7 @@ String TranslateTag(String Input)
 		{
 			Value = AfterSplit(Action,':');
 			Action = TheDataType;
-			ContentFor = "method-";
-			TheReturn = "stmt:"+ContentFor+Action+" params:"+Value;
+			TheReturn = ContentFor+"stmt:method-"+Action+" params:"+Value;
 		}
 		//is a function
 		else
@@ -614,23 +616,6 @@ String Conditions(String input,String CalledBy)
 		Condit = replaceAll(Condit, "(-eq)"," == ");
 	}
 
-	if (IsIn(Condit,"(-or)"))
-	{
-		Condit = replaceAll(Condit, "(-or)",") || (");
-		Condit = "("+Condit+")";
-	}
-
-	if (IsIn(Condit,"(-and)"))
-	{
-		Condit = replaceAll(Condit, "(-and)",") && (");
-		Condit = "("+Condit+")";
-	}
-
-	if (IsIn(Condit,"(-not)"))
-	{
-		Condit = replaceAll(Condit, "(-not)","!");
-	}
-
 	if (IsIn(Condit,"(-le)"))
 	{
 		Condit = replaceAll(Condit, "(-le)"," <= ");
@@ -650,6 +635,45 @@ String Conditions(String input,String CalledBy)
 	{
 		Condit = replaceAll(Condit, "(-spc)"," ");
 	}
+
+	if (IsIn(Condit," "))
+	{
+		std::vector<String> Conditions = split(Condit,' ');
+		int lp = 0;
+		int end = len(Conditions);
+		String Keep = "";
+		while (lp != end)
+		{
+			Conditions[lp] = TranslateTag(Conditions[lp]);
+			Keep = Conditions[lp];
+			Conditions[lp] = GenCode("",Conditions[lp]);
+			if (Conditions[lp] == "")
+			{
+				Conditions[lp] = Keep;
+			}
+			lp++;
+		}
+		Condit = join(Conditions, " ");
+	}
+
+	//logic
+	if (IsIn(Condit,"(-not)"))
+	{
+		Condit = replaceAll(Condit, "(-not)","!");
+	}
+
+	if (IsIn(Condit,"(-or)"))
+	{
+		Condit = replaceAll(Condit, "(-or)",") || (");
+		Condit = "("+Condit+")";
+	}
+
+	if (IsIn(Condit,"(-and)"))
+	{
+		Condit = replaceAll(Condit, "(-and)",") && (");
+		Condit = "("+Condit+")";
+	}
+
 /*
 	if (CalledBy == "class")
 	{
@@ -664,6 +688,7 @@ String Conditions(String input,String CalledBy)
 		print(Condit);
 	}
 */
+	//convert
 	return Condit;
 }
 
@@ -832,6 +857,7 @@ String Method(String Tabs, String Name, String Content)
 
 	while (Content != "")
 	{
+		//params:
 		if ((StartsWith(Content, "params:")) && (Params == ""))
 		{
 			if (IsIn(Content," "))
@@ -851,6 +877,7 @@ String Method(String Tabs, String Name, String Content)
 		}
 		else
 		{
+
 			//This is called when a called from the "class" method
 			// EX: class:name method:first method:second
 			if (IsIn(Content," method:"))
@@ -864,8 +891,8 @@ String Method(String Tabs, String Name, String Content)
 			{
 				std::vector<String> all = split(Content," ");
 				bool noMore = false;
-				int end = len(all);
 				int lp = 0;
+				int end = len(all);
 				while (lp != end)
 				{
 					//This processes ONLY method-<content>
@@ -896,11 +923,27 @@ String Method(String Tabs, String Name, String Content)
 				}
 				CanSplit = false;
 			}
+/*
+			else if ((!StartsWith(Content, "method-")) && (IsIn(Content, "method-")))
+			{
+				std::vector<String> cmds = split(Content," method-");
+				int lp = 0;
+				int end = len(cmds);
+				while (lp != end)
+				{
+					print(cmds[lp]);
+					lp++;
+				}
+				OtherContent = Content;
+				CanSplit = true;
+			}
+*/
 			else
 			{
 				OtherContent = Content;
 				CanSplit = true;
 			}
+
 
 //			OtherContent = ReplaceTag(OtherContent, "method-");
 
@@ -1007,7 +1050,8 @@ String Loop(String Tabs, String TheKindType, String Content)
 	//content for loop
 	while (Content != "")
 	{
-		Content = ReplaceTag(Content, "loop-",true);
+		Content = ReplaceTag(Content, "loop-",false);
+//		Content = ReplaceTag(Content, "loop-",true);
 
 		if (StartsWith(Content, "condition"))
 		{
@@ -1015,6 +1059,7 @@ String Loop(String Tabs, String TheKindType, String Content)
 			{
 				TheCondition = BeforeSplit(Content,' ');
 				Content = AfterSplit(Content,' ');
+//				Content = ReplaceTag(Content, "loop-",false);
 			}
 			else
 			{
@@ -1205,7 +1250,8 @@ String Logic(String Tabs, String TheKindType, String Content)
 
 	while (Content != "")
 	{
-		Content = ReplaceTag(Content, "logic-",true);
+		Content = ReplaceTag(Content, "logic-",false);
+//		Content = ReplaceTag(Content, "logic-",true);
 
 		if (StartsWith(Content, "condition"))
 		{
@@ -1213,6 +1259,7 @@ String Logic(String Tabs, String TheKindType, String Content)
 			{
 				TheCondition = BeforeSplit(Content,' ');
 				Content = AfterSplit(Content,' ');
+				//Content = ReplaceTag(Content, "logic-",false);
 			}
 			else
 			{
@@ -1315,7 +1362,7 @@ String Logic(String Tabs, String TheKindType, String Content)
 		else if ((StartsWith(Content, "var:")) || (StartsWith(Content, "stmt:")))
 //		else if ((StartsWith(Content, "logic-")) || (StartsWith(Content, "var:")) || (StartsWith(Content, "stmt:")))
 		{
-//			Content = ReplaceTag(Content, "logic-");
+//			Content = ReplaceTag(Content, "logic-",false);
 			LogicContent = LogicContent + GenCode(Tabs+"\t",Content);
 			Content = "";
 		}
@@ -1392,6 +1439,7 @@ String Statements(String Tabs, String TheKindType, String Content)
 	{
 		TheKindType = AfterSplit(TheKindType,':');
 	}
+
 	if (IsIn(TheKindType,"-"))
 	{
 		TheName = BeforeSplit(TheKindType,'-');
@@ -1544,6 +1592,11 @@ String Variables(String Tabs, String TheKindType, String Content)
 
 	if (MakeEqual == true)
 	{
+		if (IsIn(Value,"(-spc)"))
+		{
+			Value = replaceAll(Value, "(-spc)"," ");
+		}
+
 		NewVar = NewVar+Name+" = "+Value;
 	}
 	else
