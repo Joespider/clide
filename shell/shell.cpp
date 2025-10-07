@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.0.84";
+String Version = "0.0.89";
 
 String getOS();
 void Help(String Type);
@@ -37,8 +37,8 @@ std::vector<String> split(String message, char by);
 String join(std::vector<String> Str, String ToJoin);
 String replaceAll(String message, String sBy, String jBy);
 
-
 void banner();
+bool IsDataType(String Type);
 String DataType(String Type, bool getNull);
 String ReplaceTag(String Content, String Tag, bool All);
 String Conditions(String input,String CalledBy);
@@ -97,8 +97,8 @@ void Help(String Type)
 		print("");
 		Example("[String]help:(String)one,(int)two");
 		Example("[String-Message]help:(String)one,(int)two");
-		Example("[String-Eat]FoodAndDrink:(String)Item if:true >if:[IsDrink]:drink(-eq)true >>if:drink(-eq)\"coke\" >>else >else-if:[IsFood]:drink(-eq)true >else >>if: >>else []-nl []-tab []-[help]:me []-el if: +-tab +-tab +-[helper]:me +-el");
-		Example("[String-Eat]FoodAndDrink:(String)Item if:true >if:[IsDrink]:drink(-eq)true >>if:drink(-eq)\"coke\" >>else >else-if:[IsFood]:drink(-eq)true >else >>if: >>else +-nl +-tab +-[help]:me +-el if: +-tab +-tab +-[helper]:me +-el");
+		Example("[String-Type]FoodAndDrink:(String)Food if:Food(-ne)\"\" >if:[IsDrink]:drink(-eq)true +->tab +->tab +->tab +->()Type=\"Drink\" +->el +->>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Drink]:Food o->>el +->else-if:[IsFood]:Food(-eq)true +->tab +->tab +->tab +->()Type=\"Food\" +->el >>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Eat]:Food o->>el >else +->tab +->tab +->tab +->[Eat]= +->(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el else +-tab +-tab +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el");
+		Example("[String-Type]FoodAndDrink:(String)Food if:Food(-ne)\"\" >if:[IsDrink]:drink(-eq)true >>tab >>tab >>tab >>()Type=\"Food\" >>el >>tab >>tab >>tab >>[Drink]:Food >>el >else-if:[IsFood]:Food(-eq)true +->>tab +->>tab +->>tab +->>()Type=\"Drink\" +->>el >>tab >>tab >>tab >>[Eat]:Food >>el >else +->tab +->tab +->tab +->(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +->el else +-tab +-tab +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el");
 	}
 	else if (Type == "loop")
 	{
@@ -106,7 +106,7 @@ void Help(String Type)
 		print("");
 		print("{EXAMPLE}");
 		print("for:");
-		print("do/while:");
+		print("do-while:");
 		print("while");
 	}
 	else if (Type == "logic")
@@ -116,18 +116,12 @@ void Help(String Type)
 		Example("if:Type(-spc)==(-spc)\"String\"");
 		Example("else-if:Type(-eq)\"String\"");
 		Example("else");
-		Example("if:true tab (String)drink= [Pop]:one,two el >if:[IsString]:drink(-eq)true tab tab (String)result= [Help]: el >>if:drink(-eq)\"coke\" >>nl >>else >nl >else-if:[IsInt]:drink(-eq)false >nl >else >>if: >>nl >>else >nl");
+		Example("if:true tab (String)drink= [Pop]:one,two el >if:[IsString]:drink(-eq)true >tab >tab >[drink]: >el >>if:drink(-eq)\"coke\" >>else >nl >else-if:[IsInt]:drink(-eq)false >nl >else >>if: >>nl >>else >nl");
+		Example("if:true tab (String)drink= [Pop]:one,two el >if:[IsString]:drink(-eq)true >>if:drink(-eq)\"coke\" >>else >nl >else-if:[IsInt]:drink(-eq)false >nl >else >>if: >>nl >>else >nl");
 //		print(Type+":switch");
 	}
 	else if (Type == "var")
 	{
-//		print(Type+"(public/private):<name>-<type>=value\tcreate a new variable");
-//		print(Type+":(<type>)<name>[<num>]=value\tcreate a new variable as an array");
-//		print(Type+":(<type>{<struct>})<name>=value\tcreate a new variable a data structure");
-//		print(Type+":<name>=value\tassign a new value to an existing variable");
-//		print("");
-//		print(Type+":name-std::string[3]");
-//		print(Type+":name-std::string(vector)");
 		Example("(std::string)name=\"\" var:(int)point=0 stmt:endline var:james-std::string=\"James\" stmt:endline var:help-int");
 		Example("(std::string)name=\"\" el (int)point=0 el (std::string)james=\"James\" el (int)help el help=0");
 		Example("(std::string)name=\"\" el (int)point=0 el (std::string)james=\"James\" el (int)help el help=0");
@@ -446,6 +440,7 @@ String TranslateTag(String Input)
 		Action = AfterSplit(Action,'>');
 		Nest = "nest-"+Nest;
 	}
+
 	if ((StartsWith(Action, "if:")) || (StartsWith(Action, "else-if:")))
 	{
 		Value = AfterSplit(Action,':');
@@ -459,7 +454,7 @@ String TranslateTag(String Input)
 		NewTag = "logic:"+Action;
 		TheReturn = ContentFor+Nest+NewTag;
 	}
-	else if ((StartsWith(Action, "while:")) || (StartsWith(Action, "for:")) || (StartsWith(Action, "do/while:")))
+	else if ((StartsWith(Action, "while:")) || (StartsWith(Action, "for:")) || (StartsWith(Action, "do-while:")))
 	{
 		Value = AfterSplit(Action,':');
 		Action = BeforeSplit(Action,':');
@@ -496,7 +491,7 @@ String TranslateTag(String Input)
 		{
 			Value = AfterSplit(Action,':');
 			Action = TheDataType;
-			TheReturn = ContentFor+"stmt:method-"+Action+" params:"+Value;
+			TheReturn = ContentFor+Nest+"stmt:method-"+Action+" params:"+Value;
 		}
 		//is a function
 		else
@@ -510,11 +505,11 @@ String TranslateTag(String Input)
 
 			if (Value != "")
 			{
-				TheReturn = ContentFor+"method:("+TheDataType+")"+Action+" params:"+Value;
+				TheReturn = ContentFor+Nest+"method:("+TheDataType+")"+Action+" params:"+Value;
 			}
 			else
 			{
-				TheReturn = ContentFor+"method:("+TheDataType+")"+Action;
+				TheReturn = ContentFor+Nest+"method:("+TheDataType+")"+Action;
 			}
 		}
 	}
@@ -535,24 +530,24 @@ String TranslateTag(String Input)
 			//translate value, if needed
 			Value = TranslateTag(Value);
 //			Value = GenCode("",Value);
-			TheReturn = ContentFor+"var:("+TheDataType+")"+Action+"= "+Value;
+			TheReturn = ContentFor+Nest+"var:("+TheDataType+")"+Action+"= "+Value;
 		}
 		else
 		{
-			TheReturn = ContentFor+"var:("+TheDataType+")"+Action;
+			TheReturn = ContentFor+Nest+"var:("+TheDataType+")"+Action;
 		}
 	}
 	else if (Action == "el")
 	{
-		TheReturn = ContentFor+"stmt:endline";
+		TheReturn = ContentFor+Nest+"stmt:endline";
 	}
 	else if (Action == "nl")
 	{
-		TheReturn = ContentFor+"stmt:newline";
+		TheReturn = ContentFor+Nest+"stmt:newline";
 	}
 	else if (Action == "tab")
 	{
-		TheReturn = ContentFor+"stmt:"+Action;
+		TheReturn = ContentFor+Nest+"stmt:"+Action;
 	}
 	else
 	{
@@ -592,6 +587,14 @@ String DataType(String Type, bool getNull)
 	else if (((Type == "boolean") || (Type == "bool")) && (getNull == true))
 	{
 		return "false";
+	}
+	else if ((Type == "false") || (Type == "False"))
+	{
+		return "false";
+	}
+	else if ((Type == "true") || (Type == "True"))
+	{
+		return "true";
 	}
 	else
 	{
@@ -654,6 +657,18 @@ String Conditions(String input,String CalledBy)
 			lp++;
 		}
 		Condit = join(Conditions, " ");
+	}
+	else
+	{
+		Condit = DataType(Condit,false);
+		String OldCondit = Condit;
+		Condit = TranslateTag(Condit);
+		Condit = GenCode("",Condit);
+
+		if (Condit == "")
+		{
+			Condit = OldCondit;
+		}
 	}
 
 	//logic
@@ -877,7 +892,6 @@ String Method(String Tabs, String Name, String Content)
 		}
 		else
 		{
-
 			//This is called when a called from the "class" method
 			// EX: class:name method:first method:second
 			if (IsIn(Content," method:"))
@@ -944,11 +958,9 @@ String Method(String Tabs, String Name, String Content)
 				CanSplit = true;
 			}
 
-
 //			OtherContent = ReplaceTag(OtherContent, "method-");
 
 			String ParseContent = "";
-
 			String Corrected = "";
 
 			std::vector<String> cmds = split(OtherContent," ");
@@ -975,7 +987,6 @@ String Method(String Tabs, String Name, String Content)
 					//append content
 					ParseContent = ParseContent +" "+ Corrected;
 				}
-
 				lp++;
 			}
 
@@ -1019,11 +1030,11 @@ String Method(String Tabs, String Name, String Content)
 	{
 		if (DefaultValue == "")
 		{
-			Complete = Tabs+Type+" "+TheName+"("+Params+")\n"+Tabs+"{\n"+Tabs+"\t" +Type+" "+ReturnVar+";\n"+MethodContent+"\n"+Tabs+"\treturn "+ReturnVar+";\n"+Tabs+"}\n";
+			Complete = Tabs+Type+" "+TheName+"("+Params+")\n"+Tabs+"{\n"+Tabs+"\t"+Type+" "+ReturnVar+";\n"+MethodContent+"\n"+Tabs+"\treturn "+ReturnVar+";\n"+Tabs+"}\n";
 		}
 		else
 		{
-			Complete = Tabs+Type+" "+TheName+"("+Params+")\n"+Tabs+"{\n"+Tabs+"\t" +Type+" "+ReturnVar+" = "+DefaultValue+";\n"+MethodContent+"\n"+Tabs+"\treturn "+ReturnVar+";\n"+Tabs+"}\n";
+			Complete = Tabs+Type+" "+TheName+"("+Params+")\n"+Tabs+"{\n"+Tabs+"\t"+Type+" "+ReturnVar+" = "+DefaultValue+";\n"+MethodContent+"\n"+Tabs+"\treturn "+ReturnVar+";\n"+Tabs+"}\n";
 		}
 	}
 	return Complete;
@@ -1032,6 +1043,11 @@ String Method(String Tabs, String Name, String Content)
 //loop:
 String Loop(String Tabs, String TheKindType, String Content)
 {
+/*
+	print(TheKindType);
+	print(Content);
+	print("");
+*/
 	bool Last = false;
 	String Complete = "";
 	String RootTag = "";
@@ -1059,7 +1075,7 @@ String Loop(String Tabs, String TheKindType, String Content)
 			{
 				TheCondition = BeforeSplit(Content,' ');
 				Content = AfterSplit(Content,' ');
-//				Content = ReplaceTag(Content, "loop-",false);
+				//Content = ReplaceTag(Content, "loop-",false);
 			}
 			else
 			{
@@ -1169,27 +1185,106 @@ String Loop(String Tabs, String TheKindType, String Content)
 			{
 				OtherContent = AfterSplit(OtherContent,'-');
 			}
-/*
-			OtherContent = ReplaceTag(OtherContent, "loop-");
-*/
-			LoopContent = LoopContent + GenCode(Tabs+"\t",OtherContent);
-			//nest-stmt: or nest-var:
-			if (StartsWith(OtherContent, "stmt:") || (StartsWith(OtherContent, "var:")))
-			{
-				/*
-				This code works, however, it does mean that parent recursion
-				does not have any content. Only nested statements give content to
-				*/
-				OtherContent = "";
-				Content = "";
-			}
 
+			//handle the content if the first tag is a stmt: or var:
+			if (((StartsWith(OtherContent, "stmt:") || StartsWith(OtherContent, "var:")) && IsIn(OtherContent," ")))
+			{
+				//examine each tag
+				std::vector<String> cmds = split(OtherContent," ");
+				OtherContent = "";
+				NewContent = "";
+				int end = len(cmds);
+				int lp = 0;
+				while (lp != end)
+				{
+					//as long as the beginning of the tag is stmt:, var:, or params: make sure to build the non-loop/logic tags
+					if ((IsIn(cmds[lp],"stmt:") || IsIn(cmds[lp],"var:") || IsIn(cmds[lp],"params:") || IsIn(cmds[lp],"logic:")) && (NewContent == ""))
+					{
+						if (OtherContent == "")
+						{
+							OtherContent = cmds[lp];
+						}
+						else
+						{
+							OtherContent = OtherContent+" "+cmds[lp];
+						}
+					}
+					//build the rest of the content
+					else
+					{
+						if (NewContent == "")
+						{
+							NewContent = cmds[lp];
+						}
+						else
+						{
+							NewContent = NewContent+" "+cmds[lp];
+						}
+					}
+					lp++;
+				}
+
+				//processes all the statements before a loop/logic
+				LoopContent = LoopContent + GenCode(Tabs+"\t",OtherContent);
+
+				//Lets group the nested tages one more time...I am not sure how to avoide this being done again
+				if (StartsWith(NewContent, "nest-"))
+				{
+					RootTag = BeforeSplit(NewContent,'l');
+					if (IsIn(NewContent," "+RootTag+"l"))
+					{
+						//split up the loops and logic accordingly
+						std::vector<String> cmds = split(NewContent," "+RootTag+"l");
+						NewContent = "";
+						int end = len(cmds);
+						int lp = 0;
+						while (lp != end)
+						{
+							if (lp == 0)
+							{
+								OtherContent = cmds[lp];
+								//remove all nest-
+								while (StartsWith(OtherContent, "nest-"))
+								{
+									OtherContent = AfterSplit(OtherContent,'-');
+								}
+								//process loop/logic
+								LoopContent = LoopContent + GenCode(Tabs+"\t",OtherContent);
+							}
+							else
+							{
+								if (NewContent == "")
+								{
+									NewContent = RootTag+"l"+cmds[lp];
+								}
+								else
+								{
+									NewContent = NewContent+" "+RootTag+"l"+cmds[lp];
+								}
+							}
+							lp++;
+						}
+						//remove all nest-
+						while (StartsWith(NewContent, "nest-"))
+						{
+							NewContent = AfterSplit(NewContent,'-');
+						}
+						//process the remaining nest-loop/logic
+						LoopContent = LoopContent + GenCode(Tabs+"\t",NewContent);
+					}
+				}
+			}
+			//just process as is
+			else
+			{
+				LoopContent = LoopContent + GenCode(Tabs+"\t",OtherContent);
+			}
+			//clear new content
 			NewContent = "";
 		}
-
-		else if ((StartsWith(Content, "loop-")) || (StartsWith(Content, "var:")) || (StartsWith(Content, "stmt:")))
+		else if ((StartsWith(Content, "var:")) || (StartsWith(Content, "stmt:")))
 		{
-			Content = ReplaceTag(Content, "loop-",true);
+//			Content = ReplaceTag(Content, "loop-",true);
 			LoopContent = LoopContent + GenCode(Tabs+"\t",Content);
 			Content = "";
 		}
@@ -1219,8 +1314,8 @@ String Loop(String Tabs, String TheKindType, String Content)
 	{
 		Complete = Tabs+"for ("+TheCondition+")\n"+Tabs+"{\n"+LoopContent+Tabs+"}\n";
 	}
-	//loop:do/while
-	else if (TheKindType == "do/while")
+	//loop:do-while
+	else if (TheKindType == "do-while")
 	{
 		Complete = Tabs+"do\n"+Tabs+"{\n"+LoopContent+Tabs+"}\n"+Tabs+"while ("+TheCondition+");\n";
 	}
@@ -1235,6 +1330,11 @@ String Loop(String Tabs, String TheKindType, String Content)
 //logic:
 String Logic(String Tabs, String TheKindType, String Content)
 {
+/*
+	print("[T] "+TheKindType);
+	print("[C] "+Content);
+	print("");
+*/
 	bool Last = false;
 	String Complete = "";
 	String RootTag = "";
@@ -1301,9 +1401,13 @@ String Logic(String Tabs, String TheKindType, String Content)
 		{
 			break;
 		}
+
 		//This is to handle nested loops and logic
 		else if (StartsWith(Content, "nest-"))
 		{
+			//nest-logic
+			// or
+			//nest-loop
 			RootTag = BeforeSplit(Content,'l');
 			if (IsIn(Content," "+RootTag+"l"))
 			{
@@ -1313,54 +1417,143 @@ String Logic(String Tabs, String TheKindType, String Content)
 				int lp = 0;
 				while (lp != end)
 				{
+					//process now
 					if (lp == 0)
 					{
+						//this tag already contains the nest-logic or nest-loop
+						//this will be processed and the following will be ignored for the next recurrsive cycle
 						OtherContent = cmds[lp];
 					}
+					//process later
 					else
 					{
+						//build the next elements
 						if (NewContent == "")
 						{
+							//put back in the nest-l
 							NewContent = RootTag+"l"+cmds[lp];
 						}
 						else
 						{
+							//put back in the nest-l and append
 							NewContent = NewContent+" "+RootTag+"l"+cmds[lp];
 						}
 					}
 					lp++;
 				}
 			}
+			//no need to split nested
 			else
 			{
 				OtherContent = Content;
 			}
 
+			//the new content will be looped
 			Content = NewContent;
 
+			//remove all nest- tags from content
 			while (StartsWith(OtherContent, "nest-"))
 			{
 				OtherContent = AfterSplit(OtherContent,'-');
 			}
-/*
-			OtherContent = ReplaceTag(OtherContent, "logic-");
-*/
-			LogicContent = LogicContent + GenCode(Tabs+"\t",OtherContent);
-			//nest-stmt: or nest-var:
-			if (StartsWith(OtherContent, "stmt:") || (StartsWith(OtherContent, "var:")))
-			{
-				/*
-				This code works, however, it does mean that parent recursion
-				does not have any content. Only nested statements give content to
-				*/
-				OtherContent = "";
-				Content = "";
-			}
 
+			//handle the content if the first tag is a stmt: or var:
+			if (((StartsWith(OtherContent, "stmt:") || StartsWith(OtherContent, "var:")) && IsIn(OtherContent," ")))
+			{
+				//examine each tag
+				std::vector<String> cmds = split(OtherContent," ");
+				OtherContent = "";
+				NewContent = "";
+				int end = len(cmds);
+				int lp = 0;
+				while (lp != end)
+				{
+					//as long as the beginning of the tag is stmt:, var:, or params: make sure to build the non-loop/logic tags
+					if ((IsIn(cmds[lp],"stmt:") || IsIn(cmds[lp],"var:") || IsIn(cmds[lp],"params:") || IsIn(cmds[lp],"loop:")) && (NewContent == ""))
+					{
+						if (OtherContent == "")
+						{
+							OtherContent = cmds[lp];
+						}
+						else
+						{
+							OtherContent = OtherContent+" "+cmds[lp];
+						}
+					}
+					//build the rest of the content
+					else
+					{
+						if (NewContent == "")
+						{
+							NewContent = cmds[lp];
+						}
+						else
+						{
+							NewContent = NewContent+" "+cmds[lp];
+						}
+					}
+					lp++;
+				}
+
+				//processes all the statements before a loop/logic
+				LogicContent = LogicContent + GenCode(Tabs+"\t",OtherContent);
+
+				//Lets group the nested tages one more time...I am not sure how to avoide this being done again
+				if (StartsWith(NewContent, "nest-"))
+				{
+					RootTag = BeforeSplit(NewContent,'l');
+					if (IsIn(NewContent," "+RootTag+"l"))
+					{
+						//split up the loops and logic accordingly
+						std::vector<String> cmds = split(NewContent," "+RootTag+"l");
+						NewContent = "";
+						int end = len(cmds);
+						int lp = 0;
+						while (lp != end)
+						{
+							if (lp == 0)
+							{
+								OtherContent = cmds[lp];
+								//remove all nest-
+								while (StartsWith(OtherContent, "nest-"))
+								{
+									OtherContent = AfterSplit(OtherContent,'-');
+								}
+								//process loop/logic
+								LogicContent = LogicContent + GenCode(Tabs+"\t",OtherContent);
+							}
+							else
+							{
+								if (NewContent == "")
+								{
+									NewContent = RootTag+"l"+cmds[lp];
+								}
+								else
+								{
+									NewContent = NewContent+" "+RootTag+"l"+cmds[lp];
+								}
+							}
+							lp++;
+						}
+						//remove all nest-
+						while (StartsWith(NewContent, "nest-"))
+						{
+							NewContent = AfterSplit(NewContent,'-');
+						}
+						//process the remaining nest-loop/logic
+						LogicContent = LogicContent + GenCode(Tabs+"\t",NewContent);
+					}
+				}
+			}
+			//just process as is
+			else
+			{
+				LogicContent = LogicContent + GenCode(Tabs+"\t",OtherContent);
+			}
+			//clear new content
 			NewContent = "";
 		}
 		else if ((StartsWith(Content, "var:")) || (StartsWith(Content, "stmt:")))
-//		else if ((StartsWith(Content, "logic-")) || (StartsWith(Content, "var:")) || (StartsWith(Content, "stmt:")))
 		{
 //			Content = ReplaceTag(Content, "logic-",false);
 			LogicContent = LogicContent + GenCode(Tabs+"\t",Content);
@@ -1490,6 +1683,12 @@ String Statements(String Tabs, String TheKindType, String Content)
 				OtherContent = OtherContent+" "+BeforeSplit(Content,' ');
 				Content = AfterSplit(Content,' ');
 			}
+
+			if ((StartsWith(OtherContent,"loop:") && (Content != "")) || (StartsWith(OtherContent,"logic:") && (Content != "")))
+			{
+				OtherContent = OtherContent+" "+Content;
+				Content = "";
+			}
 			StatementContent = StatementContent + GenCode(Tabs,OtherContent);
 		}
 	}
@@ -1521,6 +1720,11 @@ String Statements(String Tabs, String TheKindType, String Content)
 //var:
 String Variables(String Tabs, String TheKindType, String Content)
 {
+/*
+	print(TheKindType);
+	print(Content);
+	print("");
+*/
 	bool Last = false;
 	bool MakeEqual = false;
 	String NewVar = "";
@@ -1562,6 +1766,12 @@ String Variables(String Tabs, String TheKindType, String Content)
 			{
 				OtherContent = OtherContent+" "+BeforeSplit(Content,' ');
 				Content = AfterSplit(Content,' ');
+			}
+
+			if ((StartsWith(OtherContent,"loop:") && (Content != "")) || (StartsWith(OtherContent,"logic:") && (Content != "")))
+			{
+				OtherContent = OtherContent+" "+Content;
+				Content = "";
 			}
 			VariableContent = VariableContent + GenCode(Tabs,OtherContent);
 		}
