@@ -56,16 +56,20 @@ fn the_help(the_type: &str)
 	}
 	else if new_the_type == "var"
 	{
-		println!("{}(public/private):<name>-<type>=value\tcreate a new variable",new_the_type);
-		println!("{}:<name>-<type>[<num>]=value\tcreate a new variable as an array",new_the_type);
-		println!("{}:<name>-<type>(<struct>)=value\tcreate a new variable a data structure",new_the_type);
-		println!("{}:<name>=value\tassign a new value to an existing variable",new_the_type);
+//		println!("{}(public/private):<name>-<type>=value\tcreate a new variable",new_the_type);
+//		println!("{}:<name>-<type>[<num>]=value\tcreate a new variable as an array",new_the_type);
+//		println!("{}:<name>-<type>(<struct>)=value\tcreate a new variable a data structure",new_the_type);
+//		println!("{}:<name>=value\tassign a new value to an existing variable",new_the_type);
+//		println!("");
 
 		println!("");
 		println!("{{EXAMPLE}}");
-		println!("{}:name-std::string[3]",new_the_type);
-		println!("{}:name-std::string(vector)",new_the_type);
-		println!("{}:name-std::string=\"\" var:point-int=0 stmt:endline var:james-std::string=\"James\" stmt:endline var:help-int",new_the_type);
+//		println!("{}:name-std::string[3]",new_the_type);
+//		println!("{}:name-std::string(vector)",new_the_type);
+//		println!("{}:name-std::string=\"\" var:point-int=0 stmt:endline var:james-std::string=\"James\" stmt:endline var:help-int",new_the_type);
+		println!("<<shell>> (std::string)name=\"\" el (int)point=0 el (std::string)james=\"James\" el (int)help el help=0");
+		println!("{{OUTPUT}}");
+		example("(std::string)name=\"\" el (int)point=0 el (std::string)james=\"James\" el (int)help el help=0");
 	}
 	else if new_the_type == "stmt"
 	{
@@ -117,7 +121,27 @@ fn get_cpl_version() -> String
 		return String::from_utf8_lossy(&rustc_version.stderr).to_string();
 	}
 }
+/*
+fn rem_last_char(value: &str, length: u8) -> &str
+{
+	let mut chars = value.chars();
+	let mut cnt = 0;
+	if length >= 1
+	{
+		while cnt != length
+		{
+			chars.next_back();
+			cnt += 1;
+		}
+	}
+	else
+	{
+		chars.next_back();
+	}
 
+	return chars.as_str();
+}
+*/
 fn is_in(str: &str, sub: &str) -> bool
 {
 	if str.contains(sub)
@@ -142,9 +166,9 @@ fn starts_with(the_string: &str, start: &str) -> bool
 	}
 }
 /*
-fn ends_with(the_string: &str, end: &str) -> bool
+fn ends_with(str: &str, end: &str) -> bool
 {
-	if the_string.ends_with(end)
+	if str.ends_with(end)
 	{
 		return true;
 	}
@@ -152,7 +176,7 @@ fn ends_with(the_string: &str, end: &str) -> bool
 	{
 		return false;
 	}
-}
+}	
 */
 fn raw_input(message: &str) -> String
 {
@@ -266,25 +290,30 @@ fn replace_all(message: &str, s_by: &str, j_by: &str) -> String
 */
 
 
-fn replace_tag(the_content: &str, the_tag: &str) -> String
+fn replace_tag(the_content: &str, the_tag: &str, all: bool) -> String
 {
 	let mut the_new_content = String::from("");
 	let passed_content = the_content.to_string();
 
 	if is_in(&passed_content," ") && starts_with(&passed_content, the_tag)
 	{
+		let mut remove = true;
 		let mut new_content = String::new();
 		let mut the_next: String;
 
-		let all: Vec<&str> = passed_content.split(" ").collect();
-		for item in &all
+		let all_items: Vec<&str> = passed_content.split(" ").collect();
+		for item in &all_items
 		{
 			the_next = item.to_string();
 			//element starts with tag
-			if starts_with(&the_next, the_tag)
+			if starts_with(&the_next, the_tag) && remove == true
 			{
 				//remove tag
 				the_next = after_split(&the_next,"-");
+				if all
+				{
+					remove = false;
+				}
 			}
 
 			if new_content == ""
@@ -317,14 +346,14 @@ fn banner()
 {
 	let cpl_version = get_cpl_version();
 	let the_os = get_os();
-	let version = "0.0.27";
+	let version = "0.0.33";
 	println!("{}",cpl_version);
 	println!("[Rust {}] on {}",version,the_os);
 	println!("Type \"help\" for more information.");
 }
 
 /*
-<<shell>> [string]TranslateTag:(String)Input []-tab []-(string)Action:Input []-el []-tab []-(string)Value:"" []-el []-tab []-(string)VarName:"" []-el []-tab []-(String)NewTag:"" []-el []-tab []-(string)TheDataType:"" []-el []-tab []-(String)Nest:"" []-el []-tab []-(String)ContentFor:"" []-el []-nl if:StartsWith(Action,"+-") +-tab +-tab +-var:Action= +-stmt:method-AfterSplit +-params:Action,'-' +-el +-tab +-tab +-var:ContentFor="logic-" +-el []-nl else-if:StartsWith(Action,"o-") +-tab +-tab +-var:Action= +-stmt:method-AfterSplit +-params:Action,'-' +-el +-tab +-tab +-var:ContentFor="loop-" +-el []-nl else-if:StartsWith(Action,"[]-") +-tab +-tab +-var:Action= +-stmt:method-AfterSplit +-params:Action,'-' +-el +-tab +-tab +-var:ContentFor="method-" +-el []-nl while:StartsWith(Action,">") o-tab o-tab o-var:Action= o-stmt:method-AfterSplit o-params:Action,'>' o-el o-tab o-tab o-var:Nest="nest-"+Action o-stmt:endline if:StartsWith(Action,"if")(-or)StartsWith(Action,"else-if") +-tab +-tab +-var:Value= +-stmt:method-AfterSplit +-params:Action,':' +-el +-tab +-tab +-var:Action= +-stmt:method-BeforeSplit +-params:Action,':' +-el +-tab +-tab +-var:Nest="logic:"+Nest +-el +-tab +-tab +-var:Value="logic-condition:"+Value +-el +-tab +-tab +-var:TheReturn=ContentFor+Nest+NewTag+"(-spc)"+Value +-el else-if:Action(-eq)"else" +-tab +-tab +-var:NewTag="logic:"+Action +-el +-tab +-tab +-var:TheReturng=ContentFor+Nest+NewTag +-el else-if:StartsWith(Action,"while:")(-or)StartsWith(Action,"for:"(-or)StartsWith(Action,"do/while:") +-tab +-tab +-var:Value= +-stmt:method-AfterSplit +-params:Action,':' +-el +-tab +-tab +-var:Action= +-stmt:method-BeforeSplit +-params:Action,':' +-el +-tab +-tab +-var:Nest="loop:"+Nest +-el +-tab +-tab +-var:Value="loop-condition:"+Value +-el +-tab +-tab +-var:TheReturn=ContentFor+Nest+NewTag+"(-spc)"+Value +-el else-if:StartsWith(Action,"{")(-and)IsIn(Action,"}") +-tab +-tab +-var:TheDataType= +-stmt:method-BeforeSplit +-params:Action,'}' +-el +-tab +-tab +-var:TheDataType= +-stmt:method-AfterSplit +-params:Action,'{' +-el +-tab +-tab +-var:Action= +-stmt:method-AfterSplit +-params:Action,'{' +-el +->if:IsIn(Action,":") +-tab +-tab +-tab +-var:Value= +-stmt:method-AfterSplit +-params:Action,':' +-el +-tab +-tab +-tab +-var:Action= +-stmt:method-BeforeSplit +-params:Action,':' +-el +->if:Value(-ne)"" +-tab +-tab +-tab +-var:TheReturn="class:("+TheDataType+")"+Action+"(-spc)params:"+Value +-el +->else +-tab +-tab +-tab +-var:TheReturn="class:("+TheDataType+")"+Action +-el else-if:StartsWith(Action,"[")(-and)IsIn(Action,"]") +-tab +-tab +-var:TheDataType= +-stmt:method-BeforeSplit +-params:Action,']' +-el +-tab +-tab +-var:TheDataType= +-stmt:method-AfterSplit +-params:TheDataType,'[' +-el +-tab +-tab +-var:Action= +-stmt:method-AfterSplit +-params:Action,']' +-el +->if:IsIn(Action,":") +-tab +-tab +-tab +-var:Value= +-stmt:method-AfterSplit+-params:Action,':' +-el +-tab +-tab +-tab +-var:Action= +-stmt:method-BeforeSplit +-params:Action,':' +-el +->if:Value(-ne)"" +-tab +-tab +-tab +-var:TheReturn=ContentFor+"method:("+TheDataType+")"+Action+"="+Value +-el +->else +-tab +-tab +-tab +-var:TheReturn=ContentFor+"method:("+TheDataType+")"+Action +-el else-if:StartsWith(Action,"(")(-and)IsIn(Action,")") +-tab +-tab +-var:TheDataType= +-stmt:method-BeforeSplit +-params:Action,')' +-el +-tab +-tab +-var:TheDataType= +-stmt:method-AfterSplit +-params:TheDataType,'(' +-el +-tab +-tab +-var:Action= +-stmt:method-AfterSplit +-params:Action,')' +-el +->if:IsIn(Action,":") +-tab +-tab +-tab +-var:Value= +-stmt:method-AfterSplit +-params:Action,':' +-el +-tab +-tab +-tab +-var:Action= +-stmt:method-BeforeSplit +-params:Action,':' +-el +->if:Value(-ne)"" +-tab +-tab +-tab +-var:TheReturn=ContentFor+"var:("+TheDataType+")"+Action+"="+Value +-el +->else +-tab +-tab +-tab +-var:TheReturn=ContentFor+"var:("+TheDataType+")"+Action +-el else-if:Action(-eq)"el") +-tab +-tab +-var:TheReturn=ContentFor+"stmt:endline" +-el else-if:Action(-eq)"nl") +-tab +-tab +-var:TheReturn=ContentFor+"stmt:newline" +-el else-if:Action(-eq)"tab") +-tab +-tab +-var:TheReturn=ContentFor+"stmt:"+Action +-el else +->if:Value(-ne)"" +-tab +-tab +-tab +-var:TheReturn=ContentFor+Nest+Action+":"+Value +-el +->else +-tab +-tab +-tab +-var:TheReturn=ContentFor+Nest+Action +-el
+<<shell>> [string]TranslateTag:(String)Input []-tab []-(string)Action:Input []-el []-tab []-(string)Value:"" []-el []-tab []-(string)VarName:"" []-el []-tab []-(String)NewTag:"" []-el []-tab []-(string)TheDataType:"" []-el []-tab []-(String)Nest:"" []-el []-tab []-(String)ContentFor:"" []-el []-nl if:StartsWith(Action,"+-") +-tab +-tab +-var:Action= +-stmt:method-AfterSplit +-params:Action,"-" +-el +-tab +-tab +-var:ContentFor="logic-" +-el []-nl else-if:StartsWith(Action,"o-") +-tab +-tab +-var:Action= +-stmt:method-AfterSplit +-params:Action,"-" +-el +-tab +-tab +-var:ContentFor="loop-" +-el []-nl else-if:StartsWith(Action,"[]-") +-tab +-tab +-var:Action= +-stmt:method-AfterSplit +-params:Action,"-" +-el +-tab +-tab +-var:ContentFor="method-" +-el []-nl while:StartsWith(Action,">") o-tab o-tab o-var:Action= o-stmt:method-AfterSplit o-params:Action,">" o-el o-tab o-tab o-var:Nest="nest-"+Action o-stmt:endline if:StartsWith(Action,"if")(-or)StartsWith(Action,"else-if") +-tab +-tab +-var:Value= +-stmt:method-AfterSplit +-params:Action,":" +-el +-tab +-tab +-var:Action= +-stmt:method-BeforeSplit +-params:Action,":" +-el +-tab +-tab +-var:Nest="logic:"+Nest +-el +-tab +-tab +-var:Value="logic-condition:"+Value +-el +-tab +-tab +-var:TheReturn=ContentFor+Nest+NewTag+"(-spc)"+Value +-el else-if:Action(-eq)"else" +-tab +-tab +-var:NewTag="logic:"+Action +-el +-tab +-tab +-var:TheReturng=ContentFor+Nest+NewTag +-el else-if:StartsWith(Action,"while:")(-or)StartsWith(Action,"for:"(-or)StartsWith(Action,"do/while:") +-tab +-tab +-var:Value= +-stmt:method-AfterSplit +-params:Action,":" +-el +-tab +-tab +-var:Action= +-stmt:method-BeforeSplit +-params:Action,":" +-el +-tab +-tab +-var:Nest="loop:"+Nest +-el +-tab +-tab +-var:Value="loop-condition:"+Value +-el +-tab +-tab +-var:TheReturn=ContentFor+Nest+NewTag+"(-spc)"+Value +-el else-if:StartsWith(Action,"{")(-and)IsIn(Action,"}") +-tab +-tab +-var:TheDataType= +-stmt:method-BeforeSplit +-params:Action,"}" +-el +-tab +-tab +-var:TheDataType= +-stmt:method-AfterSplit +-params:Action,"{" +-el +-tab +-tab +-var:Action= +-stmt:method-AfterSplit +-params:Action,"{" +-el +->if:IsIn(Action,":") +-tab +-tab +-tab +-var:Value= +-stmt:method-AfterSplit +-params:Action,":" +-el +-tab +-tab +-tab +-var:Action= +-stmt:method-BeforeSplit +-params:Action,":" +-el +->if:Value(-ne)"" +-tab +-tab +-tab +-var:TheReturn="class:("+TheDataType+")"+Action+"(-spc)params:"+Value +-el +->else +-tab +-tab +-tab +-var:TheReturn="class:("+TheDataType+")"+Action +-el else-if:StartsWith(Action,"[")(-and)IsIn(Action,"]") +-tab +-tab +-var:TheDataType= +-stmt:method-BeforeSplit +-params:Action,"]" +-el +-tab +-tab +-var:TheDataType= +-stmt:method-AfterSplit +-params:TheDataType,"[" +-el +-tab +-tab +-var:Action= +-stmt:method-AfterSplit +-params:Action,"]" +-el +->if:IsIn(Action,":") +-tab +-tab +-tab +-var:Value= +-stmt:method-AfterSplit+-params:Action,":" +-el +-tab +-tab +-tab +-var:Action= +-stmt:method-BeforeSplit +-params:Action,":" +-el +->if:Value(-ne)"" +-tab +-tab +-tab +-var:TheReturn=ContentFor+"method:("+TheDataType+")"+Action+"="+Value +-el +->else +-tab +-tab +-tab +-var:TheReturn=ContentFor+"method:("+TheDataType+")"+Action +-el else-if:StartsWith(Action,"(")(-and)IsIn(Action,")") +-tab +-tab +-var:TheDataType= +-stmt:method-BeforeSplit +-params:Action,")" +-el +-tab +-tab +-var:TheDataType= +-stmt:method-AfterSplit +-params:TheDataType,"(" +-el +-tab +-tab +-var:Action= +-stmt:method-AfterSplit +-params:Action,")" +-el +->if:IsIn(Action,":") +-tab +-tab +-tab +-var:Value= +-stmt:method-AfterSplit +-params:Action,":" +-el +-tab +-tab +-tab +-var:Action= +-stmt:method-BeforeSplit +-params:Action,":" +-el +->if:Value(-ne)"" +-tab +-tab +-tab +-var:TheReturn=ContentFor+"var:("+TheDataType+")"+Action+"="+Value +-el +->else +-tab +-tab +-tab +-var:TheReturn=ContentFor+"var:("+TheDataType+")"+Action +-el else-if:Action(-eq)"el" +-tab +-tab +-var:TheReturn=ContentFor+"stmt:endline" +-el else-if:Action(-eq)"nl" +-tab +-tab +-var:TheReturn=ContentFor+"stmt:newline" +-el else-if:Action(-eq)"tab" +-tab +-tab +-var:TheReturn=ContentFor+"stmt:"+Action +-el else +->if:Value(-ne)"" +-tab +-tab +-tab +-var:TheReturn=ContentFor+Nest+Action+":"+Value +-el +->else +-tab +-tab +-tab +-var:TheReturn=ContentFor+Nest+Action +-el
 */
 fn translate_tag(input: &str) -> String
 {
@@ -573,7 +602,8 @@ fn handle_names(the_name: &str) -> String
 //<<shell>> method:DataType-String params:Type-String,CalledBy-String logic:if condition:Type(-eq)"String"(-or)Type(-eq)"std::string" logic-var:TheReturn="String" logic-stmt:endline logic:else-if condition:Type(-eq)"boolean" logic-var:Type="bool" logic-stmt:endline logic:else logic-var:TheReturn=Type logic-stmt:endline
 fn data_type(the_type: &str, called_by: &str) -> String
 {
-	println!("{}",called_by);
+	let _useless = called_by;
+
 	if the_type == "String" || the_type == "std::string"
 	{
 		return "String".to_string();
@@ -646,10 +676,9 @@ fn gen_conditions(input: &str,called_by: &str) -> String
 	{
 		condit = condit[1:len(Condit)]
 	}
-
-	if ends_with(condit, ")")
+	if ends_with(&condit, ")")
 	{
-		condit = condit[:len(Condit)-1]
+		condit = rem_last_char(&condit, 1).to_string();
 	}
 */
 	if called_by == "class"
@@ -670,25 +699,29 @@ fn gen_conditions(input: &str,called_by: &str) -> String
 //params:
 fn gen_parameters(input: &str, called_by: &str) -> String
 {
-	let name: String;
+	let mut name: String;
 	let the_params = after_split(input,":");
 	let mut new_params = String::new();
+
 	if called_by == "class" || called_by == "method" || called_by == "stmt"
 	{
 		//param-type,param-type,param-type
-		if is_in(&the_params,"-") && is_in(&the_params,",")
+		if starts_with(&the_params,"(") && is_in(&the_params,")") && is_in(&the_params,",")
 		{
 			//param
-			name = handle_names(&before_split(&the_params,"-"));
+			name = handle_names(&after_split(&the_params,")"));
 			//type,param-type,param-type
-			let mut the_type = after_split(&the_params,"-");
+			let mut the_type = before_split(&the_params,")");
 			//type
-			the_type = before_split(&the_type,",");
+			the_type = before_split(&the_type,"(");
+			//Converting data type to correct Rust type
 			the_type = data_type(&the_type, "params");
 
+			name = before_split(&name,",");
 			//param-type,param-type
-			//recursion to get more parameters
-			let more: String = gen_parameters(&["params:",&after_split(&the_params,",")].concat(),called_by);
+			let more = after_split(&name,",");
+//			//recursion to get more parameters
+//			let more: String = gen_parameters(&["params:",&after_split(&the_params,",")].concat(),called_by);
 
 			//param: type, param: type, param: type
 			new_params.push_str(&name);
@@ -698,16 +731,21 @@ fn gen_parameters(input: &str, called_by: &str) -> String
 			new_params.push_str(&more);
 		}
 		//param-type
-		else if is_in(&the_params,"-") && !is_in(&the_params,",")
+		else if starts_with(&the_params,"(") && is_in(&the_params,")")
 		{
-			name = handle_names(&before_split(&the_params,"-"));
-			let mut the_type = after_split(&the_params,"-");
+			name = handle_names(&after_split(&the_params,")"));
+			let mut the_type = before_split(&the_params,")");
+			the_type = after_split(&the_type,"(");
 			the_type = data_type(&the_type, "params");
 
 			//param: type
 			new_params.push_str(&name);
 			new_params.push_str(": ");
 			new_params.push_str(&the_type);
+		}
+		else
+		{
+			new_params.push_str(&handle_names(&the_params));
 		}
 	}
 	return new_params;
@@ -939,7 +977,7 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 			let cmds: Vec<&str> = the_other_content.split(" ").collect();
 			for item in &cmds
 			{
-				let corrected = replace_tag(&item, "method-").clone();
+				let corrected = replace_tag(&item, "method-",false).clone();
 
 				//starts with "logic:" or "loop:"
 				if starts_with(&corrected,"logic:") || starts_with(&corrected,"loop:") || starts_with(&corrected,"var:") || starts_with(&corrected,"stmt:")
@@ -1059,7 +1097,7 @@ fn gen_loop(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 
 	while passed_content != ""
 	{
-		passed_content = replace_tag(&passed_content, "loop-");
+		passed_content = replace_tag(&passed_content, "loop-",true);
 
 		if starts_with(&passed_content, "condition:")
 		{
@@ -1199,7 +1237,7 @@ fn gen_loop(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 		}
 		else if starts_with(&passed_content, "loop-") || starts_with(&passed_content, "var:") || starts_with(&passed_content, "stmt:")
 		{
-			passed_content = replace_tag(&passed_content, "loop-");
+			passed_content = replace_tag(&passed_content, "loop-",true);
 			loop_content.push_str(&gen_code(&new_tabs,&passed_content));
 			passed_content = "".to_string();
 		}
@@ -1295,7 +1333,7 @@ fn gen_logic(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 
 	while passed_content != ""
 	{
-		passed_content = replace_tag(&passed_content, "logic-");
+		passed_content = replace_tag(&passed_content, "logic-",true);
 
 		if starts_with(&passed_content, "condition:")
 		{
@@ -1402,9 +1440,10 @@ fn gen_logic(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 			}
 			new_content = "".to_string();
 		}
-		else if starts_with(&passed_content, "logic-") || starts_with(&passed_content, "var:") || starts_with(&passed_content, "stmt:")
+		else if starts_with(&passed_content, "var:") || starts_with(&passed_content, "stmt:")
+//		else if starts_with(&passed_content, "logic-") || starts_with(&passed_content, "var:") || starts_with(&passed_content, "stmt:")
 		{
-			passed_content = replace_tag(&passed_content, "logic-");
+//			passed_content = replace_tag(&passed_content, "logic-");
 			logic_content.push_str(&gen_code(&new_tabs,&passed_content));
 			passed_content = "".to_string();
 		}
@@ -1544,7 +1583,7 @@ fn gen_statements(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Str
 	if is_in(&new_kind,"-")
 	{
 		the_name = handle_names(&before_split(&new_kind,"-"));
-		name = after_split(&new_kind,"-");
+		name = handle_names(&after_split(&new_kind,"-"));
 	}
 	else
 	{
@@ -1646,6 +1685,7 @@ fn gen_variables(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Stri
 	if starts_with(&new_kind, "var:")
 	{
 		new_kind = after_split(&new_kind,":");
+		new_kind = handle_names(&new_kind);
 	}
 
 	while passed_content != ""
@@ -1774,6 +1814,33 @@ fn gen_code(the_tabs: &str, get_me: &str) -> String
 	}
 */
 	return the_code;
+}
+
+/*
+<<shell>> []Example:(String)tag while:true o-if:IsIn el
+// params:Type-String if:Type(-eq)"String"(-or)Type(-eq)"string" +-var:TheReturn="std::string" +-stmt:endline else-if:Type(-eq)"boolean" +-var:Type="bool" +-stmt:endline else +-var:TheReturn=Type +-stmt:endline
+*/
+fn example(tag: &str)
+{
+	let mut user_in = String::new();
+	if is_in(tag, " ")
+	{
+		let all: Vec<&str> = tag.split(" ").collect();
+		for item in &all
+		{
+			if user_in == ""
+			{
+				user_in.push_str(&translate_tag(&item));
+			}
+			else
+			{
+				user_in.push_str(&translate_tag(" "));
+				user_in.push_str(&translate_tag(&item));
+			}
+		}
+	}
+	user_in.push_str(&gen_code("", &user_in));
+	println!("{}",user_in);
 }
 
 fn main()
