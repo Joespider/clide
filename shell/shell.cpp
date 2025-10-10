@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.0.91";
+String Version = "0.0.92";
 
 String getOS();
 void Help(String Type);
@@ -79,10 +79,10 @@ void Help(String Type)
 	if (Type == "class")
 	{
 		print("{Usage}");
-		print(Type+":<name> param:<params>,<param> var(public/private):<vars> method:<name>-<type> param:<params>,<param>");
+		print("{}<name>:(<type>)<name> var(public/private):<vars> method:<name>-<type> param:<params>,<param>");
 		print("");
 		print("{EXAMPLE}");
-		print(Type+":pizza params:(int)one,(bool)two,(float)three var(private):(int)toppings method:(std::string)cheese params:(int)four,(int)five loop:for nest-loop:for");
+		Example("{}pizza:(int)one,(bool)two,(float)three var(private):(int)toppings [String-mixture]cheese:(String)kind,(int)amount for: nest-for: [String]topping:(String)name,(int)amount if:good");
 	}
 	else if (Type == "struct")
 	{
@@ -433,6 +433,11 @@ String TranslateTag(String Input)
 	{
 		Action = AfterSplit(Action,'-');
 		ContentFor = "method-";
+	}
+	else if (StartsWith(Action, "{}-"))
+	{
+		Action = AfterSplit(Action,'-');
+		ContentFor = "class-";
 	}
 
 	// ">" becomes "nest-"
@@ -1265,14 +1270,14 @@ String Loop(String Tabs, String TheKindType, String Content)
 							}
 							lp++;
 						}
-						//remove all nest-
-						while (StartsWith(NewContent, "nest-"))
-						{
-							NewContent = AfterSplit(NewContent,'-');
-						}
-						//process the remaining nest-loop/logic
-						LoopContent = LoopContent + GenCode(Tabs+"\t",NewContent);
 					}
+
+					while (StartsWith(NewContent, "nest-"))
+					{
+						NewContent = AfterSplit(NewContent,'-');
+					}
+					//process the remaining nest-loop/logic
+					LoopContent = LoopContent + GenCode(Tabs+"\t",NewContent);
 				}
 			}
 			//just process as is
@@ -1536,14 +1541,15 @@ String Logic(String Tabs, String TheKindType, String Content)
 							}
 							lp++;
 						}
-						//remove all nest-
-						while (StartsWith(NewContent, "nest-"))
-						{
-							NewContent = AfterSplit(NewContent,'-');
-						}
-						//process the remaining nest-loop/logic
-						LogicContent = LogicContent + GenCode(Tabs+"\t",NewContent);
 					}
+					//remove all nest-
+					while (StartsWith(NewContent, "nest-"))
+					{
+						NewContent = AfterSplit(NewContent,'-');
+					}
+					//process the remaining nest-loop/logic
+					LogicContent = LogicContent + GenCode(Tabs+"\t",NewContent);
+
 				}
 			}
 			//just process as is
@@ -1881,7 +1887,7 @@ void Example(String tag)
 	String UserIn = "";
 	print("\t{EXAMPLE}");
 	print("Command: "+tag);
-	print("\t---or---");
+//	print("\t---or---");
 	if (IsIn(tag," "))
 	{
 		std::vector<String> all = split(tag," ");
@@ -1904,7 +1910,7 @@ void Example(String tag)
 	{
 		UserIn = TranslateTag(tag);
 	}
-	print("Command: "+UserIn);
+//	print("Command: "+UserIn);
 	print("");
 	UserIn = GenCode("",UserIn);
 	print("\t{OUTPUT}");
