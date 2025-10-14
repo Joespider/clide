@@ -9,6 +9,8 @@ import (
 	"strings"
 	)
 
+var Version string = "0.0.93"
+
 func getOS() string {
 	os := runtime.GOOS
 	switch os {
@@ -27,10 +29,10 @@ func help(Type string) {
 	Type = AfterSplit(Type,":")
 	if Type == "class" {
 		fmt.Println("{Usage}")
-		fmt.Println(Type+":<name> param:<params>,<param> var(public/private):<vars> method:<name>-<type> param:<params>,<param>")
+		fmt.Println("{}<name>:(<type>)<name> var(public/private):<vars> method:<name>-<type> param:<params>,<param>")
 		fmt.Println("")
 		fmt.Println("{EXAMPLE}")
-		fmt.Println(Type+":pizza params:one-int,two-bool,three-float var(private):toppings-int method:cheese-std::string params:four-int,five-int loop:for nest-loop:for")
+		fmt.Println("{}pizza:(int)one,(bool)two,(float)three var(private):(int)toppings [String-mixture]cheese:(String)kind,(int)amount for: nest-for: [String]topping:(String)name,(int)amount if:good")
 	} else if Type == "struct" {
 		fmt.Println(Type+":<name>-<type> var:<var> var:<var>")
 		fmt.Println("")
@@ -39,14 +41,20 @@ func help(Type string) {
 	} else if Type == "method" {
 		fmt.Println(Type+"(public/private):<name>-<type> param:<params>,<param>")
 		fmt.Println(Type+":<name>-<type> param:<params>,<param>")
+		Example("[String]help:(String)one,(int)two")
+		Example("[String-Message]help:(String)one,(int)two")
+		Example("[String-Type]FoodAndDrink:(String)Food if:Food(-ne)\"\" >if:[IsDrink]:drink(-eq)true +->tab +->tab +->tab +->()Type=\"Drink\" +->el +->>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Drink]:Food o->>el +->else-if:[IsFood]:Food(-eq)true +->tab +->tab +->tab +->()Type=\"Food\" +->el >>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Eat]:Food o->>el >else +->tab +->tab +->tab +->()Eat= +->(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el else +-tab +-tab +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el")
+		Example("[String-Type]FoodAndDrink:(String)Food if:Food(-ne)\"\" >if:[IsDrink]:drink(-eq)true +->tab +->tab +->tab +->()Type=\"Drink\" +->el +->>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Drink]:Food o->>el >>if:mood(-ne)\"happy\" >>>do-while:mood(-eq)\"unhappy\" >>>>tab >>>>tab >>>>tab >>>>tab >>>>tab >>>>[ChearUp]:mood >>>>el +->else-if:[IsFood]:Food(-eq)true +->tab +->tab +->tab +->()Type=\"Food\" +->el >>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Eat]:Food o->>el >>if:mood(-ne)\"happy\" >>>do-while:mood(-eq)\"unhappy\" >>>>tab >>>>tab >>>>tab >>>>tab >>>>tab >>>>[ChearUp]:mood >>>>el >else +->tab +->tab +->tab +->(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el else +-tab +-tab +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el")
+		Example("[String-Type]FoodAndDrink:(String)Food if:Food(-ne)\"\" >if:[IsDrink]:drink(-eq)true +->tab +->tab +->tab +->()Type=\"Drink\" +->el +->>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Drink]:Food o->>el >>if:mood(-ne)\"happy\" >>>do-while:mood(-eq)\"unhappy\" o->>>>tab o->>>>tab o->>>>tab o->>>>tab o->>>>tab o->>>>[ChearUp]:mood o->>>>el +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->else-if:[IsFood]:Food(-eq)true +->tab +->tab +->tab +->()Type=\"Food\" +->el >>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Eat]:Food o->>el >>if:mood(-ne)\"happy\" >>>do-while:mood(-eq)\"unhappy\" >>>>tab >>>>tab >>>>tab >>>>tab >>>>tab >>>>[ChearUp]:mood >>>>el +-[print]:\"I(-spc)am(-spc)\"+mood +-el >else +->tab +->tab +->tab +->(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el else +-tab +-tab +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el")
+		Example("[String-Type]FoodAndDrink:(String)Food if:Food(-ne)\"\" >if:[IsDrink]:drink(-eq)true >>tab >>tab >>tab >>()Type=\"Food\" >>el >>tab >>tab >>tab >>[Drink]:Food >>el >else-if:[IsFood]:Food(-eq)true +->>tab +->>tab +->>tab +->>()Type=\"Drink\" +->>el >>tab >>tab >>tab >>[Eat]:Food >>el >else +->tab +->tab +->tab +->(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +->el else +-tab +-tab +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el")
 	} else if Type == "loop" {
-		fmt.Println(Type+":<type>")
+		fmt.Println("<logic>:<condition>")
 		fmt.Println("")
-		fmt.Println("{EXAMPLE}")
-		fmt.Println(Type+":for")
-		fmt.Println(Type+":do/while")
-		fmt.Println(Type+":while")
-
+		Example("if:Type(-spc)==(-spc)\"String\"")
+		Example("else-if:Type(-eq)\"String\"")
+		Example("else")
+		Example("if:true tab (String)drink= [Pop]:one,two el >if:[IsString]:drink(-eq)true >tab >tab >[drink]: >el >>if:drink(-eq)\"coke\" >>else >nl >else-if:[IsInt]:drink(-eq)false >nl >else >>if: >>nl >>else >nl")
+		Example("if:true tab (String)drink= [Pop]:one,two el >if:[IsString]:drink(-eq)true >>if:drink(-eq)\"coke\" >>else >nl >else-if:[IsInt]:drink(-eq)false >nl >else >>if: >>nl >>else >nl")
 	} else if Type == "logic" {
 		fmt.Println(Type+":<type>")
 		fmt.Println("")
@@ -55,22 +63,15 @@ func help(Type string) {
 		fmt.Println(Type+":else-if")
 		fmt.Println(Type+":switch")
 	} else if Type == "var" {
-//		fmt.Println(Type+"(public/private):<name>-<type>=value\tcreate a new variable")
-//		fmt.Println(Type+":(<type>)<name>[<num>]=value\tcreate a new variable as an array")
-//		fmt.Println(Type+":(<type>{<struct>})<name>=value\tcreate a new variable a data structure")
-//		fmt.Println(Type+":<name>=value\tassign a new value to an existing variable")
-//		fmt.Println("")
-		fmt.Println("(<type>)<name>=value\tassign a new value to a variable")
-		fmt.Println("<name>=value\tassign a new value to an existing variable")
-		fmt.Println("")
-		fmt.Println("{EXAMPLE}")
-//		fmt.Println(Type+":name-std::string[3]")
-//		fmt.Println(Type+":name-std::string(vector)")
-//		fmt.Println(Type+":(std::string)name=\"\" var:(int)point=0 stmt:endline var:james-std::string=\"James\" stmt:endline var:help-int")
-		fmt.Println("<<shell>> (std::string)name=\"\" el (int)point=0 el (std::string)james=\"James\" el (int)help el help=0")
-		fmt.Println("{OUTPUT}")
+		Example("(std::string)name=\"\" var:(int)point=0 stmt:endline var:james-std::string=\"James\" stmt:endline var:help-int")
+		Example("(std::string)name=\"\" el (int)point=0 el (std::string)james=\"James\" el (int)help el help=0")
 		Example("(std::string)name=\"\" el (int)point=0 el (std::string)james=\"James\" el (int)help el help=0")
 	} else if Type == "stmt" {
+		fmt.Println(Type+":<type>")
+		fmt.Println(Type+":method\t\tcall a method")
+		fmt.Println(Type+":endline\t\tPlace the \";\" at the end of the statement")
+		fmt.Println(Type+":newline\t\tPlace and empty line")
+		fmt.Println(Type+":method-<name>\tcall a method and the name of the method")
 		fmt.Println(Type+":<type>")
 		fmt.Println(Type+":endline\t\tPlace the \"\" at the end of the statement")
 		fmt.Println(Type+":newline\t\tPlace and empty line")
@@ -181,6 +182,11 @@ func AfterSplit(Str string, splitAt string) string {
 	}
 }
 
+func join(Array []string, ToJoin string) string {
+	Joined := strings.Join(Array, ToJoin)
+	return Joined
+}
+
 func split(Str string, sBy string) []string {
 	Array := strings.Split(Str, sBy)
 	return Array
@@ -229,91 +235,160 @@ func ReplaceTag(Content string, Tag string, All bool) string {
 		//removing tag
 		Content = AfterSplit(Content,"-")
 	}
-	return Content;
+	return Content
 }
-
 
 func banner() {
 	var cplV string = getCplV()
 	var theOS string = getOS()
-	var Version string = "0.0.18"
 	fmt.Println(cplV)
 	fmt.Println("[Go " + Version +"] on " + theOS)
 	fmt.Println("Type \"help\" for more information.")
 }
 
-/*
-<<shell>> method:TranslateTag-String params:Input-String m-var:Action-String="" m-stmt:endline m-var:Value-String="" m-stmt:endline m-var:NewTag-String="" m-stmt:endline m-var:TheDataType-String="" m-stmt:endline m-var:Nest-String="" m-stmt:endline m-var:ContentFor-String="" m-stmt:endline m-stmt:newline if:IsIn(Input,":") lg-stmt:method-AfterSplit lg-stmt:endline else lg-var:Action=Input lg-stmt:endline m-stmt:newline else-if:StartsWith(Action,"lg-") lg-var:Action= lg-stmt:method-AfterSplit lg-stmt:endline lg-var:ContentFor="logic-" lg-stmt:endline m-stmt:newline else-if:StartsWith(Action,"lp-") lg-var:Action= lg-stmt:method-AfterSplit lg-stmt:endline lg-var:ContentFor="loop-" lg-stmt:endline m-stmt:newline else-if:StartsWith(Action,"m-") lg-var:Action= lg-stmt:method-AfterSplit lg-stmt:endline lg-var:ContentFor="method-" lg-stmt:endline m-stmt:newline while:StartsWith(Action,">") lp-var:Action= lp-stmt:method-AfterSplit lp-stmt:endline lp-var:Nest="nest-"+Nest lp-stmt:endline m-stmt:newline if:Action(-eq)"if"(-or)Action(-eq)"else-if" lg-var:NewTag= lg-stmt:method-AfterSplit lg-stmt:endline lg-var:Nest="logic:"+Nest lg-stmt:endline else-if:Action(-eq)"else" lg-var:NewTag= lg-stmt:method-AfterSplit lg-stmt:endline lg-var:Nest="method-"+Nest lg-stmt:endline else-if:Action(-eq)"while"(-or)Action(-eq)"for"(-or)Action(-eq)"do/while" else lg->if:Value(-ne)"" lg->else
-*/
 func TranslateTag(Input string) string {
 	var TheReturn string = ""
-	var Action string = ""
+	var Action string = Input
 	var Value string = ""
+//	var VarName string = ""
 	var NewTag string = ""
-//	var TheDataType string = ""
+	var TheDataType string = ""
 	var Nest string = ""
 	var ContentFor string = ""
+//	var OldDataType string = ""
 
-	if IsIn(Input,":") {
-		Action = BeforeSplit(Input,":")
-		Value = AfterSplit(Input,":")
-	} else {
-		Action = Input
-	}
-
-	if StartsWith(Action,"lg-") {
+	if StartsWith(Action, "+-") {
 		Action = AfterSplit(Action,"-")
 		ContentFor = "logic-"
-	} else if StartsWith(Action,"lp-") {
+	} else if StartsWith(Action, "o-") {
 		Action = AfterSplit(Action,"-")
-		ContentFor = "logic-"
-	} else if StartsWith(Action,"m-") {
+		ContentFor = "loop-"
+	} else if StartsWith(Action, "[]-") {
 		Action = AfterSplit(Action,"-")
 		ContentFor = "method-"
+	} else if StartsWith(Action, "{}-") {
+		Action = AfterSplit(Action,"-")
+		ContentFor = "class-"
 	}
 
-	for StartsWith(Action,">") {
+	// ">" becomes "nest-"
+	for StartsWith(Action, ">") {
 		Action = AfterSplit(Action,">")
 		Nest = "nest-"+Nest
 	}
 
-	if Action == "if" || Action == "else-if" {
+	if StartsWith(Action, "if:") || StartsWith(Action, "else-if:") {
+		Value = AfterSplit(Action,":")
+		Action = BeforeSplit(Action,":")
 		NewTag = "logic:"+Action
 		Value = "logic-condition:"+Value
 		TheReturn = ContentFor+Nest+NewTag+" "+Value
 	} else if Action == "else" {
 		NewTag = "logic:"+Action
 		TheReturn = ContentFor+Nest+NewTag
-	} else if Action == "while" || Action == "for" ||  Action == "do/while" {
+	} else if StartsWith(Action, "while:") || StartsWith(Action, "for:") || StartsWith(Action, "do-while:") {
+		Value = AfterSplit(Action,":")
+		Action = BeforeSplit(Action,":")
 		NewTag = "loop:"+Action
 		Value = "loop-condition:"+Value
 		TheReturn = ContentFor+Nest+NewTag+" "+Value
+	} else if StartsWith(Action, "{") && IsIn(Action,"}") {
+		TheDataType = BeforeSplit(Action,"}")
+		TheDataType = AfterSplit(TheDataType,"{")
+		Action = AfterSplit(Action,"}")
+
+		if IsIn(Action,":") {
+			Value = AfterSplit(Action,":")
+			Action = BeforeSplit(Action,":")
+		}
+
+		if Value != "" {
+			TheReturn = "class:"+Action+" params:"+Value
+		} else {
+			TheReturn = "class:"+Action
+		}
+	} else if StartsWith(Action, "[") && IsIn(Action,"]") {
+		TheDataType = BeforeSplit(Action,"]")
+		TheDataType = AfterSplit(TheDataType,"[")
+		Action = AfterSplit(Action,"]")
+		//calling a function
+		if StartsWith(Action, ":") {
+			Value = AfterSplit(Action,":")
+			Action = TheDataType
+			TheReturn = ContentFor+Nest+"stmt:method-"+Action+" params:"+Value
+		//is a function
+		} else {
+			TheDataType = DataType(TheDataType,false)
+			if IsIn(Action,":") {
+				Value = AfterSplit(Action,":")
+				Action = BeforeSplit(Action,":")
+			}
+
+			if Value != "" {
+				TheReturn = ContentFor+Nest+"method:("+TheDataType+")"+Action+" params:"+Value
+			} else {
+				TheReturn = ContentFor+Nest+"method:("+TheDataType+")"+Action
+			}
+		}
+	} else if StartsWith(Action, "(") && IsIn(Action,")") {
+		TheDataType = BeforeSplit(Action,")")
+		TheDataType = AfterSplit(TheDataType,"(")
+		Action = AfterSplit(Action,")")
+
+		if IsIn(Action,":") {
+			Value = AfterSplit(Action,":")
+			Action = BeforeSplit(Action,":")
+		}
+
+		if Value != "" {
+			//translate value, if needed
+			Value = TranslateTag(Value)
+//			Value = GenCode("",Value)
+			TheReturn = ContentFor+Nest+"var:("+TheDataType+")"+Action+"= "+Value
+		} else {
+			TheReturn = ContentFor+Nest+"var:("+TheDataType+")"+Action
+		}
+	} else if Action == "el" {
+		TheReturn = ContentFor+Nest+"stmt:endline"
+	} else if Action == "nl" {
+		TheReturn = ContentFor+Nest+"stmt:newline"
+	} else if Action == "tab" {
+		TheReturn = ContentFor+Nest+"stmt:"+Action
 	} else {
 		if Value != "" {
 			TheReturn = ContentFor+Nest+Action+":"+Value
 		} else {
-			TheReturn = ContentFor+Nest+Input
+			TheReturn = ContentFor+Nest+Action
 		}
 	}
 
 	return TheReturn
 }
 
-//<<shell>> method:DataType-String params:Type-String logic:if condition:(Type(-eq)"String"(-or)Type(-eq)"std::string") logic-var:TheReturn="string" logic-stmt:endline logic:else-if condition:Type(-eq)"boolean" logic-var:Type="bool" logic-stmt:endline logic:else logic-var:TheReturn=Type logic-stmt:endline
-func DataType(Type string) string {
-	var TheReturn string
-	if Type == "String" || Type == "std::string" {
-		TheReturn = "string"
-	} else if Type == "boolean" {
-		Type = "bool"
+func DataType(Type string, getNull bool) string {
+	//handle strings
+	if (Type == "String" || Type == "string" || Type == "std::string") && getNull == false {
+		return "string"
+        } else if (Type == "String" || Type == "string" || Type == "std::string") && getNull == true {
+		return "\"\""
+	} else if (Type == "boolean" || Type == "bool") && getNull == false {
+		return "bool"
+	} else if (Type == "boolean" || Type == "bool") && getNull == true {
+		return "false"
+	} else if Type == "false" || Type == "False" {
+		return "false"
+	} else if Type == "true" || Type == "True" {
+		return "true"
 	} else {
-		TheReturn = Type
+		if getNull == false {
+			return Type
+		} else {
+			return ""
+		}
 	}
-
-	return TheReturn
 }
 
-
+//condition:
 func Conditions(input string, CalledBy string) string {
 	var Condit string = AfterSplit(input,":")
 
@@ -321,32 +396,12 @@ func Conditions(input string, CalledBy string) string {
 		Condit = replaceAll(Condit, "(-eq)"," == ")
 	}
 
-	if IsIn(Condit,"(-or)") {
-		Condit = replaceAll(Condit, "(-or)"," || ")
-	}
-
-	if IsIn(Condit,"(-and)") {
-		Condit = replaceAll(Condit, "(-and)"," && ")
-	}
-
-	if IsIn(Condit,"(-not)") {
-		Condit = replaceAll(Condit, "(-not)","!")
-	}
-
-	if IsIn(Condit,"(-ge)") {
-		Condit = replaceAll(Condit, "(-ge)"," >= ")
-	}
-
-	if IsIn(Condit,"(-gt)") {
-		Condit = replaceAll(Condit, "(-gt)"," > ")
-	}
-
 	if IsIn(Condit,"(-le)") {
 		Condit = replaceAll(Condit, "(-le)"," <= ")
 	}
 
 	if IsIn(Condit,"(-lt)") {
-		Condit = replaceAll(Condit, "(-lt)"," > ")
+		Condit = replaceAll(Condit, "(-lt)"," < ")
 	}
 
 	if IsIn(Condit,"(-ne)") {
@@ -357,6 +412,47 @@ func Conditions(input string, CalledBy string) string {
 		Condit = replaceAll(Condit, "(-spc)"," ")
 	}
 
+	if IsIn(Condit," ") {
+		var Conditions []string = split(Condit," ")
+                var lp int = 0
+                var end int = len(Conditions)
+                var Keep string = ""
+		for lp != end {
+			Conditions[lp] = TranslateTag(Conditions[lp])
+			Keep = Conditions[lp]
+			Conditions[lp] = GenCode("",Conditions[lp])
+			if Conditions[lp] == "" {
+				Conditions[lp] = Keep
+			}
+			lp++
+		}
+		Condit = join(Conditions, " ")
+	} else {
+		Condit = DataType(Condit,false)
+		var OldCondit string = Condit
+		Condit = TranslateTag(Condit)
+		Condit = GenCode("",Condit)
+
+		if Condit == "" {
+			Condit = OldCondit
+		}
+	}
+
+	//logic
+	if IsIn(Condit,"(-not)") {
+		Condit = replaceAll(Condit, "(-not)","!")
+	}
+
+	if IsIn(Condit,"(-or)") {
+		Condit = replaceAll(Condit, "(-or)",") || (")
+		Condit = "("+Condit+")"
+	}
+
+        if IsIn(Condit,"(-and)") {
+		Condit = replaceAll(Condit, "(-and)",") && (")
+		Condit = "("+Condit+")"
+	}
+/*
 	if StartsWith(Condit, "(") {
 		Condit = Condit[1:len(Condit)]
 	}
@@ -372,40 +468,38 @@ func Conditions(input string, CalledBy string) string {
 	} else if CalledBy == "loop" {
 		fmt.Println("condition: " + CalledBy)
 	}
+*/
+	//convert
 	return Condit
 }
 
 //params:
 func Parameters(input string, CalledBy string) string {
 	var Params string = AfterSplit(input,":")
+
 	if CalledBy == "class" || CalledBy == "method" || CalledBy == "stmt" {
 		//param-type,param-type,param-type
-		if IsIn(Params,"-") && IsIn(Params,",") {
-			//param
-			var Name string = BeforeSplit(Params,"-")
-			//type,param-type,param-type
-			var Type string = AfterSplit(Params,"-")
-			//type
-			Type = BeforeSplit(Type,",")
-			Type = DataType(Type)
-			//param-type,param-type
+		if StartsWith(Params,"(") && IsIn(Params,")") && IsIn(Params,",") {
+			var Name string = BeforeSplit(Params,",")
 			var more string = AfterSplit(Params,",")
+			var Type string = BeforeSplit(Name,")")
 
-			//recursion to get more parameters
+			Name = AfterSplit(Name,")")
+			Type = AfterSplit(Type,"(")
+			Type = DataType(Type,false)
 			more = Parameters("params:"+more,CalledBy)
-			//type param, type param, type param
-			Params = Name+" "+Type+", "+more
+			Params = Type+" "+Name+", "+more
 		//param-type
-		} else if IsIn(Params,"-") && !IsIn(Params,",") {
-			//param
-			var Name string = BeforeSplit(Params,"-")
-			//type
-			var Type string = AfterSplit(Params,"-")
-			Type = DataType(Type)
-			//type param
-			Params = Name+" "+Type
+		} else if StartsWith(Params,"(") && IsIn(Params,")") {
+			var Name string = AfterSplit(Params,")")
+			var Type string = BeforeSplit(Params,")")
+
+			Type = AfterSplit(Type,"(")
+			Type = DataType(Type,false)
+			Params = Type+" "+Name
 		}
 	}
+
 	return Params
 }
 
@@ -482,23 +576,32 @@ func Class(TheName string, Content string) string {
 func Method(Tabs string, Name string, Content string) string {
 	var Last bool = false
         var CanSplit bool = true
-	var Complete string
-	Name = AfterSplit(Name,":")
-	var TheName string
-	var Type string
-	var Params string
-	var MethodContent string
-        var OtherContent string
-        var NewContent string
-	var Process string
+        var ReturnVar string = "TheReturn"
+        var DefaultValue string = ""
+        var Complete string = ""
+        Name = AfterSplit(Name,":")
+        var TheName string = ""
+        var Type string = ""
+        var Params string = ""
+        var MethodContent string = ""
+        var OtherContent string = ""
+        var NewContent string = ""
+        var Process string = ""
 
-	//method:<name>-<type>
-	if IsIn(Name,"-") {
-		TheName = BeforeSplit(Name,"-")
-		Type = AfterSplit(Name,"-")
-		//converting data type
-		Type = DataType(Type)
+	//method:(<type>)<name>
+	if StartsWith(Name,"(") && IsIn(Name,")") {
+		Type = BeforeSplit(Name,")")
+		Type = AfterSplit(Type,"(")
+		//get method name
+		TheName = AfterSplit(Name,")")
+		if IsIn(Name,"-") {
+			ReturnVar = AfterSplit(Type,"-")
+			Type = BeforeSplit(Type,"-")
+		}
+		DefaultValue = DataType(Type,true)
 
+		//Converting data type to correct C++ type
+		Type = DataType(Type,false)
 	//method:<name>
 	} else {
 		//get method name
@@ -506,16 +609,16 @@ func Method(Tabs string, Name string, Content string) string {
 	}
 
 	for Content != "" {
-		if StartsWith(Content, "params") && Params == "" {
+		//params:
+		if StartsWith(Content, "params:") && Params == "" {
 			if IsIn(Content," ") {
 				Process = BeforeSplit(Content," ")
-			} else 	{
+			} else {
 				Process = Content
 			}
 			Params =  Parameters(Process,"method")
 		//ignore content if calling a "method" or a "class"
 		} else if StartsWith(Content, "method:") || StartsWith(Content, "class:") {
-
 			break
 		} else {
 			//This is called when a called from the "class" method
@@ -529,9 +632,10 @@ func Method(Tabs string, Name string, Content string) string {
 			if StartsWith(Content, "method-") {
 				var all []string = split(Content," ")
 				var noMore bool = false
-				var end int = len(all)
 				var lp int = 0
+				var end int = len(all)
 				for lp != end {
+					//This processes ONLY method-<content>
 					if StartsWith(all[lp], "method-") && noMore == false {
 						if OtherContent == "" {
 							OtherContent = all[lp]
@@ -554,26 +658,18 @@ func Method(Tabs string, Name string, Content string) string {
 				CanSplit = true
 			}
 
-//			OtherContent = ReplaceTag(OtherContent, "method-")
-
 			var ParseContent string = ""
 			var Corrected string = ""
-			var cmds []string = split(OtherContent," ")
+
+			var cmds []string = split(Content," ")
 			var end int = len(cmds)
 			var lp int = 0
 			for lp != end {
-				Corrected = ReplaceTag(cmds[lp], "method-", false)
+				Corrected = ReplaceTag(cmds[lp], "method-",false)
 				//starts with "logic:" or "loop:"
-				if StartsWith(Corrected,"logic:") || StartsWith(cmds[lp],"loop:") || StartsWith(cmds[lp],"var:") || StartsWith(Corrected,"stmt:") {
+				if StartsWith(Corrected,"logic:") || StartsWith(Corrected,"loop:") || StartsWith(Corrected,"var:") || StartsWith(Corrected,"stmt:") {
 					//Only process code that starts with "logic:" or "loop:"
 					if ParseContent != "" {
-
-						//if the next element is "logic:else" or "logic:else-if"
-						if StartsWith(ParseContent, "logic:else") {
-							//remove the line break from the last "if"
-							MethodContent = MethodContent[:len(MethodContent)-1]
-						}
-
 						//process content
 						MethodContent = MethodContent + GenCode(Tabs+"\t",ParseContent)
 					}
@@ -584,7 +680,6 @@ func Method(Tabs string, Name string, Content string) string {
 					//append content
 					ParseContent = ParseContent +" "+ Corrected
 				}
-
 				lp++
 			}
 
@@ -620,10 +715,19 @@ func Method(Tabs string, Name string, Content string) string {
 		}
 	}
 
+	//build method based on content
 	if Type == "" || Type == "void" {
 		Complete = Tabs+"func "+TheName+"("+Params+") {\n"+MethodContent+"\n"+Tabs+"}\n"
 	} else {
-		Complete = Tabs+"func "+TheName+"("+Params+") "+Type+" {\n"+Tabs+"\tvar TheReturn "+Type+"\n"+MethodContent+"\n"+Tabs+"\treturn TheReturn\n"+Tabs+"}\n"
+                if DefaultValue == "" {
+			Complete = Tabs+"func "+TheName+"("+Params+") "+Type+" {\n"+Tabs+"\tvar "+ReturnVar+" "+Type+"\n"+MethodContent+"\n"+Tabs+"\treturn "+ReturnVar+"\n"+Tabs+"}\n"
+		} else {
+			Complete = Tabs+"func "+TheName+"("+Params+") "+Type+" {\n"+Tabs+"\tvar "+ReturnVar+" "+Type+" = "+DefaultValue+"\n"+MethodContent+"\n"+Tabs+"\treturn "+ReturnVar+"\n"+Tabs+"}\n"
+		}
+	}
+
+	if Type == "" || Type == "void" {
+	} else {
 	}
 	return Complete
 }
@@ -631,27 +735,29 @@ func Method(Tabs string, Name string, Content string) string {
 //loop:
 func Loop(Tabs string, TheKindType string, Content string) string {
 	var Last bool = false
-	var Complete string
-	var RootTag string
-	var TheCondition string
-	var LoopContent string
-	var NewContent string
-	var OtherContent string
+	var Complete string = ""
+	var RootTag string = ""
+	var TheCondition string = ""
+	var LoopContent string = ""
+	var NewContent string = ""
+	var OtherContent string = ""
 
 	//loop:<type>
-	if IsIn(TheKindType,":") {
+	if StartsWith(TheKindType, "loop:") {
 		//loop
 		TheKindType = AfterSplit(TheKindType,":")
 	}
 
 	//content for loop
 	for Content != "" {
-		Content = ReplaceTag(Content, "loop-",true)
+		Content = ReplaceTag(Content, "loop-",false)
+//		Content = ReplaceTag(Content, "loop-",true)
 
 		if StartsWith(Content, "condition") {
 			if IsIn(Content," ") {
 				TheCondition = BeforeSplit(Content," ")
 				Content = AfterSplit(Content," ")
+				//Content = ReplaceTag(Content, "loop-",false)
 			} else {
 				TheCondition = Content
 			}
@@ -686,8 +792,21 @@ func Loop(Tabs string, TheKindType string, Content string) string {
 				}
 				lp++
 			}
+			//This is to handle how Go likes to handle if/else statements...yes, even though this is about loops
+
+			//Example:
+			//if {
+			//} else {
+			//}
+
+			//if the next element is "logic:else" or "logic:else-if"
+			if StartsWith(OtherContent, "logic:else") {
+				//remove the line break from the last "if"
+				LoopContent = LoopContent[:len(LoopContent)-1]
+			}
 			//Generate the loop content
 			LoopContent = LoopContent + GenCode(Tabs+"\t",OtherContent)
+
 			//The remaning content gets processed
 			Content = NewContent
 			//reset old and new content
@@ -699,7 +818,7 @@ func Loop(Tabs string, TheKindType string, Content string) string {
 		if StartsWith(Content, "method:") || StartsWith(Content, "class:") {
 			break
 		//nest-<type>
-		} else if StartsWith(Content, "nest-") 	{
+		} else if StartsWith(Content, "nest-") {
 			//"nest-loop" becomes ["nest-", "oop"]
 			//{or}
 			//"nest-logic" becomes ["nest-", "ogic"]
@@ -710,6 +829,7 @@ func Loop(Tabs string, TheKindType string, Content string) string {
 				//loops won't process logic and vise versa
 
 				//split string wherever a " nest-l" is located
+
 				//ALL "nest-l" are ignored...notice there is no space before the "nest-l"
 				var cmds []string = split(Content," "+RootTag+"l")
 				var end int = len(cmds)
@@ -732,13 +852,132 @@ func Loop(Tabs string, TheKindType string, Content string) string {
 			}
 
 			Content = NewContent
-			NewContent = ""
 
 			//"nest-loop" and "nest-nest-loop" becomes "loop"
 			for StartsWith(OtherContent, "nest-") {
 				OtherContent = AfterSplit(OtherContent,"-")
 			}
 
+			//handle the content if the first tag is a stmt: or var:
+			if (StartsWith(OtherContent, "stmt:") || StartsWith(OtherContent, "var:")) && IsIn(OtherContent," ") {
+				//examine each tag
+				var cmds []string = split(OtherContent," ")
+				OtherContent = ""
+				NewContent = ""
+				var end int = len(cmds)
+				var lp int = 0
+				for lp != end {
+					//as long as the beginning of the tag is stmt:, var:, or params: make sure to build the non-loop/logic tags
+					if IsIn(cmds[lp],"stmt:") || IsIn(cmds[lp],"var:") || IsIn(cmds[lp],"params:") && NewContent == "" {
+						if OtherContent == "" {
+							OtherContent = cmds[lp]
+						} else {
+							OtherContent = OtherContent+" "+cmds[lp]
+						}
+					//build the rest of the content
+					} else {
+						if NewContent == "" {
+							NewContent = cmds[lp]
+						} else {
+							NewContent = NewContent+" "+cmds[lp]
+						}
+					}
+					lp++
+				}
+				//This is to handle how Go likes to handle if/else statements...yes, even though this is about loops
+
+				//Example:
+				//if {
+				//} else {
+				//}
+
+				//if the next element is "logic:else" or "logic:else-if"
+				if StartsWith(OtherContent, "logic:else") {
+					//remove the line break from the last "if"
+					LoopContent = LoopContent[:len(LoopContent)-1]
+				}
+
+				//processes all the statements before a loop/logic
+				LoopContent = LoopContent + GenCode(Tabs+"\t",OtherContent)
+
+				//Lets group the nested tages one more time...I am not sure how to avoide this being done again
+				if StartsWith(NewContent, "nest-") {
+					RootTag = BeforeSplit(NewContent,"l")
+					if IsIn(NewContent," "+RootTag+"l") {
+						//split up the loops and logic accordingly
+						var cmds []string = split(NewContent," "+RootTag+"l")
+						NewContent = ""
+						var end int = len(cmds)
+						var lp int = 0
+						for lp != end {
+							if lp == 0 {
+								OtherContent = cmds[lp]
+								//remove all nest-
+								for StartsWith(OtherContent, "nest-") {
+									OtherContent = AfterSplit(OtherContent,"-")
+								}
+								//This is to handle how Go likes to handle if/else statements...yes, even though this is about loops
+
+								//Example:
+								//if {
+								//} else {
+								//}
+
+								//if the next element is "logic:else" or "logic:else-if"
+								if StartsWith(OtherContent, "logic:else") {
+									//remove the line break from the last "if"
+									LoopContent = LoopContent[:len(LoopContent)-1]
+								}
+								//process loop/logic
+								LoopContent = LoopContent + GenCode(Tabs+"\t",OtherContent)
+							} else {
+								if NewContent == "" {
+									NewContent = RootTag+"l"+cmds[lp]
+								} else {
+									NewContent = NewContent+" "+RootTag+"l"+cmds[lp]
+								}
+							}
+							lp++
+						}
+					}
+
+					for StartsWith(NewContent, "nest-") {
+						NewContent = AfterSplit(NewContent,"-")
+					}
+					//This is to handle how Go likes to handle if/else statements...yes, even though this is about loops
+
+					//Example:
+					//if {
+					//} else {
+					//}
+
+					//if the next element is "logic:else" or "logic:else-if"
+					if StartsWith(NewContent, "logic:else") {
+						//remove the line break from the last "if"
+						LoopContent = LoopContent[:len(LoopContent)-1]
+					}
+					//process the remaining nest-loop/logic
+					LoopContent = LoopContent + GenCode(Tabs+"\t",NewContent)
+				}
+			//just process as is
+			} else {
+				//This is to handle how Go likes to handle if/else statements...yes, even though this is about loops
+
+				//Example:
+				//if {
+				//} else {
+				//}
+
+				//if the next element is "logic:else" or "logic:else-if"
+				if StartsWith(OtherContent, "logic:else") {
+					//remove the line break from the last "if"
+					LoopContent = LoopContent[:len(LoopContent)-1]
+				}
+				LoopContent = LoopContent + GenCode(Tabs+"\t",OtherContent)
+			}
+			//clear new content
+			NewContent = ""
+		} else if StartsWith(Content, "var:") || StartsWith(Content, "stmt:") {
 			//This is to handle how Go likes to handle if/else statements...yes, even though this is about loops
 
 			//Example:
@@ -751,22 +990,9 @@ func Loop(Tabs string, TheKindType string, Content string) string {
 				//remove the line break from the last "if"
 				LoopContent = LoopContent[:len(LoopContent)-1]
 			}
-
-			LoopContent = LoopContent + GenCode(Tabs+"\t",OtherContent)
-			//nest-stmt: or nest-var:
-			if StartsWith(OtherContent, "stmt:") || StartsWith(OtherContent, "var:") {
-				/*
-				This code works, however, it does mean that parent recursion
-				does not have any content. Only nested statements give content to
-				*/
-				OtherContent = ""
-				Content = ""
-			}
-
-			NewContent = ""
-		} else if StartsWith(Content, "loop-") || StartsWith(Content, "var:") || StartsWith(Content, "stmt:") {
-			Content = ReplaceTag(Content, "loop-",true)
+//			Content = ReplaceTag(Content, "loop-",true)
 			LoopContent = LoopContent + GenCode(Tabs+"\t",Content)
+
 			Content = ""
 		//no nested content
 		} else {
@@ -800,57 +1026,62 @@ func Loop(Tabs string, TheKindType string, Content string) string {
 //logic:
 func Logic(Tabs string, TheKindType string, Content string) string {
 	var Last bool = false
-//	var NextComp string
-//	var NestTabs string
-	var Complete string
-//	var TheName string
-//	var Type string
-	var RootTag string
-	var TheCondition string
-	var LogicContent string
-	var NewContent string
-	var OtherContent string
+        var Complete string = ""
+        var RootTag string = ""
+        var TheCondition string = ""
+        var LogicContent string = ""
+        var NewContent string = ""
+        var OtherContent string = ""
 
-	if IsIn(TheKindType,":") {
+        if StartsWith(TheKindType, "logic:") {
 		TheKindType = AfterSplit(TheKindType,":")
-	}
-/*
-	if IsIn(TheKindType,"-"))
-	{
-		TheName = BeforeSplit(TheKindType,"-")
-		Type = AfterSplit(TheKindType,"-")
-	}
-*/
+        }
 
-	for Content != "" {
-
-		Content = ReplaceTag(Content, "logic-",true)
+        for Content != "" {
+		Content = ReplaceTag(Content, "logic-",false)
+//		Content = ReplaceTag(Content, "logic-",true)
 
 		if StartsWith(Content, "condition") {
 			if IsIn(Content," ") {
 				TheCondition = BeforeSplit(Content," ")
 				Content = AfterSplit(Content," ")
+				//Content = ReplaceTag(Content, "logic-",false)
 			} else {
-				TheCondition = Content
-			}
-			TheCondition = Conditions(TheCondition,TheKindType)
+                                TheCondition = Content
+                        }
+                        TheCondition = Conditions(TheCondition,TheKindType)
 		}
 
-		if !StartsWith(Content, "nest-") && IsIn(Content," nest-") {
+                //This part of the code is meant to separate the nested content with the current content
+                if !StartsWith(Content, "nest-") && IsIn(Content," nest-") {
 			var all []string = split(Content," nest-")
-			var end int = len(all)
-			var lp int = 0
-			for lp != end {
-				if lp == 0 {
-					OtherContent = all[lp]
-				} else if lp == 1 {
-					NewContent = "nest-"+all[lp]
-				} else {
-					NewContent = NewContent + " nest-"+all[lp]
-				}
-				lp++
+                        var end int = len(all)
+                        var lp int = 0
+                        for lp != end {
+                                if lp == 0 {
+                                        OtherContent = all[lp]
+                                } else if lp == 1 {
+                                        NewContent = "nest-"+all[lp]
+                                } else {
+                                        NewContent = NewContent + " nest-"+all[lp]
+                                }
+                                lp++
+                        }
+			//This is to handle how Go likes to handle if/else statements
+
+			//Example:
+			//if {
+			//} else {
+			//}
+
+			//if the next element is "logic:else" or "logic:else-if"
+			if StartsWith(OtherContent, "logic:else") {
+				//remove the line break from the last "if"
+				LogicContent = LogicContent[:len(LogicContent)-1]
 			}
+			//Process the current content so as to keep from redoing said content
 			LogicContent = LogicContent + GenCode(Tabs+"\t",OtherContent)
+
 			Content = NewContent
 			OtherContent = ""
 			NewContent = ""
@@ -858,35 +1089,169 @@ func Logic(Tabs string, TheKindType string, Content string) string {
 
 		if StartsWith(Content, "method:") || StartsWith(Content, "class:") {
 			break
+		//This is to handle nested loops and logic
 		} else if StartsWith(Content, "nest-") {
+			//nest-logic
+			// or
+			//nest-loop
 			RootTag = BeforeSplit(Content,"l")
-
 			if IsIn(Content," "+RootTag+"l") {
+				//split up the loops and logic accordingly
 				var cmds []string = split(Content," "+RootTag+"l")
 				var end int = len(cmds)
 				var lp int = 0
 				for lp != end {
+					//process now
 					if lp == 0 {
+						//this tag already contains the nest-logic or nest-loop
+						//this will be processed and the following will be ignored for the next recurrsive cycle
 						OtherContent = cmds[lp]
+					//process later
 					} else {
+						//build the next elements
 						if NewContent == "" {
+							//put back in the nest-l
 							NewContent = RootTag+"l"+cmds[lp]
 						} else {
+							//put back in the nest-l and append
 							NewContent = NewContent+" "+RootTag+"l"+cmds[lp]
 						}
 					}
 					lp++
 				}
+			//no need to split nested
 			} else {
 				OtherContent = Content
 			}
 
+			//the new content will be looped
 			Content = NewContent
-			NewContent = ""
 
+			//remove all nest- tags from content
 			for StartsWith(OtherContent, "nest-") {
 				OtherContent = AfterSplit(OtherContent,"-")
 			}
+
+			//handle the content if the first tag is a stmt: or var:
+			if (StartsWith(OtherContent, "stmt:") || StartsWith(OtherContent, "var:")) && IsIn(OtherContent," ") {
+				//examine each tag
+				var cmds []string = split(OtherContent," ")
+				OtherContent = ""
+				NewContent = ""
+				var end int = len(cmds)
+				var lp int = 0
+				for lp != end {
+					//as long as the beginning of the tag is stmt:, var:, or params: make sure to build the non-loop/logic tags
+					if (IsIn(cmds[lp],"stmt:") || IsIn(cmds[lp],"var:") || IsIn(cmds[lp],"params:")) && NewContent == "" {
+						if OtherContent == "" {
+							OtherContent = cmds[lp]
+                                                } else {
+							OtherContent = OtherContent+" "+cmds[lp]
+						}
+					//build the rest of the content
+					} else {
+						if NewContent == "" {
+                                                        NewContent = cmds[lp]
+                                                } else {
+							NewContent = NewContent+" "+cmds[lp]
+						}
+					}
+					lp++
+				}
+				//This is to handle how Go likes to handle if/else statements
+
+				//Example:
+				//if {
+				//} else {
+				//}
+
+				//if the next element is "logic:else" or "logic:else-if"
+				if StartsWith(OtherContent, "logic:else") {
+					//remove the line break from the last "if"
+					LogicContent = LogicContent[:len(LogicContent)-1]
+				}
+
+				//processes all the statements before a loop/logic
+				LogicContent = LogicContent + GenCode(Tabs+"\t",OtherContent)
+
+				//Lets group the nested tages one more time...I am not sure how to avoide this being done again
+				if StartsWith(NewContent, "nest-") {
+					RootTag = BeforeSplit(NewContent,"l")
+					if IsIn(NewContent," "+RootTag+"l") {
+						//split up the loops and logic accordingly
+						var cmds []string = split(NewContent," "+RootTag+"l")
+						NewContent = ""
+						var end int = len(cmds)
+						var lp int = 0
+						for lp != end {
+							if lp == 0 {
+								OtherContent = cmds[lp]
+								//remove all nest-
+								for StartsWith(OtherContent, "nest-") {
+									OtherContent = AfterSplit(OtherContent,"-")
+								}
+								//This is to handle how Go likes to handle if/else statements
+
+								//Example:
+								//if {
+								//} else {
+								//}
+
+								//if the next element is "logic:else" or "logic:else-if"
+								if StartsWith(OtherContent, "logic:else") {
+									//remove the line break from the last "if"
+									LogicContent = LogicContent[:len(LogicContent)-1]
+								}
+								//process loop/logic
+								LogicContent = LogicContent + GenCode(Tabs+"\t",OtherContent)
+							} else {
+								if NewContent == "" {
+									NewContent = RootTag+"l"+cmds[lp]
+								} else {
+									NewContent = NewContent+" "+RootTag+"l"+cmds[lp]
+								}
+							}
+							lp++
+						}
+					}
+					//remove all nest-
+					for StartsWith(NewContent, "nest-") {
+						NewContent = AfterSplit(NewContent,"-")
+					}
+					//This is to handle how Go likes to handle if/else statements
+
+					//Example:
+					//if {
+					//} else {
+					//}
+
+					//if the next element is "logic:else" or "logic:else-if"
+					if StartsWith(NewContent, "logic:else") {
+						//remove the line break from the last "if"
+						LogicContent = LogicContent[:len(LogicContent)-1]
+					}
+					//process the remaining nest-loop/logic
+					LogicContent = LogicContent + GenCode(Tabs+"\t",NewContent)
+
+				}
+			//just process as is
+			} else {
+				//Example:
+				//if {
+				//} else {
+				//}
+
+				//if the next element is "logic:else" or "logic:else-if"
+				if StartsWith(OtherContent, "logic:else") {
+					//remove the line break from the last "if"
+					LogicContent = LogicContent[:len(LogicContent)-1]
+				}
+				//This is to handle how Go likes to handle if/else statements
+				LogicContent = LogicContent + GenCode(Tabs+"\t",OtherContent)
+			}
+			//clear new content
+			NewContent = ""
+		} else if StartsWith(Content, "var:") || StartsWith(Content, "stmt:") {
 
 			//This is to handle how Go likes to handle if/else statements
 
@@ -901,25 +1266,10 @@ func Logic(Tabs string, TheKindType string, Content string) string {
 				LogicContent = LogicContent[:len(LogicContent)-1]
 			}
 
-			LogicContent = LogicContent + GenCode(Tabs+"\t",OtherContent);
-			//nest-stmt: or nest-var:
-			if StartsWith(OtherContent, "stmt:") || StartsWith(OtherContent, "var:") {
-				/*
-				This code works, however, it does mean that parent recursion
-				does not have any content. Only nested statements give content to
-				*/
-				OtherContent = ""
-				Content = ""
-			}
-
-			NewContent = ""
-		} else if StartsWith(Content, "var:") || StartsWith(Content, "stmt:") {
-//		} else if StartsWith(Content, "logic-") || StartsWith(Content, "var:") || StartsWith(Content, "stmt:") {
-//			Content = ReplaceTag(Content, "logic-")
+//			Content = ReplaceTag(Content, "logic-",false)
 			LogicContent = LogicContent + GenCode(Tabs+"\t",Content)
 			Content = ""
 		} else {
-			LogicContent = LogicContent + GenCode(Tabs+"\t",Content)
 			Content = ""
 		}
 
@@ -939,7 +1289,7 @@ func Logic(Tabs string, TheKindType string, Content string) string {
 	} else if TheKindType == "else" {
 		Complete = " else {\n"+LogicContent+Tabs+"}\n"
 	} else if TheKindType == "switch-case" {
-		Complete = Tabs+"\tcase x:\n"+Tabs+"\t\t//code here\n"+Tabs+"\t\tbreak;"
+		Complete = Tabs+"\tcase x:\n"+Tabs+"\t\t//code here\n"+Tabs+"\t\tbreak"
 	} else if StartsWith(TheKindType, "switch") {
 		var CaseContent string = TheKindType
 		var CaseVal string
@@ -948,34 +1298,35 @@ func Logic(Tabs string, TheKindType string, Content string) string {
 		for CaseContent != "" {
 			CaseVal = BeforeSplit(CaseContent,"-")
 			if CaseVal != "switch" {
-				Complete = Complete+Tabs+"\tcase "+CaseVal+":\n"+Tabs+"\t\t//code here\n"+Tabs+"\t\tbreak;\n"
+				Complete = Complete+Tabs+"\tcase "+CaseVal+":\n"+Tabs+"\t\t//code here\n"+Tabs+"\t\tbreak\n"
 			}
 
 			if IsIn(CaseContent,"-") {
 				CaseContent = AfterSplit(CaseContent,"-")
 			}
 		}
-		Complete = Complete+Tabs+"\tdefault:\n"+Tabs+"\t\t//code here\n"+Tabs+"\t\tbreak;\n"+Tabs+"}\n"
+		Complete = Complete+Tabs+"\tdefault:\n"+Tabs+"\t\t//code here\n"+Tabs+"\t\tbreak\n"+Tabs+"}\n"
 	}
+
 	return Complete
 }
 
 //stmt:
 func Statements(Tabs string, TheKindType string, Content string) string {
 	var Last bool = false
-	var Complete string
-	var StatementContent string
-	var OtherContent string
-	var TheName string
-	var Name string
-	var Process string
-	var Params string
+	var Complete string = ""
+	var StatementContent string = ""
+	var OtherContent string = ""
+	var TheName string = ""
+	var Name string = ""
+	var Process string = ""
+	var Params string = ""
 
-	if IsIn(TheKindType,":") {
+	if StartsWith(TheKindType, "stmt:") {
 		TheKindType = AfterSplit(TheKindType,":")
 	}
 
-	if IsIn(TheKindType,"-") {
+        if IsIn(TheKindType,"-") {
 		TheName = BeforeSplit(TheKindType,"-")
 		Name = AfterSplit(TheKindType,"-")
 	} else {
@@ -984,30 +1335,46 @@ func Statements(Tabs string, TheKindType string, Content string) string {
 
 	for Content != "" {
 		//This handles the parameters of the statements
-		if StartsWith(Content, "params") && Params == "" {
-			if IsIn(Content," ") {
+		if StartsWith(Content, "params:") && Params == "" {
+                        if IsIn(Content," ") {
 				Process = BeforeSplit(Content," ")
-			} else {
+                        } else {
 				Process = Content
 			}
-			Params =  Parameters(Process,"stmt")
+			Params = Parameters(Process,"stmt")
+
+			if IsIn(Params,"(-spc)") {
+				Params = replaceAll(Params, "(-spc)"," ")
+			}
 		}
 
 		if Last {
 			break
 		}
 
-		for StartsWith(Content, "nest-") {
+                for StartsWith(Content, "nest-") {
 			Content = AfterSplit(Content,"-")
 		}
 
 		if !IsIn(Content," ") {
 			StatementContent = StatementContent + GenCode(Tabs,Content)
 			Last = true
-		} else {
+                } else {
 			OtherContent = BeforeSplit(Content," ")
-			StatementContent = StatementContent + GenCode(Tabs,OtherContent)
 			Content = AfterSplit(Content," ")
+			if StartsWith(Content, "params:") {
+				OtherContent = OtherContent+" "+BeforeSplit(Content," ")
+				Content = AfterSplit(Content," ")
+			}
+
+			if StartsWith(OtherContent,"loop:") && Content != "" {
+				OtherContent = OtherContent+" "+Content
+				Content = ""
+			} else if StartsWith(OtherContent,"logic:") && Content != "" {
+				OtherContent = OtherContent+" "+Content
+				Content = ""
+			}
+			StatementContent = StatementContent + GenCode(Tabs,OtherContent)
 		}
 	}
 
@@ -1017,6 +1384,8 @@ func Statements(Tabs string, TheKindType string, Content string) string {
 		Complete = StatementContent+Tabs+"#Code goes here\n"
 	} else if TheName == "endline" || TheName == "newline" {
 		Complete = StatementContent+"\n"
+	} else if TheName == "tab" {
+		Complete = "\t"+StatementContent
 	}
 
 	return Complete
@@ -1025,26 +1394,25 @@ func Statements(Tabs string, TheKindType string, Content string) string {
 //var:
 func Variables(Tabs string, TheKindType string, Content string) string {
 	var Last bool = false
-	var NewVar string
-	var Type string
-	var Name string
-	var VarType string
-	var Value string
-	var VariableContent string
-	var OtherContent string
+	var MakeEqual bool = false
+	var NewVar string = ""
+	var Name string = ""
+	var VarType string = ""
+	var Value string = ""
+	var VariableContent string = ""
+	var OtherContent string = ""
 
-	for Content != "" {
+	if StartsWith(TheKindType, "var:") {
+		TheKindType = AfterSplit(TheKindType,":")
+	}
 
-		if StartsWith(Content, "params") {
-			OtherContent = OtherContent+" "+BeforeSplit(Content," ")
-			Content = AfterSplit(Content," ")
-		}
-
+        for Content != "" {
+		//All params are removed
 		if Last {
 			break
 		}
 
-		for StartsWith(Content, "nest-") {
+                for StartsWith(Content, "nest-") {
 			Content = AfterSplit(Content,"-")
 		}
 
@@ -1053,55 +1421,51 @@ func Variables(Tabs string, TheKindType string, Content string) string {
 			Last = true
 		} else {
 			OtherContent = BeforeSplit(Content," ")
-			VariableContent = VariableContent + GenCode(Tabs,OtherContent)
 			Content = AfterSplit(Content," ")
+			if StartsWith(Content, "params:") {
+				OtherContent = OtherContent+" "+BeforeSplit(Content," ")
+				Content = AfterSplit(Content," ")
+			}
+
+			if (StartsWith(OtherContent,"loop:") && Content != "") || (StartsWith(OtherContent,"logic:") && Content != "") {
+				OtherContent = OtherContent+" "+Content
+				Content = ""
+			}
+			VariableContent = VariableContent + GenCode(Tabs,OtherContent)
 		}
 	}
-	//var:name-dataType=Value
-	if IsIn(TheKindType,":") && IsIn(TheKindType,"-") && IsIn(TheKindType,"=") && !EndsWith(TheKindType, "=") {
-		Type = AfterSplit(TheKindType,":")
-		Name = BeforeSplit(Type,"-")
-		VarType = AfterSplit(Type,"-")
-		Value = AfterSplit(VarType,"=")
-		VarType = BeforeSplit(VarType,"=")
-		//converting data type
-		VarType = DataType(VarType)
-		NewVar = Tabs+"var "+Name+" "+VarType+" = "+Value
-		NewVar = NewVar+VariableContent
-	//var:name=Value
-	} else if IsIn(TheKindType,":") && !IsIn(TheKindType,"-") && IsIn(TheKindType,"=") && !EndsWith(TheKindType, "=") {
-		Type = AfterSplit(TheKindType,":")
-		Name = BeforeSplit(Type,"=")
-		Value = AfterSplit(Type,"=")
-		NewVar = Tabs+Name+" = "+Value
-		NewVar = NewVar+VariableContent
-	//var:name-dataType=
-	} else if IsIn(TheKindType,":") && IsIn(TheKindType,"-") && EndsWith(TheKindType, "=") {
-		Type = AfterSplit(TheKindType,":")
-		Name = BeforeSplit(Type,"-")
-		VarType = AfterSplit(Type,"-")
-		VarType = BeforeSplit(VarType,"=")
-		//converting data type
-		VarType = DataType(VarType)
-		NewVar = Tabs+"var "+Name+" "+VarType+" = "
-		NewVar = NewVar+VariableContent
-	//var:name=
-	} else if IsIn(TheKindType,":") && !IsIn(TheKindType,"-") && EndsWith(TheKindType, "=") {
-		Type = AfterSplit(TheKindType,":")
-		Name = BeforeSplit(Type,"=")
-		Value = AfterSplit(Type,"=")
-		NewVar = Tabs+Name+" = "
-		NewVar = NewVar+VariableContent
-	//var:name-dataType
-	} else if IsIn(TheKindType,":") && IsIn(TheKindType,"-") && !IsIn(TheKindType,"=") {
-		Type = AfterSplit(TheKindType,":")
-		Name = BeforeSplit(Type,"-")
-		VarType = AfterSplit(Type,"-")
-		//converting data type
-		VarType = DataType(VarType)
-		NewVar = Tabs+"var "+Name+" "+VarType
-		NewVar = NewVar+VariableContent
+
+	//Pull Variable Type
+	if StartsWith(TheKindType,"(") && IsIn(TheKindType,")") {
+		VarType = BeforeSplit(TheKindType,")")
+		VarType = AfterSplit(VarType,"(")
+		VarType = DataType(VarType,false)
+		TheKindType = AfterSplit(TheKindType,")")
+		Name = TheKindType
 	}
+
+	//Assign Value
+	if IsIn(TheKindType,"=") {
+		MakeEqual = true
+		Name = BeforeSplit(TheKindType,"=")
+		Value = AfterSplit(TheKindType,"=")
+	}
+
+	if VarType != "" {
+		NewVar = " "+VarType
+	}
+
+	if MakeEqual == true {
+		if IsIn(Value,"(-spc)") {
+			Value = replaceAll(Value, "(-spc)"," ")
+		}
+
+		NewVar = "var "+Name+NewVar+" = "+Value
+	} else {
+		NewVar = "var "+Name+NewVar
+	}
+	NewVar = NewVar+VariableContent
+
 	return NewVar
 }
 
@@ -1179,15 +1543,16 @@ func main() {
 	var Content string
 
 	args := os.Args[1:]
+	var argc int = len(args)
 
 	//Args were NOT given
-	if len(args) == 0 {
+	if argc == 0 {
 		banner()
 	}
 
 	for {
 		//Args were given
-		if len(args) >= 1 {
+		if argc >= 1 {
 			for arg := range args {
 				if UserIn == "" {
 					UserIn = TranslateTag(args[arg])
@@ -1207,6 +1572,14 @@ func main() {
 		} else if UserIn == "clear" {
 			clear()
 */
+		} else if UserIn == "version" && argc == 0 {
+			fmt.Println(Version)
+		} else if UserIn == "--version" && argc == 1 {
+			fmt.Println(Version)
+			break
+		} else if UserIn == "-v" && argc == 1 {
+			fmt.Println(Version)
+			break
 		} else if StartsWith(UserIn, "help") {
 			help(UserIn)
 		} else {
