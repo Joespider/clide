@@ -6,7 +6,7 @@ fn help()
 {
 	println!("Author: Joespider");
 	println!("Program: \"newRust\"");
-	println!("Version: 0.1.30");
+	println!("Version: 0.1.32");
 	println!("Purpose: make new Rust programs");
 	println!("Usage: newRust <args>");
 	println!("\t--user <username> : get username for help page");
@@ -20,6 +20,8 @@ fn help()
 	println!("\t--shell : unix shell");
 	println!("\t--files : enable filesystem Rust specific code");
 	println!("\t--reverse : enable \"rev\" method");
+	println!("\t--split : enable split");
+	println!("\t--join : enable join");
 	println!("\t--random : enable \"random\" int method");
 /*
 	println!("\t--check-file : enable \"fexists\" file method");
@@ -28,8 +30,7 @@ fn help()
 	println!("\t--is-in : enable string contains methods");
 */
 	println!("\t--user-input : enable \"raw_input\" file method");
-	println!("\t--split : enable split");
-	println!("\t--join : enable join");
+	println!("\t--vectors : enable vector arrays (Main file ONLY)");
 	println!("\t--thread : enable threading (Main file and project ONLY)");
 	println!("\t--sleep : enable sleep method");
 	println!("\t--sub-string : enable sub-string methods");
@@ -53,7 +54,7 @@ fn get_help(theuser: String, hasargs: bool) -> String
 	let mut helpmethod = String::new();
 	if hasargs == true && theuser == ""
 	{
-		let gettheuser = get_sys_prop("USER");
+		let get_theuser = get_sys_prop("USER");
 		helpmethod.push_str("fn get_exec_name() -> Option<String>\n");
 		helpmethod.push_str("{\n");
 		helpmethod.push_str("\tstd::env::current_exe()\n");
@@ -67,7 +68,7 @@ fn get_help(theuser: String, hasargs: bool) -> String
 		helpmethod.push_str("\tlet program_name = get_exec_name().unwrap();\n");
 		helpmethod.push_str("\n");
 		helpmethod.push_str("\tprintln!(\"Author: ");
-		helpmethod.push_str(&gettheuser);
+		helpmethod.push_str(&get_theuser);
 		helpmethod.push_str("\");\n");
 		helpmethod.push_str("\tprintln!(\"Program: \\\"");
 		helpmethod.push_str("{}");
@@ -114,46 +115,46 @@ fn get_help(theuser: String, hasargs: bool) -> String
 }
 
 
-fn get_imports(getcheckfile: bool, getreadfile: bool, getwritefile: bool, getcli: bool, getpipe: bool, getsysprop: bool, getthread: bool, getsleep: bool, getshell: bool) -> String
+fn get_imports(get_checkfile: bool, get_readfile: bool, get_writefile: bool, get_cli: bool, get_pipe: bool, get_sysprop: bool, get_thread: bool, get_sleep: bool, get_shell: bool) -> String
 {
 	let mut theimports = String::new();
-	if getcli == true || getsysprop == true || getshell == true
+	if get_cli == true || get_sysprop == true || get_shell == true
 	{
 		theimports.push_str("use std::env;\n");
 	}
-	if getcheckfile == true
+	if get_checkfile == true
 	{
 		theimports.push_str("use std::path::Path;\n");
 	}
-	if getreadfile == true && getwritefile == false
+	if get_readfile == true && get_writefile == false
 	{
 		theimports.push_str("use std::fs::File;\nuse std::io::{BufRead, BufReader};\n");
 	}
-	if getreadfile == false && getwritefile == true
+	if get_readfile == false && get_writefile == true
 	{
 		theimports.push_str("use std::io::Write;\n");
 	}
-	if getthread == true || getsleep == true
+	if get_thread == true || get_sleep == true
 	{
 		theimports.push_str("use std::thread;\n");
 	}
-	if getsleep == true
+	if get_sleep == true
 	{
 		theimports.push_str("use std::time;\n");
 	}
-	if getreadfile == true && getwritefile == true
+	if get_readfile == true && get_writefile == true
 	{
 		theimports.push_str("use std::fs::File;\nuse std::io::{BufRead, BufReader, Write};\n");
 	}
-	if getpipe == true && getreadfile == false && getwritefile == false
+	if get_pipe == true && get_readfile == false && get_writefile == false
 	{
 		theimports.push_str("/*\nThis needs to be a rust project\nIn file 'Cargo.toml', account for the following\n\n[dependencies]\nisatty = \"0.1\"\n\nextern crate isatty;\nuse isatty::{stdin_isatty};\nuse std::io::{self, BufRead};\n*/\n");
 	}
-	if getpipe == true && getreadfile == true && getwritefile == true
+	if get_pipe == true && get_readfile == true && get_writefile == true
 	{
 		theimports.push_str("/*\nThis needs to be a rust project\nIn file 'Cargo.toml', account for the following\n\n[dependencies]\nisatty = \"0.1\"\n\nextern crate isatty;\nuse isatty::{stdin_isatty};\n*/\n");
 	}
-	if getshell == true
+	if get_shell == true
 	{
 		theimports.push_str("use std::process::Command;");
 	}
@@ -162,69 +163,77 @@ fn get_imports(getcheckfile: bool, getreadfile: bool, getwritefile: bool, getcli
 	return theimports;
 }
 
-fn get_methods(getcheckfile: bool, getreadfile: bool, getwritefile: bool, getrawinput: bool, getsysprop: bool, getsleep: bool, getshell: bool, getrev: bool, getsplit: bool, getsubstr: bool, getisin: bool, getlen: bool, getupper: bool, getlower: bool) -> String
+fn get_methods(get_checkfile: bool, get_readfile: bool, get_writefile: bool, get_rawinput: bool, get_sysprop: bool, get_sleep: bool, get_shell: bool, get_rev: bool, get_split: bool, get_join: bool, get_vect: bool, get_substr: bool, get_isin: bool, get_len: bool, get_upper: bool, get_lower: bool) -> String
 {
 	let mut themethods = String::new();
-	if getrawinput == true
+	if get_rawinput == true
 	{
 		themethods.push_str("fn raw_input(message: &str) -> String\n{\n\tuse std::io::{stdin,stdout,Write};\n\tlet mut s=String::new();\n\tprint!(\"{}\",message);\n\tlet _=stdout().flush();\n\tstdin().read_line(&mut s).expect(\"Did not enter a correct string\");\n\tif let Some('\\n')=s.chars().next_back() {\n\t\ts.pop();\n\t}\n\tif let Some('\\r')=s.chars().next_back() {\n\t\ts.pop();\n\t}\n\treturn s;\n}\n\n");
 	}
-	if getcheckfile == true
+	if get_checkfile == true
 	{
 		themethods.push_str("fn fexists(afile: &str) -> bool\n{\n\treturn Path::new(afile).exists();\n}\n\n");
 	}
-	if getreadfile == true
+	if get_readfile == true
 	{
 		themethods.push_str("fn read_file(filename: String) -> String\n{\n\t// Open the file in read-only mode (ignoring errors).\n\tlet file = File::open(filename).unwrap();\n\tlet reader = BufReader::new(file);\n\n\t// Read the file line by line using the lines() iterator from std::io::BufRead.\n\tfor line in reader.lines()\n\t{\n\t\t// Ignore errors.\n\t\tlet line = line.unwrap();\n\t\t// Show the line and its number.\n\t\tprintln!(\"{}\", line)\n\t}\n}\n\n");
 	}
-	if getrev == true
+	if get_rev == true
 	{
 		themethods.push_str("fn rev(theword: &str) -> String\n{\n\tlet mut newstr = String::new();\n\tlet mut plc = 0;\n\tlet charlen = theword.len();\n\twhile plc != charlen\n\t{\n\t\tplc += 1;\n\t\tnewstr.push_str(&theword.chars().nth(charlen - plc).unwrap().to_string());\n\t}\n\treturn newstr;\n}\n\n");
 	}
-	if getsplit == true
+	if get_join == true
+	{
+		themethods.push_str("fn join(the_str: &Vec<&str>, to_join: &str) -> String\n{\n\treturn the_str.join(to_join);\n}\n\n");
+	}
+	if get_split == true
 	{
 		themethods.push_str("fn split_before(the_string: &str, split_at: &str) -> String\n{\n\tlet mut new_string = String::new();\n\tlet end = the_string.len();\n\tlet scount = the_string.matches(split_at).count();\n\n\tif end != 0 && scount != 0\n\t{\n\t\tfor part in the_string.split(split_at)\n\t\t{\n\t\t\tnew_string.push_str(&part.to_string());\n\t\t\tbreak;\n\t\t}\n\t}\n\treturn new_string;\n}\n\n");
 		themethods.push_str("fn split_after(the_string: &str, split_at: &str) -> String\n{\n\tlet mut new_string = String::new();\n\tlet end = the_string.len();\n\tlet scount = the_string.matches(split_at).count();\n\tlet mut count = 0;\n\n\tif end != 0 && scount != 0\n\t{\n\t\tfor part in the_string.split(split_at)\n\t\t{\n\t\t\tif count == 1\n\t\t\t{\n\t\t\t\tnew_string.push_str(&part.to_string());\n\t\t\t}\n\t\t\telse if count >= 1\n\t\t\t{\n\t\t\t\tnew_string.push_str(split_at);\n\t\t\t\tnew_string.push_str(&part.to_string());\n\t\t\t}\n\t\t\tcount += 1;\n\t\t}\n\t}\n\treturn new_string;\n}\n\n");
 	}
-	if  getsubstr == true
+	if  get_substr == true
 	{
 		themethods.push_str("fn rem_first_and_last(value: &str) -> &str\n{\n\tlet mut chars = value.chars();\n\tchars.next();\n\tchars.next_back();\n\treturn chars.as_str();\n}\n\n");
 		themethods.push_str("fn rem_first_char(value: &str, length: u8) -> &str\n{\n\tlet mut chars = value.chars();\n\tif length >= 1\n\t{\n\t\tlet mut cnt = 0;\n\t\twhile cnt != length\n\t\t{\n\t\t\tchars.next();\n\t\t\tcnt += 1;\n\t\t}\n\t}\n\telse\n\t{\n\t\tchars.next();\n\t}\n\n\treturn chars.as_str();\n}\n\n");
 		themethods.push_str("fn rem_last_char(value: &str, length: u8) -> &str\n{\n\tlet mut chars = value.chars();\n\tlet mut cnt = 0;\n\tif length >= 1\n\t{\n\t\twhile cnt != length\n\t\t{\n\t\t\tchars.next_back();\n\t\t\tcnt += 1;\n\t\t}\n\t}\n\telse\n\t{\n\t\tchars.next_back();\n\t}\n\n\treturn chars.as_str();\n}\n\n");
 	}
-	if getwritefile == true
+	if get_writefile == true
 	{
 		themethods.push_str("fn write_file(filename: String, thecontent: String)\n{\n\tlet mut file = std::fs::File::create(filename).expect(\"create failed\");\n\tfile.write_all(thecontent.as_bytes()).expect(\"write failed\");\n}\n\n");
 	}
-	if getsysprop == true
+	if get_sysprop == true
 	{
 		themethods.push_str("fn get_sys_prop(please_get: &str) -> String\n{\n\tlet value = match env::var_os(please_get)\n\t{\n\t\tSome(v) => v.into_string().unwrap(),\n\t\tNone => panic!(\"{} is not set\",please_get)\n\t};\n\treturn value;\n}\n\n");
 	}
-	if getshell == true
+	if get_shell == true
 	{
 		themethods.push_str("fn get_os() -> String\n{\n\treturn env::consts::OS.to_string();\n}\n\n");
 		themethods.push_str("fn run_command(cmd: &str) -> String {\n\tlet output = Command::new(cmd)\n//\t\t\t.arg(\"-l\")\n//\t\t\t.arg(\"-a\")\n\t\t\t.output()\n\t\t\t.expect(\"command failed to start\");\n\t\n\tif output.status.success()\n\t{\n\t\treturn String::from_utf8_lossy(&output.stdout).to_string();\n\t}\n\telse\n\t{\n\t\treturn String::from_utf8_lossy(&output.stderr).to_string();\n\t}\n}\n\n");
 	}
-	if getsleep == true
+	if get_sleep == true
 	{
 		themethods.push_str("fn sleep()\n{\n\t// 3 * 1000 = 3 sec\n\tlet ten_millis = time::Duration::from_millis(3000);\n\tlet now = time::Instant::now();\n\n\tthread::sleep(ten_millis);\n\n\tassert!(now.elapsed() >= ten_millis);\n}\n\n");
 	}
-	if getisin == true
+	if get_isin == true
 	{
 		themethods.push_str("fn contains(str: &str, sub: &str) -> bool\n{\n\tif str.contains(sub)\n\t{\n\t\treturn true;\n\t}\n\telse\n\t{\n\t\treturn false;\n\t}\n}\n\n");
 		themethods.push_str("fn starts_with(str: &str, start: &str) -> bool\n{\n\treturn str.starts_with(start);\n}\n\n");
 		themethods.push_str("fn ends_with(str: &str, end: &str) -> bool\n{\n\tif str.ends_with(end)\n\t{\n\t\treturn true;\n\t}\n\telse\n\t{\n\t\treturn false;\n\t}\n}\n\n");
 	}
-	if getlen == true
+	if get_len == true
 	{
 		themethods.push_str("fn len(message: &str) -> u32\n{\n\tlet thesize = message.len().to_string();\n\treturn thesize.parse().unwrap();\n}\n\n");
+		if get_vect == true
+		{
+			themethods.push_str("fn len_a(vec: Vec<&str>) -> usize\n{\n\treturn vec.len();\n}\n\n");
+		}
 	}
-	if getupper == true
+	if get_upper == true
 	{
 		themethods.push_str("fn to_uppercase(message: &str) -> String\n{\n\tlet upper = message.to_uppercase();\n\treturn upper;\n}\n\n");
 		themethods.push_str("fn to_uppercase_at(message: &str, plc: usize) -> String\n{\n\tlet mut newmsg = String::new();\n\tlet size = message.chars().count();\n\tfor c in 0..size\n\t{\n\t\tlet mut letter = message.chars().nth(c).unwrap();\n\t\tif c == plc\n\t\t{\n\t\t\tletter = letter.to_ascii_uppercase();\n\t\t}\n\t\tnewmsg.push(letter);\n\t}\n\treturn newmsg;\n}\n\n");
 	}
-	if getlower == true
+	if get_lower == true
 	{
 		themethods.push_str("fn to_lowercase(message: &str) -> String\n{\n\tlet lower = message.to_lowercase();\n\treturn lower;\n}\n\n");
 		themethods.push_str("fn to_lowercase_at(message: &str, plc: usize) -> String\n{\n\tlet mut newmsg = String::new();\n\tlet size = message.chars().count();\n\tfor c in 0..size\n\t{\n\t\tlet mut letter = message.chars().nth(c).unwrap();\n\t\tif c == plc\n\t\t{\n\t\t\tletter = letter.to_ascii_lowercase();\n\t\t}\n\t\tnewmsg.push(letter);\n\t}\n\treturn newmsg;\n}\n\n");
@@ -233,33 +242,33 @@ fn get_methods(getcheckfile: bool, getreadfile: bool, getwritefile: bool, getraw
 	return themethods;
 }
 
-fn get_main(getmain: bool, getcli: bool, getpipe: bool, getthread: bool, getsplit: bool, getjoin: bool, getshell: bool) -> String
+fn get_main(get_main: bool, get_cli: bool, get_pipe: bool, get_thread: bool, get_split: bool, get_vect: bool, get_shell: bool) -> String
 {
 	let mut themain = String::new();
-	if getmain == true
+	if get_main == true
 	{
 		themain.push_str("fn main()\n{\n");
-		if getcli == true
+		if get_cli == true
 		{
 			themain.push_str("\tlet mut arg_count = 0;\n\t//CLI arguments\n\tfor args in env::args().skip(1)\n\t{\n\t\tprintln!(\"{}\", args);\n\t\targ_count += 1;\n\t}\n\n\t//No CLI Arguments given\n\tif arg_count == 0\n\t{\n\t\t//Show Help Page\n\t\thelp();\n\t}\n");
 		}
-		if getpipe == true
+		if get_pipe == true
 		{
 			themain.push_str("\n/*\n\tif stdin_isatty() == false\n\t{\n\t\tprintln!(\"[Pipe]\");\n\t\tprintln!(\"{{\");\n\t\tlet stdin = io::stdin();\n\t\tfor line in stdin.lock().lines()\n\t\t{\n\t\t\tprintln!(\"{}\", line.unwrap());\n\t\t}\n\t\tprintln!(\"}}\");\n\t}\n\telse\n\t{\n\t\tprintln!(\"nothing was piped in\");\n\t}\n*/");
 		}
-		if getsplit == true
+		if get_split == true
 		{
 			themain.push_str("\n/*\n\tlet message = \"This is how we will win the game\";\n\tlet sby = \" \";\n\tlet split: Vec<&str> = message.split(sby).collect();\n*/");
 		}
-		if getjoin == true
+		if get_vect == true
 		{
-			themain.push_str("\n/*\n\t//Needs to be Vec<&str>\n\tlet joined = split.join(\"-\");\n*/");
+			themain.push_str("\n/*\n\tlet split_message: Vec<&str> = message.split(s_by).collect();\n*/");
 		}
-		if getthread == true
+		if get_thread == true
 		{
 			themain.push_str("\n/*\n\t// https://doc.rust-lang.org/std/thread/\n\tlet thread_join_handle = thread::spawn(|| {\n\t\t//do stuff here\n\t});\n\t//join thread\n\tthread_join_handle.join().unwrap();\n*/");
 		}
-		if getshell == true
+		if get_shell == true
 		{
 			themain.push_str("\n\tlet output = Command::new(\"ls\")\n\t\t\t.arg(\"-l\")\n\t\t\t.arg(\"-a\")\n\t\t\t.output()\n\t\t\t.expect(\"ls command failed to start\");\n\n\tif output.status.success()\n\t{\n\t\tprintln!(\"{}\", String::from_utf8_lossy(&output.stdout));\n\t}\n\telse\n\t{\n\t\tprintln!(\"{}\", String::from_utf8_lossy(&output.stderr));\n\t}\n");
 		}
@@ -305,6 +314,7 @@ fn main()
 	let mut is_len = false;
 	let mut is_split = false;
 	let mut is_join = false;
+	let mut is_vect = false;
 	let mut is_sub_str = false;
 	let mut is_sleep = false;
 	let mut is_upper = false;
@@ -343,6 +353,10 @@ fn main()
 		else if args == "--join"
 		{
 			is_join = true;
+		}
+		else if args == "--vectors"
+		{
+			is_vect = true;
 		}
 		else if args == "--sub-string"
 		{
@@ -444,8 +458,8 @@ fn main()
 			let the_imports = get_imports(is_check_file, is_read_file, is_write_file, is_cli, is_pipe, is_prop, is_thread, is_sleep, is_shell);
 			let the_helps = get_help(the_user.to_string(),is_cli);
 			program_name.push_str(".rs");
-			let the_methods = get_methods(is_check_file, is_read_file, is_write_file, get_input_method, is_prop, is_sleep, is_shell, is_rev, is_split, is_sub_str, is_in, is_len, is_upper, is_lower);
-			let the_main = get_main(is_main, is_cli, is_pipe, is_thread, is_split, is_join, is_shell);
+			let the_methods = get_methods(is_check_file, is_read_file, is_write_file, get_input_method, is_prop, is_sleep, is_shell, is_rev, is_split, is_join, is_vect, is_sub_str, is_in, is_len, is_upper, is_lower);
+			let the_main = get_main(is_main, is_cli, is_pipe, is_thread, is_split, is_vect, is_shell);
 			if no_save == false
 			{
 				write_file(program_name, the_imports, the_helps, the_methods, the_main);
