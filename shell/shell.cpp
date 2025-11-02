@@ -1977,6 +1977,7 @@ int main(int argc, char** argv)
 		}
 		else
 		{
+//			print(UserIn);
 			Content = GenCode("",UserIn);
 			if (Content != "")
 			{

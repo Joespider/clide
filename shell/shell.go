@@ -9,7 +9,7 @@ import (
 	"strings"
 	)
 
-var Version string = "0.0.93"
+var Version string = "0.0.94"
 
 func getOS() string {
 	os := runtime.GOOS
@@ -444,13 +444,11 @@ func Conditions(input string, CalledBy string) string {
 	}
 
 	if IsIn(Condit,"(-or)") {
-		Condit = replaceAll(Condit, "(-or)",") || (")
-		Condit = "("+Condit+")"
+		Condit = replaceAll(Condit, "(-or)"," || ")
 	}
 
         if IsIn(Condit,"(-and)") {
-		Condit = replaceAll(Condit, "(-and)",") && (")
-		Condit = "("+Condit+")"
+		Condit = replaceAll(Condit, "(-and)"," && ")
 	}
 /*
 	if StartsWith(Condit, "(") {
@@ -670,6 +668,7 @@ func Method(Tabs string, Name string, Content string) string {
 				if StartsWith(Corrected,"logic:") || StartsWith(Corrected,"loop:") || StartsWith(Corrected,"var:") || StartsWith(Corrected,"stmt:") {
 					//Only process code that starts with "logic:" or "loop:"
 					if ParseContent != "" {
+						MethodContent = HandleElse(MethodContent, ParseContent)
 						//process content
 						MethodContent = MethodContent + GenCode(Tabs+"\t",ParseContent)
 					}
@@ -688,12 +687,7 @@ func Method(Tabs string, Name string, Content string) string {
 				OtherContent = ParseContent
 			}
 
-			//if the next element is "logic:else" or "logic:else-if"
-			if StartsWith(OtherContent, "logic:else") {
-				//remove the line break from the last "if"
-				MethodContent = MethodContent[:len(MethodContent)-1]
-			}
-
+			MethodContent = HandleElse(MethodContent, OtherContent)
 			MethodContent = MethodContent + GenCode(Tabs+"\t",OtherContent)
 			Content = NewContent
 
@@ -792,18 +786,8 @@ func Loop(Tabs string, TheKindType string, Content string) string {
 				}
 				lp++
 			}
-			//This is to handle how Go likes to handle if/else statements...yes, even though this is about loops
+			LoopContent = HandleElse(LoopContent, OtherContent)
 
-			//Example:
-			//if {
-			//} else {
-			//}
-
-			//if the next element is "logic:else" or "logic:else-if"
-			if StartsWith(OtherContent, "logic:else") {
-				//remove the line break from the last "if"
-				LoopContent = LoopContent[:len(LoopContent)-1]
-			}
 			//Generate the loop content
 			LoopContent = LoopContent + GenCode(Tabs+"\t",OtherContent)
 
@@ -884,19 +868,8 @@ func Loop(Tabs string, TheKindType string, Content string) string {
 					}
 					lp++
 				}
-				//This is to handle how Go likes to handle if/else statements...yes, even though this is about loops
-
-				//Example:
-				//if {
-				//} else {
-				//}
-
-				//if the next element is "logic:else" or "logic:else-if"
-				if StartsWith(OtherContent, "logic:else") {
-					//remove the line break from the last "if"
-					LoopContent = LoopContent[:len(LoopContent)-1]
-				}
-
+				//This is to handle how Go likes to handle if/else statements...yes, even though this is about loop
+				LoopContent = HandleElse(LoopContent, OtherContent)
 				//processes all the statements before a loop/logic
 				LoopContent = LoopContent + GenCode(Tabs+"\t",OtherContent)
 
@@ -918,16 +891,7 @@ func Loop(Tabs string, TheKindType string, Content string) string {
 								}
 								//This is to handle how Go likes to handle if/else statements...yes, even though this is about loops
 
-								//Example:
-								//if {
-								//} else {
-								//}
-
-								//if the next element is "logic:else" or "logic:else-if"
-								if StartsWith(OtherContent, "logic:else") {
-									//remove the line break from the last "if"
-									LoopContent = LoopContent[:len(LoopContent)-1]
-								}
+								LoopContent = HandleElse(LoopContent, OtherContent)
 								//process loop/logic
 								LoopContent = LoopContent + GenCode(Tabs+"\t",OtherContent)
 							} else {
@@ -944,52 +908,22 @@ func Loop(Tabs string, TheKindType string, Content string) string {
 					for StartsWith(NewContent, "nest-") {
 						NewContent = AfterSplit(NewContent,"-")
 					}
-					//This is to handle how Go likes to handle if/else statements...yes, even though this is about loops
-
-					//Example:
-					//if {
-					//} else {
-					//}
-
-					//if the next element is "logic:else" or "logic:else-if"
-					if StartsWith(NewContent, "logic:else") {
-						//remove the line break from the last "if"
-						LoopContent = LoopContent[:len(LoopContent)-1]
-					}
+					//This is to handle how Go likes to handle if/else statements...yes, even though this is about loop
+					LoopContent = HandleElse(LoopContent, NewContent)
 					//process the remaining nest-loop/logic
 					LoopContent = LoopContent + GenCode(Tabs+"\t",NewContent)
 				}
 			//just process as is
 			} else {
 				//This is to handle how Go likes to handle if/else statements...yes, even though this is about loops
-
-				//Example:
-				//if {
-				//} else {
-				//}
-
-				//if the next element is "logic:else" or "logic:else-if"
-				if StartsWith(OtherContent, "logic:else") {
-					//remove the line break from the last "if"
-					LoopContent = LoopContent[:len(LoopContent)-1]
-				}
+				LoopContent = HandleElse(LoopContent, OtherContent)
 				LoopContent = LoopContent + GenCode(Tabs+"\t",OtherContent)
 			}
 			//clear new content
 			NewContent = ""
 		} else if StartsWith(Content, "var:") || StartsWith(Content, "stmt:") {
 			//This is to handle how Go likes to handle if/else statements...yes, even though this is about loops
-
-			//Example:
-			//if {
-			//} else {
-			//}
-
-			//if the next element is "logic:else" or "logic:else-if"
-			if StartsWith(OtherContent, "logic:else") {
-				//remove the line break from the last "if"
-				LoopContent = LoopContent[:len(LoopContent)-1]
-			}
+			LoopContent = HandleElse(LoopContent, Content)
 //			Content = ReplaceTag(Content, "loop-",true)
 			LoopContent = LoopContent + GenCode(Tabs+"\t",Content)
 
@@ -1021,6 +955,23 @@ func Loop(Tabs string, TheKindType string, Content string) string {
 		Complete = Tabs+"for "+TheCondition+" {\n"+LoopContent+Tabs+"}\n"
 	}
 	return Complete
+}
+
+func HandleElse(LogicContent string, Content string) string {
+	//This is to handle how Go likes to handle if/else statements
+
+	//Example:
+	//if {
+	//} else {
+	//}
+
+	//if the next element is "logic:else" or "logic:else-if"
+	if StartsWith(Content, "logic:else") {
+		//remove the line break from the last "if"
+		LogicContent = LogicContent[:len(LogicContent)-1]
+	}
+
+	return LogicContent
 }
 
 //logic:
@@ -1067,18 +1018,8 @@ func Logic(Tabs string, TheKindType string, Content string) string {
                                 }
                                 lp++
                         }
-			//This is to handle how Go likes to handle if/else statements
 
-			//Example:
-			//if {
-			//} else {
-			//}
-
-			//if the next element is "logic:else" or "logic:else-if"
-			if StartsWith(OtherContent, "logic:else") {
-				//remove the line break from the last "if"
-				LogicContent = LogicContent[:len(LogicContent)-1]
-			}
+			LogicContent = HandleElse(LogicContent, OtherContent)
 			//Process the current content so as to keep from redoing said content
 			LogicContent = LogicContent + GenCode(Tabs+"\t",OtherContent)
 
@@ -1158,18 +1099,7 @@ func Logic(Tabs string, TheKindType string, Content string) string {
 					}
 					lp++
 				}
-				//This is to handle how Go likes to handle if/else statements
-
-				//Example:
-				//if {
-				//} else {
-				//}
-
-				//if the next element is "logic:else" or "logic:else-if"
-				if StartsWith(OtherContent, "logic:else") {
-					//remove the line break from the last "if"
-					LogicContent = LogicContent[:len(LogicContent)-1]
-				}
+				LogicContent = HandleElse(LogicContent, OtherContent)
 
 				//processes all the statements before a loop/logic
 				LogicContent = LogicContent + GenCode(Tabs+"\t",OtherContent)
@@ -1190,18 +1120,8 @@ func Logic(Tabs string, TheKindType string, Content string) string {
 								for StartsWith(OtherContent, "nest-") {
 									OtherContent = AfterSplit(OtherContent,"-")
 								}
-								//This is to handle how Go likes to handle if/else statements
 
-								//Example:
-								//if {
-								//} else {
-								//}
-
-								//if the next element is "logic:else" or "logic:else-if"
-								if StartsWith(OtherContent, "logic:else") {
-									//remove the line break from the last "if"
-									LogicContent = LogicContent[:len(LogicContent)-1]
-								}
+								LogicContent = HandleElse(LogicContent, OtherContent)
 								//process loop/logic
 								LogicContent = LogicContent + GenCode(Tabs+"\t",OtherContent)
 							} else {
@@ -1218,53 +1138,22 @@ func Logic(Tabs string, TheKindType string, Content string) string {
 					for StartsWith(NewContent, "nest-") {
 						NewContent = AfterSplit(NewContent,"-")
 					}
-					//This is to handle how Go likes to handle if/else statements
+					LogicContent = HandleElse(LogicContent, NewContent)
 
-					//Example:
-					//if {
-					//} else {
-					//}
-
-					//if the next element is "logic:else" or "logic:else-if"
-					if StartsWith(NewContent, "logic:else") {
-						//remove the line break from the last "if"
-						LogicContent = LogicContent[:len(LogicContent)-1]
-					}
 					//process the remaining nest-loop/logic
 					LogicContent = LogicContent + GenCode(Tabs+"\t",NewContent)
 
 				}
 			//just process as is
 			} else {
-				//Example:
-				//if {
-				//} else {
-				//}
-
-				//if the next element is "logic:else" or "logic:else-if"
-				if StartsWith(OtherContent, "logic:else") {
-					//remove the line break from the last "if"
-					LogicContent = LogicContent[:len(LogicContent)-1]
-				}
+				LogicContent = HandleElse(LogicContent, OtherContent)
 				//This is to handle how Go likes to handle if/else statements
 				LogicContent = LogicContent + GenCode(Tabs+"\t",OtherContent)
 			}
 			//clear new content
 			NewContent = ""
 		} else if StartsWith(Content, "var:") || StartsWith(Content, "stmt:") {
-
-			//This is to handle how Go likes to handle if/else statements
-
-			//Example:
-			//if {
-			//} else {
-			//}
-
-			//if the next element is "logic:else" or "logic:else-if"
-			if StartsWith(OtherContent, "logic:else") {
-				//remove the line break from the last "if"
-				LogicContent = LogicContent[:len(LogicContent)-1]
-			}
+			LogicContent = HandleElse(LogicContent, Content)
 
 //			Content = ReplaceTag(Content, "logic-",false)
 			LogicContent = LogicContent + GenCode(Tabs+"\t",Content)

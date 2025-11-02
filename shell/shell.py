@@ -2,7 +2,7 @@ import os
 import sys
 import platform
 
-Version = "0.0.93"
+Version = "0.0.94"
 
 def getOS():
 	platform.system()
@@ -1080,8 +1080,8 @@ def Variables(Tabs, TheKindType, Content):
 		Name = BeforeSplit(TheKindType,"=")
 		Value = AfterSplit(TheKindType,"=")
 
-	if VarType != "":
-		NewVar = VarType+" "
+#	if VarType != "":
+#		NewVar = VarType+" "
 
 	if MakeEqual == True:
 		if IsIn(Value,"(-spc)"):
