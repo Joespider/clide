@@ -3,7 +3,7 @@ use std::process::Command;
 
 fn the_version() -> String
 {
-	return "0.0.93".to_string();
+	return "0.0.94".to_string();
 }
 
 fn get_os() -> String
@@ -514,11 +514,8 @@ fn translate_tag(input: &str) -> String
 
 		if is_in(&action,":")
 		{
-			println!("{}",action);
 			value = after_split(&action,":");
-			println!("{}",value);
 			action = before_split(&action,":");
-			println!("{}",action);
 		}
 
 		if value != ""
@@ -707,20 +704,49 @@ fn gen_conditions(input: &str) -> String
 		condit = replace_all(&condit, "(-spc)"," ");
 	}
 
+	if is_in(&condit,"(-or)")
+	{
+		condit = replace_all(&condit, "(-or)"," || ");
+	}
+
+	if is_in(&condit,"(-and)")
+	{
+		condit = replace_all(&condit, "(-and)"," && ");
+	}
+
 	if is_in(&condit," ")
 	{
-		let mut tmp = String::new();
+		let mut tmp = String::from("");
 		let conditions: Vec<&str> = condit.split(" ").collect();
 		let mut lp = 0;
 		let end = len_a(&conditions);
 		while lp != end
 		{
-			let mut keep = translate_tag(&conditions[lp]);
-
-			keep = gen_code("",&keep);
-			if keep != ""
+			let keep = String::from(&translate_tag(&conditions[lp]));
+			let tmp_keep = String::from(&gen_code("",&keep.to_string()));
+			if tmp_keep == ""
 			{
-				tmp.push_str(&keep);
+				if tmp.to_string() == ""
+				{
+					tmp.push_str(&keep);
+				}
+				else
+				{
+					tmp.push_str(" ");
+					tmp.push_str(&keep);
+				}
+			}
+			else
+			{
+				if tmp.to_string() == ""
+				{
+					tmp.push_str(&tmp_keep);
+				}
+				else
+				{
+					tmp.push_str(" ");
+					tmp.push_str(&tmp_keep);
+				}
 			}
 			lp += 1;
 		}
@@ -740,21 +766,10 @@ fn gen_conditions(input: &str) -> String
 		}
 		condit = tmp;
 	}
-
 	//logic
 	if is_in(&condit,"(-not)")
 	{
 		condit = replace_all(&condit, "(-not)","!");
-	}
-
-	if is_in(&condit,"(-or)")
-	{
-		condit = replace_all(&condit, "(-or)"," || ");
-	}
-
-	if is_in(&condit,"(-and)")
-	{
-		condit = replace_all(&condit, "(-and)"," && ");
 	}
 /*
 	if starts_with(condit, "(")
@@ -1539,8 +1554,8 @@ fn gen_logic(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 
 	while passed_content != ""
 	{
-		passed_content = replace_tag(&passed_content, "loop-",false);
-//		passed_content = replace_tag(&passed_content, "loop-",true);
+		passed_content = replace_tag(&passed_content, "logic-",false);
+//		passed_content = replace_tag(&passed_content, "logic-",true);
 
 		if starts_with(&passed_content, "condition:")
 		{
@@ -1553,7 +1568,7 @@ fn gen_logic(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 			{
 				the_condition = passed_content.clone();
 			}
-			the_condition = gen_conditions(&the_condition,);
+			the_condition = gen_conditions(&the_condition);
 		}
 
 		//nest-<type> <other content>
@@ -1767,9 +1782,9 @@ fn gen_logic(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 			//clear new content
 			new_content = "".to_string();
 		}
-		else if starts_with(&passed_content, "loop-") || starts_with(&passed_content, "var:") || starts_with(&passed_content, "stmt:")
+		else if starts_with(&passed_content, "logic-") || starts_with(&passed_content, "var:") || starts_with(&passed_content, "stmt:")
 		{
-			passed_content = replace_tag(&passed_content, "loop-",true);
+			passed_content = replace_tag(&passed_content, "logic-",true);
 			logic_content.push_str(&gen_code(&new_tabs,&passed_content));
 			passed_content = "".to_string();
 		}

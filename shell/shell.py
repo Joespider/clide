@@ -2,7 +2,7 @@ import os
 import sys
 import platform
 
-Version = "0.0.94"
+Version = "0.0.95"
 
 def getOS():
 	platform.system()
@@ -350,12 +350,10 @@ def Conditions(input,CalledBy):
 		Condit = replaceAll(Condit, "(-not)","not ")
 
 	if IsIn(Condit,"(-or)"):
-		Condit = replaceAll(Condit, "(-or)",") or (")
-		Condit = "("+Condit+")"
+		Condit = replaceAll(Condit, "(-or)"," or ")
 
 	if IsIn(Condit,"(-and)"):
-		Condit = replaceAll(Condit, "(-and)",") and (")
-		Condit = "("+Condit+")"
+		Condit = replaceAll(Condit, "(-and)"," and ")
 
 	#convert
 	return Condit
