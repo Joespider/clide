@@ -3,7 +3,7 @@ use std::process::Command;
 
 fn the_version() -> String
 {
-	return "0.0.94".to_string();
+	return "0.0.95".to_string();
 }
 
 fn get_os() -> String
@@ -1364,9 +1364,9 @@ fn gen_loop(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 				for item in &cmds
 				{
 					//as long as the beginning of the tag is stmt:, var:, or params: make sure to build the non-loop/logic tags
-					if is_in(item,"stmt:") || is_in(item,"var:") || is_in(item,"params:") && new_content == ""
+					if is_in(item,"stmt:") || is_in(item,"var:") || is_in(item,"params:") && new_content.to_string() == ""
 					{
-						if the_other_content.to_string() == ""
+						if more_the_other_content.to_string() == ""
 						{
 							more_the_other_content.push_str(item);
 						}
@@ -1391,13 +1391,16 @@ fn gen_loop(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 					}
 				}
 
+				the_other_content = more_the_other_content.to_string();
+				new_content = more_new_content.to_string();
+
 				//processes all the statements before a loop/logic
-				loop_content.push_str(&gen_code(&new_tabs,&more_the_other_content));
+				loop_content.push_str(&gen_code(&new_tabs,&the_other_content));
 
 				//Lets group the nested tages one more time...I am not sure how to avoide this being done again
 				if starts_with(&new_content, "nest-")
 				{
-					root_tag = before_split(&more_new_content,"l");
+					root_tag = before_split(&new_content,"l");
 					new_root_tag = [" ",&root_tag,"l"].concat();
 					if is_in(&new_content,&new_root_tag)
 					{
@@ -1690,9 +1693,9 @@ fn gen_logic(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 				for item in &cmds
 				{
 					//as long as the beginning of the tag is stmt:, var:, or params: make sure to build the non-loop/logic tags
-					if is_in(item,"stmt:") || is_in(item,"var:") || is_in(item,"params:") && new_content == ""
+					if is_in(item,"stmt:") || is_in(item,"var:") || is_in(item,"params:") && new_content.to_string() == ""
 					{
-						if the_other_content.to_string() == ""
+						if more_the_other_content.to_string() == ""
 						{
 							more_the_other_content.push_str(item);
 						}
@@ -1717,13 +1720,17 @@ fn gen_logic(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 					}
 				}
 
+				the_other_content = more_the_other_content.to_string();
+				new_content = more_new_content.to_string();
+
 				//processes all the statements before a loop/logic
-				logic_content.push_str(&gen_code(&new_tabs,&more_the_other_content));
+				logic_content.push_str(&gen_code(&new_tabs,&the_other_content));
 
 				//Lets group the nested tages one more time...I am not sure how to avoide this being done again
 				if starts_with(&new_content, "nest-")
 				{
-					root_tag = before_split(&more_new_content,"l");
+					println!("{}",new_content);
+					root_tag = before_split(&new_content,"l");
 					new_root_tag = [" ",&root_tag,"l"].concat();
 					if is_in(&new_content,&new_root_tag)
 					{
