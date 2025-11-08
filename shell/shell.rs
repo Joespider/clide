@@ -3,7 +3,7 @@ use std::process::Command;
 
 fn the_version() -> String
 {
-	return "0.0.95".to_string();
+	return "0.0.96".to_string();
 }
 
 fn get_os() -> String
@@ -452,12 +452,10 @@ fn translate_tag(input: &str) -> String
 	}
 	else if starts_with(&action, "[") && is_in(&action,"]")
 	{
-		let tmp_action = &action.to_owned();
-		action = after_split(&tmp_action,"]");
-		if starts_with(&action,":")
+		let tmp_action = after_split(&action.to_owned(),"]");
+		if starts_with(&tmp_action,":")
 		{
-			let mut the_data_type = after_split(&before_split(&action,"]"),"[");
-			the_data_type = data_type(&the_data_type,false);
+			let the_data_type = after_split(&before_split(&action,"]"),"[");
 
 			value = after_split(&action,":");
 			action = the_data_type;
@@ -472,9 +470,9 @@ fn translate_tag(input: &str) -> String
 		//is a function
 		else
 		{
-			if is_in(&action,":")
+			if is_in(&tmp_action,":")
 			{
-				value = after_split(&action,":");
+				value = after_split(&tmp_action,":");
 				action = before_split(&action,":");
 			}
 
@@ -509,12 +507,11 @@ fn translate_tag(input: &str) -> String
 	}
 	else if starts_with(&action, "(") && is_in(&action,")")
 	{
-		let tmp_action = &action.to_owned();
-		action = after_split(&tmp_action,")");
+		let tmp_action = after_split(&action.to_owned(),")");
 
-		if is_in(&action,":")
+		if is_in(&tmp_action,":")
 		{
-			value = after_split(&action,":");
+			value = after_split(&tmp_action,":");
 			action = before_split(&action,":");
 		}
 
@@ -527,7 +524,7 @@ fn translate_tag(input: &str) -> String
 			the_return.push_str("var:(");
 			the_return.push_str(&the_data_type);
 			the_return.push_str(")");
-			the_return.push_str(&action);
+			the_return.push_str(&tmp_action);
 			the_return.push_str("=");
 			the_return.push_str(&value);
 		}
@@ -540,7 +537,7 @@ fn translate_tag(input: &str) -> String
 			the_return.push_str("var:(");
 			the_return.push_str(&the_data_type);
 			the_return.push_str(")");
-			the_return.push_str(&action);
+			the_return.push_str(&tmp_action);
 		}
 	}
 	else if action == "el"
@@ -1221,7 +1218,8 @@ fn gen_loop(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 	let mut the_other_content = String::from("");
 	let mut passed_content = the_content.to_string();
 
-	if is_in(&new_kind,":")
+	//loop:<type>
+	if starts_with(&new_kind,"loop:")
 	{
 		new_kind = after_split(&new_kind,":");
 	}
@@ -1353,13 +1351,13 @@ fn gen_loop(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 			{
 				the_other_content = after_split(&the_other_content,"-");
 			}
-			loop_content.push_str(&gen_code(&new_tabs,&the_other_content));
+//			loop_content.push_str(&gen_code(&new_tabs,&the_other_content));
 
 			//handle the content if the first tag is a stmt: or var:
 			if starts_with(&the_other_content, "stmt:") || starts_with(&the_other_content, "var:") && is_in(&the_other_content," ")
 			{
 				let cmds: Vec<&str> = the_other_content.split(" ").collect();
-				let mut more_new_content = String::new();
+				let mut more_new_content = String::from("");
 				let mut more_the_other_content = String::from("");
 				for item in &cmds
 				{
@@ -1682,7 +1680,7 @@ fn gen_logic(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 			{
 				the_other_content = after_split(&the_other_content,"-");
 			}
-			logic_content.push_str(&gen_code(&new_tabs,&the_other_content));
+//			logic_content.push_str(&gen_code(&new_tabs,&the_other_content));
 
 			//handle the content if the first tag is a stmt: or var:
 			if starts_with(&the_other_content, "stmt:") || starts_with(&the_other_content, "var:") && is_in(&the_other_content," ")
@@ -2088,23 +2086,24 @@ fn gen_variables(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Stri
 
 	if var_type != ""
 	{
-		new_var.push_str(&var_type);
-		new_var.push_str(" ");
-	}
-
-	if make_equal == true
-	{
+		new_var.push_str("let ");
 		new_var.push_str(&the_name);
-		new_var.push_str(" = ");
-		new_var.push_str(&the_value);
+		new_var.push_str(": ");
+		new_var.push_str(&var_type);
 	}
 	else
 	{
 		new_var.push_str(&the_name);
 	}
+
+	if make_equal == true
+	{
+		new_var.push_str(" = ");
+		new_var.push_str(&the_value);
+	}
 	new_var.push_str(&variable_content);
 
-	return new_var;
+	return new_var.to_string();
 }
 
 fn gen_code(the_tabs: &str, get_me: &str) -> String
