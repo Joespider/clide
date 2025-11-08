@@ -470,17 +470,17 @@ fn translate_tag(input: &str) -> String
 		//is a function
 		else
 		{
+			let mut the_data_type = after_split(&before_split(&action,"]"),"[");
+			the_data_type = data_type(&the_data_type,false);
+
 			if is_in(&tmp_action,":")
 			{
 				value = after_split(&tmp_action,":");
-				action = before_split(&action,":");
+				action = before_split(&tmp_action,":");
 			}
 
 			if value != ""
 			{
-				let mut the_data_type = after_split(&before_split(&action,"]"),"[");
-				the_data_type = data_type(&the_data_type,false);
-
 				the_return.push_str(&content_for);
 				the_return.push_str(&the_nest.to_string());
 				the_return.push_str("method:(");
@@ -492,9 +492,6 @@ fn translate_tag(input: &str) -> String
 			}
 			else
 			{
-				let mut the_data_type = after_split(&before_split(&action,"]"),"[");
-				the_data_type = data_type(&the_data_type,false);
-
 				the_return.push_str(&content_for);
 				the_return.push_str(&the_nest.to_string());
 				the_return.push_str("method:(");
@@ -621,6 +618,10 @@ fn data_type(the_type: &str, get_null: bool) -> String
 		{
 			return "bool".to_string();
 		}
+		else if the_type == "i32" || the_type == "int"
+		{
+			return "i32".to_string();
+		}
 		else
 		{
 			return "".to_string();
@@ -635,6 +636,10 @@ fn data_type(the_type: &str, get_null: bool) -> String
 		else if the_type == "boolean" || the_type == "bool"
 		{
 			return "false".to_string();
+		}
+		else if the_type == "i32" || the_type == "int"
+		{
+			return "0".to_string();
 		}
 		else
 		{
@@ -982,7 +987,7 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 		}
 		default_value.push_str(&data_type(&the_type,true));
 		//Converting data type to correct C++ type
-		the_type = data_type(&the_type,true);
+		the_type = data_type(&the_type,false);
 	}
 	//method:<name>
 	else

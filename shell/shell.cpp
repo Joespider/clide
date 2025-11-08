@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.0.93";
+String Version = "0.0.94";
 
 String getOS();
 void Help(String Type);
@@ -585,6 +585,14 @@ String DataType(String Type, bool getNull)
 	else if (((Type == "String") || (Type == "string") || (Type == "std::string")) && (getNull == true))
 	{
 		return "\"\"";
+	}
+	else if (((Type == "i32") || (Type == "int")) && (getNull == false))
+	{
+		return "int";
+	}
+	else if (((Type == "i32") || (Type == "int")) && (getNull == true))
+	{
+		return "0";
 	}
 	else if (((Type == "boolean") || (Type == "bool")) && (getNull == false))
 	{

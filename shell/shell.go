@@ -9,7 +9,7 @@ import (
 	"strings"
 	)
 
-var Version string = "0.0.94"
+var Version string = "0.0.95"
 
 func getOS() string {
 	os := runtime.GOOS
@@ -375,6 +375,10 @@ func DataType(Type string, getNull bool) string {
 		return "bool"
 	} else if (Type == "boolean" || Type == "bool") && getNull == true {
 		return "false"
+	} else if (Type == "i32" || Type == "int") && getNull == false {
+		return "int"
+	} else if (Type == "i32" || Type == "int") && getNull == true {
+		return "0"
 	} else if Type == "false" || Type == "False" {
 		return "false"
 	} else if Type == "true" || Type == "True" {
