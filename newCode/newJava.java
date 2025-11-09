@@ -52,7 +52,7 @@ public class newJava {
 	private static void Help()
 	{
 		String program = "newJava";
-		String version = "0.1.58";
+		String version = "0.1.59";
 		print("Author: Joespider");
 		print("Program: \""+program+"\"");
 		print("Version: "+version);
@@ -566,7 +566,7 @@ public class newJava {
 		}
 		if (getShell == true)
 		{
-			MethodShell.append("\tprivate static String Shell(String command)\n\t{\n\t\tString ShellOut = \"\";\n\t\tRuntime r = Runtime.getRuntime();\n\t\ttry\n\t\t{\n\t\t\tProcess p = r.exec(command);\n\t\t\tInputStream in = p.getInputStream();\n\t\t\tBufferedInputStream buf = new BufferedInputStream(in);\n\t\t\tInputStreamReader inread = new InputStreamReader(buf);\n\t\t\tBufferedReader bufferedreader = new BufferedReader(inread);\n\t\t\t// Read the ls output\n\t\t\tString line;\n\t\t\twhile ((line = bufferedreader.readLine()) != null)\n\t\t\t{\n\t\t\t\tif (ShellOut.equals(\"\"))\n\t\t\t\t{\n\t\t\t\t\t// Print the content on the console\n\t\t\t\t\tShellOut = line;\n\t\t\t\t}\n\t\t\t\telse\n\t\t\t\t{\n\t\t\t\t\tShellOut = ShellOut+\"\\n\"+line;\n\t\t\t\t}\n\t\t\t}\n\t\t\t// Check for ls failure\n\t\t\ttry\n\t\t\t{\n\t\t\t\tif (p.waitFor() != 0)\n\t\t\t\t{\n\t\t\t\t\tSystem.err.println(\"exit value = \" + p.exitValue());\n\t\t\t\t}\n\t\t\t}\n\t\t\tcatch (InterruptedException e)\n\t\t\t{\n\t\t\t\tSystem.err.println(e);\n\t\t\t}\n\t\t\tfinally\n\t\t\t{\n\t\t\t\t// Close the InputStream\n\t\t\t\tbufferedreader.close();\n\t\t\t\tinread.close();\n\t\t\t\tbuf.close();\n\t\t\t\tin.close();\n\t\t\t}\n\t\t}\n\t\tcatch (IOException e)\n\t\t{\n\t\t\tSystem.err.println(e.getMessage());\n\t\t}\n\t\treturn ShellOut;\n\t}\n\n");
+			MethodShell.append("\tprivate static String Shell(String[] command)\n\t{\n\t\tString ShellOut = \"\";\n\t\tRuntime r = Runtime.getRuntime();\n\t\ttry\n\t\t{\n\t\t\tProcess p = r.exec(command);\n\t\t\tInputStream in = p.getInputStream();\n\t\t\tBufferedInputStream buf = new BufferedInputStream(in);\n\t\t\tInputStreamReader inread = new InputStreamReader(buf);\n\t\t\tBufferedReader bufferedreader = new BufferedReader(inread);\n\t\t\t// Read the ls output\n\t\t\tString line;\n\t\t\twhile ((line = bufferedreader.readLine()) != null)\n\t\t\t{\n\t\t\t\tif (ShellOut.equals(\"\"))\n\t\t\t\t{\n\t\t\t\t\t// Print the content on the console\n\t\t\t\t\tShellOut = line;\n\t\t\t\t}\n\t\t\t\telse\n\t\t\t\t{\n\t\t\t\t\tShellOut = ShellOut+\"\\n\"+line;\n\t\t\t\t}\n\t\t\t}\n\t\t\t// Check for ls failure\n\t\t\ttry\n\t\t\t{\n\t\t\t\tif (p.waitFor() != 0)\n\t\t\t\t{\n\t\t\t\t\tSystem.err.println(\"exit value = \" + p.exitValue());\n\t\t\t\t}\n\t\t\t}\n\t\t\tcatch (InterruptedException e)\n\t\t\t{\n\t\t\t\tSystem.err.println(e);\n\t\t\t}\n\t\t\tfinally\n\t\t\t{\n\t\t\t\t// Close the InputStream\n\t\t\t\tbufferedreader.close();\n\t\t\t\tinread.close();\n\t\t\t\tbuf.close();\n\t\t\t\tin.close();\n\t\t\t}\n\t\t}\n\t\tcatch (IOException e)\n\t\t{\n\t\t\tSystem.err.println(e.getMessage());\n\t\t}\n\t\treturn ShellOut;\n\t}\n\n");
 			MethodShell.append("\tprivate static String getOS()\n\t{\n\t\tString os = System.getProperty(\"os.name\");\n\t\treturn os;\n\t}\n\n");
 		}
 		if (getSleep == true)

@@ -276,7 +276,7 @@ public class shell {
 		return ArrayName;
 	}
 
-	private static String Shell(String command)
+	private static String Shell(String[] command)
 	{
 		String ShellOut = "";
 		Runtime r = Runtime.getRuntime();
@@ -384,7 +384,8 @@ public class shell {
 
 	private static String getCpl()
 	{
-		return Shell("javac --version");
+		String[] Command = {"javac", "--version"};
+		return Shell(Command);
 	}
 
 	private static void banner()
