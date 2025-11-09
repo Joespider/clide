@@ -12,7 +12,7 @@ import java.io.IOException;
 
 //class name
 public class shell {
-	private static String Version = "0.0.93";
+	private static String Version = "0.0.94";
 	private static String TheKind = "";
 	private static String TheName = "";
 	private static String TheKindType = "";
@@ -183,7 +183,7 @@ public class shell {
 
 			for (int lp = 1; lp < len(newString); lp++)
 			{
-				if (lp != 1)
+				if (lp > 1)
 				{
 					SplitContent.append(splitAt);
 				}
@@ -1000,7 +1000,7 @@ public class shell {
 						if (!ParseContent.toString().equals(""))
 						{
 							//process content
-							MethodContent.append(GenCode(Tabs+"\t",ParseContent.toString()));
+							MethodContent.append(GenCode(Tabs+"\t\t",ParseContent.toString()));
 						}
 						//Reset content
 						ParseContent = new StringBuilder(Corrected);
@@ -1021,7 +1021,7 @@ public class shell {
 					OtherContent = new StringBuilder(ParseContent.toString());
 				}
 
-				MethodContent.append(GenCode(Tabs+"\t",OtherContent.toString()));
+				MethodContent.append(GenCode(Tabs+"\t\t",OtherContent.toString()));
 				Content = NewContent.toString();
 
 				OtherContent = new StringBuilder("");
@@ -1509,7 +1509,8 @@ public class shell {
 				{
 					if (lp == 0)
 					{
-						OtherContent.append(all[lp]);
+//						OtherContent.append(all[lp]);
+						OtherContent = new StringBuilder(all[lp]);
 					}
 					else if (lp == 1)
 					{
