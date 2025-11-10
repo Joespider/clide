@@ -281,6 +281,21 @@ fn replace_all(message: &str, s_by: &str, j_by: &str) -> String
 */
 
 
+//This is an example of handling vecotors and arrays
+//	<type>name:value
+//
+//if value is marked a method, this a vector
+//	<int>list:[getInt]:()numbers
+//if value is marked a static, this is an array
+//	<int>list:()one,()two
+//
+//to assign a value
+//	<list[0]>:4
+//to get from value, seeing there is an index
+//	<list[0]>:
+//to append vectors
+//	<list>:4
+
 fn replace_tag(the_content: &str, the_tag: &str, all: bool) -> String
 {
 	let mut the_new_content = String::from("");

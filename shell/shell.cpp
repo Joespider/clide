@@ -408,6 +408,21 @@ void banner()
 	print("Type \"help\" for more information.");
 }
 
+//This is an example of handling vecotors and arrays
+//	<type>name:value
+//
+//if value is marked a method, this a vector
+//	<int>list:[getInt]:()numbers
+//if value is marked a static, this is an array
+//	<int>list:()one,()two
+//
+//to assign a value
+//	<list[0]>:4
+//to get from value, seeing there is an index
+//	<list[0]>:
+//to append vectors
+//	<list>:4
+
 String TranslateTag(String Input)
 {
 	String TheReturn = "";
