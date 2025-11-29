@@ -12,7 +12,7 @@ import java.io.IOException;
 
 //class name
 public class shell {
-	private static String Version = "0.0.94";
+	private static String Version = "0.0.97";
 	private static String TheKind = "";
 	private static String TheName = "";
 	private static String TheKindType = "";
@@ -124,27 +124,62 @@ public class shell {
 			if (splitAt.equals(")"))
 			{
 				String[] newString = split(Str, "\\)", 0);
-				return newString[0];
+				if (len(newString) != 0)
+				{
+					return newString[0];
+				}
+				else
+				{
+					return "";
+				}
 			}
 			else if (splitAt.equals("("))
 			{
 				String[] newString = split(Str, "\\(", 0);
-				return newString[0];
+				if (len(newString) != 0)
+				{
+					return newString[0];
+				}
+				else
+				{
+					return "";
+				}
 			}
 			else if (splitAt.equals("]"))
 			{
 				String[] newString = split(Str, "\\]", 0);
-				return newString[0];
+				if (len(newString) != 0)
+				{
+					return newString[0];
+				}
+				else
+				{
+					return "";
+				}
 			}
 			else if (splitAt.equals("["))
 			{
 				String[] newString = split(Str, "\\[", 0);
-				return newString[0];
+				if (len(newString) != 0)
+				{
+					return newString[0];
+				}
+				else
+				{
+					return "";
+				}
 			}
 			else
 			{
 				String[] newString = split(Str, splitAt, 0);
-				return newString[0];
+				if (len(newString) != 0)
+				{
+					return newString[0];
+				}
+				else
+				{
+					return "";
+				}
 			}
 		}
 		else
@@ -175,6 +210,14 @@ public class shell {
 			else if (splitAt.equals("["))
 			{
 				newString = split(Str, "\\[", 0);
+			}
+			else if (splitAt.equals("{"))
+			{
+				newString = split(Str, "\\{", 0);
+			}
+			else if (splitAt.equals("}"))
+			{
+				newString = split(Str, "\\}", 0);
 			}
 			else
 			{
@@ -397,20 +440,103 @@ public class shell {
 		print("Type \"help\" for more information.");
 	}
 
-	//This is an example of handling vecotors and arrays
-	//	<type>name:value
-	//
-	//if value is marked a method, this a vector
-	//	<int>list:[getInt]:()numbers
-	//if value is marked a static, this is an array
-	//	<int>list:()one,()two
-	//
-	//to assign a value
-	//	<list[0]>:4
-	//to get from value, seeing there is an index
-	//	<list[0]>:
-	//to append vectors
-	//	<list>:4
+	private static String VectAndArray(String Name, String TheDataType, String VectorOrArray, String Action, String TheValue)
+	{
+		StringBuilder TheReturn = new StringBuilder("");
+		if (VectorOrArray.equals("vector"))
+		{
+			if (Action.equals("variable"))
+			{
+				if (!TheValue.equals(""))
+				{
+					TheReturn.append("std::vector<");
+					TheReturn.append(TheDataType);
+					TheReturn.append("> ");
+					TheReturn.append(Name);
+					TheReturn.append(" = ");
+					TheReturn.append(TheValue);
+				}
+				else
+				{
+					TheReturn.append("std::vector<");
+					TheReturn.append(TheDataType);
+					TheReturn.append("> ");
+					TheReturn.append(Name);
+				}
+			}
+			else
+			{
+				if ((!IsIn(Name,"[")) && (!IsIn(Name,"]")))
+				{
+					TheReturn.append(Name);
+					TheReturn.append(".push_back(");
+					TheReturn.append(TheValue);
+					TheReturn.append(")");
+				}
+			}
+		}
+		else if (VectorOrArray.equals("array"))
+		{
+			String plc = "";
+
+			if (Action.equals("variable"))
+			{
+				if (IsIn(TheDataType,"[") && EndsWith(TheDataType,"]"))
+				{
+					plc = AfterSplit(TheDataType,"[");
+					plc = BeforeSplit(plc,"]");
+					TheDataType = BeforeSplit(TheDataType,"[");
+				}
+				TheDataType = DataType(TheDataType,false);
+				if (!TheValue.equals(""))
+				{
+					TheReturn.append(TheDataType);
+					TheReturn.append(" ");
+					TheReturn.append(Name);
+					TheReturn.append("[");
+					TheReturn.append(plc);
+					TheReturn.append("] = ");
+					TheReturn.append(TheValue);
+				}
+				else
+				{
+					TheReturn.append(TheDataType);
+					TheReturn.append(" ");
+					TheReturn.append(Name);
+					TheReturn.append("[");
+					TheReturn.append(plc);
+					TheReturn.append("]");
+				}
+			}
+			else
+			{
+				if (IsIn(Name,"[") && EndsWith(Name,"]"))
+				{
+					plc = AfterSplit(Name,"[");
+					plc = BeforeSplit(plc,"]");
+					Name = BeforeSplit(Name,"[");
+				}
+
+				if (!TheValue.equals(""))
+				{
+					TheReturn.append(Name);
+					TheReturn.append("[");
+					TheReturn.append(plc);
+					TheReturn.append("] = ");
+					TheReturn.append(TheValue);
+				}
+				else
+				{
+					TheReturn.append(Name);
+					TheReturn.append("[");
+					TheReturn.append(plc);
+					TheReturn.append("]");
+				}
+			}
+		}
+
+		return TheReturn.toString();
+	}
 
 	public static String TranslateTag(String Input)
 	{
@@ -485,6 +611,7 @@ public class shell {
 			TheReturn.append(" ");
 			TheReturn.append(Value);
 		}
+		//class
 		else if ((StartsWith(Action, "{")) && (IsIn(Action,"}")))
 		{
 			TheDataType = BeforeSplit(Action,"}");
@@ -509,6 +636,7 @@ public class shell {
 				TheReturn.append(Action);
 			}
 		}
+		//method
 		else if ((StartsWith(Action, "[")) && (IsIn(Action,"]")))
 		{
 			TheDataType = BeforeSplit(Action,"]");
@@ -524,8 +652,11 @@ public class shell {
 				TheReturn.append(Nest.toString());
 				TheReturn.append("stmt:method-");
 				TheReturn.append(Action);
-				TheReturn.append(" params:");
-				TheReturn.append(Value);
+				if (!Value.equals(""))
+				{
+					TheReturn.append(" params:");
+					TheReturn.append(Value);
+				}
 			}
 			//is a function
 			else
@@ -559,11 +690,19 @@ public class shell {
 				}
 			}
 		}
+		//variables
 		else if ((StartsWith(Action, "(")) && (IsIn(Action,")")))
 		{
 			TheDataType = BeforeSplit(Action,")");
 			TheDataType = AfterSplit(TheDataType,"(");
 			Action = AfterSplit(Action,")");
+
+			//replacing data type to represent the variable
+			if (StartsWith(Action,":"))
+			{
+				Action = TheDataType+Action;
+				TheDataType = "" ;
+			}
 
 			if (IsIn(Action,":"))
 			{
@@ -593,6 +732,112 @@ public class shell {
 				TheReturn.append(TheDataType);
 				TheReturn.append(")");
 				TheReturn.append(Action);
+			}
+		}
+
+		//This is an example of handling vecotors and arrays
+		//	<type>name:value
+		//
+		//if value is marked a method, this a vector
+		//	<int>list:[getInt]:()numbers
+		//if value is marked a static, this is an array
+		//	<int>list:()one,()two
+		//
+		//to assign a value
+		//	<list[0]>:4
+		//to get from value, seeing there is an index
+		//	<list[0]>:
+		//to append vectors
+		//	<list>:4
+
+		//vectors or arrays
+		else if ((StartsWith(Action, "<")) && (IsIn(Action,">")))
+		{
+			String VectorOrArray = "";
+			TheDataType = BeforeSplit(Action,">");
+			TheDataType = AfterSplit(TheDataType,"<");
+			Action = AfterSplit(Action,">");
+
+			//replacing data type to represent the variable
+			if (StartsWith(Action,":"))
+			{
+				Action = TheDataType+Action;
+				TheDataType = "";
+			}
+
+			if (IsIn(Action,":"))
+			{
+				Value = AfterSplit(Action,":");
+				Action = BeforeSplit(Action,":");
+
+				if ((EndsWith(Action,"]")) && (Value != ""))
+				{
+					VectorOrArray = "array:";
+				}
+
+				if (VectorOrArray == "")
+				{
+					if (StartsWith(Value,"["))
+					{
+						VectorOrArray = "vector:";
+					}
+					else
+					{
+						VectorOrArray = "array:";
+					}
+				}
+			}
+
+			if (!TheDataType.equals(""))
+			{
+				if (EndsWith(TheDataType,"]"))
+				{
+					VectorOrArray = "array:";
+				}
+				else
+				{
+					VectorOrArray = "vector:";
+				}
+
+				if (!Value.equals(""))
+				{
+					TheReturn.append("var:<");
+					TheReturn.append(VectorOrArray);
+					TheReturn.append(TheDataType);
+					TheReturn.append(">");
+					TheReturn.append(Action);
+					TheReturn.append(":");
+					TheReturn.append(Value);
+				}
+				else
+				{
+					TheReturn.append("var:<");
+					TheReturn.append(VectorOrArray);
+					TheReturn.append(TheDataType);
+					TheReturn.append(">");
+					TheReturn.append(Action);
+				}
+			}
+			else
+			{
+				if (!Value.equals(""))
+				{
+					TheReturn.append("stmt:<");
+					TheReturn.append(VectorOrArray);
+					TheReturn.append(TheDataType);
+					TheReturn.append(">");
+					TheReturn.append(Action);
+					TheReturn.append(":");
+					TheReturn.append(Value);
+				}
+				else
+				{
+					TheReturn.append("stmt:<");
+					TheReturn.append(VectorOrArray);
+					TheReturn.append(TheDataType);
+					TheReturn.append(">");
+					TheReturn.append(Action);
+				}
 			}
 		}
 		else if (Action.equals("el"))
@@ -780,7 +1025,15 @@ public class shell {
 				Type = AfterSplit(Type,"(");
 				Type = DataType(Type,false);
 				more = Parameters("params:"+more,CalledBy);
-				Params = Type+" "+Name+", "+more;
+
+				if (Name.equals(""))
+				{
+					Params = Type+", "+more;
+				}
+				else
+				{
+					Params = Type+" "+Name+", "+more;
+				}
 			}
 			//param-type
 			else if ((StartsWith(Params,"(")) && (IsIn(Params,")")))
@@ -791,6 +1044,10 @@ public class shell {
 				Type = AfterSplit(Type,"(");
 				Type = DataType(Type,false);
 				Params = Type+" "+Name;
+				if (Name.equals(""))
+				{
+					Params = Type;
+				}
 			}
 		}
 		return Params;
@@ -1908,8 +2165,47 @@ public class shell {
 			}
 		}
 
+		//Pull Vector or Array Type
+		if ((StartsWith(TheKindType,"<")) && (IsIn(TheKindType,">")))
+		{
+			String VorA = "";
+			String VarType = "";
+			String TheValue = "";
 
-		if (TheName.equals("method"))
+			//grab data type
+			VarType = BeforeSplit(TheKindType,">");
+			VarType = AfterSplit(VarType,"<");
+			VarType = AfterSplit(VarType,":");
+			VarType = DataType(VarType,false);
+
+			//vector or array
+			VorA = BeforeSplit(TheKindType,":");
+			VorA = AfterSplit(VorA,"<");
+
+			TheName = VorA;
+
+			//name of array
+			Name = AfterSplit(TheKindType,">");
+
+			if (IsIn(Name,":"))
+			{
+				TheValue = AfterSplit(Name,":");
+				Name = BeforeSplit(Name,":");
+				Complete.append(VectAndArray(Name, VarType, VorA, "statement",GenCode("",TranslateTag(TheValue))));
+				Complete.append(StatementContent);
+			}
+			else
+			{
+				Complete.append(VectAndArray(Name, VarType, VorA, "statement",""));
+				Complete.append(StatementContent);
+			}
+			//pull value
+			TheKindType = "";
+			TheName = "";
+			Name = "";
+			VarType = "";
+		}
+		else if (TheName.equals("method"))
 		{
 			Complete.append(Name);
 			Complete.append("(");
@@ -2015,7 +2311,39 @@ public class shell {
 			TheKindType = AfterSplit(TheKindType,")");
 			Name = TheKindType;
 		}
+		//Pull Vector or Array Type
+		else if ((StartsWith(TheKindType,"<")) && (IsIn(TheKindType,">")))
+		{
+			String TheValue = "";
+			String VorA = "";
+			//grab data type
+			VarType = BeforeSplit(TheKindType,">");
+			VarType = AfterSplit(VarType,"<");
+			VarType = AfterSplit(VarType,":");
+			VarType = DataType(VarType,false);
 
+			//vector or array
+			VorA = BeforeSplit(TheKindType,":");
+			VorA = AfterSplit(VorA,"<");
+
+			//name of array
+			Name = AfterSplit(TheKindType,">");
+
+			if (IsIn(Name,":"))
+			{
+				TheValue = AfterSplit(Name,":");
+				Name = BeforeSplit(Name,":");
+				NewVar.append(VectAndArray(Name, VarType, VorA, "variable",GenCode("",TranslateTag(TheValue))));
+			}
+			else
+			{
+				NewVar.append(VectAndArray(Name, VarType, VorA, "variable",""));
+			}
+
+			TheKindType = "";
+			Name = "";
+			VarType = "";
+		}
 		//Assign Value
 		if (IsIn(TheKindType,"="))
 		{

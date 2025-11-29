@@ -3,7 +3,7 @@ use std::process::Command;
 
 fn the_version() -> String
 {
-	return "0.0.96".to_string();
+	return "0.0.97".to_string();
 }
 
 fn get_os() -> String
@@ -69,7 +69,7 @@ fn the_help(the_type: &str)
 	}
 	else if new_the_type == "var"
 	{
-		example("(std::string)name=\"\" var:(int)point=0 stmt:endline var:james-std::string=\"James\" stmt:endline var:help-int");
+		example("(std::string)name=\"\" el var:(int)point=0 el (std::string)james=\"James\" el var:help-int");
 		example("(std::string)name=\"\" el (int)point=0 el (std::string)james=\"James\" el (int)help el help=0");
 		example("(std::string)name=\"\" el (int)point=0 el (std::string)james=\"James\" el (int)help el help=0");
 	}
@@ -431,6 +431,7 @@ fn translate_tag(input: &str) -> String
 		the_return.push_str(" ");
 		the_return.push_str(&value);
 	}
+	//class
 	else if starts_with(&action, "{") && is_in(&action,"}")
 	{
 		let tmp_action = &action.to_owned();
@@ -465,6 +466,7 @@ fn translate_tag(input: &str) -> String
 			the_return.push_str(&action);
 		}
 	}
+	//method
 	else if starts_with(&action, "[") && is_in(&action,"]")
 	{
 		let tmp_action = after_split(&action.to_owned(),"]");
@@ -479,8 +481,11 @@ fn translate_tag(input: &str) -> String
 			the_return.push_str(&the_nest.to_string());
 			the_return.push_str("stmt:method-");
 			the_return.push_str(&action);
-			the_return.push_str(" params:");
-			the_return.push_str(&value);
+			if value != ""
+			{
+				the_return.push_str(" params:");
+				the_return.push_str(&value);
+			}
 		}
 		//is a function
 		else
@@ -517,10 +522,12 @@ fn translate_tag(input: &str) -> String
 		}
 
 	}
+	//variables
 	else if starts_with(&action, "(") && is_in(&action,")")
 	{
 		let tmp_action = after_split(&action.to_owned(),")");
 
+		//calling function
 		if is_in(&tmp_action,":")
 		{
 			value = after_split(&tmp_action,":");
@@ -532,24 +539,50 @@ fn translate_tag(input: &str) -> String
 			let mut the_data_type = after_split(&before_split(&action,")"),"(");
 			the_data_type = data_type(&the_data_type,false);
 
+			//replacing data type to represent the variable
+			if starts_with(&tmp_action,":")
+			{
+				action = the_data_type.to_owned();
+				the_data_type = "".to_string();
+			}
+
+			if starts_with(&action,"()") || the_data_type != ""
+			{
+				action = after_split(&action.to_owned(),")");
+			}
+
 			the_return.push_str(content_for);
 			the_return.push_str("var:(");
 			the_return.push_str(&the_data_type);
 			the_return.push_str(")");
-			the_return.push_str(&tmp_action);
-			the_return.push_str("=");
-			the_return.push_str(&value);
+//			the_return.push_str(&tmp_action);
+			the_return.push_str(&action);
+			the_return.push_str("= ");
+			the_return.push_str(&translate_tag(&value));
 		}
 		else
 		{
 			let mut the_data_type = after_split(&before_split(&action,")"),"(");
 			the_data_type = data_type(&the_data_type,false);
 
+			//replacing data type to represent the variable
+			if starts_with(&tmp_action,":")
+			{
+				action = the_data_type.to_owned();
+				the_data_type = "".to_string();
+			}
+
+			if starts_with(&action,"()") || the_data_type != ""
+			{
+				action = after_split(&action.to_owned(),")");
+			}
+
 			the_return.push_str(content_for);
 			the_return.push_str("var:(");
 			the_return.push_str(&the_data_type);
 			the_return.push_str(")");
-			the_return.push_str(&tmp_action);
+//			the_return.push_str(&tmp_action);
+			the_return.push_str(&action);
 		}
 	}
 	else if action == "el"
@@ -639,7 +672,7 @@ fn data_type(the_type: &str, get_null: bool) -> String
 		}
 		else
 		{
-			return "".to_string();
+			return the_type.to_string();
 		}
 	}
 	else if get_null == true
@@ -658,7 +691,7 @@ fn data_type(the_type: &str, get_null: bool) -> String
 		}
 		else
 		{
-			return "".to_string();
+			return the_type.to_string();
 		}
 	}
 	else if the_type == "false" || the_type == "False"
@@ -671,6 +704,7 @@ fn data_type(the_type: &str, get_null: bool) -> String
 	}
 	else
 	{
+/*
 		if get_null == false
 		{
 			return the_type.to_string();
@@ -679,6 +713,8 @@ fn data_type(the_type: &str, get_null: bool) -> String
 		{
 			return "".to_string();
 		}
+*/
+		return the_type.to_string();
 	}
 }
 
@@ -1150,7 +1186,7 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 	{
 		the_complete.push_str(the_tabs);
 		the_complete.push_str("fn ");
-		the_complete.push_str(&handle_names(&the_name));
+		the_complete.push_str(&handle_names(&after_split(&the_name,"]")));
 		the_complete.push_str("(");
 		the_complete.push_str(&the_params);
 		the_complete.push_str(")\n");
@@ -1167,7 +1203,7 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 		{
 			the_complete.push_str(the_tabs);
 			the_complete.push_str("fn ");
-			the_complete.push_str(&handle_names(&the_name));
+			the_complete.push_str(&handle_names(&after_split(&the_name,"]")));
 			the_complete.push_str("(");
 			the_complete.push_str(&the_params);
 			the_complete.push_str(") -> ");
@@ -1194,7 +1230,7 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 		{
 			the_complete.push_str(the_tabs);
 			the_complete.push_str("fn ");
-			the_complete.push_str(&handle_names(&the_name));
+			the_complete.push_str(&handle_names(&after_split(&the_name,"]")));
 			the_complete.push_str("(");
 			the_complete.push_str(&the_params);
 			the_complete.push_str(") -> ");

@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.0.94";
+String Version = "0.0.99";
 
 String getOS();
 void Help(String Type);
@@ -38,6 +38,7 @@ String join(std::vector<String> Str, String ToJoin);
 String replaceAll(String message, String sBy, String jBy);
 
 void banner();
+String VectAndArray(String Name, String DataType, String VectorOrArray, String Action, String TheValue);
 String TranslateTag(String Input);
 bool IsDataType(String Type);
 String DataType(String Type, bool getNull);
@@ -408,20 +409,74 @@ void banner()
 	print("Type \"help\" for more information.");
 }
 
-//This is an example of handling vecotors and arrays
-//	<type>name:value
-//
-//if value is marked a method, this a vector
-//	<int>list:[getInt]:()numbers
-//if value is marked a static, this is an array
-//	<int>list:()one,()two
-//
-//to assign a value
-//	<list[0]>:4
-//to get from value, seeing there is an index
-//	<list[0]>:
-//to append vectors
-//	<list>:4
+String VectAndArray(String Name, String TheDataType, String VectorOrArray, String Action, String TheValue)
+{
+	String TheReturn = "";
+	if (VectorOrArray == "vector")
+	{
+		if (Action == "variable")
+		{
+			if (TheValue != "")
+			{
+				TheReturn = "std::vector<"+TheDataType+"> "+Name+" = "+TheValue;
+			}
+			else
+			{
+				TheReturn = "std::vector<"+TheDataType+"> "+Name;
+			}
+		}
+		else
+		{
+			if ((!IsIn(Name,"[")) && (!IsIn(Name,"]")))
+			{
+				TheReturn = Name+".push_back("+TheValue+")";
+			}
+		}
+	}
+	else if (VectorOrArray == "array")
+	{
+		String plc = "";
+
+		if (Action == "variable")
+		{
+			if (IsIn(TheDataType,"[") && EndsWith(TheDataType,"]"))
+			{
+				plc = AfterSplit(TheDataType,'[');
+				plc = BeforeSplit(plc,']');
+				TheDataType = BeforeSplit(TheDataType,'[');
+			}
+			TheDataType = DataType(TheDataType,false);
+			if (TheValue != "")
+			{
+				TheReturn = TheDataType+" "+Name+"["+plc+"] = "+TheValue;
+			}
+			else
+			{
+				TheReturn = TheDataType+" "+Name+"["+plc+"]";
+			}
+		}
+		else
+		{
+			if (IsIn(Name,"[") && EndsWith(Name,"]"))
+			{
+				plc = AfterSplit(Name,'[');
+				plc = BeforeSplit(plc,']');
+				Name = BeforeSplit(Name,'[');
+			}
+
+			if (TheValue != "")
+			{
+				TheReturn = Name+"["+plc+"] = "+TheValue;
+			}
+			else
+			{
+				TheReturn = Name+"["+plc+"]";
+			}
+		}
+	}
+
+	return TheReturn;
+}
 
 String TranslateTag(String Input)
 {
@@ -484,6 +539,7 @@ String TranslateTag(String Input)
 		Value = "loop-condition:"+Value;
 		TheReturn = ContentFor+Nest+NewTag+" "+Value;
 	}
+	//class
 	else if ((StartsWith(Action, "{")) && (IsIn(Action,"}")))
 	{
 		TheDataType = BeforeSplit(Action,'}');
@@ -503,6 +559,7 @@ String TranslateTag(String Input)
 			TheReturn = "class:"+Action;
 		}
 	}
+	//method
 	else if ((StartsWith(Action, "[")) && (IsIn(Action,"]")))
 	{
 		TheDataType = BeforeSplit(Action,']');
@@ -513,7 +570,14 @@ String TranslateTag(String Input)
 		{
 			Value = AfterSplit(Action,':');
 			Action = TheDataType;
-			TheReturn = ContentFor+Nest+"stmt:method-"+Action+" params:"+Value;
+			if (Value != "")
+			{
+				TheReturn = ContentFor+Nest+"stmt:method-"+Action+" params:"+Value;
+			}
+			else
+			{
+				TheReturn = ContentFor+Nest+"stmt:method-"+Action;
+			}
 		}
 		//is a function
 		else
@@ -535,11 +599,19 @@ String TranslateTag(String Input)
 			}
 		}
 	}
+	//variables
 	else if ((StartsWith(Action, "(")) && (IsIn(Action,")")))
 	{
 		TheDataType = BeforeSplit(Action,')');
 		TheDataType = AfterSplit(TheDataType,'(');
 		Action = AfterSplit(Action,')');
+
+		//replacing data type to represent the variable
+		if (StartsWith(Action,":"))
+		{
+			Action = TheDataType+Action;
+			TheDataType = "";
+		}
 
 		if (IsIn(Action,":"))
 		{
@@ -557,6 +629,92 @@ String TranslateTag(String Input)
 		else
 		{
 			TheReturn = ContentFor+Nest+"var:("+TheDataType+")"+Action;
+		}
+	}
+
+	//This is an example of handling vecotors and arrays
+	//	<type>name:value
+	//
+	//if value is marked a method, this a vector
+	//	<int>list:[getInt]:()numbers
+	//if value is marked a static, this is an array
+	//	<int>list:()one,()two
+	//
+	//to assign a value
+	//	<list[0]>:4
+	//to get from value, seeing there is an index
+	//	<list[0]>:
+	//to append vectors
+	//	<list>:4
+
+	//vectors or arrays
+	else if ((StartsWith(Action, "<")) && (IsIn(Action,">")))
+	{
+		String VectorOrArray = "";
+		TheDataType = BeforeSplit(Action,'>');
+		TheDataType = AfterSplit(TheDataType,'<');
+		Action = AfterSplit(Action,'>');
+
+		//replacing data type to represent the variable
+		if (StartsWith(Action,":"))
+		{
+			Action = TheDataType+Action;
+			TheDataType = "";
+		}
+
+		if (IsIn(Action,":"))
+		{
+			Value = AfterSplit(Action,':');
+			Action = BeforeSplit(Action,':');
+
+			if ((EndsWith(Action,"]")) && (Value != ""))
+			{
+				VectorOrArray = "array:";
+			}
+
+			if (VectorOrArray == "")
+			{
+				if (StartsWith(Value,"["))
+				{
+					VectorOrArray = "vector:";
+				}
+				else
+				{
+					VectorOrArray = "array:";
+				}
+			}
+		}
+
+		if (TheDataType != "")
+		{
+			if (EndsWith(TheDataType,"]"))
+			{
+				VectorOrArray = "array:";
+			}
+			else
+			{
+				VectorOrArray = "vector:";
+			}
+
+			if (Value != "")
+			{
+				TheReturn = "var:<"+VectorOrArray+TheDataType+">"+Action+":"+Value;
+			}
+			else
+			{
+				TheReturn = "var:<"+VectorOrArray+TheDataType+">"+Action;
+			}
+		}
+		else
+		{
+			if (Value != "")
+			{
+				TheReturn = "stmt:<"+VectorOrArray+TheDataType+">"+Action+":"+Value;
+			}
+			else
+			{
+				TheReturn = "stmt:<"+VectorOrArray+TheDataType+">"+Action;
+			}
 		}
 	}
 	else if (Action == "el")
@@ -585,10 +743,6 @@ String TranslateTag(String Input)
 
 	return TheReturn;
 }
-
-/*
-//<<shell>> method:DataType-String params:Type-String if:Type(-eq)"String"(-or)Type(-eq)"string" +-var:TheReturn="std::string" +-stmt:endline else-if:Type(-eq)"boolean" +-var:Type="bool" +-stmt:endline else +-var:TheReturn=Type +-stmt:endline
-*/
 
 String DataType(String Type, bool getNull)
 {
@@ -754,7 +908,14 @@ String Parameters(String input,String CalledBy)
 			Type = AfterSplit(Type,'(');
 			Type = DataType(Type,false);
 			more = Parameters("params:"+more,CalledBy);
-			Params = Type+" "+Name+", "+more;
+			if (Name == "")
+			{
+				Params = Type+", "+more;
+			}
+			else
+			{
+				Params = Type+" "+Name+", "+more;
+			}
 		}
 		//param-type
 		else if ((StartsWith(Params,"(")) && (IsIn(Params,")")))
@@ -765,6 +926,10 @@ String Parameters(String input,String CalledBy)
 			Type = AfterSplit(Type,'(');
 			Type = DataType(Type,false);
 			Params = Type+" "+Name;
+			if (Name == "")
+			{
+				Params = Type;
+			}
 		}
 	}
 	return Params;
@@ -1728,7 +1893,46 @@ String Statements(String Tabs, String TheKindType, String Content)
 		}
 	}
 
-	if (TheName == "method")
+	//Pull Vector or Array Type
+	if ((StartsWith(TheKindType,"<")) && (IsIn(TheKindType,">")))
+	{
+		String VorA = "";
+		String VarType = "";
+		String TheValue = "";
+
+		//grab data type
+		VarType = BeforeSplit(TheKindType,'>');
+		VarType = AfterSplit(VarType,'<');
+		VarType = AfterSplit(VarType,':');
+		VarType = DataType(VarType,false);
+
+		//vector or array
+		VorA = BeforeSplit(TheKindType,':');
+		VorA = AfterSplit(VorA,'<');
+
+		TheName = VorA;
+
+		//name of array
+		Name = AfterSplit(TheKindType,'>');
+
+		if (IsIn(Name,":"))
+		{
+			TheValue = AfterSplit(Name,':');
+			Name = BeforeSplit(Name,':');
+			Complete = VectAndArray(Name, VarType, VorA, "statement",GenCode("",TranslateTag(TheValue)))+StatementContent;
+		}
+		else
+		{
+			Complete = VectAndArray(Name, VarType, VorA, "statement","")+StatementContent;
+		}
+		//pull value
+		TheKindType = "";
+		TheName = "";
+		Name = "";
+		VarType = "";
+	}
+
+	else if (TheName == "method")
 	{
 		Complete = Name+"("+Params+")"+StatementContent;
 	}
@@ -1821,6 +2025,39 @@ String Variables(String Tabs, String TheKindType, String Content)
 		TheKindType = AfterSplit(TheKindType,')');
 		Name = TheKindType;
 	}
+	//Pull Vector or Array Type
+	else if ((StartsWith(TheKindType,"<")) && (IsIn(TheKindType,">")))
+	{
+		String TheValue = "";
+		String VorA = "";
+		//grab data type
+		VarType = BeforeSplit(TheKindType,'>');
+		VarType = AfterSplit(VarType,'<');
+		VarType = AfterSplit(VarType,':');
+		VarType = DataType(VarType,false);
+
+		//vector or array
+		VorA = BeforeSplit(TheKindType,':');
+		VorA = AfterSplit(VorA,'<');
+
+		//name of array
+		Name = AfterSplit(TheKindType,'>');
+
+		if (IsIn(Name,":"))
+		{
+			TheValue = AfterSplit(Name,':');
+			Name = BeforeSplit(Name,':');
+			NewVar = VectAndArray(Name, VarType, VorA, "variable",GenCode("",TranslateTag(TheValue)));
+		}
+		else
+		{
+			NewVar = VectAndArray(Name, VarType, VorA, "variable","");
+		}
+
+		TheKindType = "";
+		Name = "";
+		VarType = "";
+	}
 
 	//Assign Value
 	if (IsIn(TheKindType,"="))
@@ -1841,7 +2078,6 @@ String Variables(String Tabs, String TheKindType, String Content)
 		{
 			Value = replaceAll(Value, "(-spc)"," ");
 		}
-
 		NewVar = NewVar+Name+" = "+Value;
 	}
 	else

@@ -2,7 +2,7 @@ import os
 import sys
 import platform
 
-Version = "0.0.95"
+Version = "0.0.98"
 
 def getOS():
 	platform.system()
@@ -142,7 +142,6 @@ def replaceAll(message, sBy, jBy):
 
 #	----[shell]----
 
-
 def ReplaceTag(Content, Tag, All):
 	if IsIn(Content," ") and StartsWith(Content, Tag):
 		remove = True
@@ -180,20 +179,48 @@ def banner():
 	print("[python " + str(Version) + "] on " + str(theOS))
 	print("Type \"help\" for more information.")
 
-#This is an example of handling vecotors and arrays
-#	<type>name:value
-#
-#if value is marked a method, this a vector
-#	<int>list:[getInt]:()numbers
-#if value is marked a static, this is an array
-#	<int>list:()one,()two
-#
-#to assign a value
-#	<list[0]>:4
-#to get from value, seeing there is an index
-#	<list[0]>:
-#to append vectors
-#	<list>:4
+def VectAndArray(Name, TheDataType, VectorOrArray, Action, TheValue):
+	TheReturn = ""
+	if VectorOrArray == "vector":
+		if Action == "variable":
+			if TheValue != "":
+				TheReturn = Name+" = "+TheValue
+			else:
+				TheReturn = Name
+		else:
+			if not IsIn(Name,"[") and not IsIn(Name,"]"):
+				TheReturn = Name+".append("+TheValue+")"
+	elif VectorOrArray == "array":
+		plc = ""
+
+		if Action == "variable":
+			if IsIn(TheDataType,"[") and EndsWith(TheDataType,"]"):
+				plc = AfterSplit(TheDataType,'[')
+				plc = BeforeSplit(plc,']')
+				TheDataType = BeforeSplit(TheDataType,'[')
+			TheDataType = DataType(TheDataType,False);
+			if TheValue != "":
+				TheReturn = Name+"["+plc+"] = "+TheValue
+			else:
+				if plc != "":
+					TheReturn = Name+"["+plc+"]"
+				else:
+					TheReturn = Name
+		else:
+			if IsIn(Name,"[") and EndsWith(Name,"]"):
+				plc = AfterSplit(Name,'[')
+				plc = BeforeSplit(plc,']')
+				Name = BeforeSplit(Name,'[')
+
+			if TheValue != "":
+				TheReturn = Name+"["+plc+"] = "+TheValue
+			else:
+				if plc != "":
+					TheReturn = Name+"["+plc+"]"
+				else:
+					TheReturn = Name
+
+	return TheReturn
 
 def TranslateTag(Input):
 	TheReturn = ""
@@ -239,6 +266,7 @@ def TranslateTag(Input):
 		NewTag = "loop:"+Action
 		Value = "loop-condition:"+Value
 		TheReturn = ContentFor+Nest+NewTag+" "+Value
+	#class
 	elif (StartsWith(Action, "{")) and (IsIn(Action,"}")):
 		TheDataType = BeforeSplit(Action,"}")
 		TheDataType = AfterSplit(TheDataType,"{")
@@ -250,6 +278,7 @@ def TranslateTag(Input):
 			TheReturn = "class:"+Action+" params:"+Value
 		else:
 			TheReturn = "class:"+Action
+	#method
 	elif (StartsWith(Action, "[")) and (IsIn(Action,"]")):
 		TheDataType = BeforeSplit(Action,"]")
 		TheDataType = AfterSplit(TheDataType,"[")
@@ -258,7 +287,10 @@ def TranslateTag(Input):
 		if StartsWith(Action, ":"):
 			Value = AfterSplit(Action,":")
 			Action = TheDataType
-			TheReturn = ContentFor+Nest+"stmt:method-"+Action+" params:"+Value
+			if Value != "":
+				TheReturn = ContentFor+Nest+"stmt:method-"+Action+" params:"+Value
+			else:
+				TheReturn = ContentFor+Nest+"stmt:method-"+Action
 		#is a function
 		else:
 			TheDataType = DataType(TheDataType,False)
@@ -270,10 +302,15 @@ def TranslateTag(Input):
 				TheReturn = ContentFor+Nest+"method:("+TheDataType+")"+Action+" params:"+Value
 			else:
 				TheReturn = ContentFor+Nest+"method:("+TheDataType+")"+Action
+	#variables
 	elif (StartsWith(Action, "(")) and (IsIn(Action,")")):
 		TheDataType = BeforeSplit(Action,")")
 		TheDataType = AfterSplit(TheDataType,"(")
 		Action = AfterSplit(Action,")")
+
+		if StartsWith(Action,":"):
+			Action = TheDataType+Action
+			TheDataType = ""
 
 		if IsIn(Action,":"):
 			Value = AfterSplit(Action,":")
@@ -286,6 +323,61 @@ def TranslateTag(Input):
 			TheReturn = ContentFor+Nest+"var:("+TheDataType+")"+Action+"= "+Value
 		else:
 			TheReturn = ContentFor+Nest+"var:("+TheDataType+")"+Action
+
+		#This is an example of handling vecotors and arrays
+		#	<type>name:value
+		#
+		#if value is marked a method, this a vector
+		#	<int>list:[getInt]:()numbers
+		#if value is marked a static, this is an array
+		#	<int>list:()one,()two
+		#
+		#to assign a value
+		#	<list[0]>:4
+		#to get from value, seeing there is an index
+		#	<list[0]>:
+		#to append vectors
+		#	<list>:4
+
+	#vectors or arrays
+	elif StartsWith(Action, "<") and IsIn(Action,">"):
+		VectorOrArray = ""
+		TheDataType = BeforeSplit(Action,">")
+		TheDataType = AfterSplit(TheDataType,"<")
+		Action = AfterSplit(Action,">");
+
+		#replacing data type to represent the variable
+		if StartsWith(Action,":"):
+			Action = TheDataType+Action
+			TheDataType = ""
+			if IsIn(Action,":"):
+				Value = AfterSplit(Action,":")
+				Action = BeforeSplit(Action,":")
+				if EndsWith(Action,"]") and (Value != ""):
+					VectorOrArray = "array:"
+
+				if VectorOrArray == "":
+					if StartsWith(Value,"["):
+						VectorOrArray = "vector:"
+				else:
+					VectorOrArray = "array:"
+
+		if TheDataType != "":
+			if EndsWith(TheDataType,"]"):
+				VectorOrArray = "array:"
+			else:
+				VectorOrArray = "vector:"
+
+			if Value != "":
+				TheReturn = "var:<"+VectorOrArray+TheDataType+">"+Action+":"+Value
+			else:
+				TheReturn = "var:<"+VectorOrArray+TheDataType+">"+Action
+		else:
+			if Value != "":
+				TheReturn = "stmt:<"+VectorOrArray+TheDataType+">"+Action+":"+Value
+			else:
+				TheReturn = "stmt:<"+VectorOrArray+TheDataType+">"+Action
+
 	elif Action == "el":
 		TheReturn = ContentFor+Nest+"stmt:endline"
 	elif Action == "nl":
@@ -388,7 +480,10 @@ def Parameters(input,CalledBy):
 			Type = AfterSplit(Type,"(")
 			Type = DataType(Type,False)
 			more = Parameters("params:"+more,CalledBy)
-			Params = Name+", "+more
+			if Name == "":
+				Params = Type+", "+more
+			else:
+				Params = Type+" "+Name+", "+more
 		#param-type
 		elif StartsWith(Params,"(") and IsIn(Params,")"):
 			Name = AfterSplit(Params,")")
@@ -397,6 +492,8 @@ def Parameters(input,CalledBy):
 			Type = AfterSplit(Type,"(")
 			Type = DataType(Type,False)
 			Params = Name
+			if Name == "":
+				Params = Type
 	return Params
 
 def Struct(TheName, Content):
@@ -1028,7 +1125,40 @@ def Statements(Tabs, TheKindType, Content):
 				Content = ""
 			StatementContent = StatementContent + GenCode(Tabs,OtherContent)
 
-	if TheName == "method":
+	#Pull Vector or Array Type
+	if StartsWith(TheKindType,"<") and IsIn(TheKindType,">"):
+		VorA = ""
+		VarType = ""
+		TheValue = ""
+
+		#grab data type
+		VarType = BeforeSplit(TheKindType,">")
+		VarType = AfterSplit(VarType,"<")
+		VarType = AfterSplit(VarType,":")
+		VarType = DataType(VarType,False)
+
+		#vector or array
+		VorA = BeforeSplit(TheKindType,":")
+		VorA = AfterSplit(VorA,"<")
+
+		TheName = VorA
+
+		#name of array
+		Name = AfterSplit(TheKindType,">")
+
+		if IsIn(Name,":"):
+			TheValue = AfterSplit(Name,":")
+			Name = BeforeSplit(Name,":")
+			Complete = VectAndArray(Name, VarType, VorA, "statement",GenCode("",TranslateTag(TheValue)))+StatementContent
+		else:
+			Complete = VectAndArray(Name, VarType, VorA, "statement","")+StatementContent
+		#pull value
+		TheKindType = ""
+		TheName = ""
+		Name = ""
+		VarType = ""
+
+	elif TheName == "method":
 		Complete = Name+"("+Params+")"+StatementContent
 	elif TheName == "comment":
 		Complete = StatementContent+Tabs+"#Code goes here\n"
@@ -1086,6 +1216,34 @@ def Variables(Tabs, TheKindType, Content):
 		VarType = DataType(VarType,False)
 		TheKindType = AfterSplit(TheKindType,")")
 		Name = TheKindType
+
+	#Pull Vector or Array Type
+	elif StartsWith(TheKindType,"<") and IsIn(TheKindType,">"):
+		TheValue = ""
+		VorA = ""
+		#grab data type
+		VarType = BeforeSplit(TheKindType,">")
+		VarType = AfterSplit(VarType,"<")
+		VarType = AfterSplit(VarType,":")
+		VarType = DataType(VarType,False)
+
+		#vector or array
+		VorA = BeforeSplit(TheKindType,":")
+		VorA = AfterSplit(VorA,"<")
+
+		#name of array
+		Name = AfterSplit(TheKindType,">")
+
+		if IsIn(Name,":"):
+			TheValue = AfterSplit(Name,":")
+			Name = BeforeSplit(Name,":")
+			NewVar = VectAndArray(Name, VarType, VorA, "variable",GenCode("",TranslateTag(TheValue)))
+		else:
+			NewVar = VectAndArray(Name, VarType, VorA, "variable","")
+
+		TheKindType = ""
+		Name = ""
+		VarType = ""
 
 	#Assign Value
 	if IsIn(TheKindType,"="):

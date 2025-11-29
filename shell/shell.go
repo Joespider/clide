@@ -9,7 +9,7 @@ import (
 	"strings"
 	)
 
-var Version string = "0.0.95"
+var Version string = "0.0.98"
 
 func getOS() string {
 	os := runtime.GOOS
@@ -246,6 +246,53 @@ func banner() {
 	fmt.Println("Type \"help\" for more information.")
 }
 
+func VectAndArray(Name string, TheDataType string, VectorOrArray string, Action string, TheValue string) string {
+	var TheReturn string = ""
+	if VectorOrArray == "vector" {
+		if Action == "variable" {
+			if TheValue != "" {
+				TheReturn = Name+" "+"[]"+TheDataType+" = "+TheValue
+			} else {
+				TheReturn = Name+" "+"[]"+TheDataType
+			}
+		} else {
+			if !IsIn(Name,"[") && !IsIn(Name,"]") {
+				TheReturn = Name+" = append("+TheValue+")"
+			}
+		}
+	} else if VectorOrArray == "array" {
+		var plc string = ""
+
+		if Action == "variable" {
+			if IsIn(TheDataType,"[") && EndsWith(TheDataType,"]") {
+				plc = AfterSplit(TheDataType,"[")
+				plc = BeforeSplit(plc,"]")
+				TheDataType = BeforeSplit(TheDataType,"[")
+			}
+			TheDataType = DataType(TheDataType,false)
+			if TheValue != "" {
+				TheReturn = Name+" ["+plc+"]"+TheDataType+" = "+TheValue
+			} else {
+				TheReturn = Name+" "+"["+plc+"]"+TheDataType
+			}
+		} else {
+			if IsIn(Name,"[") && EndsWith(Name,"]") {
+				plc = AfterSplit(Name,"[")
+				plc = BeforeSplit(plc,"]")
+				Name = BeforeSplit(Name,"[")
+			}
+
+			if TheValue != "" {
+				TheReturn = Name+"["+plc+"] = "+TheValue
+			} else {
+				TheReturn = Name+"["+plc+"]"
+			}
+		}
+	}
+
+	return TheReturn
+}
+
 //This is an example of handling vecotors and arrays
 //	<type>name:value
 //
@@ -307,6 +354,7 @@ func TranslateTag(Input string) string {
 		NewTag = "loop:"+Action
 		Value = "loop-condition:"+Value
 		TheReturn = ContentFor+Nest+NewTag+" "+Value
+	//class
 	} else if StartsWith(Action, "{") && IsIn(Action,"}") {
 		TheDataType = BeforeSplit(Action,"}")
 		TheDataType = AfterSplit(TheDataType,"{")
@@ -322,6 +370,7 @@ func TranslateTag(Input string) string {
 		} else {
 			TheReturn = "class:"+Action
 		}
+	//method
 	} else if StartsWith(Action, "[") && IsIn(Action,"]") {
 		TheDataType = BeforeSplit(Action,"]")
 		TheDataType = AfterSplit(TheDataType,"[")
@@ -330,7 +379,11 @@ func TranslateTag(Input string) string {
 		if StartsWith(Action, ":") {
 			Value = AfterSplit(Action,":")
 			Action = TheDataType
-			TheReturn = ContentFor+Nest+"stmt:method-"+Action+" params:"+Value
+			if Value != "" {
+				TheReturn = ContentFor+Nest+"stmt:method-"+Action+" params:"+Value
+			} else {
+				TheReturn = ContentFor+Nest+"stmt:method-"+Action
+			}
 		//is a function
 		} else {
 			TheDataType = DataType(TheDataType,false)
@@ -345,10 +398,16 @@ func TranslateTag(Input string) string {
 				TheReturn = ContentFor+Nest+"method:("+TheDataType+")"+Action
 			}
 		}
-	} else if StartsWith(Action, "(") && IsIn(Action,")") {
+	//variables
+	} else if StartsWith(Action,"(") && IsIn(Action,")") {
 		TheDataType = BeforeSplit(Action,")")
 		TheDataType = AfterSplit(TheDataType,"(")
 		Action = AfterSplit(Action,")")
+
+		if StartsWith(Action,"(") {
+			Action = TheDataType+Action
+			TheDataType = ""
+		}
 
 		if IsIn(Action,":") {
 			Value = AfterSplit(Action,":")
@@ -362,6 +421,70 @@ func TranslateTag(Input string) string {
 			TheReturn = ContentFor+Nest+"var:("+TheDataType+")"+Action+"= "+Value
 		} else {
 			TheReturn = ContentFor+Nest+"var:("+TheDataType+")"+Action
+		}
+	//This is an example of handling vecotors and arrays
+	//	<type>name:value
+	//
+	//if value is marked a method, this a vector
+	//	<int>list:[getInt]:()numbers
+	//if value is marked a static, this is an array
+	//	<int>list:()one,()two
+	//
+	//to assign a value
+	//	<list[0]>:4
+	//to get from value, seeing there is an index
+	//	<list[0]>:
+	//to append vectors
+	//	<list>:4
+
+	//vectors or arrays
+	} else if StartsWith(Action, "<") && IsIn(Action,">") {
+		var VectorOrArray string = ""
+		TheDataType = BeforeSplit(Action,">")
+		TheDataType = AfterSplit(TheDataType,"<")
+		Action = AfterSplit(Action,">")
+
+		//replacing data type to represent the variable
+		if StartsWith(Action,":") {
+			Action = TheDataType+Action
+			TheDataType = ""
+		}
+
+		if IsIn(Action,":") {
+			Value = AfterSplit(Action,":")
+			Action = BeforeSplit(Action,":")
+
+			if EndsWith(Action,"]") && Value != "" {
+				VectorOrArray = "array:"
+			}
+
+			if VectorOrArray == "" {
+				if StartsWith(Value,"[") {
+					VectorOrArray = "vector:"
+				} else {
+					VectorOrArray = "array:"
+				}
+			}
+		}
+
+		if TheDataType != "" {
+			if EndsWith(TheDataType,"]") {
+				VectorOrArray = "array:"
+			} else {
+				VectorOrArray = "vector:"
+			}
+
+			if Value != "" {
+				TheReturn = "var:<"+VectorOrArray+TheDataType+">"+Action+":"+Value
+			} else {
+				TheReturn = "var:<"+VectorOrArray+TheDataType+">"+Action
+			}
+		} else {
+			if Value != "" {
+				TheReturn = "stmt:<"+VectorOrArray+TheDataType+">"+Action+":"+Value
+			} else 	{
+				TheReturn = "stmt:<"+VectorOrArray+TheDataType+">"+Action
+			}
 		}
 	} else if Action == "el" {
 		TheReturn = ContentFor+Nest+"stmt:endline"
@@ -505,7 +628,11 @@ func Parameters(input string, CalledBy string) string {
 			Type = AfterSplit(Type,"(")
 			Type = DataType(Type,false)
 			more = Parameters("params:"+more,CalledBy)
-			Params = Type+" "+Name+", "+more
+			if Name == "" {
+				Params = Type+", "+more
+			} else {
+				Params = Type+" "+Name+", "+more
+			}
 		//param-type
 		} else if StartsWith(Params,"(") && IsIn(Params,")") {
 			var Name string = AfterSplit(Params,")")
@@ -514,6 +641,9 @@ func Parameters(input string, CalledBy string) string {
 			Type = AfterSplit(Type,"(")
 			Type = DataType(Type,false)
 			Params = Type+" "+Name
+			if Name == "" {
+				Params = Type
+			}
 		}
 	}
 
@@ -1286,7 +1416,40 @@ func Statements(Tabs string, TheKindType string, Content string) string {
 		}
 	}
 
-	if TheName == "method" {
+	//Pull Vector or Array Type
+	if StartsWith(TheKindType,"<") && IsIn(TheKindType,">") {
+		var VorA string = ""
+		var VarType string = ""
+		var TheValue string = ""
+
+		//grab data type
+		VarType = BeforeSplit(TheKindType,">")
+		VarType = AfterSplit(VarType,"<")
+		VarType = AfterSplit(VarType,":")
+		VarType = DataType(VarType,false)
+
+		//vector or array
+		VorA = BeforeSplit(TheKindType,":")
+		VorA = AfterSplit(VorA,"<")
+
+		TheName = VorA
+
+		//name of array
+		Name = AfterSplit(TheKindType,">")
+
+		if IsIn(Name,":") {
+			TheValue = AfterSplit(Name,":")
+			Name = BeforeSplit(Name,":")
+			Complete = VectAndArray(Name, VarType, VorA, "statement",GenCode("",TranslateTag(TheValue)))+StatementContent
+		} else {
+			Complete = VectAndArray(Name, VarType, VorA, "statement","")+StatementContent
+		}
+		//pull value
+		TheKindType = ""
+		TheName = ""
+		Name = ""
+		VarType = ""
+	} else if TheName == "method" {
 		Complete = Name+"("+Params+")"+StatementContent
 	} else if TheName == "comment" {
 		Complete = StatementContent+Tabs+"#Code goes here\n"
@@ -1349,7 +1512,43 @@ func Variables(Tabs string, TheKindType string, Content string) string {
 		VarType = AfterSplit(VarType,"(")
 		VarType = DataType(VarType,false)
 		TheKindType = AfterSplit(TheKindType,")")
-		Name = TheKindType
+		if TheKindType == "" {
+			Name = VarType
+			VarType = ""
+		} else if TheKindType == "=" {
+			Name = VarType
+//			VarType = ""
+		} else {
+			Name = TheKindType
+		}
+	//Pull Vector or Array Type
+	} else if StartsWith(TheKindType,"<") && IsIn(TheKindType,">") {
+		var TheValue string = ""
+		var VorA string = ""
+		//grab data type
+		VarType = BeforeSplit(TheKindType,">")
+		VarType = AfterSplit(VarType,"<")
+		VarType = AfterSplit(VarType,":")
+		VarType = DataType(VarType,false)
+
+		//vector or array
+		VorA = BeforeSplit(TheKindType,":")
+		VorA = AfterSplit(VorA,"<")
+
+		//name of array
+		Name = AfterSplit(TheKindType,">")
+
+		if IsIn(Name,":") {
+			TheValue = AfterSplit(Name,":")
+			Name = BeforeSplit(Name,":")
+			NewVar = VectAndArray(Name, VarType, VorA, "variable",GenCode("",TranslateTag(TheValue)))
+		} else {
+			NewVar = VectAndArray(Name, VarType, VorA, "variable","")
+		}
+
+		TheKindType = ""
+		Name = ""
+		VarType = ""
 	}
 
 	//Assign Value
@@ -1359,8 +1558,12 @@ func Variables(Tabs string, TheKindType string, Content string) string {
 		Value = AfterSplit(TheKindType,"=")
 	}
 
-	if VarType != "" {
+	if VarType != "" && Name != ""{
 		NewVar = " "+VarType
+	} else if VarType != "" && Name == ""{
+		Name = VarType
+		VarType = ""
+		NewVar = ""
 	}
 
 	if MakeEqual == true {
@@ -1368,7 +1571,11 @@ func Variables(Tabs string, TheKindType string, Content string) string {
 			Value = replaceAll(Value, "(-spc)"," ")
 		}
 
-		NewVar = "var "+Name+NewVar+" = "+Value
+		if VarType != "" {
+			NewVar = "var "+Name+NewVar+" = "+Value
+		} else {
+			NewVar = Name+NewVar+" = "+Value
+		}
 	} else {
 		NewVar = "var "+Name+NewVar
 	}
