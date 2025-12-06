@@ -12,7 +12,7 @@ import java.io.IOException;
 
 //class name
 public class shell {
-	private static String Version = "0.0.97";
+	private static String Version = "0.0.99";
 	private static String TheKind = "";
 	private static String TheName = "";
 	private static String TheKindType = "";
@@ -121,66 +121,43 @@ public class shell {
 	{
 		if (Str.contains(splitAt))
 		{
+			String[] newString;
+			int length = 0;
 			if (splitAt.equals(")"))
 			{
-				String[] newString = split(Str, "\\)", 0);
-				if (len(newString) != 0)
-				{
-					return newString[0];
-				}
-				else
-				{
-					return "";
-				}
+				newString = split(Str, "\\)");
+				length = len(newString);
 			}
 			else if (splitAt.equals("("))
 			{
-				String[] newString = split(Str, "\\(", 0);
-				if (len(newString) != 0)
-				{
-					return newString[0];
-				}
-				else
-				{
-					return "";
-				}
+				newString = split(Str, "\\(");
+				length = len(newString);
 			}
 			else if (splitAt.equals("]"))
 			{
-				String[] newString = split(Str, "\\]", 0);
-				if (len(newString) != 0)
-				{
-					return newString[0];
-				}
-				else
-				{
-					return "";
-				}
+				newString = split(Str, "\\]");
+				length = len(newString);
 			}
 			else if (splitAt.equals("["))
 			{
-				String[] newString = split(Str, "\\[", 0);
-				if (len(newString) != 0)
-				{
-					return newString[0];
-				}
-				else
-				{
-					return "";
-				}
+				newString = split(Str, "\\[");
+				length = len(newString);
 			}
 			else
 			{
-				String[] newString = split(Str, splitAt, 0);
-				if (len(newString) != 0)
-				{
-					return newString[0];
-				}
-				else
-				{
-					return "";
-				}
+				newString = split(Str, splitAt);
+				length = len(newString);
 			}
+
+			if (length != 0)
+			{
+				return newString[0];
+			}
+			else
+			{
+				return "";
+			}
+
 		}
 		else
 		{
@@ -197,31 +174,31 @@ public class shell {
 
 			if (splitAt.equals(")"))
 			{
-				newString = split(Str, "\\)", 0);
+				newString = split(Str, "\\)");
 			}
 			else if (splitAt.equals("("))
 			{
-				newString = split(Str, "\\(", 0);
+				newString = split(Str, "\\(");
 			}
 			else if (splitAt.equals("]"))
 			{
-				newString = split(Str, "\\]", 0);
+				newString = split(Str, "\\]");
 			}
 			else if (splitAt.equals("["))
 			{
-				newString = split(Str, "\\[", 0);
+				newString = split(Str, "\\[");
 			}
 			else if (splitAt.equals("{"))
 			{
-				newString = split(Str, "\\{", 0);
+				newString = split(Str, "\\{");
 			}
 			else if (splitAt.equals("}"))
 			{
-				newString = split(Str, "\\}", 0);
+				newString = split(Str, "\\}");
 			}
 			else
 			{
-				newString = split(Str, splitAt, 0);
+				newString = split(Str, splitAt);
 			}
 
 			for (int lp = 1; lp < len(newString); lp++)
@@ -231,7 +208,13 @@ public class shell {
 					SplitContent.append(splitAt);
 				}
 				SplitContent.append(newString[lp]);
+
+				if (((lp+1) == len(newString)) && (EndsWith(Str,splitAt)))
+				{
+					SplitContent.append(splitAt);
+				}
 			}
+
 			return SplitContent.toString();
 		}
 		else
@@ -712,6 +695,22 @@ public class shell {
 
 			if (!(Value.equals("")))
 			{
+				if (ContentFor.equals("logic-"))
+				{
+					Value = "+-"+Nest+Value;
+				}
+				else if (ContentFor.equals("loop-"))
+				{
+					Value = "o-"+Nest+Value;
+				}
+				else if (ContentFor.equals("method-"))
+				{
+					Value = "[]-"+Nest+Value;
+				}
+				else if (ContentFor.equals("class-"))
+				{
+					Value = "{}-"+Nest+Value;
+				}
 				//translate value, if needed
 				Value = TranslateTag(Value);
 //				Value = GenCode("",Value);

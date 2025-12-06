@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.0.99";
+String Version = "0.1.1";
 
 String getOS();
 void Help(String Type);
@@ -100,8 +100,8 @@ void Help(String Type)
 //		Example("[String-Message]help:(String)one,(int)two");
 //		Example("[String-Type]FoodAndDrink:(String)Food if:Food(-ne)\"\" >if:[IsDrink]:drink(-eq)true +->tab +->tab +->tab +->()Type=\"Drink\" +->el +->>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Drink]:Food o->>el +->else-if:[IsFood]:Food(-eq)true +->tab +->tab +->tab +->()Type=\"Food\" +->el >>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Eat]:Food o->>el >else +->tab +->tab +->tab +->()Eat= +->(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el else +-tab +-tab +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el");
 //		Example("[String-Type]FoodAndDrink:(String)Food if:Food(-ne)\"\" >if:[IsDrink]:drink(-eq)true +->tab +->tab +->tab +->()Type=\"Drink\" +->el +->>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Drink]:Food o->>el >>if:mood(-ne)\"happy\" >>>do-while:mood(-eq)\"unhappy\" >>>>tab >>>>tab >>>>tab >>>>tab >>>>tab >>>>[ChearUp]:mood >>>>el +->else-if:[IsFood]:Food(-eq)true +->tab +->tab +->tab +->()Type=\"Food\" +->el >>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Eat]:Food o->>el >>if:mood(-ne)\"happy\" >>>do-while:mood(-eq)\"unhappy\" >>>>tab >>>>tab >>>>tab >>>>tab >>>>tab >>>>[ChearUp]:mood >>>>el >else +->tab +->tab +->tab +->(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el else +-tab +-tab +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el");
-		Example("[String-Type]FoodAndDrink:(String)Food if:Food(-ne)\"\" >if:[IsDrink]:drink(-eq)true +->tab +->tab +->tab +->()Type=\"Drink\" +->el +->>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Drink]:Food o->>el >>if:mood(-ne)\"happy\" >>>do-while:mood(-eq)\"unhappy\" o->>>>tab o->>>>tab o->>>>tab o->>>>tab o->>>>tab o->>>>[ChearUp]:mood o->>>>el +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->else-if:[IsFood]:Food(-eq)true +->tab +->tab +->tab +->()Type=\"Food\" +->el >>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Eat]:Food o->>el >>if:mood(-ne)\"happy\" >>>do-while:mood(-eq)\"unhappy\" >>>>tab >>>>tab >>>>tab >>>>tab >>>>tab >>>>[ChearUp]:mood >>>>el +-[print]:\"I(-spc)am(-spc)\"+mood +-el >else +->tab +->tab +->tab +->(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el else +-tab +-tab +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el");
-//		Example("[String-Type]FoodAndDrink:(String)Food if:Food(-ne)\"\" >if:[IsDrink]:drink(-eq)true >>tab >>tab >>tab >>()Type=\"Food\" >>el >>tab >>tab >>tab >>[Drink]:Food >>el >else-if:[IsFood]:Food(-eq)true +->>tab +->>tab +->>tab +->>()Type=\"Drink\" +->>el >>tab >>tab >>tab >>[Eat]:Food >>el >else +->tab +->tab +->tab +->(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +->el else +-tab +-tab +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el");
+		Example("[String-Type]FoodAndDrink:(String)Food if:Food(-ne)\"\" >if:[IsDrink]:drink(-eq)true +->tab +->tab +->tab +->()Type=\"Drink\" +->el +->>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Drink]:Food o->>el >>if:mood(-ne)\"happy\" >>>do-while:mood(-eq)\"unhappy\" o->>>>tab o->>>>tab o->>>>tab o->>>>tab o->>>>tab o->>>>[ChearUp]:mood o->>>>el +-tab +-tab +-tab +-tab +-tab +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->else-if:[IsFood]:Food(-eq)true +->tab +->tab +->tab +->()Type=\"Food\" +->el >>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Eat]:Food o->>el >>if:mood(-ne)\"happy\" >>>do-while:mood(-eq)\"unhappy\" >>>>tab >>>>tab >>>>tab >>>>tab >>>>tab >>>>[ChearUp]:mood >>>>el +-tab +-tab +-tab +-tab +-tab +-[print]:\"I(-spc)am(-spc)\"+mood +-el >else +->tab +->tab +->tab +->(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el else +-tab +-tab +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el");
+		Example("[]clock []-tab []-(int)time:[start]: []-el []-nl []-if:here +-tab +-tab +-[stop]: +-el []-nl []-tab []-[begin]: []-el []-nl []-if: +-tab +-tab +-[end]: +-el []-else +-tab +-tab +-[reset]: +-el []-for: o-tab o-tab o-[count]: o-el");
 	}
 	else if (Type == "loop")
 	{
@@ -621,6 +621,23 @@ String TranslateTag(String Input)
 
 		if (Value != "")
 		{
+			if (ContentFor == "logic-")
+			{
+				Value = "+-"+Nest+Value;
+			}
+			else if (ContentFor == "loop-")
+			{
+				Value = "o-"+Nest+Value;
+			}
+			else if (ContentFor == "method-")
+			{
+				Value = "[]-"+Nest+Value;
+			}
+			else if (ContentFor == "class-")
+			{
+				Value = "{}-"+Nest+Value;
+			}
+
 			//translate value, if needed
 			Value = TranslateTag(Value);
 //			Value = GenCode("",Value);
@@ -1095,57 +1112,33 @@ String Method(String Tabs, String Name, String Content)
 				Content = cmds[0];
 			}
 
-			if (StartsWith(Content, "method-"))
+			if ((StartsWith(Content, "method-")) && (IsIn(Content, " method-")))
 			{
-				std::vector<String> all = split(Content," ");
+				std::vector<String> all = split(Content," method-");
 				bool noMore = false;
 				int lp = 0;
 				int end = len(all);
 				while (lp != end)
 				{
-					//This processes ONLY method-<content>
-					if ((StartsWith(all[lp], "method-")) && (noMore == false))
+					if (lp == 0)
 					{
-						if (OtherContent == "")
-						{
-							OtherContent = all[lp];
-						}
-						else
-						{
-							OtherContent = OtherContent+" "+all[lp];
-						}
+						OtherContent = all[lp];
 					}
 					else
 					{
 						if (NewContent == "")
 						{
-							NewContent = all[lp];
+							NewContent = "method-"+all[lp];
 						}
 						else
 						{
-							NewContent = NewContent+" "+all[lp];
+							NewContent = NewContent+" method-"+all[lp];
 						}
-						noMore = true;
 					}
 					lp++;
 				}
 				CanSplit = false;
 			}
-/*
-			else if ((!StartsWith(Content, "method-")) && (IsIn(Content, "method-")))
-			{
-				std::vector<String> cmds = split(Content," method-");
-				int lp = 0;
-				int end = len(cmds);
-				while (lp != end)
-				{
-					print(cmds[lp]);
-					lp++;
-				}
-				OtherContent = Content;
-				CanSplit = true;
-			}
-*/
 			else
 			{
 				OtherContent = Content;
@@ -1163,6 +1156,7 @@ String Method(String Tabs, String Name, String Content)
 			while (lp != end)
 			{
 				Corrected = ReplaceTag(cmds[lp], "method-",false);
+
 				//starts with "logic:" or "loop:"
 				if ((StartsWith(Corrected,"logic:")) || (StartsWith(Corrected,"loop:")) || (StartsWith(Corrected,"var:")) || (StartsWith(Corrected,"stmt:")))
 				{
@@ -1190,7 +1184,8 @@ String Method(String Tabs, String Name, String Content)
 				OtherContent = ParseContent;
 			}
 
-			MethodContent = MethodContent + GenCode(Tabs+"\t",OtherContent);
+			Corrected = ReplaceTag(OtherContent, "method-",false);
+			MethodContent = MethodContent + GenCode(Tabs+"\t",Corrected);
 			Content = NewContent;
 
 			OtherContent = "";
@@ -1210,7 +1205,7 @@ String Method(String Tabs, String Name, String Content)
 		}
 		else
 		{
-			Content = "";
+//			Content = "";
 			Last = true;
 		}
 	}
@@ -1584,6 +1579,7 @@ String Logic(String Tabs, String TheKindType, String Content)
 				}
 				lp++;
 			}
+
 			//Process the current content so as to keep from redoing said content
 			LogicContent = LogicContent + GenCode(Tabs+"\t",OtherContent);
 			Content = NewContent;
@@ -1750,7 +1746,6 @@ String Logic(String Tabs, String TheKindType, String Content)
 		}
 		else if ((StartsWith(Content, "var:")) || (StartsWith(Content, "stmt:")))
 		{
-//			Content = ReplaceTag(Content, "logic-",false);
 			LogicContent = LogicContent + GenCode(Tabs+"\t",Content);
 			Content = "";
 		}
@@ -1931,7 +1926,6 @@ String Statements(String Tabs, String TheKindType, String Content)
 		Name = "";
 		VarType = "";
 	}
-
 	else if (TheName == "method")
 	{
 		Complete = Name+"("+Params+")"+StatementContent;

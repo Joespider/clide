@@ -9,7 +9,7 @@ import (
 	"strings"
 	)
 
-var Version string = "0.0.98"
+var Version string = "0.0.99"
 
 func getOS() string {
 	os := runtime.GOOS
@@ -293,21 +293,6 @@ func VectAndArray(Name string, TheDataType string, VectorOrArray string, Action 
 	return TheReturn
 }
 
-//This is an example of handling vecotors and arrays
-//	<type>name:value
-//
-//if value is marked a method, this a vector
-//	<int>list:[getInt]:()numbers
-//if value is marked a static, this is an array
-//	<int>list:()one,()two
-//
-//to assign a value
-//	<list[0]>:4
-//to get from value, seeing there is an index
-//	<list[0]>:
-//to append vectors
-//	<list>:4
-
 func TranslateTag(Input string) string {
 	var TheReturn string = ""
 	var Action string = Input
@@ -415,6 +400,16 @@ func TranslateTag(Input string) string {
 		}
 
 		if Value != "" {
+			if ContentFor == "logic-" {
+				Value = "+-"+Nest+Value
+			} else if ContentFor == "loop-" {
+				Value = "o-"+Nest+Value
+			} else if ContentFor == "method-" {
+				Value = "[]-"+Nest+Value
+			} else if ContentFor == "class-" {
+				Value = "{}-"+Nest+Value
+			}
+
 			//translate value, if needed
 			Value = TranslateTag(Value)
 //			Value = GenCode("",Value)
@@ -720,6 +715,7 @@ func Class(TheName string, Content string) string {
 	return Complete
 }
 
+//method:
 func Method(Tabs string, Name string, Content string) string {
 	var Last bool = false
         var CanSplit bool = true
@@ -756,6 +752,7 @@ func Method(Tabs string, Name string, Content string) string {
 	}
 
 	for Content != "" {
+
 		//params:
 		if StartsWith(Content, "params:") && Params == "" {
 			if IsIn(Content," ") {
@@ -764,6 +761,7 @@ func Method(Tabs string, Name string, Content string) string {
 				Process = Content
 			}
 			Params =  Parameters(Process,"method")
+
 		//ignore content if calling a "method" or a "class"
 		} else if StartsWith(Content, "method:") || StartsWith(Content, "class:") {
 			break
@@ -808,7 +806,7 @@ func Method(Tabs string, Name string, Content string) string {
 			var ParseContent string = ""
 			var Corrected string = ""
 
-			var cmds []string = split(Content," ")
+			var cmds []string = split(OtherContent," ")
 			var end int = len(cmds)
 			var lp int = 0
 			for lp != end {
@@ -869,9 +867,6 @@ func Method(Tabs string, Name string, Content string) string {
 		}
 	}
 
-	if Type == "" || Type == "void" {
-	} else {
-	}
 	return Complete
 }
 

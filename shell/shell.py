@@ -317,6 +317,15 @@ def TranslateTag(Input):
 			Action = BeforeSplit(Action,":")
 
 		if Value != "":
+			if ContentFor == "logic-":
+				Value = "+-"+Nest+Value
+			elif ContentFor == "loop-":
+				Value = "o-"+Nest+Value
+			elif ContentFor == "method-":
+				Value = "[]-"+Nest+Value
+			elif ContentFor == "class-":
+				Value = "{}-"+Nest+Value
+
 			#translate value, if needed
 			Value = TranslateTag(Value)
 #			Value = GenCode("",Value)

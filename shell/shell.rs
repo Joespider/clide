@@ -3,7 +3,7 @@ use std::process::Command;
 
 fn the_version() -> String
 {
-	return "0.0.97".to_string();
+	return "0.0.98".to_string();
 }
 
 fn get_os() -> String
@@ -558,7 +558,27 @@ fn translate_tag(input: &str) -> String
 //			the_return.push_str(&tmp_action);
 			the_return.push_str(&action);
 			the_return.push_str("= ");
-			the_return.push_str(&translate_tag(&value));
+
+			if content_for == "logic-"
+			{
+				the_return.push_str(&translate_tag(&["+-",&the_nest,&value].concat()));
+			}
+			else if content_for == "loop-"
+			{
+				the_return.push_str(&translate_tag(&["o-",&the_nest,&value].concat()));
+			}
+			else if content_for == "method-"
+			{
+				the_return.push_str(&translate_tag(&["[]-",&the_nest,&value].concat()));
+			}
+			else if content_for == "class-"
+			{
+				the_return.push_str(&translate_tag(&["{}-",&the_nest,&value].concat()));
+			}
+			else
+			{
+				the_return.push_str(&translate_tag(&value));
+			}
 		}
 		else
 		{
@@ -1604,7 +1624,7 @@ fn gen_logic(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 	let mut the_other_content = String::from("");
 	let mut passed_content = the_content.to_string();
 
-	if is_in(&new_kind,":")
+	if starts_with(&new_kind,"logic:")
 	{
 		new_kind = after_split(&new_kind,":");
 	}
@@ -1654,7 +1674,7 @@ fn gen_logic(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 				//nest-<type> <other content> nest-<type> <other content>
 				else if lp == 1
 				{
-					new_content.push_str("nest-");
+					new_content = String::from("nest-");
 					new_content.push_str(item);
 				}
 				else
