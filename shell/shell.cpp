@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.0.93";
+String Version = "0.1.1";
 
 String getOS();
 void Help(String Type);
@@ -38,6 +38,7 @@ String join(std::vector<String> Str, String ToJoin);
 String replaceAll(String message, String sBy, String jBy);
 
 void banner();
+String VectAndArray(String Name, String DataType, String VectorOrArray, String Action, String TheValue);
 String TranslateTag(String Input);
 bool IsDataType(String Type);
 String DataType(String Type, bool getNull);
@@ -99,8 +100,8 @@ void Help(String Type)
 //		Example("[String-Message]help:(String)one,(int)two");
 //		Example("[String-Type]FoodAndDrink:(String)Food if:Food(-ne)\"\" >if:[IsDrink]:drink(-eq)true +->tab +->tab +->tab +->()Type=\"Drink\" +->el +->>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Drink]:Food o->>el +->else-if:[IsFood]:Food(-eq)true +->tab +->tab +->tab +->()Type=\"Food\" +->el >>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Eat]:Food o->>el >else +->tab +->tab +->tab +->()Eat= +->(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el else +-tab +-tab +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el");
 //		Example("[String-Type]FoodAndDrink:(String)Food if:Food(-ne)\"\" >if:[IsDrink]:drink(-eq)true +->tab +->tab +->tab +->()Type=\"Drink\" +->el +->>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Drink]:Food o->>el >>if:mood(-ne)\"happy\" >>>do-while:mood(-eq)\"unhappy\" >>>>tab >>>>tab >>>>tab >>>>tab >>>>tab >>>>[ChearUp]:mood >>>>el +->else-if:[IsFood]:Food(-eq)true +->tab +->tab +->tab +->()Type=\"Food\" +->el >>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Eat]:Food o->>el >>if:mood(-ne)\"happy\" >>>do-while:mood(-eq)\"unhappy\" >>>>tab >>>>tab >>>>tab >>>>tab >>>>tab >>>>[ChearUp]:mood >>>>el >else +->tab +->tab +->tab +->(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el else +-tab +-tab +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el");
-		Example("[String-Type]FoodAndDrink:(String)Food if:Food(-ne)\"\" >if:[IsDrink]:drink(-eq)true +->tab +->tab +->tab +->()Type=\"Drink\" +->el +->>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Drink]:Food o->>el >>if:mood(-ne)\"happy\" >>>do-while:mood(-eq)\"unhappy\" o->>>>tab o->>>>tab o->>>>tab o->>>>tab o->>>>tab o->>>>[ChearUp]:mood o->>>>el +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->else-if:[IsFood]:Food(-eq)true +->tab +->tab +->tab +->()Type=\"Food\" +->el >>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Eat]:Food o->>el >>if:mood(-ne)\"happy\" >>>do-while:mood(-eq)\"unhappy\" >>>>tab >>>>tab >>>>tab >>>>tab >>>>tab >>>>[ChearUp]:mood >>>>el +-[print]:\"I(-spc)am(-spc)\"+mood +-el >else +->tab +->tab +->tab +->(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el else +-tab +-tab +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el");
-//		Example("[String-Type]FoodAndDrink:(String)Food if:Food(-ne)\"\" >if:[IsDrink]:drink(-eq)true >>tab >>tab >>tab >>()Type=\"Food\" >>el >>tab >>tab >>tab >>[Drink]:Food >>el >else-if:[IsFood]:Food(-eq)true +->>tab +->>tab +->>tab +->>()Type=\"Drink\" +->>el >>tab >>tab >>tab >>[Eat]:Food >>el >else +->tab +->tab +->tab +->(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +->el else +-tab +-tab +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el");
+		Example("[String-Type]FoodAndDrink:(String)Food if:Food(-ne)\"\" >if:[IsDrink]:drink(-eq)true +->tab +->tab +->tab +->()Type=\"Drink\" +->el +->>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Drink]:Food o->>el >>if:mood(-ne)\"happy\" >>>do-while:mood(-eq)\"unhappy\" o->>>>tab o->>>>tab o->>>>tab o->>>>tab o->>>>tab o->>>>[ChearUp]:mood o->>>>el +-tab +-tab +-tab +-tab +-tab +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->else-if:[IsFood]:Food(-eq)true +->tab +->tab +->tab +->()Type=\"Food\" +->el >>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Eat]:Food o->>el >>if:mood(-ne)\"happy\" >>>do-while:mood(-eq)\"unhappy\" >>>>tab >>>>tab >>>>tab >>>>tab >>>>tab >>>>[ChearUp]:mood >>>>el +-tab +-tab +-tab +-tab +-tab +-[print]:\"I(-spc)am(-spc)\"+mood +-el >else +->tab +->tab +->tab +->(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el else +-tab +-tab +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el");
+		Example("[]clock []-tab []-(int)time:[start]: []-el []-nl []-if:here +-tab +-tab +-[stop]: +-el []-nl []-tab []-[begin]: []-el []-nl []-if: +-tab +-tab +-[end]: +-el []-else +-tab +-tab +-[reset]: +-el []-for: o-tab o-tab o-[count]: o-el");
 	}
 	else if (Type == "loop")
 	{
@@ -408,6 +409,75 @@ void banner()
 	print("Type \"help\" for more information.");
 }
 
+String VectAndArray(String Name, String TheDataType, String VectorOrArray, String Action, String TheValue)
+{
+	String TheReturn = "";
+	if (VectorOrArray == "vector")
+	{
+		if (Action == "variable")
+		{
+			if (TheValue != "")
+			{
+				TheReturn = "std::vector<"+TheDataType+"> "+Name+" = "+TheValue;
+			}
+			else
+			{
+				TheReturn = "std::vector<"+TheDataType+"> "+Name;
+			}
+		}
+		else
+		{
+			if ((!IsIn(Name,"[")) && (!IsIn(Name,"]")))
+			{
+				TheReturn = Name+".push_back("+TheValue+")";
+			}
+		}
+	}
+	else if (VectorOrArray == "array")
+	{
+		String plc = "";
+
+		if (Action == "variable")
+		{
+			if (IsIn(TheDataType,"[") && EndsWith(TheDataType,"]"))
+			{
+				plc = AfterSplit(TheDataType,'[');
+				plc = BeforeSplit(plc,']');
+				TheDataType = BeforeSplit(TheDataType,'[');
+			}
+			TheDataType = DataType(TheDataType,false);
+			if (TheValue != "")
+			{
+				TheReturn = TheDataType+" "+Name+"["+plc+"] = "+TheValue;
+			}
+			else
+			{
+				TheReturn = TheDataType+" "+Name+"["+plc+"]";
+			}
+		}
+		else
+		{
+			if (IsIn(Name,"[") && EndsWith(Name,"]"))
+			{
+				plc = AfterSplit(Name,'[');
+				plc = BeforeSplit(plc,']');
+				Name = BeforeSplit(Name,'[');
+			}
+
+			if (TheValue != "")
+			{
+				TheReturn = Name+"["+plc+"] = "+TheValue;
+			}
+			else
+			{
+				TheReturn = Name+"["+plc+"]";
+			}
+		}
+	}
+
+	return TheReturn;
+}
+
 String TranslateTag(String Input)
 {
 	String TheReturn = "";
@@ -469,6 +539,7 @@ String TranslateTag(String Input)
 		Value = "loop-condition:"+Value;
 		TheReturn = ContentFor+Nest+NewTag+" "+Value;
 	}
+	//class
 	else if ((StartsWith(Action, "{")) && (IsIn(Action,"}")))
 	{
 		TheDataType = BeforeSplit(Action,'}');
@@ -488,6 +559,7 @@ String TranslateTag(String Input)
 			TheReturn = "class:"+Action;
 		}
 	}
+	//method
 	else if ((StartsWith(Action, "[")) && (IsIn(Action,"]")))
 	{
 		TheDataType = BeforeSplit(Action,']');
@@ -498,7 +570,14 @@ String TranslateTag(String Input)
 		{
 			Value = AfterSplit(Action,':');
 			Action = TheDataType;
-			TheReturn = ContentFor+Nest+"stmt:method-"+Action+" params:"+Value;
+			if (Value != "")
+			{
+				TheReturn = ContentFor+Nest+"stmt:method-"+Action+" params:"+Value;
+			}
+			else
+			{
+				TheReturn = ContentFor+Nest+"stmt:method-"+Action;
+			}
 		}
 		//is a function
 		else
@@ -520,11 +599,19 @@ String TranslateTag(String Input)
 			}
 		}
 	}
+	//variables
 	else if ((StartsWith(Action, "(")) && (IsIn(Action,")")))
 	{
 		TheDataType = BeforeSplit(Action,')');
 		TheDataType = AfterSplit(TheDataType,'(');
 		Action = AfterSplit(Action,')');
+
+		//replacing data type to represent the variable
+		if (StartsWith(Action,":"))
+		{
+			Action = TheDataType+Action;
+			TheDataType = "";
+		}
 
 		if (IsIn(Action,":"))
 		{
@@ -534,6 +621,23 @@ String TranslateTag(String Input)
 
 		if (Value != "")
 		{
+			if (ContentFor == "logic-")
+			{
+				Value = "+-"+Nest+Value;
+			}
+			else if (ContentFor == "loop-")
+			{
+				Value = "o-"+Nest+Value;
+			}
+			else if (ContentFor == "method-")
+			{
+				Value = "[]-"+Nest+Value;
+			}
+			else if (ContentFor == "class-")
+			{
+				Value = "{}-"+Nest+Value;
+			}
+
 			//translate value, if needed
 			Value = TranslateTag(Value);
 //			Value = GenCode("",Value);
@@ -542,6 +646,92 @@ String TranslateTag(String Input)
 		else
 		{
 			TheReturn = ContentFor+Nest+"var:("+TheDataType+")"+Action;
+		}
+	}
+
+	//This is an example of handling vecotors and arrays
+	//	<type>name:value
+	//
+	//if value is marked a method, this a vector
+	//	<int>list:[getInt]:()numbers
+	//if value is marked a static, this is an array
+	//	<int>list:()one,()two
+	//
+	//to assign a value
+	//	<list[0]>:4
+	//to get from value, seeing there is an index
+	//	<list[0]>:
+	//to append vectors
+	//	<list>:4
+
+	//vectors or arrays
+	else if ((StartsWith(Action, "<")) && (IsIn(Action,">")))
+	{
+		String VectorOrArray = "";
+		TheDataType = BeforeSplit(Action,'>');
+		TheDataType = AfterSplit(TheDataType,'<');
+		Action = AfterSplit(Action,'>');
+
+		//replacing data type to represent the variable
+		if (StartsWith(Action,":"))
+		{
+			Action = TheDataType+Action;
+			TheDataType = "";
+		}
+
+		if (IsIn(Action,":"))
+		{
+			Value = AfterSplit(Action,':');
+			Action = BeforeSplit(Action,':');
+
+			if ((EndsWith(Action,"]")) && (Value != ""))
+			{
+				VectorOrArray = "array:";
+			}
+
+			if (VectorOrArray == "")
+			{
+				if (StartsWith(Value,"["))
+				{
+					VectorOrArray = "vector:";
+				}
+				else
+				{
+					VectorOrArray = "array:";
+				}
+			}
+		}
+
+		if (TheDataType != "")
+		{
+			if (EndsWith(TheDataType,"]"))
+			{
+				VectorOrArray = "array:";
+			}
+			else
+			{
+				VectorOrArray = "vector:";
+			}
+
+			if (Value != "")
+			{
+				TheReturn = "var:<"+VectorOrArray+TheDataType+">"+Action+":"+Value;
+			}
+			else
+			{
+				TheReturn = "var:<"+VectorOrArray+TheDataType+">"+Action;
+			}
+		}
+		else
+		{
+			if (Value != "")
+			{
+				TheReturn = "stmt:<"+VectorOrArray+TheDataType+">"+Action+":"+Value;
+			}
+			else
+			{
+				TheReturn = "stmt:<"+VectorOrArray+TheDataType+">"+Action;
+			}
 		}
 	}
 	else if (Action == "el")
@@ -571,10 +761,6 @@ String TranslateTag(String Input)
 	return TheReturn;
 }
 
-/*
-//<<shell>> method:DataType-String params:Type-String if:Type(-eq)"String"(-or)Type(-eq)"string" +-var:TheReturn="std::string" +-stmt:endline else-if:Type(-eq)"boolean" +-var:Type="bool" +-stmt:endline else +-var:TheReturn=Type +-stmt:endline
-*/
-
 String DataType(String Type, bool getNull)
 {
 	//handle strings
@@ -585,6 +771,14 @@ String DataType(String Type, bool getNull)
 	else if (((Type == "String") || (Type == "string") || (Type == "std::string")) && (getNull == true))
 	{
 		return "\"\"";
+	}
+	else if (((Type == "i32") || (Type == "int")) && (getNull == false))
+	{
+		return "int";
+	}
+	else if (((Type == "i32") || (Type == "int")) && (getNull == true))
+	{
+		return "0";
 	}
 	else if (((Type == "boolean") || (Type == "bool")) && (getNull == false))
 	{
@@ -731,7 +925,14 @@ String Parameters(String input,String CalledBy)
 			Type = AfterSplit(Type,'(');
 			Type = DataType(Type,false);
 			more = Parameters("params:"+more,CalledBy);
-			Params = Type+" "+Name+", "+more;
+			if (Name == "")
+			{
+				Params = Type+", "+more;
+			}
+			else
+			{
+				Params = Type+" "+Name+", "+more;
+			}
 		}
 		//param-type
 		else if ((StartsWith(Params,"(")) && (IsIn(Params,")")))
@@ -742,6 +943,10 @@ String Parameters(String input,String CalledBy)
 			Type = AfterSplit(Type,'(');
 			Type = DataType(Type,false);
 			Params = Type+" "+Name;
+			if (Name == "")
+			{
+				Params = Type;
+			}
 		}
 	}
 	return Params;
@@ -907,57 +1112,33 @@ String Method(String Tabs, String Name, String Content)
 				Content = cmds[0];
 			}
 
-			if (StartsWith(Content, "method-"))
+			if ((StartsWith(Content, "method-")) && (IsIn(Content, " method-")))
 			{
-				std::vector<String> all = split(Content," ");
+				std::vector<String> all = split(Content," method-");
 				bool noMore = false;
 				int lp = 0;
 				int end = len(all);
 				while (lp != end)
 				{
-					//This processes ONLY method-<content>
-					if ((StartsWith(all[lp], "method-")) && (noMore == false))
+					if (lp == 0)
 					{
-						if (OtherContent == "")
-						{
-							OtherContent = all[lp];
-						}
-						else
-						{
-							OtherContent = OtherContent+" "+all[lp];
-						}
+						OtherContent = all[lp];
 					}
 					else
 					{
 						if (NewContent == "")
 						{
-							NewContent = all[lp];
+							NewContent = "method-"+all[lp];
 						}
 						else
 						{
-							NewContent = NewContent+" "+all[lp];
+							NewContent = NewContent+" method-"+all[lp];
 						}
-						noMore = true;
 					}
 					lp++;
 				}
 				CanSplit = false;
 			}
-/*
-			else if ((!StartsWith(Content, "method-")) && (IsIn(Content, "method-")))
-			{
-				std::vector<String> cmds = split(Content," method-");
-				int lp = 0;
-				int end = len(cmds);
-				while (lp != end)
-				{
-					print(cmds[lp]);
-					lp++;
-				}
-				OtherContent = Content;
-				CanSplit = true;
-			}
-*/
 			else
 			{
 				OtherContent = Content;
@@ -975,6 +1156,7 @@ String Method(String Tabs, String Name, String Content)
 			while (lp != end)
 			{
 				Corrected = ReplaceTag(cmds[lp], "method-",false);
+
 				//starts with "logic:" or "loop:"
 				if ((StartsWith(Corrected,"logic:")) || (StartsWith(Corrected,"loop:")) || (StartsWith(Corrected,"var:")) || (StartsWith(Corrected,"stmt:")))
 				{
@@ -1002,7 +1184,8 @@ String Method(String Tabs, String Name, String Content)
 				OtherContent = ParseContent;
 			}
 
-			MethodContent = MethodContent + GenCode(Tabs+"\t",OtherContent);
+			Corrected = ReplaceTag(OtherContent, "method-",false);
+			MethodContent = MethodContent + GenCode(Tabs+"\t",Corrected);
 			Content = NewContent;
 
 			OtherContent = "";
@@ -1022,7 +1205,7 @@ String Method(String Tabs, String Name, String Content)
 		}
 		else
 		{
-			Content = "";
+//			Content = "";
 			Last = true;
 		}
 	}
@@ -1396,6 +1579,7 @@ String Logic(String Tabs, String TheKindType, String Content)
 				}
 				lp++;
 			}
+
 			//Process the current content so as to keep from redoing said content
 			LogicContent = LogicContent + GenCode(Tabs+"\t",OtherContent);
 			Content = NewContent;
@@ -1562,7 +1746,6 @@ String Logic(String Tabs, String TheKindType, String Content)
 		}
 		else if ((StartsWith(Content, "var:")) || (StartsWith(Content, "stmt:")))
 		{
-//			Content = ReplaceTag(Content, "logic-",false);
 			LogicContent = LogicContent + GenCode(Tabs+"\t",Content);
 			Content = "";
 		}
@@ -1705,7 +1888,45 @@ String Statements(String Tabs, String TheKindType, String Content)
 		}
 	}
 
-	if (TheName == "method")
+	//Pull Vector or Array Type
+	if ((StartsWith(TheKindType,"<")) && (IsIn(TheKindType,">")))
+	{
+		String VorA = "";
+		String VarType = "";
+		String TheValue = "";
+
+		//grab data type
+		VarType = BeforeSplit(TheKindType,'>');
+		VarType = AfterSplit(VarType,'<');
+		VarType = AfterSplit(VarType,':');
+		VarType = DataType(VarType,false);
+
+		//vector or array
+		VorA = BeforeSplit(TheKindType,':');
+		VorA = AfterSplit(VorA,'<');
+
+		TheName = VorA;
+
+		//name of array
+		Name = AfterSplit(TheKindType,'>');
+
+		if (IsIn(Name,":"))
+		{
+			TheValue = AfterSplit(Name,':');
+			Name = BeforeSplit(Name,':');
+			Complete = VectAndArray(Name, VarType, VorA, "statement",GenCode("",TranslateTag(TheValue)))+StatementContent;
+		}
+		else
+		{
+			Complete = VectAndArray(Name, VarType, VorA, "statement","")+StatementContent;
+		}
+		//pull value
+		TheKindType = "";
+		TheName = "";
+		Name = "";
+		VarType = "";
+	}
+	else if (TheName == "method")
 	{
 		Complete = Name+"("+Params+")"+StatementContent;
 	}
@@ -1798,6 +2019,39 @@ String Variables(String Tabs, String TheKindType, String Content)
 		TheKindType = AfterSplit(TheKindType,')');
 		Name = TheKindType;
 	}
+	//Pull Vector or Array Type
+	else if ((StartsWith(TheKindType,"<")) && (IsIn(TheKindType,">")))
+	{
+		String TheValue = "";
+		String VorA = "";
+		//grab data type
+		VarType = BeforeSplit(TheKindType,'>');
+		VarType = AfterSplit(VarType,'<');
+		VarType = AfterSplit(VarType,':');
+		VarType = DataType(VarType,false);
+
+		//vector or array
+		VorA = BeforeSplit(TheKindType,':');
+		VorA = AfterSplit(VorA,'<');
+
+		//name of array
+		Name = AfterSplit(TheKindType,'>');
+
+		if (IsIn(Name,":"))
+		{
+			TheValue = AfterSplit(Name,':');
+			Name = BeforeSplit(Name,':');
+			NewVar = VectAndArray(Name, VarType, VorA, "variable",GenCode("",TranslateTag(TheValue)));
+		}
+		else
+		{
+			NewVar = VectAndArray(Name, VarType, VorA, "variable","");
+		}
+
+		TheKindType = "";
+		Name = "";
+		VarType = "";
+	}
 
 	//Assign Value
 	if (IsIn(TheKindType,"="))
@@ -1818,7 +2072,6 @@ String Variables(String Tabs, String TheKindType, String Content)
 		{
 			Value = replaceAll(Value, "(-spc)"," ");
 		}
-
 		NewVar = NewVar+Name+" = "+Value;
 	}
 	else
@@ -1977,6 +2230,7 @@ int main(int argc, char** argv)
 		}
 		else
 		{
+//			print(UserIn);
 			Content = GenCode("",UserIn);
 			if (Content != "")
 			{

@@ -9,7 +9,7 @@ import (
 	"strings"
 	)
 
-var Version string = "0.0.93"
+var Version string = "0.0.99"
 
 func getOS() string {
 	os := runtime.GOOS
@@ -246,6 +246,53 @@ func banner() {
 	fmt.Println("Type \"help\" for more information.")
 }
 
+func VectAndArray(Name string, TheDataType string, VectorOrArray string, Action string, TheValue string) string {
+	var TheReturn string = ""
+	if VectorOrArray == "vector" {
+		if Action == "variable" {
+			if TheValue != "" {
+				TheReturn = Name+" "+"[]"+TheDataType+" = "+TheValue
+			} else {
+				TheReturn = Name+" "+"[]"+TheDataType
+			}
+		} else {
+			if !IsIn(Name,"[") && !IsIn(Name,"]") {
+				TheReturn = Name+" = append("+TheValue+")"
+			}
+		}
+	} else if VectorOrArray == "array" {
+		var plc string = ""
+
+		if Action == "variable" {
+			if IsIn(TheDataType,"[") && EndsWith(TheDataType,"]") {
+				plc = AfterSplit(TheDataType,"[")
+				plc = BeforeSplit(plc,"]")
+				TheDataType = BeforeSplit(TheDataType,"[")
+			}
+			TheDataType = DataType(TheDataType,false)
+			if TheValue != "" {
+				TheReturn = Name+" ["+plc+"]"+TheDataType+" = "+TheValue
+			} else {
+				TheReturn = Name+" "+"["+plc+"]"+TheDataType
+			}
+		} else {
+			if IsIn(Name,"[") && EndsWith(Name,"]") {
+				plc = AfterSplit(Name,"[")
+				plc = BeforeSplit(plc,"]")
+				Name = BeforeSplit(Name,"[")
+			}
+
+			if TheValue != "" {
+				TheReturn = Name+"["+plc+"] = "+TheValue
+			} else {
+				TheReturn = Name+"["+plc+"]"
+			}
+		}
+	}
+
+	return TheReturn
+}
+
 func TranslateTag(Input string) string {
 	var TheReturn string = ""
 	var Action string = Input
@@ -292,6 +339,7 @@ func TranslateTag(Input string) string {
 		NewTag = "loop:"+Action
 		Value = "loop-condition:"+Value
 		TheReturn = ContentFor+Nest+NewTag+" "+Value
+	//class
 	} else if StartsWith(Action, "{") && IsIn(Action,"}") {
 		TheDataType = BeforeSplit(Action,"}")
 		TheDataType = AfterSplit(TheDataType,"{")
@@ -307,6 +355,7 @@ func TranslateTag(Input string) string {
 		} else {
 			TheReturn = "class:"+Action
 		}
+	//method
 	} else if StartsWith(Action, "[") && IsIn(Action,"]") {
 		TheDataType = BeforeSplit(Action,"]")
 		TheDataType = AfterSplit(TheDataType,"[")
@@ -315,7 +364,11 @@ func TranslateTag(Input string) string {
 		if StartsWith(Action, ":") {
 			Value = AfterSplit(Action,":")
 			Action = TheDataType
-			TheReturn = ContentFor+Nest+"stmt:method-"+Action+" params:"+Value
+			if Value != "" {
+				TheReturn = ContentFor+Nest+"stmt:method-"+Action+" params:"+Value
+			} else {
+				TheReturn = ContentFor+Nest+"stmt:method-"+Action
+			}
 		//is a function
 		} else {
 			TheDataType = DataType(TheDataType,false)
@@ -330,10 +383,16 @@ func TranslateTag(Input string) string {
 				TheReturn = ContentFor+Nest+"method:("+TheDataType+")"+Action
 			}
 		}
-	} else if StartsWith(Action, "(") && IsIn(Action,")") {
+	//variables
+	} else if StartsWith(Action,"(") && IsIn(Action,")") {
 		TheDataType = BeforeSplit(Action,")")
 		TheDataType = AfterSplit(TheDataType,"(")
 		Action = AfterSplit(Action,")")
+
+		if StartsWith(Action,"(") {
+			Action = TheDataType+Action
+			TheDataType = ""
+		}
 
 		if IsIn(Action,":") {
 			Value = AfterSplit(Action,":")
@@ -341,12 +400,86 @@ func TranslateTag(Input string) string {
 		}
 
 		if Value != "" {
+			if ContentFor == "logic-" {
+				Value = "+-"+Nest+Value
+			} else if ContentFor == "loop-" {
+				Value = "o-"+Nest+Value
+			} else if ContentFor == "method-" {
+				Value = "[]-"+Nest+Value
+			} else if ContentFor == "class-" {
+				Value = "{}-"+Nest+Value
+			}
+
 			//translate value, if needed
 			Value = TranslateTag(Value)
 //			Value = GenCode("",Value)
 			TheReturn = ContentFor+Nest+"var:("+TheDataType+")"+Action+"= "+Value
 		} else {
 			TheReturn = ContentFor+Nest+"var:("+TheDataType+")"+Action
+		}
+	//This is an example of handling vecotors and arrays
+	//	<type>name:value
+	//
+	//if value is marked a method, this a vector
+	//	<int>list:[getInt]:()numbers
+	//if value is marked a static, this is an array
+	//	<int>list:()one,()two
+	//
+	//to assign a value
+	//	<list[0]>:4
+	//to get from value, seeing there is an index
+	//	<list[0]>:
+	//to append vectors
+	//	<list>:4
+
+	//vectors or arrays
+	} else if StartsWith(Action, "<") && IsIn(Action,">") {
+		var VectorOrArray string = ""
+		TheDataType = BeforeSplit(Action,">")
+		TheDataType = AfterSplit(TheDataType,"<")
+		Action = AfterSplit(Action,">")
+
+		//replacing data type to represent the variable
+		if StartsWith(Action,":") {
+			Action = TheDataType+Action
+			TheDataType = ""
+		}
+
+		if IsIn(Action,":") {
+			Value = AfterSplit(Action,":")
+			Action = BeforeSplit(Action,":")
+
+			if EndsWith(Action,"]") && Value != "" {
+				VectorOrArray = "array:"
+			}
+
+			if VectorOrArray == "" {
+				if StartsWith(Value,"[") {
+					VectorOrArray = "vector:"
+				} else {
+					VectorOrArray = "array:"
+				}
+			}
+		}
+
+		if TheDataType != "" {
+			if EndsWith(TheDataType,"]") {
+				VectorOrArray = "array:"
+			} else {
+				VectorOrArray = "vector:"
+			}
+
+			if Value != "" {
+				TheReturn = "var:<"+VectorOrArray+TheDataType+">"+Action+":"+Value
+			} else {
+				TheReturn = "var:<"+VectorOrArray+TheDataType+">"+Action
+			}
+		} else {
+			if Value != "" {
+				TheReturn = "stmt:<"+VectorOrArray+TheDataType+">"+Action+":"+Value
+			} else 	{
+				TheReturn = "stmt:<"+VectorOrArray+TheDataType+">"+Action
+			}
 		}
 	} else if Action == "el" {
 		TheReturn = ContentFor+Nest+"stmt:endline"
@@ -375,6 +508,10 @@ func DataType(Type string, getNull bool) string {
 		return "bool"
 	} else if (Type == "boolean" || Type == "bool") && getNull == true {
 		return "false"
+	} else if (Type == "i32" || Type == "int") && getNull == false {
+		return "int"
+	} else if (Type == "i32" || Type == "int") && getNull == true {
+		return "0"
 	} else if Type == "false" || Type == "False" {
 		return "false"
 	} else if Type == "true" || Type == "True" {
@@ -444,13 +581,11 @@ func Conditions(input string, CalledBy string) string {
 	}
 
 	if IsIn(Condit,"(-or)") {
-		Condit = replaceAll(Condit, "(-or)",") || (")
-		Condit = "("+Condit+")"
+		Condit = replaceAll(Condit, "(-or)"," || ")
 	}
 
         if IsIn(Condit,"(-and)") {
-		Condit = replaceAll(Condit, "(-and)",") && (")
-		Condit = "("+Condit+")"
+		Condit = replaceAll(Condit, "(-and)"," && ")
 	}
 /*
 	if StartsWith(Condit, "(") {
@@ -488,7 +623,11 @@ func Parameters(input string, CalledBy string) string {
 			Type = AfterSplit(Type,"(")
 			Type = DataType(Type,false)
 			more = Parameters("params:"+more,CalledBy)
-			Params = Type+" "+Name+", "+more
+			if Name == "" {
+				Params = Type+", "+more
+			} else {
+				Params = Type+" "+Name+", "+more
+			}
 		//param-type
 		} else if StartsWith(Params,"(") && IsIn(Params,")") {
 			var Name string = AfterSplit(Params,")")
@@ -497,6 +636,9 @@ func Parameters(input string, CalledBy string) string {
 			Type = AfterSplit(Type,"(")
 			Type = DataType(Type,false)
 			Params = Type+" "+Name
+			if Name == "" {
+				Params = Type
+			}
 		}
 	}
 
@@ -573,6 +715,7 @@ func Class(TheName string, Content string) string {
 	return Complete
 }
 
+//method:
 func Method(Tabs string, Name string, Content string) string {
 	var Last bool = false
         var CanSplit bool = true
@@ -609,6 +752,7 @@ func Method(Tabs string, Name string, Content string) string {
 	}
 
 	for Content != "" {
+
 		//params:
 		if StartsWith(Content, "params:") && Params == "" {
 			if IsIn(Content," ") {
@@ -617,6 +761,7 @@ func Method(Tabs string, Name string, Content string) string {
 				Process = Content
 			}
 			Params =  Parameters(Process,"method")
+
 		//ignore content if calling a "method" or a "class"
 		} else if StartsWith(Content, "method:") || StartsWith(Content, "class:") {
 			break
@@ -661,7 +806,7 @@ func Method(Tabs string, Name string, Content string) string {
 			var ParseContent string = ""
 			var Corrected string = ""
 
-			var cmds []string = split(Content," ")
+			var cmds []string = split(OtherContent," ")
 			var end int = len(cmds)
 			var lp int = 0
 			for lp != end {
@@ -670,6 +815,7 @@ func Method(Tabs string, Name string, Content string) string {
 				if StartsWith(Corrected,"logic:") || StartsWith(Corrected,"loop:") || StartsWith(Corrected,"var:") || StartsWith(Corrected,"stmt:") {
 					//Only process code that starts with "logic:" or "loop:"
 					if ParseContent != "" {
+						MethodContent = HandleElse(MethodContent, ParseContent)
 						//process content
 						MethodContent = MethodContent + GenCode(Tabs+"\t",ParseContent)
 					}
@@ -688,12 +834,7 @@ func Method(Tabs string, Name string, Content string) string {
 				OtherContent = ParseContent
 			}
 
-			//if the next element is "logic:else" or "logic:else-if"
-			if StartsWith(OtherContent, "logic:else") {
-				//remove the line break from the last "if"
-				MethodContent = MethodContent[:len(MethodContent)-1]
-			}
-
+			MethodContent = HandleElse(MethodContent, OtherContent)
 			MethodContent = MethodContent + GenCode(Tabs+"\t",OtherContent)
 			Content = NewContent
 
@@ -726,9 +867,6 @@ func Method(Tabs string, Name string, Content string) string {
 		}
 	}
 
-	if Type == "" || Type == "void" {
-	} else {
-	}
 	return Complete
 }
 
@@ -792,18 +930,8 @@ func Loop(Tabs string, TheKindType string, Content string) string {
 				}
 				lp++
 			}
-			//This is to handle how Go likes to handle if/else statements...yes, even though this is about loops
+			LoopContent = HandleElse(LoopContent, OtherContent)
 
-			//Example:
-			//if {
-			//} else {
-			//}
-
-			//if the next element is "logic:else" or "logic:else-if"
-			if StartsWith(OtherContent, "logic:else") {
-				//remove the line break from the last "if"
-				LoopContent = LoopContent[:len(LoopContent)-1]
-			}
 			//Generate the loop content
 			LoopContent = LoopContent + GenCode(Tabs+"\t",OtherContent)
 
@@ -884,19 +1012,8 @@ func Loop(Tabs string, TheKindType string, Content string) string {
 					}
 					lp++
 				}
-				//This is to handle how Go likes to handle if/else statements...yes, even though this is about loops
-
-				//Example:
-				//if {
-				//} else {
-				//}
-
-				//if the next element is "logic:else" or "logic:else-if"
-				if StartsWith(OtherContent, "logic:else") {
-					//remove the line break from the last "if"
-					LoopContent = LoopContent[:len(LoopContent)-1]
-				}
-
+				//This is to handle how Go likes to handle if/else statements...yes, even though this is about loop
+				LoopContent = HandleElse(LoopContent, OtherContent)
 				//processes all the statements before a loop/logic
 				LoopContent = LoopContent + GenCode(Tabs+"\t",OtherContent)
 
@@ -918,16 +1035,7 @@ func Loop(Tabs string, TheKindType string, Content string) string {
 								}
 								//This is to handle how Go likes to handle if/else statements...yes, even though this is about loops
 
-								//Example:
-								//if {
-								//} else {
-								//}
-
-								//if the next element is "logic:else" or "logic:else-if"
-								if StartsWith(OtherContent, "logic:else") {
-									//remove the line break from the last "if"
-									LoopContent = LoopContent[:len(LoopContent)-1]
-								}
+								LoopContent = HandleElse(LoopContent, OtherContent)
 								//process loop/logic
 								LoopContent = LoopContent + GenCode(Tabs+"\t",OtherContent)
 							} else {
@@ -944,52 +1052,22 @@ func Loop(Tabs string, TheKindType string, Content string) string {
 					for StartsWith(NewContent, "nest-") {
 						NewContent = AfterSplit(NewContent,"-")
 					}
-					//This is to handle how Go likes to handle if/else statements...yes, even though this is about loops
-
-					//Example:
-					//if {
-					//} else {
-					//}
-
-					//if the next element is "logic:else" or "logic:else-if"
-					if StartsWith(NewContent, "logic:else") {
-						//remove the line break from the last "if"
-						LoopContent = LoopContent[:len(LoopContent)-1]
-					}
+					//This is to handle how Go likes to handle if/else statements...yes, even though this is about loop
+					LoopContent = HandleElse(LoopContent, NewContent)
 					//process the remaining nest-loop/logic
 					LoopContent = LoopContent + GenCode(Tabs+"\t",NewContent)
 				}
 			//just process as is
 			} else {
 				//This is to handle how Go likes to handle if/else statements...yes, even though this is about loops
-
-				//Example:
-				//if {
-				//} else {
-				//}
-
-				//if the next element is "logic:else" or "logic:else-if"
-				if StartsWith(OtherContent, "logic:else") {
-					//remove the line break from the last "if"
-					LoopContent = LoopContent[:len(LoopContent)-1]
-				}
+				LoopContent = HandleElse(LoopContent, OtherContent)
 				LoopContent = LoopContent + GenCode(Tabs+"\t",OtherContent)
 			}
 			//clear new content
 			NewContent = ""
 		} else if StartsWith(Content, "var:") || StartsWith(Content, "stmt:") {
 			//This is to handle how Go likes to handle if/else statements...yes, even though this is about loops
-
-			//Example:
-			//if {
-			//} else {
-			//}
-
-			//if the next element is "logic:else" or "logic:else-if"
-			if StartsWith(OtherContent, "logic:else") {
-				//remove the line break from the last "if"
-				LoopContent = LoopContent[:len(LoopContent)-1]
-			}
+			LoopContent = HandleElse(LoopContent, Content)
 //			Content = ReplaceTag(Content, "loop-",true)
 			LoopContent = LoopContent + GenCode(Tabs+"\t",Content)
 
@@ -1021,6 +1099,23 @@ func Loop(Tabs string, TheKindType string, Content string) string {
 		Complete = Tabs+"for "+TheCondition+" {\n"+LoopContent+Tabs+"}\n"
 	}
 	return Complete
+}
+
+func HandleElse(LogicContent string, Content string) string {
+	//This is to handle how Go likes to handle if/else statements
+
+	//Example:
+	//if {
+	//} else {
+	//}
+
+	//if the next element is "logic:else" or "logic:else-if"
+	if StartsWith(Content, "logic:else") {
+		//remove the line break from the last "if"
+		LogicContent = LogicContent[:len(LogicContent)-1]
+	}
+
+	return LogicContent
 }
 
 //logic:
@@ -1067,18 +1162,8 @@ func Logic(Tabs string, TheKindType string, Content string) string {
                                 }
                                 lp++
                         }
-			//This is to handle how Go likes to handle if/else statements
 
-			//Example:
-			//if {
-			//} else {
-			//}
-
-			//if the next element is "logic:else" or "logic:else-if"
-			if StartsWith(OtherContent, "logic:else") {
-				//remove the line break from the last "if"
-				LogicContent = LogicContent[:len(LogicContent)-1]
-			}
+			LogicContent = HandleElse(LogicContent, OtherContent)
 			//Process the current content so as to keep from redoing said content
 			LogicContent = LogicContent + GenCode(Tabs+"\t",OtherContent)
 
@@ -1158,18 +1243,7 @@ func Logic(Tabs string, TheKindType string, Content string) string {
 					}
 					lp++
 				}
-				//This is to handle how Go likes to handle if/else statements
-
-				//Example:
-				//if {
-				//} else {
-				//}
-
-				//if the next element is "logic:else" or "logic:else-if"
-				if StartsWith(OtherContent, "logic:else") {
-					//remove the line break from the last "if"
-					LogicContent = LogicContent[:len(LogicContent)-1]
-				}
+				LogicContent = HandleElse(LogicContent, OtherContent)
 
 				//processes all the statements before a loop/logic
 				LogicContent = LogicContent + GenCode(Tabs+"\t",OtherContent)
@@ -1190,18 +1264,8 @@ func Logic(Tabs string, TheKindType string, Content string) string {
 								for StartsWith(OtherContent, "nest-") {
 									OtherContent = AfterSplit(OtherContent,"-")
 								}
-								//This is to handle how Go likes to handle if/else statements
 
-								//Example:
-								//if {
-								//} else {
-								//}
-
-								//if the next element is "logic:else" or "logic:else-if"
-								if StartsWith(OtherContent, "logic:else") {
-									//remove the line break from the last "if"
-									LogicContent = LogicContent[:len(LogicContent)-1]
-								}
+								LogicContent = HandleElse(LogicContent, OtherContent)
 								//process loop/logic
 								LogicContent = LogicContent + GenCode(Tabs+"\t",OtherContent)
 							} else {
@@ -1218,53 +1282,22 @@ func Logic(Tabs string, TheKindType string, Content string) string {
 					for StartsWith(NewContent, "nest-") {
 						NewContent = AfterSplit(NewContent,"-")
 					}
-					//This is to handle how Go likes to handle if/else statements
+					LogicContent = HandleElse(LogicContent, NewContent)
 
-					//Example:
-					//if {
-					//} else {
-					//}
-
-					//if the next element is "logic:else" or "logic:else-if"
-					if StartsWith(NewContent, "logic:else") {
-						//remove the line break from the last "if"
-						LogicContent = LogicContent[:len(LogicContent)-1]
-					}
 					//process the remaining nest-loop/logic
 					LogicContent = LogicContent + GenCode(Tabs+"\t",NewContent)
 
 				}
 			//just process as is
 			} else {
-				//Example:
-				//if {
-				//} else {
-				//}
-
-				//if the next element is "logic:else" or "logic:else-if"
-				if StartsWith(OtherContent, "logic:else") {
-					//remove the line break from the last "if"
-					LogicContent = LogicContent[:len(LogicContent)-1]
-				}
+				LogicContent = HandleElse(LogicContent, OtherContent)
 				//This is to handle how Go likes to handle if/else statements
 				LogicContent = LogicContent + GenCode(Tabs+"\t",OtherContent)
 			}
 			//clear new content
 			NewContent = ""
 		} else if StartsWith(Content, "var:") || StartsWith(Content, "stmt:") {
-
-			//This is to handle how Go likes to handle if/else statements
-
-			//Example:
-			//if {
-			//} else {
-			//}
-
-			//if the next element is "logic:else" or "logic:else-if"
-			if StartsWith(OtherContent, "logic:else") {
-				//remove the line break from the last "if"
-				LogicContent = LogicContent[:len(LogicContent)-1]
-			}
+			LogicContent = HandleElse(LogicContent, Content)
 
 //			Content = ReplaceTag(Content, "logic-",false)
 			LogicContent = LogicContent + GenCode(Tabs+"\t",Content)
@@ -1378,7 +1411,40 @@ func Statements(Tabs string, TheKindType string, Content string) string {
 		}
 	}
 
-	if TheName == "method" {
+	//Pull Vector or Array Type
+	if StartsWith(TheKindType,"<") && IsIn(TheKindType,">") {
+		var VorA string = ""
+		var VarType string = ""
+		var TheValue string = ""
+
+		//grab data type
+		VarType = BeforeSplit(TheKindType,">")
+		VarType = AfterSplit(VarType,"<")
+		VarType = AfterSplit(VarType,":")
+		VarType = DataType(VarType,false)
+
+		//vector or array
+		VorA = BeforeSplit(TheKindType,":")
+		VorA = AfterSplit(VorA,"<")
+
+		TheName = VorA
+
+		//name of array
+		Name = AfterSplit(TheKindType,">")
+
+		if IsIn(Name,":") {
+			TheValue = AfterSplit(Name,":")
+			Name = BeforeSplit(Name,":")
+			Complete = VectAndArray(Name, VarType, VorA, "statement",GenCode("",TranslateTag(TheValue)))+StatementContent
+		} else {
+			Complete = VectAndArray(Name, VarType, VorA, "statement","")+StatementContent
+		}
+		//pull value
+		TheKindType = ""
+		TheName = ""
+		Name = ""
+		VarType = ""
+	} else if TheName == "method" {
 		Complete = Name+"("+Params+")"+StatementContent
 	} else if TheName == "comment" {
 		Complete = StatementContent+Tabs+"#Code goes here\n"
@@ -1441,7 +1507,43 @@ func Variables(Tabs string, TheKindType string, Content string) string {
 		VarType = AfterSplit(VarType,"(")
 		VarType = DataType(VarType,false)
 		TheKindType = AfterSplit(TheKindType,")")
-		Name = TheKindType
+		if TheKindType == "" {
+			Name = VarType
+			VarType = ""
+		} else if TheKindType == "=" {
+			Name = VarType
+//			VarType = ""
+		} else {
+			Name = TheKindType
+		}
+	//Pull Vector or Array Type
+	} else if StartsWith(TheKindType,"<") && IsIn(TheKindType,">") {
+		var TheValue string = ""
+		var VorA string = ""
+		//grab data type
+		VarType = BeforeSplit(TheKindType,">")
+		VarType = AfterSplit(VarType,"<")
+		VarType = AfterSplit(VarType,":")
+		VarType = DataType(VarType,false)
+
+		//vector or array
+		VorA = BeforeSplit(TheKindType,":")
+		VorA = AfterSplit(VorA,"<")
+
+		//name of array
+		Name = AfterSplit(TheKindType,">")
+
+		if IsIn(Name,":") {
+			TheValue = AfterSplit(Name,":")
+			Name = BeforeSplit(Name,":")
+			NewVar = VectAndArray(Name, VarType, VorA, "variable",GenCode("",TranslateTag(TheValue)))
+		} else {
+			NewVar = VectAndArray(Name, VarType, VorA, "variable","")
+		}
+
+		TheKindType = ""
+		Name = ""
+		VarType = ""
 	}
 
 	//Assign Value
@@ -1451,8 +1553,12 @@ func Variables(Tabs string, TheKindType string, Content string) string {
 		Value = AfterSplit(TheKindType,"=")
 	}
 
-	if VarType != "" {
+	if VarType != "" && Name != ""{
 		NewVar = " "+VarType
+	} else if VarType != "" && Name == ""{
+		Name = VarType
+		VarType = ""
+		NewVar = ""
 	}
 
 	if MakeEqual == true {
@@ -1460,7 +1566,11 @@ func Variables(Tabs string, TheKindType string, Content string) string {
 			Value = replaceAll(Value, "(-spc)"," ")
 		}
 
-		NewVar = "var "+Name+NewVar+" = "+Value
+		if VarType != "" {
+			NewVar = "var "+Name+NewVar+" = "+Value
+		} else {
+			NewVar = Name+NewVar+" = "+Value
+		}
 	} else {
 		NewVar = "var "+Name+NewVar
 	}

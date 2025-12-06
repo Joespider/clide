@@ -3,7 +3,7 @@ use std::process::Command;
 
 fn the_version() -> String
 {
-	return "0.0.93".to_string();
+	return "0.0.98".to_string();
 }
 
 fn get_os() -> String
@@ -69,7 +69,7 @@ fn the_help(the_type: &str)
 	}
 	else if new_the_type == "var"
 	{
-		example("(std::string)name=\"\" var:(int)point=0 stmt:endline var:james-std::string=\"James\" stmt:endline var:help-int");
+		example("(std::string)name=\"\" el var:(int)point=0 el (std::string)james=\"James\" el var:help-int");
 		example("(std::string)name=\"\" el (int)point=0 el (std::string)james=\"James\" el (int)help el help=0");
 		example("(std::string)name=\"\" el (int)point=0 el (std::string)james=\"James\" el (int)help el help=0");
 	}
@@ -281,6 +281,21 @@ fn replace_all(message: &str, s_by: &str, j_by: &str) -> String
 */
 
 
+//This is an example of handling vecotors and arrays
+//	<type>name:value
+//
+//if value is marked a method, this a vector
+//	<int>list:[getInt]:()numbers
+//if value is marked a static, this is an array
+//	<int>list:()one,()two
+//
+//to assign a value
+//	<list[0]>:4
+//to get from value, seeing there is an index
+//	<list[0]>:
+//to append vectors
+//	<list>:4
+
 fn replace_tag(the_content: &str, the_tag: &str, all: bool) -> String
 {
 	let mut the_new_content = String::from("");
@@ -416,6 +431,7 @@ fn translate_tag(input: &str) -> String
 		the_return.push_str(" ");
 		the_return.push_str(&value);
 	}
+	//class
 	else if starts_with(&action, "{") && is_in(&action,"}")
 	{
 		let tmp_action = &action.to_owned();
@@ -450,14 +466,13 @@ fn translate_tag(input: &str) -> String
 			the_return.push_str(&action);
 		}
 	}
+	//method
 	else if starts_with(&action, "[") && is_in(&action,"]")
 	{
-		let tmp_action = &action.to_owned();
-		action = after_split(&tmp_action,"]");
-		if starts_with(&action,":")
+		let tmp_action = after_split(&action.to_owned(),"]");
+		if starts_with(&tmp_action,":")
 		{
-			let mut the_data_type = after_split(&before_split(&action,"]"),"[");
-			the_data_type = data_type(&the_data_type,false);
+			let the_data_type = after_split(&before_split(&action,"]"),"[");
 
 			value = after_split(&action,":");
 			action = the_data_type;
@@ -466,23 +481,26 @@ fn translate_tag(input: &str) -> String
 			the_return.push_str(&the_nest.to_string());
 			the_return.push_str("stmt:method-");
 			the_return.push_str(&action);
-			the_return.push_str(" params:");
-			the_return.push_str(&value);
+			if value != ""
+			{
+				the_return.push_str(" params:");
+				the_return.push_str(&value);
+			}
 		}
 		//is a function
 		else
 		{
-			if is_in(&action,":")
+			let mut the_data_type = after_split(&before_split(&action,"]"),"[");
+			the_data_type = data_type(&the_data_type,false);
+
+			if is_in(&tmp_action,":")
 			{
-				value = after_split(&action,":");
-				action = before_split(&action,":");
+				value = after_split(&tmp_action,":");
+				action = before_split(&tmp_action,":");
 			}
 
 			if value != ""
 			{
-				let mut the_data_type = after_split(&before_split(&action,"]"),"[");
-				the_data_type = data_type(&the_data_type,false);
-
 				the_return.push_str(&content_for);
 				the_return.push_str(&the_nest.to_string());
 				the_return.push_str("method:(");
@@ -494,9 +512,6 @@ fn translate_tag(input: &str) -> String
 			}
 			else
 			{
-				let mut the_data_type = after_split(&before_split(&action,"]"),"[");
-				the_data_type = data_type(&the_data_type,false);
-
 				the_return.push_str(&content_for);
 				the_return.push_str(&the_nest.to_string());
 				the_return.push_str("method:(");
@@ -507,18 +522,16 @@ fn translate_tag(input: &str) -> String
 		}
 
 	}
+	//variables
 	else if starts_with(&action, "(") && is_in(&action,")")
 	{
-		let tmp_action = &action.to_owned();
-		action = after_split(&tmp_action,")");
+		let tmp_action = after_split(&action.to_owned(),")");
 
-		if is_in(&action,":")
+		//calling function
+		if is_in(&tmp_action,":")
 		{
-			println!("{}",action);
-			value = after_split(&action,":");
-			println!("{}",value);
+			value = after_split(&tmp_action,":");
 			action = before_split(&action,":");
-			println!("{}",action);
 		}
 
 		if value != ""
@@ -526,23 +539,69 @@ fn translate_tag(input: &str) -> String
 			let mut the_data_type = after_split(&before_split(&action,")"),"(");
 			the_data_type = data_type(&the_data_type,false);
 
+			//replacing data type to represent the variable
+			if starts_with(&tmp_action,":")
+			{
+				action = the_data_type.to_owned();
+				the_data_type = "".to_string();
+			}
+
+			if starts_with(&action,"()") || the_data_type != ""
+			{
+				action = after_split(&action.to_owned(),")");
+			}
+
 			the_return.push_str(content_for);
 			the_return.push_str("var:(");
 			the_return.push_str(&the_data_type);
 			the_return.push_str(")");
+//			the_return.push_str(&tmp_action);
 			the_return.push_str(&action);
-			the_return.push_str("=");
-			the_return.push_str(&value);
+			the_return.push_str("= ");
+
+			if content_for == "logic-"
+			{
+				the_return.push_str(&translate_tag(&["+-",&the_nest,&value].concat()));
+			}
+			else if content_for == "loop-"
+			{
+				the_return.push_str(&translate_tag(&["o-",&the_nest,&value].concat()));
+			}
+			else if content_for == "method-"
+			{
+				the_return.push_str(&translate_tag(&["[]-",&the_nest,&value].concat()));
+			}
+			else if content_for == "class-"
+			{
+				the_return.push_str(&translate_tag(&["{}-",&the_nest,&value].concat()));
+			}
+			else
+			{
+				the_return.push_str(&translate_tag(&value));
+			}
 		}
 		else
 		{
 			let mut the_data_type = after_split(&before_split(&action,")"),"(");
 			the_data_type = data_type(&the_data_type,false);
 
+			//replacing data type to represent the variable
+			if starts_with(&tmp_action,":")
+			{
+				action = the_data_type.to_owned();
+				the_data_type = "".to_string();
+			}
+
+			if starts_with(&action,"()") || the_data_type != ""
+			{
+				action = after_split(&action.to_owned(),")");
+			}
+
 			the_return.push_str(content_for);
 			the_return.push_str("var:(");
 			the_return.push_str(&the_data_type);
 			the_return.push_str(")");
+//			the_return.push_str(&tmp_action);
 			the_return.push_str(&action);
 		}
 	}
@@ -627,9 +686,13 @@ fn data_type(the_type: &str, get_null: bool) -> String
 		{
 			return "bool".to_string();
 		}
+		else if the_type == "i32" || the_type == "int"
+		{
+			return "i32".to_string();
+		}
 		else
 		{
-			return "".to_string();
+			return the_type.to_string();
 		}
 	}
 	else if get_null == true
@@ -642,9 +705,13 @@ fn data_type(the_type: &str, get_null: bool) -> String
 		{
 			return "false".to_string();
 		}
+		else if the_type == "i32" || the_type == "int"
+		{
+			return "0".to_string();
+		}
 		else
 		{
-			return "".to_string();
+			return the_type.to_string();
 		}
 	}
 	else if the_type == "false" || the_type == "False"
@@ -657,6 +724,7 @@ fn data_type(the_type: &str, get_null: bool) -> String
 	}
 	else
 	{
+/*
 		if get_null == false
 		{
 			return the_type.to_string();
@@ -665,6 +733,8 @@ fn data_type(the_type: &str, get_null: bool) -> String
 		{
 			return "".to_string();
 		}
+*/
+		return the_type.to_string();
 	}
 }
 
@@ -707,20 +777,49 @@ fn gen_conditions(input: &str) -> String
 		condit = replace_all(&condit, "(-spc)"," ");
 	}
 
+	if is_in(&condit,"(-or)")
+	{
+		condit = replace_all(&condit, "(-or)"," || ");
+	}
+
+	if is_in(&condit,"(-and)")
+	{
+		condit = replace_all(&condit, "(-and)"," && ");
+	}
+
 	if is_in(&condit," ")
 	{
-		let mut tmp = String::new();
+		let mut tmp = String::from("");
 		let conditions: Vec<&str> = condit.split(" ").collect();
 		let mut lp = 0;
 		let end = len_a(&conditions);
 		while lp != end
 		{
-			let mut keep = translate_tag(&conditions[lp]);
-
-			keep = gen_code("",&keep);
-			if keep != ""
+			let keep = String::from(&translate_tag(&conditions[lp]));
+			let tmp_keep = String::from(&gen_code("",&keep.to_string()));
+			if tmp_keep == ""
 			{
-				tmp.push_str(&keep);
+				if tmp.to_string() == ""
+				{
+					tmp.push_str(&keep);
+				}
+				else
+				{
+					tmp.push_str(" ");
+					tmp.push_str(&keep);
+				}
+			}
+			else
+			{
+				if tmp.to_string() == ""
+				{
+					tmp.push_str(&tmp_keep);
+				}
+				else
+				{
+					tmp.push_str(" ");
+					tmp.push_str(&tmp_keep);
+				}
 			}
 			lp += 1;
 		}
@@ -740,21 +839,10 @@ fn gen_conditions(input: &str) -> String
 		}
 		condit = tmp;
 	}
-
 	//logic
 	if is_in(&condit,"(-not)")
 	{
 		condit = replace_all(&condit, "(-not)","!");
-	}
-
-	if is_in(&condit,"(-or)")
-	{
-		condit = replace_all(&condit, "(-or)"," || ");
-	}
-
-	if is_in(&condit,"(-and)")
-	{
-		condit = replace_all(&condit, "(-and)"," && ");
 	}
 /*
 	if starts_with(condit, "(")
@@ -970,7 +1058,7 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 		}
 		default_value.push_str(&data_type(&the_type,true));
 		//Converting data type to correct C++ type
-		the_type = data_type(&the_type,true);
+		the_type = data_type(&the_type,false);
 	}
 	//method:<name>
 	else
@@ -1118,7 +1206,7 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 	{
 		the_complete.push_str(the_tabs);
 		the_complete.push_str("fn ");
-		the_complete.push_str(&handle_names(&the_name));
+		the_complete.push_str(&handle_names(&after_split(&the_name,"]")));
 		the_complete.push_str("(");
 		the_complete.push_str(&the_params);
 		the_complete.push_str(")\n");
@@ -1135,7 +1223,7 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 		{
 			the_complete.push_str(the_tabs);
 			the_complete.push_str("fn ");
-			the_complete.push_str(&handle_names(&the_name));
+			the_complete.push_str(&handle_names(&after_split(&the_name,"]")));
 			the_complete.push_str("(");
 			the_complete.push_str(&the_params);
 			the_complete.push_str(") -> ");
@@ -1162,7 +1250,7 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 		{
 			the_complete.push_str(the_tabs);
 			the_complete.push_str("fn ");
-			the_complete.push_str(&handle_names(&the_name));
+			the_complete.push_str(&handle_names(&after_split(&the_name,"]")));
 			the_complete.push_str("(");
 			the_complete.push_str(&the_params);
 			the_complete.push_str(") -> ");
@@ -1206,7 +1294,8 @@ fn gen_loop(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 	let mut the_other_content = String::from("");
 	let mut passed_content = the_content.to_string();
 
-	if is_in(&new_kind,":")
+	//loop:<type>
+	if starts_with(&new_kind,"loop:")
 	{
 		new_kind = after_split(&new_kind,":");
 	}
@@ -1338,20 +1427,20 @@ fn gen_loop(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 			{
 				the_other_content = after_split(&the_other_content,"-");
 			}
-			loop_content.push_str(&gen_code(&new_tabs,&the_other_content));
+//			loop_content.push_str(&gen_code(&new_tabs,&the_other_content));
 
 			//handle the content if the first tag is a stmt: or var:
 			if starts_with(&the_other_content, "stmt:") || starts_with(&the_other_content, "var:") && is_in(&the_other_content," ")
 			{
 				let cmds: Vec<&str> = the_other_content.split(" ").collect();
-				let mut more_new_content = String::new();
+				let mut more_new_content = String::from("");
 				let mut more_the_other_content = String::from("");
 				for item in &cmds
 				{
 					//as long as the beginning of the tag is stmt:, var:, or params: make sure to build the non-loop/logic tags
-					if is_in(item,"stmt:") || is_in(item,"var:") || is_in(item,"params:") && new_content == ""
+					if is_in(item,"stmt:") || is_in(item,"var:") || is_in(item,"params:") && new_content.to_string() == ""
 					{
-						if the_other_content.to_string() == ""
+						if more_the_other_content.to_string() == ""
 						{
 							more_the_other_content.push_str(item);
 						}
@@ -1376,13 +1465,16 @@ fn gen_loop(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 					}
 				}
 
+				the_other_content = more_the_other_content.to_string();
+				new_content = more_new_content.to_string();
+
 				//processes all the statements before a loop/logic
-				loop_content.push_str(&gen_code(&new_tabs,&more_the_other_content));
+				loop_content.push_str(&gen_code(&new_tabs,&the_other_content));
 
 				//Lets group the nested tages one more time...I am not sure how to avoide this being done again
 				if starts_with(&new_content, "nest-")
 				{
-					root_tag = before_split(&more_new_content,"l");
+					root_tag = before_split(&new_content,"l");
 					new_root_tag = [" ",&root_tag,"l"].concat();
 					if is_in(&new_content,&new_root_tag)
 					{
@@ -1532,15 +1624,15 @@ fn gen_logic(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 	let mut the_other_content = String::from("");
 	let mut passed_content = the_content.to_string();
 
-	if is_in(&new_kind,":")
+	if starts_with(&new_kind,"logic:")
 	{
 		new_kind = after_split(&new_kind,":");
 	}
 
 	while passed_content != ""
 	{
-		passed_content = replace_tag(&passed_content, "loop-",false);
-//		passed_content = replace_tag(&passed_content, "loop-",true);
+		passed_content = replace_tag(&passed_content, "logic-",false);
+//		passed_content = replace_tag(&passed_content, "logic-",true);
 
 		if starts_with(&passed_content, "condition:")
 		{
@@ -1553,7 +1645,7 @@ fn gen_logic(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 			{
 				the_condition = passed_content.clone();
 			}
-			the_condition = gen_conditions(&the_condition,);
+			the_condition = gen_conditions(&the_condition);
 		}
 
 		//nest-<type> <other content>
@@ -1582,7 +1674,7 @@ fn gen_logic(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 				//nest-<type> <other content> nest-<type> <other content>
 				else if lp == 1
 				{
-					new_content.push_str("nest-");
+					new_content = String::from("nest-");
 					new_content.push_str(item);
 				}
 				else
@@ -1664,7 +1756,7 @@ fn gen_logic(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 			{
 				the_other_content = after_split(&the_other_content,"-");
 			}
-			logic_content.push_str(&gen_code(&new_tabs,&the_other_content));
+//			logic_content.push_str(&gen_code(&new_tabs,&the_other_content));
 
 			//handle the content if the first tag is a stmt: or var:
 			if starts_with(&the_other_content, "stmt:") || starts_with(&the_other_content, "var:") && is_in(&the_other_content," ")
@@ -1675,9 +1767,9 @@ fn gen_logic(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 				for item in &cmds
 				{
 					//as long as the beginning of the tag is stmt:, var:, or params: make sure to build the non-loop/logic tags
-					if is_in(item,"stmt:") || is_in(item,"var:") || is_in(item,"params:") && new_content == ""
+					if is_in(item,"stmt:") || is_in(item,"var:") || is_in(item,"params:") && new_content.to_string() == ""
 					{
-						if the_other_content.to_string() == ""
+						if more_the_other_content.to_string() == ""
 						{
 							more_the_other_content.push_str(item);
 						}
@@ -1702,13 +1794,17 @@ fn gen_logic(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 					}
 				}
 
+				the_other_content = more_the_other_content.to_string();
+				new_content = more_new_content.to_string();
+
 				//processes all the statements before a loop/logic
-				logic_content.push_str(&gen_code(&new_tabs,&more_the_other_content));
+				logic_content.push_str(&gen_code(&new_tabs,&the_other_content));
 
 				//Lets group the nested tages one more time...I am not sure how to avoide this being done again
 				if starts_with(&new_content, "nest-")
 				{
-					root_tag = before_split(&more_new_content,"l");
+					println!("{}",new_content);
+					root_tag = before_split(&new_content,"l");
 					new_root_tag = [" ",&root_tag,"l"].concat();
 					if is_in(&new_content,&new_root_tag)
 					{
@@ -1767,9 +1863,9 @@ fn gen_logic(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 			//clear new content
 			new_content = "".to_string();
 		}
-		else if starts_with(&passed_content, "loop-") || starts_with(&passed_content, "var:") || starts_with(&passed_content, "stmt:")
+		else if starts_with(&passed_content, "logic-") || starts_with(&passed_content, "var:") || starts_with(&passed_content, "stmt:")
 		{
-			passed_content = replace_tag(&passed_content, "loop-",true);
+			passed_content = replace_tag(&passed_content, "logic-",true);
 			logic_content.push_str(&gen_code(&new_tabs,&passed_content));
 			passed_content = "".to_string();
 		}
@@ -2066,23 +2162,24 @@ fn gen_variables(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Stri
 
 	if var_type != ""
 	{
-		new_var.push_str(&var_type);
-		new_var.push_str(" ");
-	}
-
-	if make_equal == true
-	{
+		new_var.push_str("let ");
 		new_var.push_str(&the_name);
-		new_var.push_str(" = ");
-		new_var.push_str(&the_value);
+		new_var.push_str(": ");
+		new_var.push_str(&var_type);
 	}
 	else
 	{
 		new_var.push_str(&the_name);
 	}
+
+	if make_equal == true
+	{
+		new_var.push_str(" = ");
+		new_var.push_str(&the_value);
+	}
 	new_var.push_str(&variable_content);
 
-	return new_var;
+	return new_var.to_string();
 }
 
 fn gen_code(the_tabs: &str, get_me: &str) -> String
