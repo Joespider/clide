@@ -9,7 +9,7 @@ import (
 	"strings"
 	)
 
-var Version string = "0.0.99"
+var Version string = "0.1.0"
 
 func getOS() string {
 	os := runtime.GOOS
@@ -1674,10 +1674,8 @@ func main() {
 			UserIn = raw_input(">>> ")
 		}
 
-		if UserIn == "exit()" {
+		if UserIn == "exit" {
 			break
-		} else if UserIn == "exit" {
-			fmt.Println("Use exit()")
 /*
 		} else if UserIn == "clear" {
 			clear()

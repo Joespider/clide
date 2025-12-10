@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.1.1";
+String Version = "0.1.3";
 
 String getOS();
 void Help(String Type);
@@ -100,7 +100,7 @@ void Help(String Type)
 //		Example("[String-Message]help:(String)one,(int)two");
 //		Example("[String-Type]FoodAndDrink:(String)Food if:Food(-ne)\"\" >if:[IsDrink]:drink(-eq)true +->tab +->tab +->tab +->()Type=\"Drink\" +->el +->>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Drink]:Food o->>el +->else-if:[IsFood]:Food(-eq)true +->tab +->tab +->tab +->()Type=\"Food\" +->el >>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Eat]:Food o->>el >else +->tab +->tab +->tab +->()Eat= +->(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el else +-tab +-tab +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el");
 //		Example("[String-Type]FoodAndDrink:(String)Food if:Food(-ne)\"\" >if:[IsDrink]:drink(-eq)true +->tab +->tab +->tab +->()Type=\"Drink\" +->el +->>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Drink]:Food o->>el >>if:mood(-ne)\"happy\" >>>do-while:mood(-eq)\"unhappy\" >>>>tab >>>>tab >>>>tab >>>>tab >>>>tab >>>>[ChearUp]:mood >>>>el +->else-if:[IsFood]:Food(-eq)true +->tab +->tab +->tab +->()Type=\"Food\" +->el >>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Eat]:Food o->>el >>if:mood(-ne)\"happy\" >>>do-while:mood(-eq)\"unhappy\" >>>>tab >>>>tab >>>>tab >>>>tab >>>>tab >>>>[ChearUp]:mood >>>>el >else +->tab +->tab +->tab +->(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el else +-tab +-tab +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el");
-		Example("[String-Type]FoodAndDrink:(String)Food if:Food(-ne)\"\" >if:[IsDrink]:drink(-eq)true +->tab +->tab +->tab +->()Type=\"Drink\" +->el +->>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Drink]:Food o->>el >>if:mood(-ne)\"happy\" >>>do-while:mood(-eq)\"unhappy\" o->>>>tab o->>>>tab o->>>>tab o->>>>tab o->>>>tab o->>>>[ChearUp]:mood o->>>>el +-tab +-tab +-tab +-tab +-tab +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->else-if:[IsFood]:Food(-eq)true +->tab +->tab +->tab +->()Type=\"Food\" +->el >>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Eat]:Food o->>el >>if:mood(-ne)\"happy\" >>>do-while:mood(-eq)\"unhappy\" >>>>tab >>>>tab >>>>tab >>>>tab >>>>tab >>>>[ChearUp]:mood >>>>el +-tab +-tab +-tab +-tab +-tab +-[print]:\"I(-spc)am(-spc)\"+mood +-el >else +->tab +->tab +->tab +->(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el else +-tab +-tab +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el");
+		Example("[String-Type]FoodAndDrink:(String)Food if:Food(-ne)\"\" +->if:[IsDrink]:drink(-eq)true +-tab +-tab +-tab +-()Type=\"Drink\" +-el +->>while:[IsNotEmpty]:Food o-tab o-tab o-tab o-tab o-[Drink]:Food o-el +->>if:mood(-ne)\"happy\" +->>>do-while:mood(-eq)\"unhappy\" o-tab o-tab o-tab o-tab o-tab o-[ChearUp]:mood o-el +-tab +-tab +-tab +-tab +-tab +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->else-if:[IsFood]:Food(-eq)true +-tab +-tab +-tab +-()Type=\"Food\" +-el +->>while:[IsNotEmpty]:Food o-tab o-tab o-tab o-tab o-[Eat]:Food o-el +->>if:mood(-ne)\"happy\" +->>>do-while:mood(-eq)\"unhappy\" o-tab o-tab o-tab o-tab o-tab o-[ChearUp]:mood o-el +-tab +-tab +-tab +-tab +-tab +-[print]:\"I(-spc)am(-spc)\"+mood +-el >else +->tab +-tab +-tab +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el else +-tab +-tab +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el");
 		Example("[]clock []-tab []-(int)time:[start]: []-el []-nl []-if:here +-tab +-tab +-[stop]: +-el []-nl []-tab []-[begin]: []-el []-nl []-if: +-tab +-tab +-[end]: +-el []-else +-tab +-tab +-[reset]: +-el []-for: o-tab o-tab o-[count]: o-el");
 	}
 	else if (Type == "loop")
@@ -490,7 +490,12 @@ String TranslateTag(String Input)
 	String ContentFor = "";
 	String OldDataType = "";
 
-	if (StartsWith(Action, "+-"))
+	if (StartsWith(Action, "<-"))
+	{
+		Action = AfterSplit(Action,'-');
+		ContentFor = "parent-";
+	}
+	else if (StartsWith(Action, "+-"))
 	{
 		Action = AfterSplit(Action,'-');
 		ContentFor = "logic-";
@@ -1244,6 +1249,7 @@ String Loop(String Tabs, String TheKindType, String Content)
 	String LoopContent = "";
 	String NewContent = "";
 	String OtherContent = "";
+	String ParentContent = "";
 
 	//loop:<type>
 	if (StartsWith(TheKindType, "loop:"))
@@ -1345,6 +1351,35 @@ String Loop(String Tabs, String TheKindType, String Content)
 					if (lp == 0)
 					{
 						OtherContent = cmds[lp];
+						if (IsIn(OtherContent," parent-"))
+						{
+							//examine each tag
+							std::vector<String> parent = split(OtherContent," parent-");
+							OtherContent = "";
+							NewContent = "";
+							int pEnd = len(parent);
+							int pLp = 0;
+							while (pLp != pEnd)
+							{
+								if (OtherContent == "")
+								{
+									OtherContent = parent[pLp];
+								}
+								else
+								{
+									if (ParentContent == "")
+									{
+										ParentContent = TranslateTag(parent[pLp]);
+									}
+									else
+									{
+										ParentContent = ParentContent + " " + TranslateTag(parent[pLp]);
+									}
+									ParentContent = ReplaceTag(ParentContent, "logic-",false);
+								}
+								pLp++;
+							}
+						}
 					}
 					else
 					{
@@ -1468,6 +1503,14 @@ String Loop(String Tabs, String TheKindType, String Content)
 			{
 				LoopContent = LoopContent + GenCode(Tabs+"\t",OtherContent);
 			}
+
+			//process parent content
+			if (ParentContent != "")
+			{
+				LoopContent = LoopContent + GenCode(Tabs+"\t",ParentContent);
+				ParentContent = "";
+			}
+
 			//clear new content
 			NewContent = "";
 		}
@@ -1531,6 +1574,7 @@ String Logic(String Tabs, String TheKindType, String Content)
 	String LogicContent = "";
 	String NewContent = "";
 	String OtherContent = "";
+	String ParentContent = "";
 
 	if (StartsWith(TheKindType, "logic:"))
 	{
@@ -1568,6 +1612,13 @@ String Logic(String Tabs, String TheKindType, String Content)
 				if (lp == 0)
 				{
 					OtherContent = all[lp];
+/*
+					if (IsIn(OtherContent," parent-"))
+					{
+						print("Has Parent Content");
+						print(OtherContent);
+					}
+*/
 				}
 				else if (lp == 1)
 				{
@@ -1613,6 +1664,35 @@ String Logic(String Tabs, String TheKindType, String Content)
 						//this tag already contains the nest-logic or nest-loop
 						//this will be processed and the following will be ignored for the next recurrsive cycle
 						OtherContent = cmds[lp];
+						if (IsIn(OtherContent," parent-"))
+						{
+							//examine each tag
+							std::vector<String> parent = split(OtherContent," parent-");
+							OtherContent = "";
+							NewContent = "";
+							int pEnd = len(parent);
+							int pLp = 0;
+							while (pLp != pEnd)
+							{
+								if (OtherContent == "")
+								{
+									OtherContent = parent[pLp];
+								}
+								else
+								{
+									if (ParentContent == "")
+									{
+										ParentContent = TranslateTag(parent[pLp]);
+									}
+									else
+									{
+										ParentContent = ParentContent + " " + TranslateTag(parent[pLp]);
+									}
+									ParentContent = ReplaceTag(ParentContent, "logic-",false);
+								}
+								pLp++;
+							}
+						}
 					}
 					//process later
 					else
@@ -1741,6 +1821,14 @@ String Logic(String Tabs, String TheKindType, String Content)
 			{
 				LogicContent = LogicContent + GenCode(Tabs+"\t",OtherContent);
 			}
+
+			//process parent content
+			if (ParentContent != "")
+			{
+				LogicContent = LogicContent + GenCode(Tabs+"\t",ParentContent);
+				ParentContent = "";
+			}
+
 			//clear new content
 			NewContent = "";
 		}
@@ -2208,13 +2296,9 @@ int main(int argc, char** argv)
 			UserIn = TranslateTag(UserIn);
 		}
 
-		if (UserIn == "exit()")
+		if (UserIn == "exit")
 		{
 			break;
-		}
-		else if (UserIn == "exit")
-		{
-			print("Use exit()");
 		}
 		else if (UserIn == "clear")
 		{

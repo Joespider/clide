@@ -2,7 +2,7 @@ import os
 import sys
 import platform
 
-Version = "0.0.98"
+Version = "0.0.99"
 
 def getOS():
 	platform.system()
@@ -1355,10 +1355,8 @@ def Main():
 		else:
 			UserIn = raw_input(">>> ")
 
-		if UserIn == "exit()":
+		if UserIn == "exit":
 			break
-		elif UserIn == "exit":
-			print("Use exit()")
 		elif UserIn == "clear":
 			clear()
 		elif UserIn == "-v" and argc == 1 or UserIn == "--version" and argc == 1:

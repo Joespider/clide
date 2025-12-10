@@ -3,7 +3,7 @@ use std::process::Command;
 
 fn the_version() -> String
 {
-	return "0.0.98".to_string();
+	return "0.0.99".to_string();
 }
 
 fn get_os() -> String
@@ -2306,13 +2306,9 @@ fn main()
 
 			user_in = raw_input(">>> ");
 
-			if user_in == "exit()"
+			if user_in == "exit"
 			{
 				break;
-			}
-			else if user_in == "exit"
-			{
-				println!("Use exit()");
 			}
 /*
 			else if (user_in == "clear")

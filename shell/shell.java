@@ -12,7 +12,7 @@ import java.io.IOException;
 
 //class name
 public class shell {
-	private static String Version = "0.0.99";
+	private static String Version = "0.1.0";
 	private static String TheKind = "";
 	private static String TheName = "";
 	private static String TheKindType = "";
@@ -2494,13 +2494,9 @@ public class shell {
 				UserIn = raw_input(">>> ");
 			}
 
-			if (UserIn.equals("exit()"))
+			if (UserIn.equals("exit"))
 			{
 				break;
-			}
-			else if (UserIn.equals("exit"))
-			{
-				print("Use exit()");
 			}
 /*
 			else if (UserIn.equals("clear"))
