@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.1.3";
+String Version = "0.1.4";
 
 String getOS();
 void Help(String Type);
@@ -100,27 +100,43 @@ void Help(String Type)
 //		Example("[String-Message]help:(String)one,(int)two");
 //		Example("[String-Type]FoodAndDrink:(String)Food if:Food(-ne)\"\" >if:[IsDrink]:drink(-eq)true +->tab +->tab +->tab +->()Type=\"Drink\" +->el +->>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Drink]:Food o->>el +->else-if:[IsFood]:Food(-eq)true +->tab +->tab +->tab +->()Type=\"Food\" +->el >>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Eat]:Food o->>el >else +->tab +->tab +->tab +->()Eat= +->(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el else +-tab +-tab +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el");
 //		Example("[String-Type]FoodAndDrink:(String)Food if:Food(-ne)\"\" >if:[IsDrink]:drink(-eq)true +->tab +->tab +->tab +->()Type=\"Drink\" +->el +->>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Drink]:Food o->>el >>if:mood(-ne)\"happy\" >>>do-while:mood(-eq)\"unhappy\" >>>>tab >>>>tab >>>>tab >>>>tab >>>>tab >>>>[ChearUp]:mood >>>>el +->else-if:[IsFood]:Food(-eq)true +->tab +->tab +->tab +->()Type=\"Food\" +->el >>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Eat]:Food o->>el >>if:mood(-ne)\"happy\" >>>do-while:mood(-eq)\"unhappy\" >>>>tab >>>>tab >>>>tab >>>>tab >>>>tab >>>>[ChearUp]:mood >>>>el >else +->tab +->tab +->tab +->(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el else +-tab +-tab +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el");
-		Example("[String-Type]FoodAndDrink:(String)Food if:Food(-ne)\"\" +->if:[IsDrink]:drink(-eq)true +-tab +-tab +-tab +-()Type=\"Drink\" +-el +->>while:[IsNotEmpty]:Food o-tab o-tab o-tab o-tab o-[Drink]:Food o-el +->>if:mood(-ne)\"happy\" +->>>do-while:mood(-eq)\"unhappy\" o-tab o-tab o-tab o-tab o-tab o-[ChearUp]:mood o-el +-tab +-tab +-tab +-tab +-tab +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->else-if:[IsFood]:Food(-eq)true +-tab +-tab +-tab +-()Type=\"Food\" +-el +->>while:[IsNotEmpty]:Food o-tab o-tab o-tab o-tab o-[Eat]:Food o-el +->>if:mood(-ne)\"happy\" +->>>do-while:mood(-eq)\"unhappy\" o-tab o-tab o-tab o-tab o-tab o-[ChearUp]:mood o-el +-tab +-tab +-tab +-tab +-tab +-[print]:\"I(-spc)am(-spc)\"+mood +-el >else +->tab +-tab +-tab +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el else +-tab +-tab +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el");
+		Example("[String-Type]FoodAndDrink:(String)Food []-if:Food(-ne)\"\" +->if:[IsDrink]:drink(-eq)true +-tab +-tab +-tab +-()Type=\"Drink\" +-el +->>while:[IsNotEmpty]:Food o-tab o-tab o-tab o-tab o-[Drink]:Food o-el o->>>if:mood(-ne)\"happy\" +-tab +-tab +-tab +-tab +-tab +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->>>>do-while:mood(-eq)\"unhappy\" o-tab o-tab o-tab o-tab o-tab o-tab o-[ChearUp]:mood o-el o-tab o-tab o-tab o-tab o-tab o-tab o-[print]:\"I(-spc)am(-spc)\"+mood o-el <<<<<-+-tab <<<<<-+-tab <<<<<-+-tab <<<<<-+-tab <<<<<-+-tab <<<<<-+-[print]:\"I(-spc)am(-spc)\"+mood+\"(-spc)now\" <<<<<-+-el +->else-if:[IsFood]:Food(-eq)true +-tab +-tab +-tab +-()Type=\"Food\" +-el +->>while:[IsNotEmpty]:Food o-tab o-tab o-tab o-tab o-[Eat]:Food o-el o->>if:mood(-ne)\"happy\" +-tab +-tab +-tab +-tab +-tab +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->>>do-while:mood(-eq)\"unhappy\" o-tab o-tab o-tab o-tab o-tab o-tab o-[ChearUp]:mood o-el o-tab o-tab otab o-tab o-tab o-tab o-tab o-[print]:\"I(-spc)am(-spc)\"+mood o-el <<<<<-+-tab <<<<<-+-tab <<<<<-+-tab <<<<<-+-tab <<<<<-+-tab <<<<<-+-[print]:\"I(-spc)am(-spc)\"+mood+\"(-spc)now\" <<<<<-+-el +->else +-tab +-tab +-tab +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el []-else +-tab +-tab +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el []-nl []-tab []-[print]:\"It(-spc)works!!!\" []-el");
 		Example("[]clock []-tab []-(int)time:[start]: []-el []-nl []-if:here +-tab +-tab +-[stop]: +-el []-nl []-tab []-[begin]: []-el []-nl []-if: +-tab +-tab +-[end]: +-el []-else +-tab +-tab +-[reset]: +-el []-for: o-tab o-tab o-[count]: o-el");
 	}
 	else if (Type == "loop")
 	{
-		print("<type>:<param>");
+		print("<loop>:<condition>");
 		print("");
-		print("{EXAMPLE}");
+		print("{loop}");
 		print("for:");
 		print("do-while:");
-		print("while");
+		print("while:");
+		print("");
+		print("{EXAMPLE}");
+		print("");
+		Example("while:Type(-spc)==(-spc)\"String\"");
+		Example("do-while:Type(-eq)\"String\" o-tab o-[work]: o-el");
+		Example("while:true >if:[IsString]:drink(-eq)true >tab >tab >[drink]: >el >>if:drink(-eq)\"coke\" >>else >nl >else-if:[IsInt]:drink(-eq)false >nl >else >>if: >>nl >>else >nl");
+		Example("while:true >if:[IsString]:drink(-eq)true >>if:drink(-eq)\"coke\" >>else >nl >else-if:[IsInt]:drink(-eq)false >nl >else >>if: >>nl >>else >nl");
+		Example("while:Food(-ne)\"\" o->if:[IsDrink]:drink(-eq)true +-tab +-tab +-()Type=\"Drink\" +-el +->>while:[IsNotEmpty]:Food o-tab o-tab o-tab o-[Drink]:Food o-el o->>>if:mood(-ne)\"happy\" +-tab +-tab +-tab +-tab +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->>>>do-while:mood(-eq)\"unhappy\" o-tab o-tab o-tab o-tab o-tab o-[ChearUp]:mood o-el o-tab o-tab o-tab o-tab o-tab o-[print]:\"I(-spc)am(-spc)\"+mood o-el <<<<<-+-tab <<<<<-+-tab <<<<<-+-tab <<<<<-+-tab <<<<<-+-[print]:\"I(-spc)am(-spc)\"+mood+\"(-spc)now\" <<<<<-+-el o->else-if:[IsDrink]:drink(-eq)true +-tab +-tab +-()Type=\"Drink\" +-el +->>while:[IsNotEmpty]:Food o-tab o-tab o-tab o-[Drink]:Food o-el o->>>if:mood(-ne)\"happy\" +-tab +-tab +-tab +-tab +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->>>>do-while:mood(-eq)\"unhappy\" o-tab o-tab o-tab o-tab o-tab o-[ChearUp]:mood o-el o-tab o-tab o-tab o-tab o-tab o-[print]:\"I(-spc)am(-spc)\"+mood o-el <<<<<-+-tab <<<<<-+-tab <<<<<-+-tab <<<<<-+-tab <<<<<-+-[print]:\"I(-spc)am(-spc)\"+mood+\"(-spc)now\" <<<<<-+-el o->else +-tab +-tab +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el");
 	}
 	else if (Type == "logic")
 	{
 		print("<logic>:<condition>");
 		print("");
+		print("{logic}");
+		print("if:");
+		print("else-if:");
+		print("else");
+		print("");
+		print("{EXAMPLE}");
+		print("");
 		Example("if:Type(-spc)==(-spc)\"String\"");
 		Example("else-if:Type(-eq)\"String\"");
 		Example("else");
-		Example("if:true tab (String)drink= [Pop]:one,two el >if:[IsString]:drink(-eq)true >tab >tab >[drink]: >el >>if:drink(-eq)\"coke\" >>else >nl >else-if:[IsInt]:drink(-eq)false >nl >else >>if: >>nl >>else >nl");
-		Example("if:true tab (String)drink= [Pop]:one,two el >if:[IsString]:drink(-eq)true >>if:drink(-eq)\"coke\" >>else >nl >else-if:[IsInt]:drink(-eq)false >nl >else >>if: >>nl >>else >nl");
+		Example("if:true tab (String)drink:[Pop]:one,two el >if:[IsString]:drink(-eq)true >tab >tab >[drink]: >el >>if:drink(-eq)\"coke\" >>else >nl >else-if:[IsInt]:drink(-eq)false >nl >else >>if: >>nl >>else >nl");
+		Example("if:true tab (String)drink:[Pop]:one,two el >if:[IsString]:drink(-eq)true >>if:drink(-eq)\"coke\" >>else >nl >else-if:[IsInt]:drink(-eq)false >nl >else >>if: >>nl >>else >nl");
+		Example("if:Food(-ne)\"\" +->if:[IsDrink]:drink(-eq)true +-tab +-tab +-()Type=\"Drink\" +-el +->>while:[IsNotEmpty]:Food o-tab o-tab o-tab o-[Drink]:Food o-el o->>>if:mood(-ne)\"happy\" +-tab +-tab +-tab +-tab +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->>>>do-while:mood(-eq)\"unhappy\" o-tab o-tab o-tab o-tab o-tab o-[ChearUp]:mood o-el o-tab o-tab o-tab o-tab o-tab o-[print]:\"I(-spc)am(-spc)\"+mood o-el <<<<<-+-tab <<<<<-+-tab <<<<<-+-tab <<<<<-+-tab <<<<<-+-[print]:\"I(-spc)am(-spc)\"+mood+\"(-spc)now\" <<<<<-+-el +->else-if:[IsFood]:Food(-eq)true +-tab +-tab +-()Type=\"Food\" +-el +->>while:[IsNotEmpty]:Food o-tab o-tab o-tab o-[Eat]:Food o-el o->>if:mood(-ne)\"happy\" +-tab +-tab +-tab +-tab +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->>>do-while:mood(-eq)\"unhappy\" o-tab o-tab o-tab o-tab o-tab o-[ChearUp]:mood o-el o-tab o-tab o-tab o-tab o-tab o-[print]:\"I(-spc)am(-spc)\"+mood o-el <<<<<-+-tab <<<<<-+-tab <<<<<-+-tab <<<<<-+-tab <<<<<-+-[print]:\"I(-spc)am(-spc)\"+mood+\"(-spc)now\" <<<<<-+-el +->else +-tab +-tab +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el");
 //		print(Type+":switch");
 	}
 	else if (Type == "var")
@@ -487,13 +503,19 @@ String TranslateTag(String Input)
 	String NewTag = "";
 	String TheDataType = "";
 	String Nest = "";
+	String Parent = "";
 	String ContentFor = "";
 	String OldDataType = "";
 
 	if (StartsWith(Action, "<-"))
 	{
 		Action = AfterSplit(Action,'-');
-		ContentFor = "parent-";
+		Parent = "parent-";
+	}
+	else if (StartsWith(Action, "<<"))
+	{
+		Action = AfterSplit(Action,'<');
+		Parent = "parent-";
 	}
 	else if (StartsWith(Action, "+-"))
 	{
@@ -529,12 +551,12 @@ String TranslateTag(String Input)
 		Action = BeforeSplit(Action,':');
 		NewTag = "logic:"+Action;
 		Value = "logic-condition:"+Value;
-		TheReturn = ContentFor+Nest+NewTag+" "+Value;
+		TheReturn = Parent+ContentFor+Nest+NewTag+" "+Value;
 	}
 	else if (Action == "else")
 	{
 		NewTag = "logic:"+Action;
-		TheReturn = ContentFor+Nest+NewTag;
+		TheReturn = Parent+ContentFor+Nest+NewTag;
 	}
 	else if ((StartsWith(Action, "while:")) || (StartsWith(Action, "for:")) || (StartsWith(Action, "do-while:")))
 	{
@@ -542,7 +564,7 @@ String TranslateTag(String Input)
 		Action = BeforeSplit(Action,':');
 		NewTag = "loop:"+Action;
 		Value = "loop-condition:"+Value;
-		TheReturn = ContentFor+Nest+NewTag+" "+Value;
+		TheReturn = Parent+ContentFor+Nest+NewTag+" "+Value;
 	}
 	//class
 	else if ((StartsWith(Action, "{")) && (IsIn(Action,"}")))
@@ -577,11 +599,11 @@ String TranslateTag(String Input)
 			Action = TheDataType;
 			if (Value != "")
 			{
-				TheReturn = ContentFor+Nest+"stmt:method-"+Action+" params:"+Value;
+				TheReturn = Parent+ContentFor+Nest+"stmt:method-"+Action+" params:"+Value;
 			}
 			else
 			{
-				TheReturn = ContentFor+Nest+"stmt:method-"+Action;
+				TheReturn = Parent+ContentFor+Nest+"stmt:method-"+Action;
 			}
 		}
 		//is a function
@@ -596,11 +618,11 @@ String TranslateTag(String Input)
 
 			if (Value != "")
 			{
-				TheReturn = ContentFor+Nest+"method:("+TheDataType+")"+Action+" params:"+Value;
+				TheReturn = Parent+ContentFor+Nest+"method:("+TheDataType+")"+Action+" params:"+Value;
 			}
 			else
 			{
-				TheReturn = ContentFor+Nest+"method:("+TheDataType+")"+Action;
+				TheReturn = Parent+ContentFor+Nest+"method:("+TheDataType+")"+Action;
 			}
 		}
 	}
@@ -646,11 +668,11 @@ String TranslateTag(String Input)
 			//translate value, if needed
 			Value = TranslateTag(Value);
 //			Value = GenCode("",Value);
-			TheReturn = ContentFor+Nest+"var:("+TheDataType+")"+Action+"= "+Value;
+			TheReturn = Parent+ContentFor+Nest+"var:("+TheDataType+")"+Action+"= "+Value;
 		}
 		else
 		{
-			TheReturn = ContentFor+Nest+"var:("+TheDataType+")"+Action;
+			TheReturn = Parent+ContentFor+Nest+"var:("+TheDataType+")"+Action;
 		}
 	}
 
@@ -670,7 +692,7 @@ String TranslateTag(String Input)
 	//	<list>:4
 
 	//vectors or arrays
-	else if ((StartsWith(Action, "<")) && (IsIn(Action,">")))
+	else if ((StartsWith(Action, "<")) && (IsIn(Action,">")) && (!StartsWith(Action, "<<")) && (!StartsWith(Action, "<-")))
 	{
 		String VectorOrArray = "";
 		TheDataType = BeforeSplit(Action,'>');
@@ -741,25 +763,25 @@ String TranslateTag(String Input)
 	}
 	else if (Action == "el")
 	{
-		TheReturn = ContentFor+Nest+"stmt:endline";
+		TheReturn = Parent+ContentFor+Nest+"stmt:endline";
 	}
 	else if (Action == "nl")
 	{
-		TheReturn = ContentFor+Nest+"stmt:newline";
+		TheReturn = Parent+ContentFor+Nest+"stmt:newline";
 	}
 	else if (Action == "tab")
 	{
-		TheReturn = ContentFor+Nest+"stmt:"+Action;
+		TheReturn = Parent+ContentFor+Nest+"stmt:"+Action;
 	}
 	else
 	{
 		if (Value != "")
 		{
-			TheReturn = ContentFor+Nest+Action+":"+Value;
+			TheReturn = Parent+ContentFor+Nest+Action+":"+Value;
 		}
 		else
 		{
-			TheReturn = ContentFor+Nest+Action;
+			TheReturn = Parent+ContentFor+Nest+Action;
 		}
 	}
 
@@ -1361,9 +1383,16 @@ String Loop(String Tabs, String TheKindType, String Content)
 							int pLp = 0;
 							while (pLp != pEnd)
 							{
-								if (OtherContent == "")
+								if ((pLp == 0) || (StartsWith(parent[pLp],"<-")) || (StartsWith(parent[pLp],"<<")))
 								{
-									OtherContent = parent[pLp];
+									if (OtherContent == "")
+									{
+										OtherContent = parent[pLp];
+									}
+									else
+									{
+										OtherContent = OtherContent + " " + TranslateTag(parent[pLp]);
+									}
 								}
 								else
 								{
@@ -1375,10 +1404,10 @@ String Loop(String Tabs, String TheKindType, String Content)
 									{
 										ParentContent = ParentContent + " " + TranslateTag(parent[pLp]);
 									}
-									ParentContent = ReplaceTag(ParentContent, "logic-",false);
 								}
 								pLp++;
 							}
+							ParentContent = ReplaceTag(ParentContent, "logic-",false);
 						}
 					}
 					else
@@ -1501,6 +1530,43 @@ String Loop(String Tabs, String TheKindType, String Content)
 			//just process as is
 			else
 			{
+				if (IsIn(OtherContent," parent-"))
+				{
+					//examine each tag
+					std::vector<String> parent = split(OtherContent," parent-");
+					OtherContent = "";
+					OtherContent = "";
+					int pEnd = len(parent);
+					int pLp = 0;
+					while (pLp != pEnd)
+					{
+						if ((pLp == 0) || (StartsWith(parent[pLp],"<-")) || (StartsWith(parent[pLp],"<<")))
+						{
+							if (OtherContent == "")
+							{
+								OtherContent = parent[pLp];
+							}
+							else
+							{
+								OtherContent = OtherContent + " " + TranslateTag(parent[pLp]);
+							}
+						}
+						else
+						{
+							if (ParentContent == "")
+							{
+								ParentContent = TranslateTag(parent[pLp]);
+							}
+							else
+							{
+								ParentContent = ParentContent + " " + TranslateTag(parent[pLp]);
+							}
+						}
+						pLp++;
+					}
+					ParentContent = ReplaceTag(ParentContent, "logic-",false);
+				}
+
 				LoopContent = LoopContent + GenCode(Tabs+"\t",OtherContent);
 			}
 
@@ -1612,13 +1678,6 @@ String Logic(String Tabs, String TheKindType, String Content)
 				if (lp == 0)
 				{
 					OtherContent = all[lp];
-/*
-					if (IsIn(OtherContent," parent-"))
-					{
-						print("Has Parent Content");
-						print(OtherContent);
-					}
-*/
 				}
 				else if (lp == 1)
 				{
@@ -1674,9 +1733,16 @@ String Logic(String Tabs, String TheKindType, String Content)
 							int pLp = 0;
 							while (pLp != pEnd)
 							{
-								if (OtherContent == "")
+								if ((pLp == 0) || (StartsWith(parent[pLp],"<-")) || (StartsWith(parent[pLp],"<<")))
 								{
-									OtherContent = parent[pLp];
+									if (OtherContent == "")
+									{
+										OtherContent = parent[pLp];
+									}
+									else
+									{
+										OtherContent = OtherContent + " " + TranslateTag(parent[pLp]);
+									}
 								}
 								else
 								{
@@ -1688,10 +1754,10 @@ String Logic(String Tabs, String TheKindType, String Content)
 									{
 										ParentContent = ParentContent + " " + TranslateTag(parent[pLp]);
 									}
-									ParentContent = ReplaceTag(ParentContent, "logic-",false);
 								}
 								pLp++;
 							}
+							ParentContent = ReplaceTag(ParentContent, "logic-",false);
 						}
 					}
 					//process later
@@ -1813,12 +1879,48 @@ String Logic(String Tabs, String TheKindType, String Content)
 					}
 					//process the remaining nest-loop/logic
 					LogicContent = LogicContent + GenCode(Tabs+"\t",NewContent);
-
 				}
 			}
 			//just process as is
 			else
 			{
+				if (IsIn(OtherContent," parent-"))
+				{
+					//examine each tag
+					std::vector<String> parent = split(OtherContent," parent-");
+					OtherContent = "";
+					OtherContent = "";
+					int pEnd = len(parent);
+					int pLp = 0;
+					while (pLp != pEnd)
+					{
+						if ((pLp == 0) || (StartsWith(parent[pLp],"<-")) || (StartsWith(parent[pLp],"<<")))
+						{
+							if (OtherContent == "")
+							{
+								OtherContent = parent[pLp];
+							}
+							else
+							{
+								OtherContent = OtherContent + " " + TranslateTag(parent[pLp]);
+							}
+						}
+						else
+						{
+							if (ParentContent == "")
+							{
+								ParentContent = TranslateTag(parent[pLp]);
+							}
+							else
+							{
+								ParentContent = ParentContent + " " + TranslateTag(parent[pLp]);
+							}
+						}
+						pLp++;
+					}
+					ParentContent = ReplaceTag(ParentContent, "logic-",false);
+				}
+
 				LogicContent = LogicContent + GenCode(Tabs+"\t",OtherContent);
 			}
 
