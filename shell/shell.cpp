@@ -499,13 +499,12 @@ String TranslateTag(String Input)
 	String TheReturn = "";
 	String Action = Input;
 	String Value = "";
-	String VarName = "";
 	String NewTag = "";
 	String TheDataType = "";
 	String Nest = "";
 	String Parent = "";
 	String ContentFor = "";
-	String OldDataType = "";
+//	String OldDataType = "";
 
 	if (StartsWith(Action, "<-"))
 	{

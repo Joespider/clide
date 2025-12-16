@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.69"
+SupportV="0.1.70"
 Lang=Rust
 LangExt=".rs"
 ColorNum=1
@@ -462,6 +462,15 @@ UseRust()
 				${TemplateCode} 2> /dev/null | grep Version | sed "s/Version//g"
 			else
 				echo "no ${TemplateCode##*/} found"
+			fi
+			;;
+		#shell code version
+		ShellVersion)
+			if [ -f "${ShellCodeSrc}" ]; then
+				echo -e "\e[1;4${ColorNum}m[${Lang} Shell]\e[0m"
+				echo -n "shell : "
+				UseRust "runCode" "${ShellCodeSrc}" "shell" "--version"
+				echo ""
 			fi
 			;;
 		CplVersion)

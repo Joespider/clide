@@ -3,7 +3,7 @@ use std::process::Command;
 
 fn the_version() -> String
 {
-	return "0.0.99".to_string();
+	return "0.1.0".to_string();
 }
 
 fn get_os() -> String
@@ -167,7 +167,7 @@ fn starts_with(the_string: &str, start: &str) -> bool
 		return false;
 	}
 }
-/*
+
 fn ends_with(str: &str, end: &str) -> bool
 {
 	if str.ends_with(end)
@@ -179,7 +179,7 @@ fn ends_with(str: &str, end: &str) -> bool
 		return false;
 	}
 }	
-*/
+
 fn raw_input(message: &str) -> String
 {
 	use std::io::{stdin,stdout,Write};
@@ -358,17 +358,127 @@ fn banner()
 	println!("Type \"help\" for more information.");
 }
 
+fn the_vect_and_array(name: &str, the_data_type: &str, new_vector_or_array: &str, action: &str, the_value: &str) -> String
+{
+	let mut new_name = String::from(name);
+	let mut the_return = String::from("");
+	let mut new_data_type = String::from(the_data_type);
+	if new_vector_or_array == "vector"
+	{
+		if action == "variable"
+		{
+			if the_value != ""
+			{
+				the_return.push_str("std::vector<");
+				the_return.push_str(&new_data_type);
+				the_return.push_str("> ");
+				the_return.push_str(&new_name);
+				the_return.push_str(" = ");
+				the_return.push_str(the_value);
+			}
+			else
+			{
+				the_return.push_str("std::vector<");
+				the_return.push_str(&new_data_type);
+				the_return.push_str("> ");
+				the_return.push_str(&new_name);
+			}
+		}
+		else
+		{
+			if !is_in(&new_name,"[") && !is_in(&new_name,"]")
+			{
+				the_return.push_str(&new_name);
+				the_return.push_str(".push_back(");
+				the_return.push_str(the_value);
+				the_return.push_str(")");
+			}
+		}
+	}
+	else if new_vector_or_array == "array"
+	{
+		let mut plc = String::from("");
+
+		if action == "variable"
+		{
+			if is_in(&new_data_type,"[") && ends_with(&new_data_type,"]")
+			{
+				plc = after_split(&new_data_type,"[");
+				plc = before_split(&plc,"]");
+				new_data_type = before_split(&new_data_type,"[");
+			}
+			new_data_type = data_type(&new_data_type,false);
+			if the_value != ""
+			{
+				the_return.push_str(&new_data_type);
+				the_return.push_str(" ");
+				the_return.push_str(&new_name);
+				the_return.push_str("[");
+				the_return.push_str(&plc);
+				the_return.push_str("] = ");
+				the_return.push_str(the_value);
+			}
+			else
+			{
+				the_return.push_str(&new_data_type);
+				the_return.push_str(" ");
+				the_return.push_str(&new_name);
+				the_return.push_str("[");
+				the_return.push_str(&plc);
+				the_return.push_str("]");
+			}
+		}
+		else
+		{
+			if is_in(&new_name,"[") && ends_with(&new_name,"]")
+			{
+				plc = after_split(&new_name,"[");
+				plc = before_split(&plc,"]");
+				new_name = String::from(&before_split(&new_name,"["));
+			}
+
+			if the_value != ""
+			{
+				the_return.push_str(&new_name);
+				the_return.push_str("[");
+				the_return.push_str(&plc);
+				the_return.push_str("] = ");
+				the_return.push_str(the_value);
+			}
+			else
+			{
+				the_return.push_str(&new_name);
+				the_return.push_str("[");
+				the_return.push_str(&plc);
+				the_return.push_str("]");
+			}
+		}
+	}
+
+	return the_return.to_string();
+}
+
 fn translate_tag(input: &str) -> String
 {
 	let mut the_return = String::new();
 	let mut action = String::from(input);
 	let mut value = String::new();
-//	let mut the_var_name = String::new();
 	let mut new_tag = String::new();
 	let mut the_nest = String::new();
+	let mut parent = "";
 	let mut content_for = "";
 
-	if starts_with(&action, "+-")
+	if starts_with(&action, "<-")
+	{
+		action = after_split(&action,"-");
+		parent = "parent-";
+	}
+	else if starts_with(&action, "<<")
+	{
+		action = after_split(&action,"<");
+		parent = "parent-";
+	}
+	else if starts_with(&action, "+-")
 	{
 		action = after_split(&action,"-");
 		content_for = "logic-";
@@ -403,6 +513,7 @@ fn translate_tag(input: &str) -> String
 		new_tag.push_str(&action);
 		value.push_str("logic-condition:");
 		value.push_str(&tmp_value);
+		the_return.push_str(parent);
 		the_return.push_str(content_for);
 		the_return.push_str(&the_nest);
 		the_return.push_str(&new_tag);
@@ -413,6 +524,7 @@ fn translate_tag(input: &str) -> String
 	{
 		new_tag.push_str("logic:");
 		new_tag.push_str(&action);
+		the_return.push_str(parent);
 		the_return.push_str(&content_for);
 		the_return.push_str(&the_nest);
 		the_return.push_str(&new_tag);
@@ -425,6 +537,7 @@ fn translate_tag(input: &str) -> String
 		new_tag.push_str(&action);
 		value.push_str("loop-condition:");
 		value.push_str(&tmp_value);
+		the_return.push_str(parent);
 		the_return.push_str(&content_for);
 		the_return.push_str(&the_nest);
 		the_return.push_str(&new_tag);
@@ -477,6 +590,7 @@ fn translate_tag(input: &str) -> String
 			value = after_split(&action,":");
 			action = the_data_type;
 
+			the_return.push_str(parent);
 			the_return.push_str(&content_for);
 			the_return.push_str(&the_nest.to_string());
 			the_return.push_str("stmt:method-");
@@ -501,6 +615,7 @@ fn translate_tag(input: &str) -> String
 
 			if value != ""
 			{
+				the_return.push_str(parent);
 				the_return.push_str(&content_for);
 				the_return.push_str(&the_nest.to_string());
 				the_return.push_str("method:(");
@@ -512,6 +627,7 @@ fn translate_tag(input: &str) -> String
 			}
 			else
 			{
+				the_return.push_str(parent);
 				the_return.push_str(&content_for);
 				the_return.push_str(&the_nest.to_string());
 				the_return.push_str("method:(");
@@ -551,11 +667,11 @@ fn translate_tag(input: &str) -> String
 				action = after_split(&action.to_owned(),")");
 			}
 
+			the_return.push_str(parent);
 			the_return.push_str(content_for);
 			the_return.push_str("var:(");
 			the_return.push_str(&the_data_type);
 			the_return.push_str(")");
-//			the_return.push_str(&tmp_action);
 			the_return.push_str(&action);
 			the_return.push_str("= ");
 
@@ -601,8 +717,116 @@ fn translate_tag(input: &str) -> String
 			the_return.push_str("var:(");
 			the_return.push_str(&the_data_type);
 			the_return.push_str(")");
-//			the_return.push_str(&tmp_action);
 			the_return.push_str(&action);
+		}
+	}
+
+
+	//This is an example of handling vecotors and arrays
+	//	<type>name:value
+	//
+	//if value is marked a method, this a vector
+	//	<int>list:[getInt]:()numbers
+	//if value is marked a static, this is an array
+	//	<int>list:()one,()two
+	//
+	//to assign a value
+	//	<list[0]>:4
+	//to get from value, seeing there is an index
+	//	<list[0]>:
+	//to append vectors
+	//	<list>:4
+
+	//vectors or arrays
+	else if starts_with(&action, "<") && is_in(&action,">") && !starts_with(&action, "<<") && !starts_with(&action, "<-")
+	{
+		let tmp_action;
+		let mut vector_or_array = String::from("");
+		let mut the_data_type = after_split(&before_split(&action,">"),"<");
+		action = after_split(&action,">");
+
+		//replacing data type to represent the variable
+		if starts_with(&action,":")
+		{
+	//		let mut the_data_type = String::from("");
+			tmp_action = [the_data_type,action].concat();
+			the_data_type = "".to_string();
+			action = tmp_action.to_string();
+		}
+
+		if is_in(&action,":")
+		{
+			value = after_split(&action,":");
+			action = before_split(&action,":");
+
+			if ends_with(&action,"]") && &value != ""
+			{
+				vector_or_array = "array:".to_string();
+			}
+
+			if vector_or_array == ""
+			{
+				if starts_with(&value,"[")
+				{
+					vector_or_array = "vector:".to_string();
+				}
+				else
+				{
+					vector_or_array = "array:".to_string();
+				}
+			}
+		}
+
+		if &the_data_type != ""
+		{
+			if ends_with(&the_data_type,"]")
+			{
+				vector_or_array = "array:".to_string();
+			}
+			else
+			{
+				vector_or_array = "vector:".to_string();
+			}
+
+			if value != ""
+			{
+				the_return.push_str("var:<");
+				the_return.push_str(&vector_or_array);
+				the_return.push_str(&the_data_type);
+				the_return.push_str(">");
+				the_return.push_str(&action);
+				the_return.push_str(":");
+				the_return.push_str(&value);
+			}
+			else
+			{
+				the_return.push_str("var:<");
+				the_return.push_str(&vector_or_array);
+				the_return.push_str(&the_data_type);
+				the_return.push_str(">");
+				the_return.push_str(&action);
+			}
+		}
+		else
+		{
+			if value != ""
+			{
+				the_return.push_str("stmt:<");
+				the_return.push_str(&vector_or_array);
+				the_return.push_str(&the_data_type);
+				the_return.push_str(">");
+				the_return.push_str(&action);
+				the_return.push_str(":");
+				the_return.push_str(&value);
+			}
+			else
+			{
+				the_return.push_str("stmt:<");
+				the_return.push_str(&vector_or_array);
+				the_return.push_str(&the_data_type);
+				the_return.push_str(">");
+				the_return.push_str(&action);
+			}
 		}
 	}
 	else if action == "el"
@@ -2060,7 +2284,49 @@ fn gen_statements(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Str
 		}
 	}
 
-	if the_name == "method"
+	//Pull Vector or Array Type
+	if starts_with(the_kind_type,"<") && is_in(the_kind_type,">")
+	{
+		//This is just so I can compile...this is not needed
+		statement_content.push_str(&the_vect_and_array("", "", "", "", ""));
+/*
+		String VorA = "";
+		String VarType = "";
+		String TheValue = "";
+
+		//grab data type
+		VarType = BeforeSplit(TheKindType,">");
+		VarType = AfterSplit(VarType,"<");
+		VarType = AfterSplit(VarType,':');
+		VarType = DataType(VarType,false);
+
+		//vector or array
+		VorA = BeforeSplit(TheKindType,':');
+		VorA = AfterSplit(VorA,'<');
+
+		TheName = VorA;
+
+		//name of array
+		Name = AfterSplit(TheKindType,'>');
+
+		if (IsIn(Name,":"))
+		{
+			TheValue = AfterSplit(Name,':');
+			Name = BeforeSplit(Name,':');
+			Complete = VectAndArray(Name, VarType, VorA, "statement",GenCode("",TranslateTag(TheValue)))+StatementContent;
+		}
+		else
+		{
+			Complete = VectAndArray(Name, VarType, VorA, "statement","")+StatementContent;
+		}
+		//pull value
+		TheKindType = "";
+		TheName = "";
+		Name = "";
+		VarType = "";
+*/
+	}
+	else if the_name == "method"
 	{
 		the_complete.push_str(&name);
 		the_complete.push_str("(");
