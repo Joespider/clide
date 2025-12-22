@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.1.4";
+String Version = "0.1.9";
 
 String getOS();
 void Help(String Type);
@@ -40,10 +40,11 @@ String replaceAll(String message, String sBy, String jBy);
 void banner();
 String VectAndArray(String Name, String DataType, String VectorOrArray, String Action, String TheValue);
 String TranslateTag(String Input);
+String HandleTabs(String CalledBy, String Tabs, String Content);
 bool IsDataType(String Type);
 String DataType(String Type, bool getNull);
 String ReplaceTag(String Content, String Tag, bool All);
-String Conditions(String input,String CalledBy);
+String Conditions(String input);
 String Parameters(String input,String CalledBy);
 String Struct(String TheName, String Content);
 String Class(String TheName, String Content);
@@ -100,7 +101,7 @@ void Help(String Type)
 //		Example("[String-Message]help:(String)one,(int)two");
 //		Example("[String-Type]FoodAndDrink:(String)Food if:Food(-ne)\"\" >if:[IsDrink]:drink(-eq)true +->tab +->tab +->tab +->()Type=\"Drink\" +->el +->>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Drink]:Food o->>el +->else-if:[IsFood]:Food(-eq)true +->tab +->tab +->tab +->()Type=\"Food\" +->el >>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Eat]:Food o->>el >else +->tab +->tab +->tab +->()Eat= +->(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el else +-tab +-tab +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el");
 //		Example("[String-Type]FoodAndDrink:(String)Food if:Food(-ne)\"\" >if:[IsDrink]:drink(-eq)true +->tab +->tab +->tab +->()Type=\"Drink\" +->el +->>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Drink]:Food o->>el >>if:mood(-ne)\"happy\" >>>do-while:mood(-eq)\"unhappy\" >>>>tab >>>>tab >>>>tab >>>>tab >>>>tab >>>>[ChearUp]:mood >>>>el +->else-if:[IsFood]:Food(-eq)true +->tab +->tab +->tab +->()Type=\"Food\" +->el >>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Eat]:Food o->>el >>if:mood(-ne)\"happy\" >>>do-while:mood(-eq)\"unhappy\" >>>>tab >>>>tab >>>>tab >>>>tab >>>>tab >>>>[ChearUp]:mood >>>>el >else +->tab +->tab +->tab +->(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el else +-tab +-tab +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el");
-		Example("[String-Type]FoodAndDrink:(String)Food []-if:Food(-ne)\"\" +->if:[IsDrink]:drink(-eq)true +-tab +-tab +-tab +-()Type=\"Drink\" +-el +->>while:[IsNotEmpty]:Food o-tab o-tab o-tab o-tab o-[Drink]:Food o-el o->>>if:mood(-ne)\"happy\" +-tab +-tab +-tab +-tab +-tab +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->>>>do-while:mood(-eq)\"unhappy\" o-tab o-tab o-tab o-tab o-tab o-tab o-[ChearUp]:mood o-el o-tab o-tab o-tab o-tab o-tab o-tab o-[print]:\"I(-spc)am(-spc)\"+mood o-el <<<<<-+-tab <<<<<-+-tab <<<<<-+-tab <<<<<-+-tab <<<<<-+-tab <<<<<-+-[print]:\"I(-spc)am(-spc)\"+mood+\"(-spc)now\" <<<<<-+-el +->else-if:[IsFood]:Food(-eq)true +-tab +-tab +-tab +-()Type=\"Food\" +-el +->>while:[IsNotEmpty]:Food o-tab o-tab o-tab o-tab o-[Eat]:Food o-el o->>if:mood(-ne)\"happy\" +-tab +-tab +-tab +-tab +-tab +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->>>do-while:mood(-eq)\"unhappy\" o-tab o-tab o-tab o-tab o-tab o-tab o-[ChearUp]:mood o-el o-tab o-tab otab o-tab o-tab o-tab o-tab o-[print]:\"I(-spc)am(-spc)\"+mood o-el <<<<<-+-tab <<<<<-+-tab <<<<<-+-tab <<<<<-+-tab <<<<<-+-tab <<<<<-+-[print]:\"I(-spc)am(-spc)\"+mood+\"(-spc)now\" <<<<<-+-el +->else +-tab +-tab +-tab +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el []-else +-tab +-tab +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el []-nl []-tab []-[print]:\"It(-spc)works!!!\" []-el");
+		Example("[String-Type]FoodAndDrink:(String)Food []-if:Food(-ne)\"\" +->if:[IsDrink]:drink(-eq)true +-tab +-tab +-tab +-()Type=\"Drink\" +-el +->>if:[IsNotEmpty]:Food +-tab +-tab +-tab +-tab +-[Drink]:Food +-el +->>>if:mood(-ne)\"happy\" +-tab +-tab +-tab +-tab +-tab +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->>>>if:mood(-eq)\"unhappy\" +-tab +-tab +-tab +-tab +-tab +-tab +-[ChearUp]:mood +-el +-tab +-tab +-tab +-tab +-tab +-tab +-[print]:\"I(-spc)am(-spc)\"+mood +-el <<<<-+-tab <<<<-+-tab <<<<-+-tab <<<<-+-tab <<<<-+-tab <<<<-+-[ImHappy]: <<<<-+-el <<<-+-tab <<<-+-tab <<<-+-tab <<<-+-tab <<<-+-[Refill]: <<<-+-el <<-+-tab <<-+-tab <<-+-tab <<-+-[Complete]: <<-+-el <<-+-tab <<-+-tab <<-+-tab <<-+-[NewLine]: <<-+-el +->else-if:[IsFood]:Food(-eq)true +-tab +-tab +-tab +-()Type=\"Food\" +-el +->>while:[IsNotEmpty]:Food o-tab o-tab o-tab o-tab o-[Eat]:Food o-el o->>if:mood(-ne)\"happy\" +-tab +-tab +-tab +-tab +-tab +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->>>do-while:mood(-eq)\"unhappy\" o-tab o-tab o-tab o-tab o-tab o-tab o-[ChearUp]:mood o-el o-tab o-tab o-tab o-tab o-tab o-tab o-[print]:\"I(-spc)am(-spc)\"+mood o-el <<<<-+-tab <<<<-+-tab <<<<-+-tab <<<<-+-tab <<<<-+-tab <<<<-+-[print]:\"I(-spc)am(-spc)\"+mood+\"(-spc)now\" <<<<-+-el +->else +-tab +-tab +-tab +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el []-else +-tab +-tab +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el []-nl []-tab []-[print]:\"It(-spc)works!!!\" []-el");
 		Example("[]clock []-tab []-(int)time:[start]: []-el []-nl []-if:here +-tab +-tab +-[stop]: +-el []-nl []-tab []-[begin]: []-el []-nl []-if: +-tab +-tab +-[end]: +-el []-else +-tab +-tab +-[reset]: +-el []-for: o-tab o-tab o-[count]: o-el");
 	}
 	else if (Type == "loop")
@@ -506,31 +507,37 @@ String TranslateTag(String Input)
 	String ContentFor = "";
 //	String OldDataType = "";
 
+	//content for parent loops/logic
 	if (StartsWith(Action, "<-"))
 	{
 		Action = AfterSplit(Action,'-');
 		Parent = "parent-";
 	}
+	//content for future parent loops/logic
 	else if (StartsWith(Action, "<<"))
 	{
 		Action = AfterSplit(Action,'<');
 		Parent = "parent-";
 	}
+	//content for logic
 	else if (StartsWith(Action, "+-"))
 	{
 		Action = AfterSplit(Action,'-');
 		ContentFor = "logic-";
 	}
+	//content for loops
 	else if (StartsWith(Action, "o-"))
 	{
 		Action = AfterSplit(Action,'-');
 		ContentFor = "loop-";
 	}
+	//content for methods
 	else if (StartsWith(Action, "[]-"))
 	{
 		Action = AfterSplit(Action,'-');
 		ContentFor = "method-";
 	}
+	//content for classes
 	else if (StartsWith(Action, "{}-"))
 	{
 		Action = AfterSplit(Action,'-');
@@ -544,6 +551,7 @@ String TranslateTag(String Input)
 		Nest = "nest-"+Nest;
 	}
 
+	//convert if, and else-if, to the old tags
 	if ((StartsWith(Action, "if:")) || (StartsWith(Action, "else-if:")))
 	{
 		Value = AfterSplit(Action,':');
@@ -552,11 +560,13 @@ String TranslateTag(String Input)
 		Value = "logic-condition:"+Value;
 		TheReturn = Parent+ContentFor+Nest+NewTag+" "+Value;
 	}
+	//convert else to the old tags
 	else if (Action == "else")
 	{
 		NewTag = "logic:"+Action;
 		TheReturn = Parent+ContentFor+Nest+NewTag;
 	}
+	//convert while, for, and do-while, to the old tags
 	else if ((StartsWith(Action, "while:")) || (StartsWith(Action, "for:")) || (StartsWith(Action, "do-while:")))
 	{
 		Value = AfterSplit(Action,':');
@@ -741,22 +751,22 @@ String TranslateTag(String Input)
 
 			if (Value != "")
 			{
-				TheReturn = "var:<"+VectorOrArray+TheDataType+">"+Action+":"+Value;
+				TheReturn = Parent+ContentFor+"var:<"+VectorOrArray+TheDataType+">"+Action+":"+Value;
 			}
 			else
 			{
-				TheReturn = "var:<"+VectorOrArray+TheDataType+">"+Action;
+				TheReturn = Parent+ContentFor+"var:<"+VectorOrArray+TheDataType+">"+Action;
 			}
 		}
 		else
 		{
 			if (Value != "")
 			{
-				TheReturn = "stmt:<"+VectorOrArray+TheDataType+">"+Action+":"+Value;
+				TheReturn = Parent+ContentFor+"stmt:<"+VectorOrArray+TheDataType+">"+Action+":"+Value;
 			}
 			else
 			{
-				TheReturn = "stmt:<"+VectorOrArray+TheDataType+">"+Action;
+				TheReturn = Parent+ContentFor+"stmt:<"+VectorOrArray+TheDataType+">"+Action;
 			}
 		}
 	}
@@ -785,6 +795,35 @@ String TranslateTag(String Input)
 	}
 
 	return TheReturn;
+}
+
+String HandleTabs(String CalledBy, String Tabs, String Content)
+{
+	String NewTabs = "";
+//	if ((CalledBy == "class") || (CalledBy == "method") || (CalledBy == "logic") || (CalledBy == "loop"))
+//	{
+	if ((Content != "stmt:endline") && (Content != "stmt:newline"))
+	{
+		if (StartsWith(Content,"stmt:") || StartsWith(Content,"var:"))
+		{
+
+			std::vector<String> AllTabs = split(Tabs,'\t');
+			int lp = 0;
+			int end = len(AllTabs);
+			while (lp != end)
+			{
+				NewTabs = NewTabs +"stmt:tab ";
+				lp++;
+			}
+		}
+	}
+//	}
+			if (IsIn(Content,"It(-spc)works!!!"))
+			{
+				print(NewTabs+Content);
+			}
+
+	return NewTabs;
 }
 
 String DataType(String Type, bool getNull)
@@ -836,7 +875,7 @@ String DataType(String Type, bool getNull)
 }
 
 //condition:
-String Conditions(String input,String CalledBy)
+String Conditions(String input)
 {
 	String Condit = AfterSplit(input,':');
 
@@ -853,6 +892,16 @@ String Conditions(String input,String CalledBy)
 	if (IsIn(Condit,"(-lt)"))
 	{
 		Condit = replaceAll(Condit, "(-lt)"," < ");
+	}
+
+	if (IsIn(Condit,"(-ge)"))
+	{
+		Condit = replaceAll(Condit, "(-ge)"," >= ");
+	}
+
+	if (IsIn(Condit,"(-gt)"))
+	{
+		Condit = replaceAll(Condit, "(-gt)"," > ");
 	}
 
 	if (IsIn(Condit,"(-ne)"))
@@ -915,20 +964,6 @@ String Conditions(String input,String CalledBy)
 		Condit = "("+Condit+")";
 	}
 
-/*
-	if (CalledBy == "class")
-	{
-		print(Condit);
-	}
-	else if (CalledBy == "method")
-	{
-		print(Condit);
-	}
-	else if ((CalledBy == "loop") || (CalledBy == "logic"))
-	{
-		print(Condit);
-	}
-*/
 	//convert
 	return Condit;
 }
@@ -1082,6 +1117,7 @@ String Method(String Tabs, String Name, String Content)
 	String OtherContent = "";
 	String NewContent = "";
 	String Process = "";
+	String NewTabs = "";
 
 	//method:(<type>)<name>
 	if ((StartsWith(Name,"(")) && (IsIn(Name,")")))
@@ -1141,7 +1177,6 @@ String Method(String Tabs, String Name, String Content)
 			if ((StartsWith(Content, "method-")) && (IsIn(Content, " method-")))
 			{
 				std::vector<String> all = split(Content," method-");
-				bool noMore = false;
 				int lp = 0;
 				int end = len(all);
 				while (lp != end)
@@ -1211,6 +1246,14 @@ String Method(String Tabs, String Name, String Content)
 			}
 
 			Corrected = ReplaceTag(OtherContent, "method-",false);
+			NewTabs = HandleTabs("method",Tabs+"\t",Corrected);
+			if (NewTabs != "")
+			{
+				//Generate the loop content
+				MethodContent = MethodContent + GenCode(Tabs+"\t",NewTabs);
+			}
+
+			//Generate the loop content
 			MethodContent = MethodContent + GenCode(Tabs+"\t",Corrected);
 			Content = NewContent;
 
@@ -1264,6 +1307,7 @@ String Loop(String Tabs, String TheKindType, String Content)
 	print("");
 */
 	bool Last = false;
+	String NewTabs = "";
 	String Complete = "";
 	String RootTag = "";
 	String TheCondition = "";
@@ -1297,7 +1341,7 @@ String Loop(String Tabs, String TheKindType, String Content)
 			{
 				TheCondition = Content;
 			}
-			TheCondition = Conditions(TheCondition,TheKindType);
+			TheCondition = Conditions(TheCondition);
 		}
 
 		//nest-<type> <other content>
@@ -1335,8 +1379,10 @@ String Loop(String Tabs, String TheKindType, String Content)
 				}
 				lp++;
 			}
+			NewTabs = HandleTabs("loop",Tabs+"\t",OtherContent);
+
 			//Generate the loop content
-			LoopContent = LoopContent + GenCode(Tabs+"\t",OtherContent);
+			LoopContent = LoopContent + GenCode(Tabs+"\t",NewTabs+OtherContent);
 			//The remaning content gets processed
 			Content = NewContent;
 			//reset old and new content
@@ -1372,42 +1418,6 @@ String Loop(String Tabs, String TheKindType, String Content)
 					if (lp == 0)
 					{
 						OtherContent = cmds[lp];
-						if (IsIn(OtherContent," parent-"))
-						{
-							//examine each tag
-							std::vector<String> parent = split(OtherContent," parent-");
-							OtherContent = "";
-							NewContent = "";
-							int pEnd = len(parent);
-							int pLp = 0;
-							while (pLp != pEnd)
-							{
-								if ((pLp == 0) || (StartsWith(parent[pLp],"<-")) || (StartsWith(parent[pLp],"<<")))
-								{
-									if (OtherContent == "")
-									{
-										OtherContent = parent[pLp];
-									}
-									else
-									{
-										OtherContent = OtherContent + " " + TranslateTag(parent[pLp]);
-									}
-								}
-								else
-								{
-									if (ParentContent == "")
-									{
-										ParentContent = TranslateTag(parent[pLp]);
-									}
-									else
-									{
-										ParentContent = ParentContent + " " + TranslateTag(parent[pLp]);
-									}
-								}
-								pLp++;
-							}
-							ParentContent = ReplaceTag(ParentContent, "logic-",false);
-						}
 					}
 					else
 					{
@@ -1476,8 +1486,10 @@ String Loop(String Tabs, String TheKindType, String Content)
 					lp++;
 				}
 
+				NewTabs = HandleTabs("loop",Tabs+"\t",OtherContent);
+
 				//processes all the statements before a loop/logic
-				LoopContent = LoopContent + GenCode(Tabs+"\t",OtherContent);
+				LoopContent = LoopContent + GenCode(Tabs+"\t",NewTabs+OtherContent);
 
 				//Lets group the nested tages one more time...I am not sure how to avoide this being done again
 				if (StartsWith(NewContent, "nest-"))
@@ -1500,8 +1512,10 @@ String Loop(String Tabs, String TheKindType, String Content)
 								{
 									OtherContent = AfterSplit(OtherContent,'-');
 								}
+								NewTabs = HandleTabs("loop",Tabs+"\t",OtherContent);
+
 								//process loop/logic
-								LoopContent = LoopContent + GenCode(Tabs+"\t",OtherContent);
+								LoopContent = LoopContent + GenCode(Tabs+"\t",NewTabs+OtherContent);
 							}
 							else
 							{
@@ -1522,8 +1536,11 @@ String Loop(String Tabs, String TheKindType, String Content)
 					{
 						NewContent = AfterSplit(NewContent,'-');
 					}
+
+					NewTabs = HandleTabs("loop",Tabs+"\t",NewContent);
+
 					//process the remaining nest-loop/logic
-					LoopContent = LoopContent + GenCode(Tabs+"\t",NewContent);
+					LoopContent = LoopContent + GenCode(Tabs+"\t",NewTabs+NewContent);
 				}
 			}
 			//just process as is
@@ -1533,7 +1550,6 @@ String Loop(String Tabs, String TheKindType, String Content)
 				{
 					//examine each tag
 					std::vector<String> parent = split(OtherContent," parent-");
-					OtherContent = "";
 					OtherContent = "";
 					int pEnd = len(parent);
 					int pLp = 0;
@@ -1563,16 +1579,20 @@ String Loop(String Tabs, String TheKindType, String Content)
 						}
 						pLp++;
 					}
-					ParentContent = ReplaceTag(ParentContent, "logic-",false);
+					ParentContent = ReplaceTag(ParentContent, "loop-",false);
 				}
+				NewTabs = HandleTabs("loop",Tabs+"\t",OtherContent);
 
-				LoopContent = LoopContent + GenCode(Tabs+"\t",OtherContent);
+				LoopContent = LoopContent + GenCode(Tabs+"\t",NewTabs+OtherContent);
 			}
 
 			//process parent content
 			if (ParentContent != "")
 			{
-				LoopContent = LoopContent + GenCode(Tabs+"\t",ParentContent);
+				NewTabs = HandleTabs("loop",Tabs+"\t",ParentContent);
+
+				//process the remaining nest-loop/logic
+				LoopContent = LoopContent + GenCode(Tabs+"\t",NewTabs+ParentContent);
 				ParentContent = "";
 			}
 
@@ -1582,7 +1602,10 @@ String Loop(String Tabs, String TheKindType, String Content)
 		else if ((StartsWith(Content, "var:")) || (StartsWith(Content, "stmt:")))
 		{
 //			Content = ReplaceTag(Content, "loop-",true);
-			LoopContent = LoopContent + GenCode(Tabs+"\t",Content);
+			NewTabs = HandleTabs("loop",Tabs+"\t",Content);
+
+			//process the remaining nest-loop/logic
+			LoopContent = LoopContent + GenCode(Tabs+"\t",NewTabs+Content);
 			Content = "";
 		}
 
@@ -1640,6 +1663,8 @@ String Logic(String Tabs, String TheKindType, String Content)
 	String NewContent = "";
 	String OtherContent = "";
 	String ParentContent = "";
+	String NewTabs = "";
+
 
 	if (StartsWith(TheKindType, "logic:"))
 	{
@@ -1648,6 +1673,7 @@ String Logic(String Tabs, String TheKindType, String Content)
 
 	while (Content != "")
 	{
+
 		Content = ReplaceTag(Content, "logic-",false);
 //		Content = ReplaceTag(Content, "logic-",true);
 
@@ -1663,10 +1689,11 @@ String Logic(String Tabs, String TheKindType, String Content)
 			{
 				TheCondition = Content;
 			}
-			TheCondition = Conditions(TheCondition,TheKindType);
+			TheCondition = Conditions(TheCondition);
 		}
 
 		//This part of the code is meant to separate the nested content with the current content
+		//stmt: var: nest-logic nest-loop
 		if ((!StartsWith(Content, "nest-")) && (IsIn(Content," nest-")))
 		{
 			std::vector<String> all = split(Content," nest-");
@@ -1689,8 +1716,11 @@ String Logic(String Tabs, String TheKindType, String Content)
 				lp++;
 			}
 
+			NewTabs = HandleTabs("logic",Tabs+"\t",OtherContent);
+
 			//Process the current content so as to keep from redoing said content
-			LogicContent = LogicContent + GenCode(Tabs+"\t",OtherContent);
+			//stmt: var:
+			LogicContent = LogicContent + GenCode(Tabs+"\t",NewTabs+OtherContent);
 			Content = NewContent;
 			OtherContent = "";
 			NewContent = "";
@@ -1702,6 +1732,8 @@ String Logic(String Tabs, String TheKindType, String Content)
 		}
 
 		//This is to handle nested loops and logic
+		//nest-loop:
+		//nest-logic:
 		else if (StartsWith(Content, "nest-"))
 		{
 			//nest-logic
@@ -1721,43 +1753,9 @@ String Logic(String Tabs, String TheKindType, String Content)
 					{
 						//this tag already contains the nest-logic or nest-loop
 						//this will be processed and the following will be ignored for the next recurrsive cycle
+						//nest-loop:
+						//nest-logic:
 						OtherContent = cmds[lp];
-						if (IsIn(OtherContent," parent-"))
-						{
-							//examine each tag
-							std::vector<String> parent = split(OtherContent," parent-");
-							OtherContent = "";
-							NewContent = "";
-							int pEnd = len(parent);
-							int pLp = 0;
-							while (pLp != pEnd)
-							{
-								if ((pLp == 0) || (StartsWith(parent[pLp],"<-")) || (StartsWith(parent[pLp],"<<")))
-								{
-									if (OtherContent == "")
-									{
-										OtherContent = parent[pLp];
-									}
-									else
-									{
-										OtherContent = OtherContent + " " + TranslateTag(parent[pLp]);
-									}
-								}
-								else
-								{
-									if (ParentContent == "")
-									{
-										ParentContent = TranslateTag(parent[pLp]);
-									}
-									else
-									{
-										ParentContent = ParentContent + " " + TranslateTag(parent[pLp]);
-									}
-								}
-								pLp++;
-							}
-							ParentContent = ReplaceTag(ParentContent, "logic-",false);
-						}
 					}
 					//process later
 					else
@@ -1831,7 +1829,9 @@ String Logic(String Tabs, String TheKindType, String Content)
 				}
 
 				//processes all the statements before a loop/logic
-				LogicContent = LogicContent + GenCode(Tabs+"\t",OtherContent);
+				NewTabs = HandleTabs("logic",Tabs+"\t",OtherContent);
+
+				LogicContent = LogicContent + GenCode(Tabs+"\t",NewTabs+OtherContent);
 
 				//Lets group the nested tages one more time...I am not sure how to avoide this being done again
 				if (StartsWith(NewContent, "nest-"))
@@ -1854,6 +1854,7 @@ String Logic(String Tabs, String TheKindType, String Content)
 								{
 									OtherContent = AfterSplit(OtherContent,'-');
 								}
+
 								//process loop/logic
 								LogicContent = LogicContent + GenCode(Tabs+"\t",OtherContent);
 							}
@@ -1876,8 +1877,11 @@ String Logic(String Tabs, String TheKindType, String Content)
 					{
 						NewContent = AfterSplit(NewContent,'-');
 					}
+
 					//process the remaining nest-loop/logic
-					LogicContent = LogicContent + GenCode(Tabs+"\t",NewContent);
+					NewTabs = HandleTabs("logic",Tabs+"\t",NewContent);
+
+					LogicContent = LogicContent + GenCode(Tabs+"\t",NewTabs+NewContent);
 				}
 			}
 			//just process as is
@@ -1887,7 +1891,6 @@ String Logic(String Tabs, String TheKindType, String Content)
 				{
 					//examine each tag
 					std::vector<String> parent = split(OtherContent," parent-");
-					OtherContent = "";
 					OtherContent = "";
 					int pEnd = len(parent);
 					int pLp = 0;
@@ -1920,13 +1923,19 @@ String Logic(String Tabs, String TheKindType, String Content)
 					ParentContent = ReplaceTag(ParentContent, "logic-",false);
 				}
 
-				LogicContent = LogicContent + GenCode(Tabs+"\t",OtherContent);
+				//process the remaining nest-loop/logic
+				NewTabs = HandleTabs("logic",Tabs+"\t",OtherContent);
+
+				LogicContent = LogicContent + GenCode(Tabs+"\t",NewTabs+OtherContent);
 			}
 
 			//process parent content
 			if (ParentContent != "")
 			{
-				LogicContent = LogicContent + GenCode(Tabs+"\t",ParentContent);
+				//process the remaining nest-loop/logic
+				NewTabs = HandleTabs("logic",Tabs+"\t",ParentContent);
+
+				LogicContent = LogicContent + GenCode(Tabs+"\t",NewTabs+ParentContent);
 				ParentContent = "";
 			}
 
@@ -1935,7 +1944,10 @@ String Logic(String Tabs, String TheKindType, String Content)
 		}
 		else if ((StartsWith(Content, "var:")) || (StartsWith(Content, "stmt:")))
 		{
-			LogicContent = LogicContent + GenCode(Tabs+"\t",Content);
+			//process the remaining nest-loop/logic
+			NewTabs = HandleTabs("logic",Tabs+"\t",Content);
+
+			LogicContent = LogicContent + GenCode(Tabs+"\t",NewTabs+Content);
 			Content = "";
 		}
 		else
@@ -2020,6 +2032,67 @@ String Statements(String Tabs, String TheKindType, String Content)
 	else
 	{
 		TheName = TheKindType;
+	}
+
+	if (IsIn(Content,"stmt:endline "))
+	{
+		String Item = "";
+		String NewTabs = "";
+		std::vector<String> all = split(Content,"stmt:endline ");
+		int end = len(all);
+		int lp = 0;
+		while (lp != end)
+		{
+			if ((!EndsWith(all[lp],"stmt:endline")) && (StartsWith(all[lp],"stmt:tab")))
+			{
+				Item = all[lp]+"stmt:endline";
+				std::vector<String> getTab = split(Content," ");
+				int stop = len(getTab);
+				int plc = 0;
+				while (plc != stop)
+				{
+					if (getTab[plc] == "stmt:tab")
+					{
+						NewTabs = NewTabs + getTab[plc]+" ";
+					}
+					else
+					{
+						break;
+					}
+					plc++;
+				}
+
+			}
+			else if ((!EndsWith(all[lp],"stmt:endline")) && (!StartsWith(all[lp],"stmt:tab")))
+			{
+				if (NewTabs != "")
+				{
+					Item = NewTabs+"stmt:tab "+all[lp]+"stmt:endline";
+				}
+				else
+				{
+					Item = all[lp]+"stmt:endline";
+				}
+			}
+			else if ((EndsWith(all[lp],"stmt:endline")) && (!StartsWith(all[lp],"stmt:tab")))
+			{
+				if (NewTabs != "")
+				{
+					Item = NewTabs+"stmt:tab "+all[lp];
+				}
+				else
+				{
+					Item = all[lp];
+				}
+			}
+			else
+			{
+				Item = all[lp];
+			}
+			StatementContent = StatementContent + GenCode(Tabs,Item);
+			lp++;
+		}
+		Content = "";
 	}
 
 	while (Content != "")

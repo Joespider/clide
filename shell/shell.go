@@ -9,7 +9,7 @@ import (
 	"strings"
 	)
 
-var Version string = "0.1.0"
+var Version string = "0.1.2"
 
 func getOS() string {
 	os := runtime.GOOS
@@ -302,9 +302,19 @@ func TranslateTag(Input string) string {
 	var TheDataType string = ""
 	var Nest string = ""
 	var ContentFor string = ""
+	var Parent string = ""
 //	var OldDataType string = ""
 
-	if StartsWith(Action, "+-") {
+	//content for parent loops/logic
+	if (StartsWith(Action, "<-")) {
+		Action = AfterSplit(Action,"-");
+		Parent = "parent-";
+	//content for future parent loops/logic
+	} else if (StartsWith(Action, "<<")) {
+		Action = AfterSplit(Action,"<");
+		Parent = "parent-";
+	//content for logic
+	} else if StartsWith(Action, "+-") {
 		Action = AfterSplit(Action,"-")
 		ContentFor = "logic-"
 	} else if StartsWith(Action, "o-") {
@@ -329,7 +339,7 @@ func TranslateTag(Input string) string {
 		Action = BeforeSplit(Action,":")
 		NewTag = "logic:"+Action
 		Value = "logic-condition:"+Value
-		TheReturn = ContentFor+Nest+NewTag+" "+Value
+		TheReturn = Parent+ContentFor+Nest+NewTag+" "+Value
 	} else if Action == "else" {
 		NewTag = "logic:"+Action
 		TheReturn = ContentFor+Nest+NewTag
@@ -338,7 +348,7 @@ func TranslateTag(Input string) string {
 		Action = BeforeSplit(Action,":")
 		NewTag = "loop:"+Action
 		Value = "loop-condition:"+Value
-		TheReturn = ContentFor+Nest+NewTag+" "+Value
+		TheReturn = Parent+ContentFor+Nest+NewTag+" "+Value
 	//class
 	} else if StartsWith(Action, "{") && IsIn(Action,"}") {
 		TheDataType = BeforeSplit(Action,"}")
@@ -365,9 +375,9 @@ func TranslateTag(Input string) string {
 			Value = AfterSplit(Action,":")
 			Action = TheDataType
 			if Value != "" {
-				TheReturn = ContentFor+Nest+"stmt:method-"+Action+" params:"+Value
+				TheReturn = Parent+ContentFor+Nest+"stmt:method-"+Action+" params:"+Value
 			} else {
-				TheReturn = ContentFor+Nest+"stmt:method-"+Action
+				TheReturn = Parent+ContentFor+Nest+"stmt:method-"+Action
 			}
 		//is a function
 		} else {
@@ -378,9 +388,9 @@ func TranslateTag(Input string) string {
 			}
 
 			if Value != "" {
-				TheReturn = ContentFor+Nest+"method:("+TheDataType+")"+Action+" params:"+Value
+				TheReturn = Parent+ContentFor+Nest+"method:("+TheDataType+")"+Action+" params:"+Value
 			} else {
-				TheReturn = ContentFor+Nest+"method:("+TheDataType+")"+Action
+				TheReturn = Parent+ContentFor+Nest+"method:("+TheDataType+")"+Action
 			}
 		}
 	//variables
@@ -413,9 +423,9 @@ func TranslateTag(Input string) string {
 			//translate value, if needed
 			Value = TranslateTag(Value)
 //			Value = GenCode("",Value)
-			TheReturn = ContentFor+Nest+"var:("+TheDataType+")"+Action+"= "+Value
+			TheReturn = Parent+ContentFor+Nest+"var:("+TheDataType+")"+Action+"= "+Value
 		} else {
-			TheReturn = ContentFor+Nest+"var:("+TheDataType+")"+Action
+			TheReturn = Parent+ContentFor+Nest+"var:("+TheDataType+")"+Action
 		}
 	//This is an example of handling vecotors and arrays
 	//	<type>name:value
@@ -482,16 +492,16 @@ func TranslateTag(Input string) string {
 			}
 		}
 	} else if Action == "el" {
-		TheReturn = ContentFor+Nest+"stmt:endline"
+		TheReturn = Parent+ContentFor+Nest+"stmt:endline"
 	} else if Action == "nl" {
-		TheReturn = ContentFor+Nest+"stmt:newline"
+		TheReturn = Parent+ContentFor+Nest+"stmt:newline"
 	} else if Action == "tab" {
-		TheReturn = ContentFor+Nest+"stmt:"+Action
+		TheReturn = Parent+ContentFor+Nest+"stmt:"+Action
 	} else {
 		if Value != "" {
-			TheReturn = ContentFor+Nest+Action+":"+Value
+			TheReturn = Parent+ContentFor+Nest+Action+":"+Value
 		} else {
-			TheReturn = ContentFor+Nest+Action
+			TheReturn = Parent+ContentFor+Nest+Action
 		}
 	}
 
@@ -774,26 +784,19 @@ func Method(Tabs string, Name string, Content string) string {
 				Content = cmds[0]
 			}
 
-			if StartsWith(Content, "method-") {
-				var all []string = split(Content," ")
-				var noMore bool = false
+			if StartsWith(Content, "method-") && IsIn(Content, " method-") {
+				var all []string = split(Content," method-")
 				var lp int = 0
 				var end int = len(all)
 				for lp != end {
-					//This processes ONLY method-<content>
-					if StartsWith(all[lp], "method-") && noMore == false {
-						if OtherContent == "" {
-							OtherContent = all[lp]
-						} else {
-							OtherContent = OtherContent+" "+all[lp]
-						}
+					if lp == 0 {
+						OtherContent = all[lp]
 					} else {
 						if NewContent == "" {
-							NewContent = all[lp]
+							NewContent = "method-"+all[lp]
 						} else {
-							NewContent = NewContent+" "+all[lp]
+							NewContent = NewContent+" method-"+all[lp]
 						}
-						noMore = true
 					}
 					lp++
 				}
@@ -879,6 +882,7 @@ func Loop(Tabs string, TheKindType string, Content string) string {
 	var LoopContent string = ""
 	var NewContent string = ""
 	var OtherContent string = ""
+	var ParentContent string = ""
 
 	//loop:<type>
 	if StartsWith(TheKindType, "loop:") {
@@ -1059,10 +1063,43 @@ func Loop(Tabs string, TheKindType string, Content string) string {
 				}
 			//just process as is
 			} else {
+				if IsIn(OtherContent," parent-") {
+					//examine each tag
+					var parent []string = split(OtherContent," parent-")
+					OtherContent = ""
+					var pEnd int = len(parent)
+					var pLp int = 0
+					for pLp != pEnd {
+						if pLp == 0 || StartsWith(parent[pLp],"<-") || StartsWith(parent[pLp],"<<") {
+							if OtherContent == "" {
+								OtherContent = parent[pLp];
+							} else {
+								OtherContent = OtherContent + " " + TranslateTag(parent[pLp])
+							}
+						} else {
+							if ParentContent == "" {
+								ParentContent = TranslateTag(parent[pLp])
+							} else {
+								ParentContent = ParentContent + " " + TranslateTag(parent[pLp])
+							}
+						}
+						pLp++
+					}
+					ParentContent = ReplaceTag(ParentContent, "loop-",false)
+				}
+
 				//This is to handle how Go likes to handle if/else statements...yes, even though this is about loops
 				LoopContent = HandleElse(LoopContent, OtherContent)
 				LoopContent = LoopContent + GenCode(Tabs+"\t",OtherContent)
 			}
+
+			//process parent content
+			if ParentContent != "" {
+				LoopContent = HandleElse(LoopContent, ParentContent)
+				LoopContent = LoopContent + GenCode(Tabs+"\t",ParentContent)
+				ParentContent = ""
+			}
+
 			//clear new content
 			NewContent = ""
 		} else if StartsWith(Content, "var:") || StartsWith(Content, "stmt:") {
@@ -1127,6 +1164,7 @@ func Logic(Tabs string, TheKindType string, Content string) string {
         var LogicContent string = ""
         var NewContent string = ""
         var OtherContent string = ""
+	var ParentContent string = ""
 
         if StartsWith(TheKindType, "logic:") {
 		TheKindType = AfterSplit(TheKindType,":")
@@ -1290,10 +1328,43 @@ func Logic(Tabs string, TheKindType string, Content string) string {
 				}
 			//just process as is
 			} else {
+				if IsIn(OtherContent," parent-") {
+                                        //examine each tag
+					var parent []string = split(OtherContent," parent-")
+                                        OtherContent = ""
+                                        var pEnd int = len(parent)
+                                        var pLp int = 0
+                                        for pLp != pEnd {
+                                                if ((pLp == 0) || (StartsWith(parent[pLp],"<-")) || (StartsWith(parent[pLp],"<<"))) {
+                                                        if (OtherContent == "") {
+								OtherContent = parent[pLp]
+							} else {
+								OtherContent = OtherContent + " " + TranslateTag(parent[pLp])
+							}
+						} else {
+                                                        if ParentContent == "" {
+                                                                ParentContent = TranslateTag(parent[pLp])
+                                                        } else {
+                                                                ParentContent = ParentContent + " " + TranslateTag(parent[pLp])
+                                                        }
+                                                }
+                                                pLp++
+                                        }
+                                        ParentContent = ReplaceTag(ParentContent, "logic-",false)
+                                }
 				LogicContent = HandleElse(LogicContent, OtherContent)
 				//This is to handle how Go likes to handle if/else statements
 				LogicContent = LogicContent + GenCode(Tabs+"\t",OtherContent)
 			}
+
+			//process parent content
+			if ParentContent != "" {
+				LogicContent = HandleElse(LogicContent, ParentContent)
+                                LogicContent = LogicContent + GenCode(Tabs+"\t",ParentContent)
+                                ParentContent = ""
+                        }
+
+
 			//clear new content
 			NewContent = ""
 		} else if StartsWith(Content, "var:") || StartsWith(Content, "stmt:") {

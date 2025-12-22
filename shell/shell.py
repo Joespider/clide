@@ -2,7 +2,7 @@ import os
 import sys
 import platform
 
-Version = "0.0.99"
+Version = "0.1.2"
 
 def getOS():
 	platform.system()
@@ -202,10 +202,11 @@ def VectAndArray(Name, TheDataType, VectorOrArray, Action, TheValue):
 			if TheValue != "":
 				TheReturn = Name+"["+plc+"] = "+TheValue
 			else:
-				if plc != "":
-					TheReturn = Name+"["+plc+"]"
-				else:
-					TheReturn = Name
+				TheReturn = Name+"["+plc+"]"
+#				if plc != "":
+#					TheReturn = Name+"["+plc+"]"
+#				else:
+#					TheReturn = Name
 		else:
 			if IsIn(Name,"[") and EndsWith(Name,"]"):
 				plc = AfterSplit(Name,'[')
@@ -215,10 +216,11 @@ def VectAndArray(Name, TheDataType, VectorOrArray, Action, TheValue):
 			if TheValue != "":
 				TheReturn = Name+"["+plc+"] = "+TheValue
 			else:
-				if plc != "":
-					TheReturn = Name+"["+plc+"]"
-				else:
-					TheReturn = Name
+				TheReturn = Name+"["+plc+"]"
+#				if plc != "":
+#					TheReturn = Name+"["+plc+"]"
+#				else:
+#					TheReturn = Name
 
 	return TheReturn
 
@@ -232,8 +234,17 @@ def TranslateTag(Input):
 	Nest = ""
 	ContentFor = ""
 	OldDataType = ""
+	Parent = ""
 
-	if StartsWith(Action, "+-"):
+	#content for parent loops/logic
+	if StartsWith(Action, "<-"):
+		Action = AfterSplit(Action,"-")
+		Parent = "parent-"
+	#content for future parent loops/logic
+	elif StartsWith(Action, "<<"):
+		Action = AfterSplit(Action,"<")
+		Parent = "parent-"
+	elif StartsWith(Action, "+-"):
 		Action = AfterSplit(Action,"-")
 		ContentFor = "logic-"
 	elif StartsWith(Action, "o-"):
@@ -256,16 +267,16 @@ def TranslateTag(Input):
 		Action = BeforeSplit(Action,":")
 		NewTag = "logic:"+Action
 		Value = "logic-condition:"+Value
-		TheReturn = ContentFor+Nest+NewTag+" "+Value
+		TheReturn = Parent+ContentFor+Nest+NewTag+" "+Value
 	elif Action == "else":
 		NewTag = "logic:"+Action
-		TheReturn = ContentFor+Nest+NewTag
+		TheReturn = Parent+ContentFor+Nest+NewTag
 	elif (StartsWith(Action, "while:")) or (StartsWith(Action, "for:")) or (StartsWith(Action, "do-while:")):
 		Value = AfterSplit(Action,":")
 		Action = BeforeSplit(Action,":")
 		NewTag = "loop:"+Action
 		Value = "loop-condition:"+Value
-		TheReturn = ContentFor+Nest+NewTag+" "+Value
+		TheReturn = Parent+ContentFor+Nest+NewTag+" "+Value
 	#class
 	elif (StartsWith(Action, "{")) and (IsIn(Action,"}")):
 		TheDataType = BeforeSplit(Action,"}")
@@ -288,9 +299,9 @@ def TranslateTag(Input):
 			Value = AfterSplit(Action,":")
 			Action = TheDataType
 			if Value != "":
-				TheReturn = ContentFor+Nest+"stmt:method-"+Action+" params:"+Value
+				TheReturn = Parent+ContentFor+Nest+"stmt:method-"+Action+" params:"+Value
 			else:
-				TheReturn = ContentFor+Nest+"stmt:method-"+Action
+				TheReturn = Parent+ContentFor+Nest+"stmt:method-"+Action
 		#is a function
 		else:
 			TheDataType = DataType(TheDataType,False)
@@ -299,9 +310,9 @@ def TranslateTag(Input):
 				Action = BeforeSplit(Action,":")
 
 			if Value != "":
-				TheReturn = ContentFor+Nest+"method:("+TheDataType+")"+Action+" params:"+Value
+				TheReturn = Parent+ContentFor+Nest+"method:("+TheDataType+")"+Action+" params:"+Value
 			else:
-				TheReturn = ContentFor+Nest+"method:("+TheDataType+")"+Action
+				TheReturn = Parent+ContentFor+Nest+"method:("+TheDataType+")"+Action
 	#variables
 	elif (StartsWith(Action, "(")) and (IsIn(Action,")")):
 		TheDataType = BeforeSplit(Action,")")
@@ -329,9 +340,9 @@ def TranslateTag(Input):
 			#translate value, if needed
 			Value = TranslateTag(Value)
 #			Value = GenCode("",Value)
-			TheReturn = ContentFor+Nest+"var:("+TheDataType+")"+Action+"= "+Value
+			TheReturn = Parent+ContentFor+Nest+"var:("+TheDataType+")"+Action+"= "+Value
 		else:
-			TheReturn = ContentFor+Nest+"var:("+TheDataType+")"+Action
+			TheReturn = Parent+ContentFor+Nest+"var:("+TheDataType+")"+Action
 
 		#This is an example of handling vecotors and arrays
 		#	<type>name:value
@@ -388,26 +399,26 @@ def TranslateTag(Input):
 				TheReturn = "stmt:<"+VectorOrArray+TheDataType+">"+Action
 
 	elif Action == "el":
-		TheReturn = ContentFor+Nest+"stmt:endline"
+		TheReturn = Parent+ContentFor+Nest+"stmt:endline"
 	elif Action == "nl":
-		TheReturn = ContentFor+Nest+"stmt:newline"
+		TheReturn = Parent+ContentFor+Nest+"stmt:newline"
 	elif Action == "tab":
-		TheReturn = ContentFor+Nest+"stmt:"+Action
+		TheReturn = Parent+ContentFor+Nest+"stmt:"+Action
 	else:
 		if Value != "":
-			TheReturn = ContentFor+Nest+Action+":"+Value
+			TheReturn = Parent+ContentFor+Nest+Action+":"+Value
 		else:
-			TheReturn = ContentFor+Nest+Action
+			TheReturn = Parent+ContentFor+Nest+Action
 	return TheReturn
 
 def DataType(Type, getNull):
 	#handle strings
 	if (((Type == "String") or (Type == "string") or (Type == "std::string")) and (getNull == False)):
-		return ""
+		return "String"
 	elif (((Type == "String") or (Type == "string") or (Type == "std::string")) and (getNull == True)):
 		return "\"\""
 	elif (((Type == "boolean") or (Type == "bool")) and (getNull == False)):
-		return ""
+		return "bool"
 	elif ((Type == "boolean") or (Type == "bool")) and (getNull == True):
 		return "False"
 	elif (Type == "false") or (Type == "False"):
@@ -626,24 +637,19 @@ def Method(Tabs, Name, Content):
 				cmds = split(Content," method:")
 				Content = cmds[0]
 
-			if StartsWith(Content, "method-"):
-				all = split(Content," ")
-				noMore = False
+
+			if StartsWith(Content, "method-") and IsIn(Content, " method-"):
+				all = split(Content," method-")
 				lp = 0
 				end = len(all)
 				while lp != end:
-					#This processes ONLY method-<content>
-					if StartsWith(all[lp], "method-") and noMore == False:
-						if OtherContent == "":
-							OtherContent = all[lp]
-						else:
-							OtherContent = OtherContent+" "+all[lp]
+					if lp == 0:
+						OtherContent = all[lp]
 					else:
 						if NewContent == "":
-							NewContent = all[lp]
+							NewContent = "method-"+all[lp]
 						else:
-							NewContent = NewContent+" "+all[lp]
-						noMore = True
+							NewContent = NewContent+" method-"+all[lp]
 					lp = lp + 1
 				CanSplit = False
 			else:
@@ -678,7 +684,8 @@ def Method(Tabs, Name, Content):
 			if ParseContent != "":
 				OtherContent = ParseContent
 
-			MethodContent = MethodContent + GenCode(Tabs+"\t",OtherContent)
+			Corrected = ReplaceTag(OtherContent,"method-", False)
+			MethodContent = MethodContent + GenCode(Tabs+"\t",Corrected)
 			Content = NewContent
 
 			OtherContent = ""
@@ -713,6 +720,7 @@ def Loop(Tabs, TheKindType, Content):
 	LoopContent = ""
 	NewContent = ""
 	OtherContent = ""
+	ParentContent = ""
 
 	#loop:<type>
 	if StartsWith(TheKindType, "loop:"):
@@ -862,7 +870,31 @@ def Loop(Tabs, TheKindType, Content):
 					LoopContent = LoopContent + GenCode(Tabs+"\t",NewContent)
 			#just process as is
 			else:
+				if IsIn(OtherContent," parent-"):
+					#examine each tag
+					parent = split(OtherContent," parent-")
+					OtherContent = ""
+					pEnd = len(parent)
+					pLp = 0
+					while pLp != pEnd:
+						if pLp == 0 or StartsWith(parent[pLp],"<-") or StartsWith(parent[pLp],"<<"):
+							if OtherContent == "":
+								OtherContent = parent[pLp]
+							else:
+								OtherContent = OtherContent + " " + TranslateTag(parent[pLp])
+						else:
+							if ParentContent == "":
+								ParentContent = TranslateTag(parent[pLp])
+							else:
+								ParentContent = ParentContent + " " + TranslateTag(parent[pLp])
+						pLp = pLp + 1
+					ParentContent = ReplaceTag(ParentContent, "loop-", False)
+
 				LoopContent = LoopContent + GenCode(Tabs+"\t",OtherContent)
+			#process parent content
+			if ParentContent != "":
+				LoopContent = LoopContent + GenCode(Tabs+"\t",ParentContent)
+				ParentContent = ""
 			#clear new content
 			NewContent = ""
 
@@ -905,6 +937,7 @@ def Logic(Tabs, TheKindType, Content):
 	LogicContent = ""
 	NewContent = ""
 	OtherContent = ""
+	ParentContent = ""
 
 	if StartsWith(TheKindType, "logic:"):
 		TheKindType = AfterSplit(TheKindType,":")
@@ -1040,7 +1073,32 @@ def Logic(Tabs, TheKindType, Content):
 
 			#just process as is
 			else:
+				if IsIn(OtherContent," parent-"):
+					#examine each tag
+					parent = split(OtherContent," parent-")
+					OtherContent = ""
+					pEnd = len(parent)
+					pLp = 0
+					while pLp != pEnd:
+						if pLp == 0 or StartsWith(parent[pLp],"<-") or StartsWith(parent[pLp],"<<"):
+							if OtherContent == "":
+								OtherContent = parent[pLp]
+							else:
+								OtherContent = OtherContent + " " + TranslateTag(parent[pLp])
+						else:
+							if ParentContent == "":
+								ParentContent = TranslateTag(parent[pLp])
+							else:
+								ParentContent = ParentContent + " " + TranslateTag(parent[pLp])
+						pLp = pLp + 1
+					ParentContent = ReplaceTag(ParentContent, "logic-",False)
 				LogicContent = LogicContent + GenCode(Tabs+"\t",OtherContent)
+
+
+			#process parent content
+			if ParentContent != "":
+				LogicContent = LogicContent + GenCode(Tabs+"\t",ParentContent)
+				ParentContent = ""
 
 			#clear new content
 			NewContent = ""

@@ -12,7 +12,7 @@ import java.io.IOException;
 
 //class name
 public class shell {
-	private static String Version = "0.1.0";
+	private static String Version = "0.1.1";
 	private static String TheKind = "";
 	private static String TheName = "";
 	private static String TheKindType = "";
@@ -530,10 +530,25 @@ public class shell {
 		String NewTag = "";
 		String TheDataType = "";
 		StringBuilder Nest = new StringBuilder("");
+		String Parent = "";
 		String ContentFor = "";
 		String OldDataType = "";
 
-		if (StartsWith(Action, "+-"))
+
+		//content for parent loops/logic
+		if (StartsWith(Action, "<-"))
+		{
+			Action = AfterSplit(Action,"-");
+			Parent = "parent-";
+		}
+		//content for future parent loops/logic
+		else if (StartsWith(Action, "<<"))
+		{
+			Action = AfterSplit(Action,"<");
+			Parent = "parent-";
+		}
+		//content for logic
+		else if (StartsWith(Action, "+-"))
 		{
 			Action = AfterSplit(Action,"-");
 			ContentFor = "logic-";
@@ -568,6 +583,7 @@ public class shell {
 			NewTag = "logic:"+Action;
 			Value = "logic-condition:"+Value;
 
+			TheReturn.append(Parent);
 			TheReturn.append(ContentFor);
 			TheReturn.append(Nest.toString());
 			TheReturn.append(NewTag);
@@ -577,6 +593,7 @@ public class shell {
 		else if (Action.equals("else"))
 		{
 			NewTag = "logic:"+Action;
+			TheReturn.append(Parent);
 			TheReturn.append(ContentFor);
 			TheReturn.append(Nest.toString());
 			TheReturn.append(NewTag);
@@ -588,6 +605,7 @@ public class shell {
 			NewTag = "loop:"+Action;
 			Value = "loop-condition:"+Value;
 
+			TheReturn.append(Parent);
 			TheReturn.append(ContentFor);
 			TheReturn.append(Nest.toString());
 			TheReturn.append(NewTag);
@@ -631,6 +649,7 @@ public class shell {
 				Value = AfterSplit(Action,":");
 				Action = TheDataType;
 
+				TheReturn.append(Parent);
 				TheReturn.append(ContentFor);
 				TheReturn.append(Nest.toString());
 				TheReturn.append("stmt:method-");
@@ -653,6 +672,7 @@ public class shell {
 
 				if (!(Value.equals("")))
 				{
+					TheReturn.append(Parent);
 					TheReturn.append(ContentFor);
 					TheReturn.append(Nest.toString());
 					TheReturn.append("method:(");
@@ -664,6 +684,7 @@ public class shell {
 				}
 				else
 				{
+					TheReturn.append(Parent);
 					TheReturn.append(ContentFor);
 					TheReturn.append(Nest.toString());
 					TheReturn.append("method:(");
@@ -714,6 +735,7 @@ public class shell {
 				//translate value, if needed
 				Value = TranslateTag(Value);
 //				Value = GenCode("",Value);
+				TheReturn.append(Parent);
 				TheReturn.append(ContentFor);
 				TheReturn.append(Nest.toString());
 				TheReturn.append("var:(");
@@ -725,6 +747,7 @@ public class shell {
 			}
 			else
 			{
+				TheReturn.append(Parent);
 				TheReturn.append(ContentFor);
 				TheReturn.append(Nest.toString());
 				TheReturn.append("var:(");
@@ -841,18 +864,21 @@ public class shell {
 		}
 		else if (Action.equals("el"))
 		{
+			TheReturn.append(Parent);
 			TheReturn.append(ContentFor);
 			TheReturn.append(Nest.toString());
 			TheReturn.append("stmt:endline");
 		}
 		else if (Action.equals("nl"))
 		{
+			TheReturn.append(Parent);
 			TheReturn.append(ContentFor);
 			TheReturn.append(Nest.toString());
 			TheReturn.append("stmt:newline");
 		}
 		else if (Action.equals("tab"))
 		{
+			TheReturn.append(Parent);
 			TheReturn.append(ContentFor);
 			TheReturn.append(Nest.toString());
 			TheReturn.append("stmt:");
@@ -862,6 +888,7 @@ public class shell {
 		{
 			if (!(Value.equals("")))
 			{
+				TheReturn.append(Parent);
 				TheReturn.append(ContentFor);
 				TheReturn.append(Nest.toString());
 				TheReturn.append(Action);
@@ -870,6 +897,7 @@ public class shell {
 			}
 			else
 			{
+				TheReturn.append(Parent);
 				TheReturn.append(ContentFor);
 				TheReturn.append(Nest.toString());
 				TheReturn.append(Action);
@@ -1208,39 +1236,30 @@ public class shell {
 					Content = cmds[0];
 				}
 
-				if (StartsWith(Content, "method-"))
+				if ((StartsWith(Content, "method-")) && (IsIn(Content," method-")))
 				{
-					String[] all = split(Content," ");
-					boolean noMore = false;
+					String[] all = split(Content," method-");
 					int lp = 0;
 					int end = len(all);
 					while (lp != end)
 					{
-						//This processes ONLY method-<content>
-						if ((StartsWith(all[lp], "method-")) && (noMore == false))
+						if (lp == 0)
 						{
-							if (OtherContent.equals(""))
-							{
-								OtherContent = new StringBuilder(all[lp]);
-							}
-							else
-							{
-								OtherContent.append(" ");
-								OtherContent.append(all[lp]);
-							}
+
+							OtherContent = new StringBuilder(all[lp]);
 						}
 						else
 						{
 							if (NewContent.equals(""))
 							{
-								NewContent = new StringBuilder(all[lp]);
+								NewContent = new StringBuilder("method-");
+								NewContent.append(all[lp]);
 							}
 							else
 							{
 								NewContent.append(" ");
 								NewContent.append(all[lp]);
 							}
-							noMore = true;
 						}
 						lp++;
 					}
@@ -1415,6 +1434,7 @@ public class shell {
 		StringBuilder LoopContent = new StringBuilder("");
 		StringBuilder OtherContent = new StringBuilder("");
 		StringBuilder NewContent = new StringBuilder("");
+		StringBuilder ParentContent = new StringBuilder("");
 
 		//loop:<type>
 		if (StartsWith(TheKindType, "loop:"))
@@ -1651,8 +1671,54 @@ public class shell {
 				//just process as is
 				else
 				{
+					if (IsIn(OtherContent.toString()," parent-"))
+					{
+						//examine tag
+						String[] parent = split(OtherContent.toString()," parent-");
+						OtherContent = new StringBuilder("");
+						NewContent = new StringBuilder("");
+						int pEnd = len(parent);
+						int pLp = 0;
+						while (pLp != pEnd)
+						{
+							if ((pLp == 0) || (StartsWith(parent[pLp],"<-")) || (StartsWith(parent[pLp],"<<")))
+							{
+								if (OtherContent.toString().equals(""))
+								{
+									OtherContent.append(parent[pLp]);
+								}
+								else
+								{
+									OtherContent.append(" ");
+									OtherContent.append(TranslateTag(parent[pLp]));
+								}
+							}
+							else
+							{
+								if (ParentContent.toString().equals(""))
+								{
+									ParentContent.append(TranslateTag(parent[pLp]));
+								}
+								else
+								{
+									ParentContent.append(" ");
+									ParentContent.append(TranslateTag(parent[pLp]));
+								}
+							}
+							pLp++;
+						}
+						ParentContent = new StringBuilder(ReplaceTag(ParentContent.toString(), "loop-",false));
+					}
 					LoopContent.append(GenCode(Tabs+"\t",OtherContent.toString()));
 				}
+
+				//process parent content
+				if (!ParentContent.toString().equals(""))
+				{
+					LoopContent.append(GenCode(Tabs+"\t",ParentContent.toString()));
+					ParentContent = new StringBuilder("");
+				}
+
 				//clear new content
 				NewContent = new StringBuilder("");
 			}
@@ -1697,7 +1763,7 @@ public class shell {
 			Complete.append("}\n");
 		}
 		//loop:do/while
-		else if (TheKindType.equals("do/while"))
+		else if (TheKindType.equals("do-while"))
 		{
 			Complete.append(Tabs);
 			Complete.append("do\n");
@@ -1743,6 +1809,7 @@ public class shell {
 		StringBuilder LogicContent = new StringBuilder("");
 		StringBuilder OtherContent = new StringBuilder("");
 		StringBuilder NewContent = new StringBuilder("");
+		StringBuilder ParentContent = new StringBuilder("");
 
 		if (StartsWith(TheKindType, "logic:"))
 		{
@@ -1965,8 +2032,54 @@ public class shell {
 				//just process as is
 				else
 				{
+					if (IsIn(OtherContent.toString()," parent-"))
+					{
+						//examine tag
+						String[] parent = split(OtherContent.toString()," parent-");
+						OtherContent = new StringBuilder("");
+						NewContent = new StringBuilder("");
+						int pEnd = len(parent);
+						int pLp = 0;
+						while (pLp != pEnd)
+						{
+							if ((pLp == 0) || (StartsWith(parent[pLp],"<-")) || (StartsWith(parent[pLp],"<<")))
+							{
+								if (OtherContent.toString().equals(""))
+								{
+									OtherContent.append(parent[pLp]);
+								}
+								else
+								{
+									OtherContent.append(" ");
+									OtherContent.append(TranslateTag(parent[pLp]));
+								}
+							}
+							else
+							{
+								if (ParentContent.toString().equals(""))
+								{
+									ParentContent.append(TranslateTag(parent[pLp]));
+								}
+								else
+								{
+									ParentContent.append(" ");
+									ParentContent.append(TranslateTag(parent[pLp]));
+								}
+							}
+							pLp++;
+						}
+						ParentContent = new StringBuilder(ReplaceTag(ParentContent.toString(), "logic-",false));
+					}
 					LogicContent.append(GenCode(Tabs+"\t",OtherContent.toString()));
 				}
+
+				//process parent content
+				if (!ParentContent.toString().equals(""))
+				{
+					LogicContent.append(GenCode(Tabs+"\t",ParentContent.toString()));
+					ParentContent = new StringBuilder("");
+				}
+
 				//clear new content
 				NewContent = new StringBuilder("");
 			}
