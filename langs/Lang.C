@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.2.03"
+SupportV="0.2.04"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
@@ -602,6 +602,14 @@ UseC()
 				${TemplateCode} 2> /dev/null | grep Version | sed "s/Version//g"
 			else
 				echo "no ${TemplateCode##*/} found"
+			fi
+			;;
+		ShellVersion)
+			if [ -f "${ShellCodeSrc}" ]; then
+				echo -e "\e[1;4${ColorNum}m[${Lang} Shell]\e[0m"
+				echo -n "shell : "
+				UseC "runCode" "${ShellCodeSrc}" "--version"
+				echo ""
 			fi
 			;;
 		#compiler version

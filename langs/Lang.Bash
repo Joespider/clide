@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.2.09"
+SupportV="0.2.10"
 Lang=Bash
 LangExt=".sh"
 ColorNum=2
@@ -325,6 +325,8 @@ UseBash()
 			else
 				echo "no ${TemplateCode##*/} found"
 			fi
+			;;
+		ShellVersion)
 			;;
 		CplVersion)
 			echo -e "\e[1;4${ColorNum}m[${Lang} Shell]\e[0m"

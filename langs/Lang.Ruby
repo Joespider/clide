@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.2.01"
+SupportV="0.2.2"
 Lang=Ruby
 LangExt=".rb"
 ColorNum=1
@@ -323,6 +323,15 @@ UseRuby()
 				${LangRun} ${TemplateCode} 2> /dev/null | grep Version | sed "s/Version//g"
 			else
 				echo "no ${TemplateCode##*/} found"
+			fi
+			;;
+		#shell code version
+		ShellVersion)
+			if [ -f "${ShellCodeSrc}" ]; then
+				echo -e "\e[1;4${ColorNum}m[${Lang} Shell]\e[0m"
+				echo -n "shell : "
+				UseRuby "runCode" "${ShellCodeSrc}" "shell" "--version"
+				echo ""
 			fi
 			;;
 		CplVersion)

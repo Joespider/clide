@@ -4,7 +4,7 @@
 #Link Libs: https://gist.github.com/gubatron/32f82053596c24b6bec6
 #both https://avikdas.com/2019/12/16/makefiles-for-c-cpp-projects.html
 
-SupportV="0.2.74"
+SupportV="0.2.75"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -687,6 +687,15 @@ UseC++()
 				${TemplateCode} 2> /dev/null | grep Version | sed "s/Version//g"
 			else
 				echo "no ${TemplateCode##*/} found"
+			fi
+			;;
+		#shell code version
+		ShellVersion)
+			if [ -f "${ShellCodeSrc}" ]; then
+				echo -e "\e[1;4${ColorNum}m[${Lang} Shell]\e[0m"
+				echo -n "shell : "
+				UseC++ "runCode" "${ShellCodeSrc}" "shell" "--version"
+				echo ""
 			fi
 			;;
 		#compiler version

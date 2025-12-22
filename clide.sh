@@ -416,6 +416,39 @@ CodeSupportVersion()
 	fi
 }
 
+ShellCodeVersion()
+{
+	local TheLang=$1
+	local Langs=""
+	if [ ! -z "${TheLang}" ]; then
+		ManageLangs ${TheLang} "ShellVersion"
+	else
+		local text
+		if [ -d ${LangsDir} ]; then
+			for TheLang in ${LangsDir}/Lang.*;
+			do
+				#Select the next langauge
+				if [ -f ${TheLang} ]; then
+					TheLang=${TheLang##*/}
+					text=${TheLang#Lang.*}
+					#Ensure langauge is supported on computer
+					text=$(ManageLangs ${text} "pgLang")
+					if [ ! -z "${text}" ]; then
+						case ${text} in
+							no)
+								;;
+							*)
+								#Pull the compiler/interpreter version using Lang.<language>
+								ManageLangs "${text}" "ShellVersion"
+								;;
+						esac
+					fi
+				fi
+			done
+		fi
+	fi
+}
+
 #get the of the "new" code template...this assumes that "Version: <num>" is found in help page
 CodeTemplateVersion()
 {
@@ -4445,6 +4478,7 @@ Actions()
 					version|v)
 						CodeSupportVersion ${Lang}
 						CodeTemplateVersion ${Lang}
+						ShellCodeVersion ${Lang}
 						CodeVersion ${Lang}
 						DebugVersion ${Lang}
 						;;
@@ -4977,6 +5011,13 @@ CLI()
 				if [ -z "${ThePipe}" ]; then
 					shift
 					CodeTemplateVersion "$@" | grep -v "Template"
+				fi
+				;;
+			#Get version of shell
+			-shv|--shell-version)
+				if [ -z "${ThePipe}" ]; then
+					shift
+					ShellCodeVersion "$@"
 				fi
 				;;
 			#Get version control version from cli

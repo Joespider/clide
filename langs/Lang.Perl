@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.2.06"
+SupportV="0.2.07"
 Lang=Perl
 LangExt=".pl"
 #Color Purple
@@ -314,6 +314,15 @@ UsePerl()
 				${LangRun} ${TemplateCode} 2> /dev/null | grep Version | sed "s/Version//g"
 			else
 				echo "no ${TemplateCode##*/} found"
+			fi
+			;;
+		#shell code version
+		ShellVersion)
+			if [ -f "${ShellCodeSrc}" ]; then
+				echo -e "\e[1;4${ColorNum}m[${Lang} Shell]\e[0m"
+				echo -n "shell : "
+				UsePerl "runCode" "${ShellCodeSrc}" "shell" "--version"
+				echo ""
 			fi
 			;;
 		CplVersion)

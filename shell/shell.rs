@@ -3,7 +3,7 @@ use std::process::Command;
 
 fn the_version() -> String
 {
-	return "0.0.98".to_string();
+	return "0.1.4".to_string();
 }
 
 fn get_os() -> String
@@ -40,12 +40,9 @@ fn the_help(the_type: &str)
 		println!("[<data>]<name>:<parameters>");
 		println!("[<data>-<return>]<name>:<parameters>");
 		println!("");
-//		example("[String]help:(String)one,(int)two");
-//		example("[String-Message]help:(String)one,(int)two");
-//		example("[String-Type]FoodAndDrink:(String)Food if:Food(-ne)\"\" >if:[IsDrink]:drink(-eq)true +->tab +->tab +->tab +->()Type=\"Drink\" +->el +->>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Drink]:Food o->>el +->else-if:[IsFood]:Food(-eq)true +->tab +->tab +->tab +->()Type=\"Food\" +->el >>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Eat]:Food o->>el >else +->tab +->tab +->tab +->()Eat= +->(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el else +-tab +-tab +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el");
-//		example("[String-Type]FoodAndDrink:(String)Food if:Food(-ne)\"\" >if:[IsDrink]:drink(-eq)true +->tab +->tab +->tab +->()Type=\"Drink\" +->el +->>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Drink]:Food o->>el >>if:mood(-ne)\"happy\" >>>do-while:mood(-eq)\"unhappy\" >>>>tab >>>>tab >>>>tab >>>>tab >>>>tab >>>>[ChearUp]:mood >>>>el +->else-if:[IsFood]:Food(-eq)true +->tab +->tab +->tab +->()Type=\"Food\" +->el >>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Eat]:Food o->>el >>if:mood(-ne)\"happy\" >>>do-while:mood(-eq)\"unhappy\" >>>>tab >>>>tab >>>>tab >>>>tab >>>>tab >>>>[ChearUp]:mood >>>>el >else +->tab +->tab +->tab +->(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el else +-tab +-tab +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el");
-		example("[String-Type]FoodAndDrink:(String)Food if:Food(-ne)\"\" >if:[IsDrink]:drink(-eq)true +->tab +->tab +->tab +->()Type=\"Drink\" +->el +->>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Drink]:Food o->>el >>if:mood(-ne)\"happy\" >>>do-while:mood(-eq)\"unhappy\" o->>>>tab o->>>>tab o->>>>tab o->>>>tab o->>>>tab o->>>>[ChearUp]:mood o->>>>el +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->else-if:[IsFood]:Food(-eq)true +->tab +->tab +->tab +->()Type=\"Food\" +->el >>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Eat]:Food o->>el >>if:mood(-ne)\"happy\" >>>do-while:mood(-eq)\"unhappy\" >>>>tab >>>>tab >>>>tab >>>>tab >>>>tab >>>>[ChearUp]:mood >>>>el +-[print]:\"I(-spc)am(-spc)\"+mood +-el >else +->tab +->tab +->tab +->(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el else +-tab +-tab +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el");
-//		example("[String-Type]FoodAndDrink:(String)Food if:Food(-ne)\"\" >if:[IsDrink]:drink(-eq)true >>tab >>tab >>tab >>()Type=\"Food\" >>el >>tab >>tab >>tab >>[Drink]:Food >>el >else-if:[IsFood]:Food(-eq)true +->>tab +->>tab +->>tab +->>()Type=\"Drink\" +->>el >>tab >>tab >>tab >>[Eat]:Food >>el >else +->tab +->tab +->tab +->(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +->el else +-tab +-tab +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el");
+		example("if:true tab (String)drink:[Pop]:one,two el >if:[IsString]:drink(-eq)true >tab >tab >[drink]: >el >>if:drink(-eq)\"coke\" >>else >nl >else-if:[IsInt]:drink(-eq)false >nl >else >>if: >>nl >>else >nl");
+		example("if:true tab (String)drink:[Pop]:one,two el >if:[IsString]:drink(-eq)true >>if:drink(-eq)\"coke\" >>else >nl >else-if:[IsInt]:drink(-eq)false >nl >else >>if: >>nl >>else >nl");
+		example("if:Food(-ne)\"\" +->if:[IsDrink]:drink(-eq)true +-tab +-tab +-()Type=\"Drink\" +-el +->>while:[IsNotEmpty]:Food o-tab o-tab o-tab o-[Drink]:Food o-el o->>>if:mood(-ne)\"happy\" +-tab +-tab +-tab +-tab +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->>>>do-while:mood(-eq)\"unhappy\" o-tab o-tab o-tab o-tab o-tab o-[ChearUp]:mood o-el o-tab o-tab o-tab o-tab o-tab o-[print]:\"I(-spc)am(-spc)\"+mood o-el <<<<<-+-tab <<<<<-+-tab <<<<<-+-tab <<<<<-+-tab <<<<<-+-[print]:\"I(-spc)am(-spc)\"+mood+\"(-spc)now\" <<<<<-+-el +->else-if:[IsFood]:Food(-eq)true +-tab +-tab +-()Type=\"Food\" +-el +->>while:[IsNotEmpty]:Food o-tab o-tab o-tab o-[Eat]:Food o-el o->>if:mood(-ne)\"happy\" +-tab +-tab +-tab +-tab +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->>>do-while:mood(-eq)\"unhappy\" o-tab o-tab o-tab o-tab o-tab o-[ChearUp]:mood o-el o-tab o-tab o-tab o-tab o-tab o-[print]:\"I(-spc)am(-spc)\"+mood o-el <<<<<-+-tab <<<<<-+-tab <<<<<-+-tab <<<<<-+-tab <<<<<-+-[print]:\"I(-spc)am(-spc)\"+mood+\"(-spc)now\" <<<<<-+-el +->else +-tab +-tab +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el");
 	}
 	else if new_the_type == "loop"
 	{
@@ -55,6 +52,14 @@ fn the_help(the_type: &str)
 		println!("for:");
 		println!("do-while:");
 		println!("while");
+		println!("");
+		println!("{{EXAMPLE}}");
+		println!("");
+		example("while:Type(-spc)==(-spc)\"String\"");
+		example("do-while:Type(-eq)\"String\" o-tab o-[work]: o-el");
+		example("while:true >if:[IsString]:drink(-eq)true >tab >tab >[drink]: >el >>if:drink(-eq)\"coke\" >>else >nl >else-if:[IsInt]:drink(-eq)false >nl >else >>if: >>nl >>else >nl");
+		example("while:true >if:[IsString]:drink(-eq)true >>if:drink(-eq)\"coke\" >>else >nl >else-if:[IsInt]:drink(-eq)false >nl >else >>if: >>nl >>else >nl");
+		example("while:Food(-ne)\"\" o->if:[IsDrink]:drink(-eq)true +-tab +-tab +-()Type=\"Drink\" +-el +->>while:[IsNotEmpty]:Food o-tab o-tab o-tab o-[Drink]:Food o-el o->>>if:mood(-ne)\"happy\" +-tab +-tab +-tab +-tab +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->>>>do-while:mood(-eq)\"unhappy\" o-tab o-tab o-tab o-tab o-tab o-[ChearUp]:mood o-el o-tab o-tab o-tab o-tab o-tab o-[print]:\"I(-spc)am(-spc)\"+mood o-el <<<<<-+-tab <<<<<-+-tab <<<<<-+-tab <<<<<-+-tab <<<<<-+-[print]:\"I(-spc)am(-spc)\"+mood+\"(-spc)now\" <<<<<-+-el o->else-if:[IsDrink]:drink(-eq)true +-tab +-tab +-()Type=\"Drink\" +-el +->>while:[IsNotEmpty]:Food o-tab o-tab o-tab o-[Drink]:Food o-el o->>>if:mood(-ne)\"happy\" +-tab +-tab +-tab +-tab +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->>>>do-while:mood(-eq)\"unhappy\" o-tab o-tab o-tab o-tab o-tab o-[ChearUp]:mood o-el o-tab o-tab o-tab o-tab o-tab o-[print]:\"I(-spc)am(-spc)\"+mood o-el <<<<<-+-tab <<<<<-+-tab <<<<<-+-tab <<<<<-+-tab <<<<<-+-[print]:\"I(-spc)am(-spc)\"+mood+\"(-spc)now\" <<<<<-+-el o->else +-tab +-tab +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el");
 	}
 	else if new_the_type == "logic"
 	{
@@ -167,7 +172,7 @@ fn starts_with(the_string: &str, start: &str) -> bool
 		return false;
 	}
 }
-/*
+
 fn ends_with(str: &str, end: &str) -> bool
 {
 	if str.ends_with(end)
@@ -179,7 +184,7 @@ fn ends_with(str: &str, end: &str) -> bool
 		return false;
 	}
 }	
-*/
+
 fn raw_input(message: &str) -> String
 {
 	use std::io::{stdin,stdout,Write};
@@ -358,17 +363,127 @@ fn banner()
 	println!("Type \"help\" for more information.");
 }
 
+fn gen_vect_and_array(name: &str, the_data_type: &str, new_vector_or_array: &str, action: &str, the_value: &str) -> String
+{
+	let mut new_name = String::from(name);
+	let mut the_return = String::from("");
+	let mut new_data_type = String::from(the_data_type);
+	if new_vector_or_array == "vector"
+	{
+		if action == "variable"
+		{
+			if the_value != ""
+			{
+				the_return.push_str("std::vector<");
+				the_return.push_str(&new_data_type);
+				the_return.push_str("> ");
+				the_return.push_str(&new_name);
+				the_return.push_str(" = ");
+				the_return.push_str(the_value);
+			}
+			else
+			{
+				the_return.push_str("std::vector<");
+				the_return.push_str(&new_data_type);
+				the_return.push_str("> ");
+				the_return.push_str(&new_name);
+			}
+		}
+		else
+		{
+			if !is_in(&new_name,"[") && !is_in(&new_name,"]")
+			{
+				the_return.push_str(&new_name);
+				the_return.push_str(".push_back(");
+				the_return.push_str(the_value);
+				the_return.push_str(")");
+			}
+		}
+	}
+	else if new_vector_or_array == "array"
+	{
+		let mut plc = String::from("");
+
+		if action == "variable"
+		{
+			if is_in(&new_data_type,"[") && ends_with(&new_data_type,"]")
+			{
+				plc = after_split(&new_data_type,"[");
+				plc = before_split(&plc,"]");
+				new_data_type = before_split(&new_data_type,"[");
+			}
+			new_data_type = data_type(&new_data_type,false);
+			if the_value != ""
+			{
+				the_return.push_str(&new_data_type);
+				the_return.push_str(" ");
+				the_return.push_str(&new_name);
+				the_return.push_str("[");
+				the_return.push_str(&plc);
+				the_return.push_str("] = ");
+				the_return.push_str(the_value);
+			}
+			else
+			{
+				the_return.push_str(&new_data_type);
+				the_return.push_str(" ");
+				the_return.push_str(&new_name);
+				the_return.push_str("[");
+				the_return.push_str(&plc);
+				the_return.push_str("]");
+			}
+		}
+		else
+		{
+			if is_in(&new_name,"[") && ends_with(&new_name,"]")
+			{
+				plc = after_split(&new_name,"[");
+				plc = before_split(&plc,"]");
+				new_name = String::from(&before_split(&new_name,"["));
+			}
+
+			if the_value != ""
+			{
+				the_return.push_str(&new_name);
+				the_return.push_str("[");
+				the_return.push_str(&plc);
+				the_return.push_str("] = ");
+				the_return.push_str(the_value);
+			}
+			else
+			{
+				the_return.push_str(&new_name);
+				the_return.push_str("[");
+				the_return.push_str(&plc);
+				the_return.push_str("]");
+			}
+		}
+	}
+
+	return the_return.to_string();
+}
+
 fn translate_tag(input: &str) -> String
 {
 	let mut the_return = String::new();
 	let mut action = String::from(input);
 	let mut value = String::new();
-//	let mut the_var_name = String::new();
 	let mut new_tag = String::new();
 	let mut the_nest = String::new();
+	let mut parent = "";
 	let mut content_for = "";
 
-	if starts_with(&action, "+-")
+	if starts_with(&action, "<-")
+	{
+		action = after_split(&action,"-");
+		parent = "parent-";
+	}
+	else if starts_with(&action, "<<")
+	{
+		action = after_split(&action,"<");
+		parent = "parent-";
+	}
+	else if starts_with(&action, "+-")
 	{
 		action = after_split(&action,"-");
 		content_for = "logic-";
@@ -403,6 +518,7 @@ fn translate_tag(input: &str) -> String
 		new_tag.push_str(&action);
 		value.push_str("logic-condition:");
 		value.push_str(&tmp_value);
+		the_return.push_str(parent);
 		the_return.push_str(content_for);
 		the_return.push_str(&the_nest);
 		the_return.push_str(&new_tag);
@@ -413,11 +529,12 @@ fn translate_tag(input: &str) -> String
 	{
 		new_tag.push_str("logic:");
 		new_tag.push_str(&action);
+		the_return.push_str(parent);
 		the_return.push_str(&content_for);
 		the_return.push_str(&the_nest);
 		the_return.push_str(&new_tag);
 	}
-	else if starts_with(&action, "while:") || starts_with(&action, "for:") || starts_with(&action, "do/while:")
+	else if starts_with(&action, "while:") || starts_with(&action, "for:") || starts_with(&action, "do-while:")
 	{
 		let tmp_value = after_split(&action,":");
 		action = before_split(&action,":");
@@ -425,6 +542,7 @@ fn translate_tag(input: &str) -> String
 		new_tag.push_str(&action);
 		value.push_str("loop-condition:");
 		value.push_str(&tmp_value);
+		the_return.push_str(parent);
 		the_return.push_str(&content_for);
 		the_return.push_str(&the_nest);
 		the_return.push_str(&new_tag);
@@ -477,6 +595,7 @@ fn translate_tag(input: &str) -> String
 			value = after_split(&action,":");
 			action = the_data_type;
 
+			the_return.push_str(parent);
 			the_return.push_str(&content_for);
 			the_return.push_str(&the_nest.to_string());
 			the_return.push_str("stmt:method-");
@@ -501,6 +620,7 @@ fn translate_tag(input: &str) -> String
 
 			if value != ""
 			{
+				the_return.push_str(parent);
 				the_return.push_str(&content_for);
 				the_return.push_str(&the_nest.to_string());
 				the_return.push_str("method:(");
@@ -512,6 +632,7 @@ fn translate_tag(input: &str) -> String
 			}
 			else
 			{
+				the_return.push_str(parent);
 				the_return.push_str(&content_for);
 				the_return.push_str(&the_nest.to_string());
 				the_return.push_str("method:(");
@@ -551,11 +672,11 @@ fn translate_tag(input: &str) -> String
 				action = after_split(&action.to_owned(),")");
 			}
 
+			the_return.push_str(parent);
 			the_return.push_str(content_for);
 			the_return.push_str("var:(");
 			the_return.push_str(&the_data_type);
 			the_return.push_str(")");
-//			the_return.push_str(&tmp_action);
 			the_return.push_str(&action);
 			the_return.push_str("= ");
 
@@ -601,22 +722,133 @@ fn translate_tag(input: &str) -> String
 			the_return.push_str("var:(");
 			the_return.push_str(&the_data_type);
 			the_return.push_str(")");
-//			the_return.push_str(&tmp_action);
 			the_return.push_str(&action);
+		}
+	}
+
+
+	//This is an example of handling vecotors and arrays
+	//	<type>name:value
+	//
+	//if value is marked a method, this a vector
+	//	<int>list:[getInt]:()numbers
+	//if value is marked a static, this is an array
+	//	<int>list:()one,()two
+	//
+	//to assign a value
+	//	<list[0]>:4
+	//to get from value, seeing there is an index
+	//	<list[0]>:
+	//to append vectors
+	//	<list>:4
+
+	//vectors or arrays
+	else if starts_with(&action, "<") && is_in(&action,">") && !starts_with(&action, "<<") && !starts_with(&action, "<-")
+	{
+		let tmp_action;
+		let mut vector_or_array = String::from("");
+		let mut the_data_type = after_split(&before_split(&action,">"),"<");
+		action = after_split(&action,">");
+
+		//replacing data type to represent the variable
+		if starts_with(&action,":")
+		{
+	//		let mut the_data_type = String::from("");
+			tmp_action = [the_data_type,action].concat();
+			the_data_type = "".to_string();
+			action = tmp_action.to_string();
+		}
+
+		if is_in(&action,":")
+		{
+			value = after_split(&action,":");
+			action = before_split(&action,":");
+
+			if ends_with(&action,"]") && &value != ""
+			{
+				vector_or_array = "array:".to_string();
+			}
+
+			if vector_or_array == ""
+			{
+				if starts_with(&value,"[")
+				{
+					vector_or_array = "vector:".to_string();
+				}
+				else
+				{
+					vector_or_array = "array:".to_string();
+				}
+			}
+		}
+
+		if &the_data_type != ""
+		{
+			if ends_with(&the_data_type,"]")
+			{
+				vector_or_array = "array:".to_string();
+			}
+			else
+			{
+				vector_or_array = "vector:".to_string();
+			}
+
+			if value != ""
+			{
+				the_return.push_str("var:<");
+				the_return.push_str(&vector_or_array);
+				the_return.push_str(&the_data_type);
+				the_return.push_str(">");
+				the_return.push_str(&action);
+				the_return.push_str(":");
+				the_return.push_str(&value);
+			}
+			else
+			{
+				the_return.push_str("var:<");
+				the_return.push_str(&vector_or_array);
+				the_return.push_str(&the_data_type);
+				the_return.push_str(">");
+				the_return.push_str(&action);
+			}
+		}
+		else
+		{
+			if value != ""
+			{
+				the_return.push_str("stmt:<");
+				the_return.push_str(&vector_or_array);
+				the_return.push_str(&the_data_type);
+				the_return.push_str(">");
+				the_return.push_str(&action);
+				the_return.push_str(":");
+				the_return.push_str(&value);
+			}
+			else
+			{
+				the_return.push_str("stmt:<");
+				the_return.push_str(&vector_or_array);
+				the_return.push_str(&the_data_type);
+				the_return.push_str(">");
+				the_return.push_str(&action);
+			}
 		}
 	}
 	else if action == "el"
 	{
+		the_return.push_str(parent);
 		the_return.push_str(content_for);
 		the_return.push_str("stmt:endline");
 	}
 	else if action == "nl"
 	{
+		the_return.push_str(parent);
 		the_return.push_str(content_for);
 		the_return.push_str("stmt:newline");
 	}
 	else if action == "tab"
 	{
+		the_return.push_str(parent);
 		the_return.push_str(content_for);
 		the_return.push_str("stmt:");
 		the_return.push_str(&action);
@@ -625,6 +857,7 @@ fn translate_tag(input: &str) -> String
 	{
 		if value != ""
 		{
+			the_return.push_str(parent);
 			the_return.push_str(content_for);
 			the_return.push_str(&the_nest);
 			the_return.push_str(&action);
@@ -633,6 +866,7 @@ fn translate_tag(input: &str) -> String
 		}
 		else
 		{
+			the_return.push_str(parent);
 			the_return.push_str(content_for);
 			the_return.push_str(&the_nest);
 			the_return.push_str(&action);
@@ -777,16 +1011,6 @@ fn gen_conditions(input: &str) -> String
 		condit = replace_all(&condit, "(-spc)"," ");
 	}
 
-	if is_in(&condit,"(-or)")
-	{
-		condit = replace_all(&condit, "(-or)"," || ");
-	}
-
-	if is_in(&condit,"(-and)")
-	{
-		condit = replace_all(&condit, "(-and)"," && ");
-	}
-
 	if is_in(&condit," ")
 	{
 		let mut tmp = String::from("");
@@ -843,6 +1067,16 @@ fn gen_conditions(input: &str) -> String
 	if is_in(&condit,"(-not)")
 	{
 		condit = replace_all(&condit, "(-not)","!");
+	}
+
+	if is_in(&condit,"(-or)")
+	{
+		condit = replace_all(&condit, "(-or)"," || ");
+	}
+
+	if is_in(&condit,"(-and)")
+	{
+		condit = replace_all(&condit, "(-and)"," && ");
 	}
 /*
 	if starts_with(condit, "(")
@@ -1051,7 +1285,7 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 		the_type = after_split(&before_split(&new_name,")"),"(");
 		//get method name
 		the_name = handle_names(&after_split(&new_name,")"));
-		if is_in(&the_name,"-")
+		if is_in(&new_name,"-")
 		{
 			return_var = after_split(&the_type,"-");
 			the_type = before_split(&the_type,"-");
@@ -1097,37 +1331,30 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 				passed_content = cmds[0].to_string();
 			}
 
-			if starts_with(&passed_content, "method-")
+			if starts_with(&passed_content, "method-") && is_in(&passed_content, " method-")
 			{
-				let all: Vec<&str> = passed_content.split(" ").collect();
+				let all: Vec<&str> = passed_content.split(" method-").collect();
 
-				let mut no_more = false;
+//				let mut no_more = false;
 				for item in &all
 				{
-					if starts_with(item, "method-") && no_more == false
+					if the_other_content == ""
 					{
-						if the_other_content == ""
-						{
-							the_other_content.push_str(item);
-						}
-						else
-						{
-							the_other_content.push_str(" ");
-							the_other_content.push_str(item);
-						}
+						the_other_content.push_str(item);
 					}
 					else
 					{
 						if new_content == ""
 						{
+							new_content.push_str("method-");
 							new_content.push_str(item);
 						}
 						else
 						{
-							new_content.push_str(" ");
+							new_content.push_str(" method-");
 							new_content.push_str(item);
 						}
-						no_more = true;
+//						no_more = true;
 					}
 				}
 				can_split = false;
@@ -1175,7 +1402,8 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 				the_other_content = parse_content.clone();
 			}
 
-			method_content.push_str(&gen_code(&new_tabs,&the_other_content));
+			let corrected = replace_tag(&the_other_content, "method-",false).clone();
+			method_content.push_str(&gen_code(&new_tabs,&corrected));
 			passed_content = new_content.clone();
 
 			the_other_content = "".to_string();
@@ -1196,7 +1424,7 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 		}
 		else
 		{
-			passed_content = "".to_string();
+//			passed_content = "".to_string();
 			the_last = true;
 		}
 	}
@@ -1206,7 +1434,7 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 	{
 		the_complete.push_str(the_tabs);
 		the_complete.push_str("fn ");
-		the_complete.push_str(&handle_names(&after_split(&the_name,"]")));
+		the_complete.push_str(&handle_names(&the_name));
 		the_complete.push_str("(");
 		the_complete.push_str(&the_params);
 		the_complete.push_str(")\n");
@@ -1223,7 +1451,7 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 		{
 			the_complete.push_str(the_tabs);
 			the_complete.push_str("fn ");
-			the_complete.push_str(&handle_names(&after_split(&the_name,"]")));
+			the_complete.push_str(&handle_names(&the_name));
 			the_complete.push_str("(");
 			the_complete.push_str(&the_params);
 			the_complete.push_str(") -> ");
@@ -1250,7 +1478,7 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 		{
 			the_complete.push_str(the_tabs);
 			the_complete.push_str("fn ");
-			the_complete.push_str(&handle_names(&after_split(&the_name,"]")));
+			the_complete.push_str(&handle_names(&the_name));
 			the_complete.push_str("(");
 			the_complete.push_str(&the_params);
 			the_complete.push_str(") -> ");
@@ -1372,6 +1600,7 @@ fn gen_loop(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 		//nest-<type>
 		else if starts_with(&passed_content, "nest-")
 		{
+			let mut parent_content = String::from("");
 			//"nest-loop" becomes ["nest-", "oop"]
 			//{or}
 			//"nest-logic" becomes "nest-", "ogic"]
@@ -1528,7 +1757,52 @@ fn gen_loop(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 			//just process as is
 			else
 			{
+				if is_in(&the_other_content," parent-")
+				{
+					//examine each tag
+					let parent: Vec<&str> = the_other_content.split(" parent-").collect();
+					let mut new_the_other_content = String::from("");
+					let pend = len_a(&parent);
+					let mut plp = 0;
+					while plp != pend
+					{
+						if plp == 0 || starts_with(parent[plp],"<-") || starts_with(parent[plp],"<<")
+						{
+							if new_the_other_content == ""
+							{
+								new_the_other_content = String::from(parent[plp]);
+							}
+							else
+							{
+								new_the_other_content.push_str(" ");
+								new_the_other_content.push_str(&translate_tag(&parent[plp]));
+							}
+						}
+						else
+						{
+							if parent_content == ""
+							{
+								parent_content = String::from(&translate_tag(&parent[plp]));
+							}
+							else
+							{
+								parent_content.push_str(" ");
+								parent_content.push_str(&translate_tag(&parent[plp]));
+							}
+						}
+						plp += 1;
+					}
+					parent_content = String::from(&replace_tag(&parent_content, "logic-",false));
+					the_other_content = new_the_other_content;
+				}
 				loop_content.push_str(&gen_code(&new_tabs,&the_other_content));
+			}
+
+			//process parent content
+			if parent_content != ""
+			{
+				loop_content.push_str(&gen_code(&new_tabs,&parent_content));
+				//parent_content = String::from("");
 			}
 			//clear new content
 			new_content = "".to_string();
@@ -1569,7 +1843,7 @@ fn gen_loop(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 		the_complete.push_str("}\n");
 	}
 	//loop:do/while
-	else if new_kind == "do/while"
+	else if new_kind == "do-while"
 	{
 		the_complete.push_str(the_tabs);
 		the_complete.push_str("do\n");
@@ -1583,7 +1857,7 @@ fn gen_loop(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 		the_complete.push_str(&the_condition);
 		the_complete.push_str(";\n");
 	}
-	//loop:do/while
+	//loop:do-while
 	else if new_kind == "while"
 	{
 		the_complete.push_str(the_tabs);
@@ -1701,6 +1975,7 @@ fn gen_logic(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 		//nest-<type>
 		else if starts_with(&passed_content, "nest-")
 		{
+			let mut parent_content = String::from("");
 			//"nest-loop" becomes ["nest-", "oop"]
 			//{or}
 			//"nest-logic" becomes "nest-", "ogic"]
@@ -1803,7 +2078,7 @@ fn gen_logic(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 				//Lets group the nested tages one more time...I am not sure how to avoide this being done again
 				if starts_with(&new_content, "nest-")
 				{
-					println!("{}",new_content);
+//					println!("{}",new_content);
 					root_tag = before_split(&new_content,"l");
 					new_root_tag = [" ",&root_tag,"l"].concat();
 					if is_in(&new_content,&new_root_tag)
@@ -1858,8 +2133,53 @@ fn gen_logic(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 			//just process as is
 			else
 			{
+				if is_in(&the_other_content," parent-")
+				{
+					//examine each tag
+					let parent: Vec<&str> = the_other_content.split(" parent-").collect();
+					let mut new_the_other_content = String::from("");
+					let pend = len_a(&parent);
+					let mut plp = 0;
+					while plp != pend
+					{
+						if plp == 0 || starts_with(parent[plp],"<-") || starts_with(parent[plp],"<<")
+						{
+							if new_the_other_content == ""
+							{
+								new_the_other_content = String::from(parent[plp]);
+							}
+							else
+							{
+								new_the_other_content.push_str(" ");
+								new_the_other_content.push_str(&translate_tag(&parent[plp]));
+							}
+						}
+						else
+						{
+							if parent_content == ""
+							{
+								parent_content = String::from(&translate_tag(&parent[plp]));
+							}
+							else
+							{
+								parent_content.push_str(" ");
+								parent_content.push_str(&translate_tag(&parent[plp]));
+							}
+						}
+						plp += 1;
+					}
+					parent_content = String::from(&replace_tag(&parent_content, "logic-",false));
+					the_other_content = new_the_other_content;
+				}
 				logic_content.push_str(&gen_code(&new_tabs,&the_other_content));
 			}
+			//process parent content
+			if parent_content != ""
+			{
+				logic_content.push_str(&gen_code(&new_tabs,&parent_content));
+				//parent_content = String::from("");
+			}
+
 			//clear new content
 			new_content = "".to_string();
 		}
@@ -2009,7 +2329,7 @@ fn gen_statements(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Str
 	}
 	else
 	{
-		the_name = new_kind;
+		the_name = new_kind.to_string();
 	}
 
 	while passed_content != ""
@@ -2026,6 +2346,11 @@ fn gen_statements(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Str
 				the_process = passed_content.clone();
 			}
 			the_params = gen_parameters(&the_process,"stmt");
+
+			if is_in(&the_params,"(-spc)")
+			{
+				the_params = replace_all(&the_params, "(-spc)"," ");
+			}
 		}
 
 		if the_last
@@ -2056,11 +2381,38 @@ fn gen_statements(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Str
 				the_other_content = newer_other_content.to_string();
 				passed_content = after_split(&passed_content," ");
 			}
+
+			if starts_with(&the_other_content,"loop:") && passed_content != "" || starts_with(&the_other_content,"logic:") && passed_content != ""
+			{
+				let mut newer_other_content = String::from("");
+				newer_other_content.push_str(&the_other_content);
+				newer_other_content.push_str(" ");
+				newer_other_content.push_str(&passed_content);
+				the_other_content = newer_other_content.to_string();
+			}
 			statement_content.push_str(&gen_code(the_tabs,&the_other_content));
 		}
 	}
 
-	if the_name == "method"
+	//Pull Vector or Array Type
+	if starts_with(&new_kind,"<") && is_in(&new_kind,">")
+	{
+		//name of array
+		name = after_split(&new_kind,">");
+		if is_in(&name,":")
+		{
+			name = before_split(&name,":");
+
+			the_complete.push_str(&gen_vect_and_array(&name, &data_type(&after_split(&after_split(&before_split(&new_kind,">"),"<"),":"),false), &after_split(&before_split(&new_kind,":"),"<"), "statement",&gen_code("",&translate_tag(&after_split(&name,":")))));
+			the_complete.push_str(&statement_content);
+		}
+		else
+		{
+			the_complete.push_str(&gen_vect_and_array(&name, &data_type(&after_split(&after_split(&before_split(&new_kind,">"),"<"),":"),false), &after_split(&before_split(&new_kind,":"),"<"), "statement",""));
+			the_complete.push_str(&statement_content);
+		}
+	}
+	else if the_name == "method"
 	{
 		the_complete.push_str(&name);
 		the_complete.push_str("(");
@@ -2090,6 +2442,7 @@ fn gen_statements(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Str
 //var:
 fn gen_variables(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 {
+	let mut no_add = false;
 	let mut the_last = false;
 	let mut make_equal = false;
 	let mut new_kind = the_kind_type.to_string();
@@ -2140,6 +2493,16 @@ fn gen_variables(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Stri
 				the_other_content = newer_other_content.to_string();
 				passed_content = after_split(&passed_content," ");
 			}
+
+			if starts_with(&the_other_content,"loop:") && passed_content != "" || starts_with(&the_other_content,"logic:") && passed_content != ""
+			{
+				let mut newer_other_content = String::from("");
+				newer_other_content.push_str(&the_other_content);
+				newer_other_content.push_str(" ");
+				newer_other_content.push_str(&passed_content);
+				the_other_content = newer_other_content.to_string();
+				passed_content = "".to_string();
+			}
 			variable_content.push_str(&gen_code(the_tabs,&the_other_content));
 		}
 	}
@@ -2149,7 +2512,25 @@ fn gen_variables(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Stri
 	{
 		var_type = String::from(&data_type(&after_split(&before_split(&new_kind,")"),"("),false));
 		new_kind = after_split(&new_kind,")");
-		the_name = String::from(new_kind.clone());
+		the_name = String::from(&new_kind.clone());
+	}
+	//Pull Vector or Array Type
+	else if starts_with(&new_kind,"<") && is_in(&new_kind,">")
+	{
+		//name of array
+		the_name = after_split(&new_kind,">");
+		if is_in(&the_name,":")
+		{
+			the_name = before_split(&the_name,":");
+
+			new_var.push_str(&gen_vect_and_array(&the_name, &data_type(&after_split(&after_split(&before_split(&new_kind,">"),"<"),":"),false), &after_split(&before_split(&new_kind,":"),"<"), "variable",&gen_code("",&translate_tag(&after_split(&the_name,":")))));
+		}
+		else
+		{
+			new_var.push_str(&gen_vect_and_array(&the_name, &data_type(&after_split(&after_split(&before_split(&new_kind,">"),"<"),":"),false), &after_split(&before_split(&new_kind,":"),"<"), "varaible",""));
+		}
+		
+		no_add = true;
 	}
 
 	//Assign Value
@@ -2169,13 +2550,23 @@ fn gen_variables(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Stri
 	}
 	else
 	{
-		new_var.push_str(&the_name);
+		if no_add == false
+		{
+			new_var.push_str(&the_name);
+		}
 	}
 
 	if make_equal == true
 	{
 		new_var.push_str(" = ");
-		new_var.push_str(&the_value);
+		if is_in(&the_value,"(-spc)")
+		{
+			new_var.push_str(&replace_all(&the_value,"(-spc)"," "));
+		}
+		else
+		{
+			new_var.push_str(&the_value);
+		}
 	}
 	new_var.push_str(&variable_content);
 
@@ -2263,7 +2654,7 @@ fn example(tag: &str)
 			}
 		}
 	}
-//	print("Command: "+UserIn);
+	println!("Command: {}",&user_in);
 	println!("");
 	println!("\t{{OUTPUT}}");
 	println!("{}",gen_code("", &user_in));
@@ -2306,13 +2697,9 @@ fn main()
 
 			user_in = raw_input(">>> ");
 
-			if user_in == "exit()"
+			if user_in == "exit"
 			{
 				break;
-			}
-			else if user_in == "exit"
-			{
-				println!("Use exit()");
 			}
 /*
 			else if (user_in == "clear")
