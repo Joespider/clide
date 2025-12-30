@@ -9,7 +9,7 @@ import (
 	"strings"
 	)
 
-var Version string = "0.1.2"
+var Version string = "0.1.4"
 
 func getOS() string {
 	os := runtime.GOOS
@@ -508,6 +508,22 @@ func TranslateTag(Input string) string {
 	return TheReturn
 }
 
+ func HandleTabs(_CalledBy string, Tabs string, Content string) string {
+	var AutoTabs string = ""
+	if Content != "stmt:endline" && Content != "stmt:newline" {
+		if StartsWith(Content,"stmt:") || StartsWith(Content,"var:") {
+			var AllTabs []string = split(Tabs,"\t")
+			var lp int = 0
+			var end int = len(AllTabs)
+			for lp != (end - 1) {
+				AutoTabs = AutoTabs +"stmt:tab "
+				lp++
+			}
+		}
+	}
+	return AutoTabs
+}
+
 func DataType(Type string, getNull bool) string {
 	//handle strings
 	if (Type == "String" || Type == "string" || Type == "std::string") && getNull == false {
@@ -740,6 +756,7 @@ func Method(Tabs string, Name string, Content string) string {
         var OtherContent string = ""
         var NewContent string = ""
         var Process string = ""
+	var AutoTabs string = ""
 
 	//method:(<type>)<name>
 	if StartsWith(Name,"(") && IsIn(Name,")") {
@@ -808,37 +825,58 @@ func Method(Tabs string, Name string, Content string) string {
 
 			var ParseContent string = ""
 			var Corrected string = ""
+			if IsIn(OtherContent," method-") {
+				var cmds []string = split(OtherContent," method-")
+				var end int = len(cmds)
+				var lp int = 0
+				for lp != end {
+					Corrected = ReplaceTag(cmds[lp], "method-",false)
+					//starts with "logic:" or "loop:"
+					if StartsWith(Corrected,"var:") || StartsWith(Corrected,"stmt:") {
+						if ParseContent == "" {
+							ParseContent = Corrected
+						} else {
+							ParseContent = ParseContent+" "+Corrected
+						}
 
-			var cmds []string = split(OtherContent," ")
-			var end int = len(cmds)
-			var lp int = 0
-			for lp != end {
-				Corrected = ReplaceTag(cmds[lp], "method-",false)
-				//starts with "logic:" or "loop:"
-				if StartsWith(Corrected,"logic:") || StartsWith(Corrected,"loop:") || StartsWith(Corrected,"var:") || StartsWith(Corrected,"stmt:") {
-					//Only process code that starts with "logic:" or "loop:"
-					if ParseContent != "" {
-						MethodContent = HandleElse(MethodContent, ParseContent)
+						if Corrected == "stmt:newline" || Corrected == "stmt:endline" {
+							AutoTabs = HandleTabs("method",Tabs+"\t",ParseContent)
+
+							if AutoTabs != "" {
+								//Generate the loop content
+								MethodContent = MethodContent + GenCode(Tabs+"\t",AutoTabs)
+							}
+							//process content
+							MethodContent = HandleElse(MethodContent, ParseContent)
+							MethodContent = MethodContent + GenCode(Tabs+"\t",ParseContent)
+							ParseContent = ""
+						}
+					} else {
+						AutoTabs = HandleTabs("method",Tabs+"\t",Corrected)
+
+						if AutoTabs != "" {
+							//Generate the loop content
+							MethodContent = MethodContent + GenCode(Tabs+"\t",AutoTabs)
+						}
 						//process content
-						MethodContent = MethodContent + GenCode(Tabs+"\t",ParseContent)
+						MethodContent = HandleElse(MethodContent, Corrected)
+						MethodContent = MethodContent + GenCode(Tabs+"\t",Corrected)
 					}
-					//Reset content
-					ParseContent = Corrected
-				//start another line to process
-				} else {
-					//append content
-					ParseContent = ParseContent +" "+ Corrected
+					lp++
 				}
-				lp++
-			}
+			} else {
+				Corrected = ReplaceTag(OtherContent, "method-",false)
+				AutoTabs = HandleTabs("method",Tabs+"\t",Corrected)
 
-			//process the rest
-			if ParseContent != "" {
-				OtherContent = ParseContent
-			}
+				if AutoTabs != "" {
+					//Generate the loop content
+					MethodContent = MethodContent + GenCode(Tabs+"\t",AutoTabs)
+				}
 
-			MethodContent = HandleElse(MethodContent, OtherContent)
-			MethodContent = MethodContent + GenCode(Tabs+"\t",OtherContent)
+				//Generate the loop content
+				MethodContent = HandleElse(MethodContent, Corrected)
+				MethodContent = MethodContent + GenCode(Tabs+"\t",Corrected)
+			}
 			Content = NewContent
 
 			OtherContent = ""
@@ -883,6 +921,7 @@ func Loop(Tabs string, TheKindType string, Content string) string {
 	var NewContent string = ""
 	var OtherContent string = ""
 	var ParentContent string = ""
+	var AutoTabs string = ""
 
 	//loop:<type>
 	if StartsWith(TheKindType, "loop:") {
@@ -934,6 +973,12 @@ func Loop(Tabs string, TheKindType string, Content string) string {
 				}
 				lp++
 			}
+			AutoTabs = HandleTabs("loop",Tabs+"\t",OtherContent)
+			if AutoTabs != "" {
+				LoopContent = LoopContent + GenCode(Tabs+"\t",AutoTabs)
+//				AutoTabs = ""
+			}
+
 			LoopContent = HandleElse(LoopContent, OtherContent)
 
 			//Generate the loop content
@@ -1016,6 +1061,12 @@ func Loop(Tabs string, TheKindType string, Content string) string {
 					}
 					lp++
 				}
+
+				AutoTabs = HandleTabs("loop",Tabs+"\t",OtherContent)
+				if AutoTabs != "" {
+					LoopContent = LoopContent + GenCode(Tabs+"\t",AutoTabs)
+//					AutoTabs = ""
+				}
 				//This is to handle how Go likes to handle if/else statements...yes, even though this is about loop
 				LoopContent = HandleElse(LoopContent, OtherContent)
 				//processes all the statements before a loop/logic
@@ -1037,6 +1088,12 @@ func Loop(Tabs string, TheKindType string, Content string) string {
 								for StartsWith(OtherContent, "nest-") {
 									OtherContent = AfterSplit(OtherContent,"-")
 								}
+
+								AutoTabs = HandleTabs("loop",Tabs+"\t",OtherContent)
+								if AutoTabs != "" {
+									LoopContent = LoopContent + GenCode(Tabs+"\t",AutoTabs)
+									AutoTabs = ""
+								}
 								//This is to handle how Go likes to handle if/else statements...yes, even though this is about loops
 
 								LoopContent = HandleElse(LoopContent, OtherContent)
@@ -1056,6 +1113,13 @@ func Loop(Tabs string, TheKindType string, Content string) string {
 					for StartsWith(NewContent, "nest-") {
 						NewContent = AfterSplit(NewContent,"-")
 					}
+
+					AutoTabs = HandleTabs("loop",Tabs+"\t",NewContent)
+					if AutoTabs != "" {
+						LoopContent = LoopContent + GenCode(Tabs+"\t",AutoTabs)
+						AutoTabs = ""
+					}
+
 					//This is to handle how Go likes to handle if/else statements...yes, even though this is about loop
 					LoopContent = HandleElse(LoopContent, NewContent)
 					//process the remaining nest-loop/logic
@@ -1088,6 +1152,12 @@ func Loop(Tabs string, TheKindType string, Content string) string {
 					ParentContent = ReplaceTag(ParentContent, "loop-",false)
 				}
 
+				AutoTabs = HandleTabs("loop",Tabs+"\t",OtherContent)
+				if AutoTabs != "" {
+					LoopContent = LoopContent + GenCode(Tabs+"\t",AutoTabs)
+					AutoTabs = ""
+				}
+
 				//This is to handle how Go likes to handle if/else statements...yes, even though this is about loops
 				LoopContent = HandleElse(LoopContent, OtherContent)
 				LoopContent = LoopContent + GenCode(Tabs+"\t",OtherContent)
@@ -1095,6 +1165,13 @@ func Loop(Tabs string, TheKindType string, Content string) string {
 
 			//process parent content
 			if ParentContent != "" {
+
+				AutoTabs = HandleTabs("loop",Tabs+"\t",ParentContent)
+				if AutoTabs != "" {
+					LoopContent = LoopContent + GenCode(Tabs+"\t",AutoTabs)
+					AutoTabs = ""
+				}
+
 				LoopContent = HandleElse(LoopContent, ParentContent)
 				LoopContent = LoopContent + GenCode(Tabs+"\t",ParentContent)
 				ParentContent = ""
@@ -1103,6 +1180,12 @@ func Loop(Tabs string, TheKindType string, Content string) string {
 			//clear new content
 			NewContent = ""
 		} else if StartsWith(Content, "var:") || StartsWith(Content, "stmt:") {
+
+			AutoTabs = HandleTabs("loop",Tabs+"\t",Content)
+			if AutoTabs != "" {
+				LoopContent = LoopContent + GenCode(Tabs+"\t",AutoTabs)
+				AutoTabs = ""
+			}
 			//This is to handle how Go likes to handle if/else statements...yes, even though this is about loops
 			LoopContent = HandleElse(LoopContent, Content)
 //			Content = ReplaceTag(Content, "loop-",true)
@@ -1165,6 +1248,7 @@ func Logic(Tabs string, TheKindType string, Content string) string {
         var NewContent string = ""
         var OtherContent string = ""
 	var ParentContent string = ""
+	var AutoTabs string = ""
 
         if StartsWith(TheKindType, "logic:") {
 		TheKindType = AfterSplit(TheKindType,":")
@@ -1200,6 +1284,12 @@ func Logic(Tabs string, TheKindType string, Content string) string {
                                 }
                                 lp++
                         }
+
+			AutoTabs = HandleTabs("logic",Tabs+"\t",OtherContent)
+			if AutoTabs != "" {
+				LogicContent = LogicContent + GenCode(Tabs+"\t",AutoTabs)
+				AutoTabs = ""
+			}
 
 			LogicContent = HandleElse(LogicContent, OtherContent)
 			//Process the current content so as to keep from redoing said content
@@ -1281,6 +1371,13 @@ func Logic(Tabs string, TheKindType string, Content string) string {
 					}
 					lp++
 				}
+
+				AutoTabs = HandleTabs("logic",Tabs+"\t",OtherContent)
+				if AutoTabs != "" {
+					LogicContent = LogicContent + GenCode(Tabs+"\t",AutoTabs)
+					AutoTabs = ""
+				}
+
 				LogicContent = HandleElse(LogicContent, OtherContent)
 
 				//processes all the statements before a loop/logic
@@ -1320,6 +1417,13 @@ func Logic(Tabs string, TheKindType string, Content string) string {
 					for StartsWith(NewContent, "nest-") {
 						NewContent = AfterSplit(NewContent,"-")
 					}
+
+					AutoTabs = HandleTabs("logic",Tabs+"\t",NewContent)
+					if AutoTabs != "" {
+						LogicContent = LogicContent + GenCode(Tabs+"\t",AutoTabs)
+						AutoTabs = ""
+					}
+
 					LogicContent = HandleElse(LogicContent, NewContent)
 
 					//process the remaining nest-loop/logic
@@ -1352,6 +1456,13 @@ func Logic(Tabs string, TheKindType string, Content string) string {
                                         }
                                         ParentContent = ReplaceTag(ParentContent, "logic-",false)
                                 }
+
+				AutoTabs = HandleTabs("logic",Tabs+"\t",OtherContent)
+				if AutoTabs != "" {
+					LogicContent = LogicContent + GenCode(Tabs+"\t",AutoTabs)
+					AutoTabs = ""
+				}
+
 				LogicContent = HandleElse(LogicContent, OtherContent)
 				//This is to handle how Go likes to handle if/else statements
 				LogicContent = LogicContent + GenCode(Tabs+"\t",OtherContent)
@@ -1359,6 +1470,12 @@ func Logic(Tabs string, TheKindType string, Content string) string {
 
 			//process parent content
 			if ParentContent != "" {
+				AutoTabs = HandleTabs("logic",Tabs+"\t",ParentContent)
+				if AutoTabs != "" {
+					LogicContent = LogicContent + GenCode(Tabs+"\t",AutoTabs)
+					AutoTabs = ""
+				}
+
 				LogicContent = HandleElse(LogicContent, ParentContent)
                                 LogicContent = LogicContent + GenCode(Tabs+"\t",ParentContent)
                                 ParentContent = ""
@@ -1368,6 +1485,13 @@ func Logic(Tabs string, TheKindType string, Content string) string {
 			//clear new content
 			NewContent = ""
 		} else if StartsWith(Content, "var:") || StartsWith(Content, "stmt:") {
+
+			AutoTabs = HandleTabs("logic",Tabs+"\t",Content)
+			if AutoTabs != "" {
+				LogicContent = LogicContent + GenCode(Tabs+"\t",AutoTabs)
+				AutoTabs = ""
+			}
+
 			LogicContent = HandleElse(LogicContent, Content)
 
 //			Content = ReplaceTag(Content, "logic-",false)
@@ -1425,6 +1549,7 @@ func Statements(Tabs string, TheKindType string, Content string) string {
 	var Name string = ""
 	var Process string = ""
 	var Params string = ""
+	var AutoTabs string = ""
 
 	if StartsWith(TheKindType, "stmt:") {
 		TheKindType = AfterSplit(TheKindType,":")
@@ -1479,6 +1604,14 @@ func Statements(Tabs string, TheKindType string, Content string) string {
 				Content = ""
 			}
 			StatementContent = StatementContent + GenCode(Tabs,OtherContent)
+
+			if OtherContent == "stmt:endline" {
+				AutoTabs = HandleTabs("statements",Tabs,Content)
+				if AutoTabs != "" {
+					StatementContent = StatementContent + GenCode(Tabs,AutoTabs)
+					AutoTabs = ""
+				}
+			}
 		}
 	}
 

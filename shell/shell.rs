@@ -3,7 +3,7 @@ use std::process::Command;
 
 fn the_version() -> String
 {
-	return "0.1.4".to_string();
+	return "0.1.7".to_string();
 }
 
 fn get_os() -> String
@@ -907,6 +907,27 @@ fn handle_names(the_name: &str) -> String
 	return the_return.to_string();
 }
 
+fn handle_tabs(_called_by: &str, tabs: &str, content: &str) -> String
+{
+        let mut new_tabs = String::from("");
+        if content != "stmt:endline" && content != "stmt:newline"
+        {
+                if starts_with(content,"stmt:") || starts_with(content,"var:")
+                {
+			let all_tabs: Vec<&str> = tabs.split("\t").collect();
+			let mut lp = 0;
+			let end = len_a(&all_tabs);
+			while lp != (end - 1)
+			{
+                                new_tabs.push_str("stmt:tab ");
+				lp += 1;
+                        }
+                }
+        }
+
+        return new_tabs.to_string();
+}
+
 fn data_type(the_type: &str, get_null: bool) -> String
 {
 	if get_null == false
@@ -1369,41 +1390,72 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 
 			let mut parse_content = String::from("");
 
-			let cmds: Vec<&str> = the_other_content.split(" ").collect();
-			for item in &cmds
+			if is_in(&the_other_content," method-")
 			{
-				let corrected = replace_tag(&item, "method-",false).clone();
-
-				//starts with "logic:" or "loop:"
-				if starts_with(&corrected,"logic:") || starts_with(&corrected,"loop:") || starts_with(&corrected,"var:") || starts_with(&corrected,"stmt:")
+				let cmds: Vec<&str> = the_other_content.split(" method-").collect();
+				for item in &cmds
 				{
-					//Only process code that starts with "logic:" or "loop:"
-					if parse_content != ""
+					let corrected = replace_tag(&item, "method-",false).clone();
+
+					if starts_with(&corrected,"var:") || starts_with(&corrected,"stmt:")
 					{
-						//process content
-						method_content.push_str(&gen_code(&new_tabs,&parse_content));
+						if parse_content.to_string() != ""
+						{
+							parse_content.push_str(&corrected);
+						}
+						else
+						{
+							parse_content.push_str(" ");
+							parse_content.push_str(&corrected);
+						}
+
+						if corrected == "stmt:newline" || corrected == "stmt:endline"
+						{
+
+							let auto_tabs = handle_tabs("method",&new_tabs,&parse_content.to_string());
+
+							if auto_tabs != ""
+							{
+								//Generate the loop content
+								method_content.push_str(&gen_code(&new_tabs,&auto_tabs));
+							}
+
+							//process content
+							method_content.push_str(&gen_code(&new_tabs,&parse_content.to_string()));
+							parse_content = String::from("");
+						}
 					}
-					//Reset content
-					parse_content = String::from("");
-					parse_content.push_str(&corrected);
-				}
-				//start another line to process
-				else
-				{
-					//append content
-					parse_content.push_str(" ");
-					parse_content.push_str(item);
+					else
+					{
+
+						let auto_tabs = handle_tabs("method",&new_tabs,&corrected);
+
+                                                if auto_tabs != ""
+                                                {
+                                                        //Generate the loop content
+							method_content.push_str(&gen_code(&new_tabs,&auto_tabs));
+                                                }
+
+                                                //process content
+						method_content.push_str(&gen_code(&new_tabs,&corrected));
+					}
 				}
 			}
-
-			//process the rest
-			if parse_content != ""
+			else
 			{
-				the_other_content = parse_content.clone();
-			}
+				let corrected = replace_tag(&the_other_content, "method-",false).clone();
 
-			let corrected = replace_tag(&the_other_content, "method-",false).clone();
-			method_content.push_str(&gen_code(&new_tabs,&corrected));
+				let auto_tabs = handle_tabs("method",&new_tabs,&corrected);
+
+				if auto_tabs != ""
+				{
+					//Generate the loop content
+					method_content.push_str(&gen_code(&new_tabs,&auto_tabs));
+				}
+
+				//Generate the loop content
+				method_content.push_str(&gen_code(&new_tabs,&corrected));
+			}
 			passed_content = new_content.clone();
 
 			the_other_content = "".to_string();
@@ -1583,6 +1635,16 @@ fn gen_loop(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 				}
 				lp += 1;
 			}
+
+			let auto_tabs = handle_tabs("loop",&new_tabs,&the_other_content);
+
+			if auto_tabs != ""
+			{
+				//Generate the loop content
+				loop_content.push_str(&gen_code(&new_tabs,&auto_tabs));
+//				auto_tabs = "".to_string();
+			}
+
 			//Generate the loop content
 			loop_content.push_str(&gen_code(&new_tabs,&the_other_content));
 			//The remaning content gets processed
@@ -1697,6 +1759,15 @@ fn gen_loop(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 				the_other_content = more_the_other_content.to_string();
 				new_content = more_new_content.to_string();
 
+				let auto_tabs = handle_tabs("loop",&new_tabs,&the_other_content);
+
+				if auto_tabs != ""
+				{
+					//Generate the loop content
+					loop_content.push_str(&gen_code(&new_tabs,&auto_tabs));
+//					auto_tabs = "".to_string();
+				}
+
 				//processes all the statements before a loop/logic
 				loop_content.push_str(&gen_code(&new_tabs,&the_other_content));
 
@@ -1723,6 +1794,15 @@ fn gen_loop(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 								{
 									the_other_content = after_split(&the_other_content,"-");
 								}
+
+								let auto_tabs = handle_tabs("loop",&new_tabs,&the_other_content);
+
+								if auto_tabs != ""
+								{
+									loop_content.push_str(&gen_code(&new_tabs,&auto_tabs));
+//									auto_tabs = "".to_string();
+								}
+
 								//process loop/logic
 								loop_content.push_str(&gen_code(&new_tabs,&the_other_content));
 							}
@@ -1750,6 +1830,15 @@ fn gen_loop(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 					{
 						new_content = String::from(&after_split(&new_content,"-"));
 					}
+
+					let auto_tabs = handle_tabs("loop",&new_tabs,&new_content);
+
+					if auto_tabs != ""
+					{
+						loop_content.push_str(&gen_code(&new_tabs,&auto_tabs));
+//						auto_tabs = "".to_string();
+					}
+
 					//process the remaining nest-loop/logic
 					loop_content.push_str(&gen_code(&new_tabs,&new_content));
 				}
@@ -1795,21 +1884,45 @@ fn gen_loop(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 					parent_content = String::from(&replace_tag(&parent_content, "logic-",false));
 					the_other_content = new_the_other_content;
 				}
+
+				let auto_tabs = handle_tabs("loop",&new_tabs,&the_other_content);
+				if auto_tabs != ""
+				{
+					loop_content.push_str(&gen_code(&new_tabs,&auto_tabs));
+//					auto_tabs = "".to_string();
+				}
+
 				loop_content.push_str(&gen_code(&new_tabs,&the_other_content));
 			}
 
 			//process parent content
 			if parent_content != ""
 			{
+
+				let auto_tabs = handle_tabs("loop",&new_tabs,&parent_content);
+				if auto_tabs != ""
+				{
+					loop_content.push_str(&gen_code(&new_tabs,&auto_tabs));
+//					auto_tabs = "".to_string();
+				}
+
 				loop_content.push_str(&gen_code(&new_tabs,&parent_content));
 				//parent_content = String::from("");
 			}
 			//clear new content
 			new_content = "".to_string();
 		}
-		else if starts_with(&passed_content, "loop-") || starts_with(&passed_content, "var:") || starts_with(&passed_content, "stmt:")
+		else if starts_with(&passed_content, "var:") || starts_with(&passed_content, "stmt:")
 		{
-			passed_content = replace_tag(&passed_content, "loop-",true);
+//			passed_content = replace_tag(&passed_content, "loop-",true);
+
+			let auto_tabs = handle_tabs("loop",&new_tabs,&passed_content);
+			if auto_tabs != ""
+			{
+				loop_content.push_str(&gen_code(&new_tabs,&auto_tabs));
+//				auto_tabs = "".to_string();
+			}
+
 			loop_content.push_str(&gen_code(&new_tabs,&passed_content));
 			passed_content = "".to_string();
 		}
@@ -1958,6 +2071,16 @@ fn gen_logic(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 				}
 				lp += 1;
 			}
+
+			let auto_tabs = handle_tabs("logic",&new_tabs,&the_other_content);
+
+			if auto_tabs != ""
+			{
+				//Generate the loop content
+				logic_content.push_str(&gen_code(&new_tabs,&auto_tabs));
+//				auto_tabs = "".to_string();
+			}
+
 			//Generate the loop content
 			logic_content.push_str(&gen_code(&new_tabs,&the_other_content));
 			//The remaning content gets processed
@@ -2072,6 +2195,14 @@ fn gen_logic(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 				the_other_content = more_the_other_content.to_string();
 				new_content = more_new_content.to_string();
 
+				let auto_tabs = handle_tabs("logic",&new_tabs,&the_other_content);
+				if auto_tabs != ""
+				{
+					//Generate the loop content
+					logic_content.push_str(&gen_code(&new_tabs,&auto_tabs));
+//					auto_tabs = "".to_string();
+				}
+
 				//processes all the statements before a loop/logic
 				logic_content.push_str(&gen_code(&new_tabs,&the_other_content));
 
@@ -2126,6 +2257,14 @@ fn gen_logic(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 					{
 						new_content = String::from(&after_split(&new_content,"-"));
 					}
+
+					//process the remaining nest-loop/logic
+					let auto_tabs = handle_tabs("logic",&new_tabs,&new_content);
+					if auto_tabs != ""
+                                        {
+						logic_content.push_str(&gen_code(&new_tabs,&auto_tabs));
+//						auto_tabs = "".to_string();
+                                        }
 					//process the remaining nest-loop/logic
 					logic_content.push_str(&gen_code(&new_tabs,&new_content));
 				}
@@ -2171,11 +2310,29 @@ fn gen_logic(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 					parent_content = String::from(&replace_tag(&parent_content, "logic-",false));
 					the_other_content = new_the_other_content;
 				}
+
+				//process the remaining nest-loop/logic
+				let auto_tabs = handle_tabs("logic",&new_tabs,&the_other_content);
+				if auto_tabs != ""
+				{
+					logic_content.push_str(&gen_code(&new_tabs,&auto_tabs));
+//					auto_tabs = "".to_string();
+				}
+
 				logic_content.push_str(&gen_code(&new_tabs,&the_other_content));
 			}
 			//process parent content
 			if parent_content != ""
 			{
+
+				//process the remaining nest-loop/logic
+				let auto_tabs = handle_tabs("logic",&new_tabs,&parent_content);
+				if auto_tabs != ""
+				{
+					logic_content.push_str(&gen_code(&new_tabs,&auto_tabs));
+//					auto_tabs = "".to_string();
+				}
+
 				logic_content.push_str(&gen_code(&new_tabs,&parent_content));
 				//parent_content = String::from("");
 			}
@@ -2183,9 +2340,17 @@ fn gen_logic(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 			//clear new content
 			new_content = "".to_string();
 		}
-		else if starts_with(&passed_content, "logic-") || starts_with(&passed_content, "var:") || starts_with(&passed_content, "stmt:")
+		else if starts_with(&passed_content, "var:") || starts_with(&passed_content, "stmt:")
 		{
-			passed_content = replace_tag(&passed_content, "logic-",true);
+//			passed_content = replace_tag(&passed_content, "logic-",true);
+
+			let auto_tabs = handle_tabs("logic",&new_tabs,&passed_content);
+			if auto_tabs != ""
+			{
+				logic_content.push_str(&gen_code(&new_tabs,&auto_tabs));
+//				auto_tabs = "".to_string();
+			}
+
 			logic_content.push_str(&gen_code(&new_tabs,&passed_content));
 			passed_content = "".to_string();
 		}
@@ -2390,7 +2555,20 @@ fn gen_statements(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Str
 				newer_other_content.push_str(&passed_content);
 				the_other_content = newer_other_content.to_string();
 			}
+
+
 			statement_content.push_str(&gen_code(the_tabs,&the_other_content));
+
+			if &the_other_content == "stmt:endline"
+                        {
+				let auto_tabs = handle_tabs("statements",the_tabs,&passed_content);
+
+				if auto_tabs != ""
+				{
+					statement_content.push_str(&gen_code(the_tabs,&auto_tabs));
+//					auto_tabs = "".to_string();
+				}
+                        }
 		}
 	}
 

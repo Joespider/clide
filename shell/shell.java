@@ -12,7 +12,7 @@ import java.io.IOException;
 
 //class name
 public class shell {
-	private static String Version = "0.1.1";
+	private static String Version = "0.1.3";
 	private static String TheKind = "";
 	private static String TheName = "";
 	private static String TheKindType = "";
@@ -907,6 +907,33 @@ public class shell {
 		return TheReturn.toString();
 	}
 
+	public static String HandleTabs(String CalledBy, String Tabs, String Content)
+	{
+		StringBuilder AutoTabs = new StringBuilder("");
+
+		if ((!Content.equals("stmt:endline")) && (!Content.equals("stmt:newline")))
+		{
+			if (StartsWith(Content,"stmt:") || StartsWith(Content,"var:"))
+			{
+				int lp = 0;
+				int end = Tabs.length();
+
+				if (end == 1)
+				{
+					end = 2;
+				}
+
+				while (lp != end)
+				{
+					AutoTabs.append("stmt:tab ");
+					lp++;
+				}
+			}
+		}
+
+		return AutoTabs.toString();
+	}
+
 	public static String DataType(String Type, boolean getNull)
 	{
 		//handle strings
@@ -1163,6 +1190,7 @@ public class shell {
 		String DefaultValue = "";
 		StringBuilder Complete = new StringBuilder("");
 		Name = AfterSplit(Name,":");
+		String AutoTabs = "";
 
 		String PublicOrPrivate = "public";
 
@@ -1236,9 +1264,9 @@ public class shell {
 					Content = cmds[0];
 				}
 
-				if ((StartsWith(Content, "method-")) && (IsIn(Content," method-")))
+				if ((StartsWith(Content, "method-")) && (IsIn(Content," method-l")))
 				{
-					String[] all = split(Content," method-");
+					String[] all = split(Content," method-l");
 					int lp = 0;
 					int end = len(all);
 					while (lp != end)
@@ -1252,12 +1280,12 @@ public class shell {
 						{
 							if (NewContent.equals(""))
 							{
-								NewContent = new StringBuilder("method-");
+								NewContent = new StringBuilder("method-l");
 								NewContent.append(all[lp]);
 							}
 							else
 							{
-								NewContent.append(" ");
+								NewContent.append(" method-l");
 								NewContent.append(all[lp]);
 							}
 						}
@@ -1276,41 +1304,70 @@ public class shell {
 				StringBuilder ParseContent = new StringBuilder("");
 				String Corrected = "";
 
-				String[] cmds = split(OtherContent.toString()," ");
-				int end = len(cmds);
-				int lp = 0;
-				while (lp != end)
+				if (IsIn(OtherContent.toString()," method-"))
 				{
-					Corrected = ReplaceTag(cmds[lp], "method-",false);
-					//starts with "logic:" or "loop:"
-					if ((StartsWith(Corrected,"logic:")) || (StartsWith(Corrected,"loop:")) || (StartsWith(Corrected,"var:")) || (StartsWith(Corrected,"stmt:")))
+					String[] cmds = split(OtherContent.toString()," method-");
+					int end = len(cmds);
+					int lp = 0;
+					while (lp != end)
 					{
-						//Only process code that starts with "logic:" or "loop:"
-						if (!ParseContent.toString().equals(""))
+						Corrected = ReplaceTag(cmds[lp], "method-",false);
+
+						if (StartsWith(Corrected,"var:") || StartsWith(Corrected,"stmt:"))
 						{
-							//process content
-							MethodContent.append(GenCode(Tabs+"\t\t",ParseContent.toString()));
+							if (ParseContent.toString().equals(""))
+							{
+								ParseContent = new StringBuilder(Corrected);
+							}
+							else
+							{
+								ParseContent.append(" ");
+								ParseContent.append(Corrected);
+							}
+
+							if ((Corrected.equals("stmt:newline")) || (Corrected.equals("stmt:endline")))
+							{
+								AutoTabs = HandleTabs("method",Tabs+"\t",ParseContent.toString());
+
+								if (!AutoTabs.equals(""))
+								{
+									//Generate the loop content
+									MethodContent.append(GenCode(Tabs+"\t\t",AutoTabs));
+								}
+								//process content
+								MethodContent.append(GenCode(Tabs+"\t",ParseContent.toString()));
+								ParseContent = new StringBuilder("");
+							}
 						}
-						//Reset content
-						ParseContent = new StringBuilder(Corrected);
-					}
-					//start another line to process
-					else
-					{
-						//append content
-						ParseContent.append(" ");
-						ParseContent.append(Corrected);
-					}
-					lp++;
-				}
+						else
+						{
+							AutoTabs = HandleTabs("method",Tabs+"\t",Corrected);
 
-				//process the rest
-				if (!ParseContent.toString().equals(""))
+							if (!AutoTabs.equals(""))
+							{
+								//Generate the loop content
+								MethodContent.append(GenCode(Tabs+"\t\t",AutoTabs));
+							}
+							//process content
+							MethodContent.append(GenCode(Tabs+"\t\t",Corrected));
+						}
+						lp++;
+					}
+				}
+				else
 				{
-					OtherContent = new StringBuilder(ParseContent.toString());
-				}
+					Corrected = ReplaceTag(OtherContent.toString(), "method-",false);
+					AutoTabs = HandleTabs("method",Tabs+"\t",Corrected);
 
-				MethodContent.append(GenCode(Tabs+"\t\t",OtherContent.toString()));
+					if (!AutoTabs.equals(""))
+					{
+						//Generate the loop content
+						MethodContent.append(GenCode(Tabs+"\t\t",AutoTabs));
+					}
+
+					//Generate the loop content
+					MethodContent.append(GenCode(Tabs+"\t\t",Corrected));
+				}
 				Content = NewContent.toString();
 
 				OtherContent = new StringBuilder("");
@@ -1435,6 +1492,7 @@ public class shell {
 		StringBuilder OtherContent = new StringBuilder("");
 		StringBuilder NewContent = new StringBuilder("");
 		StringBuilder ParentContent = new StringBuilder("");
+		String AutoTabs = "";
 
 		//loop:<type>
 		if (StartsWith(TheKindType, "loop:"))
@@ -1502,6 +1560,14 @@ public class shell {
 					}
 					lp++;
 				}
+
+				AutoTabs = HandleTabs("loop",Tabs+"\t",OtherContent.toString());
+				if (!AutoTabs.equals(""))
+				{
+					LoopContent.append(GenCode(Tabs+"\t",AutoTabs));
+					AutoTabs = "";
+				}
+
 				//Generate the loop content
 				LoopContent.append(GenCode(Tabs+"\t",OtherContent.toString()));
 				//The remaning content gets processed
@@ -1614,6 +1680,12 @@ public class shell {
 						lp++;
 					}
 
+					AutoTabs = HandleTabs("loop",Tabs+"\t",OtherContent.toString());
+					if (!AutoTabs.equals(""))
+					{
+						LoopContent.append(GenCode(Tabs+"\t",AutoTabs));
+						AutoTabs = "";
+					}
 					//processes all the statements before a loop/logic
 					LoopContent.append(GenCode(Tabs+"\t",OtherContent.toString()));
 
@@ -1637,6 +1709,13 @@ public class shell {
 									while (StartsWith(OtherContent.toString(), "nest-"))
 									{
 										OtherContent = new StringBuilder(AfterSplit(OtherContent.toString(),"-"));
+									}
+
+									AutoTabs = HandleTabs("loop",Tabs+"\t",OtherContent.toString());
+									if (!AutoTabs.equals(""))
+									{
+										LoopContent.append(GenCode(Tabs+"\t",AutoTabs));
+										AutoTabs = "";
 									}
 									//process loop/logic
 									LoopContent.append(GenCode(Tabs+"\t",OtherContent.toString()));
@@ -1664,6 +1743,14 @@ public class shell {
 						{
 							NewContent = new StringBuilder(AfterSplit(NewContent.toString(),"-"));
 						}
+
+						AutoTabs = HandleTabs("loop",Tabs+"\t",NewContent.toString());
+						if (!AutoTabs.equals(""))
+						{
+							LoopContent.append(GenCode(Tabs+"\t",AutoTabs));
+							AutoTabs = "";
+						}
+
 						//process the remaining nest-loop/logic
 						LoopContent.append(GenCode(Tabs+"\t",NewContent.toString()));
 					}
@@ -1709,12 +1796,24 @@ public class shell {
 						}
 						ParentContent = new StringBuilder(ReplaceTag(ParentContent.toString(), "loop-",false));
 					}
+					AutoTabs = HandleTabs("loop",Tabs+"\t",OtherContent.toString());
+					if (!AutoTabs.equals(""))
+					{
+						LoopContent.append(GenCode(Tabs+"\t",AutoTabs));
+						AutoTabs = "";
+					}
 					LoopContent.append(GenCode(Tabs+"\t",OtherContent.toString()));
 				}
 
 				//process parent content
 				if (!ParentContent.toString().equals(""))
 				{
+					AutoTabs = HandleTabs("loop",Tabs+"\t",ParentContent.toString());
+					if (!AutoTabs.equals(""))
+					{
+						LoopContent.append(GenCode(Tabs+"\t",AutoTabs));
+						AutoTabs = "";
+					}
 					LoopContent.append(GenCode(Tabs+"\t",ParentContent.toString()));
 					ParentContent = new StringBuilder("");
 				}
@@ -1725,6 +1824,12 @@ public class shell {
 			else if ((StartsWith(Content, "var:")) || (StartsWith(Content, "stmt:")))
 			{
 //				Content = ReplaceTag(Content, "loop-",true);
+				AutoTabs = HandleTabs("loop",Tabs+"\t",Content);
+				if (!AutoTabs.equals(""))
+				{
+					LoopContent.append(GenCode(Tabs+"\t",AutoTabs));
+					AutoTabs = "";
+				}
 				LoopContent.append(GenCode(Tabs+"\t",Content));
 				Content = "";
 			}
@@ -1810,6 +1915,7 @@ public class shell {
 		StringBuilder OtherContent = new StringBuilder("");
 		StringBuilder NewContent = new StringBuilder("");
 		StringBuilder ParentContent = new StringBuilder("");
+		String AutoTabs = "";
 
 		if (StartsWith(TheKindType, "logic:"))
 		{
@@ -1860,6 +1966,13 @@ public class shell {
 						NewContent.append(all[lp]);
 					}
 					lp++;
+				}
+
+				AutoTabs = HandleTabs("logic",Tabs+"\t",OtherContent.toString());
+				if (!AutoTabs.equals(""))
+				{
+					LogicContent.append(GenCode(Tabs+"\t",AutoTabs));
+					AutoTabs = "";
 				}
 				//Process the current content so as to keep from redoing said content
 				LogicContent.append(GenCode(Tabs+"\t",OtherContent.toString()));
@@ -1973,6 +2086,14 @@ public class shell {
 						lp++;
 					}
 
+					AutoTabs = HandleTabs("logic",Tabs+"\t",OtherContent.toString());
+
+					if (!AutoTabs.equals(""))
+					{
+						LogicContent.append(GenCode(Tabs+"\t",AutoTabs));
+						AutoTabs = "";
+					}
+
 					//processes all the statements before a loop/logic
 					LogicContent.append(GenCode(Tabs+"\t",OtherContent.toString()));
 
@@ -2024,6 +2145,13 @@ public class shell {
 						{
 							NewContent = new StringBuilder(AfterSplit(NewContent.toString(),"-"));
 						}
+
+						AutoTabs = HandleTabs("logic",Tabs+"\t",NewContent.toString());
+						if (!AutoTabs.equals(""))
+						{
+							LogicContent.append(GenCode(Tabs+"\t",AutoTabs));
+							AutoTabs = "";
+						}
 						//process the remaining nest-loop/logic
 						LogicContent.append(GenCode(Tabs+"\t",NewContent.toString()));
 
@@ -2070,12 +2198,25 @@ public class shell {
 						}
 						ParentContent = new StringBuilder(ReplaceTag(ParentContent.toString(), "logic-",false));
 					}
+
+					AutoTabs = HandleTabs("logic",Tabs+"\t",OtherContent.toString());
+					if (!AutoTabs.equals(""))
+					{
+						LogicContent.append(GenCode(Tabs+"\t",AutoTabs));
+						AutoTabs = "";
+					}
 					LogicContent.append(GenCode(Tabs+"\t",OtherContent.toString()));
 				}
 
 				//process parent content
 				if (!ParentContent.toString().equals(""))
 				{
+					AutoTabs = HandleTabs("logic",Tabs+"\t",ParentContent.toString());
+					if (!AutoTabs.equals(""))
+					{
+						LogicContent.append(GenCode(Tabs+"\t",AutoTabs));
+						AutoTabs = "";
+					}
 					LogicContent.append(GenCode(Tabs+"\t",ParentContent.toString()));
 					ParentContent = new StringBuilder("");
 				}
@@ -2085,6 +2226,12 @@ public class shell {
 			}
 			else if ((StartsWith(Content, "var:")) || (StartsWith(Content, "stmt:")))
 			{
+				AutoTabs = HandleTabs("logic",Tabs+"\t",Content);
+				if (!AutoTabs.equals(""))
+				{
+					LogicContent.append(GenCode(Tabs+"\t",AutoTabs));
+					AutoTabs = "";
+				}
 //				Content = ReplaceTag(Content, "logic-",false);
 				LogicContent.append(GenCode(Tabs+"\t",Content));
 				Content = "";
@@ -2204,6 +2351,8 @@ public class shell {
 		String Name = "";
 		String Process = "";
 		String Params = "";
+		String AutoTabs = "";
+
 
 		if (StartsWith(TheKindType, "stmt:"))
 		{
@@ -2274,6 +2423,16 @@ public class shell {
 					Content = "";
 				}
 				StatementContent.append(GenCode(Tabs,OtherContent.toString()));
+
+				if (OtherContent.toString().equals("stmt:endline"))
+				{
+					AutoTabs = HandleTabs("statements",Tabs,Content);
+					if (!AutoTabs.equals(""))
+					{
+						StatementContent.append(GenCode(Tabs,AutoTabs));
+						AutoTabs = "";
+					}
+				}
 			}
 		}
 

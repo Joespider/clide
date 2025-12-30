@@ -2,7 +2,7 @@ import os
 import sys
 import platform
 
-Version = "0.1.2"
+Version = "0.1.3"
 
 def getOS():
 	platform.system()
@@ -411,6 +411,19 @@ def TranslateTag(Input):
 			TheReturn = Parent+ContentFor+Nest+Action
 	return TheReturn
 
+def HandleTabs(CalledBy, Tabs, Content):
+	AutoTabs = ""
+	if Content != "stmt:endline" and Content != "stmt:newline":
+		if StartsWith(Content,"stmt:") or StartsWith(Content,"var:"):
+			AllTabs = split(Tabs,"\t")
+			lp = 0
+			end = len(AllTabs)
+			while lp != (end - 1):
+				AutoTabs = AutoTabs +"stmt:tab "
+				lp += 1
+
+	return AutoTabs
+
 def DataType(Type, getNull):
 	#handle strings
 	if (((Type == "String") or (Type == "string") or (Type == "std::string")) and (getNull == False)):
@@ -661,31 +674,51 @@ def Method(Tabs, Name, Content):
 			ParseContent = ""
 			Corrected = ""
 
-			cmds = split(OtherContent," ")
-			end = len(cmds)
-			lp = 0
-			while lp != end:
-				Corrected = ReplaceTag(cmds[lp], "method-",False)
-				#starts with "logic:" or "loop:"
-				if StartsWith(Corrected,"logic:") or StartsWith(Corrected,"loop:") or StartsWith(Corrected,"var:") or StartsWith(Corrected,"stmt:"):
-					#Only process code that starts with "logic:" or "loop:"
-					if ParseContent != "":
-						#process content
-						MethodContent = MethodContent + GenCode(Tabs+"\t",ParseContent)
-					#Reset content
-					ParseContent = Corrected
-				#start another line to process
-				else:
-					#append content
-					ParseContent = ParseContent +" "+ Corrected
-				lp = lp + 1;
+			if IsIn(OtherContent," method-"):
+				cmds = split(OtherContent," ")
+				end = len(cmds)
+				lp = 0
+				while lp != end:
+					Corrected = ReplaceTag(cmds[lp], "method-",False)
+					#starts with "logic:" or "loop:"
+					if StartsWith(Corrected,"var:") or StartsWith(Corrected,"stmt:"):
+						#Only process code that starts with "logic:" or "loop:"
+						if ParseContent == "":
+							ParseContent = Corrected
+						else:
+							ParseContent = ParseContent+" "+Corrected
 
-			#process the rest
-			if ParseContent != "":
-				OtherContent = ParseContent
+						if Corrected == "stmt:newline" or Corrected == "stmt:endline":
+							AutoTabs = HandleTabs("method",Tabs+"\t",ParseContent)
 
-			Corrected = ReplaceTag(OtherContent,"method-", False)
-			MethodContent = MethodContent + GenCode(Tabs+"\t",Corrected)
+							if AutoTabs != "":
+								#Generate the loop content
+								MethodContent = MethodContent + GenCode(Tabs+"\t",AutoTabs)
+
+							#process content
+							MethodContent = MethodContent + GenCode(Tabs+"\t",ParseContent)
+							ParseContent = ""
+					#start another line to process
+					else:
+						AutoTabs = HandleTabs("method",Tabs+"\t",Corrected)
+
+						if AutoTabs != "":
+							#Generate the loop content
+							MethodContent = MethodContent + GenCode(Tabs+"\t",AutoTabs)
+
+						#append content
+						ParseContent = ParseContent +" "+ Corrected
+					lp = lp + 1;
+			else:
+				Corrected = ReplaceTag(OtherContent,"method-", False)
+
+				AutoTabs = HandleTabs("method",Tabs+"\t",Corrected)
+
+				if AutoTabs != "":
+					#Generate the loop content
+					MethodContent = MethodContent + GenCode(Tabs+"\t",AutoTabs)
+
+				MethodContent = MethodContent + GenCode(Tabs+"\t",Corrected)
 			Content = NewContent
 
 			OtherContent = ""
@@ -767,6 +800,12 @@ def Loop(Tabs, TheKindType, Content):
 				else:
 					NewContent = NewContent + " nest-"+all[lp]
 				lp = lp + 1;
+
+			AutoTabs = HandleTabs("loop",Tabs+"\t",OtherContent)
+			if AutoTabs != "":
+				LoopContent = LoopContent + GenCode(Tabs+"\t",AutoTabs)
+				AutoTabs = ""
+
 			#Generate the loop content
 			LoopContent = LoopContent + GenCode(Tabs+"\t",OtherContent)
 			#The remaning content gets processed
@@ -837,6 +876,11 @@ def Loop(Tabs, TheKindType, Content):
 							NewContent = NewContent+" "+cmds[lp]
 					lp = lp + 1
 
+				AutoTabs = HandleTabs("loop",Tabs+"\t",OtherContent)
+				if AutoTabs != "":
+					LoopContent = LoopContent + GenCode(Tabs+"\t",AutoTabs)
+					AutoTabs = ""
+
 				#processes all the statements before a loop/logic
 				LoopContent = LoopContent + GenCode(Tabs+"\t",OtherContent)
 
@@ -855,6 +899,12 @@ def Loop(Tabs, TheKindType, Content):
 								#remove all nest-
 								while StartsWith(OtherContent, "nest-"):
 									OtherContent = AfterSplit(OtherContent,"-")
+
+								AutoTabs = HandleTabs("loop",Tabs+"\t",OtherContent)
+								if AutoTabs != "":
+									LoopContent = LoopContent + GenCode(Tabs+"\t",AutoTabs)
+									AutoTabs = ""
+
 								#process loop/logic
 								LoopContent = LoopContent + GenCode(Tabs+"\t",OtherContent)
 							else:
@@ -866,6 +916,12 @@ def Loop(Tabs, TheKindType, Content):
 
 					while StartsWith(NewContent, "nest-"):
 						NewContent = AfterSplit(NewContent,"-")
+
+					AutoTabs = HandleTabs("loop",Tabs+"\t",NewContent)
+					if AutoTabs != "":
+						LoopContent = LoopContent + GenCode(Tabs+"\t",AutoTabs)
+						AutoTabs = ""
+
 					#process the remaining nest-loop/logic
 					LoopContent = LoopContent + GenCode(Tabs+"\t",NewContent)
 			#just process as is
@@ -890,9 +946,20 @@ def Loop(Tabs, TheKindType, Content):
 						pLp = pLp + 1
 					ParentContent = ReplaceTag(ParentContent, "loop-", False)
 
+				AutoTabs = HandleTabs("loop",Tabs+"\t",OtherContent)
+				if AutoTabs != "":
+					LoopContent = LoopContent + GenCode(Tabs+"\t",AutoTabs)
+					AutoTabs = ""
+
 				LoopContent = LoopContent + GenCode(Tabs+"\t",OtherContent)
 			#process parent content
 			if ParentContent != "":
+
+				AutoTabs = HandleTabs("loop",Tabs+"\t",ParentContent)
+				if AutoTabs != "":
+					LoopContent = LoopContent + GenCode(Tabs+"\t",AutoTabs)
+					AutoTabs = ""
+
 				LoopContent = LoopContent + GenCode(Tabs+"\t",ParentContent)
 				ParentContent = ""
 			#clear new content
@@ -900,6 +967,12 @@ def Loop(Tabs, TheKindType, Content):
 
 		elif StartsWith(Content, "var:") or StartsWith(Content, "stmt:"):
 #			Content = ReplaceTag(Content, "loop-",True)
+
+			AutoTabs = HandleTabs("loop",Tabs+"\t",Content)
+			if AutoTabs != "":
+				LoopContent = LoopContent + GenCode(Tabs+"\t",AutoTabs)
+				AutoTabs = ""
+
 			LoopContent = LoopContent + GenCode(Tabs+"\t",Content)
 			Content = ""
 
@@ -968,6 +1041,12 @@ def Logic(Tabs, TheKindType, Content):
 				else:
 					NewContent = NewContent + " nest-"+all[lp]
 				lp = lp + 1
+
+			AutoTabs = HandleTabs("logic",Tabs+"\t",OtherContent)
+			if AutoTabs != "":
+				LogicContent = LogicContent + GenCode(Tabs+"\t",AutoTabs)
+				AutoTabs = ""
+
 			#Process the current content so as to keep from redoing said content
 			LogicContent = LogicContent + GenCode(Tabs+"\t",OtherContent)
 			Content = NewContent
@@ -1038,6 +1117,12 @@ def Logic(Tabs, TheKindType, Content):
 							NewContent = NewContent+" "+cmds[lp]
 					lp = lp + 1
 
+				AutoTabs = HandleTabs("logic",Tabs+"\t",OtherContent)
+
+				if AutoTabs != "":
+					LogicContent = LogicContent + GenCode(Tabs+"\t",AutoTabs)
+					AutoTabs = ""
+
 				#processes all the statements before a loop/logic
 				LogicContent = LogicContent + GenCode(Tabs+"\t",OtherContent)
 
@@ -1068,6 +1153,11 @@ def Logic(Tabs, TheKindType, Content):
 					while StartsWith(NewContent, "nest-"):
 						NewContent = AfterSplit(NewContent,"-")
 
+					AutoTabs = HandleTabs("logic",Tabs+"\t",NewContent)
+					if AutoTabs != "":
+						LogicContent = LogicContent + GenCode(Tabs+"\t",AutoTabs)
+						AutoTabs = ""
+
 					#process the remaining nest-loop/logic
 					LogicContent = LogicContent + GenCode(Tabs+"\t",NewContent)
 
@@ -1092,11 +1182,22 @@ def Logic(Tabs, TheKindType, Content):
 								ParentContent = ParentContent + " " + TranslateTag(parent[pLp])
 						pLp = pLp + 1
 					ParentContent = ReplaceTag(ParentContent, "logic-",False)
+
+				AutoTabs = HandleTabs("logic",Tabs+"\t",OtherContent);
+				if AutoTabs != "":
+					LogicContent = LogicContent + GenCode(Tabs+"\t",AutoTabs)
+					AutoTabs = ""
+
 				LogicContent = LogicContent + GenCode(Tabs+"\t",OtherContent)
 
 
 			#process parent content
 			if ParentContent != "":
+				AutoTabs = HandleTabs("logic",Tabs+"\t",ParentContent)
+				if AutoTabs != "":
+					LogicContent = LogicContent + GenCode(Tabs+"\t",AutoTabs)
+					AutoTabs = ""
+
 				LogicContent = LogicContent + GenCode(Tabs+"\t",ParentContent)
 				ParentContent = ""
 
@@ -1104,6 +1205,12 @@ def Logic(Tabs, TheKindType, Content):
 			NewContent = ""
 		elif StartsWith(Content, "var:") or StartsWith(Content, "stmt:"):
 #			Content = ReplaceTag(Content, "logic-",False)
+
+			AutoTabs = HandleTabs("logic",Tabs+"\t",Content)
+			if AutoTabs != "":
+				LogicContent = LogicContent + GenCode(Tabs+"\t",AutoTabs)
+				AutoTabs = ""
+
 			LogicContent = LogicContent + GenCode(Tabs+"\t",Content)
 			Content = ""
 		else:
@@ -1190,7 +1297,14 @@ def Statements(Tabs, TheKindType, Content):
 			if StartsWith(OtherContent,"loop:") and Content != "" or StartsWith(OtherContent,"logic:") and Content != "":
 				OtherContent = OtherContent+" "+Content
 				Content = ""
+
 			StatementContent = StatementContent + GenCode(Tabs,OtherContent)
+
+			if OtherContent == "stmt:endline":
+				AutoTabs = HandleTabs("statements",Tabs,Content)
+				if AutoTabs != "":
+					StatementContent = StatementContent + GenCode(Tabs,AutoTabs)
+					AutoTabs = ""
 
 	#Pull Vector or Array Type
 	if StartsWith(TheKindType,"<") and IsIn(TheKindType,">"):
@@ -1318,8 +1432,8 @@ def Variables(Tabs, TheKindType, Content):
 		Name = BeforeSplit(TheKindType,"=")
 		Value = AfterSplit(TheKindType,"=")
 
-#	if VarType != "":
-#		NewVar = VarType+" "
+	if VarType != "":
+		NewVar = VarType+" "
 
 	if MakeEqual == True:
 		if IsIn(Value,"(-spc)"):
