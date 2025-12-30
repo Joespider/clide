@@ -9,7 +9,7 @@ import (
 	"strings"
 	)
 
-var Version string = "0.1.4"
+var Version string = "0.1.5"
 
 func getOS() string {
 	os := runtime.GOOS
@@ -801,8 +801,8 @@ func Method(Tabs string, Name string, Content string) string {
 				Content = cmds[0]
 			}
 
-			if StartsWith(Content, "method-") && IsIn(Content, " method-") {
-				var all []string = split(Content," method-")
+			if StartsWith(Content, "method-") && IsIn(Content, " method-l") {
+				var all []string = split(Content," method-l")
 				var lp int = 0
 				var end int = len(all)
 				for lp != end {
@@ -810,9 +810,9 @@ func Method(Tabs string, Name string, Content string) string {
 						OtherContent = all[lp]
 					} else {
 						if NewContent == "" {
-							NewContent = "method-"+all[lp]
+							NewContent = "method-l"+all[lp]
 						} else {
-							NewContent = NewContent+" method-"+all[lp]
+							NewContent = NewContent+" method-l"+all[lp]
 						}
 					}
 					lp++
