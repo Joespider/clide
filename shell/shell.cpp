@@ -799,7 +799,7 @@ String TranslateTag(String Input)
 
 String HandleTabs(String CalledBy, String Tabs, String Content)
 {
-	String NewTabs = "";
+	String AutoTabs = "";
 //	if ((CalledBy == "class") || (CalledBy == "method") || (CalledBy == "logic") || (CalledBy == "loop"))
 //	{
 	if ((Content != "stmt:endline") && (Content != "stmt:newline"))
@@ -811,14 +811,14 @@ String HandleTabs(String CalledBy, String Tabs, String Content)
 			int end = len(AllTabs);
 			while (lp != end)
 			{
-				NewTabs = NewTabs +"stmt:tab ";
+				AutoTabs = AutoTabs +"stmt:tab ";
 				lp++;
 			}
 		}
 	}
 //	}
 
-	return NewTabs;
+	return AutoTabs;
 }
 
 String DataType(String Type, bool getNull)
@@ -1145,7 +1145,7 @@ String Method(String Tabs, String Name, String Content)
 	String OtherContent = "";
 	String NewContent = "";
 	String Process = "";
-	String NewTabs = "";
+	String AutoTabs = "";
 
 	//method:(<type>)<name>
 	if ((StartsWith(Name,"(")) && (IsIn(Name,")")))
@@ -1260,12 +1260,12 @@ String Method(String Tabs, String Name, String Content)
 
 						if ((Corrected == "stmt:newline") || (Corrected == "stmt:endline"))
 						{
-							NewTabs = HandleTabs("method",Tabs+"\t",ParseContent);
+							AutoTabs = HandleTabs("method",Tabs+"\t",ParseContent);
 
-							if (NewTabs != "")
+							if (AutoTabs != "")
 							{
 								//Generate the loop content
-								MethodContent = MethodContent + GenCode(Tabs+"\t",NewTabs);
+								MethodContent = MethodContent + GenCode(Tabs+"\t",AutoTabs);
 							}
 							//process content
 							MethodContent = MethodContent + GenCode(Tabs+"\t",ParseContent);
@@ -1274,12 +1274,12 @@ String Method(String Tabs, String Name, String Content)
 					}
 					else
 					{
-						NewTabs = HandleTabs("method",Tabs+"\t",Corrected);
+						AutoTabs = HandleTabs("method",Tabs+"\t",Corrected);
 
-						if (NewTabs != "")
+						if (AutoTabs != "")
 						{
 							//Generate the loop content
-							MethodContent = MethodContent + GenCode(Tabs+"\t",NewTabs);
+							MethodContent = MethodContent + GenCode(Tabs+"\t",AutoTabs);
 						}
 						//process content
 						MethodContent = MethodContent + GenCode(Tabs+"\t",Corrected);
@@ -1290,12 +1290,12 @@ String Method(String Tabs, String Name, String Content)
 			else
 			{
 				Corrected = ReplaceTag(OtherContent, "method-",false);
-				NewTabs = HandleTabs("method",Tabs+"\t",Corrected);
+				AutoTabs = HandleTabs("method",Tabs+"\t",Corrected);
 
-				if (NewTabs != "")
+				if (AutoTabs != "")
 				{
 					//Generate the loop content
-					MethodContent = MethodContent + GenCode(Tabs+"\t",NewTabs);
+					MethodContent = MethodContent + GenCode(Tabs+"\t",AutoTabs);
 				}
 
 				//Generate the loop content
@@ -1353,7 +1353,7 @@ String Loop(String Tabs, String TheKindType, String Content)
 	print("");
 */
 	bool Last = false;
-	String NewTabs = "";
+	String AutoTabs = "";
 	String Complete = "";
 	String RootTag = "";
 	String TheCondition = "";
@@ -1425,11 +1425,11 @@ String Loop(String Tabs, String TheKindType, String Content)
 				}
 				lp++;
 			}
-			NewTabs = HandleTabs("loop",Tabs+"\t",OtherContent);
-			if (NewTabs != "")
+			AutoTabs = HandleTabs("loop",Tabs+"\t",OtherContent);
+			if (AutoTabs != "")
 			{
-				LoopContent = LoopContent + GenCode(Tabs+"\t",NewTabs);
-				NewTabs = "";
+				LoopContent = LoopContent + GenCode(Tabs+"\t",AutoTabs);
+				AutoTabs = "";
 			}
 
 			//Generate the loop content
@@ -1537,11 +1537,11 @@ String Loop(String Tabs, String TheKindType, String Content)
 					lp++;
 				}
 
-				NewTabs = HandleTabs("loop",Tabs+"\t",OtherContent);
-				if (NewTabs != "")
+				AutoTabs = HandleTabs("loop",Tabs+"\t",OtherContent);
+				if (AutoTabs != "")
 				{
-					LoopContent = LoopContent + GenCode(Tabs+"\t",NewTabs);
-					NewTabs = "";
+					LoopContent = LoopContent + GenCode(Tabs+"\t",AutoTabs);
+					AutoTabs = "";
 				}
 
 				//processes all the statements before a loop/logic
@@ -1568,11 +1568,11 @@ String Loop(String Tabs, String TheKindType, String Content)
 								{
 									OtherContent = AfterSplit(OtherContent,'-');
 								}
-								NewTabs = HandleTabs("loop",Tabs+"\t",OtherContent);
-								if (NewTabs != "")
+								AutoTabs = HandleTabs("loop",Tabs+"\t",OtherContent);
+								if (AutoTabs != "")
 								{
-									LoopContent = LoopContent + GenCode(Tabs+"\t",NewTabs);
-									NewTabs = "";
+									LoopContent = LoopContent + GenCode(Tabs+"\t",AutoTabs);
+									AutoTabs = "";
 								}
 
 								//process loop/logic
@@ -1598,11 +1598,11 @@ String Loop(String Tabs, String TheKindType, String Content)
 						NewContent = AfterSplit(NewContent,'-');
 					}
 
-					NewTabs = HandleTabs("loop",Tabs+"\t",NewContent);
-					if (NewTabs != "")
+					AutoTabs = HandleTabs("loop",Tabs+"\t",NewContent);
+					if (AutoTabs != "")
 					{
-						LoopContent = LoopContent + GenCode(Tabs+"\t",NewTabs);
-						NewTabs = "";
+						LoopContent = LoopContent + GenCode(Tabs+"\t",AutoTabs);
+						AutoTabs = "";
 					}
 
 					//process the remaining nest-loop/logic
@@ -1649,11 +1649,11 @@ String Loop(String Tabs, String TheKindType, String Content)
 				}
 
 				//process the remaining nest-loop/logic
-				NewTabs = HandleTabs("loop",Tabs+"\t",OtherContent);
-				if (NewTabs != "")
+				AutoTabs = HandleTabs("loop",Tabs+"\t",OtherContent);
+				if (AutoTabs != "")
 				{
-					LoopContent = LoopContent + GenCode(Tabs+"\t",NewTabs);
-					NewTabs = "";
+					LoopContent = LoopContent + GenCode(Tabs+"\t",AutoTabs);
+					AutoTabs = "";
 				}
 
 				LoopContent = LoopContent + GenCode(Tabs+"\t",OtherContent);
@@ -1663,11 +1663,11 @@ String Loop(String Tabs, String TheKindType, String Content)
 			if (ParentContent != "")
 			{
 				//process the remaining nest-loop/logic
-				NewTabs = HandleTabs("loop",Tabs+"\t",ParentContent);
-				if (NewTabs != "")
+				AutoTabs = HandleTabs("loop",Tabs+"\t",ParentContent);
+				if (AutoTabs != "")
 				{
-					LoopContent = LoopContent + GenCode(Tabs+"\t",NewTabs);
-					NewTabs = "";
+					LoopContent = LoopContent + GenCode(Tabs+"\t",AutoTabs);
+					AutoTabs = "";
 				}
 
 				LoopContent = LoopContent + GenCode(Tabs+"\t",ParentContent);
@@ -1680,17 +1680,17 @@ String Loop(String Tabs, String TheKindType, String Content)
 		else if ((StartsWith(Content, "var:")) || (StartsWith(Content, "stmt:")))
 		{
 //			Content = ReplaceTag(Content, "loop-",true);
-			NewTabs = HandleTabs("loop",Tabs+"\t",Content);
-			if (NewTabs != "")
+			AutoTabs = HandleTabs("loop",Tabs+"\t",Content);
+			if (AutoTabs != "")
 			{
-				LoopContent = LoopContent + GenCode(Tabs+"\t",NewTabs);
-				NewTabs = "";
+				LoopContent = LoopContent + GenCode(Tabs+"\t",AutoTabs);
+				AutoTabs = "";
 			}
 
 /*
 	if (TheKindType == "do-while")
 	{
-		print(NewTabs+Content);
+		print(AutoTabs+Content);
 	}
 */
 			//process the remaining nest-loop/logic
@@ -1752,7 +1752,7 @@ String Logic(String Tabs, String TheKindType, String Content)
 	String NewContent = "";
 	String OtherContent = "";
 	String ParentContent = "";
-	String NewTabs = "";
+	String AutoTabs = "";
 
 
 	if (StartsWith(TheKindType, "logic:"))
@@ -1805,11 +1805,11 @@ String Logic(String Tabs, String TheKindType, String Content)
 				lp++;
 			}
 
-			NewTabs = HandleTabs("logic",Tabs+"\t",OtherContent);
-			if (NewTabs != "")
+			AutoTabs = HandleTabs("logic",Tabs+"\t",OtherContent);
+			if (AutoTabs != "")
 			{
-				LogicContent = LogicContent + GenCode(Tabs+"\t",NewTabs);
-				NewTabs = "";
+				LogicContent = LogicContent + GenCode(Tabs+"\t",AutoTabs);
+				AutoTabs = "";
 			}
 
 			//Process the current content so as to keep from redoing said content
@@ -1923,12 +1923,12 @@ String Logic(String Tabs, String TheKindType, String Content)
 				}
 
 				//processes all the statements before a loop/logic
-				NewTabs = HandleTabs("logic",Tabs+"\t",OtherContent);
+				AutoTabs = HandleTabs("logic",Tabs+"\t",OtherContent);
 
-				if (NewTabs != "")
+				if (AutoTabs != "")
 				{
-					LogicContent = LogicContent + GenCode(Tabs+"\t",NewTabs);
-					NewTabs = "";
+					LogicContent = LogicContent + GenCode(Tabs+"\t",AutoTabs);
+					AutoTabs = "";
 				}
 				LogicContent = LogicContent + GenCode(Tabs+"\t",OtherContent);
 
@@ -1978,11 +1978,11 @@ String Logic(String Tabs, String TheKindType, String Content)
 					}
 
 					//process the remaining nest-loop/logic
-					NewTabs = HandleTabs("logic",Tabs+"\t",NewContent);
-					if (NewTabs != "")
+					AutoTabs = HandleTabs("logic",Tabs+"\t",NewContent);
+					if (AutoTabs != "")
 					{
-						LogicContent = LogicContent + GenCode(Tabs+"\t",NewTabs);
-						NewTabs = "";
+						LogicContent = LogicContent + GenCode(Tabs+"\t",AutoTabs);
+						AutoTabs = "";
 					}
 
 					LogicContent = LogicContent + GenCode(Tabs+"\t",NewContent);
@@ -2027,11 +2027,11 @@ String Logic(String Tabs, String TheKindType, String Content)
 					ParentContent = ReplaceTag(ParentContent, "logic-",false);
 				}
 				//process the remaining nest-loop/logic
-				NewTabs = HandleTabs("logic",Tabs+"\t",OtherContent);
-				if (NewTabs != "")
+				AutoTabs = HandleTabs("logic",Tabs+"\t",OtherContent);
+				if (AutoTabs != "")
 				{
-					LogicContent = LogicContent + GenCode(Tabs+"\t",NewTabs);
-					NewTabs = "";
+					LogicContent = LogicContent + GenCode(Tabs+"\t",AutoTabs);
+					AutoTabs = "";
 				}
 
 				LogicContent = LogicContent + GenCode(Tabs+"\t",OtherContent);
@@ -2041,11 +2041,11 @@ String Logic(String Tabs, String TheKindType, String Content)
 			if (ParentContent != "")
 			{
 				//process the remaining nest-loop/logic
-				NewTabs = HandleTabs("logic",Tabs+"\t",ParentContent);
-				if (NewTabs != "")
+				AutoTabs = HandleTabs("logic",Tabs+"\t",ParentContent);
+				if (AutoTabs != "")
 				{
-					LogicContent = LogicContent + GenCode(Tabs+"\t",NewTabs);
-					NewTabs = "";
+					LogicContent = LogicContent + GenCode(Tabs+"\t",AutoTabs);
+					AutoTabs = "";
 				}
 
 				LogicContent = LogicContent + GenCode(Tabs+"\t",ParentContent);
@@ -2058,11 +2058,11 @@ String Logic(String Tabs, String TheKindType, String Content)
 		else if ((StartsWith(Content, "var:")) || (StartsWith(Content, "stmt:")))
 		{
 			//process the remaining nest-loop/logic
-			NewTabs = HandleTabs("logic",Tabs+"\t",Content);
-			if (NewTabs != "")
+			AutoTabs = HandleTabs("logic",Tabs+"\t",Content);
+			if (AutoTabs != "")
 			{
-				LogicContent = LogicContent + GenCode(Tabs+"\t",NewTabs);
-				NewTabs = "";
+				LogicContent = LogicContent + GenCode(Tabs+"\t",AutoTabs);
+				AutoTabs = "";
 			}
 
 			LogicContent = LogicContent + GenCode(Tabs+"\t",Content);
@@ -2129,7 +2129,7 @@ String Logic(String Tabs, String TheKindType, String Content)
 String Statements(String Tabs, String TheKindType, String Content)
 {
 	bool Last = false;
-	String NewTabs = "";
+	String AutoTabs = "";
 	String Complete = "";
 	String StatementContent = "";
 	String OtherContent = "";
@@ -2206,18 +2206,17 @@ String Statements(String Tabs, String TheKindType, String Content)
 				Content = "";
 			}
 
+			StatementContent = StatementContent + GenCode(Tabs,OtherContent);
+
 			if (OtherContent == "stmt:endline")
 			{
-				NewTabs = HandleTabs("statements",Tabs,Content);
+				AutoTabs = HandleTabs("statements",Tabs,Content);
+				if (AutoTabs != "")
+				{
+					StatementContent = StatementContent + GenCode(Tabs,AutoTabs);
+					AutoTabs = "";
+				}
 			}
-
-			StatementContent = StatementContent + GenCode(Tabs,OtherContent);
-			if (NewTabs != "")
-			{
-				StatementContent = StatementContent + GenCode(Tabs,NewTabs);
-				NewTabs = "";
-			}
-
 		}
 	}
 
