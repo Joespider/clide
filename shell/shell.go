@@ -9,7 +9,7 @@ import (
 	"strings"
 	)
 
-var Version string = "0.1.5"
+var Version string = "0.1.6"
 
 func getOS() string {
 	os := runtime.GOOS
@@ -32,36 +32,47 @@ func help(Type string) {
 		fmt.Println("{}<name>:(<type>)<name> var(public/private):<vars> method:<name>-<type> param:<params>,<param>")
 		fmt.Println("")
 		fmt.Println("{EXAMPLE}")
-		fmt.Println("{}pizza:(int)one,(bool)two,(float)three var(private):(int)toppings [String-mixture]cheese:(String)kind,(int)amount for: nest-for: [String]topping:(String)name,(int)amount if:good")
+		Example("{}pizza:(int)one,(bool)two,(float)three var(private):(int)toppings [String-mixture]cheese:(String)kind,(int)amount for: nest-for: [String]topping:(String)name,(int)amount if:good")
 	} else if Type == "struct" {
-		fmt.Println(Type+":<name>-<type> var:<var> var:<var>")
+		fmt.Println("(<type>)<name>")
+		fmt.Println("")
+	} else if Type == "method" {
+		fmt.Println("[<data>]<name>:<parameters>")
+		fmt.Println("[<data>-<return>]<name>:<parameters>")
+		fmt.Println("")
+		Example("[String-Type]FoodAndDrink:(String)Food []-if:Food(-ne)\"\" +->if:[IsDrink]:drink(-eq)true +-()Type=\"Drink\" +-el +->>if:[IsNotEmpty]:Food +-[Drink]:Food +-el +->>>if:mood(-ne)\"happy\" +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->>>>if:mood(-eq)\"unhappy\" +-[ChearUp]:mood +-el +-[print]:\"I(-spc)am(-spc)\"+mood +-el <<<<-+-[ImHappy]: <<<<-+-el <<<-+-[Refill]: <<<-+-el <<-+-[Complete]: <<-+-el <<-+-[NewLine]: <<-+-el +->else-if:[IsFood]:Food(-eq)true +-()Type=\"Food\" +-el +->>while:[IsNotEmpty]:Food o-[Eat]:Food o-el o->>if:mood(-ne)\"happy\" +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->>>do-while:mood(-eq)\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I(-spc)am(-spc)\"+mood o-el <<<<-+-[print]:\"I(-spc)am(-spc)\"+mood+\"(-spc)now\" <<<<-+-el +->else +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el []-else +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el []-nl []-[print]:\"It(-spc)works!!!\" []-el")
+		Example("[]clock []-(int)time:[start]: []-el []-nl []-if:here +-[stop]: +-el []-nl []-[begin]: []-el []-nl []-if: +-[end]: +-el []-else +-[reset]: +-el []-for: o-[count]: o-el")
+	} else if Type == "loop" {
+		fmt.Println("<loop>:<condition>")
+		fmt.Println("")
+		fmt.Println("{loop}")
+		fmt.Println("for:")
+		fmt.Println("do-while:")
+		fmt.Println("while:")
 		fmt.Println("")
 		fmt.Println("{EXAMPLE}")
-		fmt.Println(Type+":pizza var:topping-std::string var:number-int")
-	} else if Type == "method" {
-		fmt.Println(Type+"(public/private):<name>-<type> param:<params>,<param>")
-		fmt.Println(Type+":<name>-<type> param:<params>,<param>")
-		Example("[String]help:(String)one,(int)two")
-		Example("[String-Message]help:(String)one,(int)two")
-		Example("[String-Type]FoodAndDrink:(String)Food if:Food(-ne)\"\" >if:[IsDrink]:drink(-eq)true +->tab +->tab +->tab +->()Type=\"Drink\" +->el +->>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Drink]:Food o->>el +->else-if:[IsFood]:Food(-eq)true +->tab +->tab +->tab +->()Type=\"Food\" +->el >>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Eat]:Food o->>el >else +->tab +->tab +->tab +->()Eat= +->(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el else +-tab +-tab +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el")
-		Example("[String-Type]FoodAndDrink:(String)Food if:Food(-ne)\"\" >if:[IsDrink]:drink(-eq)true +->tab +->tab +->tab +->()Type=\"Drink\" +->el +->>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Drink]:Food o->>el >>if:mood(-ne)\"happy\" >>>do-while:mood(-eq)\"unhappy\" >>>>tab >>>>tab >>>>tab >>>>tab >>>>tab >>>>[ChearUp]:mood >>>>el +->else-if:[IsFood]:Food(-eq)true +->tab +->tab +->tab +->()Type=\"Food\" +->el >>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Eat]:Food o->>el >>if:mood(-ne)\"happy\" >>>do-while:mood(-eq)\"unhappy\" >>>>tab >>>>tab >>>>tab >>>>tab >>>>tab >>>>[ChearUp]:mood >>>>el >else +->tab +->tab +->tab +->(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el else +-tab +-tab +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el")
-		Example("[String-Type]FoodAndDrink:(String)Food if:Food(-ne)\"\" >if:[IsDrink]:drink(-eq)true +->tab +->tab +->tab +->()Type=\"Drink\" +->el +->>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Drink]:Food o->>el >>if:mood(-ne)\"happy\" >>>do-while:mood(-eq)\"unhappy\" o->>>>tab o->>>>tab o->>>>tab o->>>>tab o->>>>tab o->>>>[ChearUp]:mood o->>>>el +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->else-if:[IsFood]:Food(-eq)true +->tab +->tab +->tab +->()Type=\"Food\" +->el >>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Eat]:Food o->>el >>if:mood(-ne)\"happy\" >>>do-while:mood(-eq)\"unhappy\" >>>>tab >>>>tab >>>>tab >>>>tab >>>>tab >>>>[ChearUp]:mood >>>>el +-[print]:\"I(-spc)am(-spc)\"+mood +-el >else +->tab +->tab +->tab +->(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el else +-tab +-tab +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el")
-		Example("[String-Type]FoodAndDrink:(String)Food if:Food(-ne)\"\" >if:[IsDrink]:drink(-eq)true >>tab >>tab >>tab >>()Type=\"Food\" >>el >>tab >>tab >>tab >>[Drink]:Food >>el >else-if:[IsFood]:Food(-eq)true +->>tab +->>tab +->>tab +->>()Type=\"Drink\" +->>el >>tab >>tab >>tab >>[Eat]:Food >>el >else +->tab +->tab +->tab +->(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +->el else +-tab +-tab +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el")
-	} else if Type == "loop" {
-		fmt.Println("<logic>:<condition>")
+		fmt.Println("")
+		Example("while:Type(-spc)==(-spc)\"String\"")
+		Example("do-while:Type(-eq)\"String\" o-[work]: o-el")
+		Example("while:true >if:[IsString]:drink(-eq)true [drink]: el >>if:drink(-eq)\"coke\" >>else nl >else-if:[IsInt]:drink(-eq)false nl >else >>if: nl >>else nl")
+		Example("while:true >if:[IsString]:drink(-eq)true >>if:drink(-eq)\"coke\" >>else nl >else-if:[IsInt]:drink(-eq)false nl >else >>if: >>nl >>else nl")
+		Example("while:Food(-ne)\"\" o->if:[IsDrink]:drink(-eq)true +-()Type=\"Drink\" +-el +->>while:[IsNotEmpty]:Food o-[Drink]:Food o-el o->>>if:mood(-ne)\"happy\" +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->>>>do-while:mood(-eq)\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I(-spc)am(-spc)\"+mood o-el <<<<-+-[print]:\"I(-spc)am(-spc)\"+mood+\"(-spc)now\" <<<<-+-el o->else-if:[IsDrink]:drink(-eq)true +-()Type=\"Drink\" +-el +->>while:[IsNotEmpty]:Food o-[Drink]:Food o-el o->>>if:mood(-ne)\"happy\" +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->>>>do-while:mood(-eq)\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I(-spc)am(-spc)\"+mood o-el <<<<-+-[print]:\"I(-spc)am(-spc)\"+mood+\"(-spc)now\" <<<<-+-el o->else +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el")
+	} else if Type == "logic" {
+		fmt.Println("<logic>:<condition>");
+		fmt.Println("");
+		fmt.Println("{logic}");
+		fmt.Println("if:");
+		fmt.Println("else-if:");
+		fmt.Println("else");
+		fmt.Println("");
+		fmt.Println("{EXAMPLE}")
 		fmt.Println("")
 		Example("if:Type(-spc)==(-spc)\"String\"")
 		Example("else-if:Type(-eq)\"String\"")
 		Example("else")
-		Example("if:true tab (String)drink= [Pop]:one,two el >if:[IsString]:drink(-eq)true >tab >tab >[drink]: >el >>if:drink(-eq)\"coke\" >>else >nl >else-if:[IsInt]:drink(-eq)false >nl >else >>if: >>nl >>else >nl")
-		Example("if:true tab (String)drink= [Pop]:one,two el >if:[IsString]:drink(-eq)true >>if:drink(-eq)\"coke\" >>else >nl >else-if:[IsInt]:drink(-eq)false >nl >else >>if: >>nl >>else >nl")
-	} else if Type == "logic" {
-		fmt.Println(Type+":<type>")
-		fmt.Println("")
-		fmt.Println("{EXAMPLE}")
-		fmt.Println(Type+":if")
-		fmt.Println(Type+":else-if")
-		fmt.Println(Type+":switch")
+		Example("if:true (String)drink:[Pop]:one,two el >if:[IsString]:drink(-eq)true [drink]: el >>if:drink(-eq)\"coke\" >>else nl >else-if:[IsInt]:drink(-eq)false nl >else >>if: nl >>else nl")
+		Example("if:true (String)drink:[Pop]:one,two el >if:[IsString]:drink(-eq)true >>if:drink(-eq)\"coke\" >>else nl >else-if:[IsInt]:drink(-eq)false nl >else >>if: nl >>else nl")
+		Example("if:Food(-ne)\"\" +->if:[IsDrink]:drink(-eq)true +-()Type=\"Drink\" +-el +->>if:[IsNotEmpty]:Food +-[Drink]:Food +-el +->>>if:mood(-ne)\"happy\" +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->>>>if:mood(-eq)\"unhappy\" +-[ChearUp]:mood +-el +-[print]:\"I(-spc)am(-spc)\"+mood +-el <<<<-+-[ImHappy]: <<<<-+-el <<<-+-[Refill]: <<<-+-el <<-+-[Complete]: <<-+-el <<-+-[NewLine]: <<-+-el +->else-if:[IsFood]:Food(-eq)true +-()Type=\"Food\" +-el +->>while:[IsNotEmpty]:Food o-[Eat]:Food o-el o->>if:mood(-ne)\"happy\" +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->>>do-while:mood(-eq)\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I(-spc)am(-spc)\"+mood o-el <<<<-+-[print]:\"I(-spc)am(-spc)\"+mood+\"(-spc)now\" <<<<-+-el +->else +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el")
 	} else if Type == "var" {
 		Example("(std::string)name=\"\" var:(int)point=0 stmt:endline var:james-std::string=\"James\" stmt:endline var:help-int")
 		Example("(std::string)name=\"\" el (int)point=0 el (std::string)james=\"James\" el (int)help el help=0")
@@ -70,10 +81,6 @@ func help(Type string) {
 		fmt.Println(Type+":<type>")
 		fmt.Println(Type+":method\t\tcall a method")
 		fmt.Println(Type+":endline\t\tPlace the \";\" at the end of the statement")
-		fmt.Println(Type+":newline\t\tPlace and empty line")
-		fmt.Println(Type+":method-<name>\tcall a method and the name of the method")
-		fmt.Println(Type+":<type>")
-		fmt.Println(Type+":endline\t\tPlace the \"\" at the end of the statement")
 		fmt.Println(Type+":newline\t\tPlace and empty line")
 		fmt.Println(Type+":method-<name>\tcall a method and the name of the method")
 	} else {
@@ -85,7 +92,12 @@ func help(Type string) {
 		fmt.Println("logic\t\t:\t\"Create a logic\"")
 		fmt.Println("var\t\t:\t\"Create a variable\"")
 		fmt.Println("stmt\t\t:\t\"Create a statment\"")
-		fmt.Println("nest-<type>\t:\t\"next element is nested in previous element\"")
+		fmt.Println(">\t:\t\"next loop/logic element is nested in previous loop/logic\"")
+		fmt.Println("[]-<type>\t:\t\"assigne the next element to method content only\"")
+		fmt.Println("+-<type>\t:\t\"assigne the next element to logic content only\"")
+		fmt.Println("o-<type>\t:\t\"assigne the next element to loop content only\"")
+		fmt.Println("<-<type>\t:\t\"assigne the next element to previous element\"")
+		fmt.Println("<<-<type>\t:\t\"assigne the next element to 2 previous element\"")
 		fmt.Println("")
 		fmt.Println("help:<type>")
 	}
@@ -375,9 +387,11 @@ func TranslateTag(Input string) string {
 			Value = AfterSplit(Action,":")
 			Action = TheDataType
 			if Value != "" {
-				TheReturn = Parent+ContentFor+Nest+"stmt:method-"+Action+" params:"+Value
+//				TheReturn = Parent+ContentFor+Nest+"stmt:method-"+Action+" params:"+Value
+				TheReturn = Parent+ContentFor+"stmt:method-"+Action+" params:"+Value
 			} else {
-				TheReturn = Parent+ContentFor+Nest+"stmt:method-"+Action
+//				TheReturn = Parent+ContentFor+Nest+"stmt:method-"+Action
+				TheReturn = Parent+ContentFor+"stmt:method-"+Action
 			}
 		//is a function
 		} else {
@@ -423,9 +437,11 @@ func TranslateTag(Input string) string {
 			//translate value, if needed
 			Value = TranslateTag(Value)
 //			Value = GenCode("",Value)
-			TheReturn = Parent+ContentFor+Nest+"var:("+TheDataType+")"+Action+"= "+Value
+//			TheReturn = Parent+ContentFor+Nest+"var:("+TheDataType+")"+Action+"= "+Value
+			TheReturn = Parent+ContentFor+"var:("+TheDataType+")"+Action+"= "+Value
 		} else {
-			TheReturn = Parent+ContentFor+Nest+"var:("+TheDataType+")"+Action
+//			TheReturn = Parent+ContentFor+Nest+"var:("+TheDataType+")"+Action
+			TheReturn = Parent+ContentFor+"var:("+TheDataType+")"+Action
 		}
 	//This is an example of handling vecotors and arrays
 	//	<type>name:value
@@ -492,11 +508,14 @@ func TranslateTag(Input string) string {
 			}
 		}
 	} else if Action == "el" {
-		TheReturn = Parent+ContentFor+Nest+"stmt:endline"
+//		TheReturn = Parent+ContentFor+Nest+"stmt:endline"
+		TheReturn = Parent+ContentFor+"stmt:endline"
 	} else if Action == "nl" {
-		TheReturn = Parent+ContentFor+Nest+"stmt:newline"
+//		TheReturn = Parent+ContentFor+Nest+"stmt:newline"
+		TheReturn = Parent+ContentFor+"stmt:newline"
 	} else if Action == "tab" {
-		TheReturn = Parent+ContentFor+Nest+"stmt:"+Action
+//		TheReturn = Parent+ContentFor+Nest+"stmt:"+Action
+		TheReturn = Parent+ContentFor+"stmt:"+Action
 	} else {
 		if Value != "" {
 			TheReturn = Parent+ContentFor+Nest+Action+":"+Value
@@ -1671,6 +1690,7 @@ func Variables(Tabs string, TheKindType string, Content string) string {
 	var Value string = ""
 	var VariableContent string = ""
 	var OtherContent string = ""
+	var AutoTabs string = ""
 
 	if StartsWith(TheKindType, "var:") {
 		TheKindType = AfterSplit(TheKindType,":")
@@ -1702,6 +1722,13 @@ func Variables(Tabs string, TheKindType string, Content string) string {
 				Content = ""
 			}
 			VariableContent = VariableContent + GenCode(Tabs,OtherContent)
+			if OtherContent == "stmt:endline" {
+				AutoTabs = HandleTabs("variables",Tabs,Content)
+				if AutoTabs != "" {
+					VariableContent = VariableContent + GenCode(Tabs,AutoTabs)
+					AutoTabs = ""
+				}
+			}
 		}
 	}
 

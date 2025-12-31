@@ -2,7 +2,7 @@ import os
 import sys
 import platform
 
-Version = "0.1.3"
+Version = "0.1.4"
 
 def getOS():
 	platform.system()
@@ -13,46 +13,59 @@ def Help(Type):
 
 	if Type == "class":
 		print("{Usage}")
-		print(Type+":<name> param:<params>,<param> var(public/private):<vars> method:<name>-<type> param:<params>,<param>")
+		print("{}<name>:(<type>)<name> var(public/private):<vars> method:<name>-<type> param:<params>,<param>")
 		print("")
 		print("{EXAMPLE}")
-		print(Type+":pizza params:one-int,two-bool,three-float var(private):toppings-int method:cheese-std::string params:four-int,five-int loop:for nest-loop:for")
+		Example("{}pizza:(int)one,(bool)two,(float)three var(private):(int)toppings [String-mixture]cheese:(String)kind,(int)amount for: nest-for: [String]topping:(String)name,(int)amount if:good")
 	elif Type == "struct":
-		print(Type+":<name>-<type> var:<var> var:<var>")
+		print("(<type>)<name>")
 		print("")
-		print("{EXAMPLE}")
-		print(Type+":pizza var:topping-std::string var:number-int")
 	elif Type == "method":
-		print(Type+"(public/private):<name>-<type> param:<params>,<param>")
-		print(Type+":<name>-<type> param:<params>,<param>")
+		print("[<data>]<name>:<parameters>")
+		print("[<data>-<return>]<name>:<parameters>")
+		print("")
+		Example("[String-Type]FoodAndDrink:(String)Food []-if:Food(-ne)\"\" +->if:[IsDrink]:drink(-eq)true +-()Type=\"Drink\" +-el +->>if:[IsNotEmpty]:Food +-[Drink]:Food +-el +->>>if:mood(-ne)\"happy\" +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->>>>if:mood(-eq)\"unhappy\" +-[ChearUp]:mood +-el +-[print]:\"I(-spc)am(-spc)\"+mood +-el <<<<-+-[ImHappy]: <<<<-+-el <<<-+-[Refill]: <<<-+-el <<-+-[Complete]: <<-+-el <<-+-[NewLine]: <<-+-el +->else-if:[IsFood]:Food(-eq)true +-()Type=\"Food\" +-el +->>while:[IsNotEmpty]:Food o-[Eat]:Food o-el o->>if:mood(-ne)\"happy\" +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->>>do-while:mood(-eq)\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I(-spc)am(-spc)\"+mood o-el <<<<-+-[print]:\"I(-spc)am(-spc)\"+mood+\"(-spc)now\" <<<<-+-el +->else +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el []-else +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el []-nl []-[print]:\"It(-spc)works!!!\" []-el")
+		Example("[]clock []-(int)time:[start]: []-el []-nl []-if:here +-[stop]: +-el []-nl []-[begin]: []-el []-nl []-if: +-[end]: +-el []-else +-[reset]: +-el []-for: o-[count]: o-el")
 	elif Type == "loop":
-		print(Type+":<type>")
+		print("<loop>:<condition>")
+		print("")
+		print("{loop}")
+		print("for:")
+		print("do-while:")
+		print("while:")
 		print("")
 		print("{EXAMPLE}")
-		print(Type+":for")
-		print(Type+":do/while")
-		print(Type+":while")
+		print("")
+		Example("while:Type(-spc)==(-spc)\"String\"")
+		Example("do-while:Type(-eq)\"String\" o-[work]: o-el")
+		Example("while:true >if:[IsString]:drink(-eq)true [drink]: el >>if:drink(-eq)\"coke\" >>else nl >else-if:[IsInt]:drink(-eq)false nl >else >>if: nl >>else nl")
+		Example("while:true >if:[IsString]:drink(-eq)true >>if:drink(-eq)\"coke\" >>else nl >else-if:[IsInt]:drink(-eq)false nl >else >>if: >>nl >>else nl")
+		Example("while:Food(-ne)\"\" o->if:[IsDrink]:drink(-eq)true +-()Type=\"Drink\" +-el +->>while:[IsNotEmpty]:Food o-[Drink]:Food o-el o->>>if:mood(-ne)\"happy\" +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->>>>do-while:mood(-eq)\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I(-spc)am(-spc)\"+mood o-el <<<<-+-[print]:\"I(-spc)am(-spc)\"+mood+\"(-spc)now\" <<<<-+-el o->else-if:[IsDrink]:drink(-eq)true +-()Type=\"Drink\" +-el +->>while:[IsNotEmpty]:Food o-[Drink]:Food o-el o->>>if:mood(-ne)\"happy\" +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->>>>do-while:mood(-eq)\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I(-spc)am(-spc)\"+mood o-el <<<<-+-[print]:\"I(-spc)am(-spc)\"+mood+\"(-spc)now\" <<<<-+-el o->else +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el")
 	elif Type == "logic":
-		print(Type+":<type>")
+		print("<logic>:<condition>")
+		print("")
+		print("{logic}")
+		print("if:")
+		print("else-if:")
+		print("else")
 		print("")
 		print("{EXAMPLE}")
-		print(Type+":if")
-		print(Type+":else-if")
-		print(Type+":switch")
+		print("")
+		Example("if:Type(-spc)==(-spc)\"String\"")
+		Example("else-if:Type(-eq)\"String\"")
+		Example("else")
+		Example("if:true (String)drink:[Pop]:one,two el >if:[IsString]:drink(-eq)true [drink]: el >>if:drink(-eq)\"coke\" >>else nl >else-if:[IsInt]:drink(-eq)false nl >else >>if: nl >>else nl")
+		Example("if:true (String)drink:[Pop]:one,two el >if:[IsString]:drink(-eq)true >>if:drink(-eq)\"coke\" >>else nl >else-if:[IsInt]:drink(-eq)false nl >else >>if: nl >>else nl")
+		Example("if:Food(-ne)\"\" +->if:[IsDrink]:drink(-eq)true +-()Type=\"Drink\" +-el +->>if:[IsNotEmpty]:Food +-[Drink]:Food +-el +->>>if:mood(-ne)\"happy\" +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->>>>if:mood(-eq)\"unhappy\" +-[ChearUp]:mood +-el +-[print]:\"I(-spc)am(-spc)\"+mood +-el <<<<-+-[ImHappy]: <<<<-+-el <<<-+-[Refill]: <<<-+-el <<-+-[Complete]: <<-+-el <<-+-[NewLine]: <<-+-el +->else-if:[IsFood]:Food(-eq)true +-()Type=\"Food\" +-el +->>while:[IsNotEmpty]:Food o-[Eat]:Food o-el o->>if:mood(-ne)\"happy\" +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->>>do-while:mood(-eq)\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I(-spc)am(-spc)\"+mood o-el <<<<-+-[print]:\"I(-spc)am(-spc)\"+mood+\"(-spc)now\" <<<<-+-el +->else +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el")
 	elif Type == "var":
-		print(Type+"(public/private):<name>-<type>=value\tcreate a new variable")
-		print(Type+":<name>-<type>[<num>]=value\tcreate a new variable as an array")
-		print(Type+":<name>-<type>(<struct>)=value\tcreate a new variable a data structure")
-		print(Type+":<name>=value\tassign a new value to an existing variable")
-		print("")
-		print("{EXAMPLE}")
-		print(Type+":name-std::string[3]")
-		print(Type+":name-std::string(vector)")
-		print(Type+":name-std::string=\"\" var:point-int=0 stmt:endline var:james-std::string=\"James\" stmt:endline var:help-int")
+		Example("(std::string)name=\"\" var:(int)point=0 stmt:endline var:james-std::string=\"James\" stmt:endline var:help-int")
+		Example("(std::string)name=\"\" el (int)point=0 el (std::string)james=\"James\" el (int)help el help=0")
+		Example("(std::string)name=\"\" el (int)point=0 el (std::string)james=\"James\" el (int)help el help=0")
 	elif Type == "stmt":
 		print(Type+":<type>")
+		print(Type+":method\t\tcall a method");
 		print(Type+":endline\t\tPlace the \";\" at the end of the statement")
-		print(Type+":newline\t\tPlace and empty line")
+		print(Type+":newline\t\tPlace and empty line");
 		print(Type+":method-<name>\tcall a method and the name of the method")
 	else:
 		print("Components to Generate")
@@ -63,7 +76,12 @@ def Help(Type):
 		print("logic\t\t:\t\"Create a logic\"")
 		print("var\t\t:\t\"Create a variable\"")
 		print("stmt\t\t:\t\"Create a statment\"")
-		print("nest-<type>\t:\t\"next element is nested in previous element\"")
+		print(">\t:\t\"next loop/logic element is nested in previous loop/logic\"")
+		print("[]-<type>\t:\t\"assigne the next element to method content only\"")
+		print("+-<type>\t:\t\"assigne the next element to logic content only\"")
+		print("o-<type>\t:\t\"assigne the next element to loop content only\"")
+		print("<-<type>\t:\t\"assigne the next element to previous element\"")
+		print("<<-<type>\t:\t\"assigne the next element to 2 previous element\"")
 		print("")
 		print("help:<type>")
 
@@ -299,9 +317,11 @@ def TranslateTag(Input):
 			Value = AfterSplit(Action,":")
 			Action = TheDataType
 			if Value != "":
-				TheReturn = Parent+ContentFor+Nest+"stmt:method-"+Action+" params:"+Value
+#				TheReturn = Parent+ContentFor+Nest+"stmt:method-"+Action+" params:"+Value
+				TheReturn = Parent+ContentFor+"stmt:method-"+Action+" params:"+Value
 			else:
-				TheReturn = Parent+ContentFor+Nest+"stmt:method-"+Action
+#				TheReturn = Parent+ContentFor+Nest+"stmt:method-"+Action
+				TheReturn = Parent+ContentFor+"stmt:method-"+Action
 		#is a function
 		else:
 			TheDataType = DataType(TheDataType,False)
@@ -340,9 +360,11 @@ def TranslateTag(Input):
 			#translate value, if needed
 			Value = TranslateTag(Value)
 #			Value = GenCode("",Value)
-			TheReturn = Parent+ContentFor+Nest+"var:("+TheDataType+")"+Action+"= "+Value
+#			TheReturn = Parent+ContentFor+Nest+"var:("+TheDataType+")"+Action+"= "+Value
+			TheReturn = Parent+ContentFor+"var:("+TheDataType+")"+Action+"= "+Value
 		else:
-			TheReturn = Parent+ContentFor+Nest+"var:("+TheDataType+")"+Action
+#			TheReturn = Parent+ContentFor+Nest+"var:("+TheDataType+")"+Action
+			TheReturn = Parent+ContentFor+"var:("+TheDataType+")"+Action
 
 		#This is an example of handling vecotors and arrays
 		#	<type>name:value
@@ -399,11 +421,14 @@ def TranslateTag(Input):
 				TheReturn = "stmt:<"+VectorOrArray+TheDataType+">"+Action
 
 	elif Action == "el":
-		TheReturn = Parent+ContentFor+Nest+"stmt:endline"
+#		TheReturn = Parent+ContentFor+Nest+"stmt:endline"
+		TheReturn = Parent+ContentFor+"stmt:endline"
 	elif Action == "nl":
-		TheReturn = Parent+ContentFor+Nest+"stmt:newline"
+#		TheReturn = Parent+ContentFor+Nest+"stmt:newline"
+		TheReturn = Parent+ContentFor+"stmt:newline"
 	elif Action == "tab":
-		TheReturn = Parent+ContentFor+Nest+"stmt:"+Action
+#		TheReturn = Parent+ContentFor+Nest+"stmt:"+Action
+		TheReturn = Parent+ContentFor+"stmt:"+Action
 	else:
 		if Value != "":
 			TheReturn = Parent+ContentFor+Nest+Action+":"+Value
@@ -609,13 +634,14 @@ def Method(Tabs, Name, Content):
 	OtherContent = ""
 	NewContent = ""
 	Process = ""
+	AutoTabs = ""
 
 	#method:(<type>)<name>
 	if StartsWith(Name,"(") and IsIn(Name,")"):
 		Type = BeforeSplit(Name,")")
 		Type = AfterSplit(Type,"(")
 		#get method name
-		TheName = AfterSplit(Name,")")
+		TheName = AfterSplit(Name,')')
 		if IsIn(Name,"-"):
 			ReturnVar = AfterSplit(Type,"-")
 			Type = BeforeSplit(Type,"-")
@@ -623,7 +649,8 @@ def Method(Tabs, Name, Content):
 		DefaultValue = DataType(Type,True)
 
 		#Converting data type to correct C++ type
-#		Type = DataType(Type,False)
+		Type = DataType(Type,False)
+
 	#method:<name>
 	else:
 		#get method name
@@ -634,6 +661,7 @@ def Method(Tabs, Name, Content):
 		if StartsWith(Content, "params:") and Params == "":
 			if IsIn(Content," "):
 				Process = BeforeSplit(Content," ")
+
 			else:
 				Process = Content
 
@@ -643,16 +671,15 @@ def Method(Tabs, Name, Content):
 		elif StartsWith(Content, "method:") or StartsWith(Content, "class:"):
 			break
 		else:
-			# This is called when a called from the "class" method
+			#This is called when a called from the "class" method
 			# EX: class:name method:first method:second
 			if IsIn(Content," method:"):
 				#Only account for the first method content
 				cmds = split(Content," method:")
 				Content = cmds[0]
 
-
-			if StartsWith(Content, "method-") and IsIn(Content, " method-"):
-				all = split(Content," method-")
+			if StartsWith(Content, "method-") and IsIn(Content, " method-l"):
+				all = split(Content," method-l")
 				lp = 0
 				end = len(all)
 				while lp != end:
@@ -660,10 +687,10 @@ def Method(Tabs, Name, Content):
 						OtherContent = all[lp]
 					else:
 						if NewContent == "":
-							NewContent = "method-"+all[lp]
+							NewContent = "method-l"+all[lp]
 						else:
-							NewContent = NewContent+" method-"+all[lp]
-					lp = lp + 1
+							NewContent = NewContent+" method-l"+all[lp]
+					lp += 1
 				CanSplit = False
 			else:
 				OtherContent = Content
@@ -673,16 +700,14 @@ def Method(Tabs, Name, Content):
 
 			ParseContent = ""
 			Corrected = ""
-
 			if IsIn(OtherContent," method-"):
-				cmds = split(OtherContent," ")
+				cmds = split(OtherContent," method-")
 				end = len(cmds)
-				lp = 0
+				lp = 0;
 				while lp != end:
 					Corrected = ReplaceTag(cmds[lp], "method-",False)
-					#starts with "logic:" or "loop:"
+
 					if StartsWith(Corrected,"var:") or StartsWith(Corrected,"stmt:"):
-						#Only process code that starts with "logic:" or "loop:"
 						if ParseContent == "":
 							ParseContent = Corrected
 						else:
@@ -698,7 +723,6 @@ def Method(Tabs, Name, Content):
 							#process content
 							MethodContent = MethodContent + GenCode(Tabs+"\t",ParseContent)
 							ParseContent = ""
-					#start another line to process
 					else:
 						AutoTabs = HandleTabs("method",Tabs+"\t",Corrected)
 
@@ -706,18 +730,18 @@ def Method(Tabs, Name, Content):
 							#Generate the loop content
 							MethodContent = MethodContent + GenCode(Tabs+"\t",AutoTabs)
 
-						#append content
-						ParseContent = ParseContent +" "+ Corrected
-					lp = lp + 1;
+						#process content
+						MethodContent = MethodContent + GenCode(Tabs+"\t",Corrected)
+					lp += 1
 			else:
-				Corrected = ReplaceTag(OtherContent,"method-", False)
-
+				Corrected = ReplaceTag(OtherContent, "method-",False)
 				AutoTabs = HandleTabs("method",Tabs+"\t",Corrected)
 
 				if AutoTabs != "":
 					#Generate the loop content
 					MethodContent = MethodContent + GenCode(Tabs+"\t",AutoTabs)
 
+				#Generate the loop content
 				MethodContent = MethodContent + GenCode(Tabs+"\t",Corrected)
 			Content = NewContent
 
@@ -731,7 +755,6 @@ def Method(Tabs, Name, Content):
 			if CanSplit:
 				Content = AfterSplit(Content," ")
 		else:
-			Content = ""
 			Last = True
 
 	#build method based on content
@@ -1389,6 +1412,12 @@ def Variables(Tabs, TheKindType, Content):
 				OtherContent = OtherContent+" "+Content
 				Content = ""
 			VariableContent = VariableContent + GenCode(Tabs,OtherContent)
+			if OtherContent == "stmt:endline":
+				AutoTabs = HandleTabs("variables",Tabs,Content)
+				if AutoTabs != "":
+					VariableContent = VariableContent + GenCode(Tabs,AutoTabs)
+					AutoTabs = ""
+
 
 	#Pull Variable Type
 	if StartsWith(TheKindType,"(") and IsIn(TheKindType,")"):
@@ -1432,16 +1461,19 @@ def Variables(Tabs, TheKindType, Content):
 		Name = BeforeSplit(TheKindType,"=")
 		Value = AfterSplit(TheKindType,"=")
 
-	if VarType != "":
-		NewVar = VarType+" "
+	if VarType != "" and Name == "":
+#		NewVar = VarType+" "
+		Name = VarType
 
 	if MakeEqual == True:
 		if IsIn(Value,"(-spc)"):
 			Value = replaceAll(Value, "(-spc)"," ")
 
-		NewVar = NewVar+Name+" = "+Value
+#		NewVar = NewVar+Name+" = "+Value
+		NewVar = Name+" = "+Value
 	else:
-		NewVar = NewVar+Name
+#		NewVar = NewVar+Name
+		NewVar = Name
 	NewVar = NewVar+VariableContent
 
 	return NewVar

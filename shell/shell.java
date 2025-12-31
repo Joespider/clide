@@ -12,7 +12,7 @@ import java.io.IOException;
 
 //class name
 public class shell {
-	private static String Version = "0.1.3";
+	private static String Version = "0.1.4";
 	private static String TheKind = "";
 	private static String TheName = "";
 	private static String TheKindType = "";
@@ -35,38 +35,49 @@ public class shell {
 		{
 			print("(<type>)<name>");
 			print("");
-			print(Type+":<name>-<type> var:<var> var:<var>");
 		}
 		else if (Type.equals("method"))
 		{
 			print("[<data>]<name>:<parameters>");
 			print("[<data>-<return>]<name>:<parameters>");
 			print("");
-//			Example("[String]help:(String)one,(int)two");
-//			Example("[String-Message]help:(String)one,(int)two");
-//			Example("[String-Type]FoodAndDrink:(String)Food if:Food(-ne)\"\" >if:[IsDrink]:drink(-eq)true +->tab +->tab +->tab +->()Type=\"Drink\" +->el +->>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Drink]:Food o->>el +->else-if:[IsFood]:Food(-eq)true +->tab +->tab +->tab +->()Type=\"Food\" +->el >>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Eat]:Food o->>el >else +->tab +->tab +->tab +->()Eat= +->(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el else +-tab +-tab +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el");
-//			Example("[String-Type]FoodAndDrink:(String)Food if:Food(-ne)\"\" >if:[IsDrink]:drink(-eq)true +->tab +->tab +->tab +->()Type=\"Drink\" +->el +->>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Drink]:Food o->>el >>if:mood(-ne)\"happy\" >>>do-while:mood(-eq)\"unhappy\" >>>>tab >>>>tab >>>>tab >>>>tab >>>>tab >>>>[ChearUp]:mood >>>>el +->else-if:[IsFood]:Food(-eq)true +->tab +->tab +->tab +->()Type=\"Food\" +->el >>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Eat]:Food o->>el >>if:mood(-ne)\"happy\" >>>do-while:mood(-eq)\"unhappy\" >>>>tab >>>>tab >>>>tab >>>>tab >>>>tab >>>>[ChearUp]:mood >>>>el >else +->tab +->tab +->tab +->(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el else +-tab +-tab +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el");
-			Example("[String-Type]FoodAndDrink:(String)Food if:Food(-ne)\"\" >if:[IsDrink]:drink(-eq)true +->tab +->tab +->tab +->()Type=\"Drink\" +->el +->>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Drink]:Food o->>el >>if:mood(-ne)\"happy\" >>>do-while:mood(-eq)\"unhappy\" o->>>>tab o->>>>tab o->>>>tab o->>>>tab o->>>>tab o->>>>[ChearUp]:mood o->>>>el +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->else-if:[IsFood]:Food(-eq)true +->tab +->tab +->tab +->()Type=\"Food\" +->el >>while:[IsNotEmpty]:Food o->>tab o->>tab o->>tab o->>tab o->>[Eat]:Food o->>el >>if:mood(-ne)\"happy\" >>>do-while:mood(-eq)\"unhappy\" >>>>tab >>>>tab >>>>tab >>>>tab >>>>tab >>>>[ChearUp]:mood >>>>el +-[print]:\"I(-spc)am(-spc)\"+mood +-el >else +->tab +->tab +->tab +->(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el else +-tab +-tab +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el");
-//			Example("[String-Type]FoodAndDrink:(String)Food if:Food(-ne)\"\" >if:[IsDrink]:drink(-eq)true >>tab >>tab >>tab >>()Type=\"Food\" >>el >>tab >>tab >>tab >>[Drink]:Food >>el >else-if:[IsFood]:Food(-eq)true +->>tab +->>tab +->>tab +->>()Type=\"Drink\" +->>el >>tab >>tab >>tab >>[Eat]:Food >>el >else +->tab +->tab +->tab +->(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +->el else +-tab +-tab +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el");
+			Example("[String-Type]FoodAndDrink:(String)Food []-if:Food(-ne)\"\" +->if:[IsDrink]:drink(-eq)true +-()Type=\"Drink\" +-el +->>if:[IsNotEmpty]:Food +-[Drink]:Food +-el +->>>if:mood(-ne)\"happy\" +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->>>>if:mood(-eq)\"unhappy\" +-[ChearUp]:mood +-el +-[print]:\"I(-spc)am(-spc)\"+mood +-el <<<<-+-[ImHappy]: <<<<-+-el <<<-+-[Refill]: <<<-+-el <<-+-[Complete]: <<-+-el <<-+-[NewLine]: <<-+-el +->else-if:[IsFood]:Food(-eq)true +-()Type=\"Food\" +-el +->>while:[IsNotEmpty]:Food o-[Eat]:Food o-el o->>if:mood(-ne)\"happy\" +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->>>do-while:mood(-eq)\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I(-spc)am(-spc)\"+mood o-el <<<<-+-[print]:\"I(-spc)am(-spc)\"+mood+\"(-spc)now\" <<<<-+-el +->else +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el []-else +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el []-nl []-[print]:\"It(-spc)works!!!\" []-el");
+			Example("[]clock []-(int)time:[start]: []-el []-nl []-if:here +-[stop]: +-el []-nl []-[begin]: []-el []-nl []-if: +-[end]: +-el []-else +-[reset]: +-el []-for: o-[count]: o-el");
 		}
 		else if (Type.equals("loop"))
 		{
-			print("<type>:<param>");
+			print("<loop>:<condition>");
 			print("");
-			print("{EXAMPLE}");
+			print("{loop}");
 			print("for:");
 			print("do-while:");
-			print("while");
+			print("while:");
+			print("");
+			print("{EXAMPLE}");
+			print("");
+			Example("while:Type(-spc)==(-spc)\"String\"");
+			Example("do-while:Type(-eq)\"String\" o-[work]: o-el");
+			Example("while:true >if:[IsString]:drink(-eq)true [drink]: el >>if:drink(-eq)\"coke\" >>else nl >else-if:[IsInt]:drink(-eq)false nl >else >>if: nl >>else nl");
+			Example("while:true >if:[IsString]:drink(-eq)true >>if:drink(-eq)\"coke\" >>else nl >else-if:[IsInt]:drink(-eq)false nl >else >>if: >>nl >>else nl");
+			Example("while:Food(-ne)\"\" o->if:[IsDrink]:drink(-eq)true +-()Type=\"Drink\" +-el +->>while:[IsNotEmpty]:Food o-[Drink]:Food o-el o->>>if:mood(-ne)\"happy\" +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->>>>do-while:mood(-eq)\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I(-spc)am(-spc)\"+mood o-el <<<<-+-[print]:\"I(-spc)am(-spc)\"+mood+\"(-spc)now\" <<<<-+-el o->else-if:[IsDrink]:drink(-eq)true +-()Type=\"Drink\" +-el +->>while:[IsNotEmpty]:Food o-[Drink]:Food o-el o->>>if:mood(-ne)\"happy\" +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->>>>do-while:mood(-eq)\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I(-spc)am(-spc)\"+mood o-el <<<<-+-[print]:\"I(-spc)am(-spc)\"+mood+\"(-spc)now\" <<<<-+-el o->else +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el");
 		}
 		else if (Type.equals("logic"))
 		{
 			print("<logic>:<condition>");
 			print("");
+			print("{logic}");
+			print("if:");
+			print("else-if:");
+			print("else");
+			print("");
+			print("{EXAMPLE}");
+			print("");
 			Example("if:Type(-spc)==(-spc)\"String\"");
 			Example("else-if:Type(-eq)\"String\"");
 			Example("else");
-			Example("if:true tab (String)drink= [Pop]:one,two el >if:[IsString]:drink(-eq)true >tab >tab >[drink]: >el >>if:drink(-eq)\"coke\" >>else >nl >else-if:[IsInt]:drink(-eq)false >nl >else >>if: >>nl >>else >nl");
-			Example("if:true tab (String)drink= [Pop]:one,two el >if:[IsString]:drink(-eq)true >>if:drink(-eq)\"coke\" >>else >nl >else-if:[IsInt]:drink(-eq)false >nl >else >>if: >>nl >>else >nl");
+			Example("if:true (String)drink:[Pop]:one,two el >if:[IsString]:drink(-eq)true [drink]: el >>if:drink(-eq)\"coke\" >>else nl >else-if:[IsInt]:drink(-eq)false nl >else >>if: nl >>else nl");
+			Example("if:true (String)drink:[Pop]:one,two el >if:[IsString]:drink(-eq)true >>if:drink(-eq)\"coke\" >>else nl >else-if:[IsInt]:drink(-eq)false nl >else >>if: nl >>else nl");
+			Example("if:Food(-ne)\"\" +->if:[IsDrink]:drink(-eq)true +-()Type=\"Drink\" +-el +->>if:[IsNotEmpty]:Food +-[Drink]:Food +-el +->>>if:mood(-ne)\"happy\" +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->>>>if:mood(-eq)\"unhappy\" +-[ChearUp]:mood +-el +-[print]:\"I(-spc)am(-spc)\"+mood +-el <<<<-+-[ImHappy]: <<<<-+-el <<<-+-[Refill]: <<<-+-el <<-+-[Complete]: <<-+-el <<-+-[NewLine]: <<-+-el +->else-if:[IsFood]:Food(-eq)true +-()Type=\"Food\" +-el +->>while:[IsNotEmpty]:Food o-[Eat]:Food o-el o->>if:mood(-ne)\"happy\" +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->>>do-while:mood(-eq)\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I(-spc)am(-spc)\"+mood o-el <<<<-+-[print]:\"I(-spc)am(-spc)\"+mood+\"(-spc)now\" <<<<-+-el +->else +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el");
 //			print(Type+":switch");
 		}
 		else if (Type.equals("var"))
@@ -93,8 +104,12 @@ public class shell {
 			print("logic\t\t:\t\"Create a logic\"");
 			print("var\t\t:\t\"Create a variable\"");
 			print("stmt\t\t:\t\"Create a statment\"");
-			print("nest-<type>\t:\t\"next element is nested in previous element\"");
-			print("method-<type>\t:\t\"assigne the next element to method content only\"");
+			print(">\t:\t\"next loop/logic element is nested in previous loop/logic\"");
+			print("[]-<type>\t:\t\"assigne the next element to method content only\"");
+			print("+-<type>\t:\t\"assigne the next element to logic content only\"");
+			print("o-<type>\t:\t\"assigne the next element to loop content only\"");
+			print("<-<type>\t:\t\"assigne the next element to previous element\"");
+			print("<<-<type>\t:\t\"assigne the next element to 2 previous element\"");
 			print("");
 			print("help:<type>");
 		}
@@ -866,21 +881,21 @@ public class shell {
 		{
 			TheReturn.append(Parent);
 			TheReturn.append(ContentFor);
-			TheReturn.append(Nest.toString());
+//			TheReturn.append(Nest.toString());
 			TheReturn.append("stmt:endline");
 		}
 		else if (Action.equals("nl"))
 		{
 			TheReturn.append(Parent);
 			TheReturn.append(ContentFor);
-			TheReturn.append(Nest.toString());
+//			TheReturn.append(Nest.toString());
 			TheReturn.append("stmt:newline");
 		}
 		else if (Action.equals("tab"))
 		{
 			TheReturn.append(Parent);
 			TheReturn.append(ContentFor);
-			TheReturn.append(Nest.toString());
+//			TheReturn.append(Nest.toString());
 			TheReturn.append("stmt:");
 			TheReturn.append(Action);
 		}
@@ -2527,6 +2542,7 @@ public class shell {
 		String Value = "";
 		StringBuilder VariableContent = new StringBuilder("");
 		StringBuilder OtherContent = new StringBuilder("");
+		String AutoTabs = "";
 
 		if (StartsWith(TheKindType, "var:"))
 		{
@@ -2570,6 +2586,16 @@ public class shell {
 					Content = "";
 				}
 				VariableContent.append(GenCode(Tabs,OtherContent.toString()));
+
+				if (OtherContent.toString().equals("stmt:endline"))
+				{
+					AutoTabs = HandleTabs("variables",Tabs,Content);
+					if (!AutoTabs.equals(""))
+					{
+						VariableContent.append(GenCode(Tabs,AutoTabs));
+						AutoTabs = "";
+					}
+				}
 			}
 		}
 
