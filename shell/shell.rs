@@ -3,7 +3,7 @@ use std::process::Command;
 
 fn the_version() -> String
 {
-	return "0.1.7".to_string();
+	return "0.1.10".to_string();
 }
 
 fn get_os() -> String
@@ -30,51 +30,56 @@ fn the_help(the_type: &str)
 	}
 	else if new_the_type == "struct"
 	{
-		println!("{}:<name>-<type> var:<var> var:<var>",new_the_type);
+		println!("(<type>)<name>");
 		println!("");
-		println!("{{EXAMPLE}}");
-		println!("{}:pizza var:topping-std::string var:number-int",new_the_type);
 	}
 	else if new_the_type == "method"
 	{
 		println!("[<data>]<name>:<parameters>");
 		println!("[<data>-<return>]<name>:<parameters>");
 		println!("");
-		example("if:true tab (String)drink:[Pop]:one,two el >if:[IsString]:drink(-eq)true >tab >tab >[drink]: >el >>if:drink(-eq)\"coke\" >>else >nl >else-if:[IsInt]:drink(-eq)false >nl >else >>if: >>nl >>else >nl");
-		example("if:true tab (String)drink:[Pop]:one,two el >if:[IsString]:drink(-eq)true >>if:drink(-eq)\"coke\" >>else >nl >else-if:[IsInt]:drink(-eq)false >nl >else >>if: >>nl >>else >nl");
-		example("if:Food(-ne)\"\" +->if:[IsDrink]:drink(-eq)true +-tab +-tab +-()Type=\"Drink\" +-el +->>while:[IsNotEmpty]:Food o-tab o-tab o-tab o-[Drink]:Food o-el o->>>if:mood(-ne)\"happy\" +-tab +-tab +-tab +-tab +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->>>>do-while:mood(-eq)\"unhappy\" o-tab o-tab o-tab o-tab o-tab o-[ChearUp]:mood o-el o-tab o-tab o-tab o-tab o-tab o-[print]:\"I(-spc)am(-spc)\"+mood o-el <<<<<-+-tab <<<<<-+-tab <<<<<-+-tab <<<<<-+-tab <<<<<-+-[print]:\"I(-spc)am(-spc)\"+mood+\"(-spc)now\" <<<<<-+-el +->else-if:[IsFood]:Food(-eq)true +-tab +-tab +-()Type=\"Food\" +-el +->>while:[IsNotEmpty]:Food o-tab o-tab o-tab o-[Eat]:Food o-el o->>if:mood(-ne)\"happy\" +-tab +-tab +-tab +-tab +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->>>do-while:mood(-eq)\"unhappy\" o-tab o-tab o-tab o-tab o-tab o-[ChearUp]:mood o-el o-tab o-tab o-tab o-tab o-tab o-[print]:\"I(-spc)am(-spc)\"+mood o-el <<<<<-+-tab <<<<<-+-tab <<<<<-+-tab <<<<<-+-tab <<<<<-+-[print]:\"I(-spc)am(-spc)\"+mood+\"(-spc)now\" <<<<<-+-el +->else +-tab +-tab +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el");
+		example("[String-Type]FoodAndDrink:(String)Food []-if:Food(-ne)\"\" +->if:[IsDrink]:drink(-eq)true +-()Type=\"Drink\" +-el +->>if:[IsNotEmpty]:Food +-[Drink]:Food +-el +->>>if:mood(-ne)\"happy\" +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->>>>if:mood(-eq)\"unhappy\" +-[ChearUp]:mood +-el +-[print]:\"I(-spc)am(-spc)\"+mood +-el <<<<-+-[ImHappy]: <<<<-+-el <<<-+-[Refill]: <<<-+-el <<-+-[Complete]: <<-+-el <<-+-[NewLine]: <<-+-el +->else-if:[IsFood]:Food(-eq)true +-()Type=\"Food\" +-el +->>while:[IsNotEmpty]:Food o-[Eat]:Food o-el o->>if:mood(-ne)\"happy\" +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->>>do-while:mood(-eq)\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I(-spc)am(-spc)\"+mood o-el <<<<-+-[print]:\"I(-spc)am(-spc)\"+mood+\"(-spc)now\" <<<<-+-el +->else +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el []-else +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el []-nl []-[print]:\"It(-spc)works!!!\" []-el");
+		example("[]clock []-(int)time:[start]: []-el []-nl []-if:here +-[stop]: +-el []-nl []-[begin]: []-el []-nl []-if: +-[end]: +-el []-else +-[reset]: +-el []-for: o-[count]: o-el");
 	}
 	else if new_the_type == "loop"
 	{
-		println!("<type>:<param>");
+		println!("<loop>:<condition>");
 		println!("");
-		println!("{{EXAMPLE}}");
+		println!("{{loop}}");
 		println!("for:");
 		println!("do-while:");
-		println!("while");
+		println!("while:");
 		println!("");
 		println!("{{EXAMPLE}}");
 		println!("");
 		example("while:Type(-spc)==(-spc)\"String\"");
-		example("do-while:Type(-eq)\"String\" o-tab o-[work]: o-el");
-		example("while:true >if:[IsString]:drink(-eq)true >tab >tab >[drink]: >el >>if:drink(-eq)\"coke\" >>else >nl >else-if:[IsInt]:drink(-eq)false >nl >else >>if: >>nl >>else >nl");
-		example("while:true >if:[IsString]:drink(-eq)true >>if:drink(-eq)\"coke\" >>else >nl >else-if:[IsInt]:drink(-eq)false >nl >else >>if: >>nl >>else >nl");
-		example("while:Food(-ne)\"\" o->if:[IsDrink]:drink(-eq)true +-tab +-tab +-()Type=\"Drink\" +-el +->>while:[IsNotEmpty]:Food o-tab o-tab o-tab o-[Drink]:Food o-el o->>>if:mood(-ne)\"happy\" +-tab +-tab +-tab +-tab +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->>>>do-while:mood(-eq)\"unhappy\" o-tab o-tab o-tab o-tab o-tab o-[ChearUp]:mood o-el o-tab o-tab o-tab o-tab o-tab o-[print]:\"I(-spc)am(-spc)\"+mood o-el <<<<<-+-tab <<<<<-+-tab <<<<<-+-tab <<<<<-+-tab <<<<<-+-[print]:\"I(-spc)am(-spc)\"+mood+\"(-spc)now\" <<<<<-+-el o->else-if:[IsDrink]:drink(-eq)true +-tab +-tab +-()Type=\"Drink\" +-el +->>while:[IsNotEmpty]:Food o-tab o-tab o-tab o-[Drink]:Food o-el o->>>if:mood(-ne)\"happy\" +-tab +-tab +-tab +-tab +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->>>>do-while:mood(-eq)\"unhappy\" o-tab o-tab o-tab o-tab o-tab o-[ChearUp]:mood o-el o-tab o-tab o-tab o-tab o-tab o-[print]:\"I(-spc)am(-spc)\"+mood o-el <<<<<-+-tab <<<<<-+-tab <<<<<-+-tab <<<<<-+-tab <<<<<-+-[print]:\"I(-spc)am(-spc)\"+mood+\"(-spc)now\" <<<<<-+-el o->else +-tab +-tab +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el");
+		example("do-while:Type(-eq)\"String\" o-[work]: o-el");
+		example("while:true >if:[IsString]:drink(-eq)true [drink]: el >>if:drink(-eq)\"coke\" >>else nl >else-if:[IsInt]:drink(-eq)false nl >else >>if: nl >>else nl");
+		example("while:true >if:[IsString]:drink(-eq)true >>if:drink(-eq)\"coke\" >>else nl >else-if:[IsInt]:drink(-eq)false nl >else >>if: >>nl >>else nl");
+		example("while:Food(-ne)\"\" o->if:[IsDrink]:drink(-eq)true +-()Type=\"Drink\" +-el +->>while:[IsNotEmpty]:Food o-[Drink]:Food o-el o->>>if:mood(-ne)\"happy\" +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->>>>do-while:mood(-eq)\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I(-spc)am(-spc)\"+mood o-el <<<<-+-[print]:\"I(-spc)am(-spc)\"+mood+\"(-spc)now\" <<<<-+-el o->else-if:[IsDrink]:drink(-eq)true +-()Type=\"Drink\" +-el +->>while:[IsNotEmpty]:Food o-[Drink]:Food o-el o->>>if:mood(-ne)\"happy\" +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->>>>do-while:mood(-eq)\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I(-spc)am(-spc)\"+mood o-el <<<<-+-[print]:\"I(-spc)am(-spc)\"+mood+\"(-spc)now\" <<<<-+-el o->else +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el");
 	}
 	else if new_the_type == "logic"
 	{
 		println!("<logic>:<condition>");
 		println!("");
+		println!("{{logic}}");
+		println!("if:");
+		println!("else-if:");
+		println!("else");
+		println!("");
+		println!("{{EXAMPLE}}");
+		println!("");
 		example("if:Type(-spc)==(-spc)\"String\"");
 		example("else-if:Type(-eq)\"String\"");
 		example("else");
-		example("if:true tab (String)drink= [Pop]:one,two el >if:[IsString]:drink(-eq)true >tab >tab >[drink]: >el >>if:drink(-eq)\"coke\" >>else >nl >else-if:[IsInt]:drink(-eq)false >nl >else >>if: >>nl >>else >nl");
-		example("if:true tab (String)drink= [Pop]:one,two el >if:[IsString]:drink(-eq)true >>if:drink(-eq)\"coke\" >>else >nl >else-if:[IsInt]:drink(-eq)false >nl >else >>if: >>nl >>else >nl");
-//		println!(Type+":switch");
+		example("if:true (String)drink:[Pop]:one,two el >if:[IsString]:drink(-eq)true [drink]: el >>if:drink(-eq)\"coke\" >>else nl >else-if:[IsInt]:drink(-eq)false nl >else >>if: nl >>else nl");
+		example("if:true (String)drink:[Pop]:one,two el >if:[IsString]:drink(-eq)true >>if:drink(-eq)\"coke\" >>else nl >else-if:[IsInt]:drink(-eq)false nl >else >>if: nl >>else nl");
+		example("if:Food(-ne)\"\" +->if:[IsDrink]:drink(-eq)true +-()Type=\"Drink\" +-el +->>if:[IsNotEmpty]:Food +-[Drink]:Food +-el +->>>if:mood(-ne)\"happy\" +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->>>>if:mood(-eq)\"unhappy\" +-[ChearUp]:mood +-el +-[print]:\"I(-spc)am(-spc)\"+mood +-el <<<<-+-[ImHappy]: <<<<-+-el <<<-+-[Refill]: <<<-+-el <<-+-[Complete]: <<-+-el <<-+-[NewLine]: <<-+-el +->else-if:[IsFood]:Food(-eq)true +-()Type=\"Food\" +-el +->>while:[IsNotEmpty]:Food o-[Eat]:Food o-el o->>if:mood(-ne)\"happy\" +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->>>do-while:mood(-eq)\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I(-spc)am(-spc)\"+mood o-el <<<<-+-[print]:\"I(-spc)am(-spc)\"+mood+\"(-spc)now\" <<<<-+-el +->else +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el");
 	}
 	else if new_the_type == "var"
 	{
-		example("(std::string)name=\"\" el var:(int)point=0 el (std::string)james=\"James\" el var:help-int");
+		example("(std::string)name=\"\" var:(int)point=0 stmt:endline var:james-std::string=\"James\" stmt:endline var:help-int");
+		example("(std::string)name=\"\" el (int)point=0 el (std::string)james=\"James\" el (int)help el help=0");
 		example("(std::string)name=\"\" el (int)point=0 el (std::string)james=\"James\" el (int)help el help=0");
 		example("(std::string)name=\"\" el (int)point=0 el (std::string)james=\"James\" el (int)help el help=0");
 	}
@@ -95,7 +100,12 @@ fn the_help(the_type: &str)
 		println!("logic\t\t:\t\"Create a logic\"");
 		println!("var\t\t:\t\"Create a variable\"");
 		println!("stmt\t\t:\t\"Create a statment\"");
-		println!("nest-<type>\t:\t\"next element is nested in previous element\"");
+		println!(">\t:\t\"next loop/logic element is nested in previous loop/logic\"");
+		println!("[]-<type>\t:\t\"assigne the next element to method content only\"");
+		println!("+-<type>\t:\t\"assigne the next element to logic content only\"");
+		println!("o-<type>\t:\t\"assigne the next element to loop content only\"");
+		println!("<-<type>\t:\t\"assigne the next element to previous element\"");
+		println!("<<-<type>\t:\t\"assigne the next element to 2 previous element\"");
 		println!("");
 		println!("help:<type>");
 	}
@@ -617,6 +627,10 @@ fn translate_tag(input: &str) -> String
 				value = after_split(&tmp_action,":");
 				action = before_split(&tmp_action,":");
 			}
+			else
+			{
+				action = tmp_action;
+			}
 
 			if value != ""
 			{
@@ -674,6 +688,7 @@ fn translate_tag(input: &str) -> String
 
 			the_return.push_str(parent);
 			the_return.push_str(content_for);
+//			the_return.push_str(&the_nest.to_string());
 			the_return.push_str("var:(");
 			the_return.push_str(&the_data_type);
 			the_return.push_str(")");
@@ -682,19 +697,19 @@ fn translate_tag(input: &str) -> String
 
 			if content_for == "logic-"
 			{
-				the_return.push_str(&translate_tag(&["+-",&the_nest,&value].concat()));
+				the_return.push_str(&translate_tag(&["+-",&the_nest.to_string(),&value].concat()));
 			}
 			else if content_for == "loop-"
 			{
-				the_return.push_str(&translate_tag(&["o-",&the_nest,&value].concat()));
+				the_return.push_str(&translate_tag(&["o-",&the_nest.to_string(),&value].concat()));
 			}
 			else if content_for == "method-"
 			{
-				the_return.push_str(&translate_tag(&["[]-",&the_nest,&value].concat()));
+				the_return.push_str(&translate_tag(&["[]-",&the_nest.to_string(),&value].concat()));
 			}
 			else if content_for == "class-"
 			{
-				the_return.push_str(&translate_tag(&["{}-",&the_nest,&value].concat()));
+				the_return.push_str(&translate_tag(&["{}-",&the_nest.to_string(),&value].concat()));
 			}
 			else
 			{
@@ -718,7 +733,9 @@ fn translate_tag(input: &str) -> String
 				action = after_split(&action.to_owned(),")");
 			}
 
+			the_return.push_str(parent);
 			the_return.push_str(content_for);
+//			the_return.push_str(&the_nest.to_string());
 			the_return.push_str("var:(");
 			the_return.push_str(&the_data_type);
 			the_return.push_str(")");
@@ -838,18 +855,21 @@ fn translate_tag(input: &str) -> String
 	{
 		the_return.push_str(parent);
 		the_return.push_str(content_for);
+//		the_return.push_str(&the_nest.to_string());
 		the_return.push_str("stmt:endline");
 	}
 	else if action == "nl"
 	{
 		the_return.push_str(parent);
 		the_return.push_str(content_for);
+//		the_return.push_str(&the_nest.to_string());
 		the_return.push_str("stmt:newline");
 	}
 	else if action == "tab"
 	{
 		the_return.push_str(parent);
 		the_return.push_str(content_for);
+//		the_return.push_str(&the_nest.to_string());
 		the_return.push_str("stmt:");
 		the_return.push_str(&action);
 	}
@@ -859,7 +879,7 @@ fn translate_tag(input: &str) -> String
 		{
 			the_return.push_str(parent);
 			the_return.push_str(content_for);
-			the_return.push_str(&the_nest);
+			the_return.push_str(&the_nest.to_string());
 			the_return.push_str(&action);
 			the_return.push_str(":");
 			the_return.push_str(&value);
@@ -868,7 +888,7 @@ fn translate_tag(input: &str) -> String
 		{
 			the_return.push_str(parent);
 			the_return.push_str(content_for);
-			the_return.push_str(&the_nest);
+			the_return.push_str(&the_nest.to_string());
 			the_return.push_str(&action);
 		}
 	}
@@ -1324,6 +1344,7 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 
 	while passed_content != ""
 	{
+		//params:
 		if starts_with(&passed_content, "params") && the_params == ""
 		{
 			if is_in(&passed_content," ")
@@ -1352,14 +1373,14 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 				passed_content = cmds[0].to_string();
 			}
 
-			if starts_with(&passed_content, "method-") && is_in(&passed_content, " method-")
+			if starts_with(&passed_content, "method-") && is_in(&passed_content, " method-l")
 			{
-				let all: Vec<&str> = passed_content.split(" method-").collect();
+				let all: Vec<&str> = passed_content.split(" method-l").collect();
 
 //				let mut no_more = false;
 				for item in &all
 				{
-					if the_other_content == ""
+					if the_other_content.to_string() == ""
 					{
 						the_other_content.push_str(item);
 					}
@@ -1367,12 +1388,12 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 					{
 						if new_content == ""
 						{
-							new_content.push_str("method-");
+							new_content.push_str("method-l");
 							new_content.push_str(item);
 						}
 						else
 						{
-							new_content.push_str(" method-");
+							new_content.push_str(" method-l");
 							new_content.push_str(item);
 						}
 //						no_more = true;
@@ -1399,7 +1420,7 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 
 					if starts_with(&corrected,"var:") || starts_with(&corrected,"stmt:")
 					{
-						if parse_content.to_string() != ""
+						if parse_content.to_string() == ""
 						{
 							parse_content.push_str(&corrected);
 						}
@@ -2209,7 +2230,6 @@ fn gen_logic(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 				//Lets group the nested tages one more time...I am not sure how to avoide this being done again
 				if starts_with(&new_content, "nest-")
 				{
-//					println!("{}",new_content);
 					root_tag = before_split(&new_content,"l");
 					new_root_tag = [" ",&root_tag,"l"].concat();
 					if is_in(&new_content,&new_root_tag)
@@ -2682,6 +2702,18 @@ fn gen_variables(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Stri
 				passed_content = "".to_string();
 			}
 			variable_content.push_str(&gen_code(the_tabs,&the_other_content));
+
+			if &the_other_content.to_string() == "stmt:endline"
+                        {
+				let auto_tabs = handle_tabs("variables",the_tabs,&passed_content);
+
+				if auto_tabs != ""
+				{
+					variable_content.push_str(&gen_code(the_tabs,&auto_tabs));
+//					auto_tabs = "".to_string();
+				}
+			}
+
 		}
 	}
 
