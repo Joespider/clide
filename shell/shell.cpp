@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.1.15";
+String Version = "0.1.16";
 
 String getOS();
 void Help(String Type);
@@ -521,8 +521,8 @@ String AlgoTags(String Algo)
 		{
 			ReturnValue = "()"+ReturnKey;
 			std::vector<String> AllArgs = split(Args,',');
-			ReturnValue = join(AllArgs,"");
-			NewTags = "()"+ReturnKey+":"+ReturnValue;
+			ReturnValue = join(AllArgs," ()");
+			NewTags = "()"+ReturnKey+":()"+ReturnValue;
 			//NewTags = TranslateTag(NewTags);
 		}
 	}
@@ -530,7 +530,8 @@ String AlgoTags(String Algo)
 	{
 		ReturnKey = AfterSplit(Action,'(');
 		ReturnKey = BeforeSplit(ReturnKey,')');
-		ReturnValue = "(-scp)()+(-spc)()+";
+		ReturnValue = " ()+ ()+";
+		//ReturnValue = "(-scp)()+(-spc)()+";
 		NewTags = "()"+ReturnKey+ReturnValue;
 		//NewTags = TranslateTag(NewTags);
 	}
@@ -538,7 +539,8 @@ String AlgoTags(String Algo)
 	{
 		ReturnKey = AfterSplit(Action,'(');
 		ReturnKey = BeforeSplit(ReturnKey,')');
-		ReturnValue = "(-spc)()+(-spc)()= "+Args;
+		ReturnValue = "(-spc) ()+ (): ()"+Args;
+//		ReturnValue = "(-spc)()+ (-spc)()= "+Args;
 		NewTags = "()"+ReturnKey+ReturnValue;
 		//NewTags = TranslateTag(NewTags);
 	}
@@ -554,7 +556,6 @@ String AlgoTags(String Algo)
 		NewTags = Algo;
 	}
 
-	print(NewTags);
 	return NewTags;
 }
 
@@ -615,8 +616,37 @@ String TranslateTag(String Input)
 		Nest = "nest-"+Nest;
 	}
 
+	if (StartsWith(Action,"concat(") || StartsWith(Action,"incre(") || StartsWith(Action,"equals("))
+	{
+		String Algo = AlgoTags(Action);
+		String NewAlgoTag = "";
+		if (IsIn(Algo," "))
+		{
+			std::vector<String> all = split(Algo," ");
+			int end = len(all);
+			int lp = 0;
+			while (lp != end)
+			{
+				NewAlgoTag = all[lp];
+				if (TheReturn == "")
+				{
+					TheReturn = TranslateTag(NewAlgoTag);
+				}
+				else
+				{
+					TheReturn = TheReturn +" "+TranslateTag(NewAlgoTag);
+				}
+				lp++;
+			}
+		}
+		else
+		{
+			TheReturn = TranslateTag(NewAlgoTag);
+		}
+
+	}
 	//convert if, and else-if, to the old tags
-	if ((StartsWith(Action, "if:")) || (StartsWith(Action, "else-if:")))
+	else if ((StartsWith(Action, "if:")) || (StartsWith(Action, "else-if:")))
 	{
 		Value = AfterSplit(Action,':');
 		Action = BeforeSplit(Action,':');
@@ -2599,14 +2629,12 @@ int main(int argc, char** argv)
 		{
 
 //			UserIn = String(argv[1]);
-			UserIn = AlgoTags(String(argv[1]));
-//			UserIn = TranslateTag(String(argv[1]));
-			UserIn = TranslateTag(UserIn);
+			UserIn = TranslateTag(String(argv[1]));
+//			UserIn = TranslateTag(UserIn);
 			for (int lp = 2; lp < argc; lp++)
 			{
 //				UserIn = UserIn + " " + String(argv[lp]);
 				UserIn = UserIn + " " + TranslateTag(String(argv[lp]));
-//				UserIn = UserIn + " " + TranslateTag(AlgoTags(String(argv[1])));
 			}
 /*
 			print(UserIn);
@@ -2616,7 +2644,6 @@ int main(int argc, char** argv)
 		else
 		{
 			UserIn = raw_input(">>> ");
-//			UserIn = AlgoTags(UserIn);
 			UserIn = TranslateTag(UserIn);
 		}
 
