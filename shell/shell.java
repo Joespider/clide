@@ -12,7 +12,7 @@ import java.io.IOException;
 
 //class name
 public class shell {
-	private static String Version = "0.1.4";
+	private static String Version = "0.1.7";
 	private static String TheKind = "";
 	private static String TheName = "";
 	private static String TheKindType = "";
@@ -536,6 +536,89 @@ public class shell {
 		return TheReturn.toString();
 	}
 
+	public static String AlgoTags(String Algo)
+	{
+		StringBuilder NewTags = new StringBuilder("");
+		String Action = "";
+		String Args = "";
+		String ReturnKey = "";
+		String ReturnValue = "";
+
+		if (IsIn(Algo,":"))
+		{
+			Action = BeforeSplit(Algo,":");
+			Args = AfterSplit(Algo,":");
+		}
+
+		if ((StartsWith(Algo,"concat(")) && (IsIn(Algo,"):")) && (!Args.equals("")))
+		{
+			ReturnKey = AfterSplit(Action,"(");
+			ReturnKey = BeforeSplit(ReturnKey,")");
+
+			if (IsIn(Args,","))
+			{
+				ReturnValue = "()"+ReturnKey;
+				String[] AllArgs = split(Args,",");
+				StringBuilder NewArgs = new StringBuilder();
+				int lp = 0;
+				int end = len(AllArgs);
+				while (lp != end)
+				{
+					if (lp == 0)
+					{
+						NewArgs.append(AllArgs[lp]);
+					}
+					else
+					{
+						NewArgs.append(" ()");
+						NewArgs.append(AllArgs[lp]);
+					}
+					lp++;
+				}
+				ReturnValue = NewArgs.toString();
+				NewTags.append("()");
+				NewTags.append(ReturnKey);
+				NewTags.append(":()");
+				NewTags.append(ReturnValue);
+			}
+		}
+		else if ((StartsWith(Algo,"incre(")) && (IsIn(Algo,"):")) && (Args.equals("")))
+		{
+			ReturnKey = AfterSplit(Action,"(");
+			ReturnKey = BeforeSplit(ReturnKey,")");
+			ReturnValue = " ()+ ()+";
+			NewTags.append("()");
+			NewTags.append(ReturnKey);
+			NewTags.append(ReturnValue);
+		}
+		else if ((StartsWith(Algo,"incre(")) && (IsIn(Algo,"):")) && (!Args.equals("")))
+		{
+
+			ReturnKey = AfterSplit(Action,"(");
+			ReturnKey = BeforeSplit(ReturnKey,")");
+			ReturnValue = " ()+ ()= ()"+Args;
+			NewTags.append("()");
+			NewTags.append(ReturnKey);
+			NewTags.append(ReturnValue);
+		}
+		else if ((StartsWith(Algo,"equals(")) && (IsIn(Algo,"):")) && (!Args.equals("")))
+		{
+			ReturnKey = AfterSplit(Action,"(");
+			ReturnKey = BeforeSplit(ReturnKey,")");
+			NewTags.append("(");
+			NewTags.append(ReturnKey);
+			NewTags.append("):()");
+			NewTags.append(Args);
+		}
+		else
+		{
+			NewTags.append(Algo);
+		}
+
+		return NewTags.toString();
+	}
+
+
 	public static String TranslateTag(String Input)
 	{
 		StringBuilder TheReturn = new StringBuilder("");
@@ -548,7 +631,6 @@ public class shell {
 		String Parent = "";
 		String ContentFor = "";
 		String OldDataType = "";
-
 
 		//content for parent loops/logic
 		if (StartsWith(Action, "<-"))
@@ -591,7 +673,37 @@ public class shell {
 			Nest.append("nest-");
 		}
 
-		if ((StartsWith(Action, "if:")) || (StartsWith(Action, "else-if:")))
+		if (StartsWith(Action,"concat(") || StartsWith(Action,"incre(") || StartsWith(Action,"equals("))
+		{
+			String Algo = AlgoTags(Action);
+			String NewAlgoTag = "";
+			if (IsIn(Algo," "))
+			{
+				String[] all = split(Algo," ");
+				int end = len(all);
+				int lp = 0;
+				while (lp != end)
+				{
+					NewAlgoTag = all[lp];
+					if (TheReturn.toString().equals(""))
+					{
+						TheReturn.append(TranslateTag(NewAlgoTag));
+					}
+					else
+					{
+						TheReturn.append(" ");
+						TheReturn.append(TranslateTag(NewAlgoTag));
+					}
+					lp++;
+				}
+			}
+			else
+			{
+				TheReturn.append(TranslateTag(Algo));
+			}
+
+		}
+		else if ((StartsWith(Action, "if:")) || (StartsWith(Action, "else-if:")))
 		{
 			Value = AfterSplit(Action,":");
 			Action = BeforeSplit(Action,":");
@@ -2524,8 +2636,6 @@ public class shell {
 		return Complete.toString();
 	}
 
-
-
 	//var:
 	private static String Variables(String Tabs, String TheKindType, String Content)
 	{
@@ -2642,7 +2752,7 @@ public class shell {
 			VarType = "";
 		}
 		//Assign Value
-		if (IsIn(TheKindType,"="))
+		if ((IsIn(TheKindType,"=")) && (!TheKindType.equals("=")))
 		{
 			MakeEqual = true;
 			Name = BeforeSplit(TheKindType,"=");
@@ -2789,7 +2899,8 @@ public class shell {
 		{
 			if (len(args) == 0)
 			{
-				UserIn = raw_input(">>> ");
+				UserIn = raw_input("<<shell>> ");
+				UserIn = TranslateTag(UserIn);
 			}
 
 			if (UserIn.equals("exit"))

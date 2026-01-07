@@ -9,7 +9,7 @@ import (
 	"strings"
 	)
 
-var Version string = "0.1.6"
+var Version string = "0.1.9"
 
 func getOS() string {
 	os := runtime.GOOS
@@ -305,6 +305,50 @@ func VectAndArray(Name string, TheDataType string, VectorOrArray string, Action 
 	return TheReturn
 }
 
+func AlgoTags(Algo string) string {
+	var NewTags string = ""
+	var Action string = ""
+	var Args string = ""
+	var ReturnKey string = ""
+	var ReturnValue string = ""
+
+
+	if IsIn(Algo,":") {
+		Action = BeforeSplit(Algo,":")
+		Args = AfterSplit(Algo,":")
+	}
+
+	if StartsWith(Algo,"concat(") && IsIn(Algo,"):") && Args != "" {
+		ReturnKey = AfterSplit(Action,"(")
+		ReturnKey = BeforeSplit(ReturnKey,")")
+
+		if IsIn(Args,",") {
+			ReturnValue = "()"+ReturnKey
+			var AllArgs []string = split(Args,",")
+			ReturnValue = join(AllArgs,"")
+			NewTags = "()"+ReturnKey+"|"+ReturnValue
+		}
+	} else if StartsWith(Algo,"incre(") && IsIn(Algo,"):") && Args == "" {
+		ReturnKey = AfterSplit(Action,"(")
+		ReturnKey = BeforeSplit(ReturnKey,")")
+		ReturnValue = " ()+ ()+"
+		NewTags = "()"+ReturnKey+ReturnValue
+	} else if StartsWith(Algo,"incre(") && IsIn(Algo,"):") && Args != "" {
+		ReturnKey = AfterSplit(Action,"(")
+		ReturnKey = BeforeSplit(ReturnKey,")")
+		ReturnValue = " ()+ ()= ()"+Args
+		NewTags = "()"+ReturnKey+ReturnValue
+	} else if StartsWith(Algo,"equals(") && IsIn(Algo,"):") && Args != "" {
+		ReturnKey = AfterSplit(Action,"(")
+		ReturnKey = BeforeSplit(ReturnKey,")")
+		NewTags = "("+ReturnKey+"):()"+Args
+	} else {
+		NewTags = Algo
+	}
+
+	return NewTags
+}
+
 func TranslateTag(Input string) string {
 	var TheReturn string = ""
 	var Action string = Input
@@ -346,7 +390,27 @@ func TranslateTag(Input string) string {
 		Nest = "nest-"+Nest
 	}
 
-	if StartsWith(Action, "if:") || StartsWith(Action, "else-if:") {
+	if StartsWith(Action,"concat(") || StartsWith(Action,"incre(") || StartsWith(Action,"equals(") {
+		var Algo string = AlgoTags(Action)
+		var NewAlgoTag string = ""
+		if IsIn(Algo," ") {
+			var all []string = split(Algo," ")
+			var end int = len(all)
+			var lp int = 0
+			for lp != end {
+				NewAlgoTag = all[lp]
+				if TheReturn == "" {
+					TheReturn = TranslateTag(NewAlgoTag)
+				} else {
+					TheReturn = TheReturn +" "+TranslateTag(NewAlgoTag)
+				}
+				lp++
+			}
+		} else {
+			TheReturn = TranslateTag(Algo)
+		}
+
+	} else if StartsWith(Action, "if:") || StartsWith(Action, "else-if:") {
 		Value = AfterSplit(Action,":")
 		Action = BeforeSplit(Action,":")
 		NewTag = "logic:"+Action
@@ -1777,8 +1841,9 @@ func Variables(Tabs string, TheKindType string, Content string) string {
 		VarType = ""
 	}
 
+//	fmt.Println(TheKindType)
 	//Assign Value
-	if IsIn(TheKindType,"=") {
+	if IsIn(TheKindType,"=") && TheKindType != "=" {
 		MakeEqual = true
 		Name = BeforeSplit(TheKindType,"=")
 		Value = AfterSplit(TheKindType,"=")
@@ -1803,7 +1868,11 @@ func Variables(Tabs string, TheKindType string, Content string) string {
 			NewVar = Name+NewVar+" = "+Value
 		}
 	} else {
-		NewVar = "var "+Name+NewVar
+		if NewVar != "" {
+			NewVar = "var "+Name+NewVar
+		} else {
+			NewVar = Name+NewVar
+		}
 	}
 	NewVar = NewVar+VariableContent
 
@@ -1902,7 +1971,7 @@ func main() {
 				}
 			}
 		} else 	{
-			UserIn = raw_input(">>> ")
+			UserIn = raw_input("<<shell>> ")
 		}
 
 		if UserIn == "exit" {

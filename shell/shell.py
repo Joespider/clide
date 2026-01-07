@@ -2,7 +2,7 @@ import os
 import sys
 import platform
 
-Version = "0.1.4"
+Version = "0.1.8"
 
 def getOS():
 	platform.system()
@@ -242,6 +242,45 @@ def VectAndArray(Name, TheDataType, VectorOrArray, Action, TheValue):
 
 	return TheReturn
 
+def AlgoTags(Algo):
+	NewTags = ""
+	Action = ""
+	Args = ""
+	ReturnKey = ""
+	ReturnValue = ""
+
+	if IsIn(Algo,":"):
+		Action = BeforeSplit(Algo,":")
+		Args = AfterSplit(Algo,":")
+
+	if StartsWith(Algo,"concat(") and IsIn(Algo,"):") and Args != "":
+		ReturnKey = AfterSplit(Action,"(")
+		ReturnKey = BeforeSplit(ReturnKey,")")
+
+		if IsIn(Args,","):
+			ReturnValue = "()"+ReturnKey
+			AllArgs = split(Args,",")
+			ReturnValue = Join(AllArgs," ()")
+			NewTags = "()"+ReturnKey+":()"+ReturnValue
+	elif StartsWith(Algo,"incre(") and IsIn(Algo,"):") and Args == "":
+		ReturnKey = AfterSplit(Action,"(")
+		ReturnKey = BeforeSplit(ReturnKey,")")
+		ReturnValue = " ()+ ()= ()1"
+		NewTags = "()"+ReturnKey+ReturnValue
+	elif StartsWith(Algo,"incre(") and IsIn(Algo,"):") and Args != "":
+		ReturnKey = AfterSplit(Action,"(")
+		ReturnKey = BeforeSplit(ReturnKey,")")
+		ReturnValue = " ()+ ()= ()"+Args
+		NewTags = "()"+ReturnKey+ReturnValue
+	elif StartsWith(Algo,"equals(") and IsIn(Algo,"):") and Args != "":
+		ReturnKey = AfterSplit(Action,"(")
+		ReturnKey = BeforeSplit(ReturnKey,")")
+		NewTags = "("+ReturnKey+"):()"+Args
+	else:
+		NewTags = Algo
+
+	return NewTags
+
 def TranslateTag(Input):
 	TheReturn = ""
 	Action = Input
@@ -280,7 +319,23 @@ def TranslateTag(Input):
 		Action = AfterSplit(Action,">")
 		Nest = "nest-"+Nest
 
-	if (StartsWith(Action, "if:")) or (StartsWith(Action, "else-if:")):
+	if StartsWith(Action,"concat(") or StartsWith(Action,"incre(") or StartsWith(Action,"equals("):
+		Algo = AlgoTags(Action)
+		NewAlgoTag = ""
+		if IsIn(Algo," "):
+			all = split(Algo," ")
+			end = len(all)
+			lp = 0
+			while lp != end:
+				NewAlgoTag = all[lp];
+				if TheReturn == "":
+					TheReturn = TranslateTag(NewAlgoTag)
+				else:
+					TheReturn = TheReturn +" "+TranslateTag(NewAlgoTag)
+				lp += 1
+		else:
+			TheReturn = TranslateTag(Algo)
+	elif (StartsWith(Action, "if:")) or (StartsWith(Action, "else-if:")):
 		Value = AfterSplit(Action,":")
 		Action = BeforeSplit(Action,":")
 		NewTag = "logic:"+Action
@@ -1456,7 +1511,7 @@ def Variables(Tabs, TheKindType, Content):
 		VarType = ""
 
 	#Assign Value
-	if IsIn(TheKindType,"="):
+	if IsIn(TheKindType,"=") and TheKindType != "=":
 		MakeEqual = True
 		Name = BeforeSplit(TheKindType,"=")
 		Value = AfterSplit(TheKindType,"=")
@@ -1557,7 +1612,7 @@ def Main():
 				UserIn = UserIn + " " + TranslateTag(UserArgs[lp])
 				lp += 1
 		else:
-			UserIn = raw_input(">>> ")
+			UserIn = raw_input("<<shell>> ")
 
 		if UserIn == "exit":
 			break

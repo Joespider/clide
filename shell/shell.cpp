@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.1.16";
+String Version = "0.1.20";
 
 String getOS();
 void Help(String Type);
@@ -494,10 +494,6 @@ String VectAndArray(String Name, String TheDataType, String VectorOrArray, Strin
 	return TheReturn;
 }
 
-//concat(TheReturn):Parent,ContentFor,Nest,NewTag,(-scp),Value
-
-//<<shell>> [String-NewTags]AlgoTags:(String)Algo []-(String)Action:()"" []-el []-(String)Args:()"" []-el []-(String)ReturnKey:()"" []-el []-(String)ReturnValue:()"" []-el []-nl []-if:[IsIn]:Algo,":" +-(Action):[BeforeSplit]:Algo,':' +-el +-(Args):[AfterSplit]:Algo,':' +-el []-nl []-if:[StartsWith]:Algo,"concat("(-and)[IsIn]:Algo,"):"(-and)Args(-ne)"" +-(ReturnKey):[AfterSplit]:Action,'(' +-el +-(ReturnKey):[BeforeSplit]:ReturnKey,')' +-el +-nl +->if:[IsIn]:Args,"," +-(ReturnValue):= +-()"()" +-()+ +-()ReturnKey +-el +-<String>AllArgs:[split]:Args,',' +-el +-(int)lp:()0 +-el +-(int)end:[len]:AllArgs +-el +->>while:lp(-ne)end o-(ReturnValue):= o-(ReturnValue) o-()+ o-<AllArgs[lp]> o-el o-()lp o-()+ o-()+ o-el <-+-(NewTags):= <-+-()"()" <-+-()+ <-+-()ReturnKey <-+-()+ <-+-()"|" <-+-()+ <-+-()ReturnValue <-+-el []-else-if:[StartsWith]:Algo,"incre("(-and)[IsIn]:Algo,"):"(-and)Args(-eq)"" +-(ReturnKey):[AfterSplit]:Action,'(' +-el +-(ReturnKey):[BeforeSplit]:ReturnKey,')' +-el +-(ReturnValue):= +-()"(-scp) +-()()+ +-()(-scp) +-()()+" +-el +-(NewTags):= +-()"()" +-()+ +-()ReturnKey +-()+ +-()ReturnValue +-el []-else-if:[StartsWith]:Algo,"incre("(-and)[IsIn]:Algo,"):"(-and)Args(-ne)"" +-(ReturnKey):[AfterSplit]:Action,'(' +-el +-(ReturnKey):[BeforeSplit]:ReturnKey,')' +-el +-(ReturnValue):= +-()"(-scp) +-()()+ +-()(-scp) +-()()=" +-()Args +-el +-(NewTags):= +-()"()" +-()+ +-()ReturnKey +-()+ +-()ReturnValue +-el []-else-if:[StartsWith]:Algo,"equals("(-and)[IsIn]:Algo,"):"(-and)Args(-ne)"" +-(ReturnKey):[AfterSplit]:Action,'(' +-el +-(ReturnKey):[BeforeSplit]:ReturnKey,')' +-el +-(NewTags):= +-()"(" +-()+ +-()ReturnKey +-()+ +-()")|()" +-()+ +-()ReturnValue +-el []-else +-(NewTags):()Algo +-el
-//<<shell>> [String-NewTags]AlgoTags:(String)Algo []-(String)Action:()"" []-el []-(String)Args:()"" []-el []-(String)ReturnKey:()"" []-el []-(String)ReturnValue:()"" []-el []-nl []-if:[IsIn]:Algo,":" +-(Action):[BeforeSplit]:Algo,':' +-el +-(Args):[AfterSplit]:Algo,':' +-el []-nl []-if:[StartsWith]:Algo,"concat("(-and)[IsIn]:Algo,"):"(-and)Args(-ne)"" +-(ReturnKey):[AfterSplit]:Action,'(' +-el +-(ReturnKey):[BeforeSplit]:ReturnKey,')' +-el +-nl +->if:[IsIn]:Args,"," +-(ReturnValue):= +-()"()" +-()+ +-()ReturnKey +-el +-<String>AllArgs:[split]:Args,',' +-el +-(ReturnValue):= +-[join]:AllArgs,"" +-el +-(NewTags):= +-()"()" +-()+ +-()ReturnKey +-()+ +-()"|" +-()+ +-()ReturnValue +-el []-else-if:[StartsWith]:Algo,"incre("(-and)[IsIn]:Algo,"):"(-and)Args(-eq)"" +-(ReturnKey):[AfterSplit]:Action,'(' +-el +-(ReturnKey):[BeforeSplit]:ReturnKey,')' +-el +-(ReturnValue):= +-()"(-scp) +-()()+ +-()(-scp) +-()()+" +-el +-(NewTags):= +-()"()" +-()+ +-()ReturnKey +-()+ +-()ReturnValue +-el []-else-if:[StartsWith]:Algo,"incre("(-and)[IsIn]:Algo,"):"(-and)Args(-ne)"" +-(ReturnKey):[AfterSplit]:Action,'(' +-el +-(ReturnKey):[BeforeSplit]:ReturnKey,')' +-el +-(ReturnValue):= +-()"(-scp) +-()()+ +-()(-scp) +-()()=" +-()Args +-el +-(NewTags):= +-()"()" +-()+ +-()ReturnKey +-()+ +-()ReturnValue +-el []-else-if:[StartsWith]:Algo,"equals("(-and)[IsIn]:Algo,"):"(-and)Args(-ne)"" +-(ReturnKey):[AfterSplit]:Action,'(' +-el +-(ReturnKey):[BeforeSplit]:ReturnKey,')' +-el +-(NewTags):= +-()"(" +-()+ +-()ReturnKey +-()+ +-()")|()" +-()+ +-()ReturnValue +-el []-else +-(NewTags):()Algo +-el
 String AlgoTags(String Algo)
 {
 	String NewTags = "";
@@ -523,33 +519,42 @@ String AlgoTags(String Algo)
 			std::vector<String> AllArgs = split(Args,',');
 			ReturnValue = join(AllArgs," ()");
 			NewTags = "()"+ReturnKey+":()"+ReturnValue;
-			//NewTags = TranslateTag(NewTags);
 		}
+	}
+	else if ((StartsWith(Algo,"decre(") && (IsIn(Algo,"):")) && (Args == "")))
+	{
+		ReturnKey = AfterSplit(Action,'(');
+		ReturnKey = BeforeSplit(ReturnKey,')');
+		ReturnValue = " ()- ()-";
+		NewTags = "()"+ReturnKey+ReturnValue;
+	}
+	else if ((StartsWith(Algo,"decre(") && (IsIn(Algo,"):")) && (Args != "")))
+	{
+		ReturnKey = AfterSplit(Action,'(');
+		ReturnKey = BeforeSplit(ReturnKey,')');
+		ReturnValue = "(-spc) ()- (): ()"+Args;
+		NewTags = "()"+ReturnKey+ReturnValue;
 	}
 	else if ((StartsWith(Algo,"incre(") && (IsIn(Algo,"):")) && (Args == "")))
 	{
 		ReturnKey = AfterSplit(Action,'(');
 		ReturnKey = BeforeSplit(ReturnKey,')');
 		ReturnValue = " ()+ ()+";
-		//ReturnValue = "(-scp)()+(-spc)()+";
 		NewTags = "()"+ReturnKey+ReturnValue;
-		//NewTags = TranslateTag(NewTags);
 	}
 	else if ((StartsWith(Algo,"incre(") && (IsIn(Algo,"):")) && (Args != "")))
 	{
 		ReturnKey = AfterSplit(Action,'(');
 		ReturnKey = BeforeSplit(ReturnKey,')');
-		ReturnValue = "(-spc) ()+ (): ()"+Args;
-//		ReturnValue = "(-spc)()+ (-spc)()= "+Args;
+		ReturnValue = " ()+ ()= ()"+Args;
 		NewTags = "()"+ReturnKey+ReturnValue;
-		//NewTags = TranslateTag(NewTags);
 	}
 	else if ((StartsWith(Algo,"equals(") && (IsIn(Algo,"):")) && (Args != "")))
 	{
 		ReturnKey = AfterSplit(Action,'(');
 		ReturnKey = BeforeSplit(ReturnKey,')');
+		ReturnValue = Args;
 		NewTags = "("+ReturnKey+"):()"+ReturnValue;
-		//NewTags = TranslateTag(NewTags);
 	}
 	else
 	{
@@ -616,7 +621,7 @@ String TranslateTag(String Input)
 		Nest = "nest-"+Nest;
 	}
 
-	if (StartsWith(Action,"concat(") || StartsWith(Action,"incre(") || StartsWith(Action,"equals("))
+	if (StartsWith(Action,"concat(") || StartsWith(Action,"incre(") || StartsWith(Action,"decre(") || StartsWith(Action,"equals("))
 	{
 		String Algo = AlgoTags(Action);
 		String NewAlgoTag = "";
@@ -641,7 +646,7 @@ String TranslateTag(String Input)
 		}
 		else
 		{
-			TheReturn = TranslateTag(NewAlgoTag);
+			TheReturn = TranslateTag(Algo);
 		}
 
 	}
@@ -2491,7 +2496,7 @@ String Variables(String Tabs, String TheKindType, String Content)
 	}
 
 	//Assign Value
-	if (IsIn(TheKindType,"="))
+	if ((IsIn(TheKindType,"=")) && (TheKindType != "="))
 	{
 		MakeEqual = true;
 		Name = BeforeSplit(TheKindType,'=');
@@ -2643,7 +2648,7 @@ int main(int argc, char** argv)
 		}
 		else
 		{
-			UserIn = raw_input(">>> ");
+			UserIn = raw_input("<<shell>> ");
 			UserIn = TranslateTag(UserIn);
 		}
 
