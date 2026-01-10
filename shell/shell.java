@@ -12,7 +12,7 @@ import java.io.IOException;
 
 //class name
 public class shell {
-	private static String Version = "0.1.7";
+	private static String Version = "0.1.8";
 	private static String TheKind = "";
 	private static String TheName = "";
 	private static String TheKindType = "";
@@ -1045,7 +1045,7 @@ public class shell {
 				int lp = 0;
 				int end = Tabs.length();
 
-				if (end == 1)
+				if ((CalledBy.equals("method")) && (end == 1))
 				{
 					end = 2;
 				}
