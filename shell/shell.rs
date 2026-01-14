@@ -3,7 +3,7 @@ use std::process::Command;
 
 fn the_version() -> String
 {
-	return "0.1.12".to_string();
+	return "0.1.13".to_string();
 }
 
 fn get_os() -> String
@@ -2959,7 +2959,7 @@ fn example(tag: &str)
 			}
 		}
 	}
-	println!("Command: {}",&user_in);
+	println!("Command: {}",&tag);
 	println!("");
 	println!("\t{{OUTPUT}}");
 	println!("{}",gen_code("", &user_in));

@@ -2,7 +2,7 @@ import os
 import sys
 import platform
 
-Version = "0.1.8"
+Version = "0.1.9"
 
 def getOS():
 	platform.system()
@@ -201,45 +201,39 @@ def VectAndArray(Name, TheDataType, VectorOrArray, Action, TheValue):
 	TheReturn = ""
 	if VectorOrArray == "vector":
 		if Action == "variable":
-			if TheValue != "":
-				TheReturn = Name+" = "+TheValue
+			TheReturn = Name+" = ["+TheValue+"]"
+#			if TheValue != "":
+#				TheReturn = Name+" = ["+TheValue+"]"
+#			else:
+#				TheReturn = Name+" = []"
+		else:
+			if (not IsIn(Name,"[")) and (not IsIn(Name,"]")):
+				TheReturn = Name+".append("+TheValue+")"
 			else:
 				TheReturn = Name
-		else:
-			if not IsIn(Name,"[") and not IsIn(Name,"]"):
-				TheReturn = Name+".append("+TheValue+")"
 	elif VectorOrArray == "array":
 		plc = ""
 
 		if Action == "variable":
-			if IsIn(TheDataType,"[") and EndsWith(TheDataType,"]"):
-				plc = AfterSplit(TheDataType,'[')
-				plc = BeforeSplit(plc,']')
-				TheDataType = BeforeSplit(TheDataType,'[')
-			TheDataType = DataType(TheDataType,False);
-			if TheValue != "":
-				TheReturn = Name+"["+plc+"] = "+TheValue
-			else:
-				TheReturn = Name+"["+plc+"]"
-#				if plc != "":
-#					TheReturn = Name+"["+plc+"]"
-#				else:
-#					TheReturn = Name
+#			if IsIn(TheDataType,"[") and EndsWith(TheDataType,"]"):
+#				plc = AfterSplit(TheDataType,"[")
+#				plc = BeforeSplit(plc,"]")
+#				TheDataType = BeforeSplit(TheDataType,"[")
+#			TheDataType = DataType(TheDataType,False)
+			TheReturn = Name+" = ["+TheValue+"]"
 		else:
-			if IsIn(Name,"[") and EndsWith(Name,"]"):
-				plc = AfterSplit(Name,'[')
-				plc = BeforeSplit(plc,']')
-				Name = BeforeSplit(Name,'[')
-
+#			if IsIn(Name,"[") and EndsWith(Name,"]"):
+#				plc = AfterSplit(Name,"[")
+#				plc = BeforeSplit(plc,"]")
+#				Name = BeforeSplit(Name,"[")
+#
 			if TheValue != "":
-				TheReturn = Name+"["+plc+"] = "+TheValue
+#				TheReturn = Name+"["+plc+"] = "+TheValue
+				TheReturn = Name+" = "+TheValue
 			else:
-				TheReturn = Name+"["+plc+"]"
-#				if plc != "":
-#					TheReturn = Name+"["+plc+"]"
-#				else:
-#					TheReturn = Name
-
+#				TheReturn = Name+"["+plc+"]"
+				TheReturn = Name
+#	print(TheReturn)
 	return TheReturn
 
 def AlgoTags(Algo):
@@ -437,25 +431,27 @@ def TranslateTag(Input):
 		#	<list>:4
 
 	#vectors or arrays
-	elif StartsWith(Action, "<") and IsIn(Action,">"):
+	elif StartsWith(Action, "<") and IsIn(Action,">") and (not StartsWith(Action, "<<")) and (not StartsWith(Action, "<-")):
 		VectorOrArray = ""
 		TheDataType = BeforeSplit(Action,">")
 		TheDataType = AfterSplit(TheDataType,"<")
-		Action = AfterSplit(Action,">");
+		Action = AfterSplit(Action,">")
 
 		#replacing data type to represent the variable
 		if StartsWith(Action,":"):
 			Action = TheDataType+Action
 			TheDataType = ""
-			if IsIn(Action,":"):
-				Value = AfterSplit(Action,":")
-				Action = BeforeSplit(Action,":")
-				if EndsWith(Action,"]") and (Value != ""):
-					VectorOrArray = "array:"
 
-				if VectorOrArray == "":
-					if StartsWith(Value,"["):
-						VectorOrArray = "vector:"
+		if IsIn(Action,":"):
+			Value = AfterSplit(Action,":")
+			Action = BeforeSplit(Action,":")
+
+			if EndsWith(Action,"]") and Value != "":
+				VectorOrArray = "array:"
+
+			if VectorOrArray == "":
+				if StartsWith(Value,"["):
+					VectorOrArray = "vector:"
 				else:
 					VectorOrArray = "array:"
 
@@ -466,15 +462,14 @@ def TranslateTag(Input):
 				VectorOrArray = "vector:"
 
 			if Value != "":
-				TheReturn = "var:<"+VectorOrArray+TheDataType+">"+Action+":"+Value
+				TheReturn = Parent+ContentFor+"var:<"+VectorOrArray+TheDataType+">"+Action+":"+Value
 			else:
-				TheReturn = "var:<"+VectorOrArray+TheDataType+">"+Action
+				TheReturn = Parent+ContentFor+"var:<"+VectorOrArray+TheDataType+">"+Action
 		else:
 			if Value != "":
-				TheReturn = "stmt:<"+VectorOrArray+TheDataType+">"+Action+":"+Value
+				TheReturn = Parent+ContentFor+"stmt:<"+VectorOrArray+TheDataType+">"+Action+":"+Value
 			else:
-				TheReturn = "stmt:<"+VectorOrArray+TheDataType+">"+Action
-
+				TheReturn = Parent+ContentFor+"stmt:<"+VectorOrArray+TheDataType+">"+Action
 	elif Action == "el":
 #		TheReturn = Parent+ContentFor+Nest+"stmt:endline"
 		TheReturn = Parent+ContentFor+"stmt:endline"

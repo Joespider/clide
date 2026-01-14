@@ -9,7 +9,7 @@ import (
 	"strings"
 	)
 
-var Version string = "0.1.9"
+var Version string = "0.1.12"
 
 func getOS() string {
 	os := runtime.GOOS
@@ -269,7 +269,7 @@ func VectAndArray(Name string, TheDataType string, VectorOrArray string, Action 
 			}
 		} else {
 			if !IsIn(Name,"[") && !IsIn(Name,"]") {
-				TheReturn = Name+" = append("+TheValue+")"
+				TheReturn = Name+" = append("+Name+","+TheValue+")"
 			}
 		}
 	} else if VectorOrArray == "array" {
@@ -735,7 +735,7 @@ func Parameters(input string, CalledBy string) string {
 			if Name == "" {
 				Params = Type+", "+more
 			} else {
-				Params = Type+" "+Name+", "+more
+				Params = Name+" "+Type+", "+more
 			}
 		//param-type
 		} else if StartsWith(Params,"(") && IsIn(Params,")") {
@@ -744,7 +744,7 @@ func Parameters(input string, CalledBy string) string {
 
 			Type = AfterSplit(Type,"(")
 			Type = DataType(Type,false)
-			Params = Type+" "+Name
+			Params = Name+" "+Type
 			if Name == "" {
 				Params = Type
 			}
@@ -1941,7 +1941,7 @@ func Example(tag string) {
 			lp++
 		}
 	}
-	fmt.Println(UserIn)
+	fmt.Println("Command: "+tag)
 	UserIn = GenCode("",UserIn)
 
 	fmt.Println(UserIn)
