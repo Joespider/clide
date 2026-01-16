@@ -3,7 +3,7 @@ use std::process::Command;
 
 fn the_version() -> String
 {
-	return "0.1.13".to_string();
+	return "0.1.14".to_string();
 }
 
 fn get_os() -> String
@@ -1047,6 +1047,29 @@ fn handle_tabs(_called_by: &str, tabs: &str, content: &str) -> String
         return new_tabs.to_string();
 }
 
+fn borrow_value(the_data_type: &str, called_by: &str) -> String
+{
+	let share: String;
+	if called_by == "method-params"
+	{
+		let value: String = data_type(the_data_type, false);
+		if value == "String"
+		{
+			share = "&str".to_string();
+		}
+		else
+		{
+			share = the_data_type.to_owned();
+		}
+	}
+	else
+	{
+		share = the_data_type.to_owned();
+	}
+
+	return share;
+}
+
 fn data_type(the_type: &str, get_null: bool) -> String
 {
 	if get_null == false
@@ -1073,7 +1096,7 @@ fn data_type(the_type: &str, get_null: bool) -> String
 	{
 		if the_type == "String" || the_type == "string" || the_type == "std::string"
 		{
-			return "\"\"".to_string();
+			return "\"\".to_string()".to_string();
 		}
 		else if the_type == "boolean" || the_type == "bool"
 		{
@@ -1260,7 +1283,8 @@ fn gen_parameters(input: &str, called_by: &str) -> String
 			//param: type, param: type, param: type
 			new_params.push_str(&name);
 			new_params.push_str(": ");
-			new_params.push_str(&the_type);
+//			new_params.push_str(&the_type);
+			new_params.push_str(&borrow_value(&the_type, &[called_by,"-params"].concat()));
 			new_params.push_str(", ");
 			new_params.push_str(&more);
 		}
@@ -1275,7 +1299,8 @@ fn gen_parameters(input: &str, called_by: &str) -> String
 			//param: type
 			new_params.push_str(&name);
 			new_params.push_str(": ");
-			new_params.push_str(&the_type);
+//			new_params.push_str(&the_type);
+			new_params.push_str(&borrow_value(&the_type, &[called_by,"-params"].concat()));
 		}
 		else
 		{
