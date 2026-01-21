@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.1.20";
+String Version = "0.1.28";
 
 String getOS();
 void Help(String Type);
@@ -45,8 +45,10 @@ String HandleTabs(String CalledBy, String Tabs, String Content);
 bool IsDataType(String Type);
 String DataType(String Type, bool getNull);
 String ReplaceTag(String Content, String Tag, bool All);
+String Pointers(String Tabs, String Tag, String Content);
 String Conditions(String input);
 String Parameters(String input,String CalledBy);
+String Template(String TheName, String Content);
 String Struct(String TheName, String Content);
 String Class(String TheName, String Content);
 String Method(String Tabs, String Name, String Content);
@@ -82,16 +84,33 @@ void Help(String Type)
 	Type = AfterSplit(Type,':');
 	if (Type == "class")
 	{
-		print("{Usage}");
-		print("{}<name>:(<type>)<name> var(public/private):<vars> method:<name>-<type> param:<params>,<param>");
+		print("{Purpose}");
+		print("This is the generate a class for C++ using nested elements");
 		print("");
-		print("{EXAMPLE}");
-		Example("{}pizza:(int)one,(bool)two,(float)three var(private):(int)toppings [String-mixture]cheese:(String)kind,(int)amount for: nest-for: [String]topping:(String)name,(int)amount if:good");
+		print("{Elements}");
+		print("{class}<name>:<param>\twhere \"<name>\" is the name of your class and <params> are the parameters for the class constructor");
+		print("[]-<elements>\t\twhere, this called right after the class called, populates the class constructor");
+		print("{c}-[]<name>:<params>\twhere \"<name>\" is the name of the class, for additional constructors");
+		print("{c}-<element>\t\twhere \"<element>\" are to be called from class");
+		print("");
+		print("{Usage}");
+		print("{class}<name> {c}-<element>");
+		print("{class}<name>:<params> []-<constructor> {c}-<element>");
+		print("");
+		Example("{class}clock []-equals(hr):0 []-equals(min):0 []-equals(date):\"00/00/0000\" []-[print]:\"ClockStarted\" []-el {c}-[]clock:(int)one,(int)two,(String)three []-equals(hr):one []-equals(min):two []-equals(date):three []-[print]:\"ClockStarted\" []-el {c}-var(protected):(bool)reset {c}-var(private):(int)hr {c}-var(private):(int)min {c}-var(private):(String)date {c}-nl {c}-[]Hr:(int)number []-equals((int)value):number []-if:number(-lt)25 +-equals(hr):Value {c}-nl {c}-[int-value]Hr: []-(int)value:()hr []-el {c}-nl {c}-[]Min:(int)number []-equals((int)value):number []-if:number(-lt)61 +-equals(min):Value {c}-nl {c}-[int-value]Min: []-equals((int)value):min {c}-nl {c}-[]Date:(String)TheDate []-equals((String)value):TheDate []-if:TheDate(-ne)\"0/0/0000\" +-equals(date):Value {c}-nl {c}-[String-value]Date: []-equals((String)value):date {c}-nl");
 	}
 	else if (Type == "struct")
 	{
+		print("{struct}<name> {s}-<element>");
+		print("");
+		Example("{struct}clock {s}-(int)time {s}-el {s}-(String)date {s}-el");
+	}
+	else if (Type == "template")
+	{
 		print("(<type>)<name>");
 		print("");
+		Example("{template}vals [{t}-time]clock []-({t})time:[start]: []-el []-nl []-if:here +-[stop]: +-el []-nl []-[begin]: []-el []-nl []-if: +-[end]: +-el []-else +-[reset]: +-el []-for: o-[count]: o-el");
+		Example("{template}T [{t}-sum]Add:({t})a,({t})b []-()and:()a+b []-el []-()sum:()a+b []-el");
 	}
 	else if (Type == "method")
 	{
@@ -496,9 +515,11 @@ String VectAndArray(String Name, String TheDataType, String VectorOrArray, Strin
 
 String AlgoTags(String Algo)
 {
+	bool IsCallMethod = false;
 	String NewTags = "";
 	String Action = "";
 	String Args = "";
+	String DataType = "";
 	String ReturnKey = "";
 	String ReturnValue = "";
 
@@ -551,10 +572,46 @@ String AlgoTags(String Algo)
 	}
 	else if ((StartsWith(Algo,"equals(") && (IsIn(Algo,"):")) && (Args != "")))
 	{
-		ReturnKey = AfterSplit(Action,'(');
-		ReturnKey = BeforeSplit(ReturnKey,')');
+		if (StartsWith(Args,"["))
+		{
+			IsCallMethod = true;
+		}
+
 		ReturnValue = Args;
-		NewTags = "("+ReturnKey+"):()"+ReturnValue;
+
+		if (StartsWith(Action,"equals(("))
+		{
+			ReturnKey = AfterSplit(Action,'(');
+			ReturnKey = AfterSplit(ReturnKey,'(');
+			DataType = BeforeSplit(ReturnKey,')');
+			ReturnKey = AfterSplit(ReturnKey,')');
+			ReturnKey = BeforeSplit(ReturnKey,')');
+			if (IsCallMethod == true)
+			{
+				NewTags = "("+DataType+")"+ReturnKey+":"+ReturnValue;
+			}
+			else
+			{
+				NewTags = "("+DataType+")"+ReturnKey+":()"+ReturnValue;
+			}
+		}
+		else
+		{
+			ReturnKey = AfterSplit(Action,'(');
+			ReturnKey = BeforeSplit(ReturnKey,')');
+			if (IsCallMethod == true)
+			{
+				NewTags = "()"+ReturnKey+":"+ReturnValue;
+			}
+			else
+			{
+				NewTags = "()"+ReturnKey+":()"+ReturnValue;
+			}
+		}
+	}
+	else if ((Algo == "concat():") || (Algo == "decre():") || (Algo == "incre():") || (Algo == "equals():"))
+	{
+		NewTags = "";
 	}
 	else
 	{
@@ -563,7 +620,6 @@ String AlgoTags(String Algo)
 
 	return NewTags;
 }
-
 
 String TranslateTag(String Input)
 {
@@ -608,10 +664,24 @@ String TranslateTag(String Input)
 		ContentFor = "method-";
 	}
 	//content for classes
-	else if (StartsWith(Action, "{}-"))
+	else if (StartsWith(Action, "{c}-"))
 	{
 		Action = AfterSplit(Action,'-');
 		ContentFor = "class-";
+	}
+
+	//constructor for classes
+	else if (StartsWith(Action, "{const}-"))
+	{
+		Action = AfterSplit(Action,'-');
+//		ContentFor = "point:";
+	}
+
+	//content for classes
+	else if (StartsWith(Action, "{s}-"))
+	{
+		Action = AfterSplit(Action,'-');
+		ContentFor = "struct-";
 	}
 
 	// ">" becomes "nest-"
@@ -635,18 +705,27 @@ String TranslateTag(String Input)
 				NewAlgoTag = all[lp];
 				if (TheReturn == "")
 				{
-					TheReturn = TranslateTag(NewAlgoTag);
+					TheReturn = Parent+ContentFor+Nest+TranslateTag(NewAlgoTag);
 				}
 				else
 				{
-					TheReturn = TheReturn +" "+TranslateTag(NewAlgoTag);
+					TheReturn = TheReturn +" "+Parent+ContentFor+Nest+TranslateTag(NewAlgoTag);
+				}
+
+				if (StartsWith(Action,"equals("))
+				{
+					TheReturn = TheReturn +" "+Parent+ContentFor+Nest+TranslateTag("el");
 				}
 				lp++;
 			}
 		}
 		else
 		{
-			TheReturn = TranslateTag(Algo);
+			TheReturn = Parent+ContentFor+Nest+TranslateTag(Algo);
+			if (StartsWith(Action,"equals("))
+			{
+				TheReturn = TheReturn +" "+Parent+ContentFor+Nest+TranslateTag("el");
+			}
 		}
 
 	}
@@ -674,12 +753,24 @@ String TranslateTag(String Input)
 		Value = "loop-condition:"+Value;
 		TheReturn = Parent+ContentFor+Nest+NewTag+" "+Value;
 	}
-	//class
+	//class or struct
 	else if ((StartsWith(Action, "{")) && (IsIn(Action,"}")))
 	{
+		String Parent = "";
 		TheDataType = BeforeSplit(Action,'}');
 		TheDataType = AfterSplit(TheDataType,'{');
 		Action = AfterSplit(Action,'}');
+
+		if (IsIn(TheDataType,"-"))
+		{
+			Parent = AfterSplit(TheDataType,'-');
+			TheDataType = BeforeSplit(TheDataType,'-');
+			if (TheDataType != "template")
+			{
+				Action = Action+"-"+Parent;
+			}
+		}
+
 		if (IsIn(Action,":"))
 		{
 			Value = AfterSplit(Action,':');
@@ -687,11 +778,11 @@ String TranslateTag(String Input)
 		}
 		if (Value != "")
 		{
-			TheReturn = "class:"+Action+" params:"+Value;
+			TheReturn = TheDataType+":"+Action+" params:"+Value;
 		}
 		else
 		{
-			TheReturn = "class:"+Action;
+			TheReturn = TheDataType+":"+Action;
 		}
 	}
 	//method
@@ -908,7 +999,7 @@ String HandleTabs(String CalledBy, String Tabs, String Content)
 	String AutoTabs = "";
 //	if ((CalledBy == "class") || (CalledBy == "method") || (CalledBy == "logic") || (CalledBy == "loop"))
 //	{
-	if ((Content != "stmt:endline") && (Content != "stmt:newline"))
+	if ((Content != "stmt:endline") && (Content != "stmt:newline") && (!StartsWith(Content,"stmt:tab")))
 	{
 		if (StartsWith(Content,"stmt:") || StartsWith(Content,"var:"))
 		{
@@ -975,6 +1066,20 @@ String DataType(String Type, bool getNull)
 	}
 }
 
+String Pointers(String Tabs, String Tag, String Content)
+{
+	String PointerContent = "";
+	Tag = AfterSplit(Tag,':');
+
+	if (EndsWith(Tag,"="))
+	{
+		Tag = BeforeSplit(Tag,'=');
+		PointerContent = GenCode(Tabs,Tag)+"->";
+	}
+	PointerContent = PointerContent + GenCode(Tabs,Content);
+	return PointerContent;
+}
+
 //condition:
 String Conditions(String input)
 {
@@ -1023,12 +1128,15 @@ String Conditions(String input)
 		String Keep = "";
 		while (lp != end)
 		{
-			Conditions[lp] = TranslateTag(Conditions[lp]);
-			Keep = Conditions[lp];
-			Conditions[lp] = GenCode("",Conditions[lp]);
-			if (Conditions[lp] == "")
+			if (Conditions[lp] != ">")
 			{
-				Conditions[lp] = Keep;
+				Conditions[lp] = TranslateTag(Conditions[lp]);
+				Keep = Conditions[lp];
+				Conditions[lp] = GenCode("",Conditions[lp]);
+				if (Conditions[lp] == "")
+				{
+					Conditions[lp] = Keep;
+				}
 			}
 			lp++;
 		}
@@ -1147,91 +1255,242 @@ String Parameters(String input,String CalledBy)
 	return Params;
 }
 
+String Template(String Type, String Content)
+{
+	String TemplateContent = "";
+	String TheName = "";
+	String Params = "";
+	String DataType = "";
+	String CallContent = "";
+
+	TheName = AfterSplit(Content,':');
+	DataType = AfterSplit(Type,':');
+
+	Content = replaceAll(Content, "{t}",DataType);
+
+	TemplateContent = "template <typename "+DataType+">\n";
+	TemplateContent = TemplateContent + GenCode("",Content);
+
+	return TemplateContent;
+}
+
 String Struct(String TheName, String Content)
 {
 	String Complete = "";
 	String StructVar = "";
 	String Process = "";
+	String AutoTabs = "";
+
 	TheName = AfterSplit(TheName,':');
-	while (StartsWith(Content, "var"))
+	while ((StartsWith(Content, "struct-var")) || (StartsWith(Content, "struct-stmt")) || (StartsWith(Content, "var")) || (StartsWith(Content, "stmt")))
 	{
-		Process = BeforeSplit(Content,' ');
-		Content = AfterSplit(Content,' ');
+		Content = ReplaceTag(Content, "struct-",true);
+
+		if (IsIn(Content," "))
+		{
+			Process = BeforeSplit(Content,' ');
+			Content = AfterSplit(Content,' ');
+		}
+		else
+		{
+			Process = Content;
+			Content = "";
+		}
+
+		AutoTabs = HandleTabs("struct","\t",Process);
+		if (AutoTabs != "")
+		{
+			StructVar = StructVar + GenCode("\t",AutoTabs);
+			AutoTabs = "";
+		}
 		StructVar = StructVar + GenCode("\t",Process);
 	}
 	Complete = "struct {\n"+StructVar+"\n} "+TheName+";\n";
 	return Complete;
 }
 
-
 String Class(String TheName, String Content)
 {
 	String Complete = "";
+	String ProtectedVars = "";
 	String PrivateVars = "";
 	String PublicVars = "";
 	String VarContent = "";
-/*
-	String PublicOrPrivate = "";
-	if (StartsWith(TheName,"class("))
-	if (IsIn(TheName,")"))
-	{
-		PublicOrPrivate = AfterSplit(TheName,"(");
-		PublicOrPrivate = BeforeSplit(PublicOrPrivate,")");
-	}
-*/
-	TheName = AfterSplit(TheName,':');
+	String Constructor = "";
+	String ConstContent = "";
+	String Destructor = "";
+	String Inheritance = "";
+	String ParentClass = "";
 	String Process = "";
 	String Params = "";
 	String ClassContent = "";
-	while (Content != "")
-	{
-		if ((StartsWith(Content, "params:")) && (Params == ""))
-		{
-			Process = BeforeSplit(Content,' ');
-			Params =  Parameters(Process,"class");
-		}
-		else if (StartsWith(Content, "method:"))
-		{
-			ClassContent = ClassContent + GenCode("\t",Content);
-		}
-		else if (StartsWith(Content, "var"))
-		{
-			if (StartsWith(Content, "var(public)"))
-			{
-				Content = AfterSplit(Content,')');
-				VarContent = BeforeSplit(Content,' ');
-				VarContent = "var"+VarContent;
-				PublicVars = PublicVars + GenCode("\t",VarContent);
-			}
-			else if (StartsWith(Content, "var(private)"))
-			{
-				Content = AfterSplit(Content,')');
-				VarContent = BeforeSplit(Content,' ');
-				VarContent = "var"+VarContent;
-				PrivateVars = PrivateVars  + GenCode("\t",VarContent);
-			}
-		}
 
+	TheName = AfterSplit(TheName,':');
+
+	if (IsIn(TheName,"-"))
+	{
+		ParentClass = AfterSplit(TheName,'-');
+		TheName = BeforeSplit(TheName,'-');
+	}
+
+	if ((StartsWith(Content, "params:")) && (Params == ""))
+	{
 		if (IsIn(Content," "))
 		{
+			Process = BeforeSplit(Content,' ');
 			Content = AfterSplit(Content,' ');
 		}
 		else
 		{
-			break;
+			Process = Content;
+			Content = "";
 		}
+//		Params = Parameters(Process,"class");
+		Params = Process;
+	}
+	//handle constructor content
+	if (StartsWith(Content,"method-"))
+	{
+		while ((!StartsWith(Content,"class-")) && (Content != ""))
+		{
+			String Item = "";
+			if (IsIn(Content," "))
+			{
+				Item = BeforeSplit(Content,' ');
+				Content = AfterSplit(Content,' ');
+			}
+			else
+			{
+				Item = Content;
+				Content = "";
+			}
+			ConstContent = ConstContent+" "+Item;
+		}
+	}
+
+	//class constructor
+	if (Params != "")
+	{
+		Constructor = GenCode("\t","method:({})"+TheName+" "+Params+ConstContent);
+	}
+	else
+	{
+		Constructor = GenCode("\t","method:({})"+TheName+ConstContent);
+	}
+
+	if (IsIn(Content," class-"))
+	{
+		std::vector<String> cmds = split(Content," class-");
+		int end = len(cmds);
+		int lp = 0;
+		while (lp != end)
+		{
+			Content = cmds[lp];
+			Content = ReplaceTag(Content, "class-",false);
+
+			if (StartsWith(Content,"method:()"+TheName+" "))
+			{
+				Content = AfterSplit(Content,' ');
+				Content = "method:({})"+TheName+" "+Content;
+			}
+			else if (Content == "method:()"+TheName)
+			{
+				Content = "method:({})"+TheName;
+			}
+
+			if (StartsWith(Content, "method:"))
+			{
+				ClassContent = ClassContent + GenCode("\t",Content);
+			}
+			else if (StartsWith(Content, "var"))
+			{
+				if (StartsWith(Content, "var(public)"))
+				{
+					VarContent = AfterSplit(Content,':');
+					VarContent = "stmt:tab var:"+VarContent+" stmt:endline";
+					PublicVars = PublicVars + GenCode("\t",VarContent);
+				}
+				else if (StartsWith(Content, "var(private)"))
+				{
+					VarContent = AfterSplit(Content,':');
+					VarContent = "stmt:tab var:"+VarContent+" stmt:endline";
+					PrivateVars = PrivateVars + GenCode("\t",VarContent);
+				}
+				else if (StartsWith(Content, "var(protected)"))
+				{
+					VarContent = AfterSplit(Content,':');
+					VarContent = "stmt:tab var:"+VarContent+" stmt:endline";
+					ProtectedVars = ProtectedVars + GenCode("\t",VarContent);
+				}
+				else
+				{
+					ClassContent = ClassContent + GenCode("\t",Content);
+				}
+			}
+			else
+			{
+				ClassContent = ClassContent + GenCode("\t",Content);
+			}
+
+			lp++;
+		}
+	}
+	else if (IsIn(Content," method:"))
+	{
+		std::vector<String> cmds = split(Content," method:");
+		int end = len(cmds);
+		int lp = 0;
+		while (lp != end)
+		{
+			if (StartsWith(cmds[lp], "method:"))
+			{
+				ClassContent = ClassContent + GenCode("\t",cmds[lp]);
+			}
+			else
+			{
+				ClassContent = ClassContent + GenCode("\t","method:"+cmds[lp]);
+			}
+			lp++;
+		}
+	}
+	else
+	{
+		Content = ReplaceTag(Content, "class-",false);
+		if (StartsWith(Content,"method:()"+TheName))
+		{
+			Content = AfterSplit(Content,')');
+			Content = "method:({})"+Content;
+		}
+		ClassContent = GenCode("\t",Content);
+	}
+
+	if (ProtectedVars != "")
+	{
+		ProtectedVars = "protected:\n\t//protected variables\n"+ProtectedVars+"\n";
 	}
 
 	if (PrivateVars != "")
 	{
 		PrivateVars = "private:\n\t//private variables\n"+PrivateVars+"\n";
 	}
+
 	if (PublicVars != "")
 	{
-		PublicVars = "\n\t//public variables\n"+PublicVars;
+		PublicVars = "\n\t//public variables\n"+PublicVars+"\n";
 	}
 
-	Complete = "class "+TheName+" {\n\n"+PrivateVars+"public:"+PublicVars+"\n\t//class constructor\n\t"+TheName+"("+Params+")\n\t{\n\t\tthis->x = x;\n\t\tthis->y = y;\n\t}\n\n"+ClassContent+"\n\t//class desctructor\n\t~"+TheName+"()\n\t{\n\t}\n};\n";
+//	Complete = "class "+TheName+" {\n\n"+PrivateVars+"public:"+PublicVars+"\n\t//class constructor\n\t"+TheName+"("+Params+")\n\t{\n\t\tthis->x = x;\n\t\tthis->y = y;\n\t}\n\n"+ClassContent+"\n\t//class desctructor\n\t~"+TheName+"()\n\t{\n\t}\n};\n";
+
+	//class desctructor
+	Destructor = GenCode("\t","method:(~)"+TheName);
+
+	//handle parent class
+	if (ParentClass != "")
+	{
+		Inheritance = ": public "+ParentClass;
+	}
+
+	Complete = "class "+TheName+Inheritance+" {\n\n"+ProtectedVars+PrivateVars+"public:"+PublicVars+"\n\t//class constructor\n"+Constructor+"\n"+ClassContent+"\n\t//class desctructor\n"+Destructor+"\n};\n";
 	return Complete;
 }
 
@@ -1240,11 +1499,13 @@ String Method(String Tabs, String Name, String Content)
 {
 	bool Last = false;
 	bool CanSplit = true;
+	bool AssignDefault = false;
 	String ReturnVar = "TheReturn";
 	String DefaultValue = "";
 	String Complete = "";
 	Name = AfterSplit(Name,':');
 	String TheName = "";
+	String OldType = "";
 	String Type = "";
 	String Params = "";
 	String MethodContent = "";
@@ -1265,6 +1526,9 @@ String Method(String Tabs, String Name, String Content)
 			ReturnVar = AfterSplit(Type,'-');
 			Type = BeforeSplit(Type,'-');
 		}
+
+		OldType = Type;
+
 		DefaultValue = DataType(Type,true);
 
 		//Converting data type to correct C++ type
@@ -1299,6 +1563,25 @@ String Method(String Tabs, String Name, String Content)
 		}
 		else
 		{
+			//handle default return value
+			if (StartsWith(Content,"method-var:("))
+			{
+				String ProcessType = AfterSplit(Content,'(');
+				ProcessType = BeforeSplit(ProcessType,')');
+
+				if (StartsWith(Content,"method-var:()"+ReturnVar+"="))
+				{
+					String OldTag = BeforeSplit(Content,')');
+					String OldValue = AfterSplit(Content,')');
+					Content = OldTag+Type+")"+OldValue;
+					AssignDefault = true;
+				}
+				else if ((StartsWith(Content,"method-var:("+OldType+")"+ReturnVar+"=")) || (StartsWith(Content,"method-var:("+Type+")"+ReturnVar+"=")) || (StartsWith(Content,"method-var:("+ProcessType+")"+ReturnVar+"=")))
+				{
+					AssignDefault = true;
+				}
+			}
+
 			//This is called when a called from the "class" method
 			// EX: class:name method:first method:second
 			if (IsIn(Content," method:"))
@@ -1310,6 +1593,7 @@ String Method(String Tabs, String Name, String Content)
 
 			if ((StartsWith(Content, "method-")) && (IsIn(Content, " method-l")))
 			{
+
 				std::vector<String> all = split(Content," method-l");
 				int lp = 0;
 				int end = len(all);
@@ -1434,17 +1718,55 @@ String Method(String Tabs, String Name, String Content)
 	//build method based on content
 	if ((Type == "") || (Type == "void"))
 	{
-		Complete = Tabs+"void "+TheName+"("+Params+")\n"+Tabs+"{\n"+MethodContent+"\n"+Tabs+"}\n";
+		if (EndsWith(MethodContent,"\n"))
+		{
+			Complete = Tabs+"void "+TheName+"("+Params+")\n"+Tabs+"{\n"+MethodContent+Tabs+"}\n";
+		}
+		else
+		{
+			Complete = Tabs+"void "+TheName+"("+Params+")\n"+Tabs+"{\n"+MethodContent+"\n"+Tabs+"}\n";
+		}
+	}
+	//class constructor
+	else if (Type == "{}")
+	{
+		if (EndsWith(MethodContent,"\n"))
+		{
+			Complete = Tabs+TheName+"("+Params+")\n"+Tabs+"{\n"+MethodContent+Tabs+"}\n";
+		}
+		else
+		{
+			Complete = Tabs+TheName+"("+Params+")\n"+Tabs+"{\n"+MethodContent+"\n"+Tabs+"}\n";
+		}
+	}
+	//class desctructor
+	else if (Type == "~")
+	{
+		Complete = Tabs+"~"+TheName+"()\n"+Tabs+"{\n"+Tabs+"}\n";
 	}
 	else
 	{
 		if (DefaultValue == "")
 		{
-			Complete = Tabs+Type+" "+TheName+"("+Params+")\n"+Tabs+"{\n"+Tabs+"\t"+Type+" "+ReturnVar+";\n"+MethodContent+"\n"+Tabs+"\treturn "+ReturnVar+";\n"+Tabs+"}\n";
+			if (AssignDefault == true)
+			{
+				Complete = Tabs+Type+" "+TheName+"("+Params+")\n"+Tabs+"{\n"+MethodContent+"\n"+Tabs+"\treturn "+ReturnVar+";\n"+Tabs+"}\n";
+			}
+			else
+			{
+				Complete = Tabs+Type+" "+TheName+"("+Params+")\n"+Tabs+"{\n"+Tabs+"\t"+Type+" "+ReturnVar+";\n"+MethodContent+"\n"+Tabs+"\treturn "+ReturnVar+";\n"+Tabs+"}\n";
+			}
 		}
 		else
 		{
-			Complete = Tabs+Type+" "+TheName+"("+Params+")\n"+Tabs+"{\n"+Tabs+"\t"+Type+" "+ReturnVar+" = "+DefaultValue+";\n"+MethodContent+"\n"+Tabs+"\treturn "+ReturnVar+";\n"+Tabs+"}\n";
+			if (AssignDefault == true)
+			{
+				Complete = Tabs+Type+" "+TheName+"("+Params+")\n"+Tabs+"{\n"+MethodContent+"\n"+Tabs+"\treturn "+ReturnVar+";\n"+Tabs+"}\n";
+			}
+			else
+			{
+				Complete = Tabs+Type+" "+TheName+"("+Params+")\n"+Tabs+"{\n"+Tabs+"\t"+Type+" "+ReturnVar+" = "+DefaultValue+";\n"+MethodContent+"\n"+Tabs+"\treturn "+ReturnVar+";\n"+Tabs+"}\n";
+			}
 		}
 	}
 	return Complete;
@@ -1861,7 +2183,6 @@ String Logic(String Tabs, String TheKindType, String Content)
 
 	while (Content != "")
 	{
-
 		Content = ReplaceTag(Content, "logic-",false);
 //		Content = ReplaceTag(Content, "logic-",true);
 
@@ -2385,8 +2706,8 @@ String Statements(String Tabs, String TheKindType, String Content)
 String Variables(String Tabs, String TheKindType, String Content)
 {
 /*
-	print(TheKindType);
-	print(Content);
+	print("[T] "+TheKindType);
+	print("[C] "+Content);
 	print("");
 */
 	bool Last = false;
@@ -2545,6 +2866,10 @@ String GenCode(String Tabs,String GetMe)
 	{
 		TheCode = Class(Args[0],Args[1]);
 	}
+	else if (StartsWith(Args[0], "template:"))
+	{
+		TheCode = Template(Args[0],Args[1]);
+	}
 	else if (StartsWith(Args[0], "struct:"))
 	{
 		TheCode = Struct(Args[0],Args[1]);
@@ -2568,6 +2893,10 @@ String GenCode(String Tabs,String GetMe)
 	else if (StartsWith(Args[0], "stmt:"))
 	{
 		TheCode = Statements(Tabs, Args[0], Args[1]);
+	}
+	else if (StartsWith(Args[0], "point:"))
+	{
+		TheCode = Pointers(Tabs, Args[0], Args[1]);
 	}
 /*
 	else if (StartsWith(Args[0], "condition"))
