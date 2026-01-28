@@ -2,7 +2,7 @@ import os
 import sys
 import platform
 
-Version = "0.1.9"
+Version = "0.1.10"
 
 def getOS():
 	platform.system()
@@ -237,6 +237,7 @@ def VectAndArray(Name, TheDataType, VectorOrArray, Action, TheValue):
 	return TheReturn
 
 def AlgoTags(Algo):
+	IsCallMethod = False
 	NewTags = ""
 	Action = ""
 	Args = ""
@@ -266,10 +267,41 @@ def AlgoTags(Algo):
 		ReturnKey = BeforeSplit(ReturnKey,")")
 		ReturnValue = " ()+ ()= ()"+Args
 		NewTags = "()"+ReturnKey+ReturnValue
-	elif StartsWith(Algo,"equals(") and IsIn(Algo,"):") and Args != "":
+	elif StartsWith(Algo,"decre(") and IsIn(Algo,"):") and Args == "":
+		ReturnKey = AfterSplit(Action,"(");
+		ReturnKey = BeforeSplit(ReturnKey,")");
+		ReturnValue = " ()- (): ()1"
+		NewTags = "()"+ReturnKey+ReturnValue;
+	elif StartsWith(Algo,"decre(") and IsIn(Algo,"):") and Args != "":
 		ReturnKey = AfterSplit(Action,"(")
 		ReturnKey = BeforeSplit(ReturnKey,")")
-		NewTags = "("+ReturnKey+"):()"+Args
+		ReturnValue = " ()- (): ()"+Args
+		NewTags = "()"+ReturnKey+ReturnValue
+	elif StartsWith(Algo,"equals(") and IsIn(Algo,"):") and Args != "":
+		if StartsWith(Args,"["):
+			IsCallMethod = True
+
+		ReturnValue = Args
+
+		if StartsWith(Action,"equals(("):
+			ReturnKey = AfterSplit(Action,"(")
+			ReturnKey = AfterSplit(ReturnKey,"(")
+			DataType = BeforeSplit(ReturnKey,")")
+			ReturnKey = AfterSplit(ReturnKey,")")
+			ReturnKey = BeforeSplit(ReturnKey,")")
+			if IsCallMethod == True:
+				NewTags = "("+DataType+")"+ReturnKey+":"+ReturnValue
+			else:
+				NewTags = "("+DataType+")"+ReturnKey+":()"+ReturnValue
+		else:
+			ReturnKey = AfterSplit(Action,"(")
+			ReturnKey = BeforeSplit(ReturnKey,")")
+			if IsCallMethod == True:
+				NewTags = "()"+ReturnKey+":"+ReturnValue
+			else:
+				NewTags = "()"+ReturnKey+":()"+ReturnValue
+	elif Algo == "concat():" or Algo == "decre():" or Algo == "incre():" or Algo == "equals():":
+		NewTags = ""
 	else:
 		NewTags = Algo
 
@@ -304,16 +336,19 @@ def TranslateTag(Input):
 	elif StartsWith(Action, "[]-"):
 		Action = AfterSplit(Action,"-")
 		ContentFor = "method-"
-	elif StartsWith(Action, "{}-"):
+	elif StartsWith(Action, "{c}-"):
 		Action = AfterSplit(Action,"-")
 		ContentFor = "class-"
+	elif StartsWith(Action, "{s}-"):
+		Action = AfterSplit(Action,"-")
+		ContentFor = "struct-"
 
 	# ">" becomes "nest-"
 	while StartsWith(Action, ">"):
 		Action = AfterSplit(Action,">")
 		Nest = "nest-"+Nest
 
-	if StartsWith(Action,"concat(") or StartsWith(Action,"incre(") or StartsWith(Action,"equals("):
+	if StartsWith(Action,"concat(") or StartsWith(Action,"incre(") or StartsWith(Action,"decre(") or StartsWith(Action,"equals("):
 		Algo = AlgoTags(Action)
 		NewAlgoTag = ""
 		if IsIn(Algo," "):
@@ -321,15 +356,21 @@ def TranslateTag(Input):
 			end = len(all)
 			lp = 0
 			while lp != end:
-				NewAlgoTag = all[lp];
+				NewAlgoTag = all[lp]
 				if TheReturn == "":
-					TheReturn = TranslateTag(NewAlgoTag)
+					TheReturn = Parent+ContentFor+Nest+TranslateTag(NewAlgoTag)
 				else:
-					TheReturn = TheReturn +" "+TranslateTag(NewAlgoTag)
+					TheReturn = TheReturn +" "+Parent+ContentFor+Nest+TranslateTag(NewAlgoTag)
+
+				if StartsWith(Action,"equals("):
+					TheReturn = TheReturn +" "+Parent+ContentFor+Nest+TranslateTag("el")
 				lp += 1
 		else:
-			TheReturn = TranslateTag(Algo)
-	elif (StartsWith(Action, "if:")) or (StartsWith(Action, "else-if:")):
+			TheReturn = Parent+ContentFor+Nest+TranslateTag(Algo)
+			if StartsWith(Action,"equals("):
+				TheReturn = TheReturn +" "+Parent+ContentFor+Nest+TranslateTag("el")
+
+	elif StartsWith(Action, "if:") or StartsWith(Action, "else-if:"):
 		Value = AfterSplit(Action,":")
 		Action = BeforeSplit(Action,":")
 		NewTag = "logic:"+Action
@@ -591,7 +632,7 @@ def Parameters(input,CalledBy):
 			if Name == "":
 				Params = Type+", "+more
 			else:
-				Params = Type+" "+Name+", "+more
+				Params = Name+", "+more
 		#param-type
 		elif StartsWith(Params,"(") and IsIn(Params,")"):
 			Name = AfterSplit(Params,")")
@@ -619,66 +660,139 @@ def Struct(TheName, Content):
 #class:
 def Class(TheName, Content):
 	Complete = ""
+	ProtectedVars = ""
 	PrivateVars = ""
 	PublicVars = ""
 	VarContent = ""
-
-#	String PublicOrPrivate = "";
-#	if (StartsWith(TheName,"class("))
-#	if (IsIn(TheName,")"))
-#	{
-#		PublicOrPrivate = AfterSplit(TheName,"(");
-#		PublicOrPrivate = BeforeSplit(PublicOrPrivate,")");
-#	}
-
-	TheName = AfterSplit(TheName,":")
+	Constructor = ""
+	ConstContent = ""
+	Destructor = ""
+	ParentClass = ""
 	Process = ""
 	Params = ""
 	ClassContent = ""
-	while Content != "":
-		if StartsWith(Content, "params") and Params == "":
-			Process = BeforeSplit(Content," ")
-			Params = ", "+Parameters(Process,"class")
 
-		elif StartsWith(Content, "method"):
-			ClassContent = ClassContent + GenCode("\t",Content)
+	TheName = AfterSplit(TheName,":")
 
-		elif StartsWith(Content, "var"):
-			if StartsWith(Content, "var(public)"):
-				Content = AfterSplit(Content,")")
-				VarContent = BeforeSplit(Content," ")
-				VarContent = "var"+VarContent
-				PublicVars = PublicVars + GenCode("\t",VarContent)
-			elif StartsWith(Content, "var(private)"):
-				Content = AfterSplit(Content,")")
-				VarContent = BeforeSplit(Content," ")
-				VarContent = "var"+VarContent
-				PrivateVars = PrivateVars  + GenCode("\t",VarContent)
+	if IsIn(TheName,"-"):
+		ParentClass = AfterSplit(TheName,"-")
+		TheName = BeforeSplit(TheName,"-")
 
+	if StartsWith(Content, "params:") and Params == "":
 		if IsIn(Content," "):
+			Process = BeforeSplit(Content," ")
 			Content = AfterSplit(Content," ")
 		else:
-			break
+			Process = Content
+			Content = ""
+#		Params = Parameters(Process,"class")
+		Params = Process
+	#handle constructor content
+	if StartsWith(Content,"method-"):
+		while not StartsWith(Content,"class-") and Content != "":
+			Item = ""
+			if IsIn(Content," "):
+				Item = BeforeSplit(Content," ")
+				Content = AfterSplit(Content," ")
+			else:
+				Item = Content
+				Content = ""
+			ConstContent = ConstContent+" "+Item
 
-#	if PrivateVars != "":
-#		PrivateVars = "private:\n\t//private variables\n"+PrivateVars+"\n"
-#
-#	if PublicVars != "":
-#		PublicVars = "\n\t//public variables\n"+PublicVars
+	#class constructor
+	if Params != "":
+		Constructor = GenCode("\t","method:({})"+TheName+" "+Params+ConstContent)
+	else:
+		Constructor = GenCode("\t","method:({})"+TheName+" params:self "+ConstContent)
 
-	Complete = "class "+TheName+":\n"+PrivateVars+PublicVars+"\n\t#class constructor\n\tdef __init__(self"+Params+")\n\t\tself.x = x\n\t\tself.y = y\n\n"+ClassContent+"\n"
+	if IsIn(Content," class-"):
+		cmds = split(Content," class-")
+		end = len(cmds)
+		lp = 0
+		while lp != end:
+			Content = cmds[lp]
+			Content = ReplaceTag(Content, "class-",False)
+
+			if StartsWith(Content,"method:()"+TheName+" "):
+				Content = AfterSplit(Content," ")
+				Content = "method:({})"+TheName+" "+Content
+			elif Content == "method:()"+TheName:
+				Content = "method:({})"+TheName
+
+			if StartsWith(Content, "method:"):
+				if IsIn(Content," "):
+					FixParams = AfterSplit(Content," ")
+					Content = BeforeSplit(Content," ")
+					if StartsWith(FixParams,"params:"):
+						FixParams = "params:(self)self,"+AfterSplit(FixParams,":")
+					else:
+						FixParams = "params:(self)self "+FixParams
+					Content = Content+" "+FixParams
+				ClassContent = ClassContent + GenCode("\t",Content)
+			elif StartsWith(Content, "var"):
+				if StartsWith(Content, "var(public)"):
+					VarContent = AfterSplit(Content,":")
+					VarContent = "stmt:tab var:"+VarContent+" stmt:endline"
+#					PublicVars = PublicVars + GenCode("\t",VarContent)
+				elif StartsWith(Content, "var(private)"):
+					VarContent = AfterSplit(Content,":")
+					VarContent = "stmt:tab var:"+VarContent+" stmt:endline"
+#					PrivateVars = PrivateVars + GenCode("\t",VarContent)
+				elif StartsWith(Content, "var(protected)"):
+					VarContent = AfterSplit(Content,":")
+					VarContent = "stmt:tab var:"+VarContent+" stmt:endline"
+#					ProtectedVars = ProtectedVars + GenCode("\t",VarContent)
+				else:
+					ClassContent = ClassContent + GenCode("\t",Content)
+			else:
+				ClassContent = ClassContent + GenCode("\t",Content)
+
+			lp += 1
+	elif IsIn(Content," method:"):
+		cmds = split(Content," method:")
+		end = len(cmds)
+		lp = 0
+		while lp != end:
+			if StartsWith(cmds[lp], "method:"):
+				ClassContent = ClassContent + GenCode("\t",cmds[lp])
+			else:
+				ClassContent = ClassContent + GenCode("\t","method:"+cmds[lp])
+			lp += 1
+	else:
+		Content = ReplaceTag(Content, "class-",False)
+		if StartsWith(Content,"method:()"+TheName):
+			Content = AfterSplit(Content,")")
+			Content = "method:({})"+Content
+		ClassContent = GenCode("\t",Content)
+
+	if ProtectedVars != "":
+		ProtectedVars = "protected:\n\t//protected variables\n"+ProtectedVars+"\n"
+
+	if PrivateVars != "":
+		PrivateVars = "private:\n\t//private variables\n"+PrivateVars+"\n"
+
+	if PublicVars != "":
+		PublicVars = "\n\t//public variables\n"+PublicVars+"\n"
+
+	#handle parent class
+	if ParentClass != "":
+		Complete = "class "+TheName+"("+ParentClass+"):\n"+ProtectedVars+PrivateVars+PublicVars+"\n\t#class constructor\n"+Constructor+"\n"+ClassContent
+	else:
+		Complete = "class "+TheName+":\n"+ProtectedVars+PrivateVars+PublicVars+"\n\t#class constructor\n"+Constructor+"\n"+ClassContent
 	return Complete
 
 #method:
 def Method(Tabs, Name, Content):
 	Last = False
 	CanSplit = True
+	AssignDefault = False
 	ReturnVar = "TheReturn"
 	DefaultValue = ""
 	Complete = ""
 	Name = AfterSplit(Name,":")
 	TheName = ""
 	Type = ""
+	OldType = ""
 	Params = ""
 	MethodContent = ""
 	OtherContent = ""
@@ -697,6 +811,8 @@ def Method(Tabs, Name, Content):
 			Type = BeforeSplit(Type,"-")
 
 		DefaultValue = DataType(Type,True)
+
+		OldType = Type
 
 		#Converting data type to correct C++ type
 		Type = DataType(Type,False)
@@ -721,6 +837,19 @@ def Method(Tabs, Name, Content):
 		elif StartsWith(Content, "method:") or StartsWith(Content, "class:"):
 			break
 		else:
+			#handle default return value
+			if StartsWith(Content,"method-var:("):
+				ProcessType = AfterSplit(Content,"(")
+				ProcessType = BeforeSplit(ProcessType,")")
+
+				if StartsWith(Content,"method-var:()"+ReturnVar+"="):
+					OldTag = BeforeSplit(Content,")")
+					OldValue = AfterSplit(Content,")")
+					Content = OldTag+Type+")"+OldValue
+					AssignDefault = True
+				elif StartsWith(Content,"method-var:("+OldType+")"+ReturnVar+"=") or StartsWith(Content,"method-var:("+Type+")"+ReturnVar+"=") or StartsWith(Content,"method-var:("+ProcessType+")"+ReturnVar+"="):
+					AssignDefault = True
+
 			#This is called when a called from the "class" method
 			# EX: class:name method:first method:second
 			if IsIn(Content," method:"):
@@ -810,11 +939,23 @@ def Method(Tabs, Name, Content):
 	#build method based on content
 	if Type == "" or Type == "void":
 		Complete = Tabs+"def "+TheName+"("+Params+"):\n"+MethodContent+"\n"
+	#class constructor
+	elif Type == "{}":
+		if EndsWith(MethodContent,"\n"):
+			Complete = Tabs+"def __init__("+Params+"):\n"+MethodContent
+		else:
+			Complete = Tabs+"def __init__("+Params+"):\n"+MethodContent
 	else:
 		if DefaultValue == "":
-			Complete = Tabs+"def "+TheName+"("+Params+"):\n"+Tabs+"\t"+ReturnVar+" = "+DefaultValue+"\n"+MethodContent+"\n"+Tabs+"\treturn "+ReturnVar+"\n"
+			if AssignDefault == True:
+				Complete = Tabs+"def "+TheName+"("+Params+"):\n"+MethodContent+"\n"+Tabs+"\treturn "+ReturnVar+"\n"
+			else:
+				Complete = Tabs+"def "+TheName+"("+Params+"):\n"+Tabs+"\t"+ReturnVar+" = "+DefaultValue+"\n"+MethodContent+"\n"+Tabs+"\treturn "+ReturnVar+"\n"
 		else:
-			Complete = Tabs+"def "+TheName+"("+Params+"):\n"+Tabs+"\t"+ReturnVar+" = "+DefaultValue+"\n"+MethodContent+"\n"+Tabs+"\treturn "+ReturnVar+"\n"
+			if AssignDefault == True:
+				Complete = Tabs+"def "+TheName+"("+Params+"):\n"+MethodContent+"\n"+Tabs+"\treturn "+ReturnVar+"\n"
+			else:
+				Complete = Tabs+"def "+TheName+"("+Params+"):\n"+Tabs+"\t"+ReturnVar+" = "+DefaultValue+"\n"+MethodContent+"\n"+Tabs+"\treturn "+ReturnVar+"\n"
 	return Complete
 
 #loop:
