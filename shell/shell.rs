@@ -3,7 +3,7 @@ use std::process::Command;
 
 fn the_version() -> String
 {
-	return "0.1.10".to_string();
+	return "0.1.14".to_string();
 }
 
 fn get_os() -> String
@@ -265,12 +265,12 @@ fn after_split(the_string: &str, split_at: &str) -> String
 	}
 	return new_string;
 }
-/*
+
 fn join(the_str: &Vec<&str>, to_join: &str) -> String
 {
 	return the_str.join(to_join);
 }
-*/
+
 fn replace_all(message: &str, s_by: &str, j_by: &str) -> String
 {
 	let mut new_message = String::from("");
@@ -473,6 +473,75 @@ fn gen_vect_and_array(name: &str, the_data_type: &str, new_vector_or_array: &str
 	return the_return.to_string();
 }
 
+fn algo_tags(algo: &str) -> String
+{
+	let mut new_tags = String::from("");
+	let mut action = String::new();
+	let mut args = "".to_string();
+
+	if is_in(&algo,":")
+	{
+		action = before_split(algo,":");
+		args = after_split(algo,":");
+	}
+
+	if starts_with(&algo,"concat(") && is_in(&algo,"):") && args != ""
+	{
+		let mut return_key = String::from(&after_split(&action,"("));
+		return_key = before_split(&return_key.to_string(),")");
+
+		if is_in(&args,",")
+		{
+			let mut return_value = String::from("()");
+			return_value.push_str(&return_key.to_string());
+			let all_args: Vec<&str> = algo.split(",").collect();
+
+			return_value = String::from(&join(&all_args,""));
+			new_tags.push_str("()");
+			new_tags.push_str(&return_key.to_string());
+			new_tags.push_str(":");
+			new_tags.push_str(&return_value.to_string());
+		}
+	}
+	else if starts_with(&algo,"incre(") && is_in(&algo,"):") && args == ""
+	{
+		let mut return_key = after_split(&action,"(");
+		return_key = before_split(&return_key,")");
+
+		let mut return_value = String::from(&before_split(&return_key,")"));
+		return_value.push_str(" ()+ ()+");
+		new_tags.push_str("()");
+		new_tags.push_str(&return_key.to_string());
+		new_tags.push_str(&return_value.to_string());
+	}
+	else if starts_with(&algo,"incre(") && is_in(&algo,"):") && args != ""
+	{
+		let mut return_value = String::new();
+		let mut return_key = after_split(&action,"(");
+		return_key = before_split(&return_key.to_string(),")");
+		return_value.push_str(" ()+ ()= ()");
+		return_value.push_str(&args);
+		new_tags.push_str("()");
+		new_tags.push_str(&return_key);
+		new_tags.push_str(&return_value.to_string());
+	}
+	else if starts_with(&algo,"equals(") && is_in(&algo,"):") && args != ""
+	{
+		let mut return_key = after_split(&action,"(");
+		return_key = before_split(&return_key,")");
+		new_tags.push_str("(");
+		new_tags.push_str(&return_key);
+		new_tags.push_str("):()");
+		new_tags.push_str(&args);
+	}
+	else
+	{
+		new_tags.push_str(algo);
+	}
+
+	return new_tags.to_string();
+}
+
 fn translate_tag(input: &str) -> String
 {
 	let mut the_return = String::new();
@@ -520,7 +589,37 @@ fn translate_tag(input: &str) -> String
 		action = after_split(&action,">");
 		the_nest.push_str("nest-");
 	}
-	if starts_with(&action, "if:") || starts_with(&action, "else-if:")
+
+	if starts_with(&action,"concat(") || starts_with(&action,"incre(") || starts_with(&action,"equals(")
+	{
+		let algo = algo_tags(&action);
+		if is_in(&algo," ")
+		{
+			let all_tabs: Vec<&str> = algo.split(" ").collect();
+			let mut lp = 0;
+			let end = len_a(&all_tabs);
+			while lp != end
+			{
+				let new_algo_tag = all_tabs[lp];
+				if the_return.to_string() == ""
+				{
+					the_return.push_str(&translate_tag(&new_algo_tag));
+				}
+				else
+				{
+					the_return.push_str(" ");
+					the_return.push_str(&translate_tag(&new_algo_tag));
+				}
+				lp += 1;
+                        }
+		}
+		else
+		{
+			the_return.push_str(&translate_tag(&algo));
+		}
+
+	}
+	else if starts_with(&action, "if:") || starts_with(&action, "else-if:")
 	{
 		let tmp_value = after_split(&action,":");
 		action = before_split(&action,":");
@@ -948,6 +1047,29 @@ fn handle_tabs(_called_by: &str, tabs: &str, content: &str) -> String
         return new_tabs.to_string();
 }
 
+fn borrow_value(the_data_type: &str, called_by: &str) -> String
+{
+	let share: String;
+	if called_by == "method-params"
+	{
+		let value: String = data_type(the_data_type, false);
+		if value == "String"
+		{
+			share = "&str".to_string();
+		}
+		else
+		{
+			share = the_data_type.to_owned();
+		}
+	}
+	else
+	{
+		share = the_data_type.to_owned();
+	}
+
+	return share;
+}
+
 fn data_type(the_type: &str, get_null: bool) -> String
 {
 	if get_null == false
@@ -974,7 +1096,7 @@ fn data_type(the_type: &str, get_null: bool) -> String
 	{
 		if the_type == "String" || the_type == "string" || the_type == "std::string"
 		{
-			return "\"\"".to_string();
+			return "\"\".to_string()".to_string();
 		}
 		else if the_type == "boolean" || the_type == "bool"
 		{
@@ -1161,7 +1283,8 @@ fn gen_parameters(input: &str, called_by: &str) -> String
 			//param: type, param: type, param: type
 			new_params.push_str(&name);
 			new_params.push_str(": ");
-			new_params.push_str(&the_type);
+//			new_params.push_str(&the_type);
+			new_params.push_str(&borrow_value(&the_type, &[called_by,"-params"].concat()));
 			new_params.push_str(", ");
 			new_params.push_str(&more);
 		}
@@ -1176,7 +1299,8 @@ fn gen_parameters(input: &str, called_by: &str) -> String
 			//param: type
 			new_params.push_str(&name);
 			new_params.push_str(": ");
-			new_params.push_str(&the_type);
+//			new_params.push_str(&the_type);
+			new_params.push_str(&borrow_value(&the_type, &[called_by,"-params"].concat()));
 		}
 		else
 		{
@@ -2744,7 +2868,7 @@ fn gen_variables(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Stri
 	}
 
 	//Assign Value
-	if is_in(&new_kind,"=")
+	if is_in(&new_kind,"=") && new_kind != "=" 
 	{
 		make_equal = true;
 		the_name = before_split(&new_kind,"=");
@@ -2840,10 +2964,6 @@ fn gen_code(the_tabs: &str, get_me: &str) -> String
 	return the_code;
 }
 
-/*
-<<shell>> []Example:(String)tag while:true o-if:IsIn el
-// params:Type-String if:Type(-eq)"String"(-or)Type(-eq)"string" +-var:TheReturn="std::string" +-stmt:endline else-if:Type(-eq)"boolean" +-var:Type="bool" +-stmt:endline else +-var:TheReturn=Type +-stmt:endline
-*/
 fn example(tag: &str)
 {
 	let mut user_in = String::new();
@@ -2864,7 +2984,7 @@ fn example(tag: &str)
 			}
 		}
 	}
-	println!("Command: {}",&user_in);
+	println!("Command: {}",&tag);
 	println!("");
 	println!("\t{{OUTPUT}}");
 	println!("{}",gen_code("", &user_in));
@@ -2905,7 +3025,7 @@ fn main()
 				has_run_banner = true;
 			}
 
-			user_in = raw_input(">>> ");
+			user_in = raw_input("<<shell>> ");
 
 			if user_in == "exit"
 			{

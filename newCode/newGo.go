@@ -8,7 +8,7 @@ import (
 
 func help() {
 	var ProgName string = "newGo"
-	var Version string = "0.1.38"
+	var Version string = "0.1.39"
 
 	fmt.Println("Author: Joespider")
 	fmt.Println("Program: \""+ProgName+"\"")
@@ -38,6 +38,7 @@ func help() {
 	fmt.Println("\t--user-input : enable \"raw_input\" method")
 	fmt.Println("\t--thread : enable threading (Main file ONLY)")
 	fmt.Println("\t--sleep : enable \"sleep\" method")
+	fmt.Println("\t--hash : enable hash/dictonary examples")
 	fmt.Println("\t--get-length : enable \"length\" examples (Main file ONLY)")
 	fmt.Println("\t--casting : enable data type conversion methods")
 	fmt.Println("\t--sub-string : enable sub-string methods")
@@ -62,7 +63,7 @@ func getPackage(ThePackage string) string {
 }
 
 //create import listing
-func getImports(UserInput bool, check bool, write bool, read bool, random bool, cli bool, sleep bool, getPipe bool, getShell bool, getThread bool, getProp bool, getSplit bool, getJoin bool, getConv bool, getUpper bool, getLower bool, getTypes bool, getMath bool, getIsIn bool, getTime bool) string {
+func getImports(UserInput bool, check bool, write bool, read bool, random bool, cli bool, sleep bool, getPipe bool, getShell bool, getThread bool, getProp bool, getSplit bool, getJoin bool, getConv bool, getUpper bool, getLower bool, getTypes bool, getMath bool, getIsIn bool, getTime bool, getHash bool) string {
 	var Imports string = ""
 	var standard string = "\"fmt\"\n"
 	var readWrite string = ""
@@ -101,7 +102,7 @@ func getImports(UserInput bool, check bool, write bool, read bool, random bool, 
 		ForTime = "\t\"time\"\n"
 	}
 
-	if getConv == true || getTime == true {
+	if getConv == true || getTime == true || getHash == true {
 		ForConvert = "\t\"strconv\"\n"
 	}
 
@@ -242,7 +243,7 @@ func getMethods(getRawIn bool, getRand bool, getCheck bool, getWrite bool, getRe
 }
 
 //build main function
-func getMain(Args bool, getRandom bool, getPipe bool, getThread bool, getTypes bool, getMath bool, getLen bool) string {
+func getMain(Args bool, getRandom bool, getPipe bool, getThread bool, getTypes bool, getMath bool, getLen bool, getHash bool) string {
 	var Main string = ""
 	var RandStart string = ""
 	var PipeCode string = ""
@@ -250,6 +251,7 @@ func getMain(Args bool, getRandom bool, getPipe bool, getThread bool, getTypes b
 	var ShowDataTypes string = ""
 	var ShowLength string = ""
 	var ShowMath string = ""
+	var ShowHash string = ""
 
 	if getRandom == true {
 		RandStart = "\trand.Seed(time.Now().UnixNano())\n"
@@ -275,10 +277,15 @@ func getMain(Args bool, getRandom bool, getPipe bool, getThread bool, getTypes b
 		ShowMath = "/*\n\tfmt.Println(math.Abs(-12.3))\n\tfmt.Println(math.Sin(43))\n\tfmt.Println(math.Cos(57))\n\tfmt.Println(math.Log(89))\n\tfmt.Println(math.Log10(90))\n\tfmt.Println(math.Mod(14, 5))\n\tfmt.Println(math.Ceil(12.5))\n\tfmt.Println(math.Floor(23.7))\n\tfmt.Println(math.Min(23, 45))\n\tfmt.Println(math.Max(23, 45))\n\tfmt.Println(math.Pow(2, 16))\n\tfmt.Println(math.IsNaN(35))\n*/\n"
 	}
 
+	if getHash == true {
+		ShowHash = "\tMyHouse := make(map[string]int)\n\n\tMyHouse[\"Living Room\"] = 1\n\tMyHouse[\"Bed Room\"] = 3\n\tMyHouse[\"TV Room\"] = 2\n\tMyHouse[\"Kitchen\"] = 1\n\tMyHouse[\"Doors\"] = 3\n\tMyHouse[\"Bath Rooms\"] = 2\n\tMyHouse[\"Basement\"] = 1\n\n\tfmt.Println(\"My house has:\")\n\n\tfor key := range MyHouse {\n\t\tfmt.Println(\"\\t(\"+Str(MyHouse[key])+\") \"+key)\n\t}\n\n\tfmt.Println(\"\")\n\tfmt.Println(\"Removing \\\"Doors\\\"\")\n\t//Doors removed from dictionary\n\tdelete(MyHouse,\"Doors\")\n\tfmt.Println(\"\")\n\tfmt.Println(\"My house (now) has:\")\n\n\tfor key := range MyHouse {\n\t\tfmt.Println(\"\\t(\"+Str(MyHouse[key])+\") \"+key)\n\t}\n\n"
+	}
+
+
 	if Args == true {
-		Main = "//main\nfunc main() {\n"+RandStart+"\targs := os.Args[1:]\n\tif len(args) > 0 {\n\t\tfor arg := range args {\n\t\t\tfmt.Println(args[arg])\n\t\t}\n\t} else {\n\t\thelp()\n\t}\n"+PipeCode+UseThread+ShowDataTypes+ShowMath+ShowLength+"}"
+		Main = "//main\nfunc main() {\n"+RandStart+"\targs := os.Args[1:]\n\tif len(args) > 0 {\n\t\tfor arg := range args {\n\t\t\tfmt.Println(args[arg])\n\t\t}\n\t} else {\n\t\thelp()\n\t}\n"+PipeCode+UseThread+ShowDataTypes+ShowMath+ShowLength+ShowHash+"}"
 	} else {
-		Main = "//main\nfunc main() {\n"+RandStart+"\tfmt.Println(\"hellow world\")\n"+PipeCode+UseThread+ShowDataTypes+ShowMath+ShowLength+"}"
+		Main = "//main\nfunc main() {\n"+RandStart+"\tfmt.Println(\"hellow world\")\n"+PipeCode+UseThread+ShowDataTypes+ShowMath+ShowLength+ShowHash+"}"
 	}
 	return Main
 }
@@ -335,6 +342,7 @@ func main() {
 	var getMath bool = false
 	var getTime bool = false
 	var getLen bool = false
+	var getHash bool = false
 	var FileExists = false
 	var IsMain bool = false
 	var UserIn string = ""
@@ -432,6 +440,11 @@ func main() {
 		} else if UserIn == "--shell" {
 			getName = false
 			getShell = true
+		//Get hash
+		} else if UserIn == "--hash" {
+			getName = false
+			getHash = true
+			getConv = true
 		//Get Split
 		} else if UserIn == "--split" {
 			getName = false
@@ -486,13 +499,13 @@ func main() {
 		}
 		if FileExists == false || noSave == true {
 			ThePackage = getPackage("main")
-			Imports = getImports(getRawIn, getCheck, getWrite, getRead, getRand, getArgs, getSleep, getPipe, getShell, getThread, getProp, getSplit, getJoin, getConv, getUpper, getLower, getTypes, getMath, getIsIn, getTime)
+			Imports = getImports(getRawIn, getCheck, getWrite, getRead, getRand, getArgs, getSleep, getPipe, getShell, getThread, getProp, getSplit, getJoin, getConv, getUpper, getLower, getTypes, getMath, getIsIn, getTime, getHash)
 			Methods = getMethods(getRawIn, getRand, getCheck, getWrite, getRead, getIsIn, getSleep, getShell, getThread, getProp, getSplit, getJoin, getRev, getSubStr, getConv, getUpper, getLower, getTime)
 			if IsMain == true {
 				if getArgs == true {
 					TheHelpContent = getHelp(CName,TheAuthor)
 				}
-				Main = getMain(getArgs,getRand,getPipe,getThread,getTypes, getMath, getLen)
+				Main = getMain(getArgs,getRand,getPipe,getThread,getTypes, getMath, getLen, getHash)
 			} else {
 				Main = ""
 			}

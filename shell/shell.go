@@ -9,7 +9,7 @@ import (
 	"strings"
 	)
 
-var Version string = "0.1.6"
+var Version string = "0.1.14"
 
 func getOS() string {
 	os := runtime.GOOS
@@ -269,7 +269,7 @@ func VectAndArray(Name string, TheDataType string, VectorOrArray string, Action 
 			}
 		} else {
 			if !IsIn(Name,"[") && !IsIn(Name,"]") {
-				TheReturn = Name+" = append("+TheValue+")"
+				TheReturn = Name+" = append("+Name+","+TheValue+")"
 			}
 		}
 	} else if VectorOrArray == "array" {
@@ -305,39 +305,130 @@ func VectAndArray(Name string, TheDataType string, VectorOrArray string, Action 
 	return TheReturn
 }
 
+func AlgoTags(Algo string) string {
+	var IsCallMethod bool = false
+	var NewTags string = ""
+	var Action string = ""
+	var Args string = ""
+	var DataType string = ""
+	var ReturnKey string = ""
+	var ReturnValue string = ""
+
+
+	if IsIn(Algo,":") {
+		Action = BeforeSplit(Algo,":")
+		Args = AfterSplit(Algo,":")
+	}
+
+	if StartsWith(Algo,"concat(") && IsIn(Algo,"):") && Args != "" {
+		ReturnKey = AfterSplit(Action,"(")
+		ReturnKey = BeforeSplit(ReturnKey,")")
+
+		if IsIn(Args,",") {
+			ReturnValue = "()"+ReturnKey
+			var AllArgs []string = split(Args,",")
+			ReturnValue = join(AllArgs,"")
+			NewTags = "()"+ReturnKey+"|"+ReturnValue
+		}
+	} else if StartsWith(Algo,"decre(") && IsIn(Algo,"):") && Args == "" {
+		ReturnKey = AfterSplit(Action,"(")
+		ReturnKey = BeforeSplit(ReturnKey,")")
+		ReturnValue = " ()- ()-"
+		NewTags = "()"+ReturnKey+ReturnValue
+	} else if StartsWith(Algo,"decre(") && IsIn(Algo,"):") && Args != "" {
+		ReturnKey = AfterSplit(Action,"(")
+		ReturnKey = BeforeSplit(ReturnKey,")")
+		ReturnValue = "(-spc) ()- (): ()"+Args
+		NewTags = "()"+ReturnKey+ReturnValue
+	} else if StartsWith(Algo,"incre(") && IsIn(Algo,"):") && Args == "" {
+		ReturnKey = AfterSplit(Action,"(")
+		ReturnKey = BeforeSplit(ReturnKey,")")
+		ReturnValue = " ()+ ()+"
+		NewTags = "()"+ReturnKey+ReturnValue
+	} else if StartsWith(Algo,"incre(") && IsIn(Algo,"):") && Args != "" {
+		ReturnKey = AfterSplit(Action,"(")
+		ReturnKey = BeforeSplit(ReturnKey,")")
+		ReturnValue = " ()+ ()= ()"+Args
+		NewTags = "()"+ReturnKey+ReturnValue
+	} else if StartsWith(Algo,"equals(") && IsIn(Algo,"):") && Args != "" {
+		if StartsWith(Args,"[") {
+			IsCallMethod = true
+		}
+
+		ReturnValue = Args
+
+		if StartsWith(Action,"equals((") {
+			ReturnKey = AfterSplit(Action,"(")
+			ReturnKey = AfterSplit(ReturnKey,"(")
+			DataType = BeforeSplit(ReturnKey,")")
+			ReturnKey = AfterSplit(ReturnKey,")")
+			ReturnKey = BeforeSplit(ReturnKey,")")
+			if IsCallMethod == true {
+				NewTags = "("+DataType+")"+ReturnKey+":"+ReturnValue
+			} else {
+				NewTags = "("+DataType+")"+ReturnKey+":()"+ReturnValue
+			}
+		} else {
+			ReturnKey = AfterSplit(Action,"(")
+			ReturnKey = BeforeSplit(ReturnKey,")")
+			if IsCallMethod == true {
+				NewTags = "()"+ReturnKey+":"+ReturnValue
+			} else {
+				NewTags = "()"+ReturnKey+":()"+ReturnValue
+			}
+		}
+	} else if Algo == "concat():" || Algo == "decre():" || Algo == "incre():" || Algo == "equals():" {
+		NewTags = ""
+	} else {
+		NewTags = Algo
+	}
+
+	return NewTags
+}
+
 func TranslateTag(Input string) string {
 	var TheReturn string = ""
 	var Action string = Input
 	var Value string = ""
-//	var VarName string = ""
 	var NewTag string = ""
 	var TheDataType string = ""
 	var Nest string = ""
-	var ContentFor string = ""
 	var Parent string = ""
+	var ContentFor string = ""
 //	var OldDataType string = ""
 
 	//content for parent loops/logic
-	if (StartsWith(Action, "<-")) {
-		Action = AfterSplit(Action,"-");
+	if StartsWith(Action, "<-") {
+		Action = AfterSplit(Action,"-")
 		Parent = "parent-";
 	//content for future parent loops/logic
-	} else if (StartsWith(Action, "<<")) {
-		Action = AfterSplit(Action,"<");
-		Parent = "parent-";
+	} else if StartsWith(Action, "<<") {
+		Action = AfterSplit(Action,"<")
+		Parent = "parent-"
 	//content for logic
 	} else if StartsWith(Action, "+-") {
 		Action = AfterSplit(Action,"-")
 		ContentFor = "logic-"
+	//content for loops
 	} else if StartsWith(Action, "o-") {
 		Action = AfterSplit(Action,"-")
 		ContentFor = "loop-"
+	//content for methods
 	} else if StartsWith(Action, "[]-") {
 		Action = AfterSplit(Action,"-")
 		ContentFor = "method-"
-	} else if StartsWith(Action, "{}-") {
+	//content for classes
+	} else if StartsWith(Action, "{c}-") {
 		Action = AfterSplit(Action,"-")
 		ContentFor = "class-"
+	//constructor for classes
+	} else if StartsWith(Action, "{const}-") {
+		Action = AfterSplit(Action,"-")
+//		ContentFor = "point:"
+	//content for classes
+	} else if StartsWith(Action, "{s}-") {
+		Action = AfterSplit(Action,"-")
+		ContentFor = "struct-"
 	}
 
 	// ">" becomes "nest-"
@@ -346,26 +437,65 @@ func TranslateTag(Input string) string {
 		Nest = "nest-"+Nest
 	}
 
-	if StartsWith(Action, "if:") || StartsWith(Action, "else-if:") {
+	if StartsWith(Action,"concat(") || StartsWith(Action,"incre(") || StartsWith(Action,"decre(") || StartsWith(Action,"equals(") {
+		var Algo string = AlgoTags(Action)
+		var NewAlgoTag string = ""
+		if IsIn(Algo," ") {
+			var all []string = split(Algo," ")
+			var lp int = 0
+			var end int = len(all)
+			for lp != end {
+				NewAlgoTag = all[lp]
+				if TheReturn == "" {
+					TheReturn = Parent+ContentFor+Nest+TranslateTag(NewAlgoTag)
+				} else {
+					TheReturn = TheReturn +" "+Parent+ContentFor+Nest+TranslateTag(NewAlgoTag)
+				}
+
+				if StartsWith(Action,"equals(") {
+					TheReturn = TheReturn +" "+Parent+ContentFor+Nest+TranslateTag("el")
+				}
+				lp++
+			}
+		} else {
+			TheReturn = Parent+ContentFor+Nest+TranslateTag(Algo)
+			if StartsWith(Action,"equals(") {
+				TheReturn = TheReturn +" "+Parent+ContentFor+Nest+TranslateTag("el")
+			}
+		}
+
+	//convert if, and else-if, to the old tags
+	} else if StartsWith(Action, "if:") || StartsWith(Action, "else-if:") {
 		Value = AfterSplit(Action,":")
 		Action = BeforeSplit(Action,":")
 		NewTag = "logic:"+Action
 		Value = "logic-condition:"+Value
 		TheReturn = Parent+ContentFor+Nest+NewTag+" "+Value
+	//convert else to the old tags
 	} else if Action == "else" {
 		NewTag = "logic:"+Action
-		TheReturn = ContentFor+Nest+NewTag
+		TheReturn = Parent+ContentFor+Nest+NewTag
+	//convert while, for, and do-while, to the old tags
 	} else if StartsWith(Action, "while:") || StartsWith(Action, "for:") || StartsWith(Action, "do-while:") {
 		Value = AfterSplit(Action,":")
 		Action = BeforeSplit(Action,":")
 		NewTag = "loop:"+Action
 		Value = "loop-condition:"+Value
 		TheReturn = Parent+ContentFor+Nest+NewTag+" "+Value
-	//class
+	//class or struct
 	} else if StartsWith(Action, "{") && IsIn(Action,"}") {
+		var Parent string = ""
 		TheDataType = BeforeSplit(Action,"}")
 		TheDataType = AfterSplit(TheDataType,"{")
 		Action = AfterSplit(Action,"}")
+
+		if IsIn(TheDataType,"-") {
+			Parent = AfterSplit(TheDataType,"-")
+			TheDataType = BeforeSplit(TheDataType,"-")
+			if TheDataType != "template" {
+				Action = Action+"-"+Parent
+			}
+		}
 
 		if IsIn(Action,":") {
 			Value = AfterSplit(Action,":")
@@ -373,9 +503,9 @@ func TranslateTag(Input string) string {
 		}
 
 		if Value != "" {
-			TheReturn = "class:"+Action+" params:"+Value
+			TheReturn = TheDataType+":"+Action+" params:"+Value
 		} else {
-			TheReturn = "class:"+Action
+			TheReturn = TheDataType+":"+Action
 		}
 	//method
 	} else if StartsWith(Action, "[") && IsIn(Action,"]") {
@@ -408,12 +538,13 @@ func TranslateTag(Input string) string {
 			}
 		}
 	//variables
-	} else if StartsWith(Action,"(") && IsIn(Action,")") {
+	} else if StartsWith(Action, "(") && IsIn(Action,")") {
 		TheDataType = BeforeSplit(Action,")")
 		TheDataType = AfterSplit(TheDataType,"(")
 		Action = AfterSplit(Action,")")
 
-		if StartsWith(Action,"(") {
+		//replacing data type to represent the variable
+		if StartsWith(Action,":") {
 			Action = TheDataType+Action
 			TheDataType = ""
 		}
@@ -459,7 +590,7 @@ func TranslateTag(Input string) string {
 	//	<list>:4
 
 	//vectors or arrays
-	} else if StartsWith(Action, "<") && IsIn(Action,">") {
+	} else if StartsWith(Action, "<") && IsIn(Action,">") && !StartsWith(Action, "<<") && !StartsWith(Action, "<-") {
 		var VectorOrArray string = ""
 		TheDataType = BeforeSplit(Action,">")
 		TheDataType = AfterSplit(TheDataType,"<")
@@ -496,15 +627,15 @@ func TranslateTag(Input string) string {
 			}
 
 			if Value != "" {
-				TheReturn = "var:<"+VectorOrArray+TheDataType+">"+Action+":"+Value
+				TheReturn = Parent+ContentFor+"var:<"+VectorOrArray+TheDataType+">"+Action+":"+Value
 			} else {
-				TheReturn = "var:<"+VectorOrArray+TheDataType+">"+Action
+				TheReturn = Parent+ContentFor+"var:<"+VectorOrArray+TheDataType+">"+Action
 			}
 		} else {
 			if Value != "" {
-				TheReturn = "stmt:<"+VectorOrArray+TheDataType+">"+Action+":"+Value
-			} else 	{
-				TheReturn = "stmt:<"+VectorOrArray+TheDataType+">"+Action
+				TheReturn = Parent+ContentFor+"stmt:<"+VectorOrArray+TheDataType+">"+Action+":"+Value
+			} else {
+				TheReturn = Parent+ContentFor+"stmt:<"+VectorOrArray+TheDataType+">"+Action
 			}
 		}
 	} else if Action == "el" {
@@ -527,7 +658,7 @@ func TranslateTag(Input string) string {
 	return TheReturn
 }
 
- func HandleTabs(_CalledBy string, Tabs string, Content string) string {
+func HandleTabs(_CalledBy string, Tabs string, Content string) string {
 	var AutoTabs string = ""
 	if Content != "stmt:endline" && Content != "stmt:newline" {
 		if StartsWith(Content,"stmt:") || StartsWith(Content,"var:") {
@@ -671,7 +802,7 @@ func Parameters(input string, CalledBy string) string {
 			if Name == "" {
 				Params = Type+", "+more
 			} else {
-				Params = Type+" "+Name+", "+more
+				Params = Name+" "+Type+", "+more
 			}
 		//param-type
 		} else if StartsWith(Params,"(") && IsIn(Params,")") {
@@ -680,7 +811,7 @@ func Parameters(input string, CalledBy string) string {
 
 			Type = AfterSplit(Type,"(")
 			Type = DataType(Type,false)
-			Params = Type+" "+Name
+			Params = Name+" "+Type
 			if Name == "" {
 				Params = Type
 			}
@@ -691,72 +822,181 @@ func Parameters(input string, CalledBy string) string {
 }
 
 func Struct(TheName string, Content string) string {
-	var Complete string
-	var StructVar string
-	var Process string
+	var Complete string = ""
+	var StructVar string = ""
+	var Process string = ""
+	var Item string = ""
+	var AutoTabs string = ""
+
 	TheName = AfterSplit(TheName,":")
-	for StartsWith(Content, "var") {
-		Process = BeforeSplit(Content," ")
-		Content = AfterSplit(Content," ")
-		StructVar = StructVar + GenCode("\t",Process)
+	for StartsWith(Content, "struct-var") || StartsWith(Content, "struct-stmt") || StartsWith(Content, "var") || StartsWith(Content, "stmt") {
+		Content = ReplaceTag(Content, "struct-",true)
+
+		if IsIn(Content," ") {
+			Process = BeforeSplit(Content," ")
+			Content = AfterSplit(Content," ")
+		} else {
+			Process = Content
+			Content = ""
+		}
+
+		AutoTabs = HandleTabs("struct","\t",Process)
+		if AutoTabs != "" {
+			StructVar = StructVar + GenCode("\t",AutoTabs)
+			AutoTabs = ""
+		}
+
+		Item = GenCode("\t",Process)
+		if StartsWith(Item,"var ") {
+			Item = AfterSplit(Item," ")
+		}
+
+		if EndsWith(Item," class") {
+			Item = BeforeSplit(Item," ")
+		}
+
+		StructVar = StructVar + Item
 	}
-	Complete = "struct {\n"+StructVar+"\n} "+TheName+";\n"
+
+	Complete = "type "+TheName+" struct {\n"+StructVar+"\n}\n"
 	return Complete
 }
 
 func Class(TheName string, Content string) string {
-	var Complete string
-	var PrivateVars string
-	var PublicVars string
-	var VarContent string
-/*
-	String PublicOrPrivate = ""
-	if StartsWith(TheName,"class("))
-	if IsIn(TheName,")"))
-	{
-		PublicOrPrivate = AfterSplit(TheName,"(")
-		PublicOrPrivate = BeforeSplit(PublicOrPrivate,")")
-	}
-*/
-	TheName = AfterSplit(TheName,":")
-	var Process string
-	var Params string
-	var ClassContent string
-	for Content != "" {
-		if StartsWith(Content, "params") && Params == "" {
-			Process = BeforeSplit(Content," ")
-			Params =  Parameters(Process,"class")
-		} else if StartsWith(Content, "method") {
-			ClassContent = ClassContent + GenCode("\t",Content)
-		} else if StartsWith(Content, "var") {
-			if StartsWith(Content, "var(public)") {
-				Content = AfterSplit(Content,")")
-				VarContent = BeforeSplit(Content," ")
-				VarContent = "var"+VarContent
-				PublicVars = PublicVars + GenCode("\t",VarContent)
-			} else if StartsWith(Content, "var(private)") {
-				Content = AfterSplit(Content,")")
-				VarContent = BeforeSplit(Content," ")
-				VarContent = "var"+VarContent
-				PrivateVars = PrivateVars  + GenCode("\t",VarContent)
-			}
-		}
+	var Complete string = ""
+	var Struct string = ""
+	var StructVars string = ""
+	var ProtectedVars string = ""
+	var PrivateVars string = ""
+	var PublicVars string = ""
+	var VarContent string = ""
+	var Constructor string = ""
+	var ConstContent string = ""
+	var Inheritance string = ""
+	var ParentClass string = ""
+	var Process string = ""
+	var Params string = ""
+	var ClassContent string = ""
 
+	TheName = AfterSplit(TheName,":")
+
+	if IsIn(TheName,"-") {
+		ParentClass = AfterSplit(TheName,"-")
+		Inheritance = "struct-var:(class)"+ParentClass+" struct-stmt:endline"
+		TheName = BeforeSplit(TheName,"-")
+	}
+	Struct = "struct:"+TheName
+
+	if StartsWith(Content, "params:") && Params == "" {
 		if IsIn(Content," ") {
+			Process = BeforeSplit(Content," ")
 			Content = AfterSplit(Content," ")
 		} else {
-			break
+			Process = Content
+			Content = ""
+		}
+//		Params = Parameters(Process,"class")
+		Params = Process
+	}
+
+	//handle constructor content
+	if StartsWith(Content,"method-") {
+		for !StartsWith(Content,"class-") && Content != "" {
+			var Item string = ""
+			if IsIn(Content," ") {
+				Item = BeforeSplit(Content," ")
+				Content = AfterSplit(Content," ")
+			} else {
+				Item = Content
+				Content = ""
+			}
+			ConstContent = ConstContent+" "+Item;
 		}
 	}
 
-	if PrivateVars != "" {
-		PrivateVars = "private:\n\t//private variables\n"+PrivateVars+"\n"
-	}
-	if PublicVars != "" {
-		PublicVars = "\n\t//public variables\n"+PublicVars
+	//class constructor
+	if Params != "" {
+		Constructor = GenCode("","method:({})"+TheName+" "+Params+ConstContent)
+	} else {
+		Constructor = GenCode("","method:({})"+TheName+ConstContent)
 	}
 
-	Complete = "class "+TheName+" {\n\n"+PrivateVars+"public:"+PublicVars+"\n\t//class constructor\n\t"+TheName+"("+Params+")\n\t{\n\t\tthis->x = x;\n\t\tthis->y = y;\n\t}\n\n"+ClassContent+"\n\t//class desctructor\n\t~"+TheName+"()\n\t{\n\t}\n};\n"
+	if IsIn(Content," class-") {
+		var cmds []string = split(Content," class-")
+		var lp int = 0
+		var end int = len(cmds)
+		for lp != end {
+			Content = cmds[lp];
+			Content = ReplaceTag(Content, "class-",false)
+
+			if StartsWith(Content,"method:()"+TheName+" ") {
+				Content = AfterSplit(Content," ")
+				Content = "method:({})"+TheName+" "+Content
+			} else if Content == "method:()"+TheName {
+				Content = "method:({})"+TheName;
+			}
+
+			if StartsWith(Content, "method:") {
+				Content = AfterSplit(Content,":")
+				Content = "method:struct-"+TheName+"-"+Content
+				ClassContent = ClassContent + GenCode("",Content)
+			} else if StartsWith(Content, "var") {
+
+				if Inheritance != "" {
+					ProtectedVars = ProtectedVars +" "+ Inheritance
+					Inheritance = ""
+				}
+
+				if StartsWith(Content, "var(public)") {
+					VarContent = AfterSplit(Content,":")
+					VarContent = "struct-var:"+VarContent+" struct-stmt:endline"
+					PublicVars = PublicVars +" "+ VarContent
+				} else if StartsWith(Content, "var(private)") {
+					VarContent = AfterSplit(Content,":")
+					VarContent = "struct-var:"+VarContent+" struct-stmt:endline"
+					PrivateVars = PrivateVars +" "+ VarContent
+				} else if StartsWith(Content, "var(protected)") {
+					VarContent = AfterSplit(Content,":")
+					VarContent = "struct-var:"+VarContent+" struct-stmt:endline"
+					ProtectedVars = ProtectedVars +" "+ VarContent
+				} else {
+					ClassContent = ClassContent + GenCode("\t",Content)
+				}
+			} else {
+				ClassContent = ClassContent + GenCode("\t",Content)
+			}
+
+			lp++
+		}
+	} else if IsIn(Content," method:") {
+		var cmds []string = split(Content," method:")
+		var lp int = 0
+		var end int = len(cmds)
+		for lp != end {
+			if StartsWith(cmds[lp], "method:") {
+				ClassContent = ClassContent + GenCode("",cmds[lp])
+			} else {
+				ClassContent = ClassContent + GenCode("","method:"+cmds[lp])
+			}
+			lp++
+		}
+	} else {
+		Content = ReplaceTag(Content, "class-",false)
+		if StartsWith(Content,"method:()"+TheName) {
+			Content = AfterSplit(Content,")")
+			Content = "method:({})"+Content
+		}
+		ClassContent = GenCode("",Content)
+	}
+/*
+	//handle parent class
+	if ParentClass != "" {
+		Inheritance = ": public "+ParentClass
+	}
+*/
+	StructVars = ProtectedVars+PrivateVars+PublicVars
+	Struct = GenCode("","struct:"+TheName+StructVars)
+	Complete = Struct+"\n"+Constructor+"\n"+ClassContent
 	return Complete
 }
 
@@ -764,11 +1004,14 @@ func Class(TheName string, Content string) string {
 func Method(Tabs string, Name string, Content string) string {
 	var Last bool = false
         var CanSplit bool = true
+	var AssignDefault bool = false
+	var PartOfStruct bool = false
         var ReturnVar string = "TheReturn"
         var DefaultValue string = ""
         var Complete string = ""
         Name = AfterSplit(Name,":")
         var TheName string = ""
+	var OldType string = "";
         var Type string = ""
         var Params string = ""
         var MethodContent string = ""
@@ -776,6 +1019,20 @@ func Method(Tabs string, Name string, Content string) string {
         var NewContent string = ""
         var Process string = ""
 	var AutoTabs string = ""
+	var StructName string = ""
+	var Struct string = ""
+
+	//method:struct-<class>-(<type>)<name>
+	if StartsWith(Name,"struct-") {
+		Name = AfterSplit(Name,"-")
+		StructName = BeforeSplit(Name,"-")
+		Name = AfterSplit(Name,"-")
+		PartOfStruct = true
+	}
+
+	if PartOfStruct == true {
+		Struct = "("+StructName[:1]+" "+StructName+") "
+	}
 
 	//method:(<type>)<name>
 	if StartsWith(Name,"(") && IsIn(Name,")") {
@@ -788,6 +1045,8 @@ func Method(Tabs string, Name string, Content string) string {
 			Type = BeforeSplit(Type,"-")
 		}
 		DefaultValue = DataType(Type,true)
+
+		OldType = Type
 
 		//Converting data type to correct C++ type
 		Type = DataType(Type,false)
@@ -812,6 +1071,22 @@ func Method(Tabs string, Name string, Content string) string {
 		} else if StartsWith(Content, "method:") || StartsWith(Content, "class:") {
 			break
 		} else {
+
+			//handle default return value
+			if StartsWith(Content,"method-var:(") {
+				var ProcessType string = AfterSplit(Content,"(")
+				ProcessType = BeforeSplit(ProcessType,")")
+
+				if StartsWith(Content,"method-var:()"+ReturnVar+"=") {
+					var OldTag string = BeforeSplit(Content,")")
+					var OldValue string = AfterSplit(Content,")")
+					Content = OldTag+Type+")"+OldValue
+					AssignDefault = true;
+				} else if StartsWith(Content,"method-var:("+OldType+")"+ReturnVar+"=") || StartsWith(Content,"method-var:("+Type+")"+ReturnVar+"=") || StartsWith(Content,"method-var:("+ProcessType+")"+ReturnVar+"=") {
+					AssignDefault = true
+				}
+			}
+
 			//This is called when a called from the "class" method
 			// EX: class:name method:first method:second
 			if IsIn(Content," method:") {
@@ -918,12 +1193,28 @@ func Method(Tabs string, Name string, Content string) string {
 
 	//build method based on content
 	if Type == "" || Type == "void" {
-		Complete = Tabs+"func "+TheName+"("+Params+") {\n"+MethodContent+"\n"+Tabs+"}\n"
+		Complete = Tabs+"func "+Struct+TheName+"("+Params+") {\n"+MethodContent+"\n"+Tabs+"}\n"
+	//class constructor
+	} else if Type == "{}" {
+		StructName = TheName
+		if EndsWith(MethodContent,"\n") {
+			Complete = Tabs+"funct New"+"("+Params+") "+StructName+" {\n"+MethodContent+Tabs+"}\n"
+		} else {
+			Complete = Tabs+"funct New"+"("+Params+") "+StructName+" {\n"+MethodContent+"\n"+Tabs+"}\n"
+		}
 	} else {
                 if DefaultValue == "" {
-			Complete = Tabs+"func "+TheName+"("+Params+") "+Type+" {\n"+Tabs+"\tvar "+ReturnVar+" "+Type+"\n"+MethodContent+"\n"+Tabs+"\treturn "+ReturnVar+"\n"+Tabs+"}\n"
+			if AssignDefault == true {
+				Complete = Tabs+"func "+Struct+TheName+"("+Params+") "+Type+" {\n"+MethodContent+"\n"+Tabs+"\treturn "+ReturnVar+"\n"+Tabs+"}\n"
+			} else {
+				Complete = Tabs+"func "+Struct+TheName+"("+Params+") "+Type+" {\n"+Tabs+"\tvar "+ReturnVar+" "+Type+"\n"+MethodContent+"\n"+Tabs+"\treturn "+ReturnVar+"\n"+Tabs+"}\n"
+			}
 		} else {
-			Complete = Tabs+"func "+TheName+"("+Params+") "+Type+" {\n"+Tabs+"\tvar "+ReturnVar+" "+Type+" = "+DefaultValue+"\n"+MethodContent+"\n"+Tabs+"\treturn "+ReturnVar+"\n"+Tabs+"}\n"
+			if AssignDefault == true {
+				Complete = Tabs+"func "+Struct+TheName+"("+Params+") "+Type+" {\n"+MethodContent+"\n"+Tabs+"\treturn "+ReturnVar+"\n"+Tabs+"}\n"
+			} else {
+				Complete = Tabs+"func "+Struct+TheName+"("+Params+") "+Type+" {\n"+Tabs+"\tvar "+ReturnVar+" "+Type+" = "+DefaultValue+"\n"+MethodContent+"\n"+Tabs+"\treturn "+ReturnVar+"\n"+Tabs+"}\n"
+			}
 		}
 	}
 
@@ -1777,8 +2068,9 @@ func Variables(Tabs string, TheKindType string, Content string) string {
 		VarType = ""
 	}
 
+//	fmt.Println(TheKindType)
 	//Assign Value
-	if IsIn(TheKindType,"=") {
+	if IsIn(TheKindType,"=") && TheKindType != "=" {
 		MakeEqual = true
 		Name = BeforeSplit(TheKindType,"=")
 		Value = AfterSplit(TheKindType,"=")
@@ -1803,7 +2095,11 @@ func Variables(Tabs string, TheKindType string, Content string) string {
 			NewVar = Name+NewVar+" = "+Value
 		}
 	} else {
-		NewVar = "var "+Name+NewVar
+		if NewVar != "" {
+			NewVar = "var "+Name+NewVar
+		} else {
+			NewVar = Name+NewVar
+		}
 	}
 	NewVar = NewVar+VariableContent
 
@@ -1872,7 +2168,7 @@ func Example(tag string) {
 			lp++
 		}
 	}
-	fmt.Println(UserIn)
+	fmt.Println("Command: "+tag)
 	UserIn = GenCode("",UserIn)
 
 	fmt.Println(UserIn)
@@ -1902,7 +2198,7 @@ func main() {
 				}
 			}
 		} else 	{
-			UserIn = raw_input(">>> ")
+			UserIn = raw_input("<<shell>> ")
 		}
 
 		if UserIn == "exit" {

@@ -12,7 +12,7 @@ import java.io.IOException;
 
 //class name
 public class shell {
-	private static String Version = "0.1.4";
+	private static String Version = "0.1.10";
 	private static String TheKind = "";
 	private static String TheName = "";
 	private static String TheKindType = "";
@@ -536,6 +536,160 @@ public class shell {
 		return TheReturn.toString();
 	}
 
+	public static String AlgoTags(String Algo)
+	{
+		boolean IsCallMethod = false;
+		StringBuilder NewTags = new StringBuilder("");
+		String Action = "";
+		String Args = "";
+		String DataType = "";
+		String ReturnKey = "";
+		String ReturnValue = "";
+
+		if (IsIn(Algo,":"))
+		{
+			Action = BeforeSplit(Algo,":");
+			Args = AfterSplit(Algo,":");
+		}
+
+		if ((StartsWith(Algo,"concat(")) && (IsIn(Algo,"):")) && (!Args.equals("")))
+		{
+			ReturnKey = AfterSplit(Action,"(");
+			ReturnKey = BeforeSplit(ReturnKey,")");
+
+			if (IsIn(Args,","))
+			{
+				ReturnValue = "()"+ReturnKey;
+				String[] AllArgs = split(Args,",");
+				StringBuilder NewArgs = new StringBuilder();
+				int lp = 0;
+				int end = len(AllArgs);
+				while (lp != end)
+				{
+					if (lp == 0)
+					{
+						NewArgs.append(AllArgs[lp]);
+					}
+					else
+					{
+						NewArgs.append(" ()");
+						NewArgs.append(AllArgs[lp]);
+					}
+					lp++;
+				}
+				ReturnValue = NewArgs.toString();
+				NewTags.append("()");
+				NewTags.append(ReturnKey);
+				NewTags.append(":()");
+				NewTags.append(ReturnValue);
+			}
+		}
+		else if ((StartsWith(Algo,"incre(")) && (IsIn(Algo,"):")) && (Args.equals("")))
+		{
+			ReturnKey = AfterSplit(Action,"(");
+			ReturnKey = BeforeSplit(ReturnKey,")");
+			ReturnValue = " ()+ ()+";
+			NewTags.append("()");
+			NewTags.append(ReturnKey);
+			NewTags.append(ReturnValue);
+		}
+		else if ((StartsWith(Algo,"incre(")) && (IsIn(Algo,"):")) && (!Args.equals("")))
+		{
+
+			ReturnKey = AfterSplit(Action,"(");
+			ReturnKey = BeforeSplit(ReturnKey,")");
+			ReturnValue = " ()+ ()= ()"+Args;
+			NewTags.append("()");
+			NewTags.append(ReturnKey);
+			NewTags.append(ReturnValue);
+		}
+		else if ((StartsWith(Algo,"decre(")) && (IsIn(Algo,"):")) && (Args.equals("")))
+		{
+			ReturnKey = AfterSplit(Action,"(");
+			ReturnKey = BeforeSplit(ReturnKey,")");
+			ReturnValue = " ()- ()-";
+			NewTags.append("()");
+			NewTags.append(ReturnKey);
+			NewTags.append(ReturnValue);
+		}
+		else if ((StartsWith(Algo,"decre(")) && (IsIn(Algo,"):")) && (!Args.equals("")))
+		{
+
+			ReturnKey = AfterSplit(Action,"(");
+			ReturnKey = BeforeSplit(ReturnKey,")");
+			ReturnValue = " ()- ()= ()"+Args;
+			NewTags.append("()");
+			NewTags.append(ReturnKey);
+			NewTags.append(ReturnValue);
+		}
+		else if ((StartsWith(Algo,"equals(")) && (IsIn(Algo,"):")) && (!Args.equals("")))
+		{
+			if (StartsWith(Args,"["))
+			{
+				IsCallMethod = true;
+			}
+
+			ReturnValue = Args;
+
+			if (StartsWith(Action,"equals(("))
+			{
+				ReturnKey = AfterSplit(Action,"(");
+				ReturnKey = AfterSplit(ReturnKey,"(");
+				DataType = BeforeSplit(ReturnKey,")");
+				ReturnKey = AfterSplit(ReturnKey,")");
+				ReturnKey = BeforeSplit(ReturnKey,")");
+				if (IsCallMethod == true)
+				{
+					NewTags.append("(");
+					NewTags.append(DataType);
+					NewTags.append(")");
+					NewTags.append(ReturnKey);
+					NewTags.append(":");
+					NewTags.append(ReturnValue);
+				}
+				else
+				{
+					NewTags.append("(");
+					NewTags.append(DataType);
+					NewTags.append(")");
+					NewTags.append(ReturnKey);
+					NewTags.append(":()");
+					NewTags.append(ReturnValue);
+				}
+			}
+			else
+			{
+				ReturnKey = AfterSplit(Action,"(");
+				ReturnKey = BeforeSplit(ReturnKey,")");
+				if (IsCallMethod == true)
+				{
+					NewTags.append("()");
+					NewTags.append(ReturnKey);
+					NewTags.append(":");
+					NewTags.append(ReturnValue);
+				}
+				else
+				{
+					NewTags.append("()");
+					NewTags.append(ReturnKey);
+					NewTags.append(":()");
+					NewTags.append(ReturnValue);
+				}
+			}
+		}
+		else if ((Algo.equals("concat():")) || (Algo.equals("decre():")) || (Algo.equals("incre():")) || (Algo.equals("equals():")))
+		{
+			NewTags.append("");
+		}
+		else
+		{
+			NewTags.append(Algo);
+		}
+
+		return NewTags.toString();
+	}
+
+
 	public static String TranslateTag(String Input)
 	{
 		StringBuilder TheReturn = new StringBuilder("");
@@ -548,7 +702,6 @@ public class shell {
 		String Parent = "";
 		String ContentFor = "";
 		String OldDataType = "";
-
 
 		//content for parent loops/logic
 		if (StartsWith(Action, "<-"))
@@ -578,10 +731,15 @@ public class shell {
 			Action = AfterSplit(Action,"-");
 			ContentFor = "method-";
 		}
-		else if (StartsWith(Action, "{}-"))
+		else if (StartsWith(Action, "{c}-"))
 		{
 			Action = AfterSplit(Action,"-");
 			ContentFor = "class-";
+		}
+		else if (StartsWith(Action, "{s}-"))
+		{
+			Action = AfterSplit(Action,"-");
+			ContentFor = "struct-";
 		}
 
 		// ">" becomes "nest-"
@@ -591,7 +749,63 @@ public class shell {
 			Nest.append("nest-");
 		}
 
-		if ((StartsWith(Action, "if:")) || (StartsWith(Action, "else-if:")))
+		if (StartsWith(Action,"concat(") || StartsWith(Action,"incre(") || StartsWith(Action,"decre(") || StartsWith(Action,"equals("))
+		{
+			String Algo = AlgoTags(Action);
+			String NewAlgoTag = "";
+			if (IsIn(Algo," "))
+			{
+				String[] all = split(Algo," ");
+				int end = len(all);
+				int lp = 0;
+				while (lp != end)
+				{
+					NewAlgoTag = all[lp];
+					if (TheReturn.toString().equals(""))
+					{
+						TheReturn.append(Parent);
+						TheReturn.append(ContentFor);
+						TheReturn.append(Nest);
+						TheReturn.append(TranslateTag(NewAlgoTag));
+					}
+					else
+					{
+						TheReturn.append(" ");
+						TheReturn.append(Parent);
+						TheReturn.append(ContentFor);
+						TheReturn.append(Nest);
+						TheReturn.append(TranslateTag(NewAlgoTag));
+					}
+
+					if (StartsWith(Action,"equals("))
+					{
+						TheReturn.append(" ");
+						TheReturn.append(Parent);
+						TheReturn.append(ContentFor);
+						TheReturn.append(Nest);
+						TheReturn.append(TranslateTag("el"));
+					}
+					lp++;
+				}
+			}
+			else
+			{
+				TheReturn.append(Parent);
+				TheReturn.append(ContentFor);
+				TheReturn.append(Nest);
+				TheReturn.append(TranslateTag(Algo));
+				if (StartsWith(Action,"equals("))
+				{
+					TheReturn.append(" ");
+					TheReturn.append(Parent);
+					TheReturn.append(ContentFor);
+					TheReturn.append(Nest);
+					TheReturn.append(TranslateTag("el"));
+				}
+			}
+
+		}
+		else if ((StartsWith(Action, "if:")) || (StartsWith(Action, "else-if:")))
 		{
 			Value = AfterSplit(Action,":");
 			Action = BeforeSplit(Action,":");
@@ -627,15 +841,26 @@ public class shell {
 			TheReturn.append(" ");
 			TheReturn.append(Value);
 		}
-		//class
+		//class or struct
 		else if ((StartsWith(Action, "{")) && (IsIn(Action,"}")))
 		{
 			TheDataType = BeforeSplit(Action,"}");
 			TheDataType = AfterSplit(TheDataType,"{");
 			Action = AfterSplit(Action,"}");
+
+			if (IsIn(TheDataType,"-"))
+			{
+				Parent = AfterSplit(TheDataType,"-");
+				TheDataType = BeforeSplit(TheDataType,"-");
+				if (!TheDataType.equals("template"))
+				{
+					Action = Action+"-"+Parent;
+				}
+			}
+
 			if (IsIn(Action,":"))
 			{
-				Value = AfterSplit(Action,":");
+				Value = AfterSplit(Action,"");
 				Action = BeforeSplit(Action,":");
 			}
 
@@ -933,7 +1158,7 @@ public class shell {
 				int lp = 0;
 				int end = Tabs.length();
 
-				if (end == 1)
+				if ((CalledBy.equals("method")) && (end == 1))
 				{
 					end = 2;
 				}
@@ -1125,73 +1350,193 @@ public class shell {
 	private static String Class(String TheName, String Content)
 	{
 		StringBuilder Complete = new StringBuilder("");
-		String VarCount = "";
-		String VarContent = "";
-		String Process = "";
-		String PublicOrPrivate = "public";
-		if ((IsIn(TheName,"class(")) && (IsIn(TheName,"):")))
-		{
-			PublicOrPrivate = AfterSplit(TheName,"class");
-			PublicOrPrivate = BeforeSplit(PublicOrPrivate,":");
-			PublicOrPrivate = PublicOrPrivate.substring(1, PublicOrPrivate.length()-1);
-		}
-
-		TheName = AfterSplit(TheName,":");
-		String Params = "";
+		StringBuilder FinalVars = new StringBuilder("");
 		StringBuilder PrivateVars = new StringBuilder("");
 		StringBuilder PublicVars = new StringBuilder("");
+		String VarContent = "";
+		String Constructor = "";
+		StringBuilder ConstContent = new StringBuilder("");
+		String ParentClass = "";
+		String Process = "";
+		String Params = "";
 		StringBuilder ClassContent = new StringBuilder("");
-		while (!Content.equals(""))
+
+		TheName = AfterSplit(TheName,":");
+
+		if (IsIn(TheName,"-"))
 		{
-			if ((StartsWith(Content, "params")) && (Params.equals("")))
-			{
-				Process = BeforeSplit(Content," ");
-				Params =  Parameters(Process,"class");
-			}
-			else if (StartsWith(Content, "method"))
-			{
-				ClassContent.append(GenCode("",Content));
-			}
-			else if (StartsWith(Content, "var"))
-			{
-				if (StartsWith(Content, "var(public)"))
-				{
-					Content = AfterSplit(Content,")");
-					VarContent = BeforeSplit(Content," ");
-					VarContent = "var"+VarContent;
-					PublicVars.append(GenCode("\t",VarContent));
-				}
-				else if (StartsWith(Content, "var(private)"))
-				{
-					Content = AfterSplit(Content,")");
-					VarContent = BeforeSplit(Content," ");
-					VarContent = "var"+VarContent;
-					PrivateVars.append(GenCode("\t",VarContent));
-				}
-			}
+			ParentClass = AfterSplit(TheName,"-");
+			TheName = BeforeSplit(TheName,"-");
+		}
+
+		if ((StartsWith(Content, "params:")) && (Params == ""))
+		{
 			if (IsIn(Content," "))
 			{
+				Process = BeforeSplit(Content," ");
 				Content = AfterSplit(Content," ");
 			}
 			else
 			{
-				break;
+				Process = Content;
+				Content = "";
+			}
+//			Params = Parameters(Process,"class");
+			Params = Process;
+		}
+		//handle constructor content
+		if (StartsWith(Content,"method-"))
+		{
+			while ((!StartsWith(Content,"class-")) && (Content != ""))
+			{
+				String Item = "";
+				if (IsIn(Content," "))
+				{
+					Item = BeforeSplit(Content," ");
+					Content = AfterSplit(Content," ");
+				}
+				else
+				{
+					Item = Content;
+					Content = "";
+				}
+				ConstContent.append(" ");
+				ConstContent.append(Item);
 			}
 		}
 
-		Complete.append(PublicOrPrivate);
-		Complete.append(" class ");
+		//class constructor
+		if (!Params.equals(""))
+		{
+			Constructor = GenCode("\t","method:({})"+TheName+" "+Params+ConstContent);
+		}
+		else
+		{
+			Constructor = GenCode("\t","method:({})"+TheName+ConstContent);
+		}
+
+		if (IsIn(Content," class-"))
+		{
+			String[] cmds = split(Content," class-");
+			int end = len(cmds);
+			int lp = 0;
+			while (lp != end)
+			{
+				Content = cmds[lp];
+				Content = ReplaceTag(Content, "class-",false);
+
+				if (StartsWith(Content,"method:()"+TheName+" "))
+				{
+					Content = AfterSplit(Content," ");
+					Content = "method:({})"+TheName+" "+Content;
+				}
+				else if (Content == "method:()"+TheName)
+				{
+					Content = "method:({})"+TheName;
+				}
+
+				if (StartsWith(Content, "method:"))
+				{
+					ClassContent.append(GenCode("\t",Content));
+				}
+				else if (StartsWith(Content, "var"))
+				{
+					if (StartsWith(Content, "var(public)"))
+					{
+						VarContent = AfterSplit(Content,":");
+						VarContent = "stmt:tab var:"+VarContent+" stmt:endline";
+						PublicVars.append(GenCode("\t",VarContent));
+					}
+					else if (StartsWith(Content, "var(private)"))
+					{
+						VarContent = AfterSplit(Content,":");
+						FinalVars.append(GenCode("\t","stmt:tab"));
+						FinalVars.append("final ");
+						FinalVars.append(GenCode("\t","var:"+VarContent));
+						FinalVars.append(GenCode("\t","stmt:endline"));
+					}
+					else if (StartsWith(Content, "var(protected)"))
+					{
+						VarContent = AfterSplit(Content,":");
+						PrivateVars.append(GenCode("\t","stmt:tab"));
+						PrivateVars.append("private ");
+						PrivateVars.append(GenCode("\t","var:"+VarContent));
+						PrivateVars.append(GenCode("\t","stmt:endline"));
+					}
+					else
+					{
+						ClassContent.append(GenCode("\t",Content));
+					}
+				}
+				else
+				{
+					ClassContent.append(GenCode("\t",Content));
+				}
+
+				lp++;
+			}
+		}
+		else if (IsIn(Content," method:"))
+		{
+			String[] cmds = split(Content," method:");
+			int end = len(cmds);
+			int lp = 0;
+			while (lp != end)
+			{
+				if (StartsWith(cmds[lp], "method:"))
+				{
+					ClassContent.append(GenCode("\t",cmds[lp]));
+				}
+				else
+				{
+					ClassContent.append(GenCode("\t","method:"+cmds[lp]));
+				}
+				lp++;
+			}
+		}
+		else
+		{
+			Content = ReplaceTag(Content, "class-",false);
+			if (StartsWith(Content,"method:()"+TheName))
+			{
+				Content = AfterSplit(Content,")");
+				Content = "method:({})"+Content;
+			}
+			ClassContent.append(GenCode("\t",Content));
+		}
+
+		Complete.append("class ");
 		Complete.append(TheName);
+		//handle parent class
+		if (!ParentClass.equals(""))
+		{
+			Complete.append(" extends ");
+			Complete.append(ParentClass);
+		}
 		Complete.append(" {\n");
-		Complete.append(PublicVars.toString());
-		Complete.append(PrivateVars.toString());
-		Complete.append("\n\t//class constructor\n\tpublic ");
-		Complete.append(TheName);
-		Complete.append("(");
-		Complete.append(Params);
-		Complete.append(")\n\t{\n\t\tthis.x = x;\n\t\tthis.y = y;\n\t}\n\n");
-		Complete.append(ClassContent.toString());
-		Complete.append("\n}\n");
+		if (!FinalVars.toString().equals(""))
+		{
+			Complete.append("\n\t//Protected Variables\n");
+			Complete.append(FinalVars.toString());
+		}
+		if (!PrivateVars.toString().equals(""))
+		{
+			Complete.append("\n\t//Private Variables\n");
+			Complete.append(PrivateVars.toString());
+		}
+		if (!PublicVars.toString().equals(""))
+		{
+			Complete.append("\n\t//Public Variables\n");
+			Complete.append(PublicVars.toString());
+		}
+		if (!Constructor.equals(""))
+		{
+			Complete.append("\n\t//class constructor\n");
+			Complete.append(Constructor);
+			Complete.append("\n");
+		}
+		Complete.append(ClassContent);
+		Complete.append("}\n");
 
 		return Complete.toString();
 	}
@@ -1201,6 +1546,7 @@ public class shell {
 	{
 		boolean Last = false;
 		boolean CanSplit = true;
+		boolean AssignDefault = false;
 		String ReturnVar = "TheReturn";
 		String DefaultValue = "";
 		StringBuilder Complete = new StringBuilder("");
@@ -1217,6 +1563,7 @@ public class shell {
 		}
 
 		String TheName = "";
+		String OldType = "";
 		String Type = "";
 		String Params = "";
 		StringBuilder MethodContent = new StringBuilder("");
@@ -1238,6 +1585,7 @@ public class shell {
 			}
 			DefaultValue = DataType(Type,true);
 
+			OldType = Type;
 			//Converting data type to correct C++ type
 			Type = DataType(Type,false);
 		}
@@ -1270,6 +1618,24 @@ public class shell {
 			}
 			else
 			{
+				//handle default return value
+				if (StartsWith(Content,"method-var:("))
+				{
+					String ProcessType = AfterSplit(Content,"(");
+					ProcessType = BeforeSplit(ProcessType,")");
+
+					if (StartsWith(Content,"method-var:()"+ReturnVar+"="))
+					{
+						String OldTag = BeforeSplit(Content,")");
+						String OldValue = AfterSplit(Content,")");
+						Content = OldTag+Type+")"+OldValue;
+						AssignDefault = true;
+					}
+					else if ((StartsWith(Content,"method-var:("+OldType+")"+ReturnVar+"=")) || (StartsWith(Content,"method-var:("+Type+")"+ReturnVar+"=")) || (StartsWith(Content,"method-var:("+ProcessType+")"+ReturnVar+"=")))
+					{
+						AssignDefault = true;
+					}
+				}
 				//This is called when a called from the "class" method
 				// EX: class:name method:first method:second
 				if (IsIn(Content," method:"))
@@ -1347,7 +1713,14 @@ public class shell {
 								if (!AutoTabs.equals(""))
 								{
 									//Generate the loop content
-									MethodContent.append(GenCode(Tabs+"\t\t",AutoTabs));
+									if (Tabs.equals(""))
+									{
+										MethodContent.append(GenCode(Tabs+"\t\t",AutoTabs));
+									}
+									else
+									{
+										MethodContent.append(GenCode(Tabs+"\t",AutoTabs));
+									}
 								}
 								//process content
 								MethodContent.append(GenCode(Tabs+"\t",ParseContent.toString()));
@@ -1361,10 +1734,24 @@ public class shell {
 							if (!AutoTabs.equals(""))
 							{
 								//Generate the loop content
-								MethodContent.append(GenCode(Tabs+"\t\t",AutoTabs));
+								if (Tabs.equals(""))
+								{
+									MethodContent.append(GenCode(Tabs+"\t\t",AutoTabs));
+								}
+								else
+								{
+									MethodContent.append(GenCode(Tabs+"\t",AutoTabs));
+								}
 							}
 							//process content
-							MethodContent.append(GenCode(Tabs+"\t\t",Corrected));
+							if (Tabs.equals(""))
+							{
+								MethodContent.append(GenCode(Tabs+"\t\t",Corrected));
+							}
+							else
+							{
+								MethodContent.append(GenCode(Tabs+"\t",Corrected));
+							}
 						}
 						lp++;
 					}
@@ -1377,11 +1764,25 @@ public class shell {
 					if (!AutoTabs.equals(""))
 					{
 						//Generate the loop content
-						MethodContent.append(GenCode(Tabs+"\t\t",AutoTabs));
+						if (Tabs.equals(""))
+						{
+							MethodContent.append(GenCode(Tabs+"\t\t",AutoTabs));
+						}
+						else
+						{
+							MethodContent.append(GenCode(Tabs+"\t",AutoTabs));
+						}
 					}
 
 					//Generate the loop content
-					MethodContent.append(GenCode(Tabs+"\t\t",Corrected));
+					if (Tabs.equals(""))
+					{
+						MethodContent.append(GenCode(Tabs+"\t\t",Corrected));
+					}
+					else
+					{
+						MethodContent.append(GenCode(Tabs+"\t",Corrected));
+					}
 				}
 				Content = NewContent.toString();
 
@@ -1407,29 +1808,92 @@ public class shell {
 			}
 		}
 
-		if ((Type.equals("")) || (Type.equals("void")) || (Type.equals(TheName)))
+		if ((Type.equals("{}")) || (Type.equals(TheName)))
 		{
-			Complete.append(Tabs);
-			Complete.append("\t");
+			if (!Tabs.equals(""))
+			{
+				Complete.append(Tabs);
+			}
+			else
+			{
+				Complete.append("\t");
+			}
+			Complete.append(PublicOrPrivate);
+			Complete.append(" ");
+			Complete.append(TheName);
+			Complete.append("(");
+			Complete.append(Params);
+			Complete.append(")\n");
+			if (!Tabs.equals(""))
+			{
+				Complete.append(Tabs);
+			}
+			else
+			{
+				Complete.append("\t");
+			}
+			Complete.append("{\n");
+			Complete.append(MethodContent.toString());
+//			Complete.append("\n");
+			if (!Tabs.equals(""))
+			{
+				Complete.append(Tabs);
+			}
+			else
+			{
+				Complete.append("\t");
+			}
+			Complete.append("}\n");
+		}
+		else if ((Type.equals("")) || (Type.equals("void")) || (Type.equals(TheName)))
+		{
+			if (!Tabs.equals(""))
+			{
+				Complete.append(Tabs);
+			}
+			else
+			{
+				Complete.append("\t");
+			}
 			Complete.append(PublicOrPrivate);
 			Complete.append(" static void ");
 			Complete.append(TheName);
 			Complete.append("(");
 			Complete.append(Params);
 			Complete.append(")\n");
-			Complete.append(Tabs);
-			Complete.append("\t{\n");
+			if (!Tabs.equals(""))
+			{
+				Complete.append(Tabs);
+			}
+			else
+			{
+				Complete.append("\t");
+			}
+			Complete.append("{\n");
 			Complete.append(MethodContent.toString());
-			Complete.append("\n");
-			Complete.append(Tabs);
-			Complete.append("\t}\n");
+//			Complete.append("\n");
+			if (!Tabs.equals(""))
+			{
+				Complete.append(Tabs);
+			}
+			else
+			{
+				Complete.append("\t");
+			}
+			Complete.append("}\n");
 		}
 		else
 		{
 			if (DefaultValue.equals(""))
 			{
-				Complete.append(Tabs);
-				Complete.append("\t");
+				if (!Tabs.equals(""))
+				{
+					Complete.append(Tabs);
+				}
+				else
+				{
+					Complete.append("\t");
+				}
 				Complete.append(PublicOrPrivate);
 				Complete.append(" static ");
 				Complete.append(Type);
@@ -1438,27 +1902,67 @@ public class shell {
 				Complete.append("(");
 				Complete.append(Params);
 				Complete.append(")\n");
-				Complete.append(Tabs);
-				Complete.append("\t{\n");
-				Complete.append(Tabs);
-				Complete.append("\t\t");
-				Complete.append(Type);
-				Complete.append(" ");
-				Complete.append(ReturnVar);
-				Complete.append(";\n");
+				if (!Tabs.equals(""))
+				{
+					Complete.append(Tabs);
+				}
+				else
+				{
+					Complete.append("\t");
+				}
+				Complete.append("{\n");
+				if (AssignDefault == false)
+				{
+					if (!Tabs.equals(""))
+					{
+						Complete.append(Tabs);
+						Complete.append("\t");
+					}
+					else
+					{
+						Complete.append("\t\t");
+					}
+
+					Complete.append(Type);
+					Complete.append(" ");
+					Complete.append(ReturnVar);
+					Complete.append(";\n");
+				}
+
 				Complete.append(MethodContent.toString());
 				Complete.append("\n");
-				Complete.append(Tabs);
-				Complete.append("\t\treturn ");
+				if (!Tabs.equals(""))
+				{
+					Complete.append(Tabs);
+					Complete.append("\t");
+				}
+				else
+				{
+					Complete.append("\t\t");
+				}
+				Complete.append("return ");
 				Complete.append(ReturnVar);
 				Complete.append(";\n");
-				Complete.append(Tabs);
-				Complete.append("\t}\n");
+				if (!Tabs.equals(""))
+				{
+					Complete.append(Tabs);
+				}
+				else
+				{
+					Complete.append("\t");
+				}
+				Complete.append("}\n");
 			}
 			else
 			{
-				Complete.append(Tabs);
-				Complete.append("\t");
+				if (!Tabs.equals(""))
+				{
+					Complete.append(Tabs);
+				}
+				else
+				{
+					Complete.append("\t");
+				}
 				Complete.append(PublicOrPrivate);
 				Complete.append(" static ");
 				Complete.append(Type);
@@ -1467,24 +1971,56 @@ public class shell {
 				Complete.append("(");
 				Complete.append(Params);
 				Complete.append(")\n");
-				Complete.append(Tabs);
-				Complete.append("\t{\n");
-				Complete.append(Tabs);
-				Complete.append("\t\t");
-				Complete.append(Type);
-				Complete.append(" ");
-				Complete.append(ReturnVar);
-				Complete.append(" = ");
-				Complete.append(DefaultValue);
-				Complete.append(";\n");
+				if (!Tabs.equals(""))
+				{
+					Complete.append(Tabs);
+				}
+				else
+				{
+					Complete.append("\t");
+				}
+				Complete.append("{\n");
+				if (AssignDefault == false)
+				{
+					if (!Tabs.equals(""))
+					{
+						Complete.append(Tabs);
+						Complete.append("\t");
+					}
+					else
+					{
+						Complete.append("\t\t");
+					}
+					Complete.append(Type);
+					Complete.append(" ");
+					Complete.append(ReturnVar);
+					Complete.append(" = ");
+					Complete.append(DefaultValue);
+					Complete.append(";\n");
+				}
 				Complete.append(MethodContent.toString());
 				Complete.append("\n");
-				Complete.append(Tabs);
-				Complete.append("\t\treturn ");
+				if (!Tabs.equals(""))
+				{
+					Complete.append(Tabs);
+					Complete.append("\t");
+				}
+				else
+				{
+					Complete.append("\t\t");
+				}
+				Complete.append("return ");
 				Complete.append(ReturnVar);
 				Complete.append(";\n");
-				Complete.append(Tabs);
-				Complete.append("\t}\n");
+				if (!Tabs.equals(""))
+				{
+					Complete.append(Tabs);
+				}
+				else
+				{
+					Complete.append("\t");
+				}
+				Complete.append("}\n");
 			}
 		}
 
@@ -2524,8 +3060,6 @@ public class shell {
 		return Complete.toString();
 	}
 
-
-
 	//var:
 	private static String Variables(String Tabs, String TheKindType, String Content)
 	{
@@ -2642,7 +3176,7 @@ public class shell {
 			VarType = "";
 		}
 		//Assign Value
-		if (IsIn(TheKindType,"="))
+		if ((IsIn(TheKindType,"=")) && (!TheKindType.equals("=")))
 		{
 			MakeEqual = true;
 			Name = BeforeSplit(TheKindType,"=");
@@ -2789,7 +3323,8 @@ public class shell {
 		{
 			if (len(args) == 0)
 			{
-				UserIn = raw_input(">>> ");
+				UserIn = raw_input("<<shell>> ");
+				UserIn = TranslateTag(UserIn);
 			}
 
 			if (UserIn.equals("exit"))

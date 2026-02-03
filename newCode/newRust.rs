@@ -6,7 +6,7 @@ fn help()
 {
 	println!("Author: Joespider");
 	println!("Program: \"newRust\"");
-	println!("Version: 0.1.32");
+	println!("Version: 0.1.33");
 	println!("Purpose: make new Rust programs");
 	println!("Usage: newRust <args>");
 	println!("\t--user <username> : get username for help page");
@@ -33,6 +33,7 @@ fn help()
 	println!("\t--vectors : enable vector arrays (Main file ONLY)");
 	println!("\t--thread : enable threading (Main file and project ONLY)");
 	println!("\t--sleep : enable sleep method");
+	println!("\t--hash : enable hash/dictonary examples");
 	println!("\t--sub-string : enable sub-string methods");
 	println!("\t--get-length : enable \"length\" methods");
 	println!("\t--upper : enable upper case methods");
@@ -114,8 +115,7 @@ fn get_help(theuser: String, hasargs: bool) -> String
 	return helpmethod;
 }
 
-
-fn get_imports(get_checkfile: bool, get_readfile: bool, get_writefile: bool, get_cli: bool, get_pipe: bool, get_sysprop: bool, get_thread: bool, get_sleep: bool, get_shell: bool) -> String
+fn get_imports(get_checkfile: bool, get_readfile: bool, get_writefile: bool, get_cli: bool, get_pipe: bool, get_sysprop: bool, get_thread: bool, get_sleep: bool, get_shell: bool, get_hash: bool) -> String
 {
 	let mut theimports = String::new();
 	if get_cli == true || get_sysprop == true || get_shell == true
@@ -157,6 +157,10 @@ fn get_imports(get_checkfile: bool, get_readfile: bool, get_writefile: bool, get
 	if get_shell == true
 	{
 		theimports.push_str("use std::process::Command;");
+	}
+	if get_hash == true
+	{
+		theimports.push_str("use std::collections::HashMap;");
 	}
 
 	theimports.push_str("\n");
@@ -242,7 +246,7 @@ fn get_methods(get_checkfile: bool, get_readfile: bool, get_writefile: bool, get
 	return themethods;
 }
 
-fn get_main(get_main: bool, get_cli: bool, get_pipe: bool, get_thread: bool, get_split: bool, get_vect: bool, get_shell: bool) -> String
+fn get_main(get_main: bool, get_cli: bool, get_pipe: bool, get_thread: bool, get_split: bool, get_vect: bool, get_shell: bool, get_hash: bool) -> String
 {
 	let mut themain = String::new();
 	if get_main == true
@@ -272,6 +276,11 @@ fn get_main(get_main: bool, get_cli: bool, get_pipe: bool, get_thread: bool, get
 		{
 			themain.push_str("\n\tlet output = Command::new(\"ls\")\n\t\t\t.arg(\"-l\")\n\t\t\t.arg(\"-a\")\n\t\t\t.output()\n\t\t\t.expect(\"ls command failed to start\");\n\n\tif output.status.success()\n\t{\n\t\tprintln!(\"{}\", String::from_utf8_lossy(&output.stdout));\n\t}\n\telse\n\t{\n\t\tprintln!(\"{}\", String::from_utf8_lossy(&output.stderr));\n\t}\n");
 		}
+		if get_hash == true
+		{
+			themain.push_str("\n\tlet mut my_house: HashMap<&str, i32> = HashMap::new();\n\n\tmy_house.insert(\"LivingRoom\", 1);\n\tmy_house.insert(\"Bedroom\", 3);\n\tmy_house.insert(\"TV Room\", 2);\n\tmy_house.insert(\"Kitchen\", 1);\n\tmy_house.insert(\"Doors\", 3);\n\tmy_house.insert(\"Bathrooms\", 2);\n\tmy_house.insert(\"Basement\", 1);\n\n\tprintln!(\"My house has:\");\n\tfor (key, value) in &my_house\n\t{\n\t\tprintln!(\"\\t({value}) {key}\");\n\t}\n\tprintln!(\"\");\n\tprintln!(\"Removing \\\"Doors\\\"\");\n\t//Doors removed from ditionary\n\tmy_house.remove(\"Doors\");\n\tprintln!(\"\");\n\n\tprintln!(\"My house (now) has:\");\n\n\tfor (new_key, new_value) in &my_house\n\t{\n\t\tprintln!(\"\\t({new_value}) {new_key}\");\n\t}\n\n");
+		}
+
 		themain.push_str("\n}\n");
 	}
 	return themain;
@@ -317,6 +326,7 @@ fn main()
 	let mut is_vect = false;
 	let mut is_sub_str = false;
 	let mut is_sleep = false;
+	let mut is_hash = false;
 	let mut is_upper = false;
 	let mut is_lower = false;
 	let mut name_set = false;
@@ -341,45 +351,55 @@ fn main()
 		else if args == "--user"
 		{
 			is_user = true;
+			is_name = false;
 		}
 		else if args == "--no-save"
 		{
 			no_save = true;
+			is_name = false;
 		}
 		else if args == "--split"
 		{
 			is_split = true;
+			is_name = false;
 		}
 		else if args == "--join"
 		{
 			is_join = true;
+			is_name = false;
 		}
 		else if args == "--vectors"
 		{
 			is_vect = true;
+			is_name = false;
 		}
 		else if args == "--sub-string"
 		{
 			is_sub_str = true;
 			is_in = true;
+			is_name = false;
 		}
 		else if args == "--shell"
 		{
 			is_shell = true;
+			is_name = false;
 		}
 		else if args == "--files"
 		{
 			is_write_file = true;
 			is_read_file = true;
 			is_check_file = true;
+			is_name = false;
 		}
 		else if args == "--cli"
 		{
 			is_cli = true;
+			is_name = false;
 		}
 		else if args == "--main"
 		{
 			is_main = true;
+			is_name = false;
 		}
 /*
 		else if args == "--random"
@@ -402,26 +422,32 @@ fn main()
 		else if args == "--user-input"
 		{
 			get_input_method = true;
+			is_name = false;
 		}
 		else if args == "--thread"
 		{
 			is_thread = true;
+			is_name = false;
 		}
 		else if args == "--get-length"
 		{
 			is_len = true;
+			is_name = false;
 		}
 		else if args == "--pipe"
 		{
 			is_pipe = true;
+			is_name = false;
 		}
 		else if args == "--reverse"
 		{
 			is_rev = true;
+			is_name = false;
 		}
 		else if args == "--prop"
 		{
 			is_prop = true;
+			is_name = false;
 		}
 /*
 		else if args == "--is-in"
@@ -432,14 +458,22 @@ fn main()
 		else if args == "--sleep"
 		{
 			is_sleep = true;
+			is_name = false;
+		}
+		else if args == "--hash"
+		{
+			is_hash = true;
+			is_name = false;
 		}
 		else if args == "--upper"
 		{
 			is_upper = true;
+			is_name = false;
 		}
 		else if args == "--lower"
 		{
 			is_lower = true;
+			is_name = false;
 		}
 	}
 
@@ -455,11 +489,11 @@ fn main()
 		let file_exists = fexists(&check_file);
 		if file_exists == false || no_save == true
 		{
-			let the_imports = get_imports(is_check_file, is_read_file, is_write_file, is_cli, is_pipe, is_prop, is_thread, is_sleep, is_shell);
+			let the_imports = get_imports(is_check_file, is_read_file, is_write_file, is_cli, is_pipe, is_prop, is_thread, is_sleep, is_shell,is_hash);
 			let the_helps = get_help(the_user.to_string(),is_cli);
 			program_name.push_str(".rs");
 			let the_methods = get_methods(is_check_file, is_read_file, is_write_file, get_input_method, is_prop, is_sleep, is_shell, is_rev, is_split, is_join, is_vect, is_sub_str, is_in, is_len, is_upper, is_lower);
-			let the_main = get_main(is_main, is_cli, is_pipe, is_thread, is_split, is_vect, is_shell);
+			let the_main = get_main(is_main, is_cli, is_pipe, is_thread, is_split, is_vect, is_shell, is_hash);
 			if no_save == false
 			{
 				write_file(program_name, the_imports, the_helps, the_methods, the_main);
