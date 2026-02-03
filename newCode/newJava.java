@@ -47,12 +47,13 @@ public class newJava {
 	private static boolean getUpper = false;
 	private static boolean getLower = false;
 	private static boolean getMath = false;
+	private static boolean getHash = false;
 	private static boolean getDateAndTime = false;
 
 	private static void Help()
 	{
 		String program = "newJava";
-		String version = "0.1.59";
+		String version = "0.1.60";
 		print("Author: Joespider");
 		print("Program: \""+program+"\"");
 		print("Version: "+version);
@@ -87,6 +88,7 @@ public class newJava {
 		print("\t--thread : enable threading");
 		print("\t--type : enable data type eval method");
 		print("\t--sleep : enable sleep method");
+		print("\t--hash : enable hash/dictonary examples");
 		print("\t--get-length : enable \"length\" methods");
 		print("\t--casting : enable data type conversion methods");
 		print("\t--sub-string : enable sub-string methods");
@@ -225,6 +227,11 @@ public class newJava {
 			else if (now.equals("--sleep"))
 			{
 				getSleep = true;
+			}
+			//enable sleep method
+			else if (now.equals("--hash"))
+			{
+				getHash = true;
 			}
 /*
 			//enable Is In methods
@@ -382,6 +389,9 @@ public class newJava {
 		boolean NeedDataInputStream = false;
 		boolean NeedJavaLangMath = false;
 		boolean NeedJavaTime = false;
+		boolean NeedEnumeration = false;
+		boolean NeedDictonary = false;
+		boolean NeedHashTable = false;
 
 		//Handle the imports by Functions
 		//{
@@ -428,6 +438,15 @@ public class newJava {
 		{
 			//import java.lang.Math;
 			NeedJavaLangMath = true;
+		}
+		if (getHash == true)
+		{
+			//import java.util.Enumeration;
+			NeedEnumeration = true;
+			//import java.util.Dictionary;
+			NeedDictonary = true;
+			//import java.util.Hashtable;
+			NeedHashTable = true;
 		}
 		if (getDateAndTime == true)
 		{
@@ -487,6 +506,19 @@ public class newJava {
 		{
 			TheImports.append("import java.lang.Math;\n");
 		}
+		if (NeedEnumeration)
+		{
+			TheImports.append("import java.util.Enumeration;\n");
+		}
+		if (NeedDictonary)
+		{
+			TheImports.append("import java.util.Dictionary;\n");
+		}
+		if (NeedHashTable)
+		{
+			TheImports.append("import java.util.Hashtable;\n");
+		}
+
 		if (NeedJavaTime)
 		{
 			TheImports.append("import java.time.LocalDate;\n");
@@ -735,6 +767,7 @@ public class newJava {
 		String JavaCLI;
 		String JavaHelp;
 		String JavaMain;
+		String JavaHash = "";
 		String[] Comments = new String[3];
 		String Java;
 		//Grab User Args
@@ -752,6 +785,7 @@ public class newJava {
 				{
 					JavaPackage = "package "+Package+";\n\n";
 				}
+
 				if (getThreads == true)
 				{
 					TheClass = Class+" "+JavaThreads;
@@ -769,15 +803,20 @@ public class newJava {
 				Comments[1] ="//class name";
 				if (IsMain == true)
 				{
+					if (getHash == true)
+					{
+						JavaHash = "\t\tDictionary<String, Integer> MyHouse = new Hashtable<>();\n\n\t\tMyHouse.put(\"Living Room\", 1);\n\t\tMyHouse.put(\"BedRoom\", 3);\n\t\tMyHouse.put(\"TV Room\", 2);\n\t\tMyHouse.put(\"Kitchen\", 1);\n\t\tMyHouse.put(\"Doors\", 3);\n\t\tMyHouse.put(\"BathRooms\", 2);\n\t\tMyHouse.put(\"Basement\", 1);\n\n\t\tEnumeration<String> AllKeys = MyHouse.keys();\n\t\tString Key = \"\";\n\n\t\tprint(\"My house has:\");\n\t\twhile (AllKeys.hasMoreElements())\n\t\t{\n\t\t\tKey = AllKeys.nextElement();\n\t\t\tprint(\"\\t(\"+Str(MyHouse.get(Key))+\") \"+Key);\n\t\t}\n\n\t\tprint(\"\");\n\t\tprint(\"Removing \\\"Doors\\\"\");\n\t\t//Doors removed from dictionary\n\t\tMyHouse.remove(\"Doors\");\n\t\tprint(\"\");\n\n\t\tAllKeys = MyHouse.keys();\n\n\t\tprint(\"My house (now) has:\");\n\t\twhile (AllKeys.hasMoreElements())\n\t\t{\n\t\t\tKey = AllKeys.nextElement();\n\t\t\tprint(\"\\t(\"+Str(MyHouse.get(Key))+\") \"+Key);\n\t\t}\n";
+					}
+
 					JavaHelp = getHelp(Class,user);
 					Comments[2] ="/**\n\t* @param args the command line arguments\n\t*/";
 					if (getPipe == true)
 					{
-						JavaMain = "\tpublic static void main(String[] args)\n\t{\n"+JavaThreadCall+JavaCLI+"\n\t\ttry\n\t\t{\n\t\t\tint numBytesWaiting = System.in.available();\n\t\t\tif (numBytesWaiting > 0)\n\t\t\t{\n\t\t\t\tprint(\"[Pipe]\");\n\t\t\t\tprint(\"{\");\n\t\t\t\tScanner pipe = new Scanner(System.in);\n\t\t\t\t// Read and print out each line.\n\t\t\t\twhile (pipe.hasNextLine())\n\t\t\t\t{\n\t\t\t\t\tString lineOfInput = pipe.nextLine();\n\t\t\t\t\tprint(lineOfInput);\n\t\t\t\t}\n\t\t\t\tpipe.close();\n\t\t\t\tprint(\"}\");\n\t\t\t}\n\t\t\telse\n\t\t\t{\n\t\t\t\tprint(\"nothing was piped in\");\n\t\t\t}\n\t\t}\n\t\tcatch (Exception e)\n\t\t{\n\t\t\tSystem.err.println(\"Failed read in\");\n\t\t}\n\t}";
+						JavaMain = "\tpublic static void main(String[] args)\n\t{\n"+JavaThreadCall+JavaCLI+JavaHash+"\n\t\ttry\n\t\t{\n\t\t\tint numBytesWaiting = System.in.available();\n\t\t\tif (numBytesWaiting > 0)\n\t\t\t{\n\t\t\t\tprint(\"[Pipe]\");\n\t\t\t\tprint(\"{\");\n\t\t\t\tScanner pipe = new Scanner(System.in);\n\t\t\t\t// Read and print out each line.\n\t\t\t\twhile (pipe.hasNextLine())\n\t\t\t\t{\n\t\t\t\t\tString lineOfInput = pipe.nextLine();\n\t\t\t\t\tprint(lineOfInput);\n\t\t\t\t}\n\t\t\t\tpipe.close();\n\t\t\t\tprint(\"}\");\n\t\t\t}\n\t\t\telse\n\t\t\t{\n\t\t\t\tprint(\"nothing was piped in\");\n\t\t\t}\n\t\t}\n\t\tcatch (Exception e)\n\t\t{\n\t\t\tSystem.err.println(\"Failed read in\");\n\t\t}\n\t}";
 					}
 					else
 					{
-						JavaMain = "\tpublic static void main(String[] args)\n\t{\n"+JavaThreadCall+"\n"+JavaCLI+"\n\t}";
+						JavaMain = "\tpublic static void main(String[] args)\n\t{\n"+JavaThreadCall+"\n"+JavaCLI+JavaHash+"\n\t}";
 					}
 					Java = JavaPackage+JavaImports+"\n\n"+Comments[0]+"\n\n"+Comments[1]+"\npublic class "+TheClass+" {\n\n"+JavaHelp+JavaThreadStart+JavaMethods+"\n\t"+Comments[2]+"\n"+JavaMain+"\n}\n";
 				}
@@ -785,6 +824,7 @@ public class newJava {
 				{
 					Java = JavaPackage+JavaImports+"\n\n"+Comments[0]+"\n\n"+Comments[1]+"\npublic class "+TheClass+" {\n\n"+JavaThreadStart+JavaMethods+"\n\n}\n"+JavaThreadCall;
 				}
+
 				if (dontSave == false)
 				{
 					WriteFile(Class+".java",Java);

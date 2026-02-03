@@ -24,7 +24,7 @@ bool IsIn(String Str, String Sub);
 
 static void help()
 {
-	String Version = "0.1.75";
+	String Version = "0.1.76";
 	print("Author: Joespider");
 	print("Program: \"" + ProgName + "\"");
 	print("Version: " + Version);
@@ -55,6 +55,7 @@ static void help()
 	print("\t--vectors : enable vector arrays");
 	print("\t--thread : enable threading (Main file ONLY)");
 	print("\t--sleep : enable sleep method");
+	print("\t--hash : enable hash/dictonary examples");
 	print("\t--get-length : enable \"length\" examples");
 	print("\t--casting : enable data type conversion methods");
 	print("\t--sub-string : enable sub-string methods");
@@ -76,7 +77,7 @@ static String getHelp(String TheUser)
 	return HelpDeclare+"\n"+HelpMethod;
 }
 
-static String getMacros(bool* Conv, bool* getLen)
+static String getMacros(bool* Conv, bool* getLen, bool* getHash)
 {
 	String Macros = "";
 	String MacroPrint = "//print Macro for cout\n#define print(x); std::cout << x << std::endl\n\n";
@@ -86,9 +87,9 @@ static String getMacros(bool* Conv, bool* getLen)
 	String MacroLen = "";
 	String MacroString = "//Convert std::string to String\n#define String std::string\n\n";
 
-	if (*Conv == true)
+	if ((*Conv == true) || (*getHash == true))
 	{
-		MacroToStr = "//Str for to_strin()\n#define Str(x) std::to_string(x)\n\n";
+		MacroToStr = "//Str for to_string()\n#define Str(x) std::to_string(x)\n\n";
 	}
 	if (*getLen == true)
 	{
@@ -103,7 +104,7 @@ static String getMacros(bool* Conv, bool* getLen)
 }
 
 //create import listing
-static String getImports(bool* fcheck, bool* write, bool* read, bool* random, bool* pipe, bool* shell, bool* threads, bool* sleep, bool* prop, bool* Split, bool* Join, bool* Rev, bool* Vect, bool* getLen, bool* Math, bool* getFS, bool* dateTime)
+static String getImports(bool* fcheck, bool* write, bool* read, bool* random, bool* pipe, bool* shell, bool* threads, bool* sleep, bool* prop, bool* Split, bool* Join, bool* Rev, bool* Vect, bool* getLen, bool* Math, bool* getFS, bool* dateTime, bool* getHash)
 {
 	String Imports = "";
 	String standard = "#include <iostream>\n#include <string>\n";
@@ -118,6 +119,7 @@ static String getImports(bool* fcheck, bool* write, bool* read, bool* random, bo
 	String ForSplit = "";
 	String ForJoin = "";
 	String ForMath = "";
+	String ForHash = "";
 	String ForDateAndTime = "";
 	String ForFS = "";
 
@@ -173,9 +175,13 @@ static String getImports(bool* fcheck, bool* write, bool* read, bool* random, bo
 	{
 		ForDateAndTime = "#include <chrono>\n#include <ctime>\n";
 	}
+	if (*getHash == true)
+	{
+		ForHash = "#include <unordered_map>\n";
+	}
 
 	//concat imports
-	Imports = standard+readWrite+ForRandom+ForPiping+ForShell+ForThreading+ForSleep+ForSysProp+ForSplit+ForJoin+ForRev+ForMath+ForFS+ForDateAndTime+"\n";
+	Imports = standard+readWrite+ForRandom+ForPiping+ForShell+ForThreading+ForSleep+ForSysProp+ForSplit+ForJoin+ForRev+ForMath+ForFS+ForDateAndTime+ForHash+"\n";
 
 	return Imports;
 }
@@ -439,7 +445,7 @@ static String getMethods(bool* rawinput, bool* rand, bool* fcheck, bool* write, 
 }
 
 //build main function
-static String getMain(bool* getArgs, bool* getRandom, bool* getPipe, bool* getThreads, bool* getVectors, bool* getMath)
+static String getMain(bool* getArgs, bool* getRandom, bool* getPipe, bool* getThreads, bool* getVectors, bool* getMath, bool* getHash)
 {
 	String Main = "";
 	String StartRandom = "";
@@ -447,6 +453,7 @@ static String getMain(bool* getArgs, bool* getRandom, bool* getPipe, bool* getTh
 	String UseThreads = "";
 	String UseVectors = "";
 	String UseMath = "";
+	String ShowHash = "";
 
 	if (*getRandom == true)
 	{
@@ -473,13 +480,18 @@ static String getMain(bool* getArgs, bool* getRandom, bool* getPipe, bool* getTh
 		UseMath = "/*\n\tprint(\"max(5,10) = \" << std::max(5,10));\n\tprint(\"min(5,10) = \" << std::min(5,10));\n\tprint(\"abs(-10) = \" << abs(-10));\n\tprint(\"pow(4,3) = \" << pow(4, 3));\n\tprint(\"acos(7) = \" << acos(7));\n\tprint(\"asin(7) = \" << asin(7));\n\tprint(\"atan(7) = \" << atan(7));\n\tprint(\"cbrt(7) = \" << cbrt(7));\n\tprint(\"cos(7) = \" << cos(7));\n\tprint(\"cosh(7) = \" << cosh(7));\n\tprint(\"fabs(7) = \" << fabs(7));\n\tprint(\"fdim(7, 8) = \" << fdim(7, 8));\n\tprint(\"hypot(7, 8) = \" << hypot(7, 8));\n\tprint(\"fma(7, 8, 9) = \" << fma(7, 8, 9));\n\tprint(\"fmax(7, 8) = \" << fmax(7, 8));\n\tprint(\"fmin(7, 8) = \" << fmin(7, 8));\n\tprint(\"fmod(7, 8) = \" << fmod(7, 8));\n\tprint(\"sin(7) = \" << sin(7));\n\tprint(\"sinh(7) = \" << sinh(7));\n\tprint(\"tan(7) = \" << tan(7));\n\tprint(\"tanh(7) = \" << tanh(7));\n\tprint(\"sqrt(64) = \" << sqrt(64));\n\tprint(\"exp(2.6) = \" << exp(2.6));\n\tprint(\"expm1(2.6) = \" << expm1(2.6));\n\tprint(\"ceil(2.6) = \" << ceil(2.6));\n\tprint(\"floor(2.6) = \" << floor(2.6));\n\tprint(\"round(2.6) = \" << round(2.6));\n\tprint(\"log(2) = \" << log(2));\n*/\n\n";
 	}
 
+	if (*getHash == true)
+	{
+		ShowHash = "\tstd::unordered_map<String, int> MyHouse = {\n\t\t{ \"Living Room\", 1 },\n\t\t{ \"BedRoom\", 3 },\n\t\t{ \"TV Room\", 2 },\n\t\t{ \"Kitchen\", 1 },\n\t\t{ \"Doors\", 3 },\n\t\t{ \"BathRooms\", 2 },\n\t\t{ \"Basement\", 1 }\n\t}\n\n\tprint(\"My house has:\");\n\n\tfor (auto& [key, value] : MyHouse)\n\t{\n\t\tprint(\"\\t(\"+Str(value)+\") \"+key);\n\t}\n\n\tprint(\"\");\n\tprint(\"Removing \\\"Doors\\\"\");\n\t//Doors removed from dictionary\n\tMyHouse.erase(\"Doors\");\n\tprint(\"\");\n\n\tprint(\"My house (now) has:\");\n\tfor (auto& [key, value] : MyHouse)\n\t{\n\t\tprint(\"\\t(\"+Str(value)+\") \"+key);\n\t}\n\n";
+	}
+
 	if (*getArgs == true)
 	{
-		Main = "//C++ Main...with cli arguments\nint main(int argc, char** argv)\n{\n"+StartRandom+"\tString out = String(argv[0]);\n\n\t//Parsing program name\n\tstd::size_t pos = out.rfind('/');\n\tTheName = out.substr(pos + 1);\n\tout = \"\";\n\n\t//Args were given\n\tif (argc > 1)\n\t{\n\t\t//Loop through Args\n\t\tfor (int i = 1; i < argc; i++)\n\t\t{\n\t\t\tout = String(argv[i]);\n\t\t\tif (out == \"find\")\n\t\t\t{\n\t\t\t\tprint(\"Found\");\n\t\t\t\tbreak;\n\t\t\t}\n\t\t}\n\t}\n\telse\n\t{\n\t\thelp();\n\t}\n\n"+UsePipe+UseThreads+UseVectors+UseMath+"\treturn 0;\n}\n";
+		Main = "//C++ Main...with cli arguments\nint main(int argc, char** argv)\n{\n"+StartRandom+"\tString out = String(argv[0]);\n\n\t//Parsing program name\n\tstd::size_t pos = out.rfind('/');\n\tTheName = out.substr(pos + 1);\n\tout = \"\";\n\n\t//Args were given\n\tif (argc > 1)\n\t{\n\t\t//Loop through Args\n\t\tfor (int i = 1; i < argc; i++)\n\t\t{\n\t\t\tout = String(argv[i]);\n\t\t\tif (out == \"find\")\n\t\t\t{\n\t\t\t\tprint(\"Found\");\n\t\t\t\tbreak;\n\t\t\t}\n\t\t}\n\t}\n\telse\n\t{\n\t\thelp();\n\t}\n\n"+UsePipe+UseThreads+UseVectors+UseMath+ShowHash+"\treturn 0;\n}\n";
 	}
 	else
 	{
-		Main = "//C++ Main\nint main()\n{\n"+StartRandom+UsePipe+UseThreads+UseVectors+UseMath+"\n\treturn 0;\n}\n";
+		Main = "//C++ Main\nint main()\n{\n"+StartRandom+UsePipe+UseThreads+UseVectors+UseMath+ShowHash+"\n\treturn 0;\n}\n";
 	}
 	return Main;
 }
@@ -553,6 +565,7 @@ int main(int argc, char** argv)
 	bool getDateAndTime = false;
 	bool IsMain = false;
 	bool getTheUser = false;
+	bool getHash = false;
 	String theUser = "";
 	String theDeclaration = "";
 	String theHelpMethod = "";
@@ -715,6 +728,12 @@ int main(int argc, char** argv)
 				getName = false;
 				getSleep = true;
 			}
+			//Enable hash
+			else if (UserIn == "--hash")
+			{
+				getName = false;
+				getHash = true;
+			}
 			//Enable split
 			else if (UserIn == "--split")
 			{
@@ -805,9 +824,9 @@ int main(int argc, char** argv)
 			if ((FileExists == false) || (dontSave == true))
 			{
 				//generate imports
-				Imports = getImports(&getFCheck, &getWrite, &getRead, &getRand, &getPipe, &getShell, &getThreads, &getSleep, &getProp, &getSplit, &getJoin, &getRev, &getVect, &getLength, &getMath, &getFS, &getDateAndTime);
+				Imports = getImports(&getFCheck, &getWrite, &getRead, &getRand, &getPipe, &getShell, &getThreads, &getSleep, &getProp, &getSplit, &getJoin, &getRev, &getVect, &getLength, &getMath, &getFS, &getDateAndTime,&getHash);
 				//genarate macros
-				Macros = getMacros(&getConvert, &getLength);
+				Macros = getMacros(&getConvert, &getLength, &getHash);
 				//make declorations
 				theDeclaration = getMethodDec(&getRawIn, &getRand, &getFCheck, &getWrite, &getRead, &getIsIn, &getShell, &getSleep, &getProp, &getSplit, &getJoin, &getRev, &getConvert, &getSubStr, &getLength, &getUpper, &getLower, &getFS, &getDateAndTime);
 				//create methods
@@ -821,7 +840,7 @@ int main(int argc, char** argv)
 						theHelpMethod = getHelp(theUser);
 					}
 					//generate main file
-					Main = getMain(&getArgs, &getRand, &getPipe, &getThreads, &getVect, &getMath);
+					Main = getMain(&getArgs, &getRand, &getPipe, &getThreads, &getVect, &getMath, &getHash);
 				}
 				//This is not a main file
 				else
