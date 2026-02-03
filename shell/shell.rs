@@ -3,7 +3,7 @@ use std::process::Command;
 
 fn the_version() -> String
 {
-	return "0.1.14".to_string();
+	return "0.1.15".to_string();
 }
 
 fn get_os() -> String
@@ -26,7 +26,7 @@ fn the_help(the_type: &str)
 		println!("{{}}<name>:(<type>)<name> var(public/private):<vars> method:<name>-<type> param:<params>,<param>");
 		println!("");
 		println!("{{EXAMPLE}}");
-		example("{{}}pizza:(int)one,(bool)two,(float)three var(private):(int)toppings [String-mixture]cheese:(String)kind,(int)amount for: nest-for: [String]topping:(String)name,(int)amount if:good");
+		example("{class}clock []-equals(hr):0 []-equals(min):0 []-equals(date):\"00/00/0000\" []-[print]:\"ClockStarted\" []-el {c}-[]clock:(int)one,(int)two,(String)three []-equals(hr):one []-equals(min):two []-equals(date):three []-[print]:\"ClockStarted\" []-el {c}-var(protected):(bool)reset {c}-var(private):(int)hr {c}-var(private):(int)min {c}-var(private):(String)date {c}-nl {c}-[]Hr:(int)number []-equals((int)value):number []-if:number(-lt)25 +-equals(hr):Value {c}-nl {c}-[int-value]Hr: []-(int)value:()hr []-el {c}-nl {c}-[]Min:(int)number []-equals((int)value):number []-if:number(-lt)61 +-equals(min):Value {c}-nl {c}-[int-value]Min: []-equals((int)value):min {c}-nl {c}-[]Date:(String)TheDate []-equals((String)value):TheDate []-if:TheDate(-ne)\"0/0/0000\" +-equals(date):Value {c}-nl {c}-[String-value]Date: []-equals((String)value):date {c}-nl");
 	}
 	else if new_the_type == "struct"
 	{
@@ -503,13 +503,36 @@ fn algo_tags(algo: &str) -> String
 			new_tags.push_str(&return_value.to_string());
 		}
 	}
+	else if starts_with(&algo,"decre(") && is_in(&algo,"):") && args == ""
+	{
+		let mut return_key = after_split(&action,"(");
+		return_key = before_split(&return_key,")");
+
+		let mut return_value = String::from(&before_split(&return_key,")"));
+		return_value.push_str(" ()- ()= ()1");
+		new_tags.push_str("()");
+		new_tags.push_str(&return_key.to_string());
+		new_tags.push_str(&return_value.to_string());
+	}
+	else if starts_with(&algo,"decre(") && is_in(&algo,"):") && args != ""
+	{
+		let mut return_key = after_split(&action,"(");
+		return_key = before_split(&return_key,")");
+
+		let mut return_value = String::from(&before_split(&return_key,")"));
+		return_value.push_str(" ()- ()= ()");
+		return_value.push_str(&args);
+		new_tags.push_str("()");
+		new_tags.push_str(&return_key.to_string());
+		new_tags.push_str(&return_value.to_string());
+	}
 	else if starts_with(&algo,"incre(") && is_in(&algo,"):") && args == ""
 	{
 		let mut return_key = after_split(&action,"(");
 		return_key = before_split(&return_key,")");
 
 		let mut return_value = String::from(&before_split(&return_key,")"));
-		return_value.push_str(" ()+ ()+");
+		return_value.push_str(" ()+ ()= ()1");
 		new_tags.push_str("()");
 		new_tags.push_str(&return_key.to_string());
 		new_tags.push_str(&return_value.to_string());
@@ -527,12 +550,65 @@ fn algo_tags(algo: &str) -> String
 	}
 	else if starts_with(&algo,"equals(") && is_in(&algo,"):") && args != ""
 	{
-		let mut return_key = after_split(&action,"(");
-		return_key = before_split(&return_key,")");
-		new_tags.push_str("(");
-		new_tags.push_str(&return_key);
-		new_tags.push_str("):()");
-		new_tags.push_str(&args);
+		let mut is_call_method: bool = false;
+
+		if starts_with(&args,"[")
+		{
+			is_call_method = true;
+		}
+
+		if starts_with(&action,"equals((")
+		{
+			let return_value: String = args;
+			let mut return_key = after_split(&action,"(");
+			return_key = after_split(&return_key,"(");
+
+			let data_type = before_split(&return_key,")");
+
+			return_key = after_split(&return_key,")");
+			return_key = before_split(&return_key,")");
+			if is_call_method == true
+			{
+				new_tags.push_str("(");
+				new_tags.push_str(&data_type);
+				new_tags.push_str(")");
+				new_tags.push_str(&return_key);
+				new_tags.push_str(":");
+				new_tags.push_str(&return_value);
+			}
+			else
+			{
+				new_tags.push_str("(");
+				new_tags.push_str(&data_type);
+				new_tags.push_str(")");
+				new_tags.push_str(&return_key);
+				new_tags.push_str(":()");
+				new_tags.push_str(&return_value);
+			}
+		}
+		else
+		{
+			let mut return_key = after_split(&action,"(");
+			return_key = before_split(&return_key,")");
+			if is_call_method == true
+			{
+				new_tags.push_str("()");
+				new_tags.push_str(&return_key);
+				new_tags.push_str(":");
+				new_tags.push_str(&args);
+			}
+			else
+			{
+				new_tags.push_str("()");
+				new_tags.push_str(&return_key);
+				new_tags.push_str(":()");
+				new_tags.push_str(&args);
+			}
+		}
+	}
+	else if algo == "concat():" || algo == "decre():" || algo == "incre():" || algo == "equals():"
+	{
+		new_tags.push_str("");
 	}
 	else
 	{
@@ -577,10 +653,15 @@ fn translate_tag(input: &str) -> String
 		action = after_split(&action,"-");
 		content_for = "method-";
 	}
-	else if starts_with(&action, "{}-")
+	else if starts_with(&action, "{c}-")
 	{
 		action = after_split(&action,"-");
 		content_for = "class-";
+	}
+	else if starts_with(&action, "{s}-")
+	{
+		action = after_split(&action,"-");
+		content_for = "struct-";
 	}
 
 	// ">" becomes "nest-"
@@ -590,7 +671,7 @@ fn translate_tag(input: &str) -> String
 		the_nest.push_str("nest-");
 	}
 
-	if starts_with(&action,"concat(") || starts_with(&action,"incre(") || starts_with(&action,"equals(")
+	if starts_with(&action,"concat(") || starts_with(&action,"incre(") || starts_with(&action,"decre(") || starts_with(&action,"equals(")
 	{
 		let algo = algo_tags(&action);
 		if is_in(&algo," ")
@@ -603,19 +684,45 @@ fn translate_tag(input: &str) -> String
 				let new_algo_tag = all_tabs[lp];
 				if the_return.to_string() == ""
 				{
+					the_return.push_str(parent);
+					the_return.push_str(content_for);
+					the_return.push_str(&the_nest);
 					the_return.push_str(&translate_tag(&new_algo_tag));
 				}
 				else
 				{
 					the_return.push_str(" ");
+					the_return.push_str(parent);
+					the_return.push_str(content_for);
+					the_return.push_str(&the_nest);
 					the_return.push_str(&translate_tag(&new_algo_tag));
+				}
+
+				if starts_with(&action,"equals(")
+				{
+					the_return.push_str(" ");
+					the_return.push_str(parent);
+					the_return.push_str(content_for);
+					the_return.push_str(&the_nest);
+					the_return.push_str(&translate_tag("el"));
 				}
 				lp += 1;
                         }
 		}
 		else
 		{
+			the_return.push_str(parent);
+			the_return.push_str(content_for);
+			the_return.push_str(&the_nest);
 			the_return.push_str(&translate_tag(&algo));
+
+			if starts_with(&action,"equals(")
+			{
+				the_return.push_str(parent);
+				the_return.push_str(content_for);
+				the_return.push_str(&the_nest);
+				the_return.push_str(&translate_tag("el"));
+			}
 		}
 
 	}
@@ -658,12 +765,27 @@ fn translate_tag(input: &str) -> String
 		the_return.push_str(" ");
 		the_return.push_str(&value);
 	}
-	//class
+	//class or struct
 	else if starts_with(&action, "{") && is_in(&action,"}")
 	{
 		let tmp_action = &action.to_owned();
+		let mut the_data_type = after_split(&before_split(tmp_action,"}"),"{");
+		the_data_type = data_type(&the_data_type,false);
+
 		action = after_split(&action,"}");
 
+		if is_in(&the_data_type,"-")
+		{
+			let parent = after_split(&the_data_type,"-");
+
+			the_data_type = before_split(&the_data_type,"-");
+			if the_data_type != "template"
+			{
+				let new_action = [&action,"-",&parent].concat();
+				action = new_action.to_string();
+			}
+		}
+                
 		if is_in(&action,":")
 		{
 			value = after_split(&action,":");
@@ -672,24 +794,16 @@ fn translate_tag(input: &str) -> String
 
 		if value != ""
 		{
-			let mut the_data_type = after_split(&before_split(tmp_action,"}"),"{");
-			the_data_type = data_type(&the_data_type,false);
-
-			the_return.push_str("class:(");
 			the_return.push_str(&the_data_type);
-			the_return.push_str(")");
+			the_return.push_str(":");
 			the_return.push_str(&action);
 			the_return.push_str(" params:");
 			the_return.push_str(&value);
 		}
 		else
 		{
-			let mut the_data_type = after_split(&before_split(tmp_action,"}"),"{");
-			the_data_type = data_type(&the_data_type,false);
-
-			the_return.push_str("class:(");
 			the_return.push_str(&the_data_type);
-			the_return.push_str(")");
+			the_return.push_str(":");
 			the_return.push_str(&action);
 		}
 	}
@@ -1335,6 +1449,8 @@ fn gen_struct(the_name: &str, the_content: &str) -> String
 
 fn gen_class(the_name: &str, the_content: &str) -> String
 {
+
+	let class_name = after_split(the_name,":");
 	let mut the_complete = String::new();
 	let mut the_private_vars = String::new();
 	let mut the_public_vars = String::new();
@@ -1355,6 +1471,8 @@ fn gen_class(the_name: &str, the_content: &str) -> String
 	let mut the_params = String::from("");
 	let mut class_content = String::new();
 	let mut passed_content = the_content.to_string();
+
+//	println!("{}",passed_content);
 
 	while passed_content != ""
 	{
@@ -1406,21 +1524,20 @@ fn gen_class(the_name: &str, the_content: &str) -> String
 		the_public_vars.push_str("\n\t//public variables\n");
 //		the_public_vars.push_str(&the_public_vars);
 	}
-	the_complete.push_str("class ");
-	the_complete.push_str(&handle_names(&the_name));
-	the_complete.push_str(" {\n\n");
+	the_complete.push_str("struct ");
+	the_complete.push_str(&handle_names(&class_name));
+	the_complete.push_str(";\n");
+	the_complete.push_str("impl ");
+	the_complete.push_str(&handle_names(&class_name));
+	the_complete.push_str(" {\n");
 	the_complete.push_str(&the_private_vars);
-	the_complete.push_str("public:");
 	the_complete.push_str(&the_public_vars);
-	the_complete.push_str("\n\t//class constructor\n\t");
-	the_complete.push_str(&the_name);
+	the_complete.push_str(&handle_names(&the_name));
 	the_complete.push_str("(");
 	the_complete.push_str(&the_params);
-	the_complete.push_str(")\n\t{\n\t\tthis->x = x;\n\t\tthis->y = y;\n\t}\n\n");
+	the_complete.push_str(")\n");
 	the_complete.push_str(&class_content);
-	the_complete.push_str("\n\t//class desctructor\n\t~");
-	the_complete.push_str(&the_name);
-	the_complete.push_str("()\n\t{\n\t}\n};\n");
+	the_complete.push_str("\n}\n");
 
 	return the_complete.to_string();
 }
