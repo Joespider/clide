@@ -2,7 +2,7 @@ import os
 import sys
 import platform
 
-Version = "0.1.10"
+Version = "0.1.12"
 
 def getOS():
 	platform.system()
@@ -370,9 +370,16 @@ def TranslateTag(Input):
 			if StartsWith(Action,"equals("):
 				TheReturn = TheReturn +" "+Parent+ContentFor+Nest+TranslateTag("el")
 
-	elif StartsWith(Action, "if:") or StartsWith(Action, "else-if:"):
+	elif StartsWith(Action, "if:") or StartsWith(Action, "else-if:") or StartsWith(Action, "switch:"):
 		Value = AfterSplit(Action,":")
 		Action = BeforeSplit(Action,":")
+		NewTag = "logic:"+Action
+		Value = "logic-condition:"+Value
+		TheReturn = Parent+ContentFor+Nest+NewTag+" "+Value
+	elif StartsWith(Action, "case:"):
+		Value = AfterSplit(Action,":")
+		Action = BeforeSplit(Action,":")
+		Nest = "nest-"+Nest
 		NewTag = "logic:"+Action
 		Value = "logic-condition:"+Value
 		TheReturn = Parent+ContentFor+Nest+NewTag+" "+Value
@@ -1442,21 +1449,23 @@ def Logic(Tabs, TheKindType, Content):
 		Complete = Tabs+"elif "+TheCondition+":\n"+LogicContent
 	elif TheKindType == "else":
 		Complete = Tabs+"else:\n"+LogicContent
-	elif TheKindType == "switch-case":
-		Complete = Tabs+"\tcase x:\n"+Tabs+"\t\t//code here\n"+Tabs+"\t\tbreak;"
-	elif StartsWith(TheKindType, "switch"):
-		CaseContent = TheKindType
-		CaseVal
+#	elif TheKindType == "switch-case":
+	elif TheKindType == "case":
+		Complete = Tabs+"case "+TheCondition+":\n"+Tabs+"\t#code here\n"
+	elif TheKindType == "switch":
+#	elif StartsWith(TheKindType, "switch"):
+#		CaseContent = TheKindType
+#		CaseVal
 
-		Complete = Tabs+"switch ("+TheCondition+")\n"+Tabs+"{\n\n"
-		while CaseContent != "":
-			CaseVal = BeforeSplit(CaseContent,"-")
-			if CaseVal != "switch":
-				Complete = Complete+Tabs+"\tcase "+CaseVal+":\n"+Tabs+"\t\t//code here\n"+Tabs+"\t\tbreak;\n"
-
-			if IsIn(CaseContent,"-"):
-				CaseContent = AfterSplit(CaseContent,"-")
-		Complete = Complete+Tabs+"\tdefault:\n"+Tabs+"\t\t//code here\n"+Tabs+"\t\tbreak;\n"+Tabs+"}\n"
+		Complete = Tabs+"match "+TheCondition+":\n"
+#		while CaseContent != "":
+#			CaseVal = BeforeSplit(CaseContent,"-")
+#			if CaseVal != "switch":
+#				Complete = Complete+Tabs+"\tcase "+CaseVal+":\n"+Tabs+"\t\t#code here\n"+Tabs+"\t\tbreak;\n"
+#
+#			if IsIn(CaseContent,"-"):
+#				CaseContent = AfterSplit(CaseContent,"-")
+		Complete = Complete+LogicContent+Tabs+"\tcase _:\n"+Tabs+"\t\t#code here\n"
 	return Complete
 
 #stmt:

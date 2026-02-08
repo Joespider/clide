@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.1.28";
+String Version = "0.1.30";
 
 String getOS();
 void Help(String Type);
@@ -729,11 +729,21 @@ String TranslateTag(String Input)
 		}
 
 	}
-	//convert if, and else-if, to the old tags
-	else if ((StartsWith(Action, "if:")) || (StartsWith(Action, "else-if:")))
+	//convert if, else-if, or switch to the old tags
+//	else if ((StartsWith(Action, "if:")) || (StartsWith(Action, "else-if:")) || (StartsWith(Action, "switch:")) || (StartsWith(Action, "switch-case:")))
+	else if ((StartsWith(Action, "if:")) || (StartsWith(Action, "else-if:")) || (StartsWith(Action, "switch:")))
 	{
 		Value = AfterSplit(Action,':');
 		Action = BeforeSplit(Action,':');
+		NewTag = "logic:"+Action;
+		Value = "logic-condition:"+Value;
+		TheReturn = Parent+ContentFor+Nest+NewTag+" "+Value;
+	}
+	else if (StartsWith(Action, "case:"))
+	{
+		Value = AfterSplit(Action,':');
+		Action = BeforeSplit(Action,':');
+		Nest = "nest-"+Nest;
 		NewTag = "logic:"+Action;
 		Value = "logic-condition:"+Value;
 		TheReturn = Parent+ContentFor+Nest+NewTag+" "+Value;
@@ -2516,17 +2526,19 @@ String Logic(String Tabs, String TheKindType, String Content)
 	{
 		Complete = Tabs+"else\n"+Tabs+"{\n"+LogicContent+Tabs+"}\n";
 	}
-	else if (TheKindType == "switch-case")
+	else if (TheKindType == "case")
+//	else if (TheKindType == "switch-case")
 	{
-		Complete = Tabs+"\tcase x:\n"+Tabs+"\t\t//code here\n"+Tabs+"\t\tbreak;";
-
+		Complete = Tabs+"case "+TheCondition+":\n"+Tabs+"\t//code here\n"+Tabs+"\tbreak;\n";
 	}
-	else if (StartsWith(TheKindType, "switch"))
+	else if (TheKindType == "switch")
+//	else if (StartsWith(TheKindType, "switch"))
 	{
-		String CaseContent = TheKindType;
-		String CaseVal;
+//		String CaseContent = TheKindType;
+//		String CaseVal;
 
-		Complete = Tabs+"switch ("+TheCondition+")\n"+Tabs+"{\n\n";
+		Complete = Tabs+"switch ("+TheCondition+")\n"+Tabs+"{\n";
+/*
 		while (CaseContent != "")
 		{
 			CaseVal = BeforeSplit(CaseContent,'-');
@@ -2540,7 +2552,8 @@ String Logic(String Tabs, String TheKindType, String Content)
 				CaseContent = AfterSplit(CaseContent,'-');
 			}
 		}
-		Complete = Complete+Tabs+"\tdefault:\n"+Tabs+"\t\t//code here\n"+Tabs+"\t\tbreak;\n"+Tabs+"}\n";
+*/
+		Complete = Complete+LogicContent+Tabs+"\tdefault:\n"+Tabs+"\t\t//code here\n"+Tabs+"}\n";
 	}
 	return Complete;
 }
