@@ -9,7 +9,7 @@ import (
 	"strings"
 	)
 
-var Version string = "0.1.14"
+var Version string = "0.1.16"
 
 func getOS() string {
 	os := runtime.GOOS
@@ -465,9 +465,16 @@ func TranslateTag(Input string) string {
 		}
 
 	//convert if, and else-if, to the old tags
-	} else if StartsWith(Action, "if:") || StartsWith(Action, "else-if:") {
+	} else if StartsWith(Action, "if:") || StartsWith(Action, "else-if:") || StartsWith(Action, "switch:") {
 		Value = AfterSplit(Action,":")
 		Action = BeforeSplit(Action,":")
+		NewTag = "logic:"+Action
+		Value = "logic-condition:"+Value
+		TheReturn = Parent+ContentFor+Nest+NewTag+" "+Value
+	} else if StartsWith(Action, "case:") {
+		Value = AfterSplit(Action,":")
+		Action = BeforeSplit(Action,":")
+		Nest = "nest-"+Nest
 		NewTag = "logic:"+Action
 		Value = "logic-condition:"+Value
 		TheReturn = Parent+ContentFor+Nest+NewTag+" "+Value
@@ -1826,13 +1833,16 @@ func Logic(Tabs string, TheKindType string, Content string) string {
 		Complete = " else if "+TheCondition+" {\n"+LogicContent+Tabs+"}\n"
 	} else if TheKindType == "else" {
 		Complete = " else {\n"+LogicContent+Tabs+"}\n"
-	} else if TheKindType == "switch-case" {
-		Complete = Tabs+"\tcase x:\n"+Tabs+"\t\t//code here\n"+Tabs+"\t\tbreak"
-	} else if StartsWith(TheKindType, "switch") {
-		var CaseContent string = TheKindType
-		var CaseVal string
+//	} else if TheKindType == "switch-case" {
+	} else if TheKindType == "case" {
+		Complete = Tabs+"case "+TheCondition+":\n"+Tabs+"\t//code here\n"
+	} else if TheKindType == "switch" {
+//	} else if StartsWith(TheKindType, "switch") {
+//		var CaseContent string = TheKindType
+//		var CaseVal string
 
-		Complete = Tabs+"switch ("+TheCondition+")\n"+Tabs+"{\n\n"
+		Complete = Tabs+"switch ("+TheCondition+")\n"+Tabs+"{\n"
+/*
 		for CaseContent != "" {
 			CaseVal = BeforeSplit(CaseContent,"-")
 			if CaseVal != "switch" {
@@ -1843,7 +1853,8 @@ func Logic(Tabs string, TheKindType string, Content string) string {
 				CaseContent = AfterSplit(CaseContent,"-")
 			}
 		}
-		Complete = Complete+Tabs+"\tdefault:\n"+Tabs+"\t\t//code here\n"+Tabs+"\t\tbreak\n"+Tabs+"}\n"
+*/
+		Complete = Complete+LogicContent+Tabs+"\tdefault:\n"+Tabs+"\t\t//code here\n"+Tabs+"}\n"
 	}
 
 	return Complete
@@ -2068,7 +2079,6 @@ func Variables(Tabs string, TheKindType string, Content string) string {
 		VarType = ""
 	}
 
-//	fmt.Println(TheKindType)
 	//Assign Value
 	if IsIn(TheKindType,"=") && TheKindType != "=" {
 		MakeEqual = true

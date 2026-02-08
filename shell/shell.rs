@@ -3,7 +3,7 @@ use std::process::Command;
 
 fn the_version() -> String
 {
-	return "0.1.14".to_string();
+	return "0.1.19".to_string();
 }
 
 fn get_os() -> String
@@ -26,7 +26,7 @@ fn the_help(the_type: &str)
 		println!("{{}}<name>:(<type>)<name> var(public/private):<vars> method:<name>-<type> param:<params>,<param>");
 		println!("");
 		println!("{{EXAMPLE}}");
-		example("{{}}pizza:(int)one,(bool)two,(float)three var(private):(int)toppings [String-mixture]cheese:(String)kind,(int)amount for: nest-for: [String]topping:(String)name,(int)amount if:good");
+		example("{class}clock []-equals(hr):0 []-equals(min):0 []-equals(date):\"00/00/0000\" []-[print]:\"ClockStarted\" []-el {c}-[]clock:(int)one,(int)two,(String)three []-equals(hr):one []-equals(min):two []-equals(date):three []-[print]:\"ClockStarted\" []-el {c}-var(protected):(bool)reset {c}-var(private):(int)hr {c}-var(private):(int)min {c}-var(private):(String)date {c}-nl {c}-[]Hr:(int)number []-equals((int)value):number []-if:number(-lt)25 +-equals(hr):Value {c}-nl {c}-[int-value]Hr: []-(int)value:()hr []-el {c}-nl {c}-[]Min:(int)number []-equals((int)value):number []-if:number(-lt)61 +-equals(min):Value {c}-nl {c}-[int-value]Min: []-equals((int)value):min {c}-nl {c}-[]Date:(String)TheDate []-equals((String)value):TheDate []-if:TheDate(-ne)\"0/0/0000\" +-equals(date):Value {c}-nl {c}-[String-value]Date: []-equals((String)value):date {c}-nl");
 	}
 	else if new_the_type == "struct"
 	{
@@ -503,13 +503,36 @@ fn algo_tags(algo: &str) -> String
 			new_tags.push_str(&return_value.to_string());
 		}
 	}
+	else if starts_with(&algo,"decre(") && is_in(&algo,"):") && args == ""
+	{
+		let mut return_key = after_split(&action,"(");
+		return_key = before_split(&return_key,")");
+
+		let mut return_value = String::from(&before_split(&return_key,")"));
+		return_value.push_str(" ()- ()= ()1");
+		new_tags.push_str("()");
+		new_tags.push_str(&return_key.to_string());
+		new_tags.push_str(&return_value.to_string());
+	}
+	else if starts_with(&algo,"decre(") && is_in(&algo,"):") && args != ""
+	{
+		let mut return_key = after_split(&action,"(");
+		return_key = before_split(&return_key,")");
+
+		let mut return_value = String::from(&before_split(&return_key,")"));
+		return_value.push_str(" ()- ()= ()");
+		return_value.push_str(&args);
+		new_tags.push_str("()");
+		new_tags.push_str(&return_key.to_string());
+		new_tags.push_str(&return_value.to_string());
+	}
 	else if starts_with(&algo,"incre(") && is_in(&algo,"):") && args == ""
 	{
 		let mut return_key = after_split(&action,"(");
 		return_key = before_split(&return_key,")");
 
 		let mut return_value = String::from(&before_split(&return_key,")"));
-		return_value.push_str(" ()+ ()+");
+		return_value.push_str(" ()+ ()= ()1");
 		new_tags.push_str("()");
 		new_tags.push_str(&return_key.to_string());
 		new_tags.push_str(&return_value.to_string());
@@ -527,12 +550,65 @@ fn algo_tags(algo: &str) -> String
 	}
 	else if starts_with(&algo,"equals(") && is_in(&algo,"):") && args != ""
 	{
-		let mut return_key = after_split(&action,"(");
-		return_key = before_split(&return_key,")");
-		new_tags.push_str("(");
-		new_tags.push_str(&return_key);
-		new_tags.push_str("):()");
-		new_tags.push_str(&args);
+		let mut is_call_method: bool = false;
+
+		if starts_with(&args,"[")
+		{
+			is_call_method = true;
+		}
+
+		if starts_with(&action,"equals((")
+		{
+			let return_value: String = args;
+			let mut return_key = after_split(&action,"(");
+			return_key = after_split(&return_key,"(");
+
+			let data_type = before_split(&return_key,")");
+
+			return_key = after_split(&return_key,")");
+			return_key = before_split(&return_key,")");
+			if is_call_method == true
+			{
+				new_tags.push_str("(");
+				new_tags.push_str(&data_type);
+				new_tags.push_str(")");
+				new_tags.push_str(&return_key);
+				new_tags.push_str(":");
+				new_tags.push_str(&return_value);
+			}
+			else
+			{
+				new_tags.push_str("(");
+				new_tags.push_str(&data_type);
+				new_tags.push_str(")");
+				new_tags.push_str(&return_key);
+				new_tags.push_str(":()");
+				new_tags.push_str(&return_value);
+			}
+		}
+		else
+		{
+			let mut return_key = after_split(&action,"(");
+			return_key = before_split(&return_key,")");
+			if is_call_method == true
+			{
+				new_tags.push_str("()");
+				new_tags.push_str(&return_key);
+				new_tags.push_str(":");
+				new_tags.push_str(&args);
+			}
+			else
+			{
+				new_tags.push_str("()");
+				new_tags.push_str(&return_key);
+				new_tags.push_str(":()");
+				new_tags.push_str(&args);
+			}
+		}
+	}
+	else if algo == "concat():" || algo == "decre():" || algo == "incre():" || algo == "equals():"
+	{
+		new_tags.push_str("");
 	}
 	else
 	{
@@ -546,41 +622,61 @@ fn translate_tag(input: &str) -> String
 {
 	let mut the_return = String::new();
 	let mut action = String::from(input);
-	let mut value = String::new();
-	let mut new_tag = String::new();
+	let mut value: String = "".to_string();
+//	let new_tag: String = "".to_string();
 	let mut the_nest = String::new();
-	let mut parent = "";
-	let mut content_for = "";
+	let mut parent: String = "".to_string();
+	let mut content_for: String = "".to_string();
+//	let mut the_data_type: String = "".to_string();
+//	String OldDataType = "";
 
+	//content for parent loops/logic
 	if starts_with(&action, "<-")
 	{
 		action = after_split(&action,"-");
-		parent = "parent-";
+		parent = "parent-".to_string();
 	}
+	//content for future parent loops/logic
 	else if starts_with(&action, "<<")
 	{
 		action = after_split(&action,"<");
-		parent = "parent-";
+		parent = "parent-".to_string();
 	}
+	//content for logic
 	else if starts_with(&action, "+-")
 	{
 		action = after_split(&action,"-");
-		content_for = "logic-";
+		content_for = "logic-".to_string();
 	}
+	//content for loops
 	else if starts_with(&action, "o-")
 	{
 		action = after_split(&action,"-");
-		content_for = "loop-";
+		content_for = "loop-".to_string();
 	}
+	//content for methods
 	else if starts_with(&action, "[]-")
 	{
 		action = after_split(&action,"-");
-		content_for = "method-";
+		content_for = "method-".to_string();
 	}
-	else if starts_with(&action, "{}-")
+	//content for classes
+	else if starts_with(&action, "{c}-")
 	{
 		action = after_split(&action,"-");
-		content_for = "class-";
+		content_for = "class-".to_string();
+	}
+	//constructor for classes
+	else if starts_with(&action, "{const}-")
+	{
+		action = after_split(&action,"-");
+//		content_for = "point:".to_string();
+	}
+	//content for classes
+	else if starts_with(&action, "{s}-")
+	{
+		action = after_split(&action,"-");
+		content_for = "struct-".to_string();
 	}
 
 	// ">" becomes "nest-"
@@ -590,79 +686,124 @@ fn translate_tag(input: &str) -> String
 		the_nest.push_str("nest-");
 	}
 
-	if starts_with(&action,"concat(") || starts_with(&action,"incre(") || starts_with(&action,"equals(")
+	if starts_with(&action,"concat(") || starts_with(&action,"incre(") || starts_with(&action,"decre(") || starts_with(&action,"equals(")
 	{
 		let algo = algo_tags(&action);
 		if is_in(&algo," ")
 		{
-			let all_tabs: Vec<&str> = algo.split(" ").collect();
-			let mut lp = 0;
-			let end = len_a(&all_tabs);
-			while lp != end
+			let algo_tages: Vec<&str> = algo.split(" ").collect();
+			for new_algo_tag in &algo_tages
 			{
-				let new_algo_tag = all_tabs[lp];
 				if the_return.to_string() == ""
 				{
-					the_return.push_str(&translate_tag(&new_algo_tag));
+					the_return.push_str(&parent);
+					the_return.push_str(&content_for);
+					the_return.push_str(&the_nest.to_string());
+					the_return.push_str(&translate_tag(new_algo_tag));
 				}
 				else
 				{
 					the_return.push_str(" ");
-					the_return.push_str(&translate_tag(&new_algo_tag));
+					the_return.push_str(&parent);
+					the_return.push_str(&content_for);
+					the_return.push_str(&the_nest.to_string());
+					the_return.push_str(&translate_tag(new_algo_tag));
 				}
-				lp += 1;
-                        }
+
+				if starts_with(&action,"equals(")
+				{
+					the_return.push_str(" ");
+					the_return.push_str(&parent);
+					the_return.push_str(&content_for);
+					the_return.push_str(&the_nest.to_string());
+					the_return.push_str(&translate_tag("el"));
+				}
+			}
 		}
 		else
 		{
+			the_return.push_str(&parent);
+			the_return.push_str(&content_for);
+			the_return.push_str(&the_nest.to_string());
 			the_return.push_str(&translate_tag(&algo));
+			if starts_with(&action,"equals(")
+			{
+				the_return.push_str(" ");
+				the_return.push_str(&parent);
+				the_return.push_str(&content_for);
+				the_return.push_str(&the_nest.to_string());
+				the_return.push_str(&translate_tag("el"));
+			}
 		}
 
 	}
-	else if starts_with(&action, "if:") || starts_with(&action, "else-if:")
+	//convert if, and else-if, to the old tags
+	else if starts_with(&action, "if:") || starts_with(&action, "else-if:") || starts_with(&action, "switch:")
 	{
-		let tmp_value = after_split(&action,":");
+		value = after_split(&action,":");
 		action = before_split(&action,":");
-		new_tag.push_str("logic:");
-		new_tag.push_str(&action);
-		value.push_str("logic-condition:");
-		value.push_str(&tmp_value);
-		the_return.push_str(parent);
-		the_return.push_str(content_for);
-		the_return.push_str(&the_nest);
+		let new_tag = ["logic:",&action].concat();
+		value = ["logic-condition:",&value].concat();
+		the_return.push_str(&parent);
+		the_return.push_str(&content_for);
+		the_return.push_str(&the_nest.to_string());
 		the_return.push_str(&new_tag);
 		the_return.push_str(" ");
 		the_return.push_str(&value);
 	}
-	else if action == "else"
+	else if starts_with(&action, "case:")
 	{
-		new_tag.push_str("logic:");
-		new_tag.push_str(&action);
-		the_return.push_str(parent);
+		value = after_split(&action,":");
+		action = before_split(&action,":");
+		let new_tag = ["logic:",&action].concat();
+		value = ["logic-condition:",&value].concat();
+		the_nest.push_str("nest-");
+		the_return.push_str(&parent);
 		the_return.push_str(&content_for);
-		the_return.push_str(&the_nest);
+		the_return.push_str(&the_nest.to_string());
+		the_return.push_str(&new_tag);
+		the_return.push_str(" ");
+		the_return.push_str(&value);
+	}
+	//convert else to the old tags
+	else if &action == "else"
+	{
+		let new_tag = ["logic:",&action].concat();
+		the_return.push_str(&parent);
+		the_return.push_str(&content_for);
+		the_return.push_str(&the_nest.to_string());
 		the_return.push_str(&new_tag);
 	}
+	//convert while, for, and do-while, to the old tags
 	else if starts_with(&action, "while:") || starts_with(&action, "for:") || starts_with(&action, "do-while:")
 	{
-		let tmp_value = after_split(&action,":");
+		value = after_split(&action,":");
 		action = before_split(&action,":");
-		new_tag.push_str("loop:");
-		new_tag.push_str(&action);
-		value.push_str("loop-condition:");
-		value.push_str(&tmp_value);
-		the_return.push_str(parent);
+		let new_tag = ["loop:",&action].concat();
+		value = ["loop-condition:",&value].concat();
+		the_return.push_str(&parent);
 		the_return.push_str(&content_for);
-		the_return.push_str(&the_nest);
+		the_return.push_str(&the_nest.to_string());
 		the_return.push_str(&new_tag);
 		the_return.push_str(" ");
 		the_return.push_str(&value);
 	}
-	//class
+	//class or struct
 	else if starts_with(&action, "{") && is_in(&action,"}")
 	{
-		let tmp_action = &action.to_owned();
+		let mut the_data_type = before_split(&action,"}");
+		the_data_type = after_split(&the_data_type,"{");
 		action = after_split(&action,"}");
+
+		if is_in(&the_data_type,"-")
+		{
+			let parent_class = after_split(&the_data_type,"-");
+			the_data_type = before_split(&the_data_type,"-");
+			if the_data_type != "template"
+			{
+				action = [&action,"-",&parent_class].concat();
+			}
+		}
 
 		if is_in(&action,":")
 		{
@@ -670,70 +811,62 @@ fn translate_tag(input: &str) -> String
 			action = before_split(&action,":");
 		}
 
-		if value != ""
+		if &value != ""
 		{
-			let mut the_data_type = after_split(&before_split(tmp_action,"}"),"{");
-			the_data_type = data_type(&the_data_type,false);
-
-			the_return.push_str("class:(");
 			the_return.push_str(&the_data_type);
-			the_return.push_str(")");
+			the_return.push_str(":");
 			the_return.push_str(&action);
 			the_return.push_str(" params:");
 			the_return.push_str(&value);
 		}
 		else
 		{
-			let mut the_data_type = after_split(&before_split(tmp_action,"}"),"{");
-			the_data_type = data_type(&the_data_type,false);
-
-			the_return.push_str("class:(");
 			the_return.push_str(&the_data_type);
-			the_return.push_str(")");
+			the_return.push_str(":");
 			the_return.push_str(&action);
 		}
 	}
 	//method
 	else if starts_with(&action, "[") && is_in(&action,"]")
 	{
-		let tmp_action = after_split(&action.to_owned(),"]");
-		if starts_with(&tmp_action,":")
+		let mut the_data_type = before_split(&action,"]");
+		the_data_type = after_split(&the_data_type,"[");
+		action = after_split(&action,"]");
+		//calling a function
+		if starts_with(&action, ":")
 		{
-			let the_data_type = after_split(&before_split(&action,"]"),"[");
-
 			value = after_split(&action,":");
 			action = the_data_type;
-
-			the_return.push_str(parent);
-			the_return.push_str(&content_for);
-			the_return.push_str(&the_nest.to_string());
-			the_return.push_str("stmt:method-");
-			the_return.push_str(&action);
-			if value != ""
+			if &value != ""
 			{
+				the_return.push_str(&parent);
+				the_return.push_str(&content_for);
+				the_return.push_str("stmt:method-");
+				the_return.push_str(&action);
 				the_return.push_str(" params:");
 				the_return.push_str(&value);
+			}
+			else
+			{
+				the_return.push_str(&parent);
+				the_return.push_str(&content_for);
+				the_return.push_str("stmt:method-");
+				the_return.push_str(&action);
 			}
 		}
 		//is a function
 		else
 		{
-			let mut the_data_type = after_split(&before_split(&action,"]"),"[");
 			the_data_type = data_type(&the_data_type,false);
-
-			if is_in(&tmp_action,":")
+			if is_in(&action,":")
 			{
-				value = after_split(&tmp_action,":");
-				action = before_split(&tmp_action,":");
-			}
-			else
-			{
-				action = tmp_action;
+				value = after_split(&action,":");
+				action = before_split(&action,":");
 			}
 
-			if value != ""
+			if &value != ""
 			{
-				the_return.push_str(parent);
+				the_return.push_str(&parent);
 				the_return.push_str(&content_for);
 				the_return.push_str(&the_nest.to_string());
 				the_return.push_str("method:(");
@@ -745,7 +878,7 @@ fn translate_tag(input: &str) -> String
 			}
 			else
 			{
-				the_return.push_str(parent);
+				the_return.push_str(&parent);
 				the_return.push_str(&content_for);
 				the_return.push_str(&the_nest.to_string());
 				the_return.push_str("method:(");
@@ -754,94 +887,67 @@ fn translate_tag(input: &str) -> String
 				the_return.push_str(&action);
 			}
 		}
-
 	}
 	//variables
 	else if starts_with(&action, "(") && is_in(&action,")")
 	{
-		let tmp_action = after_split(&action.to_owned(),")");
+		let mut the_data_type = before_split(&action,")");
+		the_data_type = after_split(&the_data_type,"(");
+		action = after_split(&action,")");
 
-		//calling function
-		if is_in(&tmp_action,":")
+		//replacing data type to represent the variable
+		if starts_with(&action,":")
 		{
-			value = after_split(&tmp_action,":");
+			action = ["",&the_data_type,&action].concat();
+			the_data_type = "".to_string();
+		}
+
+		if is_in(&action,":")
+		{
+			value = after_split(&action,":");
 			action = before_split(&action,":");
 		}
 
-		if value != ""
+		if value.to_string() != ""
 		{
-			let mut the_data_type = after_split(&before_split(&action,")"),"(");
-			the_data_type = data_type(&the_data_type,false);
-
-			//replacing data type to represent the variable
-			if starts_with(&tmp_action,":")
+			if content_for == "logic-"
 			{
-				action = the_data_type.to_owned();
-				the_data_type = "".to_string();
+				value = ["+-",&the_nest.to_string(),&value].concat();
+			}
+			else if content_for == "loop-"
+			{
+				value = ["o-",&the_nest.to_string(),&value].concat();
+			}
+			else if content_for == "method-"
+			{
+				value = ["[]-",&the_nest.to_string(),&value].concat();
+			}
+			else if content_for == "class-"
+			{
+				value = ["{}-",&the_nest.to_string(),&value].concat();
 			}
 
-			if starts_with(&action,"()") || the_data_type != ""
-			{
-				action = after_split(&action.to_owned(),")");
-			}
-
-			the_return.push_str(parent);
-			the_return.push_str(content_for);
-//			the_return.push_str(&the_nest.to_string());
+			//translate value, if needed
+			value = translate_tag(&value);
+			the_return.push_str(&parent);
+			the_return.push_str(&content_for);
 			the_return.push_str("var:(");
 			the_return.push_str(&the_data_type);
 			the_return.push_str(")");
 			the_return.push_str(&action);
 			the_return.push_str("= ");
-
-			if content_for == "logic-"
-			{
-				the_return.push_str(&translate_tag(&["+-",&the_nest.to_string(),&value].concat()));
-			}
-			else if content_for == "loop-"
-			{
-				the_return.push_str(&translate_tag(&["o-",&the_nest.to_string(),&value].concat()));
-			}
-			else if content_for == "method-"
-			{
-				the_return.push_str(&translate_tag(&["[]-",&the_nest.to_string(),&value].concat()));
-			}
-			else if content_for == "class-"
-			{
-				the_return.push_str(&translate_tag(&["{}-",&the_nest.to_string(),&value].concat()));
-			}
-			else
-			{
-				the_return.push_str(&translate_tag(&value));
-			}
+			the_return.push_str(&value);
 		}
 		else
 		{
-			let mut the_data_type = after_split(&before_split(&action,")"),"(");
-			the_data_type = data_type(&the_data_type,false);
-
-			//replacing data type to represent the variable
-			if starts_with(&tmp_action,":")
-			{
-				action = the_data_type.to_owned();
-				the_data_type = "".to_string();
-			}
-
-			if starts_with(&action,"()") || the_data_type != ""
-			{
-				action = after_split(&action.to_owned(),")");
-			}
-
-			the_return.push_str(parent);
-			the_return.push_str(content_for);
-//			the_return.push_str(&the_nest.to_string());
+			the_return.push_str(&parent);
+			the_return.push_str(&content_for);
 			the_return.push_str("var:(");
 			the_return.push_str(&the_data_type);
 			the_return.push_str(")");
 			the_return.push_str(&action);
 		}
 	}
-
 
 	//This is an example of handling vecotors and arrays
 	//	<type>name:value
@@ -861,18 +967,16 @@ fn translate_tag(input: &str) -> String
 	//vectors or arrays
 	else if starts_with(&action, "<") && is_in(&action,">") && !starts_with(&action, "<<") && !starts_with(&action, "<-")
 	{
-		let tmp_action;
-		let mut vector_or_array = String::from("");
-		let mut the_data_type = after_split(&before_split(&action,">"),"<");
+		let mut vector_or_array: String = "".to_string();
+		let mut the_data_type = before_split(&action,">");
+		the_data_type = after_split(&the_data_type,"<");
 		action = after_split(&action,">");
 
 		//replacing data type to represent the variable
 		if starts_with(&action,":")
 		{
-	//		let mut the_data_type = String::from("");
-			tmp_action = [the_data_type,action].concat();
+			action = ["",&the_data_type,&action].concat();
 			the_data_type = "".to_string();
-			action = tmp_action.to_string();
 		}
 
 		if is_in(&action,":")
@@ -898,7 +1002,7 @@ fn translate_tag(input: &str) -> String
 			}
 		}
 
-		if &the_data_type != ""
+		if the_data_type != ""
 		{
 			if ends_with(&the_data_type,"]")
 			{
@@ -909,8 +1013,10 @@ fn translate_tag(input: &str) -> String
 				vector_or_array = "vector:".to_string();
 			}
 
-			if value != ""
+			if &value != ""
 			{
+				the_return.push_str(&parent);
+				the_return.push_str(&content_for);
 				the_return.push_str("var:<");
 				the_return.push_str(&vector_or_array);
 				the_return.push_str(&the_data_type);
@@ -921,6 +1027,8 @@ fn translate_tag(input: &str) -> String
 			}
 			else
 			{
+				the_return.push_str(&parent);
+				the_return.push_str(&content_for);
 				the_return.push_str("var:<");
 				the_return.push_str(&vector_or_array);
 				the_return.push_str(&the_data_type);
@@ -932,6 +1040,8 @@ fn translate_tag(input: &str) -> String
 		{
 			if value != ""
 			{
+				the_return.push_str(&parent);
+				the_return.push_str(&content_for);
 				the_return.push_str("stmt:<");
 				the_return.push_str(&vector_or_array);
 				the_return.push_str(&the_data_type);
@@ -942,6 +1052,8 @@ fn translate_tag(input: &str) -> String
 			}
 			else
 			{
+				the_return.push_str(&parent);
+				the_return.push_str(&content_for);
 				the_return.push_str("stmt:<");
 				the_return.push_str(&vector_or_array);
 				the_return.push_str(&the_data_type);
@@ -952,32 +1064,29 @@ fn translate_tag(input: &str) -> String
 	}
 	else if action == "el"
 	{
-		the_return.push_str(parent);
-		the_return.push_str(content_for);
-//		the_return.push_str(&the_nest.to_string());
+		the_return.push_str(&parent);
+		the_return.push_str(&content_for);
 		the_return.push_str("stmt:endline");
 	}
 	else if action == "nl"
 	{
-		the_return.push_str(parent);
-		the_return.push_str(content_for);
-//		the_return.push_str(&the_nest.to_string());
+		the_return.push_str(&parent);
+		the_return.push_str(&content_for);
 		the_return.push_str("stmt:newline");
 	}
 	else if action == "tab"
 	{
-		the_return.push_str(parent);
-		the_return.push_str(content_for);
-//		the_return.push_str(&the_nest.to_string());
+		the_return.push_str(&parent);
+		the_return.push_str(&content_for);
 		the_return.push_str("stmt:");
 		the_return.push_str(&action);
 	}
 	else
 	{
-		if value != ""
+		if &value != ""
 		{
-			the_return.push_str(parent);
-			the_return.push_str(content_for);
+			the_return.push_str(&parent);
+			the_return.push_str(&content_for);
 			the_return.push_str(&the_nest.to_string());
 			the_return.push_str(&action);
 			the_return.push_str(":");
@@ -985,8 +1094,8 @@ fn translate_tag(input: &str) -> String
 		}
 		else
 		{
-			the_return.push_str(parent);
-			the_return.push_str(content_for);
+			the_return.push_str(&parent);
+			the_return.push_str(&content_for);
 			the_return.push_str(&the_nest.to_string());
 			the_return.push_str(&action);
 		}
@@ -1028,23 +1137,22 @@ fn handle_names(the_name: &str) -> String
 
 fn handle_tabs(_called_by: &str, tabs: &str, content: &str) -> String
 {
-        let mut new_tabs = String::from("");
-        if content != "stmt:endline" && content != "stmt:newline"
-        {
-                if starts_with(content,"stmt:") || starts_with(content,"var:")
-                {
+	let mut new_tabs = String::from("");
+	if content != "stmt:endline" && content != "stmt:newline"
+	{
+		if starts_with(content,"stmt:") || starts_with(content,"var:")
+		{
 			let all_tabs: Vec<&str> = tabs.split("\t").collect();
 			let mut lp = 0;
 			let end = len_a(&all_tabs);
 			while lp != (end - 1)
 			{
-                                new_tabs.push_str("stmt:tab ");
+				new_tabs.push_str("stmt:tab ");
 				lp += 1;
-                        }
-                }
-        }
-
-        return new_tabs.to_string();
+			}
+		}
+	}
+	return new_tabs.to_string();
 }
 
 fn borrow_value(the_data_type: &str, called_by: &str) -> String
@@ -1258,11 +1366,19 @@ fn gen_conditions(input: &str) -> String
 fn gen_parameters(input: &str, called_by: &str) -> String
 {
 	let mut name: String;
-	let the_params = after_split(input,":");
+	let mut the_params = after_split(input,":");
 	let mut new_params = String::new();
 
 	if called_by == "class" || called_by == "method" || called_by == "stmt"
 	{
+
+		//params:&self
+		if starts_with(&the_params,"&self,")
+		{
+			the_params = after_split(&the_params,",");
+			new_params.push_str("&self, ");
+		}
+		
 		//param-type,param-type,param-type
 		if starts_with(&the_params,"(") && is_in(&the_params,")") && is_in(&the_params,",")
 		{
@@ -1312,115 +1428,355 @@ fn gen_parameters(input: &str, called_by: &str) -> String
 
 fn gen_struct(the_name: &str, the_content: &str) -> String
 {
+	let new_name = after_split(the_name,":");
+	let mut passed_content = the_content.to_string();
 	let mut the_complete = String::new();
 	let mut struct_var = String::new();
 	let mut the_process: String;
-//	let new_name = after_split(the_name,":");
-	let mut passed_content = the_content.to_string();
 
-	while starts_with(&passed_content, "var")
+	while starts_with(&passed_content, "struct-var") || starts_with(&passed_content, "struct-stmt") || starts_with(&passed_content, "var") || starts_with(&passed_content, "stmt")
 	{
-		the_process = before_split(&passed_content," ");
-		passed_content = after_split(&passed_content," ");
-		struct_var.push_str(&gen_code("\t",&the_process));
+		passed_content = replace_tag(&passed_content, "struct-",true);
+
+		if is_in(&passed_content," ")
+		{
+			the_process = before_split(&passed_content," ");
+			passed_content = after_split(&passed_content," ");
+		}
+		else
+		{
+			the_process = passed_content;
+			passed_content = "".to_string();
+		}
+
+		let auto_tabs = handle_tabs("struct","\t",&the_process);
+		if auto_tabs != ""
+		{
+			struct_var.push_str(&gen_code("\t",&auto_tabs));
+		}
+		the_process = after_split(&gen_code("\t",&the_process)," ");
+		struct_var.push_str(&the_process);
+		struct_var.push_str(",\n");
 	}
-	the_complete.push_str("struct {\n");
+
+	the_complete.push_str("struct ");
+	the_complete.push_str(&handle_names(&new_name));
+	the_complete.push_str(" {\n");
 	the_complete.push_str(&struct_var);
-	the_complete.push_str("\n} ");
-	the_complete.push_str(&the_name);
-	the_complete.push_str(";\n");
+	the_complete.push_str("}\n");
 
 	return the_complete;
 }
 
 fn gen_class(the_name: &str, the_content: &str) -> String
 {
+
+	let mut passed_content = the_content.to_string();
+	let mut new_name = the_name.to_string();
 	let mut the_complete = String::new();
-	let mut the_private_vars = String::new();
-	let mut the_public_vars = String::new();
-	let mut var_content = String::new();
-
-/*
-	String PublicOrPrivate = "";
-	if (starts_with(the_name,"class("))
-	if (is_in(the_name,")"))
-	{
-		PublicOrPrivate = after_split(the_name,"(");
-		PublicOrPrivate = before_split(PublicOrPrivate,")");
-	}
-*/
-
-//	let new_name = after_split(the_name,":");
-	let mut the_process: String;
+	let mut the_private_vars = String::from("");
+	let mut the_public_vars = String::from("");
+	let mut the_protected_vars = String::from("");
+	let the_process: String;
 	let mut the_params = String::from("");
 	let mut class_content = String::new();
-	let mut passed_content = the_content.to_string();
+//	let mut constructor: String = "".to_string();
+	let mut const_content = String::new();
+//	let inheritance: String = "".to_string();
+	let mut parent_class: String = "".to_string();
+	new_name = after_split(&new_name,":");
 
-	while passed_content != ""
+	if is_in(&new_name,"-")
 	{
-		if starts_with(&passed_content, "params") && the_params == ""
-		{
-			the_process = before_split(&passed_content," ");
-			the_params = gen_parameters(&the_process,"class");
-		}
-		else if starts_with(&passed_content, "method")
-		{
-			class_content.push_str(&gen_code("\t",&passed_content));
-		}
-		else if starts_with(&passed_content, "var")
-		{
-			if starts_with(&passed_content, "var(public)")
-			{
-				passed_content = after_split(&passed_content,")");
-				var_content.push_str("var");
-				var_content.push_str(&before_split(&passed_content," "));
-				the_public_vars.push_str(&gen_code("\t",&var_content));
-			}
-			else if starts_with(&passed_content, "var(private)")
-			{
-				passed_content = after_split(&passed_content,")");
-				var_content.push_str("var");
-				var_content.push_str(&before_split(&passed_content," "));
-				the_private_vars.push_str(&gen_code("\t",&var_content));
-			}
-		}
+		parent_class = after_split(&new_name,"-");
+		new_name = before_split(&new_name,"-");
+	}
 
+	let struct_name = ["struct:",&new_name].concat();
+
+	//handle constructor content
+	if starts_with(&passed_content,"method-")
+	{
+		while !starts_with(&passed_content,"class-") && &passed_content != ""
+		{
+			if is_in(&passed_content," ")
+			{
+				const_content.push_str(" ");
+				const_content.push_str(&before_split(&passed_content," "));
+				passed_content = after_split(&passed_content," ");
+			}
+			else
+			{
+				const_content.push_str(" ");
+				const_content.push_str(&passed_content);
+				passed_content = "".to_string();
+			}
+		}
+	}
+
+	if starts_with(&passed_content, "params:") && the_params == ""
+	{
 		if is_in(&passed_content," ")
 		{
+			the_process = before_split(&passed_content," ");
 			passed_content = after_split(&passed_content," ");
 		}
 		else
 		{
-			break;
+			the_process = passed_content;
+			passed_content = "".to_string();
+		}
+//		the_params = Parameters(the_process,"class");
+		the_params = the_process;
+	}
+
+	//handle constructor content
+	if starts_with(&passed_content,"method-")
+	{
+		while !starts_with(&passed_content,"class-") && passed_content != ""
+		{
+			let item: String;
+
+			if is_in(&passed_content," ")
+			{
+				item = before_split(&passed_content," ");
+				passed_content = after_split(&passed_content," ");
+			}
+			else
+			{
+				item = passed_content;
+				passed_content = "".to_string();
+			}
+			class_content.push_str(" ");
+			class_content.push_str(&item);
 		}
 	}
 
-	if the_private_vars != ""
+	//class constructor
+	if the_params != ""
 	{
-		the_private_vars.push_str("private:\n\t//private variables\n");
-//		the_private_vars.push_str(&the_private_vars);
-		the_private_vars.push_str("\n");
+		class_content.push_str(&gen_code("\t",&["method:({})",&new_name," ",&the_params,&const_content.to_string()].concat()));
 	}
-	if the_public_vars != ""
+	else
 	{
-		the_public_vars.push_str("\n\t//public variables\n");
-//		the_public_vars.push_str(&the_public_vars);
+		class_content.push_str(&gen_code("\t",&["method:({})",&new_name," params:&self ",&const_content.to_string()].concat()));
 	}
-	the_complete.push_str("class ");
-	the_complete.push_str(&handle_names(&the_name));
-	the_complete.push_str(" {\n\n");
-	the_complete.push_str(&the_private_vars);
-	the_complete.push_str("public:");
-	the_complete.push_str(&the_public_vars);
-	the_complete.push_str("\n\t//class constructor\n\t");
-	the_complete.push_str(&the_name);
-	the_complete.push_str("(");
-	the_complete.push_str(&the_params);
-	the_complete.push_str(")\n\t{\n\t\tthis->x = x;\n\t\tthis->y = y;\n\t}\n\n");
+
+	if is_in(&passed_content," class-")
+	{
+		let old_passed_content = passed_content;
+		let cmds: Vec<&str> = old_passed_content.split(" class-").collect();
+		for item in &cmds
+		{
+			passed_content = replace_tag(&item, "class-",false);
+
+			if starts_with(&passed_content,&["method:()",&the_name," "].concat())
+			{
+				passed_content = after_split(&passed_content," ");
+				passed_content = ["method:({{}})",&the_name," ",&passed_content].concat();
+			}
+			else if passed_content == ["method:()",&the_name].concat()
+			{
+				passed_content = ["method:({{}})",&the_name].concat();
+			}
+
+			if starts_with(&passed_content, "method:")
+			{
+				if is_in(&passed_content," ")
+				{
+					let mut fix_params: String = after_split(&passed_content," ");
+					passed_content = before_split(&passed_content," ");
+					if starts_with(&fix_params,"params:")
+					{
+						fix_params = ["params:&self,",&after_split(&fix_params,":")].concat();
+					}
+					else
+					{
+						fix_params = ["params:&self ",&fix_params].concat();
+					}
+					passed_content = [&passed_content," ",&fix_params].concat();
+				}
+				class_content.push_str(&gen_code("\t",&passed_content));
+			}
+			else if starts_with(&passed_content, "var")
+			{
+				if starts_with(&passed_content, "var(public)")
+				{
+					let mut var_content: String = after_split(&passed_content,":");
+//					println!("{}",var_content);
+					var_content = ["struct-var:",&var_content].concat();
+//					println!("{}",var_content);
+//					the_public_vars.push_str(&gen_code("\t",&var_content));
+					if the_public_vars.to_string() == ""
+					{
+						the_public_vars.push_str(&var_content);
+					}
+					else
+					{
+						the_public_vars.push_str(" ");
+						the_public_vars.push_str(&var_content);
+					}
+				}
+				else if starts_with(&passed_content, "var(private)")
+				{
+					let mut var_content: String = after_split(&passed_content,":");
+//					println!("{}",var_content);
+					var_content = ["struct-var:",&var_content].concat();
+//					println!("{}",var_content);
+//					the_private_vars.push_str(&gen_code("\t",&var_content));
+					if the_private_vars.to_string() == ""
+					{
+						the_private_vars.push_str(&var_content);
+					}
+					else
+					{
+						the_private_vars.push_str(" ");
+						the_private_vars.push_str(&var_content);
+					}
+				}
+				else if starts_with(&passed_content, "var(protected)")
+				{
+					let mut var_content: String = after_split(&passed_content,":");
+//					println!("{}",var_content);
+					var_content = ["struct-var:",&var_content].concat();
+//					println!("{}",var_content);
+//					the_protected_vars.push_str(&gen_code("\t",&var_content));
+					if the_protected_vars.to_string() == ""
+					{
+						the_protected_vars.push_str(&var_content);
+					}
+					else
+					{
+						the_protected_vars.push_str(" ");
+						the_protected_vars.push_str(&var_content);
+					}
+				}
+				else
+				{
+					class_content.push_str(&gen_code("\t",&passed_content));
+				}
+			}
+			else
+			{
+				class_content.push_str(&gen_code("\t",&passed_content));
+			}
+		}
+	}
+	else if is_in(&passed_content," method:")
+	{
+		let cmds: Vec<&str> = passed_content.split(" method:").collect();
+		for item in &cmds
+		{
+			if starts_with(&item, "method:")
+			{
+				class_content.push_str(&gen_code("\t",&item));
+			}
+			else
+			{
+				class_content.push_str(&gen_code("\t",&["method:",item].concat()));
+			}
+		}
+	}
+	else
+	{
+		passed_content = replace_tag(&passed_content, "class-",false);
+		if starts_with(&passed_content,&["method:()",&the_name].concat())
+		{
+			passed_content = after_split(&passed_content,")");
+			passed_content = ["method:({})",&passed_content].concat();
+		}
+		class_content.push_str(&gen_code("\t",&passed_content));
+	}
+
+	if parent_class != ""
+	{
+		let mut new_vars = String::from("");
+		new_vars.push_str("struct-var:(");
+		new_vars.push_str(&parent_class);
+		new_vars.push_str(")parent");
+
+		if the_public_vars.to_string() != "" && the_private_vars.to_string() == "" && the_protected_vars.to_string() == ""
+		{
+			new_vars.push_str(" ");
+			new_vars.push_str(&the_public_vars.to_string());
+		}
+		else if the_public_vars.to_string() != "" && the_private_vars.to_string() != "" && the_protected_vars.to_string() == ""
+		{
+			new_vars.push_str(" ");
+			new_vars.push_str(&the_public_vars.to_string());
+			new_vars.push_str(" ");
+			new_vars.push_str(&the_private_vars.to_string());
+		}
+		else if the_public_vars.to_string() != "" && the_private_vars.to_string() == "" && the_protected_vars.to_string() != ""
+		{
+			new_vars.push_str(" ");
+			new_vars.push_str(&the_public_vars.to_string());
+			new_vars.push_str(" ");
+			new_vars.push_str(&the_protected_vars.to_string());
+		}
+		else if the_public_vars.to_string() != "" && the_private_vars.to_string() != "" && the_protected_vars.to_string() != ""
+		{
+			new_vars.push_str(" ");
+			new_vars.push_str(&the_public_vars.to_string());
+			new_vars.push_str(" ");
+			new_vars.push_str(&the_private_vars.to_string());
+			new_vars.push_str(" ");
+			new_vars.push_str(&the_protected_vars.to_string());
+		}
+		else if the_public_vars.to_string() == "" && the_private_vars.to_string() != "" && the_protected_vars.to_string() != ""
+		{
+			new_vars.push_str(" ");
+			new_vars.push_str(&the_private_vars.to_string());
+			new_vars.push_str(" ");
+			new_vars.push_str(&the_protected_vars.to_string());
+		}
+
+		the_complete.push_str(&gen_struct(&struct_name, &new_vars.to_string()));
+		the_complete.push_str("\n");
+	}
+	else
+	{
+		let mut new_vars = String::from("");
+
+		if the_public_vars.to_string() != "" && the_private_vars.to_string() == "" && the_protected_vars.to_string() == ""
+		{
+			new_vars.push_str(&the_public_vars.to_string());
+		}
+		else if the_public_vars.to_string() != "" && the_private_vars.to_string() != "" && the_protected_vars.to_string() == ""
+		{
+			new_vars.push_str(&the_public_vars.to_string());
+			new_vars.push_str(" ");
+			new_vars.push_str(&the_private_vars.to_string());
+		}
+		else if the_public_vars.to_string() != "" && the_private_vars.to_string() == "" && the_protected_vars.to_string() != ""
+		{
+			new_vars.push_str(&the_public_vars.to_string());
+			new_vars.push_str(" ");
+			new_vars.push_str(&the_protected_vars.to_string());
+		}
+		else if the_public_vars.to_string() != "" && the_private_vars.to_string() != "" && the_protected_vars.to_string() != ""
+		{
+			new_vars.push_str(&the_public_vars.to_string());
+			new_vars.push_str(" ");
+			new_vars.push_str(&the_private_vars.to_string());
+			new_vars.push_str(" ");
+			new_vars.push_str(&the_protected_vars.to_string());
+		}
+		else if the_public_vars.to_string() == "" && the_private_vars.to_string() != "" && the_protected_vars.to_string() != ""
+		{
+			new_vars.push_str(&the_private_vars.to_string());
+			new_vars.push_str(" ");
+			new_vars.push_str(&the_protected_vars.to_string());
+		}
+
+		the_complete.push_str(&gen_struct(&struct_name, &new_vars.to_string()));
+		the_complete.push_str("\n");
+	}
+	the_complete.push_str("impl ");
+	the_complete.push_str(&handle_names(&new_name));
+	the_complete.push_str(" {\n");
 	the_complete.push_str(&class_content);
-	the_complete.push_str("\n\t//class desctructor\n\t~");
-	the_complete.push_str(&the_name);
-	the_complete.push_str("()\n\t{\n\t}\n};\n");
+	the_complete.push_str("}\n");
 
 	return the_complete.to_string();
 }
@@ -1430,6 +1786,7 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 {
 	let mut the_last = false;
 	let mut can_split = true;
+	let mut assign_default = false;
 	let new_tabs = [the_tabs,"\t"].concat();
 	let mut the_complete = String::new();
 	let new_name = after_split(name,":");
@@ -1437,6 +1794,7 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 	let mut return_var = String::from("the_return");
 	let mut default_value = String::from("");
 	let mut the_type = String::new();
+	let mut old_type: String = "".to_string();
 	let mut the_params = String::new();
 	let mut method_content = String::new();
 	let mut the_process = String::new();
@@ -1455,6 +1813,9 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 			return_var = after_split(&the_type,"-");
 			the_type = before_split(&the_type,"-");
 		}
+
+		old_type = the_type.to_string();
+
 		default_value.push_str(&data_type(&the_type,true));
 		//Converting data type to correct C++ type
 		the_type = data_type(&the_type,false);
@@ -1488,6 +1849,25 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 		}
 		else
 		{
+			//handle default return value
+			if starts_with(&passed_content,"method-var:(")
+			{
+				let mut process_type: String = after_split(&passed_content,"(");
+				process_type = before_split(&process_type,")");
+
+				if starts_with(&passed_content,&["method-var:()",&return_var,"="].concat())
+				{
+					let old_tag: String = before_split(&passed_content,")");
+					let old_value: String = after_split(&passed_content,")");
+					passed_content = [&old_tag,&the_type,")",&old_value].concat();
+					assign_default = true;
+				}
+				else if starts_with(&passed_content,&["method-var:(",&old_type,")",&return_var,"="].concat()) || starts_with(&passed_content,&["method-var:(",&the_type,")",&return_var,"="].concat()) || starts_with(&passed_content,&["method-var:(",&process_type,")",&return_var,"="].concat())
+				{
+					assign_default = true;
+				}
+			}
+
 			//This is called when a called from the "class" method
 			// EX: class:name method:first method:second
 			if is_in(&passed_content," method:")
@@ -1572,16 +1952,15 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 					}
 					else
 					{
-
 						let auto_tabs = handle_tabs("method",&new_tabs,&corrected);
 
-                                                if auto_tabs != ""
-                                                {
-                                                        //Generate the loop content
+						if auto_tabs != ""
+						{
+							//Generate the loop content
 							method_content.push_str(&gen_code(&new_tabs,&auto_tabs));
-                                                }
+						}
 
-                                                //process content
+						//process content
 						method_content.push_str(&gen_code(&new_tabs,&corrected));
 					}
 				}
@@ -1631,6 +2010,7 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 	{
 		the_complete.push_str(the_tabs);
 		the_complete.push_str("fn ");
+//		println!("{}",the_name);
 		the_complete.push_str(&handle_names(&the_name));
 		the_complete.push_str("(");
 		the_complete.push_str(&the_params);
@@ -1641,6 +2021,39 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 		the_complete.push_str("\n");
 		the_complete.push_str(the_tabs);
 		the_complete.push_str("}\n");
+	}
+	//class constructor
+	else if the_type == "{}"
+	{
+		if ends_with(&method_content.to_string(),"\n")
+		{
+			the_complete.push_str(the_tabs);
+		        the_complete.push_str("fn ");
+			the_complete.push_str(&handle_names(&the_name));
+			the_complete.push_str("(");
+			the_complete.push_str(&the_params);
+			the_complete.push_str(")\n");
+			the_complete.push_str(the_tabs);
+			the_complete.push_str("{\n");
+			the_complete.push_str(&method_content.to_string());
+			the_complete.push_str(the_tabs);
+			the_complete.push_str("}\n");
+		}
+		else
+		{
+			the_complete.push_str(the_tabs);
+		        the_complete.push_str("fn ");
+			the_complete.push_str(&handle_names(&the_name));
+			the_complete.push_str("(");
+			the_complete.push_str(&the_params);
+			the_complete.push_str(")\n");
+			the_complete.push_str(the_tabs);
+			the_complete.push_str("{\n");
+			the_complete.push_str(&method_content.to_string());
+			the_complete.push_str("\n");
+			the_complete.push_str(the_tabs);
+			the_complete.push_str("}\n");
+		}
 	}
 	else
 	{
@@ -1656,12 +2069,17 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 			the_complete.push_str("\n");
 			the_complete.push_str(the_tabs);
 			the_complete.push_str("{\n");
-			the_complete.push_str(the_tabs);
-			the_complete.push_str("\tlet ");
-			the_complete.push_str(&return_var);
-			the_complete.push_str(": ");
-			the_complete.push_str(&the_type);
-			the_complete.push_str(";\n");
+
+			if assign_default == false
+			{
+				the_complete.push_str(the_tabs);
+				the_complete.push_str("\tlet ");
+				the_complete.push_str(&return_var);
+				the_complete.push_str(": ");
+				the_complete.push_str(&the_type);
+				the_complete.push_str(";\n");
+			}
+
 			the_complete.push_str(&method_content.to_string());
 			the_complete.push_str("\n");
 			the_complete.push_str(the_tabs);
@@ -1683,14 +2101,19 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 			the_complete.push_str("\n");
 			the_complete.push_str(the_tabs);
 			the_complete.push_str("{\n");
-			the_complete.push_str(the_tabs);
-			the_complete.push_str("\tlet ");
-			the_complete.push_str(&return_var);
-			the_complete.push_str(": ");
-			the_complete.push_str(&the_type);
-			the_complete.push_str(" = ");
-			the_complete.push_str(&default_value.to_string());
-			the_complete.push_str(";\n");
+
+			if assign_default == false
+			{
+				the_complete.push_str(the_tabs);
+				the_complete.push_str("\tlet ");
+				the_complete.push_str(&return_var);
+				the_complete.push_str(": ");
+				the_complete.push_str(&the_type);
+				the_complete.push_str(" = ");
+				the_complete.push_str(&default_value.to_string());
+				the_complete.push_str(";\n");
+			}
+
 			the_complete.push_str(&method_content.to_string());
 			the_complete.push_str("\n");
 			the_complete.push_str(the_tabs);
@@ -2549,29 +2972,24 @@ fn gen_logic(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 		the_complete.push_str("}\n");
 
 	}
-	else if new_kind == "switch-case"
+//	else if new_kind == "switch-case"
+	else if new_kind == "case"
 	{
 		the_complete.push_str(the_tabs);
-		the_complete.push_str("\tcase x:\n");
-		the_complete.push_str(the_tabs);
-		the_complete.push_str("\t\t//code here\n");
-		the_complete.push_str(the_tabs);
-		the_complete.push_str("\t\tbreak;");
-
-	}
-
-	else if starts_with(&new_kind, "switch")
-	{
-		let mut the_case_content = new_kind;
-		let mut the_case_val: String;
-
-		the_complete.push_str(the_tabs);
-		the_complete.push_str("switch (");
 		the_complete.push_str(&the_condition);
-		the_complete.push_str(")\n");
-		the_complete.push_str(the_tabs);
-		the_complete.push_str("{\n\n");
+		the_complete.push_str(" => code,\n");
+	}
+	else if new_kind == "switch"
+//	else if starts_with(&new_kind, "switch")
+	{
+//		let mut the_case_content = new_kind;
+//		let mut the_case_val: String;
 
+		the_complete.push_str(the_tabs);
+		the_complete.push_str("match ");
+		the_complete.push_str(&the_condition);
+		the_complete.push_str(" {\n");
+/*
 		loop
 		{
 			the_case_val = before_split(&the_case_content,"-");
@@ -2597,13 +3015,10 @@ fn gen_logic(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 				break;
 			}
 		}
-
+*/
+		the_complete.push_str(&logic_content);
 		the_complete.push_str(the_tabs);
-		the_complete.push_str("\tdefault:\n");
-		the_complete.push_str(the_tabs);
-		the_complete.push_str("\t\t//code here\n");
-		the_complete.push_str(the_tabs);
-		the_complete.push_str("\t\tbreak;\n");
+		the_complete.push_str("\t_ => code,\n");
 		the_complete.push_str(the_tabs);
 		the_complete.push_str("}\n");
 	}

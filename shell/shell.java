@@ -12,7 +12,7 @@ import java.io.IOException;
 
 //class name
 public class shell {
-	private static String Version = "0.1.10";
+	private static String Version = "0.1.12";
 	private static String TheKind = "";
 	private static String TheName = "";
 	private static String TheKindType = "";
@@ -805,12 +805,27 @@ public class shell {
 			}
 
 		}
-		else if ((StartsWith(Action, "if:")) || (StartsWith(Action, "else-if:")))
+		else if ((StartsWith(Action, "if:")) || (StartsWith(Action, "else-if:")) || (StartsWith(Action, "switch:")))
 		{
 			Value = AfterSplit(Action,":");
 			Action = BeforeSplit(Action,":");
 			NewTag = "logic:"+Action;
 			Value = "logic-condition:"+Value;
+
+			TheReturn.append(Parent);
+			TheReturn.append(ContentFor);
+			TheReturn.append(Nest.toString());
+			TheReturn.append(NewTag);
+			TheReturn.append(" ");
+			TheReturn.append(Value);
+		}
+		else if (StartsWith(Action, "case:"))
+		{
+			Value = AfterSplit(Action,":");
+			Action = BeforeSplit(Action,":");
+			NewTag = "logic:"+Action;
+			Value = "logic-condition:"+Value;
+			Nest.append("nest-");
 
 			TheReturn.append(Parent);
 			TheReturn.append(ContentFor);
@@ -2837,27 +2852,32 @@ public class shell {
 			Complete.append(Tabs);
 			Complete.append("}\n");
 		}
-		else if (TheKindType.equals("switch-case"))
+//		else if (TheKindType.equals("switch-case"))
+		else if (TheKindType.equals("case"))
 		{
 			Complete.append(Tabs);
 			Complete.append("\tcase x:\n");
 			Complete.append(Tabs);
 			Complete.append("\t\t//code here\n");
 			Complete.append(Tabs);
-			Complete.append("\t\tbreak;");
+			Complete.append("\t\tbreak;\n");
 
 		}
-		else if (StartsWith(TheKindType, "switch"))
+		else if (TheKindType.equals("switch"))
+//		else if (StartsWith(TheKindType, "switch"))
 		{
-			String CaseContent = TheKindType;
-			String CaseVal;
+//			String CaseContent = TheKindType;
+//			String CaseVal;
 
 			Complete.append(Tabs);
+			Complete.append("\t");
 			Complete.append("switch (");
 			Complete.append(TheCondition);
 			Complete.append(")\n");
 			Complete.append(Tabs);
+			Complete.append("\t");
 			Complete.append("{\n\n");
+/*
 			while (!CaseContent.equals(""))
 			{
 				CaseVal = BeforeSplit(CaseContent,"-");
@@ -2878,13 +2898,19 @@ public class shell {
 					CaseContent = AfterSplit(CaseContent,"-");
 				}
 			}
+*/
+			Complete.append(LogicContent.toString());
 			Complete.append(Tabs);
+			Complete.append("\t");
 			Complete.append("\tdefault:\n");
 			Complete.append(Tabs);
+			Complete.append("\t");
 			Complete.append("\t\t//code here\n");
 			Complete.append(Tabs);
+			Complete.append("\t");
 			Complete.append("\t\tbreak;\n");
 			Complete.append(Tabs);
+			Complete.append("\t");
 			Complete.append("}\n");
 		}
 		return Complete.toString();
