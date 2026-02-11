@@ -419,10 +419,19 @@ CodeSupportVersion()
 ShellCodeVersion()
 {
 	local TheLang=$1
+	local ShellNum
 	local Langs=""
+	local LangColor
 	if [ ! -z "${TheLang}" ]; then
-		ManageLangs ${TheLang} "ShellVersion"
+		LangColor=$(ManageLangs ${TheLang} "color-number")
+		ShellNum=$(ManageLangs ${TheLang} "ShellVersion" | grep ":")
+		if [ ! -z "${ShellNum}" ]; then
+			echo -e "\e[1;4${LangColor}m[${Lang} Shell]\e[0m"
+			echo "${ShellNum}"
+			echo ""
+		fi
 	else
+		local CharCount
 		local text
 		if [ -d ${LangsDir} ]; then
 			for TheLang in ${LangsDir}/Lang.*;
@@ -431,15 +440,26 @@ ShellCodeVersion()
 				if [ -f ${TheLang} ]; then
 					TheLang=${TheLang##*/}
 					text=${TheLang#Lang.*}
-					#Ensure langauge is supported on computer
 					text=$(ManageLangs ${text} "pgLang")
 					if [ ! -z "${text}" ]; then
 						case ${text} in
 							no)
+								#do nothing
 								;;
 							*)
-								#Pull the compiler/interpreter version using Lang.<language>
-								ManageLangs "${text}" "ShellVersion"
+								LangColor=$(ManageLangs ${text} "color-number")
+								#ManageLangs "${text}" "ShellVersion"
+								ShellNum=$(ManageLangs "${text}" "ShellVersion" | grep ":" | tr -d ' ')
+								if [ ! -z "${ShellNum}" ]; then
+									ShellNum=${ShellNum##*:}
+									#Tab based on size of chars in lable
+									CharCount=$(echo ${#text})
+									if [ ${CharCount} -lt 7 ]; then
+										echo -e "\e[1;3${LangColor}m${text}\e[0m\t\t\e[1;3${LangColor}m${ShellNum}\e[0m"
+									else
+										echo -e "\e[1;3${LangColor}m${text}\e[0m\t\e[1;3${LangColor}m${ShellNum}\e[0m"
+									fi
+								fi
 								;;
 						esac
 					fi
@@ -3564,6 +3584,9 @@ Actions()
 									no)
 										if [ ! -z "${ShellArgs[1]}" ]; then
 											case ${ShellArgs[1],,} in
+												-v|--version)
+													ManageLangs ${Lang} "ShellVersion" | grep ${UserArg} | tr -d ' ' | cut -d ':' -f 2
+													;;
 												"help:"*|"help")
 													ManageLangs ${Lang} "shell" "${ShellArgs[@]}"
 													;;

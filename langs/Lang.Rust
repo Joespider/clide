@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.1.70"
+SupportV="0.1.71"
 Lang=Rust
 LangExt=".rs"
 ColorNum=1
@@ -63,6 +63,7 @@ UseRust()
 	local TemplateCodeSrc=${NewRust%${LangExt}}${LangExt}
 	local TemplateCodeArgs=${NewRustArgs}
 	local ShellCodeSrc="shell"${LangExt}
+	local ShellCodeBin=${LangBin}/shell
 
 	local EnvVars=( ${LangCpl} ${LangHome} ${LangSrc} ${LangBin} ${LangExt} )
 	local Type=$1
@@ -466,11 +467,12 @@ UseRust()
 			;;
 		#shell code version
 		ShellVersion)
-			if [ -f "${ShellCodeSrc}" ]; then
-				echo -e "\e[1;4${ColorNum}m[${Lang} Shell]\e[0m"
-				echo -n "shell : "
-				UseRust "runCode" "${ShellCodeSrc}" "shell" "--version"
+			if [ -f ${ShellCodeBin} ]; then
+				echo -n "${ShellCodeBin##*/} : "
+				${ShellCodeBin} --version 2> /dev/null
 				echo ""
+			else
+				echo "no ${ShellCodeBin##*/} found"
 			fi
 			;;
 		CplVersion)

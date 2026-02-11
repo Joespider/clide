@@ -2529,7 +2529,7 @@ String Logic(String Tabs, String TheKindType, String Content)
 	else if (TheKindType == "case")
 //	else if (TheKindType == "switch-case")
 	{
-		Complete = Tabs+"case "+TheCondition+":\n"+Tabs+"\t//code here\n"+Tabs+"\tbreak;\n";
+		Complete = Tabs+"case "+TheCondition+":\n"+Tabs+"\t"+LogicContent+"\n"+Tabs+"\tbreak;\n";
 	}
 	else if (TheKindType == "switch")
 //	else if (StartsWith(TheKindType, "switch"))

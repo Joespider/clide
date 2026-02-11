@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.2.04"
+SupportV="0.2.05"
 Lang=C
 LangExt=".c"
 LangOtherExt=".h"
@@ -64,7 +64,9 @@ UseC()
 
 	local TemplateCodeSrc=${NewC%${LangExt}}${LangExt}
 	local TemplateCodeArgs=${NewCArgs}
+
 	local ShellCodeSrc="shell"${LangExt}
+	local ShellCodeBin=${LangBin}/shell
 
 	local TemplateCodeArgs=${NewCArgs}
 
@@ -605,11 +607,12 @@ UseC()
 			fi
 			;;
 		ShellVersion)
-			if [ -f "${ShellCodeSrc}" ]; then
-				echo -e "\e[1;4${ColorNum}m[${Lang} Shell]\e[0m"
-				echo -n "shell : "
-				UseC "runCode" "${ShellCodeSrc}" "--version"
+			if [ -f ${ShellCodeBin} ]; then
+				echo -n "${ShellCodeBin##*/} : "
+				${ShellCodeBin} --version 2> /dev/null
 				echo ""
+			else
+				echo "no ${ShellCodeBin##*/} found"
 			fi
 			;;
 		#compiler version

@@ -62,6 +62,8 @@ UsePerl()
 	local TemplateCodeSrc=${NewPerl%${LangExt}}${LangExt}
 	local TemplateCodeArgs=${NewPerlArgs}
 
+	local ShellCodeBin=${LangBin}/shell${LangExt}
+
 	local EnvVars=( ${LangRun} ${LangHome} ${LangSrc} ${LangBin} ${LangExt} )
 	local Type=$1
 	shift
@@ -318,11 +320,12 @@ UsePerl()
 			;;
 		#shell code version
 		ShellVersion)
-			if [ -f "${ShellCodeSrc}" ]; then
-				echo -e "\e[1;4${ColorNum}m[${Lang} Shell]\e[0m"
-				echo -n "shell : "
-				UsePerl "runCode" "${ShellCodeSrc}" "shell" "--version"
+			if [ -f ${ShellCodeBin} ]; then
+				echo -n "${ShellCodeBin##*/} : "
+				${LangRun} ${ShellCodeBin} --version 2> /dev/null
 				echo ""
+			else
+				echo "no ${ShellCodeBin##*/} found"
 			fi
 			;;
 		CplVersion)

@@ -12,7 +12,7 @@ import java.io.IOException;
 
 //class name
 public class shell {
-	private static String Version = "0.1.12";
+	private static String Version = "0.1.13";
 	private static String TheKind = "";
 	private static String TheName = "";
 	private static String TheKindType = "";
@@ -2856,11 +2856,16 @@ public class shell {
 		else if (TheKindType.equals("case"))
 		{
 			Complete.append(Tabs);
-			Complete.append("\tcase x:\n");
+//			Complete.append("\t");
+			Complete.append("case ");
+			Complete.append(TheCondition);
+			Complete.append(":\n");
 			Complete.append(Tabs);
-			Complete.append("\t\t//code here\n");
+			Complete.append("\t");
+			Complete.append("//code here\n");
 			Complete.append(Tabs);
-			Complete.append("\t\tbreak;\n");
+			Complete.append("\t");
+			Complete.append("break;\n");
 
 		}
 		else if (TheKindType.equals("switch"))
@@ -2870,13 +2875,13 @@ public class shell {
 //			String CaseVal;
 
 			Complete.append(Tabs);
-			Complete.append("\t");
+//			Complete.append("\t");
 			Complete.append("switch (");
 			Complete.append(TheCondition);
 			Complete.append(")\n");
 			Complete.append(Tabs);
-			Complete.append("\t");
-			Complete.append("{\n\n");
+//			Complete.append("\t");
+			Complete.append("{\n");
 /*
 			while (!CaseContent.equals(""))
 			{
@@ -2902,15 +2907,15 @@ public class shell {
 			Complete.append(LogicContent.toString());
 			Complete.append(Tabs);
 			Complete.append("\t");
-			Complete.append("\tdefault:\n");
+			Complete.append("default:\n");
 			Complete.append(Tabs);
-			Complete.append("\t");
-			Complete.append("\t\t//code here\n");
+			Complete.append("\t\t");
+			Complete.append("//code here\n");
 			Complete.append(Tabs);
-			Complete.append("\t");
-			Complete.append("\t\tbreak;\n");
+			Complete.append("\t\t");
+			Complete.append("break;\n");
 			Complete.append(Tabs);
-			Complete.append("\t");
+//			Complete.append("\t");
 			Complete.append("}\n");
 		}
 		return Complete.toString();
