@@ -4,7 +4,7 @@
 #Link Libs: https://gist.github.com/gubatron/32f82053596c24b6bec6
 #both https://avikdas.com/2019/12/16/makefiles-for-c-cpp-projects.html
 
-SupportV="0.2.75"
+SupportV="0.2.76"
 Lang=C++
 LangExt=".cpp"
 LangOtherExt=".h"
@@ -94,6 +94,8 @@ UseC++()
 	local TemplateCodeSrc=${NewCpp%${LangExt}}${LangExt}
 	local TemplateCodeArgs=${NewCppArgs}
 	local ShellCodeSrc="shell"${LangExt}
+
+	local ShellCodeBin=${LangBin}/shell
 
 	local EnvVars=( ${LangRun} ${LangHome} ${LangSrc} ${LangBin} ${LangExt} )
 	#}
@@ -691,11 +693,12 @@ UseC++()
 			;;
 		#shell code version
 		ShellVersion)
-			if [ -f "${ShellCodeSrc}" ]; then
-				echo -e "\e[1;4${ColorNum}m[${Lang} Shell]\e[0m"
-				echo -n "shell : "
-				UseC++ "runCode" "${ShellCodeSrc}" "shell" "--version"
+			if [ -f ${ShellCodeBin} ]; then
+				echo -n "${ShellCodeBin##*/} : "
+				${ShellCodeBin} --version 2> /dev/null
 				echo ""
+			else
+				echo "no ${ShellCodeBin##*/} found"
 			fi
 			;;
 		#compiler version

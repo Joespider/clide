@@ -3,7 +3,7 @@
 #https://stackoverflow.com/questions/10339637/java-import-cannot-find-symbol
 #https://www.codejava.net/java-core/tools/how-to-compile-package-and-run-a-java-program-using-command-line-tools-javac-jar-and-java
 
-SupportV="0.2.66"
+SupportV="0.2.67"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -72,7 +72,10 @@ UseJava()
 
 	local TemplateCodeClass=${LangBin}/${TemplateCode}.class
 	local TemplateCodeJar=${LangBin}/${TemplateCode}.jar
+
 	local ShellCodeSrc="shell"${LangExt}
+	local ShellCodeClass=${LangBin}/shell.class
+	local ShellCodeJar=${LangBin}/shell.jar
 
 	local TemplateCodeArgs=${NewJavaArgs}
 
@@ -597,11 +600,21 @@ UseJava()
 			;;
 		#shell code version
 		ShellVersion)
-			if [ -f "${ShellCodeSrc}" ]; then
-				echo -e "\e[1;4${ColorNum}m[${Lang} Shell]\e[0m"
-				echo -n "shell : "
-				UseJava "runCode" "${ShellCodeSrc}" "shell" "--version"
-				echo ""
+			#Code is compiled as a jar
+			if [ -f ${ShellCodeJar} ]; then
+				echo -n "${ShellCodeJar##*/} : "
+				java -jar ${ShellCodeJar} --version 2> /dev/null
+			#Code is compiled as a class
+			elif [ -f ${ShellCodeClass} ]; then
+				local ShellBin=${ShellCodeClass##*/}
+				ShellBin=${ShellBin%.class}
+				echo -n "${ShellCodeClass##*/} : "
+				cd ${LangBin}/
+				${LangRun} ${ShellBin} --version 2> /dev/null
+				cd - > /dev/null
+			#Code is not compiled
+			else
+				echo "no ${TemplateCodeJar##*/} found"
 			fi
 			;;
 		CplVersion)

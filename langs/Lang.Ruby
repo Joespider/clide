@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.2.2"
+SupportV="0.2.3"
 Lang=Ruby
 LangExt=".rb"
 ColorNum=1
@@ -62,7 +62,7 @@ UseRuby()
 	local TemplateCodeSrc=${NewRuby%${LangExt}}${LangExt}
 	local TemplateCodeArgs=${NewRubyArgs}
 
-	local TemplateCodeArgs=${NewRubyArgs}
+	local ShellCodeBin=${LangBin}/shell${LangExt}
 
 	local EnvVars=( ${LangRun} ${LangHome} ${LangSrc} ${LangBin} ${LangExt} )
 	local Type=$1
@@ -327,11 +327,12 @@ UseRuby()
 			;;
 		#shell code version
 		ShellVersion)
-			if [ -f "${ShellCodeSrc}" ]; then
-				echo -e "\e[1;4${ColorNum}m[${Lang} Shell]\e[0m"
-				echo -n "shell : "
-				UseRuby "runCode" "${ShellCodeSrc}" "shell" "--version"
+			if [ -f ${ShellCodeBin} ]; then
+				echo -n "${ShellCodeBin##*/} : "
+				${LangRun} ${ShellCodeBin} --version 2> /dev/null
 				echo ""
+			else
+				echo "no ${ShellCodeBin##*/} found"
 			fi
 			;;
 		CplVersion)

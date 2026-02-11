@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.2.03"
+SupportV="0.2.04"
 Lang=Go
 LangExt=".go"
 #Color Green
@@ -64,7 +64,9 @@ UseGo()
 
 	local TemplateCodeSrc=${NewGo%${LangExt}}${LangExt}
 	local TemplateCodeArgs=${NewGoArgs}
+
 	local ShellCodeSrc="shell"${LangExt}
+	local ShellCodeBin=${LangBin}/shell
 
 	local EnvVars=( ${LangRun} ${LangHome} ${LangSrc} ${LangBin} ${LangExt} )
 	#}
@@ -538,11 +540,12 @@ UseGo()
 			;;
 		#shell code version
 		ShellVersion)
-			if [ -f "${ShellCodeSrc}" ]; then
-				echo -e "\e[1;4${ColorNum}m[${Lang} Shell]\e[0m"
-				echo -n "shell : "
-				UseGo "runCode" "${ShellCodeSrc}" "shell" "--version"
+			if [ -f ${ShellCodeBin} ]; then
+				echo -n "${ShellCodeBin##*/} : "
+				${ShellCodeBin} --version 2> /dev/null
 				echo ""
+			else
+				echo "no ${ShellCodeBin##*/} found"
 			fi
 			;;
 		#compiler version
