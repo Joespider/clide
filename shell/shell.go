@@ -9,7 +9,7 @@ import (
 	"strings"
 	)
 
-var Version string = "0.1.16"
+var Version string = "0.1.17"
 
 func getOS() string {
 	os := runtime.GOOS
@@ -1841,7 +1841,7 @@ func Logic(Tabs string, TheKindType string, Content string) string {
 //		var CaseContent string = TheKindType
 //		var CaseVal string
 
-		Complete = Tabs+"switch ("+TheCondition+")\n"+Tabs+"{\n"
+		Complete = Tabs+"switch "+TheCondition+" {\n"
 /*
 		for CaseContent != "" {
 			CaseVal = BeforeSplit(CaseContent,"-")
