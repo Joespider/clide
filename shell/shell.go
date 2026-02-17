@@ -9,7 +9,7 @@ import (
 	"strings"
 	)
 
-var Version string = "0.1.17"
+var Version string = "0.1.18"
 
 func getOS() string {
 	os := runtime.GOOS
@@ -429,6 +429,10 @@ func TranslateTag(Input string) string {
 	} else if StartsWith(Action, "{s}-") {
 		Action = AfterSplit(Action,"-")
 		ContentFor = "struct-"
+	//content for enum
+	} else if StartsWith(Action, "{e}-") {
+		Action = AfterSplit(Action,"-")
+		ContentFor = "enum-"
 	}
 
 	// ">" becomes "nest-"
@@ -828,6 +832,52 @@ func Parameters(input string, CalledBy string) string {
 	return Params
 }
 
+func Enum(TheName string, Content string) string {
+	var Complete string = ""
+	var EnumVar string = ""
+	var Process string = ""
+	var Item string = ""
+	var AutoTabs string = ""
+
+	TheName = AfterSplit(TheName,":")
+	for StartsWith(Content, "enum-var") || StartsWith(Content, "enum-stmt") || StartsWith(Content, "var") || StartsWith(Content, "stmt") {
+		Content = ReplaceTag(Content, "enum-",true)
+
+		if IsIn(Content," ") {
+			Process = BeforeSplit(Content," ")
+			Content = AfterSplit(Content," ")
+		} else {
+			Process = Content
+			Content = ""
+		}
+
+		AutoTabs = HandleTabs("enum","\t",Process)
+		if AutoTabs != "" {
+			EnumVar = EnumVar + GenCode("\t",AutoTabs)
+			AutoTabs = ""
+		}
+
+		Item = GenCode("\t",Process)
+
+		if StartsWith(Item,"var ") {
+			Item = AfterSplit(Item," ")
+		}
+/*
+		if EndsWith(Item," class") {
+			Item = BeforeSplit(Item," ")
+		}
+*/
+		if Process != "stmt:endline" && Process != "" {
+			EnumVar = EnumVar + Item
+			EnumVar = EnumVar + GenCode("\t","stmt:endline")
+		}
+	}
+
+	Complete = "const (\n"+EnumVar+")\n"
+
+	return Complete
+}
+
 func Struct(TheName string, Content string) string {
 	var Complete string = ""
 	var StructVar string = ""
@@ -862,10 +912,13 @@ func Struct(TheName string, Content string) string {
 			Item = BeforeSplit(Item," ")
 		}
 
-		StructVar = StructVar + Item
+		if Process != "stmt:endline" && Process != "" {
+			StructVar = StructVar + Item
+			StructVar = StructVar + GenCode("\t","stmt:endline")
+		}
 	}
 
-	Complete = "type "+TheName+" struct {\n"+StructVar+"\n}\n"
+	Complete = "type "+TheName+" struct {\n"+StructVar+"}\n"
 	return Complete
 }
 
@@ -2134,6 +2187,9 @@ func GenCode(Tabs string, GetMe string) string {
 
 	} else if StartsWith(Args[0], "struct:") {
 		TheCode = Struct(Args[0],Args[1])
+
+	} else if StartsWith(Args[0], "enum:") {
+		TheCode = Enum(Args[0],Args[1])
 
 	} else if StartsWith(Args[0], "method:") {
 		TheCode = Method(Tabs,Args[0],Args[1])

@@ -3,7 +3,7 @@ use std::process::Command;
 
 fn the_version() -> String
 {
-	return "0.1.19".to_string();
+	return "0.1.20".to_string();
 }
 
 fn get_os() -> String
@@ -1431,7 +1431,7 @@ fn gen_struct(the_name: &str, the_content: &str) -> String
 	let new_name = after_split(the_name,":");
 	let mut passed_content = the_content.to_string();
 	let mut the_complete = String::new();
-	let mut struct_var = String::new();
+	let mut struct_var = String::from("");
 	let mut the_process: String;
 
 	while starts_with(&passed_content, "struct-var") || starts_with(&passed_content, "struct-stmt") || starts_with(&passed_content, "var") || starts_with(&passed_content, "stmt")
@@ -1455,14 +1455,24 @@ fn gen_struct(the_name: &str, the_content: &str) -> String
 			struct_var.push_str(&gen_code("\t",&auto_tabs));
 		}
 		the_process = after_split(&gen_code("\t",&the_process)," ");
-		struct_var.push_str(&the_process);
-		struct_var.push_str(",\n");
+
+		if the_process != ""
+		{
+			struct_var.push_str(&the_process);
+			struct_var.push_str(",\n");
+		}
 	}
 
 	the_complete.push_str("struct ");
 	the_complete.push_str(&handle_names(&new_name));
 	the_complete.push_str(" {\n");
-	the_complete.push_str(&struct_var);
+	if ends_with(&struct_var.to_string(),",\n")
+	{
+		struct_var.pop();
+		struct_var.pop();
+		struct_var.push_str("\n");
+	}
+	the_complete.push_str(&struct_var.to_string());
 	the_complete.push_str("}\n");
 
 	return the_complete;
