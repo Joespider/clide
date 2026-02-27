@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.1.34";
+String Version = "0.1.35";
 
 String getOS();
 void Help(String Type);
@@ -640,6 +640,14 @@ String AlgoTags(String Algo)
 			}
 		}
 	}
+	else if (Algo == "main():")
+	{
+		NewTags = "[int]main:";
+	}
+	else if (Algo == "main(cli):")
+	{
+		NewTags = "[int]main:cli";
+	}
 	else if ((Algo == "concat():") || (Algo == "decre():") || (Algo == "incre():") || (Algo == "equals():"))
 	{
 		NewTags = "";
@@ -738,7 +746,7 @@ String TranslateTag(String Input)
 		Nest = "nest-"+Nest;
 	}
 
-	if (StartsWith(Action,"concat(") || StartsWith(Action,"incre(") || StartsWith(Action,"decre(") || StartsWith(Action,"equals("))
+	if (StartsWith(Action,"concat(") || StartsWith(Action,"incre(") || StartsWith(Action,"decre(") || StartsWith(Action,"equals(") || StartsWith(Action,"main("))
 	{
 		String Algo = AlgoTags(Action);
 		String NewAlgoTag = "";
@@ -1280,8 +1288,12 @@ String Parameters(String input,String CalledBy)
 
 	if ((CalledBy == "class") || (CalledBy == "method") || (CalledBy == "stmt"))
 	{
+		if (Params == "cli")
+		{
+			Params = "int argc, char** argv";
+		}
 		//param-type,param-type,param-type
-		if ((StartsWith(Params,"(")) && (IsIn(Params,")")) && (IsIn(Params,",")))
+		else if ((StartsWith(Params,"(")) && (IsIn(Params,")")) && (IsIn(Params,",")))
 		{
 			String Name = BeforeSplit(Params,',');
 			String more = AfterSplit(Params,',');
@@ -1836,57 +1848,65 @@ String Method(String Tabs, String Name, String Content)
 		}
 	}
 
-	//build method based on content
-	if ((Type == "") || (Type == "void"))
+
+	if (TheName == "main")
 	{
-		if (EndsWith(MethodContent,"\n"))
-		{
-			Complete = Tabs+"void "+TheName+"("+Params+")\n"+Tabs+"{\n"+MethodContent+Tabs+"}\n";
-		}
-		else
-		{
-			Complete = Tabs+"void "+TheName+"("+Params+")\n"+Tabs+"{\n"+MethodContent+"\n"+Tabs+"}\n";
-		}
-	}
-	//class constructor
-	else if (Type == "{}")
-	{
-		if (EndsWith(MethodContent,"\n"))
-		{
-			Complete = Tabs+TheName+"("+Params+")\n"+Tabs+"{\n"+MethodContent+Tabs+"}\n";
-		}
-		else
-		{
-			Complete = Tabs+TheName+"("+Params+")\n"+Tabs+"{\n"+MethodContent+"\n"+Tabs+"}\n";
-		}
-	}
-	//class desctructor
-	else if (Type == "~")
-	{
-		Complete = Tabs+"~"+TheName+"()\n"+Tabs+"{\n"+Tabs+"}\n";
+		Complete = Tabs+"int main("+Params+")\n"+Tabs+"{\n"+MethodContent+"\n"+Tabs+"\treturn 0;\n"+Tabs+"}\n";
 	}
 	else
 	{
-		if (DefaultValue == "")
+		//build method based on content
+		if ((Type == "") || (Type == "void"))
 		{
-			if (AssignDefault == true)
+			if (EndsWith(MethodContent,"\n"))
 			{
-				Complete = Tabs+Type+" "+TheName+"("+Params+")\n"+Tabs+"{\n"+MethodContent+"\n"+Tabs+"\treturn "+ReturnVar+";\n"+Tabs+"}\n";
+				Complete = Tabs+"void "+TheName+"("+Params+")\n"+Tabs+"{\n"+MethodContent+Tabs+"}\n";
 			}
 			else
 			{
-				Complete = Tabs+Type+" "+TheName+"("+Params+")\n"+Tabs+"{\n"+Tabs+"\t"+Type+" "+ReturnVar+";\n"+MethodContent+"\n"+Tabs+"\treturn "+ReturnVar+";\n"+Tabs+"}\n";
+				Complete = Tabs+"void "+TheName+"("+Params+")\n"+Tabs+"{\n"+MethodContent+"\n"+Tabs+"}\n";
 			}
+		}
+		//class constructor
+		else if (Type == "{}")
+		{
+			if (EndsWith(MethodContent,"\n"))
+			{
+				Complete = Tabs+TheName+"("+Params+")\n"+Tabs+"{\n"+MethodContent+Tabs+"}\n";
+			}
+			else
+			{
+				Complete = Tabs+TheName+"("+Params+")\n"+Tabs+"{\n"+MethodContent+"\n"+Tabs+"}\n";
+			}
+		}
+		//class desctructor
+		else if (Type == "~")
+		{
+			Complete = Tabs+"~"+TheName+"()\n"+Tabs+"{\n"+Tabs+"}\n";
 		}
 		else
 		{
-			if (AssignDefault == true)
+			if (DefaultValue == "")
 			{
-				Complete = Tabs+Type+" "+TheName+"("+Params+")\n"+Tabs+"{\n"+MethodContent+"\n"+Tabs+"\treturn "+ReturnVar+";\n"+Tabs+"}\n";
+				if (AssignDefault == true)
+				{
+					Complete = Tabs+Type+" "+TheName+"("+Params+")\n"+Tabs+"{\n"+MethodContent+"\n"+Tabs+"\treturn "+ReturnVar+";\n"+Tabs+"}\n";
+				}
+				else
+				{
+					Complete = Tabs+Type+" "+TheName+"("+Params+")\n"+Tabs+"{\n"+Tabs+"\t"+Type+" "+ReturnVar+";\n"+MethodContent+"\n"+Tabs+"\treturn "+ReturnVar+";\n"+Tabs+"}\n";
+				}
 			}
 			else
 			{
-				Complete = Tabs+Type+" "+TheName+"("+Params+")\n"+Tabs+"{\n"+Tabs+"\t"+Type+" "+ReturnVar+" = "+DefaultValue+";\n"+MethodContent+"\n"+Tabs+"\treturn "+ReturnVar+";\n"+Tabs+"}\n";
+				if (AssignDefault == true)
+				{
+					Complete = Tabs+Type+" "+TheName+"("+Params+")\n"+Tabs+"{\n"+MethodContent+"\n"+Tabs+"\treturn "+ReturnVar+";\n"+Tabs+"}\n";
+				}
+				else
+				{
+					Complete = Tabs+Type+" "+TheName+"("+Params+")\n"+Tabs+"{\n"+Tabs+"\t"+Type+" "+ReturnVar+" = "+DefaultValue+";\n"+MethodContent+"\n"+Tabs+"\treturn "+ReturnVar+";\n"+Tabs+"}\n";
+				}
 			}
 		}
 	}
