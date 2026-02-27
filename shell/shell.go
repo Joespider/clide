@@ -9,7 +9,7 @@ import (
 	"strings"
 	)
 
-var Version string = "0.1.17"
+var Version string = "0.1.19"
 
 func getOS() string {
 	os := runtime.GOOS
@@ -172,6 +172,25 @@ func StartsWith(Str string, Sub string) bool {
 //Check if string ends with substring
 func EndsWith(Str string, Sub string) bool {
 	return strings.HasSuffix(Str,Sub)
+}
+
+func IsEvenNumber(number int) bool {
+	if number % 2 == 0 {
+		return true
+	} else {
+		return false
+	}
+}
+
+func QuoteCount(Input string) int {
+	var count int = 0
+
+	for i := 0; i < len(Input); i++ {
+		if Input[i] == '"' {
+			count++;
+		}
+	}
+	return count;
 }
 
 func BeforeSplit(Str string, splitAt string) string {
@@ -386,6 +405,13 @@ func AlgoTags(Algo string) string {
 	return NewTags
 }
 
+func CharTranslate(Message string) string {
+	if IsIn(Message,"(-spc)") {
+		Message = replaceAll(Message, "(-spc)"," ")
+	}
+	return Message
+}
+
 func TranslateTag(Input string) string {
 	var TheReturn string = ""
 	var Action string = Input
@@ -429,6 +455,10 @@ func TranslateTag(Input string) string {
 	} else if StartsWith(Action, "{s}-") {
 		Action = AfterSplit(Action,"-")
 		ContentFor = "struct-"
+	//content for enum
+	} else if StartsWith(Action, "{e}-") {
+		Action = AfterSplit(Action,"-")
+		ContentFor = "enum-"
 	}
 
 	// ">" becomes "nest-"
@@ -576,6 +606,11 @@ func TranslateTag(Input string) string {
 			Value = TranslateTag(Value)
 //			Value = GenCode("",Value)
 //			TheReturn = Parent+ContentFor+Nest+"var:("+TheDataType+")"+Action+"= "+Value
+
+			if StartsWith(Value,"\"") {
+				Value = "stmt:"+Value
+			}
+
 			TheReturn = Parent+ContentFor+"var:("+TheDataType+")"+Action+"= "+Value
 		} else {
 //			TheReturn = Parent+ContentFor+Nest+"var:("+TheDataType+")"+Action
@@ -828,6 +863,52 @@ func Parameters(input string, CalledBy string) string {
 	return Params
 }
 
+func Enum(TheName string, Content string) string {
+	var Complete string = ""
+	var EnumVar string = ""
+	var Process string = ""
+	var Item string = ""
+	var AutoTabs string = ""
+
+	TheName = AfterSplit(TheName,":")
+	for StartsWith(Content, "enum-var") || StartsWith(Content, "enum-stmt") || StartsWith(Content, "var") || StartsWith(Content, "stmt") {
+		Content = ReplaceTag(Content, "enum-",true)
+
+		if IsIn(Content," ") {
+			Process = BeforeSplit(Content," ")
+			Content = AfterSplit(Content," ")
+		} else {
+			Process = Content
+			Content = ""
+		}
+
+		AutoTabs = HandleTabs("enum","\t",Process)
+		if AutoTabs != "" {
+			EnumVar = EnumVar + GenCode("\t",AutoTabs)
+			AutoTabs = ""
+		}
+
+		Item = GenCode("\t",Process)
+
+		if StartsWith(Item,"var ") {
+			Item = AfterSplit(Item," ")
+		}
+/*
+		if EndsWith(Item," class") {
+			Item = BeforeSplit(Item," ")
+		}
+*/
+		if Process != "stmt:endline" && Process != "" {
+			EnumVar = EnumVar + Item
+			EnumVar = EnumVar + GenCode("\t","stmt:endline")
+		}
+	}
+
+	Complete = "const (\n"+EnumVar+")\n"
+
+	return Complete
+}
+
 func Struct(TheName string, Content string) string {
 	var Complete string = ""
 	var StructVar string = ""
@@ -862,10 +943,13 @@ func Struct(TheName string, Content string) string {
 			Item = BeforeSplit(Item," ")
 		}
 
-		StructVar = StructVar + Item
+		if Process != "stmt:endline" && Process != "" {
+			StructVar = StructVar + Item
+			StructVar = StructVar + GenCode("\t","stmt:endline")
+		}
 	}
 
-	Complete = "type "+TheName+" struct {\n"+StructVar+"\n}\n"
+	Complete = "type "+TheName+" struct {\n"+StructVar+"}\n"
 	return Complete
 }
 
@@ -1876,7 +1960,7 @@ func Statements(Tabs string, TheKindType string, Content string) string {
 		TheKindType = AfterSplit(TheKindType,":")
 	}
 
-        if IsIn(TheKindType,"-") {
+	if !StartsWith(TheKindType, "\"") && IsIn(TheKindType,"-") {
 		TheName = BeforeSplit(TheKindType,"-")
 		Name = AfterSplit(TheKindType,"-")
 	} else {
@@ -1977,6 +2061,8 @@ func Statements(Tabs string, TheKindType string, Content string) string {
 		Complete = StatementContent+"\n"
 	} else if TheName == "tab" {
 		Complete = "\t"+StatementContent
+	} else {
+		Complete = TheName;
 	}
 
 	return Complete
@@ -2135,6 +2221,9 @@ func GenCode(Tabs string, GetMe string) string {
 	} else if StartsWith(Args[0], "struct:") {
 		TheCode = Struct(Args[0],Args[1])
 
+	} else if StartsWith(Args[0], "enum:") {
+		TheCode = Enum(Args[0],Args[1])
+
 	} else if StartsWith(Args[0], "method:") {
 		TheCode = Method(Tabs,Args[0],Args[1])
 
@@ -2186,6 +2275,11 @@ func Example(tag string) {
 
 //main
 func main() {
+
+	var QuoteTotal int = 0
+
+	var QuotedMessage string = ""
+	var Item string = ""
 	var UserIn string = ""
 	var Content string
 
@@ -2201,14 +2295,51 @@ func main() {
 		//Args were given
 		if argc >= 1 {
 			for arg := range args {
-				if UserIn == "" {
-					UserIn = TranslateTag(args[arg])
+				Item = args[arg]
+
+				QuoteTotal += QuoteCount(Item)
+				//This all to handle quotes...consider writing this into a function instead of having this all messed around...still works though
+				//{
+				if QuoteTotal != 0 {
+					if IsEvenNumber(QuoteTotal) {
+						QuoteTotal = 0
+						if QuotedMessage == "" {
+							QuotedMessage = Item
+						} else {
+							QuotedMessage = QuotedMessage + "(-spc)" + Item
+						}
+
+						Item = QuotedMessage
+						if UserIn == "" {
+							UserIn = TranslateTag(Item)
+						} else {
+							UserIn = UserIn + " " + TranslateTag(Item)
+						}
+							QuotedMessage = ""
+					} else {
+						if QuotedMessage == "" {
+							QuotedMessage = Item
+						} else {
+							QuotedMessage = QuotedMessage + "(-spc)" + Item
+						}
+					}
+				//}
 				} else {
-					UserIn = UserIn + " " + TranslateTag(args[arg])
+					if UserIn == "" {
+						UserIn = TranslateTag(Item)
+					} else {
+						UserIn = UserIn + " " + TranslateTag(Item)
+					}
 				}
 			}
 		} else 	{
 			UserIn = raw_input("<<shell>> ")
+
+			if IsIn(UserIn," ") {
+				fmt.Println("Note: This is where you need to handle quotes")
+			}
+
+			UserIn = TranslateTag(UserIn)
 		}
 
 		if UserIn == "exit" {
@@ -2230,6 +2361,7 @@ func main() {
 		} else {
 			Content = GenCode("",UserIn)
 			if Content != "" {
+				Content = CharTranslate(Content)
 				fmt.Println(Content)
 			}
 		}

@@ -2,7 +2,7 @@ import os
 import sys
 import platform
 
-Version = "0.1.12"
+Version = "0.1.14"
 
 def getOS():
 	platform.system()
@@ -17,9 +17,9 @@ def Help(Type):
 		print("")
 		print("{EXAMPLE}")
 		Example("{}pizza:(int)one,(bool)two,(float)three var(private):(int)toppings [String-mixture]cheese:(String)kind,(int)amount for: nest-for: [String]topping:(String)name,(int)amount if:good")
-	elif Type == "struct":
-		print("(<type>)<name>")
-		print("")
+#	elif Type == "struct":
+#		print("(<type>)<name>")
+#		print("")
 	elif Type == "method":
 		print("[<data>]<name>:<parameters>")
 		print("[<data>-<return>]<name>:<parameters>")
@@ -70,7 +70,7 @@ def Help(Type):
 	else:
 		print("Components to Generate")
 		print("class\t\t:\t\"Create a class\"")
-		print("struct\t\t:\t\"Create a struct\"")
+#		print("struct\t\t:\t\"Create a struct\"")
 		print("method\t\t:\t\"Create a method\"")
 		print("loop\t\t:\t\"Create a loop\"")
 		print("logic\t\t:\t\"Create a logic\"")
@@ -126,6 +126,21 @@ def EndsWith(Str, End):
 		return True
 	else:
 		return False
+
+def IsEvenNumber(number):
+	if number % 2 == 0:
+		return True
+	else:
+		return False
+
+def QuoteCount(Input):
+	checkCharacter = '"'
+	count = 0
+
+	for char in Input:
+		if char == checkCharacter:
+			count += 1
+	return count
 
 def BeforeSplit(Str, splitAt):
 	if splitAt in Str:
@@ -307,17 +322,20 @@ def AlgoTags(Algo):
 
 	return NewTags
 
+def CharTranslate(Message):
+	if IsIn(Message,"(-spc)"):
+		Message = replaceAll(Message, "(-spc)"," ")
+	return Message
+
 def TranslateTag(Input):
 	TheReturn = ""
 	Action = Input
 	Value = ""
-	VarName = ""
 	NewTag = ""
 	TheDataType = ""
 	Nest = ""
-	ContentFor = ""
-	OldDataType = ""
 	Parent = ""
+	ContentFor = ""
 
 	#content for parent loops/logic
 	if StartsWith(Action, "<-"):
@@ -327,21 +345,34 @@ def TranslateTag(Input):
 	elif StartsWith(Action, "<<"):
 		Action = AfterSplit(Action,"<")
 		Parent = "parent-"
+	#content for logic
 	elif StartsWith(Action, "+-"):
 		Action = AfterSplit(Action,"-")
 		ContentFor = "logic-"
+	#content for loops
 	elif StartsWith(Action, "o-"):
 		Action = AfterSplit(Action,"-")
 		ContentFor = "loop-"
+	#content for methods
 	elif StartsWith(Action, "[]-"):
 		Action = AfterSplit(Action,"-")
 		ContentFor = "method-"
+	#content for classes
 	elif StartsWith(Action, "{c}-"):
 		Action = AfterSplit(Action,"-")
 		ContentFor = "class-"
+	#constructor for classes
+	elif StartsWith(Action, "{const}-"):
+		Action = AfterSplit(Action,"-")
+#		ContentFor = "point:"
+	#content for structs
 	elif StartsWith(Action, "{s}-"):
 		Action = AfterSplit(Action,"-")
 		ContentFor = "struct-"
+	#content for enum
+	elif StartsWith(Action, "{e}-"):
+		Action = AfterSplit(Action,"-")
+		ContentFor = "enum-"
 
 	# ">" becomes "nest-"
 	while StartsWith(Action, ">"):
@@ -369,7 +400,8 @@ def TranslateTag(Input):
 			TheReturn = Parent+ContentFor+Nest+TranslateTag(Algo)
 			if StartsWith(Action,"equals("):
 				TheReturn = TheReturn +" "+Parent+ContentFor+Nest+TranslateTag("el")
-
+	#convert if, else-if, or switch to the old tags
+#	elif ((StartsWith(Action, "if:")) or (StartsWith(Action, "else-if:")) or (StartsWith(Action, "switch:")) or (StartsWith(Action, "switch-case:")))
 	elif StartsWith(Action, "if:") or StartsWith(Action, "else-if:") or StartsWith(Action, "switch:"):
 		Value = AfterSplit(Action,":")
 		Action = BeforeSplit(Action,":")
@@ -383,29 +415,40 @@ def TranslateTag(Input):
 		NewTag = "logic:"+Action
 		Value = "logic-condition:"+Value
 		TheReturn = Parent+ContentFor+Nest+NewTag+" "+Value
+	#convert else to the old tags
 	elif Action == "else":
 		NewTag = "logic:"+Action
 		TheReturn = Parent+ContentFor+Nest+NewTag
-	elif (StartsWith(Action, "while:")) or (StartsWith(Action, "for:")) or (StartsWith(Action, "do-while:")):
+	#convert while, for, and do-while, to the old tags
+	elif StartsWith(Action, "while:") or StartsWith(Action, "for:") or StartsWith(Action, "do-while:"):
 		Value = AfterSplit(Action,":")
 		Action = BeforeSplit(Action,":")
 		NewTag = "loop:"+Action
 		Value = "loop-condition:"+Value
 		TheReturn = Parent+ContentFor+Nest+NewTag+" "+Value
-	#class
-	elif (StartsWith(Action, "{")) and (IsIn(Action,"}")):
+	#class or struct
+	elif StartsWith(Action, "{") and IsIn(Action,"}"):
+		Parent = ""
 		TheDataType = BeforeSplit(Action,"}")
 		TheDataType = AfterSplit(TheDataType,"{")
 		Action = AfterSplit(Action,"}")
+
+		if IsIn(TheDataType,"-"):
+			Parent = AfterSplit(TheDataType,"-")
+			TheDataType = BeforeSplit(TheDataType,"-")
+			if TheDataType != "template":
+				Action = Action+"-"+Parent
+
 		if IsIn(Action,":"):
 			Value = AfterSplit(Action,":")
 			Action = BeforeSplit(Action,":")
+
 		if Value != "":
-			TheReturn = "class:"+Action+" params:"+Value
+			TheReturn = TheDataType+":"+Action+" params:"+Value
 		else:
-			TheReturn = "class:"+Action
+			TheReturn = TheDataType+":"+Action
 	#method
-	elif (StartsWith(Action, "[")) and (IsIn(Action,"]")):
+	elif StartsWith(Action, "[") and IsIn(Action,"]"):
 		TheDataType = BeforeSplit(Action,"]")
 		TheDataType = AfterSplit(TheDataType,"[")
 		Action = AfterSplit(Action,"]")
@@ -431,11 +474,12 @@ def TranslateTag(Input):
 			else:
 				TheReturn = Parent+ContentFor+Nest+"method:("+TheDataType+")"+Action
 	#variables
-	elif (StartsWith(Action, "(")) and (IsIn(Action,")")):
+	elif StartsWith(Action, "(") and IsIn(Action,")"):
 		TheDataType = BeforeSplit(Action,")")
 		TheDataType = AfterSplit(TheDataType,"(")
 		Action = AfterSplit(Action,")")
 
+		#replacing data type to represent the variable
 		if StartsWith(Action,":"):
 			Action = TheDataType+Action
 			TheDataType = ""
@@ -458,28 +502,30 @@ def TranslateTag(Input):
 			Value = TranslateTag(Value)
 #			Value = GenCode("",Value)
 #			TheReturn = Parent+ContentFor+Nest+"var:("+TheDataType+")"+Action+"= "+Value
+			if StartsWith(Value,"\""):
+				Value = "stmt:"+Value
 			TheReturn = Parent+ContentFor+"var:("+TheDataType+")"+Action+"= "+Value
 		else:
 #			TheReturn = Parent+ContentFor+Nest+"var:("+TheDataType+")"+Action
 			TheReturn = Parent+ContentFor+"var:("+TheDataType+")"+Action
 
-		#This is an example of handling vecotors and arrays
-		#	<type>name:value
-		#
-		#if value is marked a method, this a vector
-		#	<int>list:[getInt]:()numbers
-		#if value is marked a static, this is an array
-		#	<int>list:()one,()two
-		#
-		#to assign a value
-		#	<list[0]>:4
-		#to get from value, seeing there is an index
-		#	<list[0]>:
-		#to append vectors
-		#	<list>:4
+	#This is an example of handling vecotors and arrays
+	#	<type>name:value
+	#
+	#if value is marked a method, this a vector
+	#	<int>list:[getInt]:()numbers
+	#if value is marked a static, this is an array
+	#	<int>list:()one,()two
+	#
+	#to assign a value
+	#	<list[0]>:4
+	#to get from value, seeing there is an index
+	#	<list[0]>:
+	#to append vectors
+	#	<list>:4
 
 	#vectors or arrays
-	elif StartsWith(Action, "<") and IsIn(Action,">") and (not StartsWith(Action, "<<")) and (not StartsWith(Action, "<-")):
+	elif StartsWith(Action, "<") and IsIn(Action,">") and not StartsWith(Action, "<<") and not StartsWith(Action, "<-"):
 		VectorOrArray = ""
 		TheDataType = BeforeSplit(Action,">")
 		TheDataType = AfterSplit(TheDataType,"<")
@@ -532,6 +578,7 @@ def TranslateTag(Input):
 			TheReturn = Parent+ContentFor+Nest+Action+":"+Value
 		else:
 			TheReturn = Parent+ContentFor+Nest+Action
+
 	return TheReturn
 
 def HandleTabs(CalledBy, Tabs, Content):
@@ -652,17 +699,17 @@ def Parameters(input,CalledBy):
 				Params = Type
 	return Params
 
-def Struct(TheName, Content):
-	Complete = ""
-	StructVar = ""
-	Process = ""
-	TheName = AfterSplit(TheName,":")
-	while StartsWith(Content, "var"):
-		Process = BeforeSplit(Content," ")
-		Content = AfterSplit(Content," ")
-		StructVar = StructVar + GenCode("\t",Process)
-	Complete = "struct {\n"+StructVar+"\n} "+TheName+";\n"
-	return Complete
+#def Struct(TheName, Content):
+#	Complete = ""
+#	StructVar = ""
+#	Process = ""
+#	TheName = AfterSplit(TheName,":")
+#	while StartsWith(Content, "var"):
+#		Process = BeforeSplit(Content," ")
+#		Content = AfterSplit(Content," ")
+#		StructVar = StructVar + GenCode("\t",Process)
+#	Complete = "struct {\n"+StructVar+"\n} "+TheName+";\n"
+#	return Complete
 
 #class:
 def Class(TheName, Content):
@@ -773,13 +820,13 @@ def Class(TheName, Content):
 		ClassContent = GenCode("\t",Content)
 
 	if ProtectedVars != "":
-		ProtectedVars = "protected:\n\t//protected variables\n"+ProtectedVars+"\n"
+		ProtectedVars = "protected:\n\t#protected variables\n"+ProtectedVars+"\n"
 
 	if PrivateVars != "":
-		PrivateVars = "private:\n\t//private variables\n"+PrivateVars+"\n"
+		PrivateVars = "private:\n\t#private variables\n"+PrivateVars+"\n"
 
 	if PublicVars != "":
-		PublicVars = "\n\t//public variables\n"+PublicVars+"\n"
+		PublicVars = "\n\t#public variables\n"+PublicVars+"\n"
 
 	#handle parent class
 	if ParentClass != "":
@@ -1482,7 +1529,7 @@ def Statements(Tabs, TheKindType, Content):
 	if StartsWith(TheKindType, "stmt:"):
 		TheKindType = AfterSplit(TheKindType,":")
 
-	if IsIn(TheKindType,"-"):
+	if not StartsWith(TheKindType, "\"") and IsIn(TheKindType,"-"):
 		TheName = BeforeSplit(TheKindType,"-")
 		Name = AfterSplit(TheKindType,"-")
 	else:
@@ -1572,6 +1619,8 @@ def Statements(Tabs, TheKindType, Content):
 		Complete = StatementContent+"\n"
 	elif TheName == "tab":
 		Complete = "\t"+StatementContent
+	else:
+		Complete = TheName
 
 	return Complete
 
@@ -1691,8 +1740,8 @@ def GenCode(Tabs, GetMe):
 
 	if StartsWith(Args[0], "class:"):
 		TheCode = Class(Args[0],Args[1])
-	elif StartsWith(Args[0], "struct:"):
-		TheCode = Struct(Args[0],Args[1])
+#	elif StartsWith(Args[0], "struct:"):
+#		TheCode = Struct(Args[0],Args[1])
 	elif StartsWith(Args[0], "method:"):
 		TheCode = Method(Tabs,Args[0],Args[1])
 	elif StartsWith(Args[0], "loop:"):
@@ -1745,19 +1794,54 @@ def Main():
 	if argc == 0:
 		banner()
 
+	QuoteTotal = 0
+
+	QuotedMessage = ""
+	Item = ""
 	UserIn = ""
 	Content = ""
 
 	while True:
 		#Args were given
 		if argc >= 1:
-			UserIn = TranslateTag(UserArgs[0])
-			lp = 1
+			lp = 0
 			while lp < argc:
-				UserIn = UserIn + " " + TranslateTag(UserArgs[lp])
+				Item = UserArgs[lp]
+				QuoteTotal += QuoteCount(Item)
+				#This all to handle quotes...consider writing this into a function instead of having this all messed around...still works though
+				#{
+				if QuoteTotal != 0:
+					if IsEvenNumber(QuoteTotal):
+						QuoteTotal = 0
+						if QuotedMessage == "":
+							QuotedMessage = Item
+						else:
+							QuotedMessage = QuotedMessage + "(-spc)" + Item
+
+						Item = QuotedMessage
+						if UserIn == "":
+							UserIn = TranslateTag(Item)
+						else:
+							UserIn = UserIn + " " + TranslateTag(Item)
+						QuotedMessage = ""
+					else:
+						if QuotedMessage == "":
+							QuotedMessage = Item
+						else:
+							QuotedMessage = QuotedMessage + "(-spc)" + Item
+				#}
+				else:
+					if UserIn == "":
+						UserIn = TranslateTag(Item)
+					else:
+						UserIn = UserIn + " " + TranslateTag(Item)
 				lp += 1
 		else:
 			UserIn = raw_input("<<shell>> ")
+			if IsIn(UserIn," "):
+				print("Note: This is where you need to handle quotes")
+
+			UserIn = TranslateTag(UserIn)
 
 		if UserIn == "exit":
 			break
@@ -1773,6 +1857,7 @@ def Main():
 		else:
 			Content = GenCode("",UserIn)
 			if Content != "":
+				Content = CharTranslate(Content)
 				print(Content)
 
 		#Args were given

@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.1.30";
+String Version = "0.1.34";
 
 String getOS();
 void Help(String Type);
@@ -30,6 +30,8 @@ bool IsIn(String Str, String Sub);
 bool StartsWith(String Str, String Start);
 bool EndsWith(String Str, String End);
 int len(std::vector<String> Vect);
+bool IsEvenNumber(int number);
+int QuoteCount(String Input);
 String BeforeSplit(String Str, char splitAt);
 String AfterSplit(String Str, char splitAt);
 std::vector<String> split(String message, String by, int at);
@@ -40,6 +42,7 @@ String replaceAll(String message, String sBy, String jBy);
 void banner();
 String VectAndArray(String Name, String DataType, String VectorOrArray, String Action, String TheValue);
 String AlgoTags(String Algo);
+String CharTranslate(String Message);
 String TranslateTag(String Input);
 String HandleTabs(String CalledBy, String Tabs, String Content);
 bool IsDataType(String Type);
@@ -49,6 +52,7 @@ String Pointers(String Tabs, String Tag, String Content);
 String Conditions(String input);
 String Parameters(String input,String CalledBy);
 String Template(String TheName, String Content);
+String Enum(String TheName, String Content);
 String Struct(String TheName, String Content);
 String Class(String TheName, String Content);
 String Method(String Tabs, String Name, String Content);
@@ -288,6 +292,33 @@ int len(std::vector<String> Vect)
 {
 	int StrLen = Vect.size();
 	return StrLen;
+}
+
+bool IsEvenNumber(int number)
+{
+	if ( number % 2 == 0 )
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+int QuoteCount(String Input)
+{
+	char checkCharacter = '"';
+	int count = 0;
+
+	for (int i = 0; i < Input.size(); i++)
+	{
+		if (Input[i] ==  checkCharacter)
+		{
+			count++;
+		}
+	}
+	return count;
 }
 
 String BeforeSplit(String Str, char splitAt)
@@ -621,6 +652,15 @@ String AlgoTags(String Algo)
 	return NewTags;
 }
 
+String CharTranslate(String Message)
+{
+	if (IsIn(Message,"(-spc)"))
+	{
+		Message = replaceAll(Message, "(-spc)"," ");
+	}
+	return Message;
+}
+
 String TranslateTag(String Input)
 {
 	String TheReturn = "";
@@ -677,11 +717,18 @@ String TranslateTag(String Input)
 //		ContentFor = "point:";
 	}
 
-	//content for classes
+	//content for structs
 	else if (StartsWith(Action, "{s}-"))
 	{
 		Action = AfterSplit(Action,'-');
 		ContentFor = "struct-";
+	}
+
+	//content for enum
+	else if (StartsWith(Action, "{e}-"))
+	{
+		Action = AfterSplit(Action,'-');
+		ContentFor = "enum-";
 	}
 
 	// ">" becomes "nest-"
@@ -880,6 +927,12 @@ String TranslateTag(String Input)
 			Value = TranslateTag(Value);
 //			Value = GenCode("",Value);
 //			TheReturn = Parent+ContentFor+Nest+"var:("+TheDataType+")"+Action+"= "+Value;
+
+			if (StartsWith(Value,"\""))
+			{
+				Value = "stmt:"+Value;
+			}
+
 			TheReturn = Parent+ContentFor+"var:("+TheDataType+")"+Action+"= "+Value;
 		}
 		else
@@ -1284,6 +1337,55 @@ String Template(String Type, String Content)
 	return TemplateContent;
 }
 
+String Enum(String TheName, String Content)
+{
+	String Complete = "";
+	String EnumVar = "";
+	String TmpVar = "";
+	String Process = "";
+	String AutoTabs = "";
+
+	TheName = AfterSplit(TheName,':');
+	while ((StartsWith(Content, "enum-var")) || (StartsWith(Content, "enum-stmt")) || (StartsWith(Content, "var")) || (StartsWith(Content, "stmt")))
+	{
+		Content = ReplaceTag(Content, "enum-",true);
+
+		if (EnumVar != "")
+		{
+			EnumVar = EnumVar + ",\n";
+		}
+
+		if (IsIn(Content," "))
+		{
+			Process = BeforeSplit(Content,' ');
+			Content = AfterSplit(Content,' ');
+		}
+		else
+		{
+			Process = Content;
+			Content = "";
+		}
+
+		AutoTabs = HandleTabs("enum","\t",Process);
+		if (AutoTabs != "")
+		{
+			EnumVar = EnumVar + GenCode("\t",AutoTabs);;
+			AutoTabs = "";
+		}
+
+		TmpVar = GenCode("\t",Process);
+		if (IsIn(TmpVar," "))
+		{
+			TmpVar = AfterSplit(TmpVar,' ');
+		}
+		EnumVar = EnumVar + TmpVar;
+//		EnumVar = EnumVar + GenCode("\t",Process);
+	}
+
+	Complete = "enum "+TheName+" {\n"+EnumVar+"\n};\n";
+	return Complete;
+}
+
 String Struct(String TheName, String Content)
 {
 	String Complete = "";
@@ -1295,6 +1397,10 @@ String Struct(String TheName, String Content)
 	while ((StartsWith(Content, "struct-var")) || (StartsWith(Content, "struct-stmt")) || (StartsWith(Content, "var")) || (StartsWith(Content, "stmt")))
 	{
 		Content = ReplaceTag(Content, "struct-",true);
+
+		if (StructVar != "")
+		{
+		}
 
 		if (IsIn(Content," "))
 		{
@@ -1313,9 +1419,14 @@ String Struct(String TheName, String Content)
 			StructVar = StructVar + GenCode("\t",AutoTabs);
 			AutoTabs = "";
 		}
-		StructVar = StructVar + GenCode("\t",Process);
+
+		if ((Process != "stmt:endline") && (Process != ""))
+		{
+			StructVar = StructVar + GenCode("\t",Process);
+			StructVar = StructVar + GenCode("\t","stmt:endline");
+		}
 	}
-	Complete = "struct {\n"+StructVar+"\n} "+TheName+";\n";
+	Complete = "struct {\n"+StructVar+"} "+TheName+";\n";
 	return Complete;
 }
 
@@ -2576,7 +2687,7 @@ String Statements(String Tabs, String TheKindType, String Content)
 		TheKindType = AfterSplit(TheKindType,':');
 	}
 
-	if (IsIn(TheKindType,"-"))
+	if ((!StartsWith(TheKindType, "\"")) && (IsIn(TheKindType,"-")))
 	{
 		TheName = BeforeSplit(TheKindType,'-');
 		Name = AfterSplit(TheKindType,'-');
@@ -2710,6 +2821,11 @@ String Statements(String Tabs, String TheKindType, String Content)
 	else if (TheName == "tab")
 	{
 		Complete = "\t"+StatementContent;
+	}
+	else
+	{
+//		TheName = replaceAll(TheKindType, "(-spc)"," ");
+		Complete = TheName;
 	}
 
 	return Complete;
@@ -2887,6 +3003,10 @@ String GenCode(String Tabs,String GetMe)
 	{
 		TheCode = Struct(Args[0],Args[1]);
 	}
+	else if (StartsWith(Args[0], "enum:"))
+	{
+		TheCode = Enum(Args[0],Args[1]);
+	}
 	else if (StartsWith(Args[0], "method:"))
 	{
 		TheCode = Method(Tabs,Args[0],Args[1]);
@@ -2967,6 +3087,11 @@ int main(int argc, char** argv)
 	{
 		banner();
 	}
+
+	int QuoteTotal = 0;
+
+	String QuotedMessage = "";
+	String Item = "";
 	String UserIn = "";
 	String Content = "";
 	while (true)
@@ -2974,23 +3099,72 @@ int main(int argc, char** argv)
 		//Args were given
 		if (argc > 1)
 		{
-
-//			UserIn = String(argv[1]);
-			UserIn = TranslateTag(String(argv[1]));
-//			UserIn = TranslateTag(UserIn);
-			for (int lp = 2; lp < argc; lp++)
+			for (int lp = 1; lp < argc; lp++)
 			{
-//				UserIn = UserIn + " " + String(argv[lp]);
-				UserIn = UserIn + " " + TranslateTag(String(argv[lp]));
+				Item = String(argv[lp]);
+				QuoteTotal += QuoteCount(Item);
+				//This all to handle quotes...consider writing this into a function instead of having this all messed around...still works though
+				//{
+				if (QuoteTotal != 0)
+				{
+					if (IsEvenNumber(QuoteTotal))
+					{
+						QuoteTotal = 0;
+						if (QuotedMessage == "")
+						{
+							QuotedMessage = Item;
+						}
+						else
+						{
+							QuotedMessage = QuotedMessage + "(-spc)" + Item;
+						}
+
+						Item = QuotedMessage;
+						if (UserIn == "")
+						{
+							UserIn = TranslateTag(Item);
+						}
+						else
+						{
+							UserIn = UserIn + " " + TranslateTag(Item);
+						}
+						QuotedMessage = "";
+					}
+					else
+					{
+						if (QuotedMessage == "")
+						{
+							QuotedMessage = Item;
+						}
+						else
+						{
+							QuotedMessage = QuotedMessage + "(-spc)" + Item;
+						}
+					}
+				}
+				//}
+				else
+				{
+					if (UserIn == "")
+					{
+						UserIn = TranslateTag(Item);
+					}
+					else
+					{
+						UserIn = UserIn + " " + TranslateTag(Item);
+					}
+				}
 			}
-/*
-			print(UserIn);
-			print("");
-*/
 		}
 		else
 		{
 			UserIn = raw_input("<<shell>> ");
+
+			if (IsIn(UserIn," "))
+			{
+				print("Note: This is where you need to handle quotes");
+			}
+
 			UserIn = TranslateTag(UserIn);
 		}
 
@@ -3012,10 +3186,10 @@ int main(int argc, char** argv)
 		}
 		else
 		{
-//			print(UserIn);
 			Content = GenCode("",UserIn);
 			if (Content != "")
 			{
+				Content = CharTranslate(Content);
 				print(Content);
 			}
 		}

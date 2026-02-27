@@ -12,7 +12,7 @@ import java.io.IOException;
 
 //class name
 public class shell {
-	private static String Version = "0.1.13";
+	private static String Version = "0.1.16";
 	private static String TheKind = "";
 	private static String TheName = "";
 	private static String TheKindType = "";
@@ -31,11 +31,13 @@ public class shell {
 			print("{EXAMPLE}");
 			Example("{}pizza:(int)one,(bool)two,(float)three var(private):(int)toppings [String-mixture]cheese:(String)kind,(int)amount for: nest-for: [String]topping:(String)name,(int)amount if:good");
 		}
+/*
 		else if (Type.equals("struct"))
 		{
 			print("(<type>)<name>");
 			print("");
 		}
+*/
 		else if (Type.equals("method"))
 		{
 			print("[<data>]<name>:<parameters>");
@@ -98,7 +100,7 @@ public class shell {
 		{
 			print("Components to Generate");
 			print("class\t\t:\t\"Create a class\"");
-			print("struct\t\t:\t\"Create a struct\"");
+//			print("struct\t\t:\t\"Create a struct\"");
 			print("method\t\t:\t\"Create a method\"");
 			print("loop\t\t:\t\"Create a loop\"");
 			print("logic\t\t:\t\"Create a logic\"");
@@ -315,6 +317,33 @@ public class shell {
 		//storing user input in the arrayn
 		ArrayName[i] = content;
 		return ArrayName;
+	}
+
+	private static boolean IsEvenNumber(int number)
+	{
+		if ( number % 2 == 0 )
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+	private static int QuoteCount(String Input)
+	{
+		char checkCharacter = '"';
+		int count = 0;
+
+		for (char c : Input.toCharArray())
+		{
+			if (c ==  checkCharacter)
+			{
+				count++;
+			}
+		}
+		return count;
 	}
 
 	private static String Shell(String[] command)
@@ -689,6 +718,14 @@ public class shell {
 		return NewTags.toString();
 	}
 
+	public static String CharTranslate(String Message)
+	{
+		if (IsIn(Message,"(-spc)"))
+		{
+			Message = replaceAll(Message, "\\(-spc\\)"," ");
+		}
+		return Message;
+	}
 
 	public static String TranslateTag(String Input)
 	{
@@ -721,6 +758,7 @@ public class shell {
 			Action = AfterSplit(Action,"-");
 			ContentFor = "logic-";
 		}
+		//content for loops
 		else if (StartsWith(Action, "o-"))
 		{
 			Action = AfterSplit(Action,"-");
@@ -736,12 +774,27 @@ public class shell {
 			Action = AfterSplit(Action,"-");
 			ContentFor = "class-";
 		}
+
+		//constructor for classes
+		else if (StartsWith(Action, "{const}-"))
+		{
+			Action = AfterSplit(Action,"-");
+	//		ContentFor = "point:";
+		}
+/*
 		else if (StartsWith(Action, "{s}-"))
 		{
 			Action = AfterSplit(Action,"-");
 			ContentFor = "struct-";
 		}
 
+		//content for enum
+		else if (StartsWith(Action, "{e}-"))
+		{
+			Action = AfterSplit(Action,"-");
+			ContentFor = "enum-";
+		}
+*/
 		// ">" becomes "nest-"
 		while (StartsWith(Action, ">"))
 		{
@@ -753,6 +806,7 @@ public class shell {
 		{
 			String Algo = AlgoTags(Action);
 			String NewAlgoTag = "";
+
 			if (IsIn(Algo," "))
 			{
 				String[] all = split(Algo," ");
@@ -803,7 +857,6 @@ public class shell {
 					TheReturn.append(TranslateTag("el"));
 				}
 			}
-
 		}
 		else if ((StartsWith(Action, "if:")) || (StartsWith(Action, "else-if:")) || (StartsWith(Action, "switch:")))
 		{
@@ -834,6 +887,7 @@ public class shell {
 			TheReturn.append(" ");
 			TheReturn.append(Value);
 		}
+		//convert else to the old tags
 		else if (Action.equals("else"))
 		{
 			NewTag = "logic:"+Action;
@@ -842,6 +896,7 @@ public class shell {
 			TheReturn.append(Nest.toString());
 			TheReturn.append(NewTag);
 		}
+		//convert while, for, and do-while, to the old tags
 		else if ((StartsWith(Action, "while:")) || (StartsWith(Action, "for:")) || (StartsWith(Action, "do-while:")))
 		{
 			Value = AfterSplit(Action,":");
@@ -859,9 +914,11 @@ public class shell {
 		//class or struct
 		else if ((StartsWith(Action, "{")) && (IsIn(Action,"}")))
 		{
+			Parent = "";
 			TheDataType = BeforeSplit(Action,"}");
 			TheDataType = AfterSplit(TheDataType,"{");
 			Action = AfterSplit(Action,"}");
+
 
 			if (IsIn(TheDataType,"-"))
 			{
@@ -875,29 +932,33 @@ public class shell {
 
 			if (IsIn(Action,":"))
 			{
-				Value = AfterSplit(Action,"");
+				Value = AfterSplit(Action,":");
 				Action = BeforeSplit(Action,":");
 			}
 
 			if (!(Value.equals("")))
 			{
-				TheReturn.append("class:");
+				TheReturn.append(TheDataType);
+				TheReturn.append(":");
 				TheReturn.append(Action);
 				TheReturn.append(" params:");
 				TheReturn.append(Value);
 			}
 			else
 			{
-				TheReturn.append("class:");
+				TheReturn.append(TheDataType);
+				TheReturn.append(":");
 				TheReturn.append(Action);
 			}
 		}
+
 		//method
 		else if ((StartsWith(Action, "[")) && (IsIn(Action,"]")))
 		{
 			TheDataType = BeforeSplit(Action,"]");
 			TheDataType = AfterSplit(TheDataType,"[");
 			Action = AfterSplit(Action,"]");
+
 			//calling a function
 			if (StartsWith(Action, ":"))
 			{
@@ -949,6 +1010,7 @@ public class shell {
 				}
 			}
 		}
+
 		//variables
 		else if ((StartsWith(Action, "(")) && (IsIn(Action,")")))
 		{
@@ -998,7 +1060,15 @@ public class shell {
 				TheReturn.append(")");
 				TheReturn.append(Action);
 				TheReturn.append("= ");
-				TheReturn.append(Value);
+				if (StartsWith(Value,"\""))
+				{
+					TheReturn.append("stmt:");
+					TheReturn.append(Value);
+				}
+				else
+				{
+					TheReturn.append(Value);
+				}
 			}
 			else
 			{
@@ -1028,7 +1098,7 @@ public class shell {
 		//	<list>:4
 
 		//vectors or arrays
-		else if ((StartsWith(Action, "<")) && (IsIn(Action,">")))
+		else if ((StartsWith(Action, "<")) && (IsIn(Action,">")) && (!StartsWith(Action, "<<")) && (!StartsWith(Action, "<-")))
 		{
 			String VectorOrArray = "";
 			TheDataType = BeforeSplit(Action,">");
@@ -1067,6 +1137,7 @@ public class shell {
 
 			if (!TheDataType.equals(""))
 			{
+
 				if (EndsWith(TheDataType,"]"))
 				{
 					VectorOrArray = "array:";
@@ -1078,6 +1149,8 @@ public class shell {
 
 				if (!Value.equals(""))
 				{
+					TheReturn.append(Parent);
+					TheReturn.append(ContentFor);
 					TheReturn.append("var:<");
 					TheReturn.append(VectorOrArray);
 					TheReturn.append(TheDataType);
@@ -1088,6 +1161,8 @@ public class shell {
 				}
 				else
 				{
+					TheReturn.append(Parent);
+					TheReturn.append(ContentFor);
 					TheReturn.append("var:<");
 					TheReturn.append(VectorOrArray);
 					TheReturn.append(TheDataType);
@@ -1099,6 +1174,8 @@ public class shell {
 			{
 				if (!Value.equals(""))
 				{
+					TheReturn.append(Parent);
+					TheReturn.append(ContentFor);
 					TheReturn.append("stmt:<");
 					TheReturn.append(VectorOrArray);
 					TheReturn.append(TheDataType);
@@ -1109,6 +1186,8 @@ public class shell {
 				}
 				else
 				{
+					TheReturn.append(Parent);
+					TheReturn.append(ContentFor);
 					TheReturn.append("stmt:<");
 					TheReturn.append(VectorOrArray);
 					TheReturn.append(TheDataType);
@@ -1598,9 +1677,11 @@ public class shell {
 				ReturnVar = AfterSplit(Type,"-");
 				Type = BeforeSplit(Type,"-");
 			}
-			DefaultValue = DataType(Type,true);
 
 			OldType = Type;
+
+			DefaultValue = DataType(Type,true);
+
 			//Converting data type to correct C++ type
 			Type = DataType(Type,false);
 		}
@@ -2935,13 +3016,12 @@ public class shell {
 		String Params = "";
 		String AutoTabs = "";
 
-
 		if (StartsWith(TheKindType, "stmt:"))
 		{
 			TheKindType = AfterSplit(TheKindType,":");
 		}
 
-		if (IsIn(TheKindType,"-"))
+		if ((!StartsWith(TheKindType, "\"")) && (IsIn(TheKindType,"-")))
 		{
 			TheName = BeforeSplit(TheKindType,"-");
 			Name = AfterSplit(TheKindType,"-");
@@ -3086,6 +3166,10 @@ public class shell {
 		{
 			Complete.append("\t");
 			Complete.append(StatementContent.toString());
+		}
+		else
+		{
+			Complete.append(TheName);
 		}
 
 		return Complete.toString();
@@ -3332,20 +3416,91 @@ public class shell {
 	{
 		int length;
 		int numOfArgs = len(args);
+		int QuoteTotal = 0;
+		StringBuilder QuotedMessage = new StringBuilder("");
+		String Item = "";
 		String UserIn = "";
 		String Content = "";
+
 		if (len(args) == 0)
 		{
 			banner();
 		}
 		else
 		{
+/*
 			StringBuilder ArgUserIn = new StringBuilder("");
-			ArgUserIn.append(TranslateTag(args[0]));
-			for (int lp = 1; lp < numOfArgs; lp++)
+			for (int lp = 0; lp < numOfArgs; lp++)
 			{
+				Item = args[lp];
+				ArgUserIn.append(TranslateTag(args[0]));
 				ArgUserIn.append(" ");
 				ArgUserIn.append(TranslateTag(args[lp]));
+			}
+			UserIn = ArgUserIn.toString();
+
+*/
+			StringBuilder ArgUserIn = new StringBuilder("");
+			for (int lp = 0; lp < numOfArgs; lp++)
+			{
+				Item = args[lp];
+				QuoteTotal += QuoteCount(Item);
+				//This all to handle quotes...consider writing this into a function instead of having this all messed around...still works though
+				//{
+				if (QuoteTotal != 0)
+				{
+					if (IsEvenNumber(QuoteTotal))
+					{
+						QuoteTotal = 0;
+						if (QuotedMessage.toString().equals(""))
+						{
+							QuotedMessage.append(Item);
+						}
+						else
+						{
+							QuotedMessage.append("(-spc)");
+							QuotedMessage.append(Item);
+						}
+
+						Item = QuotedMessage.toString();
+						if (ArgUserIn.toString().equals(""))
+						{
+							ArgUserIn.append(TranslateTag(Item));
+						}
+						else
+						{
+							ArgUserIn.append(TranslateTag(" "));
+							ArgUserIn.append(TranslateTag(Item));
+						}
+						QuotedMessage = new StringBuilder("");
+					}
+					else
+					{
+						if (QuotedMessage.toString().equals(""))
+						{
+							QuotedMessage.append(Item);
+						}
+						else
+						{
+							QuotedMessage.append("(-spc)");
+							QuotedMessage.append(Item);
+
+						}
+					}
+				}
+				//}
+				else
+				{
+					if (ArgUserIn.toString().equals(""))
+					{
+						ArgUserIn.append(TranslateTag(Item));
+					}
+					else
+					{
+						ArgUserIn.append(TranslateTag(" "));
+						ArgUserIn.append(TranslateTag(Item));
+					}
+				}
 			}
 			UserIn = ArgUserIn.toString();
 		}
@@ -3381,6 +3536,7 @@ public class shell {
 				Content = GenCode("",UserIn);
 				if (!Content.equals(""))
 				{
+					Content = CharTranslate(Content);
 					print(Content);
 				}
 			}
