@@ -3,7 +3,7 @@ use std::process::Command;
 
 fn the_version() -> String
 {
-	return "0.1.20".to_string();
+	return "0.1.21".to_string();
 }
 
 fn get_os() -> String
@@ -222,6 +222,32 @@ fn len(message: &str) -> u32
 	return thesize.parse().unwrap();
 }
 */
+
+fn is_even_number(number: i32) -> bool
+{
+	if number % 2 == 0
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+fn quote_count(input: &str) -> i32
+{
+	let mut count: i32 = 0;
+
+	for char in input.chars()
+	{
+		if char == '"'
+		{
+			count += 1;
+		}
+	}
+	return count;
+}
 
 fn before_split(the_string: &str, split_at: &str) -> String
 {
@@ -618,6 +644,15 @@ fn algo_tags(algo: &str) -> String
 	return new_tags.to_string();
 }
 
+fn char_translate(message: &str) -> String
+{
+	let mut new_message: String = message.to_string();
+	if is_in(&new_message,"(-spc)") {
+		new_message = replace_all(&new_message, "(-spc)"," ")
+	}
+	return new_message
+}
+
 fn translate_tag(input: &str) -> String
 {
 	let mut the_return = String::new();
@@ -936,6 +971,10 @@ fn translate_tag(input: &str) -> String
 			the_return.push_str(")");
 			the_return.push_str(&action);
 			the_return.push_str("= ");
+			if starts_with(&value,"\"")
+			{
+				the_return.push_str("stmt:");
+			}
 			the_return.push_str(&value);
 		}
 		else
@@ -2038,7 +2077,7 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 		if ends_with(&method_content.to_string(),"\n")
 		{
 			the_complete.push_str(the_tabs);
-		        the_complete.push_str("fn ");
+			the_complete.push_str("fn ");
 			the_complete.push_str(&handle_names(&the_name));
 			the_complete.push_str("(");
 			the_complete.push_str(&the_params);
@@ -2052,7 +2091,7 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 		else
 		{
 			the_complete.push_str(the_tabs);
-		        the_complete.push_str("fn ");
+			the_complete.push_str("fn ");
 			the_complete.push_str(&handle_names(&the_name));
 			the_complete.push_str("(");
 			the_complete.push_str(&the_params);
@@ -2838,10 +2877,10 @@ fn gen_logic(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 					//process the remaining nest-loop/logic
 					let auto_tabs = handle_tabs("logic",&new_tabs,&new_content);
 					if auto_tabs != ""
-                                        {
+					{
 						logic_content.push_str(&gen_code(&new_tabs,&auto_tabs));
 //						auto_tabs = "".to_string();
-                                        }
+					}
 					//process the remaining nest-loop/logic
 					logic_content.push_str(&gen_code(&new_tabs,&new_content));
 				}
@@ -3056,7 +3095,7 @@ fn gen_statements(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Str
 		new_kind = after_split(&new_kind,":");
 	}
 
-	if is_in(&new_kind,"-")
+	if !starts_with(&new_kind, "\"") && is_in(&new_kind,"-")
 	{
 		the_name = handle_names(&before_split(&new_kind,"-"));
 		name = handle_names(&after_split(&new_kind,"-"));
@@ -3129,7 +3168,7 @@ fn gen_statements(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Str
 			statement_content.push_str(&gen_code(the_tabs,&the_other_content));
 
 			if &the_other_content == "stmt:endline"
-                        {
+			{
 				let auto_tabs = handle_tabs("statements",the_tabs,&passed_content);
 
 				if auto_tabs != ""
@@ -3137,7 +3176,7 @@ fn gen_statements(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Str
 					statement_content.push_str(&gen_code(the_tabs,&auto_tabs));
 //					auto_tabs = "".to_string();
 				}
-                        }
+			}
 		}
 	}
 
@@ -3181,6 +3220,18 @@ fn gen_statements(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Str
 	{
 		the_complete.push_str("\t");
 		the_complete.push_str(&statement_content);
+	}
+	else
+	{
+		if starts_with(&the_name,"\"") && ends_with(&the_name,"\"")
+		{
+			the_complete.push_str(&the_name);
+			the_complete.push_str(".to_string()");
+		}
+		else
+		{
+			the_complete.push_str(&the_name);
+		}
 	}
 
 	return the_complete;
@@ -3253,7 +3304,7 @@ fn gen_variables(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Stri
 			variable_content.push_str(&gen_code(the_tabs,&the_other_content));
 
 			if &the_other_content.to_string() == "stmt:endline"
-                        {
+			{
 				let auto_tabs = handle_tabs("variables",the_tabs,&passed_content);
 
 				if auto_tabs != ""
@@ -3417,8 +3468,14 @@ fn example(tag: &str)
 
 fn main()
 {
-	let mut has_run_banner = false;
-	let mut arg_count = 0;
+
+	let mut quoted_message = String::from("");
+
+	let mut item: String;
+	let mut quote_total: i32 = 0;
+
+	let mut has_run_banner: bool = false;
+	let mut arg_count: i32 = 0;
 	let mut user_in = String::new();
 	let mut finished_content: String;
 	let version = &the_version();
@@ -3428,6 +3485,66 @@ fn main()
 		//CLI arguments
 		for args in env::args().skip(1)
 		{
+			item = args.to_string();
+
+			quote_total += quote_count(&item);
+			//This all to handle quotes...consider writing this into a function instead of having this all messed around...still works though
+			//{
+			if quote_total != 0
+			{
+				if is_even_number(quote_total)
+				{
+					quote_total = 0;
+					if quoted_message.to_string() == ""
+					{
+						quoted_message.push_str(&translate_tag(&item));
+					}
+					else
+					{
+						quoted_message.push_str("(-spc)");
+						quoted_message.push_str(&translate_tag(&item));
+					}
+
+					item = quoted_message.to_string();
+
+					if user_in.to_string() == ""
+					{
+						user_in = translate_tag(&item);
+					}
+					else
+					{
+						user_in.push_str(" ");
+						user_in.push_str(&translate_tag(&item));
+					}
+					quoted_message = String::from("");
+				}
+				else
+				{
+					if quoted_message.to_string() == ""
+					{
+						quoted_message.push_str(&item);
+					}
+					else
+					{
+						quoted_message.push_str("(-spc)");
+						quoted_message.push_str(&translate_tag(&item));
+					}
+				}
+			//}
+			}
+			else
+			{
+				if user_in == ""
+				{
+					user_in.push_str(&translate_tag(&item));
+				}
+				else
+				{
+					user_in.push_str(" ");
+					user_in.push_str(&translate_tag(&item));
+				}
+			}
+/*
 			if arg_count == 0
 			{ 
 //				user_in.push_str(&args);
@@ -3439,6 +3556,7 @@ fn main()
 //				user_in.push_str(&args);
 				user_in.push_str(&translate_tag(&args));
 			}
+*/
 			arg_count += 1;
 		}
 
@@ -3451,6 +3569,11 @@ fn main()
 			}
 
 			user_in = raw_input("<<shell>> ");
+
+			if is_in(&user_in," ")
+			{
+				println!("Note: This is where you need to handle quotes");
+			}
 
 			if user_in == "exit"
 			{
@@ -3485,6 +3608,7 @@ fn main()
 			finished_content = gen_code("",&user_in);
 			if finished_content != ""
 			{
+				finished_content = char_translate(&finished_content);
 				println!("{}",finished_content);
 			}
 		}

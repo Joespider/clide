@@ -9,7 +9,7 @@ import (
 	"strings"
 	)
 
-var Version string = "0.1.18"
+var Version string = "0.1.19"
 
 func getOS() string {
 	os := runtime.GOOS
@@ -172,6 +172,25 @@ func StartsWith(Str string, Sub string) bool {
 //Check if string ends with substring
 func EndsWith(Str string, Sub string) bool {
 	return strings.HasSuffix(Str,Sub)
+}
+
+func IsEvenNumber(number int) bool {
+	if number % 2 == 0 {
+		return true
+	} else {
+		return false
+	}
+}
+
+func QuoteCount(Input string) int {
+	var count int = 0
+
+	for i := 0; i < len(Input); i++ {
+		if Input[i] == '"' {
+			count++;
+		}
+	}
+	return count;
 }
 
 func BeforeSplit(Str string, splitAt string) string {
@@ -386,6 +405,13 @@ func AlgoTags(Algo string) string {
 	return NewTags
 }
 
+func CharTranslate(Message string) string {
+	if IsIn(Message,"(-spc)") {
+		Message = replaceAll(Message, "(-spc)"," ")
+	}
+	return Message
+}
+
 func TranslateTag(Input string) string {
 	var TheReturn string = ""
 	var Action string = Input
@@ -580,6 +606,11 @@ func TranslateTag(Input string) string {
 			Value = TranslateTag(Value)
 //			Value = GenCode("",Value)
 //			TheReturn = Parent+ContentFor+Nest+"var:("+TheDataType+")"+Action+"= "+Value
+
+			if StartsWith(Value,"\"") {
+				Value = "stmt:"+Value
+			}
+
 			TheReturn = Parent+ContentFor+"var:("+TheDataType+")"+Action+"= "+Value
 		} else {
 //			TheReturn = Parent+ContentFor+Nest+"var:("+TheDataType+")"+Action
@@ -1929,7 +1960,7 @@ func Statements(Tabs string, TheKindType string, Content string) string {
 		TheKindType = AfterSplit(TheKindType,":")
 	}
 
-        if IsIn(TheKindType,"-") {
+	if !StartsWith(TheKindType, "\"") && IsIn(TheKindType,"-") {
 		TheName = BeforeSplit(TheKindType,"-")
 		Name = AfterSplit(TheKindType,"-")
 	} else {
@@ -2030,6 +2061,8 @@ func Statements(Tabs string, TheKindType string, Content string) string {
 		Complete = StatementContent+"\n"
 	} else if TheName == "tab" {
 		Complete = "\t"+StatementContent
+	} else {
+		Complete = TheName;
 	}
 
 	return Complete
@@ -2242,6 +2275,11 @@ func Example(tag string) {
 
 //main
 func main() {
+
+	var QuoteTotal int = 0
+
+	var QuotedMessage string = ""
+	var Item string = ""
 	var UserIn string = ""
 	var Content string
 
@@ -2257,14 +2295,51 @@ func main() {
 		//Args were given
 		if argc >= 1 {
 			for arg := range args {
-				if UserIn == "" {
-					UserIn = TranslateTag(args[arg])
+				Item = args[arg]
+
+				QuoteTotal += QuoteCount(Item)
+				//This all to handle quotes...consider writing this into a function instead of having this all messed around...still works though
+				//{
+				if QuoteTotal != 0 {
+					if IsEvenNumber(QuoteTotal) {
+						QuoteTotal = 0
+						if QuotedMessage == "" {
+							QuotedMessage = Item
+						} else {
+							QuotedMessage = QuotedMessage + "(-spc)" + Item
+						}
+
+						Item = QuotedMessage
+						if UserIn == "" {
+							UserIn = TranslateTag(Item)
+						} else {
+							UserIn = UserIn + " " + TranslateTag(Item)
+						}
+							QuotedMessage = ""
+					} else {
+						if QuotedMessage == "" {
+							QuotedMessage = Item
+						} else {
+							QuotedMessage = QuotedMessage + "(-spc)" + Item
+						}
+					}
+				//}
 				} else {
-					UserIn = UserIn + " " + TranslateTag(args[arg])
+					if UserIn == "" {
+						UserIn = TranslateTag(Item)
+					} else {
+						UserIn = UserIn + " " + TranslateTag(Item)
+					}
 				}
 			}
 		} else 	{
 			UserIn = raw_input("<<shell>> ")
+
+			if IsIn(UserIn," ") {
+				fmt.Println("Note: This is where you need to handle quotes")
+			}
+
+			UserIn = TranslateTag(UserIn)
 		}
 
 		if UserIn == "exit" {
@@ -2286,6 +2361,7 @@ func main() {
 		} else {
 			Content = GenCode("",UserIn)
 			if Content != "" {
+				Content = CharTranslate(Content)
 				fmt.Println(Content)
 			}
 		}

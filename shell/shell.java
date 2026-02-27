@@ -12,7 +12,7 @@ import java.io.IOException;
 
 //class name
 public class shell {
-	private static String Version = "0.1.15";
+	private static String Version = "0.1.16";
 	private static String TheKind = "";
 	private static String TheName = "";
 	private static String TheKindType = "";
@@ -317,6 +317,33 @@ public class shell {
 		//storing user input in the arrayn
 		ArrayName[i] = content;
 		return ArrayName;
+	}
+
+	private static boolean IsEvenNumber(int number)
+	{
+		if ( number % 2 == 0 )
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+	private static int QuoteCount(String Input)
+	{
+		char checkCharacter = '"';
+		int count = 0;
+
+		for (char c : Input.toCharArray())
+		{
+			if (c ==  checkCharacter)
+			{
+				count++;
+			}
+		}
+		return count;
 	}
 
 	private static String Shell(String[] command)
@@ -691,6 +718,15 @@ public class shell {
 		return NewTags.toString();
 	}
 
+	public static String CharTranslate(String Message)
+	{
+		if (IsIn(Message,"(-spc)"))
+		{
+			Message = replaceAll(Message, "\\(-spc\\)"," ");
+		}
+		return Message;
+	}
+
 	public static String TranslateTag(String Input)
 	{
 		StringBuilder TheReturn = new StringBuilder("");
@@ -1024,7 +1060,15 @@ public class shell {
 				TheReturn.append(")");
 				TheReturn.append(Action);
 				TheReturn.append("= ");
-				TheReturn.append(Value);
+				if (StartsWith(Value,"\""))
+				{
+					TheReturn.append("stmt:");
+					TheReturn.append(Value);
+				}
+				else
+				{
+					TheReturn.append(Value);
+				}
 			}
 			else
 			{
@@ -2972,13 +3016,12 @@ public class shell {
 		String Params = "";
 		String AutoTabs = "";
 
-
 		if (StartsWith(TheKindType, "stmt:"))
 		{
 			TheKindType = AfterSplit(TheKindType,":");
 		}
 
-		if (IsIn(TheKindType,"-"))
+		if ((!StartsWith(TheKindType, "\"")) && (IsIn(TheKindType,"-")))
 		{
 			TheName = BeforeSplit(TheKindType,"-");
 			Name = AfterSplit(TheKindType,"-");
@@ -3123,6 +3166,10 @@ public class shell {
 		{
 			Complete.append("\t");
 			Complete.append(StatementContent.toString());
+		}
+		else
+		{
+			Complete.append(TheName);
 		}
 
 		return Complete.toString();
@@ -3369,20 +3416,91 @@ public class shell {
 	{
 		int length;
 		int numOfArgs = len(args);
+		int QuoteTotal = 0;
+		StringBuilder QuotedMessage = new StringBuilder("");
+		String Item = "";
 		String UserIn = "";
 		String Content = "";
+
 		if (len(args) == 0)
 		{
 			banner();
 		}
 		else
 		{
+/*
 			StringBuilder ArgUserIn = new StringBuilder("");
-			ArgUserIn.append(TranslateTag(args[0]));
-			for (int lp = 1; lp < numOfArgs; lp++)
+			for (int lp = 0; lp < numOfArgs; lp++)
 			{
+				Item = args[lp];
+				ArgUserIn.append(TranslateTag(args[0]));
 				ArgUserIn.append(" ");
 				ArgUserIn.append(TranslateTag(args[lp]));
+			}
+			UserIn = ArgUserIn.toString();
+
+*/
+			StringBuilder ArgUserIn = new StringBuilder("");
+			for (int lp = 0; lp < numOfArgs; lp++)
+			{
+				Item = args[lp];
+				QuoteTotal += QuoteCount(Item);
+				//This all to handle quotes...consider writing this into a function instead of having this all messed around...still works though
+				//{
+				if (QuoteTotal != 0)
+				{
+					if (IsEvenNumber(QuoteTotal))
+					{
+						QuoteTotal = 0;
+						if (QuotedMessage.toString().equals(""))
+						{
+							QuotedMessage.append(Item);
+						}
+						else
+						{
+							QuotedMessage.append("(-spc)");
+							QuotedMessage.append(Item);
+						}
+
+						Item = QuotedMessage.toString();
+						if (ArgUserIn.toString().equals(""))
+						{
+							ArgUserIn.append(TranslateTag(Item));
+						}
+						else
+						{
+							ArgUserIn.append(TranslateTag(" "));
+							ArgUserIn.append(TranslateTag(Item));
+						}
+						QuotedMessage = new StringBuilder("");
+					}
+					else
+					{
+						if (QuotedMessage.toString().equals(""))
+						{
+							QuotedMessage.append(Item);
+						}
+						else
+						{
+							QuotedMessage.append("(-spc)");
+							QuotedMessage.append(Item);
+
+						}
+					}
+				}
+				//}
+				else
+				{
+					if (ArgUserIn.toString().equals(""))
+					{
+						ArgUserIn.append(TranslateTag(Item));
+					}
+					else
+					{
+						ArgUserIn.append(TranslateTag(" "));
+						ArgUserIn.append(TranslateTag(Item));
+					}
+				}
 			}
 			UserIn = ArgUserIn.toString();
 		}
@@ -3418,6 +3536,7 @@ public class shell {
 				Content = GenCode("",UserIn);
 				if (!Content.equals(""))
 				{
+					Content = CharTranslate(Content);
 					print(Content);
 				}
 			}

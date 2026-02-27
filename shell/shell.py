@@ -2,7 +2,7 @@ import os
 import sys
 import platform
 
-Version = "0.1.13"
+Version = "0.1.14"
 
 def getOS():
 	platform.system()
@@ -126,6 +126,21 @@ def EndsWith(Str, End):
 		return True
 	else:
 		return False
+
+def IsEvenNumber(number):
+	if number % 2 == 0:
+		return True
+	else:
+		return False
+
+def QuoteCount(Input):
+	checkCharacter = '"'
+	count = 0
+
+	for char in Input:
+		if char == checkCharacter:
+			count += 1
+	return count
 
 def BeforeSplit(Str, splitAt):
 	if splitAt in Str:
@@ -307,6 +322,11 @@ def AlgoTags(Algo):
 
 	return NewTags
 
+def CharTranslate(Message):
+	if IsIn(Message,"(-spc)"):
+		Message = replaceAll(Message, "(-spc)"," ")
+	return Message
+
 def TranslateTag(Input):
 	TheReturn = ""
 	Action = Input
@@ -482,6 +502,8 @@ def TranslateTag(Input):
 			Value = TranslateTag(Value)
 #			Value = GenCode("",Value)
 #			TheReturn = Parent+ContentFor+Nest+"var:("+TheDataType+")"+Action+"= "+Value
+			if StartsWith(Value,"\""):
+				Value = "stmt:"+Value
 			TheReturn = Parent+ContentFor+"var:("+TheDataType+")"+Action+"= "+Value
 		else:
 #			TheReturn = Parent+ContentFor+Nest+"var:("+TheDataType+")"+Action
@@ -1507,7 +1529,7 @@ def Statements(Tabs, TheKindType, Content):
 	if StartsWith(TheKindType, "stmt:"):
 		TheKindType = AfterSplit(TheKindType,":")
 
-	if IsIn(TheKindType,"-"):
+	if not StartsWith(TheKindType, "\"") and IsIn(TheKindType,"-"):
 		TheName = BeforeSplit(TheKindType,"-")
 		Name = AfterSplit(TheKindType,"-")
 	else:
@@ -1597,6 +1619,8 @@ def Statements(Tabs, TheKindType, Content):
 		Complete = StatementContent+"\n"
 	elif TheName == "tab":
 		Complete = "\t"+StatementContent
+	else:
+		Complete = TheName
 
 	return Complete
 
@@ -1770,19 +1794,54 @@ def Main():
 	if argc == 0:
 		banner()
 
+	QuoteTotal = 0
+
+	QuotedMessage = ""
+	Item = ""
 	UserIn = ""
 	Content = ""
 
 	while True:
 		#Args were given
 		if argc >= 1:
-			UserIn = TranslateTag(UserArgs[0])
-			lp = 1
+			lp = 0
 			while lp < argc:
-				UserIn = UserIn + " " + TranslateTag(UserArgs[lp])
+				Item = UserArgs[lp]
+				QuoteTotal += QuoteCount(Item)
+				#This all to handle quotes...consider writing this into a function instead of having this all messed around...still works though
+				#{
+				if QuoteTotal != 0:
+					if IsEvenNumber(QuoteTotal):
+						QuoteTotal = 0
+						if QuotedMessage == "":
+							QuotedMessage = Item
+						else:
+							QuotedMessage = QuotedMessage + "(-spc)" + Item
+
+						Item = QuotedMessage
+						if UserIn == "":
+							UserIn = TranslateTag(Item)
+						else:
+							UserIn = UserIn + " " + TranslateTag(Item)
+						QuotedMessage = ""
+					else:
+						if QuotedMessage == "":
+							QuotedMessage = Item
+						else:
+							QuotedMessage = QuotedMessage + "(-spc)" + Item
+				#}
+				else:
+					if UserIn == "":
+						UserIn = TranslateTag(Item)
+					else:
+						UserIn = UserIn + " " + TranslateTag(Item)
 				lp += 1
 		else:
 			UserIn = raw_input("<<shell>> ")
+			if IsIn(UserIn," "):
+				print("Note: This is where you need to handle quotes")
+
+			UserIn = TranslateTag(UserIn)
 
 		if UserIn == "exit":
 			break
@@ -1798,6 +1857,7 @@ def Main():
 		else:
 			Content = GenCode("",UserIn)
 			if Content != "":
+				Content = CharTranslate(Content)
 				print(Content)
 
 		#Args were given

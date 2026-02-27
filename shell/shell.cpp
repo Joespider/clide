@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.1.32";
+String Version = "0.1.34";
 
 String getOS();
 void Help(String Type);
@@ -42,6 +42,7 @@ String replaceAll(String message, String sBy, String jBy);
 void banner();
 String VectAndArray(String Name, String DataType, String VectorOrArray, String Action, String TheValue);
 String AlgoTags(String Algo);
+String CharTranslate(String Message);
 String TranslateTag(String Input);
 String HandleTabs(String CalledBy, String Tabs, String Content);
 bool IsDataType(String Type);
@@ -649,6 +650,15 @@ String AlgoTags(String Algo)
 	}
 
 	return NewTags;
+}
+
+String CharTranslate(String Message)
+{
+	if (IsIn(Message,"(-spc)"))
+	{
+		Message = replaceAll(Message, "(-spc)"," ");
+	}
+	return Message;
 }
 
 String TranslateTag(String Input)
@@ -2814,7 +2824,7 @@ String Statements(String Tabs, String TheKindType, String Content)
 	}
 	else
 	{
-		TheName = replaceAll(TheKindType, "(-spc)"," ");
+//		TheName = replaceAll(TheKindType, "(-spc)"," ");
 		Complete = TheName;
 	}
 
@@ -3079,7 +3089,6 @@ int main(int argc, char** argv)
 	}
 
 	int QuoteTotal = 0;
-	bool OpenQuote = false;
 
 	String QuotedMessage = "";
 	String Item = "";
@@ -3090,35 +3099,10 @@ int main(int argc, char** argv)
 		//Args were given
 		if (argc > 1)
 		{
-			Item = String(argv[1]);
-			QuoteTotal = QuoteCount(Item);
-
-			//This all to handle quotes...consider writing this into a function instead of having this all messed around...still works though
-			//{
-			if (QuoteTotal != 0)
-			{
-				if (IsEvenNumber(QuoteTotal))
-				{
-					QuoteTotal = 0;
-					UserIn = TranslateTag(Item);
-				}
-				else
-				{
-					QuotedMessage = Item;
-				}
-			}
-			//}
-
-			else
-			{
-				UserIn = TranslateTag(Item);
-			}
-
-			for (int lp = 2; lp < argc; lp++)
+			for (int lp = 1; lp < argc; lp++)
 			{
 				Item = String(argv[lp]);
 				QuoteTotal += QuoteCount(Item);
-
 				//This all to handle quotes...consider writing this into a function instead of having this all messed around...still works though
 				//{
 				if (QuoteTotal != 0)
@@ -3161,7 +3145,14 @@ int main(int argc, char** argv)
 				//}
 				else
 				{
-					UserIn = UserIn + " " + TranslateTag(Item);
+					if (UserIn == "")
+					{
+						UserIn = TranslateTag(Item);
+					}
+					else
+					{
+						UserIn = UserIn + " " + TranslateTag(Item);
+					}
 				}
 			}
 		}
@@ -3198,6 +3189,7 @@ int main(int argc, char** argv)
 			Content = GenCode("",UserIn);
 			if (Content != "")
 			{
+				Content = CharTranslate(Content);
 				print(Content);
 			}
 		}
