@@ -12,7 +12,7 @@ import java.io.IOException;
 
 //class name
 public class shell {
-	private static String Version = "0.1.16";
+	private static String Version = "0.1.18";
 	private static String TheKind = "";
 	private static String TheName = "";
 	private static String TheKindType = "";
@@ -710,6 +710,14 @@ public class shell {
 		{
 			NewTags.append("");
 		}
+		else if (Algo.equals("main():"))
+		{
+			NewTags.append("[]main:cli");
+		}
+		else if (Algo.equals("main(cli):"))
+		{
+			NewTags.append("[cli]main:cli");
+		}
 		else
 		{
 			NewTags.append(Algo);
@@ -802,7 +810,7 @@ public class shell {
 			Nest.append("nest-");
 		}
 
-		if (StartsWith(Action,"concat(") || StartsWith(Action,"incre(") || StartsWith(Action,"decre(") || StartsWith(Action,"equals("))
+		if (StartsWith(Action,"concat(") || StartsWith(Action,"incre(") || StartsWith(Action,"decre(") || StartsWith(Action,"equals(") || StartsWith(Action,"main("))
 		{
 			String Algo = AlgoTags(Action);
 			String NewAlgoTag = "";
@@ -1402,6 +1410,10 @@ public class shell {
 
 		if ((CalledBy.equals("class")) || (CalledBy.equals("method")) || (CalledBy.equals("stmt")))
 		{
+			if (Params.equals("cli"))
+			{
+				Params = "String[] args";
+			}
 			//param-type,param-type,param-type
 			if ((StartsWith(Params,"(")) && (IsIn(Params,")")) && (IsIn(Params,",")))
 			{
@@ -1904,7 +1916,8 @@ public class shell {
 			}
 		}
 
-		if ((Type.equals("{}")) || (Type.equals(TheName)))
+
+		if (TheName.equals("main"))
 		{
 			if (!Tabs.equals(""))
 			{
@@ -1914,10 +1927,7 @@ public class shell {
 			{
 				Complete.append("\t");
 			}
-			Complete.append(PublicOrPrivate);
-			Complete.append(" ");
-			Complete.append(TheName);
-			Complete.append("(");
+			Complete.append("public static void main(");
 			Complete.append(Params);
 			Complete.append(")\n");
 			if (!Tabs.equals(""))
@@ -1929,43 +1939,27 @@ public class shell {
 				Complete.append("\t");
 			}
 			Complete.append("{\n");
-			Complete.append(MethodContent.toString());
-//			Complete.append("\n");
-			if (!Tabs.equals(""))
+
+			if (OldType.equals("cli"))
 			{
-				Complete.append(Tabs);
-			}
-			else
-			{
+				if (!Tabs.equals(""))
+				{
+					Complete.append(Tabs);
+				}
 				Complete.append("\t");
-			}
-			Complete.append("}\n");
-		}
-		else if ((Type.equals("")) || (Type.equals("void")) || (Type.equals(TheName)))
-		{
-			if (!Tabs.equals(""))
-			{
-				Complete.append(Tabs);
-			}
-			else
-			{
 				Complete.append("\t");
-			}
-			Complete.append(PublicOrPrivate);
-			Complete.append(" static void ");
-			Complete.append(TheName);
-			Complete.append("(");
-			Complete.append(Params);
-			Complete.append(")\n");
-			if (!Tabs.equals(""))
-			{
-				Complete.append(Tabs);
-			}
-			else
-			{
+				Complete.append("String[] argv = args;");
+				Complete.append("\n");
+				if (!Tabs.equals(""))
+				{
+					Complete.append(Tabs);
+				}
 				Complete.append("\t");
+				Complete.append("\t");
+				Complete.append("int argc = argv.length;");
+				Complete.append("\n");
 			}
-			Complete.append("{\n");
+
 			Complete.append(MethodContent.toString());
 //			Complete.append("\n");
 			if (!Tabs.equals(""))
@@ -1980,7 +1974,8 @@ public class shell {
 		}
 		else
 		{
-			if (DefaultValue.equals(""))
+
+			if ((Type.equals("{}")) || (Type.equals(TheName)))
 			{
 				if (!Tabs.equals(""))
 				{
@@ -1991,8 +1986,6 @@ public class shell {
 					Complete.append("\t");
 				}
 				Complete.append(PublicOrPrivate);
-				Complete.append(" static ");
-				Complete.append(Type);
 				Complete.append(" ");
 				Complete.append(TheName);
 				Complete.append("(");
@@ -2007,38 +2000,45 @@ public class shell {
 					Complete.append("\t");
 				}
 				Complete.append("{\n");
-				if (AssignDefault == false)
-				{
-					if (!Tabs.equals(""))
-					{
-						Complete.append(Tabs);
-						Complete.append("\t");
-					}
-					else
-					{
-						Complete.append("\t\t");
-					}
-
-					Complete.append(Type);
-					Complete.append(" ");
-					Complete.append(ReturnVar);
-					Complete.append(";\n");
-				}
-
 				Complete.append(MethodContent.toString());
-				Complete.append("\n");
+//				Complete.append("\n");
 				if (!Tabs.equals(""))
 				{
 					Complete.append(Tabs);
-					Complete.append("\t");
 				}
 				else
 				{
-					Complete.append("\t\t");
+					Complete.append("\t");
 				}
-				Complete.append("return ");
-				Complete.append(ReturnVar);
-				Complete.append(";\n");
+				Complete.append("}\n");
+			}
+			else if ((Type.equals("")) || (Type.equals("void")) || (Type.equals(TheName)))
+			{
+				if (!Tabs.equals(""))
+				{
+					Complete.append(Tabs);
+				}
+				else
+				{
+					Complete.append("\t");
+				}
+				Complete.append(PublicOrPrivate);
+				Complete.append(" static void ");
+				Complete.append(TheName);
+				Complete.append("(");
+				Complete.append(Params);
+				Complete.append(")\n");
+				if (!Tabs.equals(""))
+				{
+					Complete.append(Tabs);
+				}
+				else
+				{
+					Complete.append("\t");
+				}
+				Complete.append("{\n");
+				Complete.append(MethodContent.toString());
+//				Complete.append("\n");
 				if (!Tabs.equals(""))
 				{
 					Complete.append(Tabs);
@@ -2051,33 +2051,53 @@ public class shell {
 			}
 			else
 			{
-				if (!Tabs.equals(""))
+				if (DefaultValue.equals(""))
 				{
-					Complete.append(Tabs);
-				}
-				else
-				{
-					Complete.append("\t");
-				}
-				Complete.append(PublicOrPrivate);
-				Complete.append(" static ");
-				Complete.append(Type);
-				Complete.append(" ");
-				Complete.append(TheName);
-				Complete.append("(");
-				Complete.append(Params);
-				Complete.append(")\n");
-				if (!Tabs.equals(""))
-				{
-					Complete.append(Tabs);
-				}
-				else
-				{
-					Complete.append("\t");
-				}
-				Complete.append("{\n");
-				if (AssignDefault == false)
-				{
+					if (!Tabs.equals(""))
+					{
+						Complete.append(Tabs);
+					}
+					else
+					{
+						Complete.append("\t");
+					}
+					Complete.append(PublicOrPrivate);
+					Complete.append(" static ");
+					Complete.append(Type);
+					Complete.append(" ");
+					Complete.append(TheName);
+					Complete.append("(");
+					Complete.append(Params);
+					Complete.append(")\n");
+					if (!Tabs.equals(""))
+					{
+						Complete.append(Tabs);
+					}
+					else
+					{
+						Complete.append("\t");
+					}
+					Complete.append("{\n");
+					if (AssignDefault == false)
+					{
+						if (!Tabs.equals(""))
+						{
+							Complete.append(Tabs);
+							Complete.append("\t");
+						}
+						else
+						{
+							Complete.append("\t\t");
+						}
+
+						Complete.append(Type);
+						Complete.append(" ");
+						Complete.append(ReturnVar);
+						Complete.append(";\n");
+					}
+
+					Complete.append(MethodContent.toString());
+					Complete.append("\n");
 					if (!Tabs.equals(""))
 					{
 						Complete.append(Tabs);
@@ -2087,39 +2107,90 @@ public class shell {
 					{
 						Complete.append("\t\t");
 					}
+					Complete.append("return ");
+					Complete.append(ReturnVar);
+					Complete.append(";\n");
+					if (!Tabs.equals(""))
+					{
+						Complete.append(Tabs);
+					}
+					else
+					{
+						Complete.append("\t");
+					}
+					Complete.append("}\n");
+				}
+				else
+				{
+					if (!Tabs.equals(""))
+					{
+						Complete.append(Tabs);
+					}
+					else
+					{
+						Complete.append("\t");
+					}
+					Complete.append(PublicOrPrivate);
+					Complete.append(" static ");
 					Complete.append(Type);
 					Complete.append(" ");
+					Complete.append(TheName);
+					Complete.append("(");
+					Complete.append(Params);
+					Complete.append(")\n");
+					if (!Tabs.equals(""))
+					{
+						Complete.append(Tabs);
+					}
+					else
+					{
+						Complete.append("\t");
+					}
+					Complete.append("{\n");
+					if (AssignDefault == false)
+					{
+						if (!Tabs.equals(""))
+						{
+							Complete.append(Tabs);
+							Complete.append("\t");
+						}
+						else
+						{
+							Complete.append("\t\t");
+						}
+						Complete.append(Type);
+						Complete.append(" ");
+						Complete.append(ReturnVar);
+						Complete.append(" = ");
+						Complete.append(DefaultValue);
+						Complete.append(";\n");
+					}
+					Complete.append(MethodContent.toString());
+					Complete.append("\n");
+					if (!Tabs.equals(""))
+					{
+						Complete.append(Tabs);
+						Complete.append("\t");
+					}
+					else
+					{
+						Complete.append("\t\t");
+					}
+					Complete.append("return ");
 					Complete.append(ReturnVar);
-					Complete.append(" = ");
-					Complete.append(DefaultValue);
 					Complete.append(";\n");
+					if (!Tabs.equals(""))
+					{
+						Complete.append(Tabs);
+					}
+					else
+					{
+						Complete.append("\t");
+					}
+					Complete.append("}\n");
 				}
-				Complete.append(MethodContent.toString());
-				Complete.append("\n");
-				if (!Tabs.equals(""))
-				{
-					Complete.append(Tabs);
-					Complete.append("\t");
-				}
-				else
-				{
-					Complete.append("\t\t");
-				}
-				Complete.append("return ");
-				Complete.append(ReturnVar);
-				Complete.append(";\n");
-				if (!Tabs.equals(""))
-				{
-					Complete.append(Tabs);
-				}
-				else
-				{
-					Complete.append("\t");
-				}
-				Complete.append("}\n");
 			}
 		}
-
 		return Complete.toString();
 	}
 

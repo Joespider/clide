@@ -2,7 +2,7 @@ import os
 import sys
 import platform
 
-Version = "0.1.14"
+Version = "0.1.16"
 
 def getOS():
 	platform.system()
@@ -317,6 +317,10 @@ def AlgoTags(Algo):
 				NewTags = "()"+ReturnKey+":()"+ReturnValue
 	elif Algo == "concat():" or Algo == "decre():" or Algo == "incre():" or Algo == "equals():":
 		NewTags = ""
+	elif Algo == "main():":
+		NewTags = "[]main:"
+	elif Algo == "main(cli):":
+		NewTags = "[cli]main:"
 	else:
 		NewTags = Algo
 
@@ -379,7 +383,7 @@ def TranslateTag(Input):
 		Action = AfterSplit(Action,">")
 		Nest = "nest-"+Nest
 
-	if StartsWith(Action,"concat(") or StartsWith(Action,"incre(") or StartsWith(Action,"decre(") or StartsWith(Action,"equals("):
+	if StartsWith(Action,"concat(") or StartsWith(Action,"incre(") or StartsWith(Action,"decre(") or StartsWith(Action,"equals(") or StartsWith(Action,"main("):
 		Algo = AlgoTags(Action)
 		NewAlgoTag = ""
 		if IsIn(Algo," "):
@@ -989,27 +993,33 @@ def Method(Tabs, Name, Content):
 				Content = AfterSplit(Content," ")
 		else:
 			Last = True
+	if TheName == "main":
+		if OldType == "cli":
+			Complete = Tabs+"def Main():\n"+Tabs+"\targv = sys.argv\n"+Tabs+"\targv.pop(0)\n"+Tabs+"\targc = len(argv)\n"+MethodContent+"\n\nif __name__ == '__main__':\n"+Tabs+"\tMain()\n"
+		else:
+			Complete = Tabs+"def Main():\n"+MethodContent+"\n\nif __name__ == '__main__':\n"+Tabs+"\tMain()\n"
 
-	#build method based on content
-	if Type == "" or Type == "void":
-		Complete = Tabs+"def "+TheName+"("+Params+"):\n"+MethodContent+"\n"
-	#class constructor
-	elif Type == "{}":
-		if EndsWith(MethodContent,"\n"):
-			Complete = Tabs+"def __init__("+Params+"):\n"+MethodContent
-		else:
-			Complete = Tabs+"def __init__("+Params+"):\n"+MethodContent
 	else:
-		if DefaultValue == "":
-			if AssignDefault == True:
-				Complete = Tabs+"def "+TheName+"("+Params+"):\n"+MethodContent+"\n"+Tabs+"\treturn "+ReturnVar+"\n"
+		#build method based on content
+		if Type == "" or Type == "void":
+			Complete = Tabs+"def "+TheName+"("+Params+"):\n"+MethodContent+"\n"
+		#class constructor
+		elif Type == "{}":
+			if EndsWith(MethodContent,"\n"):
+				Complete = Tabs+"def __init__("+Params+"):\n"+MethodContent
 			else:
-				Complete = Tabs+"def "+TheName+"("+Params+"):\n"+Tabs+"\t"+ReturnVar+" = "+DefaultValue+"\n"+MethodContent+"\n"+Tabs+"\treturn "+ReturnVar+"\n"
+				Complete = Tabs+"def __init__("+Params+"):\n"+MethodContent
 		else:
-			if AssignDefault == True:
-				Complete = Tabs+"def "+TheName+"("+Params+"):\n"+MethodContent+"\n"+Tabs+"\treturn "+ReturnVar+"\n"
+			if DefaultValue == "":
+				if AssignDefault == True:
+					Complete = Tabs+"def "+TheName+"("+Params+"):\n"+MethodContent+"\n"+Tabs+"\treturn "+ReturnVar+"\n"
+				else:
+					Complete = Tabs+"def "+TheName+"("+Params+"):\n"+Tabs+"\t"+ReturnVar+" = "+DefaultValue+"\n"+MethodContent+"\n"+Tabs+"\treturn "+ReturnVar+"\n"
 			else:
-				Complete = Tabs+"def "+TheName+"("+Params+"):\n"+Tabs+"\t"+ReturnVar+" = "+DefaultValue+"\n"+MethodContent+"\n"+Tabs+"\treturn "+ReturnVar+"\n"
+				if AssignDefault == True:
+					Complete = Tabs+"def "+TheName+"("+Params+"):\n"+MethodContent+"\n"+Tabs+"\treturn "+ReturnVar+"\n"
+				else:
+					Complete = Tabs+"def "+TheName+"("+Params+"):\n"+Tabs+"\t"+ReturnVar+" = "+DefaultValue+"\n"+MethodContent+"\n"+Tabs+"\treturn "+ReturnVar+"\n"
 	return Complete
 
 #loop:
@@ -1787,7 +1797,6 @@ def Args():
 def Main():
 	#Get User CLI Input
 	UserArgs = Args()
-
 	argc = len(UserArgs)
 
 	#Args were NOT given

@@ -9,7 +9,7 @@ import (
 	"strings"
 	)
 
-var Version string = "0.1.19"
+var Version string = "0.1.21"
 
 func getOS() string {
 	os := runtime.GOOS
@@ -398,6 +398,10 @@ func AlgoTags(Algo string) string {
 		}
 	} else if Algo == "concat():" || Algo == "decre():" || Algo == "incre():" || Algo == "equals():" {
 		NewTags = ""
+	} else if Algo == "main():" {
+		NewTags = "[]main:"
+	} else if Algo == "main(cli):" {
+		NewTags = "[cli]main:"
 	} else {
 		NewTags = Algo
 	}
@@ -467,7 +471,7 @@ func TranslateTag(Input string) string {
 		Nest = "nest-"+Nest
 	}
 
-	if StartsWith(Action,"concat(") || StartsWith(Action,"incre(") || StartsWith(Action,"decre(") || StartsWith(Action,"equals(") {
+	if StartsWith(Action,"concat(") || StartsWith(Action,"incre(") || StartsWith(Action,"decre(") || StartsWith(Action,"equals(") || StartsWith(Action,"main(") {
 		var Algo string = AlgoTags(Action)
 		var NewAlgoTag string = ""
 		if IsIn(Algo," ") {
@@ -1282,29 +1286,38 @@ func Method(Tabs string, Name string, Content string) string {
 		}
 	}
 
-	//build method based on content
-	if Type == "" || Type == "void" {
-		Complete = Tabs+"func "+Struct+TheName+"("+Params+") {\n"+MethodContent+"\n"+Tabs+"}\n"
-	//class constructor
-	} else if Type == "{}" {
-		StructName = TheName
-		if EndsWith(MethodContent,"\n") {
-			Complete = Tabs+"funct New"+"("+Params+") "+StructName+" {\n"+MethodContent+Tabs+"}\n"
+	if TheName == "main" {
+		if OldType == "cli" {
+			Complete = Tabs+"func main {\n"+Tabs+"\targv := os.Args[1:]\n"+Tabs+"\tvar argc int = len(argv)"+MethodContent+"\n"+Tabs+"}\n"
 		} else {
-			Complete = Tabs+"funct New"+"("+Params+") "+StructName+" {\n"+MethodContent+"\n"+Tabs+"}\n"
+			Complete = Tabs+"func main {\n"+MethodContent+"\n"+Tabs+"}\n"
+
 		}
 	} else {
-                if DefaultValue == "" {
-			if AssignDefault == true {
-				Complete = Tabs+"func "+Struct+TheName+"("+Params+") "+Type+" {\n"+MethodContent+"\n"+Tabs+"\treturn "+ReturnVar+"\n"+Tabs+"}\n"
+		//build method based on content
+		if Type == "" || Type == "void" {
+			Complete = Tabs+"func "+Struct+TheName+"("+Params+") {\n"+MethodContent+"\n"+Tabs+"}\n"
+		//class constructor
+		} else if Type == "{}" {
+			StructName = TheName
+			if EndsWith(MethodContent,"\n") {
+				Complete = Tabs+"funct New"+"("+Params+") "+StructName+" {\n"+MethodContent+Tabs+"}\n"
 			} else {
-				Complete = Tabs+"func "+Struct+TheName+"("+Params+") "+Type+" {\n"+Tabs+"\tvar "+ReturnVar+" "+Type+"\n"+MethodContent+"\n"+Tabs+"\treturn "+ReturnVar+"\n"+Tabs+"}\n"
+				Complete = Tabs+"funct New"+"("+Params+") "+StructName+" {\n"+MethodContent+"\n"+Tabs+"}\n"
 			}
 		} else {
-			if AssignDefault == true {
-				Complete = Tabs+"func "+Struct+TheName+"("+Params+") "+Type+" {\n"+MethodContent+"\n"+Tabs+"\treturn "+ReturnVar+"\n"+Tabs+"}\n"
+	                if DefaultValue == "" {
+				if AssignDefault == true {
+					Complete = Tabs+"func "+Struct+TheName+"("+Params+") "+Type+" {\n"+MethodContent+"\n"+Tabs+"\treturn "+ReturnVar+"\n"+Tabs+"}\n"
+				} else {
+					Complete = Tabs+"func "+Struct+TheName+"("+Params+") "+Type+" {\n"+Tabs+"\tvar "+ReturnVar+" "+Type+"\n"+MethodContent+"\n"+Tabs+"\treturn "+ReturnVar+"\n"+Tabs+"}\n"
+				}
 			} else {
-				Complete = Tabs+"func "+Struct+TheName+"("+Params+") "+Type+" {\n"+Tabs+"\tvar "+ReturnVar+" "+Type+" = "+DefaultValue+"\n"+MethodContent+"\n"+Tabs+"\treturn "+ReturnVar+"\n"+Tabs+"}\n"
+				if AssignDefault == true {
+					Complete = Tabs+"func "+Struct+TheName+"("+Params+") "+Type+" {\n"+MethodContent+"\n"+Tabs+"\treturn "+ReturnVar+"\n"+Tabs+"}\n"
+				} else {
+					Complete = Tabs+"func "+Struct+TheName+"("+Params+") "+Type+" {\n"+Tabs+"\tvar "+ReturnVar+" "+Type+" = "+DefaultValue+"\n"+MethodContent+"\n"+Tabs+"\treturn "+ReturnVar+"\n"+Tabs+"}\n"
+				}
 			}
 		}
 	}
