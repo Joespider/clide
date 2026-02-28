@@ -12,7 +12,7 @@ import java.io.IOException;
 
 //class name
 public class shell {
-	private static String Version = "0.1.17";
+	private static String Version = "0.1.18";
 	private static String TheKind = "";
 	private static String TheName = "";
 	private static String TheKindType = "";
@@ -710,9 +710,13 @@ public class shell {
 		{
 			NewTags.append("");
 		}
-		else if ((Algo.equals("main():")) || (Algo.equals("main(cli):")))
+		else if (Algo.equals("main():"))
 		{
 			NewTags.append("[]main:cli");
+		}
+		else if (Algo.equals("main(cli):"))
+		{
+			NewTags.append("[cli]main:cli");
 		}
 		else
 		{
@@ -1935,6 +1939,27 @@ public class shell {
 				Complete.append("\t");
 			}
 			Complete.append("{\n");
+
+			if (OldType.equals("cli"))
+			{
+				if (!Tabs.equals(""))
+				{
+					Complete.append(Tabs);
+				}
+				Complete.append("\t");
+				Complete.append("\t");
+				Complete.append("String[] argv = args;");
+				Complete.append("\n");
+				if (!Tabs.equals(""))
+				{
+					Complete.append(Tabs);
+				}
+				Complete.append("\t");
+				Complete.append("\t");
+				Complete.append("int argc = argv.length;");
+				Complete.append("\n");
+			}
+
 			Complete.append(MethodContent.toString());
 //			Complete.append("\n");
 			if (!Tabs.equals(""))

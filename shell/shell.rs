@@ -3,7 +3,7 @@ use std::process::Command;
 
 fn the_version() -> String
 {
-	return "0.1.21".to_string();
+	return "0.1.22".to_string();
 }
 
 fn get_os() -> String
@@ -636,6 +636,14 @@ fn algo_tags(algo: &str) -> String
 	{
 		new_tags.push_str("");
 	}
+	else if algo == "main(cli):"
+	{
+		new_tags.push_str("[cli]main:");
+	}
+	else if algo == "main():"
+	{
+		new_tags.push_str("[]main:");
+	}
 	else
 	{
 		new_tags.push_str(algo);
@@ -721,7 +729,7 @@ fn translate_tag(input: &str) -> String
 		the_nest.push_str("nest-");
 	}
 
-	if starts_with(&action,"concat(") || starts_with(&action,"incre(") || starts_with(&action,"decre(") || starts_with(&action,"equals(")
+	if starts_with(&action,"concat(") || starts_with(&action,"incre(") || starts_with(&action,"decre(") || starts_with(&action,"equals(") || starts_with(&action,"main(")
 	{
 		let algo = algo_tags(&action);
 		if is_in(&algo," ")
@@ -2054,123 +2062,146 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 		}
 	}
 
-	//build method based on content
-	if the_type == "" || the_type == "void"
+	if the_name == "main"
 	{
 		the_complete.push_str(the_tabs);
-		the_complete.push_str("fn ");
-//		println!("{}",the_name);
-		the_complete.push_str(&handle_names(&the_name));
-		the_complete.push_str("(");
-		the_complete.push_str(&the_params);
-		the_complete.push_str(")\n");
+		the_complete.push_str("fn main()\n");
 		the_complete.push_str(the_tabs);
 		the_complete.push_str("{\n");
+		if old_type == "cli"
+		{
+			the_complete.push_str(the_tabs);
+			the_complete.push_str("\t");
+			the_complete.push_str("let argv: Vec<String> = env::args().skip(1).collect();\n");
+			the_complete.push_str(the_tabs);
+			the_complete.push_str("\t");
+			the_complete.push_str("let argc: usize = argv.len();\n");
+		}
 		the_complete.push_str(&method_content.to_string());
 		the_complete.push_str("\n");
 		the_complete.push_str(the_tabs);
 		the_complete.push_str("}\n");
 	}
-	//class constructor
-	else if the_type == "{}"
-	{
-		if ends_with(&method_content.to_string(),"\n")
-		{
-			the_complete.push_str(the_tabs);
-			the_complete.push_str("fn ");
-			the_complete.push_str(&handle_names(&the_name));
-			the_complete.push_str("(");
-			the_complete.push_str(&the_params);
-			the_complete.push_str(")\n");
-			the_complete.push_str(the_tabs);
-			the_complete.push_str("{\n");
-			the_complete.push_str(&method_content.to_string());
-			the_complete.push_str(the_tabs);
-			the_complete.push_str("}\n");
-		}
-		else
-		{
-			the_complete.push_str(the_tabs);
-			the_complete.push_str("fn ");
-			the_complete.push_str(&handle_names(&the_name));
-			the_complete.push_str("(");
-			the_complete.push_str(&the_params);
-			the_complete.push_str(")\n");
-			the_complete.push_str(the_tabs);
-			the_complete.push_str("{\n");
-			the_complete.push_str(&method_content.to_string());
-			the_complete.push_str("\n");
-			the_complete.push_str(the_tabs);
-			the_complete.push_str("}\n");
-		}
-	}
 	else
 	{
-		if default_value.to_string() == ""
+		//build method based on content
+		if the_type == "" || the_type == "void"
 		{
 			the_complete.push_str(the_tabs);
 			the_complete.push_str("fn ");
+//			println!("{}",the_name);
 			the_complete.push_str(&handle_names(&the_name));
 			the_complete.push_str("(");
 			the_complete.push_str(&the_params);
-			the_complete.push_str(") -> ");
-			the_complete.push_str(&the_type);
-			the_complete.push_str("\n");
+			the_complete.push_str(")\n");
 			the_complete.push_str(the_tabs);
 			the_complete.push_str("{\n");
-
-			if assign_default == false
-			{
-				the_complete.push_str(the_tabs);
-				the_complete.push_str("\tlet ");
-				the_complete.push_str(&return_var);
-				the_complete.push_str(": ");
-				the_complete.push_str(&the_type);
-				the_complete.push_str(";\n");
-			}
-
 			the_complete.push_str(&method_content.to_string());
 			the_complete.push_str("\n");
-			the_complete.push_str(the_tabs);
-			the_complete.push_str("\treturn ");
-			the_complete.push_str(&return_var);
-			the_complete.push_str(";\n");
 			the_complete.push_str(the_tabs);
 			the_complete.push_str("}\n");
 		}
-		else
+		//class constructor
+		else if the_type == "{}"
 		{
-			the_complete.push_str(the_tabs);
-			the_complete.push_str("fn ");
-			the_complete.push_str(&handle_names(&the_name));
-			the_complete.push_str("(");
-			the_complete.push_str(&the_params);
-			the_complete.push_str(") -> ");
-			the_complete.push_str(&the_type);
-			the_complete.push_str("\n");
-			the_complete.push_str(the_tabs);
-			the_complete.push_str("{\n");
-
-			if assign_default == false
+			if ends_with(&method_content.to_string(),"\n")
 			{
 				the_complete.push_str(the_tabs);
-				the_complete.push_str("\tlet ");
-				the_complete.push_str(&return_var);
-				the_complete.push_str(": ");
-				the_complete.push_str(&the_type);
-				the_complete.push_str(" = ");
-				the_complete.push_str(&default_value.to_string());
-				the_complete.push_str(";\n");
+				the_complete.push_str("fn ");
+				the_complete.push_str(&handle_names(&the_name));
+				the_complete.push_str("(");
+				the_complete.push_str(&the_params);
+				the_complete.push_str(")\n");
+				the_complete.push_str(the_tabs);
+				the_complete.push_str("{\n");
+				the_complete.push_str(&method_content.to_string());
+				the_complete.push_str(the_tabs);
+				the_complete.push_str("}\n");
 			}
+			else
+			{
+				the_complete.push_str(the_tabs);
+				the_complete.push_str("fn ");
+				the_complete.push_str(&handle_names(&the_name));
+				the_complete.push_str("(");
+				the_complete.push_str(&the_params);
+				the_complete.push_str(")\n");
+				the_complete.push_str(the_tabs);
+				the_complete.push_str("{\n");
+				the_complete.push_str(&method_content.to_string());
+				the_complete.push_str("\n");
+				the_complete.push_str(the_tabs);
+				the_complete.push_str("}\n");
+			}
+		}
+		else
+		{
+			if default_value.to_string() == ""
+			{
+				the_complete.push_str(the_tabs);
+				the_complete.push_str("fn ");
+				the_complete.push_str(&handle_names(&the_name));
+				the_complete.push_str("(");
+				the_complete.push_str(&the_params);
+				the_complete.push_str(") -> ");
+				the_complete.push_str(&the_type);
+				the_complete.push_str("\n");
+				the_complete.push_str(the_tabs);
+				the_complete.push_str("{\n");
 
-			the_complete.push_str(&method_content.to_string());
-			the_complete.push_str("\n");
-			the_complete.push_str(the_tabs);
-			the_complete.push_str("\treturn ");
-			the_complete.push_str(&return_var);
-			the_complete.push_str(";\n");
-			the_complete.push_str(the_tabs);
-			the_complete.push_str("}\n");
+				if assign_default == false
+				{
+					the_complete.push_str(the_tabs);
+					the_complete.push_str("\tlet ");
+					the_complete.push_str(&return_var);
+					the_complete.push_str(": ");
+					the_complete.push_str(&the_type);
+					the_complete.push_str(";\n");
+				}
+
+				the_complete.push_str(&method_content.to_string());
+				the_complete.push_str("\n");
+				the_complete.push_str(the_tabs);
+				the_complete.push_str("\treturn ");
+				the_complete.push_str(&return_var);
+				the_complete.push_str(";\n");
+				the_complete.push_str(the_tabs);
+				the_complete.push_str("}\n");
+			}
+			else
+			{
+				the_complete.push_str(the_tabs);
+				the_complete.push_str("fn ");
+				the_complete.push_str(&handle_names(&the_name));
+				the_complete.push_str("(");
+				the_complete.push_str(&the_params);
+				the_complete.push_str(") -> ");
+				the_complete.push_str(&the_type);
+				the_complete.push_str("\n");
+				the_complete.push_str(the_tabs);
+				the_complete.push_str("{\n");
+
+				if assign_default == false
+				{
+					the_complete.push_str(the_tabs);
+					the_complete.push_str("\tlet ");
+					the_complete.push_str(&return_var);
+					the_complete.push_str(": ");
+					the_complete.push_str(&the_type);
+					the_complete.push_str(" = ");
+					the_complete.push_str(&default_value.to_string());
+					the_complete.push_str(";\n");
+				}
+
+				the_complete.push_str(&method_content.to_string());
+				the_complete.push_str("\n");
+				the_complete.push_str(the_tabs);
+				the_complete.push_str("\treturn ");
+				the_complete.push_str(&return_var);
+				the_complete.push_str(";\n");
+				the_complete.push_str(the_tabs);
+				the_complete.push_str("}\n");
+			}
 		}
 	}
 	return the_complete.to_string();
@@ -3468,7 +3499,6 @@ fn example(tag: &str)
 
 fn main()
 {
-
 	let mut quoted_message = String::from("");
 
 	let mut item: String;

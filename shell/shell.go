@@ -9,7 +9,7 @@ import (
 	"strings"
 	)
 
-var Version string = "0.1.20"
+var Version string = "0.1.21"
 
 func getOS() string {
 	os := runtime.GOOS
@@ -1288,7 +1288,7 @@ func Method(Tabs string, Name string, Content string) string {
 
 	if TheName == "main" {
 		if OldType == "cli" {
-			Complete = Tabs+"func main {\n"+Tabs+"\targs := os.Args[1:]\n"+Tabs+"\tvar argc int = len(args)"+MethodContent+"\n"+Tabs+"}\n"
+			Complete = Tabs+"func main {\n"+Tabs+"\targv := os.Args[1:]\n"+Tabs+"\tvar argc int = len(argv)"+MethodContent+"\n"+Tabs+"}\n"
 		} else {
 			Complete = Tabs+"func main {\n"+MethodContent+"\n"+Tabs+"}\n"
 

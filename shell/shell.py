@@ -2,7 +2,7 @@ import os
 import sys
 import platform
 
-Version = "0.1.15"
+Version = "0.1.16"
 
 def getOS():
 	platform.system()
@@ -995,7 +995,7 @@ def Method(Tabs, Name, Content):
 			Last = True
 	if TheName == "main":
 		if OldType == "cli":
-			Complete = Tabs+"def Main():\n"+Tabs+"\tUserArgs = Args()\n"+Tabs+"\targc = len(UserArgs)\n"+MethodContent+"\n\nif __name__ == '__main__':\n"+Tabs+"\tMain()\n"
+			Complete = Tabs+"def Main():\n"+Tabs+"\targv = sys.argv\n"+Tabs+"\targv.pop(0)\n"+Tabs+"\targc = len(argv)\n"+MethodContent+"\n\nif __name__ == '__main__':\n"+Tabs+"\tMain()\n"
 		else:
 			Complete = Tabs+"def Main():\n"+MethodContent+"\n\nif __name__ == '__main__':\n"+Tabs+"\tMain()\n"
 
