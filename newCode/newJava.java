@@ -48,12 +48,13 @@ public class newJava {
 	private static boolean getLower = false;
 	private static boolean getMath = false;
 	private static boolean getHash = false;
+	private static boolean HandleErrors = false;
 	private static boolean getDateAndTime = false;
 
 	private static void Help()
 	{
 		String program = "newJava";
-		String version = "0.1.60";
+		String version = "0.1.61";
 		print("Author: Joespider");
 		print("Program: \""+program+"\"");
 		print("Version: "+version);
@@ -96,7 +97,7 @@ public class newJava {
 		print("\t--lower : enable lowercase methods");
 		print("\t--math : enable math functions");
 		print("\t--date-time : enable date and time");
-
+		print("\t--handle-errors : enable error handling");
 	}
 
 	private static String getHelp(String TheName, String TheUser)
@@ -346,6 +347,11 @@ public class newJava {
 			else if (now.equals("--get-length"))
 			{
 				getLengths = true;
+			}
+			//enable error handling
+			else if (now.equals("--handle-errors"))
+			{
+				HandleErrors = true;
 			}
 			//enable threads
 			else if (now.equals("--thread"))
@@ -766,6 +772,7 @@ public class newJava {
 		String JavaMethods;
 		String JavaCLI;
 		String JavaHelp;
+		String JavaTryCatchFinally = "";
 		String JavaMain;
 		String JavaHash = "";
 		String[] Comments = new String[3];
@@ -808,15 +815,20 @@ public class newJava {
 						JavaHash = "\t\tDictionary<String, Integer> MyHouse = new Hashtable<>();\n\n\t\tMyHouse.put(\"Living Room\", 1);\n\t\tMyHouse.put(\"BedRoom\", 3);\n\t\tMyHouse.put(\"TV Room\", 2);\n\t\tMyHouse.put(\"Kitchen\", 1);\n\t\tMyHouse.put(\"Doors\", 3);\n\t\tMyHouse.put(\"BathRooms\", 2);\n\t\tMyHouse.put(\"Basement\", 1);\n\n\t\tEnumeration<String> AllKeys = MyHouse.keys();\n\t\tString Key = \"\";\n\n\t\tprint(\"My house has:\");\n\t\twhile (AllKeys.hasMoreElements())\n\t\t{\n\t\t\tKey = AllKeys.nextElement();\n\t\t\tprint(\"\\t(\"+Str(MyHouse.get(Key))+\") \"+Key);\n\t\t}\n\n\t\tprint(\"\");\n\t\tprint(\"Removing \\\"Doors\\\"\");\n\t\t//Doors removed from dictionary\n\t\tMyHouse.remove(\"Doors\");\n\t\tprint(\"\");\n\n\t\tAllKeys = MyHouse.keys();\n\n\t\tprint(\"My house (now) has:\");\n\t\twhile (AllKeys.hasMoreElements())\n\t\t{\n\t\t\tKey = AllKeys.nextElement();\n\t\t\tprint(\"\\t(\"+Str(MyHouse.get(Key))+\") \"+Key);\n\t\t}\n";
 					}
 
+					if (HandleErrors == true)
+					{
+						JavaTryCatchFinally = "\t\ttry\n\t\t{\n\t\t\t//content\n\t\t}\n\t\tcatch (exception e)\n\t\t{\n\t\t\t//content\n\t\t}\n\t\tfinally\n\t\t{\n\t\t\t//content\n\t\t}\n\n";
+					}
+
 					JavaHelp = getHelp(Class,user);
 					Comments[2] ="/**\n\t* @param args the command line arguments\n\t*/";
 					if (getPipe == true)
 					{
-						JavaMain = "\tpublic static void main(String[] args)\n\t{\n"+JavaThreadCall+JavaCLI+JavaHash+"\n\t\ttry\n\t\t{\n\t\t\tint numBytesWaiting = System.in.available();\n\t\t\tif (numBytesWaiting > 0)\n\t\t\t{\n\t\t\t\tprint(\"[Pipe]\");\n\t\t\t\tprint(\"{\");\n\t\t\t\tScanner pipe = new Scanner(System.in);\n\t\t\t\t// Read and print out each line.\n\t\t\t\twhile (pipe.hasNextLine())\n\t\t\t\t{\n\t\t\t\t\tString lineOfInput = pipe.nextLine();\n\t\t\t\t\tprint(lineOfInput);\n\t\t\t\t}\n\t\t\t\tpipe.close();\n\t\t\t\tprint(\"}\");\n\t\t\t}\n\t\t\telse\n\t\t\t{\n\t\t\t\tprint(\"nothing was piped in\");\n\t\t\t}\n\t\t}\n\t\tcatch (Exception e)\n\t\t{\n\t\t\tSystem.err.println(\"Failed read in\");\n\t\t}\n\t}";
+						JavaMain = "\tpublic static void main(String[] args)\n\t{\n"+JavaThreadCall+JavaCLI+JavaHash+JavaTryCatchFinally+"\n\t\ttry\n\t\t{\n\t\t\tint numBytesWaiting = System.in.available();\n\t\t\tif (numBytesWaiting > 0)\n\t\t\t{\n\t\t\t\tprint(\"[Pipe]\");\n\t\t\t\tprint(\"{\");\n\t\t\t\tScanner pipe = new Scanner(System.in);\n\t\t\t\t// Read and print out each line.\n\t\t\t\twhile (pipe.hasNextLine())\n\t\t\t\t{\n\t\t\t\t\tString lineOfInput = pipe.nextLine();\n\t\t\t\t\tprint(lineOfInput);\n\t\t\t\t}\n\t\t\t\tpipe.close();\n\t\t\t\tprint(\"}\");\n\t\t\t}\n\t\t\telse\n\t\t\t{\n\t\t\t\tprint(\"nothing was piped in\");\n\t\t\t}\n\t\t}\n\t\tcatch (Exception e)\n\t\t{\n\t\t\tSystem.err.println(\"Failed read in\");\n\t\t}\n\t}";
 					}
 					else
 					{
-						JavaMain = "\tpublic static void main(String[] args)\n\t{\n"+JavaThreadCall+"\n"+JavaCLI+JavaHash+"\n\t}";
+						JavaMain = "\tpublic static void main(String[] args)\n\t{\n"+JavaThreadCall+"\n"+JavaCLI+JavaHash+JavaTryCatchFinally+"\n\t}";
 					}
 					Java = JavaPackage+JavaImports+"\n\n"+Comments[0]+"\n\n"+Comments[1]+"\npublic class "+TheClass+" {\n\n"+JavaHelp+JavaThreadStart+JavaMethods+"\n\t"+Comments[2]+"\n"+JavaMain+"\n}\n";
 				}

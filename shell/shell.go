@@ -9,7 +9,10 @@ import (
 	"strings"
 	)
 
-var Version string = "0.1.21"
+var Version string = "0.1.26"
+var Debug1 bool = false
+var Debug2 bool = false
+var Debug3 bool = false
 
 func getOS() string {
 	os := runtime.GOOS
@@ -410,6 +413,22 @@ func AlgoTags(Algo string) string {
 }
 
 func CharTranslate(Message string) string {
+	if IsIn(Message,"(-eq)") {
+		Message = replaceAll(Message, "(-eq)"," == ")
+	}
+
+	if IsIn(Message,"(-le)") {
+		Message = replaceAll(Message, "(-le)"," <= ")
+	}
+
+	if IsIn(Message,"(-lt)") {
+		Message = replaceAll(Message, "(-lt)"," < ")
+	}
+
+	if IsIn(Message,"(-ne)") {
+		Message = replaceAll(Message, "(-ne)"," != ")
+	}
+
 	if IsIn(Message,"(-spc)") {
 		Message = replaceAll(Message, "(-spc)"," ")
 	}
@@ -417,6 +436,13 @@ func CharTranslate(Message string) string {
 }
 
 func TranslateTag(Input string) string {
+	var TagName string = "translate"
+
+	//layer 1 debugging
+	if Debug1 {
+		fmt.Println(TagName+"[Input]:> "+Input);
+	}
+
 	var TheReturn string = ""
 	var Action string = Input
 	var Value string = ""
@@ -471,6 +497,14 @@ func TranslateTag(Input string) string {
 		Nest = "nest-"+Nest
 	}
 
+	//layer 2 debugging
+	if Debug2 {
+		fmt.Println(TagName+"[Parent]:>> "+Parent)
+		fmt.Println(TagName+"[ContentFor]:>> "+ContentFor)
+		fmt.Println(TagName+"[Nest]:>> "+Nest)
+		fmt.Println(TagName+"[Action]:>> "+Action)
+	}
+
 	if StartsWith(Action,"concat(") || StartsWith(Action,"incre(") || StartsWith(Action,"decre(") || StartsWith(Action,"equals(") || StartsWith(Action,"main(") {
 		var Algo string = AlgoTags(Action)
 		var NewAlgoTag string = ""
@@ -522,6 +556,21 @@ func TranslateTag(Input string) string {
 		Action = BeforeSplit(Action,":")
 		NewTag = "loop:"+Action
 		Value = "loop-condition:"+Value
+		TheReturn = Parent+ContentFor+Nest+NewTag+" "+Value
+	//convert try and finally to the old tags
+	} else if Action == "try" || Action == "finally" {
+		NewTag = "errors:"+Action
+		TheReturn = Parent+ContentFor+Nest+NewTag
+	//convert try and finally to the old tags
+	} else if Action == "throw" || Action == "raise" {
+		NewTag = "errors:throw"
+		TheReturn = Parent+ContentFor+Nest+NewTag
+	//convert catch to the old tags
+	} else if StartsWith(Action, "catch:") || StartsWith(Action, "except:") {
+		Value = AfterSplit(Action,":")
+		Action = BeforeSplit(Action,":")
+		NewTag = "errors:"+Action
+		Value = "errors-condition:"+Value
 		TheReturn = Parent+ContentFor+Nest+NewTag+" "+Value
 	//class or struct
 	} else if StartsWith(Action, "{") && IsIn(Action,"}") {
@@ -596,6 +645,9 @@ func TranslateTag(Input string) string {
 		}
 
 		if Value != "" {
+			if StartsWith(Value,"\"") {
+				Value = "stmt:"+Value
+			}
 			if ContentFor == "logic-" {
 				Value = "+-"+Nest+Value
 			} else if ContentFor == "loop-" {
@@ -701,6 +753,14 @@ func TranslateTag(Input string) string {
 		}
 	}
 
+	//layer 2 debugging
+	if Debug2 {
+		fmt.Println(TagName+"[return]:>>")
+		fmt.Println(TagName+"\t{")
+		fmt.Println(TheReturn)
+		fmt.Println(TagName+"\t}")
+	}
+
 	return TheReturn
 }
 
@@ -748,28 +808,16 @@ func DataType(Type string, getNull bool) string {
 }
 
 //condition:
-func Conditions(input string, CalledBy string) string {
+func Conditions(input string) string {
+	var TagName string = "conditions"
+	//layer 1 debugging
+	if Debug1 {
+		fmt.Println(TagName+"[input]:> "+input)
+	}
+
 	var Condit string = AfterSplit(input,":")
 
-	if IsIn(Condit,"(-eq)") {
-		Condit = replaceAll(Condit, "(-eq)"," == ")
-	}
-
-	if IsIn(Condit,"(-le)") {
-		Condit = replaceAll(Condit, "(-le)"," <= ")
-	}
-
-	if IsIn(Condit,"(-lt)") {
-		Condit = replaceAll(Condit, "(-lt)"," < ")
-	}
-
-	if IsIn(Condit,"(-ne)") {
-		Condit = replaceAll(Condit, "(-ne)"," != ")
-	}
-
-	if IsIn(Condit,"(-spc)") {
-		Condit = replaceAll(Condit, "(-spc)"," ")
-	}
+	Condit = CharTranslate(Condit)
 
 	if IsIn(Condit," ") {
 		var Conditions []string = split(Condit," ")
@@ -832,7 +880,14 @@ func Conditions(input string, CalledBy string) string {
 
 //params:
 func Parameters(input string, CalledBy string) string {
+	var TagName string = "params"
 	var Params string = AfterSplit(input,":")
+
+	//layer 1 debugging
+	if Debug1 {
+		fmt.Println(TagName+"[Tag]:> "+Params)
+		fmt.Println(TagName+"[Called by]:> "+CalledBy)
+	}
 
 	if CalledBy == "class" || CalledBy == "method" || CalledBy == "stmt" {
 		//param-type,param-type,param-type
@@ -864,10 +919,18 @@ func Parameters(input string, CalledBy string) string {
 		}
 	}
 
+	//layer 2 debugging
+	if Debug2 {
+		fmt.Println(TagName+"[return]:>>")
+		fmt.Println(TagName+"\t{")
+		fmt.Println(Params)
+		fmt.Println(TagName+"\t}")
+	}
 	return Params
 }
 
 func Enum(TheName string, Content string) string {
+	var TagName string = "enum"
 	var Complete string = ""
 	var EnumVar string = ""
 	var Process string = ""
@@ -875,6 +938,13 @@ func Enum(TheName string, Content string) string {
 	var AutoTabs string = ""
 
 	TheName = AfterSplit(TheName,":")
+
+	//layer 1 debugging
+	if Debug1 {
+		fmt.Println(TagName+"[Tag]:> "+TheName)
+		fmt.Println(TagName+"[Content]:> "+Content)
+	}
+
 	for StartsWith(Content, "enum-var") || StartsWith(Content, "enum-stmt") || StartsWith(Content, "var") || StartsWith(Content, "stmt") {
 		Content = ReplaceTag(Content, "enum-",true)
 
@@ -910,10 +980,19 @@ func Enum(TheName string, Content string) string {
 
 	Complete = "const (\n"+EnumVar+")\n"
 
+	//layer 2 debugging
+	if Debug2 {
+		fmt.Println(TagName+"[return]:>>")
+		fmt.Println(TagName+"\t{")
+		fmt.Println(Complete)
+		fmt.Println(TagName+"\t}")
+	}
+
 	return Complete
 }
 
 func Struct(TheName string, Content string) string {
+	var TagName string = "struct"
 	var Complete string = ""
 	var StructVar string = ""
 	var Process string = ""
@@ -921,6 +1000,13 @@ func Struct(TheName string, Content string) string {
 	var AutoTabs string = ""
 
 	TheName = AfterSplit(TheName,":")
+
+	//layer 1 debugging
+	if Debug1 {
+		fmt.Println(TagName+"[Tag]:> "+TheName);
+		fmt.Println(TagName+"[Content]:> "+Content);
+	}
+
 	for StartsWith(Content, "struct-var") || StartsWith(Content, "struct-stmt") || StartsWith(Content, "var") || StartsWith(Content, "stmt") {
 		Content = ReplaceTag(Content, "struct-",true)
 
@@ -954,10 +1040,20 @@ func Struct(TheName string, Content string) string {
 	}
 
 	Complete = "type "+TheName+" struct {\n"+StructVar+"}\n"
+
+	//layer 2 debugging
+	if Debug2 {
+		fmt.Println(TagName+"[return]:>>")
+		fmt.Println(TagName+"\t{")
+		fmt.Println(Complete)
+		fmt.Println(TagName+"\t}")
+	}
+
 	return Complete
 }
 
 func Class(TheName string, Content string) string {
+	var TagName string = "class"
 	var Complete string = ""
 	var Struct string = ""
 	var StructVars string = ""
@@ -974,6 +1070,12 @@ func Class(TheName string, Content string) string {
 	var ClassContent string = ""
 
 	TheName = AfterSplit(TheName,":")
+
+	//layer 1 debugging
+	if Debug1 {
+		fmt.Println(TagName+"[Tag]:> "+TheName)
+		fmt.Println(TagName+"[Content]:> "+Content)
+	}
 
 	if IsIn(TheName,"-") {
 		ParentClass = AfterSplit(TheName,"-")
@@ -1092,11 +1194,21 @@ func Class(TheName string, Content string) string {
 	StructVars = ProtectedVars+PrivateVars+PublicVars
 	Struct = GenCode("","struct:"+TheName+StructVars)
 	Complete = Struct+"\n"+Constructor+"\n"+ClassContent
+
+	//layer 2 debugging
+	if Debug2 {
+		fmt.Println(TagName+"[return]:>>");
+		fmt.Println(TagName+"\t{");
+		fmt.Println(Complete);
+		fmt.Println(TagName+"\t}");
+	}
+
 	return Complete
 }
 
 //method:
 func Method(Tabs string, Name string, Content string) string {
+	var TagName string = "method"
 	var Last bool = false
         var CanSplit bool = true
 	var AssignDefault bool = false
@@ -1151,6 +1263,12 @@ func Method(Tabs string, Name string, Content string) string {
 		TheName = Name
 	}
 
+	//layer 1 debugging
+	if Debug1 {
+		fmt.Println(TagName+"[Tag]:> "+TheName)
+		fmt.Println(TagName+"[Content]:> "+Content)
+	}
+
 	for Content != "" {
 
 		//params:
@@ -1191,6 +1309,13 @@ func Method(Tabs string, Name string, Content string) string {
 			}
 
 			if StartsWith(Content, "method-") && IsIn(Content, " method-l") {
+
+
+				//layer 2 debugging
+				if Debug2 {
+					fmt.Println(TagName+"[Content]:>> Starts with \"method-\" and contains \"method-\"")
+				}
+
 				var all []string = split(Content," method-l")
 				var lp int = 0
 				var end int = len(all)
@@ -1212,14 +1337,34 @@ func Method(Tabs string, Name string, Content string) string {
 				CanSplit = true
 			}
 
+			//layer 2 debugging
+			if Debug2 {
+				fmt.Println(TagName+"[OtherContent]:>> "+OtherContent)
+				fmt.Println(TagName+"[NewContent]:>> "+NewContent)
+			}
+
 			var ParseContent string = ""
 			var Corrected string = ""
-			if IsIn(OtherContent," method-") {
+			if ! StartsWith(Content, "method-") && IsIn(Content, " method-") {
+//			if IsIn(OtherContent," method-") {
+
+				//layer 2 debugging
+				if Debug2 {
+					fmt.Println(TagName+"[Content]:>> Does not start with \"method-\" but it contains \"method-\"")
+				}
+
 				var cmds []string = split(OtherContent," method-")
 				var end int = len(cmds)
 				var lp int = 0
 				for lp != end {
 					Corrected = ReplaceTag(cmds[lp], "method-",false)
+
+					//layer 2 debugging
+					if Debug2 {
+						fmt.Println(TagName+"[Corrected]:>> "+Corrected)
+					}
+
+
 					//starts with "logic:" or "loop:"
 					if StartsWith(Corrected,"var:") || StartsWith(Corrected,"stmt:") {
 						if ParseContent == "" {
@@ -1229,6 +1374,15 @@ func Method(Tabs string, Name string, Content string) string {
 						}
 
 						if Corrected == "stmt:newline" || Corrected == "stmt:endline" {
+							//layer 2 debugging
+							if Debug2 {
+								fmt.Println(TagName+"[PareseContent]:>> "+ParseContent)
+							}
+
+							if !StartsWith(Corrected,"stmt:newline") {
+								AutoTabs = HandleTabs("method",Tabs+"\t",ParseContent)
+							}
+
 							AutoTabs = HandleTabs("method",Tabs+"\t",ParseContent)
 
 							if AutoTabs != "" {
@@ -1255,6 +1409,26 @@ func Method(Tabs string, Name string, Content string) string {
 				}
 			} else {
 				Corrected = ReplaceTag(OtherContent, "method-",false)
+
+				for StartsWith(Corrected,"stmt:newline") {
+					//Generate the method content
+					MethodContent = MethodContent + GenCode("",BeforeSplit(Corrected," "))
+					Corrected = AfterSplit(Corrected," ")
+
+					//layer 2 debugging
+					if Debug2 {
+						fmt.Println(TagName+"[Corrected]:>> "+Corrected)
+					}
+				}
+
+				//layer 2 debugging
+				if Debug2 {
+					fmt.Println(TagName+"[HandleTabs]:>>")
+					fmt.Println(TagName+"\t{")
+					fmt.Println(Corrected)
+					fmt.Println(TagName+"\t}")
+				}
+
 				AutoTabs = HandleTabs("method",Tabs+"\t",Corrected)
 
 				if AutoTabs != "" {
@@ -1288,9 +1462,9 @@ func Method(Tabs string, Name string, Content string) string {
 
 	if TheName == "main" {
 		if OldType == "cli" {
-			Complete = Tabs+"func main {\n"+Tabs+"\targv := os.Args[1:]\n"+Tabs+"\tvar argc int = len(argv)"+MethodContent+"\n"+Tabs+"}\n"
+			Complete = Tabs+"func main() {\n"+Tabs+"\targv := os.Args[1:]\n"+Tabs+"\tvar argc int = len(argv)\n"+MethodContent+"\n"+Tabs+"}\n"
 		} else {
-			Complete = Tabs+"func main {\n"+MethodContent+"\n"+Tabs+"}\n"
+			Complete = Tabs+"func main() {\n"+MethodContent+"\n"+Tabs+"}\n"
 
 		}
 	} else {
@@ -1322,11 +1496,20 @@ func Method(Tabs string, Name string, Content string) string {
 		}
 	}
 
+	//layer 2 debugging
+	if Debug2 {
+		fmt.Println(TagName+"[return]:>>")
+		fmt.Println(TagName+"\t{")
+		fmt.Println(Complete)
+		fmt.Println(TagName+"\t}")
+	}
+
 	return Complete
 }
 
 //loop:
 func Loop(Tabs string, TheKindType string, Content string) string {
+	var TagName string = "loop"
 	var Last bool = false
 	var Complete string = ""
 	var RootTag string = ""
@@ -1343,6 +1526,12 @@ func Loop(Tabs string, TheKindType string, Content string) string {
 		TheKindType = AfterSplit(TheKindType,":")
 	}
 
+	//layer 1 debugging
+	if Debug1 {
+		fmt.Println(TagName+"[Tag]:> "+TheKindType)
+		fmt.Println(TagName+"[Content]:> "+Content)
+	}
+
 	//content for loop
 	for Content != "" {
 		Content = ReplaceTag(Content, "loop-",false)
@@ -1356,7 +1545,7 @@ func Loop(Tabs string, TheKindType string, Content string) string {
 			} else {
 				TheCondition = Content
 			}
-			TheCondition = Conditions(TheCondition,TheKindType)
+			TheCondition = Conditions(TheCondition)
 		}
 
 		//nest-<type> <other content>
@@ -1632,6 +1821,15 @@ func Loop(Tabs string, TheKindType string, Content string) string {
 	} else {
 		Complete = Tabs+"for "+TheCondition+" {\n"+LoopContent+Tabs+"}\n"
 	}
+
+	//layer 2 debugging
+	if Debug2 {
+		fmt.Println(TagName+"[return]:>>")
+		fmt.Println(TagName+"\t{")
+		fmt.Println(Complete)
+		fmt.Println(TagName+"\t{")
+	}
+
 	return Complete
 }
 
@@ -1654,6 +1852,7 @@ func HandleElse(LogicContent string, Content string) string {
 
 //logic:
 func Logic(Tabs string, TheKindType string, Content string) string {
+	var TagName string = "logic"
 	var Last bool = false
         var Complete string = ""
         var RootTag string = ""
@@ -1668,6 +1867,12 @@ func Logic(Tabs string, TheKindType string, Content string) string {
 		TheKindType = AfterSplit(TheKindType,":")
         }
 
+	//layer 1 debugging
+	if Debug1 {
+		fmt.Println(TagName+"[Tag]:> "+TheKindType)
+		fmt.Println(TagName+"[Content]:> "+Content)
+	}
+
         for Content != "" {
 		Content = ReplaceTag(Content, "logic-",false)
 //		Content = ReplaceTag(Content, "logic-",true)
@@ -1680,7 +1885,7 @@ func Logic(Tabs string, TheKindType string, Content string) string {
 			} else {
                                 TheCondition = Content
                         }
-                        TheCondition = Conditions(TheCondition,TheKindType)
+                        TheCondition = Conditions(TheCondition)
 		}
 
                 //This part of the code is meant to separate the nested content with the current content
@@ -1954,11 +2159,74 @@ func Logic(Tabs string, TheKindType string, Content string) string {
 		Complete = Complete+LogicContent+Tabs+"\tdefault:\n"+Tabs+"\t\t//code here\n"+Tabs+"}\n"
 	}
 
+	//layer 2 debugging
+	if Debug2 {
+		fmt.Println(TagName+"[return]:>>")
+		fmt.Println(TagName+"\t{")
+		fmt.Println(Complete)
+		fmt.Println(TagName+"\t}")
+	}
+
+	return Complete
+}
+
+//errors:
+func Errors(Tabs string, TheKindType string, Content string) string {
+	var TagName string = "errors"
+
+	var Complete string = ""
+	var TheName string = ""
+	var TheCondition string = ""
+	var ErrorContent string = ""
+
+	if StartsWith(TheKindType, "errors:") {
+		TheKindType = AfterSplit(TheKindType,":")
+	}
+
+	TheName = TheKindType
+
+	//layer 1 debugging
+	if Debug1 {
+		fmt.Println(TagName+"[Tag]:> "+TheKindType)
+		fmt.Println(TagName+"[Content]:> "+Content)
+	}
+
+	for Content != "" {
+		Content = ReplaceTag(Content, "errors-",false)
+//		Content = ReplaceTag(Content, "errors-",true)
+
+		if StartsWith(Content, "condition") {
+			if IsIn(Content," ") {
+				TheCondition = BeforeSplit(Content," ")
+				Content = AfterSplit(Content," ")
+				//Content = ReplaceTag(Content, "logic-",false)
+			} else {
+				TheCondition = Content
+			}
+			TheCondition = Conditions(TheCondition)
+		}
+
+//		ErrorContent = ErrorContent + GenCode(Tabs,Content)
+
+		Content = AfterSplit(Content," ")
+	}
+
+	if TheName == "try" {
+		Complete = Tabs+"Try: func() {\n"+Tabs+ErrorContent+"\n"+Tabs+"},"
+	} else if TheName == "finally" {
+		Complete = Tabs+"Finally: func() {\n"+Tabs+ErrorContent+"\n"+Tabs+"},"
+	} else if TheName == "catch" || TheName == "except" {
+		Complete = Tabs+"Catch: func(e "+TheCondition+") {\n"+Tabs+ErrorContent+"\n"+Tabs+"},\n"
+	} else if TheName == "throw" {
+		Complete = Tabs+"throw "+ErrorContent
+	}
+
 	return Complete
 }
 
 //stmt:
 func Statements(Tabs string, TheKindType string, Content string) string {
+	var TagName string = "stmt"
 	var Last bool = false
 	var Complete string = ""
 	var StatementContent string = ""
@@ -1971,6 +2239,12 @@ func Statements(Tabs string, TheKindType string, Content string) string {
 
 	if StartsWith(TheKindType, "stmt:") {
 		TheKindType = AfterSplit(TheKindType,":")
+	}
+
+	//layer 1 debugging
+	if Debug1 {
+		fmt.Println(TagName+"[Tag]:> "+TheKindType)
+		fmt.Println(TagName+"[Content]:> "+Content)
 	}
 
 	if !StartsWith(TheKindType, "\"") && IsIn(TheKindType,"-") {
@@ -2078,11 +2352,20 @@ func Statements(Tabs string, TheKindType string, Content string) string {
 		Complete = TheName;
 	}
 
+	//layer 2 debugging
+	if Debug2 {
+		fmt.Println(TagName+"[return]:>>")
+		fmt.Println(TagName+"\t{")
+		fmt.Println(Complete)
+		fmt.Println(TagName+"\t}")
+	}
+
 	return Complete
 }
 
 //var:
 func Variables(Tabs string, TheKindType string, Content string) string {
+	var TagName string = "var"
 	var Last bool = false
 	var MakeEqual bool = false
 	var NewVar string = ""
@@ -2095,6 +2378,12 @@ func Variables(Tabs string, TheKindType string, Content string) string {
 
 	if StartsWith(TheKindType, "var:") {
 		TheKindType = AfterSplit(TheKindType,":")
+	}
+
+	//layer 1 debugging
+	if Debug1 {
+		fmt.Println(TagName+"[Tag]:> "+TheKindType)
+		fmt.Println(TagName+"[Content]:> "+Content)
 	}
 
         for Content != "" {
@@ -2212,6 +2501,14 @@ func Variables(Tabs string, TheKindType string, Content string) string {
 	}
 	NewVar = NewVar+VariableContent
 
+	//layer 2 debugging
+	if Debug2 {
+		fmt.Println(TagName+"[return]:>>")
+		fmt.Println(TagName+"\t{")
+		fmt.Println(NewVar)
+		fmt.Println(TagName+"\t}")
+	}
+
 	return NewVar
 }
 
@@ -2245,6 +2542,9 @@ func GenCode(Tabs string, GetMe string) string {
 
 	} else if StartsWith(Args[0], "logic:") {
 		TheCode = Logic(Tabs,Args[0],Args[1])
+
+	} else if StartsWith(Args[0], "errors:") {
+		TheCode = Errors(Tabs, Args[0], Args[1])
 
 	} else if StartsWith(Args[0], "var:") {
 		TheCode = Variables(Tabs, Args[0], Args[1])
@@ -2310,38 +2610,52 @@ func main() {
 			for arg := range args {
 				Item = args[arg]
 
-				QuoteTotal += QuoteCount(Item)
-				//This all to handle quotes...consider writing this into a function instead of having this all messed around...still works though
-				//{
-				if QuoteTotal != 0 {
-					if IsEvenNumber(QuoteTotal) {
-						QuoteTotal = 0
-						if QuotedMessage == "" {
-							QuotedMessage = Item
-						} else {
-							QuotedMessage = QuotedMessage + "(-spc)" + Item
-						}
+				//layer 1 debugging
+				if Item == "-v" {
+					Debug1 = true
+				//layer 2 debugging
+				} else if Item == "-vv" {
+					Debug1 = true
+					Debug2 = true
+				//layer 3 debugging
+				} else if Item == "-vvv" {
+					Debug1 = true
+					Debug2 = true
+					Debug3 = true
+				} else {
+					QuoteTotal += QuoteCount(Item)
+					//This all to handle quotes...consider writing this into a function instead of having this all messed around...still works though
+					//{
+					if QuoteTotal != 0 {
+						if IsEvenNumber(QuoteTotal) {
+							QuoteTotal = 0
+							if QuotedMessage == "" {
+								QuotedMessage = Item
+							} else {
+								QuotedMessage = QuotedMessage + "(-spc)" + Item
+							}
 
-						Item = QuotedMessage
+							Item = QuotedMessage
+							if UserIn == "" {
+								UserIn = TranslateTag(Item)
+							} else {
+								UserIn = UserIn + " " + TranslateTag(Item)
+							}
+								QuotedMessage = ""
+						} else {
+							if QuotedMessage == "" {
+								QuotedMessage = Item
+							} else {
+								QuotedMessage = QuotedMessage + "(-spc)" + Item
+							}
+						}
+					//}
+					} else {
 						if UserIn == "" {
 							UserIn = TranslateTag(Item)
 						} else {
 							UserIn = UserIn + " " + TranslateTag(Item)
 						}
-							QuotedMessage = ""
-					} else {
-						if QuotedMessage == "" {
-							QuotedMessage = Item
-						} else {
-							QuotedMessage = QuotedMessage + "(-spc)" + Item
-						}
-					}
-				//}
-				} else {
-					if UserIn == "" {
-						UserIn = TranslateTag(Item)
-					} else {
-						UserIn = UserIn + " " + TranslateTag(Item)
 					}
 				}
 			}
@@ -2349,7 +2663,60 @@ func main() {
 			UserIn = raw_input("<<shell>> ")
 
 			if IsIn(UserIn," ") {
-				fmt.Println("Note: This is where you need to handle quotes")
+				var AllArgs []string = split(UserIn," ")
+				UserIn = ""
+				for lp := range AllArgs {
+					Item = AllArgs[lp]
+
+					//layer 1 debugging
+					if Item == "-v" {
+						Debug1 = true
+					//layer 2 debugging
+					} else if Item == "-vv" {
+						Debug1 = true
+						Debug2 = true
+					//layer 3 debugging
+					} else if Item == "-vvv" {
+						Debug1 = true
+						Debug2 = true
+						Debug3 = true
+					} else {
+						QuoteTotal += QuoteCount(Item)
+						//This all to handle quotes...consider writing this into a function instead of having this all messed around...still works though
+						//{
+						if QuoteTotal != 0 {
+							if IsEvenNumber(QuoteTotal) {
+								QuoteTotal = 0
+								if QuotedMessage == "" {
+									QuotedMessage = Item
+								} else {
+									QuotedMessage = QuotedMessage + "(-spc)" + Item
+								}
+
+								Item = QuotedMessage
+								if UserIn == "" {
+									UserIn = TranslateTag(Item)
+								} else {
+									UserIn = UserIn + " " + TranslateTag(Item)
+								}
+									QuotedMessage = ""
+							} else {
+								if QuotedMessage == "" {
+									QuotedMessage = Item
+								} else {
+									QuotedMessage = QuotedMessage + "(-spc)" + Item
+								}
+							}
+						//}
+						} else {
+							if UserIn == "" {
+								UserIn = TranslateTag(Item)
+							} else {
+								UserIn = UserIn + " " + TranslateTag(Item)
+							}
+						}
+					}
+				}
 			}
 
 			UserIn = TranslateTag(UserIn)
@@ -2366,9 +2733,11 @@ func main() {
 		} else if UserIn == "--version" && argc == 1 {
 			fmt.Println(Version)
 			break
+/*
 		} else if UserIn == "-v" && argc == 1 {
 			fmt.Println(Version)
 			break
+*/
 		} else if StartsWith(UserIn, "help") {
 			help(UserIn)
 		} else {

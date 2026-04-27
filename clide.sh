@@ -3037,6 +3037,24 @@ Actions()
 								;;
 						esac
 						;;
+					#Handle dependencies
+					dep|dependency)
+						#Project commands
+						case ${UserIn[1]} in
+							--help)
+								HelpMenu ${Lang} "${UserIn[@]}"
+								;;
+							#add dependancies
+							edit)
+								ManageLangs ${Lang} "editDep"
+								;;
+							install)
+								ManageLangs ${Lang} "installDep" "${UserIn[2]}" "${UserIn[3]}"
+								;;
+							*)
+								;;
+						esac
+						;;
 					#Handle Projects
 					project)
 						#Project commands
@@ -3045,7 +3063,7 @@ Actions()
 								HelpMenu ${Lang} "${UserIn[@]}"
 								;;
 							#Create new project
-							new)
+							--new|new)
 								local ProjectName=${UserIn[2]}
 								local projectType=${UserIn[3]}
 								#Ensure project has a name
@@ -3109,6 +3127,34 @@ Actions()
 												echo -e "\e[1;4${LangColor}mTitle:\e[0m \e[1;3${LangColor}m\"${HasTitle}\"\e[0m"
 											fi
 										fi
+										;;
+								esac
+								;;
+							#handle dependancies
+							dep|dependency)
+								#Ensure this is a project
+								case ${CodeProject} in
+									#Is not a project
+									none)
+										errorCode "project" "none" "${Head}"
+										;;
+									#Is a project
+									*)
+										#Project commands
+										case ${UserIn[2]} in
+											--help)
+												HelpMenu ${Lang} "${UserIn[@]}"
+												;;
+											#add dependancies
+											edit)
+												ManageLangs ${Lang} "editDep"
+												;;
+											install)
+												ManageLangs ${Lang} "installDep" "${UserIn[3]}" "${UserIn[4]}"
+												;;
+											*)
+												;;
+										esac
 										;;
 								esac
 								;;
@@ -3844,6 +3890,9 @@ Actions()
 									esac
 								fi
 								;;
+							dep|dependency)
+								ManageLangs ${Lang} "editDep"
+								;;
 							#edit language source code
 							*)
 								case ${UserArg} in
@@ -4385,7 +4434,19 @@ Actions()
 						;;
 					#Install compiled code into aliases
 					install)
-						InstallCode ${Lang} "${UserIn[@]}"
+						#install commands
+						case ${UserIn[1]} in
+							--help)
+								HelpMenu ${Lang} "${UserIn[@]}"
+								;;
+							#Handle dependencies
+							dep|dependency)
+								ManageLangs ${Lang} "installDep" "${UserIn[2]}" "${UserIn[3]}"
+								;;
+							*)
+								InstallCode ${Lang} "${UserIn[@]}"
+								;;
+						esac
 						;;
 					#Add debugging functionality
 					debug)
@@ -4961,16 +5022,17 @@ loadAuto()
 	comp_list "rm remove delete rmbin rmsrc" "-f --help"
 	comp_list "cd" "--help"
 	comp_list "pwd" "--help"
+	comp_list "dep dependency" "edit install"
 	comp_list "mkdir" "--help"
 	comp_list "mode" "add pkg ${repoTool} repo --help"
 	comp_list "use" "${pg}"
-	comp_list "project" "build delete discover export files import load list link mode new remove swap select src use save title type update --help"
+	comp_list "project" "build delete dep dependency discover export files import load list link mode new remove swap select src use save title type update --help"
 	comp_list "package" "get new set list mv move --help"
 	comp_list "gencode" "--all --help --keep --save --lines"
 	comp_list "shell" "--help"
 	comp_list "time" "--help"
 	comp_list "new" "--version -v --help -h --custom -c --show -s"
-	comp_list "${editor} ed edit edrst" "non-lang --help --line"
+	comp_list "${editor} ed edit edrst" "non-lang --help --line dep dependency"
 	comp_list "add" "--help"
 	comp_list "${ReadBy} read" "non-lang --help"
 	comp_list "search" "--help"

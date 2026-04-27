@@ -12,7 +12,17 @@ import java.io.IOException;
 
 //class name
 public class shell {
-	private static String Version = "0.1.18";
+	private static String Version = "0.1.23";
+
+	//layer 1 debugging
+	private static boolean Debug1 = false;
+
+	//layer 2 debugging
+	private static boolean Debug2 = false;
+
+	//layer 3 debugging
+	private static boolean Debug3 = false;
+
 	private static String TheKind = "";
 	private static String TheName = "";
 	private static String TheKindType = "";
@@ -728,15 +738,52 @@ public class shell {
 
 	public static String CharTranslate(String Message)
 	{
+		if (IsIn(Message,"(-eq)\""))
+		{
+			Message = replaceAll(Message, "\\(-eq\\)\"",".equals(\"");
+		}
+		else if (IsIn(Message,"(-eq)"))
+		{
+			Message = replaceAll(Message, "\\(-eq\\)"," == ");
+		}
+
+		if (IsIn(Message,"(-le)"))
+		{
+			Message = replaceAll(Message, "\\(-le\\)"," <= ");
+		}
+
+		if (IsIn(Message,"(-lt)"))
+		{
+			Message = replaceAll(Message, "\\(-lt\\)"," < ");
+		}
+
+		if (IsIn(Message,"(-ne)"))
+		{
+			Message = replaceAll(Message, "\\(-ne\\)"," != ");
+		}
+
 		if (IsIn(Message,"(-spc)"))
 		{
 			Message = replaceAll(Message, "\\(-spc\\)"," ");
 		}
+
+		if (IsIn(Message,"(-spc)"))
+		{
+			Message = replaceAll(Message, "\\(-spc\\)"," ");
+		}
+
 		return Message;
 	}
 
 	public static String TranslateTag(String Input)
 	{
+		String TagName = "translate";
+		//layer 1 debugging
+		if (Debug1)
+		{
+			print(TagName+"[Input]:> "+Input);
+		}
+
 		StringBuilder TheReturn = new StringBuilder("");
 		String Action = Input;
 		String Value = "";
@@ -808,6 +855,15 @@ public class shell {
 		{
 			Action = AfterSplit(Action,">");
 			Nest.append("nest-");
+		}
+
+		//layer 2 debugging
+		if (Debug2)
+		{
+			print(TagName+"[Parent]:>> "+Parent);
+			print(TagName+"[ContentFor]:>> "+ContentFor);
+			print(TagName+"[Nest]:>> "+Nest);
+			print(TagName+"[Action]:>> "+Action);
 		}
 
 		if (StartsWith(Action,"concat(") || StartsWith(Action,"incre(") || StartsWith(Action,"decre(") || StartsWith(Action,"equals(") || StartsWith(Action,"main("))
@@ -912,6 +968,38 @@ public class shell {
 			NewTag = "loop:"+Action;
 			Value = "loop-condition:"+Value;
 
+			TheReturn.append(Parent);
+			TheReturn.append(ContentFor);
+			TheReturn.append(Nest.toString());
+			TheReturn.append(NewTag);
+			TheReturn.append(" ");
+			TheReturn.append(Value);
+		}
+		//convert try and finally to the old tags
+		else if ((Action.equals("try")) || (Action.equals("finally")) || (Action.equals("throw")))
+		{
+			NewTag = "errors:"+Action;
+			TheReturn.append(Parent);
+			TheReturn.append(ContentFor);
+			TheReturn.append(Nest.toString());
+			TheReturn.append(NewTag);
+		}
+		//convert try and finally to the old tags
+		else if ((Action.equals("throw")) || (Action.equals("raise")))
+		{
+			NewTag = "errors:throw";
+			TheReturn.append(Parent);
+			TheReturn.append(ContentFor);
+			TheReturn.append(Nest.toString());
+			TheReturn.append(NewTag);
+		}
+		//convert catch to the old tags
+		else if ((StartsWith(Action, "catch:")) || (StartsWith(Action, "except:")))
+		{
+			Value = AfterSplit(Action,":");
+			Action = BeforeSplit(Action,":");
+			NewTag = "errors:"+Action;
+			Value = "errors-condition:"+Value;
 			TheReturn.append(Parent);
 			TheReturn.append(ContentFor);
 			TheReturn.append(Nest.toString());
@@ -1041,6 +1129,11 @@ public class shell {
 
 			if (!(Value.equals("")))
 			{
+				if (StartsWith(Value,"\""))
+				{
+					Value = "stmt:"+Value;
+				}
+
 				if (ContentFor.equals("logic-"))
 				{
 					Value = "+-"+Nest+Value;
@@ -1068,6 +1161,7 @@ public class shell {
 				TheReturn.append(")");
 				TheReturn.append(Action);
 				TheReturn.append("= ");
+/*
 				if (StartsWith(Value,"\""))
 				{
 					TheReturn.append("stmt:");
@@ -1077,6 +1171,9 @@ public class shell {
 				{
 					TheReturn.append(Value);
 				}
+*/
+				TheReturn.append(Value);
+
 			}
 			else
 			{
@@ -1246,6 +1343,15 @@ public class shell {
 			}
 		}
 
+		//layer 2 debugging
+		if (Debug2)
+		{
+			print(TagName+"[return]:>>");
+			print(TagName+"\t{");
+			print(TheReturn.toString());
+			print(TagName+"\t}");
+		}
+
 		return TheReturn.toString();
 	}
 
@@ -1317,38 +1423,18 @@ public class shell {
 	}
 
 	//condition:
-	private static String Conditions(String input,String CalledBy)
+	private static String Conditions(String input)
 	{
+
+		String TagName = "conditions";
+		//layer 1 debugging
+		if (Debug1)
+		{
+			print(TagName+"[input]:> "+input);
+		}
+
 		String Condit = AfterSplit(input,":");
-
-		if (IsIn(Condit,"(-eq)\""))
-		{
-			Condit = replaceAll(Condit, "\\(-eq\\)\"",".equals(\"");
-		}
-		else if (IsIn(Condit,"(-eq)"))
-		{
-			Condit = replaceAll(Condit, "\\(-eq\\)"," == ");
-		}
-
-		if (IsIn(Condit,"(-le)"))
-		{
-			Condit = replaceAll(Condit, "\\(-le\\)"," <= ");
-		}
-
-		if (IsIn(Condit,"(-lt)"))
-		{
-			Condit = replaceAll(Condit, "\\(-lt\\)"," < ");
-		}
-
-		if (IsIn(Condit,"(-ne)"))
-		{
-			Condit = replaceAll(Condit, "\\(-ne\\)"," != ");
-		}
-
-		if (IsIn(Condit,"(-spc)"))
-		{
-			Condit = replaceAll(Condit, "\\(-spc\\)"," ");
-		}
+		Condit = CharTranslate(Condit);
 
 		if (IsIn(Condit," "))
 		{
@@ -1406,7 +1492,15 @@ public class shell {
 	//params:
 	private static String Parameters(String input,String CalledBy)
 	{
+		String TagName = "params";
 		String Params = AfterSplit(input,":");
+
+		//layer 1 debugging
+		if (Debug1)
+		{
+			print(TagName+"[Tag]:> "+Params);
+			print(TagName+"[Called by]:> "+CalledBy);
+		}
 
 		if ((CalledBy.equals("class")) || (CalledBy.equals("method")) || (CalledBy.equals("stmt")))
 		{
@@ -1450,11 +1544,24 @@ public class shell {
 				}
 			}
 		}
+
+		//layer 2 debugging
+		if (Debug2)
+		{
+			print(TagName+"[return]:>>");
+			print(TagName+"\t{");
+			print(Params);
+			print(TagName+"\t}");
+		}
+
 		return Params;
 	}
 
 	private static String Class(String TheName, String Content)
 	{
+
+		String TagName = "class";
+
 		StringBuilder Complete = new StringBuilder("");
 		StringBuilder FinalVars = new StringBuilder("");
 		StringBuilder PrivateVars = new StringBuilder("");
@@ -1468,6 +1575,13 @@ public class shell {
 		StringBuilder ClassContent = new StringBuilder("");
 
 		TheName = AfterSplit(TheName,":");
+
+		//layer 1 debugging
+		if (Debug1)
+		{
+			print(TagName+"[Tag]:> "+TheName);
+			print(TagName+"[Content]:> "+Content);
+		}
 
 		if (IsIn(TheName,"-"))
 		{
@@ -1644,12 +1758,24 @@ public class shell {
 		Complete.append(ClassContent);
 		Complete.append("}\n");
 
+		//layer 2 debugging
+		if (Debug2)
+		{
+			print(TagName+"[return]:>>");
+			print(TagName+"\t{");
+			print(Complete);
+			print(TagName+"\t}");
+		}
+
 		return Complete.toString();
 	}
 
 	//method:
 	private static String Method(String Tabs, String Name, String Content)
 	{
+
+		String TagName = "method";
+
 		boolean Last = false;
 		boolean CanSplit = true;
 		boolean AssignDefault = false;
@@ -1703,6 +1829,14 @@ public class shell {
 			//get method name
 			TheName = Name;
 		}
+
+		//layer 1 debugging
+		if (Debug1)
+		{
+			print(TagName+"[Tag]:> "+TheName);
+			print(TagName+"[Content]:> "+Content);
+		}
+
 
 		while (!Content.equals(""))
 		{
@@ -1788,19 +1922,40 @@ public class shell {
 					CanSplit = true;
 				}
 
+				//layer 2 debugging
+				if (Debug2)
+				{
+					print(TagName+"[OtherContent]:>> "+OtherContent);
+					print(TagName+"[NewContent]:>> "+NewContent);
+				}
+
 //				OtherContent = ReplaceTag(OtherContent, "method-");
 
 				StringBuilder ParseContent = new StringBuilder("");
 				String Corrected = "";
 
-				if (IsIn(OtherContent.toString()," method-"))
+				if (!(StartsWith(Content.toString(), "method-")) && (IsIn(Content.toString(), " method-")))
+//				if (IsIn(OtherContent.toString()," method-"))
 				{
+
+					//layer 2 debugging
+					if (Debug2)
+					{
+						print(TagName+"[Content]:>> Does not start with \"method-\" but it contains \"method-\"");
+					}
+
 					String[] cmds = split(OtherContent.toString()," method-");
 					int end = len(cmds);
 					int lp = 0;
 					while (lp != end)
 					{
 						Corrected = ReplaceTag(cmds[lp], "method-",false);
+
+						//layer 2 debugging
+						if (Debug2)
+						{
+							print(TagName+"[Corrected]:>> "+Corrected);
+						}
 
 						if (StartsWith(Corrected,"var:") || StartsWith(Corrected,"stmt:"))
 						{
@@ -1867,6 +2022,30 @@ public class shell {
 				else
 				{
 					Corrected = ReplaceTag(OtherContent.toString(), "method-",false);
+
+					while (StartsWith(Corrected,"stmt:newline"))
+					{
+						//Generate the method content
+						MethodContent.append(GenCode("",BeforeSplit(Corrected," ")));
+						Corrected = AfterSplit(Corrected," ");
+
+						//layer 2 debugging
+						if (Debug2)
+						{
+							print(TagName+"[Corrected]:>> "+Corrected);
+						}
+					}
+
+					//layer 2 debugging
+					if (Debug2)
+					{
+						print(TagName+"[HandleTabs]:>>");
+						print(TagName+"\t{");
+						print(Corrected);
+						print(TagName+"\t}");
+					}
+
+
 					AutoTabs = HandleTabs("method",Tabs+"\t",Corrected);
 
 					if (!AutoTabs.equals(""))
@@ -2191,17 +2370,24 @@ public class shell {
 				}
 			}
 		}
+
+		//layer 2 debugging
+		if (Debug2)
+		{
+			print(TagName+"[return]:>>");
+			print(TagName+"\t{");
+			print(Complete.toString());
+			print(TagName+"\t}");
+		}
+
 		return Complete.toString();
 	}
 
 	//loop:
 	private static String Loop(String Tabs, String TheKindType, String Content)
 	{
-/*
-		print(TheKindType);
-		print(Content);
-		print("");
-*/
+		String TagName = "loop";
+
 		boolean Last = false;
 		StringBuilder Complete = new StringBuilder("");
 		String RootTag = "";
@@ -2217,6 +2403,13 @@ public class shell {
 		{
 			//loop
 			TheKindType = AfterSplit(TheKindType,":");
+		}
+
+		//layer 1 debugging
+		if (Debug1)
+		{
+			print(TagName+"[Tag]:> "+TheKindType);
+			print(TagName+"[Content]:> "+Content);
 		}
 
 		//content for loop
@@ -2237,7 +2430,7 @@ public class shell {
 				{
 					TheCondition = Content;
 				}
-				TheCondition = Conditions(TheCondition,TheKindType);
+				TheCondition = Conditions(TheCondition);
 			}
 
 			//nest-<type> <other content>
@@ -2614,17 +2807,23 @@ public class shell {
 			Complete.append("}\n");
 		}
 
+		//layer 2 debugging
+		if (Debug2)
+		{
+			print(TagName+"[return]:>>");
+			print(TagName+"\t{");
+			print(Complete.toString());
+			print(TagName+"\t{");
+		}
+
 		return Complete.toString();
 	}
 
 	//logic:
 	private static String Logic(String Tabs, String TheKindType, String Content)
 	{
-/*
-		print("[T] "+TheKindType);
-		print("[C] "+Content);
-		print("");
-*/
+		String TagName = "logic";
+
 		boolean Last = false;
 		StringBuilder Complete = new StringBuilder("");
 		String RootTag = "";
@@ -2638,6 +2837,13 @@ public class shell {
 		if (StartsWith(TheKindType, "logic:"))
 		{
 			TheKindType = AfterSplit(TheKindType,":");
+		}
+
+		//layer 1 debugging
+		if (Debug1)
+		{
+			print(TagName+"[Tag]:> "+TheKindType);
+			print(TagName+"[Content]:> "+Content);
 		}
 
 		while (!Content.equals(""))
@@ -2657,7 +2863,7 @@ public class shell {
 				{
 					TheCondition = Content;
 				}
-				TheCondition = Conditions(TheCondition,TheKindType);
+				TheCondition = Conditions(TheCondition);
 			}
 
 			//This part of the code is meant to separate the nested content with the current content
@@ -3070,13 +3276,121 @@ public class shell {
 //			Complete.append("\t");
 			Complete.append("}\n");
 		}
+
+		//layer 2 debugging
+		if (Debug2)
+		{
+			print(TagName+"[return]:>>");
+			print(TagName+"\t{");
+			print(Complete.toString());
+			print(TagName+"\t}");
+		}
+
 		return Complete.toString();
 	}
 
 
+	//errors:
+	private static String Errors(String Tabs, String TheKindType, String Content)
+	{
+		String TagName = "errors";
+
+		StringBuilder Complete = new StringBuilder("");
+		String TheName = "";
+		String TheCondition = "";
+		String ErrorContent = "";
+
+		if (StartsWith(TheKindType, "errors:"))
+		{
+			TheKindType = AfterSplit(TheKindType,":");
+		}
+
+		TheName = TheKindType;
+
+		//layer 1 debugging
+		if (Debug1)
+		{
+			print(TagName+"[Tag]:> "+TheKindType);
+			print(TagName+"[Content]:> "+Content);
+		}
+
+		while (!Content.equals(""))
+		{
+			Content = ReplaceTag(Content, "errors-",false);
+//			Content = ReplaceTag(Content, "errors-",true);
+
+			if (StartsWith(Content, "condition"))
+			{
+				if (IsIn(Content," "))
+				{
+					TheCondition = BeforeSplit(Content," ");
+					Content = AfterSplit(Content," ");
+					//Content = ReplaceTag(Content, "logic-",false);
+				}
+				else
+				{
+					TheCondition = Content;
+				}
+				TheCondition = Conditions(TheCondition);
+			}
+
+//			ErrorContent = ErrorContent + GenCode(Tabs,Content);
+
+			Content = AfterSplit(Content," ");
+		}
+
+		if ((TheName.equals("try")) || (TheName.equals("finally")))
+		{
+			Complete.append(Tabs);
+			Complete.append(TheName);
+			Complete.append("\n{\n");
+			Complete.append(Tabs);
+			Complete.append("\t//content\n");
+			if (!ErrorContent.equals(""))
+			{
+				Complete.append(Tabs);
+				Complete.append(ErrorContent);
+				Complete.append("\n");
+			}
+			Complete.append(Tabs);
+			Complete.append("}");
+		}
+		else if ((TheName.equals("catch")) || (TheName.equals("except")))
+		{
+			Complete.append(Tabs);
+			Complete.append("catch (");
+			Complete.append(TheCondition);
+			Complete.append(" e)\n");
+			Complete.append(Tabs);
+			Complete.append("{\n");
+			Complete.append(Tabs);
+			Complete.append("\tcout << \"Error occurred: \" << errorCode;\n");
+			if (!ErrorContent.equals(""))
+			{
+				Complete.append(Tabs);
+				Complete.append(ErrorContent);
+				Complete.append("\n");
+			}
+			Complete.append(Tabs);
+			Complete.append("}\n");
+		}
+		else if (TheName.equals("throw"))
+		{
+			Complete.append(Tabs);
+			Complete.append(TheName);
+			Complete.append(" new ");
+			Complete.append(ErrorContent);
+			Complete.append("\n");
+		}
+
+		return Complete.toString();
+	}
+
 	//stmt:
 	private static String Statements(String Tabs, String TheKindType, String Content)
 	{
+		String TagName = "stmt";
+
 		boolean Last = false;
 		StringBuilder Complete = new StringBuilder("");
 		StringBuilder StatementContent = new StringBuilder("");
@@ -3090,6 +3404,13 @@ public class shell {
 		if (StartsWith(TheKindType, "stmt:"))
 		{
 			TheKindType = AfterSplit(TheKindType,":");
+		}
+
+		//layer 1 debugging
+		if (Debug1)
+		{
+			print(TagName+"[Tag]:> "+TheKindType);
+			print(TagName+"[Content]:> "+Content);
 		}
 
 		if ((!StartsWith(TheKindType, "\"")) && (IsIn(TheKindType,"-")))
@@ -3243,17 +3564,23 @@ public class shell {
 			Complete.append(TheName);
 		}
 
+		//layer 2 debugging
+		if (Debug2)
+		{
+			print(TagName+"[return]:>>");
+			print(TagName+"\t{");
+			print(Complete.toString());
+			print(TagName+"\t}");
+		}
+
 		return Complete.toString();
 	}
 
 	//var:
 	private static String Variables(String Tabs, String TheKindType, String Content)
 	{
-/*
-		print(TheKindType);
-		print(Content);
-		print("");
-*/
+		String TagName = "var";
+
 		boolean Last = false;
 		boolean MakeEqual = false;
 		StringBuilder NewVar = new StringBuilder("");
@@ -3267,6 +3594,13 @@ public class shell {
 		if (StartsWith(TheKindType, "var:"))
 		{
 			TheKindType = AfterSplit(TheKindType,":");
+		}
+
+		//layer 1 debugging
+		if (Debug1)
+		{
+			print(TagName+"[Tag]:> "+TheKindType);
+			print(TagName+"[Content]:> "+Content);
 		}
 
 		while (!Content.equals(""))
@@ -3392,6 +3726,15 @@ public class shell {
 		}
 		NewVar.append(VariableContent.toString());
 
+		//layer 2 debugging
+		if (Debug2)
+		{
+			print(TagName+"[return]:>>");
+			print(TagName+"\t{");
+			print(NewVar.toString());
+			print(TagName+"\t}");
+		}
+
 		return NewVar.toString();
 	}
 
@@ -3459,6 +3802,10 @@ public class shell {
 		{
 			TheCode.append(Logic(Tabs, Args[0], Args[1]));
 		}
+		else if (StartsWith(Args[0], "errors:"))
+		{
+			TheCode.append(Errors(Tabs, Args[0], Args[1]));
+		}
 		else if (StartsWith(Args[0], "var:"))
 		{
 			TheCode.append(Variables(Tabs, Args[0], Args[1]));
@@ -3515,25 +3862,73 @@ public class shell {
 			for (int lp = 0; lp < numOfArgs; lp++)
 			{
 				Item = args[lp];
-				QuoteTotal += QuoteCount(Item);
-				//This all to handle quotes...consider writing this into a function instead of having this all messed around...still works though
-				//{
-				if (QuoteTotal != 0)
+
+				//layer 1 debugging
+				if (Item.equals("-v"))
 				{
-					if (IsEvenNumber(QuoteTotal))
+					Debug1 = true;
+				}
+				//layer 2 debugging
+				else if (Item.equals("-vv"))
+				{
+					Debug1 = true;
+					Debug2 = true;
+				}
+				//layer 3 debugging
+				else if (Item.equals("-vvv"))
+				{
+					Debug1 = true;
+					Debug2 = true;
+					Debug3 = true;
+				}
+				else
+				{
+					QuoteTotal += QuoteCount(Item);
+					//This all to handle quotes...consider writing this into a function instead of having this all messed around...still works though
+					//{
+					if (QuoteTotal != 0)
 					{
-						QuoteTotal = 0;
-						if (QuotedMessage.toString().equals(""))
+						if (IsEvenNumber(QuoteTotal))
 						{
-							QuotedMessage.append(Item);
+							QuoteTotal = 0;
+							if (QuotedMessage.toString().equals(""))
+							{
+								QuotedMessage.append(Item);
+							}
+							else
+							{
+								QuotedMessage.append("(-spc)");
+								QuotedMessage.append(Item);
+							}
+
+							Item = QuotedMessage.toString();
+							if (ArgUserIn.toString().equals(""))
+							{
+								ArgUserIn.append(TranslateTag(Item));
+							}
+							else
+							{
+								ArgUserIn.append(TranslateTag(" "));
+								ArgUserIn.append(TranslateTag(Item));
+							}
+							QuotedMessage = new StringBuilder("");
 						}
 						else
 						{
-							QuotedMessage.append("(-spc)");
-							QuotedMessage.append(Item);
+							if (QuotedMessage.toString().equals(""))
+							{
+								QuotedMessage.append(Item);
+							}
+							else
+							{
+								QuotedMessage.append("(-spc)");
+								QuotedMessage.append(Item);
+							}
 						}
-
-						Item = QuotedMessage.toString();
+					}
+					//}
+					else
+					{
 						if (ArgUserIn.toString().equals(""))
 						{
 							ArgUserIn.append(TranslateTag(Item));
@@ -3543,37 +3938,10 @@ public class shell {
 							ArgUserIn.append(TranslateTag(" "));
 							ArgUserIn.append(TranslateTag(Item));
 						}
-						QuotedMessage = new StringBuilder("");
-					}
-					else
-					{
-						if (QuotedMessage.toString().equals(""))
-						{
-							QuotedMessage.append(Item);
-						}
-						else
-						{
-							QuotedMessage.append("(-spc)");
-							QuotedMessage.append(Item);
-
-						}
 					}
 				}
-				//}
-				else
-				{
-					if (ArgUserIn.toString().equals(""))
-					{
-						ArgUserIn.append(TranslateTag(Item));
-					}
-					else
-					{
-						ArgUserIn.append(TranslateTag(" "));
-						ArgUserIn.append(TranslateTag(Item));
-					}
-				}
+				UserIn = ArgUserIn.toString();
 			}
-			UserIn = ArgUserIn.toString();
 		}
 
 		while (true)
@@ -3581,6 +3949,96 @@ public class shell {
 			if (len(args) == 0)
 			{
 				UserIn = raw_input("<<shell>> ");
+				if (IsIn(UserIn," "))
+				{
+					StringBuilder ArgUserIn = new StringBuilder("");
+					String[] AllArgs = split(UserIn," ");
+					int end = len(AllArgs);
+					for (int lp = 0; lp < end; lp++)
+					{
+						Item = AllArgs[lp];
+
+						//layer 1 debugging
+						if (Item.equals("-v"))
+						{
+							Debug1 = true;
+						}
+						//layer 2 debugging
+						else if (Item.equals("-vv"))
+						{
+							Debug1 = true;
+							Debug2 = true;
+						}
+						//layer 3 debugging
+						else if (Item.equals("-vvv"))
+						{
+							Debug1 = true;
+							Debug2 = true;
+							Debug3 = true;
+						}
+						else
+						{
+							QuoteTotal += QuoteCount(Item);
+							//This all to handle quotes...consider writing this into a function instead of having this all messed around...still works though
+							//{
+							if (QuoteTotal != 0)
+							{
+								if (IsEvenNumber(QuoteTotal))
+								{
+									QuoteTotal = 0;
+									if (QuotedMessage.toString().equals(""))
+									{
+										QuotedMessage.append(Item);
+									}
+									else
+									{
+										QuotedMessage.append("(-spc)");
+										QuotedMessage.append(Item);
+									}
+
+									Item = QuotedMessage.toString();
+									if (ArgUserIn.toString().equals(""))
+									{
+										ArgUserIn.append(TranslateTag(Item));
+									}
+									else
+									{
+										ArgUserIn.append(TranslateTag(" "));
+										ArgUserIn.append(TranslateTag(Item));
+									}
+									QuotedMessage = new StringBuilder("");
+								}
+								else
+								{
+									if (QuotedMessage.toString().equals(""))
+									{
+										QuotedMessage.append(Item);
+									}
+									else
+									{
+										QuotedMessage.append("(-spc)");
+										QuotedMessage.append(Item);
+									}
+								}
+							}
+							//}
+							else
+							{
+								if (ArgUserIn.toString().equals(""))
+								{
+									ArgUserIn.append(TranslateTag(Item));
+								}
+								else
+								{
+									ArgUserIn.append(TranslateTag(" "));
+									ArgUserIn.append(TranslateTag(Item));
+								}
+							}
+						}
+					}
+					UserIn = ArgUserIn.toString();
+				}
+
 				UserIn = TranslateTag(UserIn);
 			}
 
@@ -3594,7 +4052,7 @@ public class shell {
 				clear();
 			}
 */
-			else if (((UserIn.equals("-v")) && (len(args) >= 1)) || ((UserIn.equals("--version")) && (len(args) >= 1)) || ((UserIn.equals("version")) && (len(args) == 0)))
+			else if (((UserIn.equals("--version")) && (len(args) >= 1)) || ((UserIn.equals("version")) && (len(args) == 0)))
 			{
 				print(Version);
 			}

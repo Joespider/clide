@@ -2,7 +2,11 @@ import os
 import sys
 import platform
 
-Version = "0.1.16"
+Version = "0.1.23"
+
+Debug1 = False
+Debug2 = False
+Debug3 = False
 
 def getOS():
 	platform.system()
@@ -17,9 +21,6 @@ def Help(Type):
 		print("")
 		print("{EXAMPLE}")
 		Example("{}pizza:(int)one,(bool)two,(float)three var(private):(int)toppings [String-mixture]cheese:(String)kind,(int)amount for: nest-for: [String]topping:(String)name,(int)amount if:good")
-#	elif Type == "struct":
-#		print("(<type>)<name>")
-#		print("")
 	elif Type == "method":
 		print("[<data>]<name>:<parameters>")
 		print("[<data>-<return>]<name>:<parameters>")
@@ -70,7 +71,6 @@ def Help(Type):
 	else:
 		print("Components to Generate")
 		print("class\t\t:\t\"Create a class\"")
-#		print("struct\t\t:\t\"Create a struct\"")
 		print("method\t\t:\t\"Create a method\"")
 		print("loop\t\t:\t\"Create a loop\"")
 		print("logic\t\t:\t\"Create a logic\"")
@@ -327,11 +327,33 @@ def AlgoTags(Algo):
 	return NewTags
 
 def CharTranslate(Message):
+	if IsIn(Message,"(-eq)"):
+		Message = replaceAll(Message, "(-eq)"," == ")
+
+	if IsIn(Message,"(-le)"):
+		Message = replaceAll(Message, "(-le)"," <= ")
+
+	if IsIn(Message,"(-lt)"):
+		Message = replaceAll(Message, "(-lt)"," < ")
+
+	if IsIn(Message,"(-ne)"):
+		Message = replaceAll(Message, "(-ne)"," != ")
+
 	if IsIn(Message,"(-spc)"):
 		Message = replaceAll(Message, "(-spc)"," ")
+
+	if IsIn(Message,"(-spc)"):
+		Message = replaceAll(Message, "(-spc)"," ")
+
 	return Message
 
 def TranslateTag(Input):
+
+	TagName = "translate"
+	#layer 1 debugging
+	if Debug1:
+		print(TagName+"[Input]:> "+Input)
+
 	TheReturn = ""
 	Action = Input
 	Value = ""
@@ -383,6 +405,13 @@ def TranslateTag(Input):
 		Action = AfterSplit(Action,">")
 		Nest = "nest-"+Nest
 
+	#layer 2 debugging
+	if Debug2:
+		print(TagName+"[Parent]:>> "+Parent)
+		print(TagName+"[ContentFor]:>> "+ContentFor)
+		print(TagName+"[Nest]:>> "+Nest)
+		print(TagName+"[Action]:>> "+Action)
+
 	if StartsWith(Action,"concat(") or StartsWith(Action,"incre(") or StartsWith(Action,"decre(") or StartsWith(Action,"equals(") or StartsWith(Action,"main("):
 		Algo = AlgoTags(Action)
 		NewAlgoTag = ""
@@ -429,6 +458,20 @@ def TranslateTag(Input):
 		Action = BeforeSplit(Action,":")
 		NewTag = "loop:"+Action
 		Value = "loop-condition:"+Value
+		TheReturn = Parent+ContentFor+Nest+NewTag+" "+Value
+	#convert try and finally to the old tags
+	elif Action == "try" or Action == "finally":
+		NewTag = "errors:"+Action
+		TheReturn = Parent+ContentFor+Nest+NewTag+" "+Value
+	elif Action == "throw" or Action == "raise":
+		NewTag = "errors:"+Action
+		TheReturn = Parent+ContentFor+Nest+NewTag+" "+Value
+	#convert catch to the old tags
+	elif StartsWith(Action, "catch:") or StartsWith(Action, "except:"):
+		Value = AfterSplit(Action,":")
+		Action = BeforeSplit(Action,":")
+		NewTag = "errors:"+Action
+		Value = "errors-condition:"+Value
 		TheReturn = Parent+ContentFor+Nest+NewTag+" "+Value
 	#class or struct
 	elif StartsWith(Action, "{") and IsIn(Action,"}"):
@@ -491,6 +534,9 @@ def TranslateTag(Input):
 		if IsIn(Action,":"):
 			Value = AfterSplit(Action,":")
 			Action = BeforeSplit(Action,":")
+
+		if StartsWith(Value,"\""):
+			Value = "stmt:"+Value
 
 		if Value != "":
 			if ContentFor == "logic-":
@@ -583,6 +629,13 @@ def TranslateTag(Input):
 		else:
 			TheReturn = Parent+ContentFor+Nest+Action
 
+	#layer 2 debugging
+	if Debug2:
+		print(TagName+"[return]:>>")
+		print(TagName+"\t{")
+		print(TheReturn)
+		print(TagName+"\t}")
+
 	return TheReturn
 
 def HandleTabs(CalledBy, Tabs, Content):
@@ -619,23 +672,15 @@ def DataType(Type, getNull):
 			return ""
 
 #condition:
-def Conditions(input,CalledBy):
+def Conditions(input):
+	TagName = "conditions"
+	#layer 1 debugging
+	if Debug1:
+		print(TagName+"[input]:> "+input)
+
 	Condit = AfterSplit(input,":")
 
-	if IsIn(Condit,"(-eq)"):
-		Condit = replaceAll(Condit, "(-eq)"," == ")
-
-	if IsIn(Condit,"(-le)"):
-		Condit = replaceAll(Condit, "(-le)"," <= ")
-
-	if IsIn(Condit,"(-lt)"):
-		Condit = replaceAll(Condit, "(-lt)"," < ")
-
-	if IsIn(Condit,"(-ne)"):
-		Condit = replaceAll(Condit, "(-ne)"," != ")
-
-	if IsIn(Condit,"(-spc)"):
-		Condit = replaceAll(Condit, "(-spc)"," ")
+	Condit = CharTranslate(Condit)
 
 	if IsIn(Condit," "):
 		Conditions = split(Condit," ")
@@ -674,7 +719,13 @@ def Conditions(input,CalledBy):
 
 #params:
 def Parameters(input,CalledBy):
+	TagName = "params"
 	Params = AfterSplit(input,":")
+
+	#layer 1 debugging
+	if Debug1:
+		print(TagName+"[Tag]:> "+Params)
+		print(TagName+"[Called by]:> "+CalledBy)
 
 	if CalledBy == "class" or CalledBy == "method" or CalledBy == "stmt":
 		#param-type,param-type,param-type
@@ -701,6 +752,13 @@ def Parameters(input,CalledBy):
 			Params = Name
 			if Name == "":
 				Params = Type
+	#layer 2 debugging
+	if Debug2:
+		print(TagName+"[return]:>>")
+		print(TagName+"\t{")
+		print(Params)
+		print(TagName+"\t}")
+
 	return Params
 
 #def Struct(TheName, Content):
@@ -717,6 +775,9 @@ def Parameters(input,CalledBy):
 
 #class:
 def Class(TheName, Content):
+
+	TagName = "class"
+
 	Complete = ""
 	ProtectedVars = ""
 	PrivateVars = ""
@@ -731,6 +792,11 @@ def Class(TheName, Content):
 	ClassContent = ""
 
 	TheName = AfterSplit(TheName,":")
+
+	#/layer 1 debugging
+	if Debug1:
+		print(TagName+"[Tag]:> "+TheName)
+		print(TagName+"[Content]:> "+Content)
 
 	if IsIn(TheName,"-"):
 		ParentClass = AfterSplit(TheName,"-")
@@ -837,10 +903,20 @@ def Class(TheName, Content):
 		Complete = "class "+TheName+"("+ParentClass+"):\n"+ProtectedVars+PrivateVars+PublicVars+"\n\t#class constructor\n"+Constructor+"\n"+ClassContent
 	else:
 		Complete = "class "+TheName+":\n"+ProtectedVars+PrivateVars+PublicVars+"\n\t#class constructor\n"+Constructor+"\n"+ClassContent
+
+	#layer 2 debugging
+	if Debug2:
+		print(TagName+"[return]:>>")
+		print(TagName+"\t{")
+		print(Complete)
+		print(TagName+"\t}")
+
 	return Complete
 
 #method:
 def Method(Tabs, Name, Content):
+	TagName = "method"
+
 	Last = False
 	CanSplit = True
 	AssignDefault = False
@@ -880,6 +956,11 @@ def Method(Tabs, Name, Content):
 		#get method name
 		TheName = Name
 
+	#layer 1 debugging
+	if Debug1:
+		print(TagName+"[Tag]:> "+TheName)
+		print(TagName+"[Content]:> "+Content)
+
 	while Content != "":
 		#params:
 		if StartsWith(Content, "params:") and Params == "":
@@ -916,6 +997,10 @@ def Method(Tabs, Name, Content):
 				Content = cmds[0]
 
 			if StartsWith(Content, "method-") and IsIn(Content, " method-l"):
+				#layer 2 debugging
+				if Debug2:
+					print(TagName+"[Content]:>> Starts with \"method-\" and contains \"method-\"")
+
 				all = split(Content," method-l")
 				lp = 0
 				end = len(all)
@@ -933,16 +1018,30 @@ def Method(Tabs, Name, Content):
 				OtherContent = Content
 				CanSplit = True
 
+			#layer 2 debugging
+			if Debug2:
+				print(TagName+"[OtherContent]:>> "+OtherContent)
+				print(TagName+"[NewContent]:>> "+NewContent)
+
 #			OtherContent = ReplaceTag(OtherContent, "method-")
 
 			ParseContent = ""
 			Corrected = ""
-			if IsIn(OtherContent," method-"):
+			if not StartsWith(Content, "method-") and IsIn(Content, " method-"):
+#			if IsIn(OtherContent," method-"):
+				#layer 2 debugging
+				if Debug2:
+					print(TagName+"[Content]:>> Does not start with \"method-\" but it contains \"method-\"")
+
 				cmds = split(OtherContent," method-")
 				end = len(cmds)
 				lp = 0;
 				while lp != end:
 					Corrected = ReplaceTag(cmds[lp], "method-",False)
+
+					#layer 2 debugging
+					if Debug2:
+						print(TagName+"[Corrected]:>> "+Corrected)
 
 					if StartsWith(Corrected,"var:") or StartsWith(Corrected,"stmt:"):
 						if ParseContent == "":
@@ -951,7 +1050,12 @@ def Method(Tabs, Name, Content):
 							ParseContent = ParseContent+" "+Corrected
 
 						if Corrected == "stmt:newline" or Corrected == "stmt:endline":
-							AutoTabs = HandleTabs("method",Tabs+"\t",ParseContent)
+							#layer 2 debugging
+							if Debug2:
+								print(TagName+"[PareseContent]:>> "+ParseContent)
+
+							if not StartsWith(Corrected,"stmt:newline"):
+								AutoTabs = HandleTabs("method",Tabs+"\t",ParseContent)
 
 							if AutoTabs != "":
 								#Generate the loop content
@@ -972,6 +1076,25 @@ def Method(Tabs, Name, Content):
 					lp += 1
 			else:
 				Corrected = ReplaceTag(OtherContent, "method-",False)
+
+
+
+				while StartsWith(Corrected,"stmt:newline"):
+					#Generate the method content
+					MethodContent = MethodContent + GenCode("",BeforeSplit(Corrected," "))
+					Corrected = AfterSplit(Corrected," ")
+
+					#layer 2 debugging
+					if Debug2:
+						print(TagName+"[Corrected]:>> "+Corrected)
+
+				#layer 2 debugging
+				if Debug2:
+					print(TagName+"[HandleTabs]:>>")
+					print(TagName+"\t{")
+					print(Corrected)
+					print(TagName+"\t}")
+
 				AutoTabs = HandleTabs("method",Tabs+"\t",Corrected)
 
 				if AutoTabs != "":
@@ -1020,10 +1143,18 @@ def Method(Tabs, Name, Content):
 					Complete = Tabs+"def "+TheName+"("+Params+"):\n"+MethodContent+"\n"+Tabs+"\treturn "+ReturnVar+"\n"
 				else:
 					Complete = Tabs+"def "+TheName+"("+Params+"):\n"+Tabs+"\t"+ReturnVar+" = "+DefaultValue+"\n"+MethodContent+"\n"+Tabs+"\treturn "+ReturnVar+"\n"
+	#layer 2 debugging
+	if Debug2:
+		print(TagName+"[return]:>>")
+		print(TagName+"\t{")
+		print(Complete)
+		print(TagName+"\t}")
+
 	return Complete
 
 #loop:
 def Loop(Tabs, TheKindType, Content):
+	TagName = "loop"
 	Last = False
 	Complete = ""
 	RootTag = ""
@@ -1038,6 +1169,11 @@ def Loop(Tabs, TheKindType, Content):
 		#loop
 		TheKindType = AfterSplit(TheKindType,":")
 
+	#layer 1 debugging
+	if Debug1:
+		print(TagName+"[Tag]:> "+TheKindType)
+		print(TagName+"[Content]:> "+Content)
+
 	#content for loop
 	while Content != "":
 		Content = ReplaceTag(Content, "loop-",False)
@@ -1050,7 +1186,7 @@ def Loop(Tabs, TheKindType, Content):
 				#Content = ReplaceTag(Content, "loop-",False)
 			else:
 				TheCondition = Content
-			TheCondition = Conditions(TheCondition,TheKindType)
+			TheCondition = Conditions(TheCondition)
 
 		#nest-<type> <other content>
 		#{or}
@@ -1277,10 +1413,20 @@ def Loop(Tabs, TheKindType, Content):
 	#loop:while
 	else:
 		Complete = Tabs+"while "+TheCondition+":\n"+LoopContent
+
+	#layer 2 debugging
+	if Debug2:
+		print(TagName+"[return]:>>")
+		print(TagName+"\t{")
+		print(Complete)
+		print(TagName+"\t{")
+
 	return Complete
 
 #logic:
 def Logic(Tabs, TheKindType, Content):
+	TagName = "logic"
+
 	Last = False
 	Complete = ""
 	RootTag = ""
@@ -1293,6 +1439,11 @@ def Logic(Tabs, TheKindType, Content):
 	if StartsWith(TheKindType, "logic:"):
 		TheKindType = AfterSplit(TheKindType,":")
 
+	#layer 1 debugging
+	if Debug1:
+		print(TagName+"[Tag]:> "+TheKindType)
+		print(TagName+"[Content]:> "+Content)
+
 	while Content != "":
 		Content = ReplaceTag(Content, "logic-",False)
 #		Content = ReplaceTag(Content, "logic-",True)
@@ -1304,7 +1455,7 @@ def Logic(Tabs, TheKindType, Content):
 				#Content = ReplaceTag(Content, "logic-",False)
 			else:
 				TheCondition = Content
-			TheCondition = Conditions(TheCondition,TheKindType)
+			TheCondition = Conditions(TheCondition)
 
 		#This part of the code is meant to separate the nested content with the current content
 		if not StartsWith(Content, "nest-") and IsIn(Content," nest-"):
@@ -1523,10 +1674,69 @@ def Logic(Tabs, TheKindType, Content):
 #			if IsIn(CaseContent,"-"):
 #				CaseContent = AfterSplit(CaseContent,"-")
 		Complete = Complete+LogicContent+Tabs+"\tcase _:\n"+Tabs+"\t\t#code here\n"
+
+	#layer 2 debugging
+	if Debug2:
+		print(TagName+"[return]:>>")
+		print(TagName+"\t{")
+		print(Complete)
+		print(TagName+"\t}")
+
+	return Complete
+
+def Errors(Tabs, TheKindType, Content):
+	TagName = "errors"
+
+	Complete = ""
+	TheName = ""
+	TheCondition = ""
+	ErrorContent = ""
+
+	if StartsWith(TheKindType, "errors:"):
+		TheKindType = AfterSplit(TheKindType,":")
+
+	TheName = TheKindType
+
+	#layer 1 debugging
+	if Debug1:
+		print(TagName+"[Tag]:> "+TheKindType)
+		print(TagName+"[Content]:> "+Content)
+
+	while Content != "":
+		Content = ReplaceTag(Content, "errors-",False)
+#		Content = ReplaceTag(Content, "errors-",True)
+
+		if StartsWith(Content, "condition"):
+			if IsIn(Content," "):
+				TheCondition = BeforeSplit(Content," ")
+				Content = AfterSplit(Content," ")
+				#Content = ReplaceTag(Content, "logic-",false)
+			else:
+				TheCondition = Content
+			TheCondition = Conditions(TheCondition)
+
+#		ErrorContent = ErrorContent + GenCode(Tabs,Content)
+
+		Content = AfterSplit(Content," ")
+
+	if TheName == "try" or TheName == "finally":
+		Complete = Tabs+TheName+":\n"+Tabs+"\t# Code that may throw an exception\n"+ErrorContent
+
+	elif TheName == "catch" or TheName == "except":
+		if TheCondition == "":
+			Complete = Tabs+"except:\n"+Tabs+"\tprint(\"Error occurred: \" + errorCode)\n"+ErrorContent
+		else:
+			Complete = Tabs+"except "+TheCondition+":\n"+Tabs+"\tprint(\"Error occurred: \" + errorCode)\n"+ErrorContent
+
+	elif TheName == "throw" or TheName == "raise":
+		Complete = Tabs+"raise "+ErrorContent
+
+
 	return Complete
 
 #stmt:
 def Statements(Tabs, TheKindType, Content):
+	TagName = "stmt"
 	Last = False
 	Complete = ""
 	StatementContent = ""
@@ -1538,6 +1748,11 @@ def Statements(Tabs, TheKindType, Content):
 
 	if StartsWith(TheKindType, "stmt:"):
 		TheKindType = AfterSplit(TheKindType,":")
+
+	#layer 1 debugging
+	if Debug1:
+		print(TagName+"[Tag]:> "+TheKindType)
+		print(TagName+"[Content]:> "+Content)
 
 	if not StartsWith(TheKindType, "\"") and IsIn(TheKindType,"-"):
 		TheName = BeforeSplit(TheKindType,"-")
@@ -1632,10 +1847,18 @@ def Statements(Tabs, TheKindType, Content):
 	else:
 		Complete = TheName
 
+	#layer 2 debugging
+	if Debug2:
+		print(TagName+"[return]:>>")
+		print(TagName+"\t{")
+		print(Complete)
+		print(TagName+"\t}")
+
 	return Complete
 
 #var:
 def Variables(Tabs, TheKindType, Content):
+	TagName = "var"
 	Last = False
 	MakeEqual = False
 	NewVar = ""
@@ -1647,6 +1870,11 @@ def Variables(Tabs, TheKindType, Content):
 
 	if StartsWith(TheKindType, "var:"):
 		TheKindType = AfterSplit(TheKindType,":")
+
+	#layer 1 debugging
+	if Debug1:
+		print(TagName+"[Tag]:> "+TheKindType)
+		print(TagName+"[Content]:> "+Content)
 
 	while Content != "":
 		#All params are removed
@@ -1735,6 +1963,13 @@ def Variables(Tabs, TheKindType, Content):
 		NewVar = Name
 	NewVar = NewVar+VariableContent
 
+	#layer 2 debugging
+	if Debug2:
+		print(TagName+"[return]:>>")
+		print(TagName+"\t{")
+		print(NewVar)
+		print(TagName+"\t}")
+
 	return NewVar
 
 def GenCode(Tabs, GetMe):
@@ -1758,6 +1993,8 @@ def GenCode(Tabs, GetMe):
 		TheCode = Loop(Tabs,Args[0],Args[1])
 	elif StartsWith(Args[0], "logic:"):
 		TheCode = Logic(Tabs,Args[0],Args[1])
+	elif StartsWith(Args[0], "errors:"):
+		TheCode = Errors(Tabs,Args[0],Args[1])
 	elif StartsWith(Args[0], "var:"):
 		TheCode = Variables(Tabs, Args[0], Args[1])
 	elif StartsWith(Args[0], "stmt:"):
@@ -1795,6 +2032,10 @@ def Args():
 
 #python Main...with cli arguments
 def Main():
+	global Debug1
+	global Debug2
+	global Debug3
+
 	#Get User CLI Input
 	UserArgs = Args()
 	argc = len(UserArgs)
@@ -1816,47 +2057,103 @@ def Main():
 			lp = 0
 			while lp < argc:
 				Item = UserArgs[lp]
-				QuoteTotal += QuoteCount(Item)
-				#This all to handle quotes...consider writing this into a function instead of having this all messed around...still works though
-				#{
-				if QuoteTotal != 0:
-					if IsEvenNumber(QuoteTotal):
-						QuoteTotal = 0
-						if QuotedMessage == "":
-							QuotedMessage = Item
-						else:
-							QuotedMessage = QuotedMessage + "(-spc)" + Item
+				#layer 1 debugging
+				if Item == "-v":
+					Debug1 = True
+				#layer 2 debugging
+				elif Item == "-vv":
+					Debug1 = True
+					Debug2 = True
+				#layer 3 debugging
+				elif Item == "-vvv":
+					Debug1 = True
+					Debug2 = True
+					Debug3 = True
+				else:
+					QuoteTotal += QuoteCount(Item)
+					#This all to handle quotes...consider writing this into a function instead of having this all messed around...still works though
+					#{
+					if QuoteTotal != 0:
+						if IsEvenNumber(QuoteTotal):
+							QuoteTotal = 0
+							if QuotedMessage == "":
+								QuotedMessage = Item
+							else:
+								QuotedMessage = QuotedMessage + "(-spc)" + Item
 
-						Item = QuotedMessage
+							Item = QuotedMessage
+							if UserIn == "":
+								UserIn = TranslateTag(Item)
+							else:
+								UserIn = UserIn + " " + TranslateTag(Item)
+							QuotedMessage = ""
+						else:
+							if QuotedMessage == "":
+								QuotedMessage = Item
+							else:
+								QuotedMessage = QuotedMessage + "(-spc)" + Item
+					#}
+					else:
 						if UserIn == "":
 							UserIn = TranslateTag(Item)
 						else:
 							UserIn = UserIn + " " + TranslateTag(Item)
-						QuotedMessage = ""
-					else:
-						if QuotedMessage == "":
-							QuotedMessage = Item
-						else:
-							QuotedMessage = QuotedMessage + "(-spc)" + Item
-				#}
-				else:
-					if UserIn == "":
-						UserIn = TranslateTag(Item)
-					else:
-						UserIn = UserIn + " " + TranslateTag(Item)
 				lp += 1
 		else:
 			UserIn = raw_input("<<shell>> ")
 			if IsIn(UserIn," "):
-				print("Note: This is where you need to handle quotes")
+				AllArgs = UserIn.split(" ")
+				UserIn = ""
+				for ForItem in AllArgs:
+					Item = ForItem
+					#layer 1 debugging
+					if Item == "-v":
+						Debug1 = True
+					#layer 2 debugging
+					elif Item == "-vv":
+						Debug1 = True
+						Debug2 = True
+					#layer 3 debugging
+					elif Item == "-vvv":
+						Debug1 = True
+						Debug2 = True
+						Debug3 = True
+					else:
+						QuoteTotal += QuoteCount(Item)
+						#This all to handle quotes...consider writing this into a function instead of having this all messed around...still works though
+						#{
+						if QuoteTotal != 0:
+							if IsEvenNumber(QuoteTotal):
+								QuoteTotal = 0
+								if QuotedMessage == "":
+									QuotedMessage = Item
+								else:
+									QuotedMessage = QuotedMessage + "(-spc)" + Item
 
+								Item = QuotedMessage
+								if UserIn == "":
+									UserIn = TranslateTag(Item)
+								else:
+									UserIn = UserIn + " " + TranslateTag(Item)
+								QuotedMessage = ""
+							else:
+								if QuotedMessage == "":
+									QuotedMessage = Item
+								else:
+									QuotedMessage = QuotedMessage + "(-spc)" + Item
+						#}
+						else:
+							if UserIn == "":
+								UserIn = TranslateTag(Item)
+							else:
+								UserIn = UserIn + " " + TranslateTag(Item)
 			UserIn = TranslateTag(UserIn)
 
 		if UserIn == "exit":
 			break
 		elif UserIn == "clear":
 			clear()
-		elif UserIn == "-v" and argc == 1 or UserIn == "--version" and argc == 1:
+		elif UserIn == "--version" and argc == 1:
 			print(Version)
 			break
 		elif UserIn == "version" and argc == 0:

@@ -8,7 +8,7 @@ import (
 
 func help() {
 	var ProgName string = "newGo"
-	var Version string = "0.1.39"
+	var Version string = "0.1.41"
 
 	fmt.Println("Author: Joespider")
 	fmt.Println("Program: \""+ProgName+"\"")
@@ -47,6 +47,8 @@ func help() {
 	fmt.Println("\t--lower : enable lowercase methods")
 	fmt.Println("\t--math : enable math functions (Main file ONLY)")
 	fmt.Println("\t--date-time : enable date and time")
+	fmt.Println("\t--web : use web request")
+	fmt.Println("\t--handle-errors : enable error handling")
 }
 
 func getHelp(TheName string, TheUser string) string {
@@ -63,7 +65,7 @@ func getPackage(ThePackage string) string {
 }
 
 //create import listing
-func getImports(UserInput bool, check bool, write bool, read bool, random bool, cli bool, sleep bool, getPipe bool, getShell bool, getThread bool, getProp bool, getSplit bool, getJoin bool, getConv bool, getUpper bool, getLower bool, getTypes bool, getMath bool, getIsIn bool, getTime bool, getHash bool) string {
+func getImports(UserInput bool, check bool, write bool, read bool, random bool, cli bool, sleep bool, getPipe bool, getShell bool, getThread bool, getProp bool, getSplit bool, getJoin bool, getConv bool, getUpper bool, getLower bool, getTypes bool, getMath bool, getIsIn bool, getTime bool, getHash bool, webReq bool) string {
 	var Imports string = ""
 	var standard string = "\"fmt\"\n"
 	var readWrite string = ""
@@ -76,8 +78,9 @@ func getImports(UserInput bool, check bool, write bool, read bool, random bool, 
 	var ForShell string = ""
 	var ForTypes string = ""
 	var ForMath string = ""
+	var ForWebReq string = ""
 
-	if read == true || write == true {
+	if read == true || write == true || webReq != true {
 		readWrite = "\t\"io/ioutil\"\n\t\"io\"\n"
 	}
 
@@ -98,7 +101,7 @@ func getImports(UserInput bool, check bool, write bool, read bool, random bool, 
 		ForRandom = "\t\"math/rand\"\n"
 	}
 
-	if random == true || sleep == true || getThread == true || getTime == true {
+	if random == true || sleep == true || getThread == true || getTime == true || webReq == true {
 		ForTime = "\t\"time\"\n"
 	}
 
@@ -118,7 +121,17 @@ func getImports(UserInput bool, check bool, write bool, read bool, random bool, 
 		ForMath = "\t\"math\"\n"
 	}
 
-	Imports = standard+readWrite+ForRandom+ForCLI+ForShell+ForUserInput+ForTime+ForString+ForConvert+ForTypes+ForMath
+	if read != true || write != true || webReq == true {
+		ForWebReq = "\t\"io\"\n"
+	}
+
+	if webReq == true {
+		ForWebReq = ForWebReq+"\t\"net/http\"\n"
+	}
+
+	Imports = standard+readWrite+ForRandom+ForCLI+ForShell+ForUserInput+ForTime+ForString+ForConvert+ForTypes+ForMath+ForWebReq
+
+
 	if Imports == standard {
 		Imports = "import "+Imports
 	} else {
@@ -128,7 +141,7 @@ func getImports(UserInput bool, check bool, write bool, read bool, random bool, 
 	return Imports
 }
 
-func getMethods(getRawIn bool, getRand bool, getCheck bool, getWrite bool, getRead bool, getIsIn bool, getSleep bool, getShell bool, getThread bool, getProp bool, getSplit bool, getJoin bool, getRev bool, getSubStr bool, getConv bool, getUpper bool, getLower bool, getTime bool) string {
+func getMethods(getRawIn bool, getRand bool, getCheck bool, getWrite bool, getRead bool, getIsIn bool, getSleep bool, getShell bool, getThread bool, getProp bool, getSplit bool, getJoin bool, getRev bool, getSubStr bool, getConv bool, getUpper bool, getLower bool, getTime bool, getTryCatchFinally bool, getWebReq bool) string {
 	var TheMethods string = ""
 	var CheckFileMethod string = ""
 	var ReadMethod string = ""
@@ -149,6 +162,8 @@ func getMethods(getRawIn bool, getRand bool, getCheck bool, getWrite bool, getRe
 	var LowerMethod string = ""
 	var IsInMethod string = ""
 	var DateAndTime string = ""
+	var TryCathFinally string = ""
+	var WebRequest string = ""
 
 	if getRawIn == true {
 		UserInput = "func raw_input(Message string) string {\n\tvar UserIn string\n\tfmt.Print(Message)\n\treader := bufio.NewReader(os.Stdin)\n\tUserIn, _ = reader.ReadString('\\n')\n\tif UserIn != \"\" {\n\t\tUserIn = UserIn[:len(UserIn)-1]\n\t}\n\treturn UserIn\n}\n\n"
@@ -212,38 +227,46 @@ func getMethods(getRawIn bool, getRand bool, getCheck bool, getWrite bool, getRe
 		JoinMethod = "func join(Array []string, ToJoin string) string {\n\tJoined := strings.Join(Array, ToJoin)\n\treturn Joined\n}\n\n"
 	}
 
-	if  getSplit == true && getJoin == true {
+	if getSplit == true && getJoin == true {
 		replaceAllMethod = "func replaceAll(Str string, sBy string, ToJoin string) string {\n\tnewStr := strings.ReplaceAll(Str, sBy, ToJoin)\n\treturn newStr\n}\n\n"
 	}
 
-	if  getUpper == true {
+	if getUpper == true {
 		UpperMethod = "func toUpperCase(message string) string {\n\tUpper := strings.ToUpper(message)\n\treturn Upper\n}\n\n"
 		UpperMethod = UpperMethod + "func toUpperCase_at(message string, plc int) string {\n\tvar newStr string\n\tchars := []rune(message)\n\tfor i := 0; i < len(chars); i++ {\n\t\tif i == plc {\n\t\t\tnewStr = newStr + strings.ToUpper(string(chars[i]))\n\t\t} else {\n\t\t\tnewStr = newStr + string(chars[i])\n\t\t}\n\t}\n\treturn newStr\n}\n\n"
 	}
 
-	if  getLower == true {
+	if getLower == true {
 		LowerMethod = "func toLowerCase(message string) string {\n\tUpper := strings.ToLower(message)\n\treturn Upper\n}\n\n"
 		LowerMethod = LowerMethod + "func toLowerCase_at(message string, plc int) string {\n\tvar newStr string\n\tchars := []rune(message)\n\tfor i := 0; i < len(chars); i++ {\n\t\tif i == plc {\n\t\t\tnewStr = newStr + strings.ToLower(string(chars[i]))\n\t\t} else {\n\t\t\tnewStr = newStr + string(chars[i])\n\t\t}\n\t}\n\treturn newStr\n}\n\n"
 	}
 
-	if  getIsIn == true {
+	if getIsIn == true {
 		IsInMethod = "func IsIn(Str string, Sub string) bool {\n\treturn strings.Contains(Str,Sub)\n}\n\n"
 		IsInMethod = IsInMethod+"func StartsWith(Str string, Sub string) bool {\n\treturn strings.HasPrefix(Str,Sub)\n}\n\n"
 		IsInMethod = IsInMethod+"func EndsWith(Str string, Sub string) bool {\n\treturn strings.HasSuffix(Str,Sub)\n}\n\n"
 	}
 
-	if  getTime == true {
+	if getTime == true {
 		DateAndTime = "func TimeAndDate() string {\n\tnow := time.Now()\n\tformatted := now.Format(time.ANSIC)\n\treturn formatted\n}\n\n"
 		DateAndTime = DateAndTime + "func getTime() string {\n\tnow := time.Now()\n\tHr := strconv.Itoa(now.Hour())\n\tMin := strconv.Itoa(now.Minute())\n\tSec := strconv.Itoa(now.Second())\n\tTime := Hr+\":\"+Min+\":\"+Sec\n\treturn Time\n}\n\n"
 	}
 
-	TheMethods = UserInput+CheckFileMethod+WriteMethod+ReadMethod+RandMethod+ShellMethod+SleepMethod+ThreadMethod+ReverseMethod+SysPropMethod+SplitMethod+JoinMethod+replaceAllMethod+SubStrMethod+ConvertMethod+UpperMethod+LowerMethod+IsInMethod+DateAndTime
+	if getTryCatchFinally == true {
+		TryCathFinally = "type Block struct {\n\tTry\tfunc()\n\tCatch\tfunc(Exception)\n\tFinally\tfunc()\n}\n\ntype Exception interface{}\n\nfunc Throw(up Exception) {\n\tpanic(up)\n}\n\nfunc (tcf Block) Do() {\n\tif tcf.Finally != nil {\n\t\tdefer tcf.Finally()\n\t}\n\tif tcf.Catch != nil {\n\t\tdefer func() {\n\t\t\tif r := recover(); r != nil {\n\t\t\t\ttcf.Catch(r)\n\t\t\t}\n\t\t}()\n\t}\n\ttcf.Try()\n}\n\n"
+	}
+
+	if getWebReq == true {
+		WebRequest = "func GetWebPage(url string) string {\n\tvar page string = \"\"\n\tclient := &http.Client{Timeout: 30 * time.Second}\n\n\treq, err := http.NewRequest(\"GET\", url, nil)\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\n\treq.Header.Set(\"User-Agent\", \"Mozilla/5.0 (Windows NT 10.0; Win64; x64)\")\n\treq.Header.Set(\"Accept\", \"text/html\")\n\n\tresp, err := client.Do(req)\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\tdefer resp.Body.Close()\n\n\tbody, err := io.ReadAll(resp.Body)\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\n\tif resp.StatusCode == 200 {\n\t\tpage = string(body)\n\t}\n\treturn page\n}\n"
+	}
+
+	TheMethods = TryCathFinally+UserInput+CheckFileMethod+WriteMethod+ReadMethod+RandMethod+ShellMethod+SleepMethod+ThreadMethod+ReverseMethod+SysPropMethod+SplitMethod+JoinMethod+replaceAllMethod+SubStrMethod+ConvertMethod+UpperMethod+LowerMethod+IsInMethod+DateAndTime+WebRequest
 
 	return TheMethods
 }
 
 //build main function
-func getMain(Args bool, getRandom bool, getPipe bool, getThread bool, getTypes bool, getMath bool, getLen bool, getHash bool) string {
+func getMain(Args bool, getRandom bool, getPipe bool, getThread bool, getTypes bool, getMath bool, getLen bool, getHash bool, getTryCatchFinally bool) string {
 	var Main string = ""
 	var RandStart string = ""
 	var PipeCode string = ""
@@ -252,6 +275,7 @@ func getMain(Args bool, getRandom bool, getPipe bool, getThread bool, getTypes b
 	var ShowLength string = ""
 	var ShowMath string = ""
 	var ShowHash string = ""
+	var TryCathFinally string = ""
 
 	if getRandom == true {
 		RandStart = "\trand.Seed(time.Now().UnixNano())\n"
@@ -281,11 +305,14 @@ func getMain(Args bool, getRandom bool, getPipe bool, getThread bool, getTypes b
 		ShowHash = "\tMyHouse := make(map[string]int)\n\n\tMyHouse[\"Living Room\"] = 1\n\tMyHouse[\"Bed Room\"] = 3\n\tMyHouse[\"TV Room\"] = 2\n\tMyHouse[\"Kitchen\"] = 1\n\tMyHouse[\"Doors\"] = 3\n\tMyHouse[\"Bath Rooms\"] = 2\n\tMyHouse[\"Basement\"] = 1\n\n\tfmt.Println(\"My house has:\")\n\n\tfor key := range MyHouse {\n\t\tfmt.Println(\"\\t(\"+Str(MyHouse[key])+\") \"+key)\n\t}\n\n\tfmt.Println(\"\")\n\tfmt.Println(\"Removing \\\"Doors\\\"\")\n\t//Doors removed from dictionary\n\tdelete(MyHouse,\"Doors\")\n\tfmt.Println(\"\")\n\tfmt.Println(\"My house (now) has:\")\n\n\tfor key := range MyHouse {\n\t\tfmt.Println(\"\\t(\"+Str(MyHouse[key])+\") \"+key)\n\t}\n\n"
 	}
 
+	if getTryCatchFinally == true {
+		TryCathFinally = "\tBlock {\n\t\tTry: func() {\n\t\t\tfmt.Println(\"this is good\")\n\t\t\tThrow(\"Oh,no...!!\")\n\t\t},\n\t\tCatch: func(e Exception) {\n\t\t\tfmt.Printf(\"Caught %v\\n\", e)\n\t\t},\n\t\tFinally: func() {\n\t\t\tfmt.Println(\"finally keep runs\")\n\t\t},\n\t}.Do()\n\n"
+	}
 
 	if Args == true {
-		Main = "//main\nfunc main() {\n"+RandStart+"\targs := os.Args[1:]\n\tif len(args) > 0 {\n\t\tfor arg := range args {\n\t\t\tfmt.Println(args[arg])\n\t\t}\n\t} else {\n\t\thelp()\n\t}\n"+PipeCode+UseThread+ShowDataTypes+ShowMath+ShowLength+ShowHash+"}"
+		Main = "//main\nfunc main() {\n"+RandStart+"\targs := os.Args[1:]\n\tif len(args) > 0 {\n\t\tfor arg := range args {\n\t\t\tfmt.Println(args[arg])\n\t\t}\n\t} else {\n\t\thelp()\n\t}\n"+PipeCode+UseThread+ShowDataTypes+ShowMath+ShowLength+ShowHash+TryCathFinally+"}"
 	} else {
-		Main = "//main\nfunc main() {\n"+RandStart+"\tfmt.Println(\"hellow world\")\n"+PipeCode+UseThread+ShowDataTypes+ShowMath+ShowLength+ShowHash+"}"
+		Main = "//main\nfunc main() {\n"+RandStart+"\tfmt.Println(\"hellow world\")\n"+PipeCode+UseThread+ShowDataTypes+ShowMath+ShowLength+ShowHash+TryCathFinally+"}"
 	}
 	return Main
 }
@@ -340,10 +367,13 @@ func main() {
 	var getUpper bool = false
 	var getLower bool = false
 	var getMath bool = false
+	var getWebReq bool = false
 	var getTime bool = false
 	var getLen bool = false
 	var getHash bool = false
-	var FileExists = false
+	var FileExists bool = false
+//<<shell>> tab equals((bool)HandleErrors):false
+	var HandleErrors bool = false
 	var IsMain bool = false
 	var UserIn string = ""
 	var ThePackage string = ""
@@ -482,6 +512,11 @@ func main() {
 		} else if UserIn == "--get-length" {
 			getName = false
 			getLen = true
+		} else if UserIn == "--handle-errors" {
+			HandleErrors = true
+		} else if UserIn == "--web" {
+			getName = false
+			getWebReq = true
 		//Get Name of program
 		} else if getName == true {
 			CName = UserIn
@@ -499,13 +534,13 @@ func main() {
 		}
 		if FileExists == false || noSave == true {
 			ThePackage = getPackage("main")
-			Imports = getImports(getRawIn, getCheck, getWrite, getRead, getRand, getArgs, getSleep, getPipe, getShell, getThread, getProp, getSplit, getJoin, getConv, getUpper, getLower, getTypes, getMath, getIsIn, getTime, getHash)
-			Methods = getMethods(getRawIn, getRand, getCheck, getWrite, getRead, getIsIn, getSleep, getShell, getThread, getProp, getSplit, getJoin, getRev, getSubStr, getConv, getUpper, getLower, getTime)
+			Imports = getImports(getRawIn, getCheck, getWrite, getRead, getRand, getArgs, getSleep, getPipe, getShell, getThread, getProp, getSplit, getJoin, getConv, getUpper, getLower, getTypes, getMath, getIsIn, getTime, getHash, getWebReq)
+			Methods = getMethods(getRawIn, getRand, getCheck, getWrite, getRead, getIsIn, getSleep, getShell, getThread, getProp, getSplit, getJoin, getRev, getSubStr, getConv, getUpper, getLower, getTime,HandleErrors, getWebReq)
 			if IsMain == true {
 				if getArgs == true {
 					TheHelpContent = getHelp(CName,TheAuthor)
 				}
-				Main = getMain(getArgs,getRand,getPipe,getThread,getTypes, getMath, getLen, getHash)
+				Main = getMain(getArgs,getRand,getPipe,getThread,getTypes, getMath, getLen, getHash, HandleErrors)
 			} else {
 				Main = ""
 			}

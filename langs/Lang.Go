@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.2.04"
+SupportV="0.2.08"
 Lang=Go
 LangExt=".go"
 #Color Green
@@ -720,6 +720,36 @@ UseGo()
 				echo ${ThePath}/${name}
 			fi
 			;;
+		editDep)
+			local project=${CodeProject}
+			local path
+			case ${project} in
+				none)
+					;;
+				*)
+					path=${LangProject}/${project}
+					if [ -f ${path}/go.mod ]; then
+						${editor} ${path}/go.mod
+					fi
+					;;
+			esac
+			;;
+		installDep)
+			local pkg="${1}"
+			local project=${CodeProject}
+			case ${project} in
+				none)
+					echo "No Project found"
+					;;
+				*)
+					if [ ! -z "${pkg}" ]; then
+						go get "${pkg}"
+					else
+						errorCode "install" "no-dep" "dep" "<package>"
+					fi
+					;;
+			esac
+			;;
 		editCode|readCode)
 			local src=${TheCode}
 			local num=$1
@@ -1113,18 +1143,18 @@ UseGo()
 					else
 						case ${FoundMain} in
 							yes)
+								ERROR=""
 								#Compile and check for errors
-								ERROR=$(${LangCpl} build ${src} 2>&1 | tr '\n' '|')
+								case ${project} in
+									none)
+										ERROR=$(${LangCpl} build -o ${TheBinDir}/ ${src} 2>&1 | tr '\n' '|')
+										;;
+									*)
+										ERROR=$(${LangCpl} build -o ${TheBinDir}/${project} ${src} 2>&1 | tr '\n' '|')
+										;;
+								esac
 								#Code compiled successfully
 								if [ -z "${ERROR}" ]; then
-									case ${project} in
-										none)
-											mv ${name} ${TheBinDir}/
-											;;
-										*)
-											mv ${name} ${TheBinDir}/${project}
-											;;
-									esac
 									UseGo compileCode-message
 								else
 									errorCode "cpl" "ERROR" "${ERROR}"
@@ -1202,12 +1232,14 @@ UseGo()
 					${ProjectDefaultType})
 						mkdir -p ${path}/bin
 						mkdir -p ${path}/build
-						mkdir -p ${path}/doc
-						mkdir -p ${path}/include
-						mkdir -p ${path}/lib
-						mkdir -p ${path}/spike
+#						mkdir -p ${path}/doc
+#						mkdir -p ${path}/include
+#						mkdir -p ${path}/lib
+#						mkdir -p ${path}/spike
 						mkdir -p ${path}/src
 						mkdir -p ${path}/test
+						cd ${path}/
+						go mod init ${project} 2> /dev/null
 						cd ${path}/src
 						;;
 					*)
@@ -1224,13 +1256,15 @@ UseGo()
 						else
 							mkdir -p ${path}/bin
 							mkdir -p ${path}/build
-							mkdir -p ${path}/doc
-							mkdir -p ${path}/include
-							mkdir -p ${path}/lib
-							mkdir -p ${path}/spike
+#							mkdir -p ${path}/doc
+#							mkdir -p ${path}/include
+#							mkdir -p ${path}/lib
+#							mkdir -p ${path}/spike
 							mkdir -p ${path}/src
 							mkdir -p ${path}/test
 						fi
+						cd ${path}/
+						go mod init ${project} 2> /dev/null
 						cd ${path}/src
 						;;
 				esac

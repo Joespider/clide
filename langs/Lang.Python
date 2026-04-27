@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.2.27"
+SupportV="0.2.29"
 Lang=Python
 LangExt=".py"
 #Color Yellow
@@ -676,6 +676,36 @@ UsePython()
 						;;
 				esac
 			fi
+			;;
+		editDep)
+			local project=${CodeProject}
+			local path
+			case ${project} in
+				none)
+					;;
+				*)
+					path=${LangProject}/${project}
+					if [ -f ${path}/go.mod ]; then
+						${editor} ${path}/go.mod
+					fi
+					;;
+			esac
+			;;
+		installDep)
+			local pkg="${1}"
+			local project=${CodeProject}
+			case ${project} in
+				none)
+					echo "No Project found"
+					;;
+				*)
+					if [ ! -z "${pkg}" ]; then
+						${LangRun} -m pip install "${pkg}"
+					else
+						errorCode "install" "no-dep" "dep" "<package>"
+					fi
+					;;
+			esac
 			;;
 		editCode|readCode)
 			local src=${TheCode}

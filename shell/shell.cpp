@@ -17,7 +17,16 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.1.35";
+String Version = "0.1.40";
+
+//layer 1 debugging
+bool Debug1 = false;
+
+//layer 2 debugging
+bool Debug2 = false;
+
+//layer 3 debugging
+bool Debug3 = false;
 
 String getOS();
 void Help(String Type);
@@ -61,6 +70,7 @@ String Variables(String Tabs, String TheKindType, String Content);
 String Statements(String Tabs, String TheKindType, String Content);
 String Loop(String Tabs, String TheKindType, String Content);
 String Logic(String Tabs, String TheKindType, String Content);
+String Errors(String Tabs, String TheKindType, String Content);
 void Example(String tag);
 
 String getOS()
@@ -471,7 +481,7 @@ void banner()
 	String cplV = getCplV();
 	String theOS = getOS();
 	print(cplV);
-	print("[C++ " << Version<< "] on " << theOS);
+	print("[C++ " << Version << "] on " << theOS);
 	print("Type \"help\" for more information.");
 }
 
@@ -662,6 +672,36 @@ String AlgoTags(String Algo)
 
 String CharTranslate(String Message)
 {
+	if (IsIn(Message,"(-eq)"))
+	{
+		Message = replaceAll(Message, "(-eq)"," == ");
+	}
+
+	if (IsIn(Message,"(-le)"))
+	{
+		Message = replaceAll(Message, "(-le)"," <= ");
+	}
+
+	if (IsIn(Message,"(-lt)"))
+	{
+		Message = replaceAll(Message, "(-lt)"," < ");
+	}
+
+	if (IsIn(Message,"(-ge)"))
+	{
+		Message = replaceAll(Message, "(-ge)"," >= ");
+	}
+
+	if (IsIn(Message,"(-gt)"))
+	{
+		Message = replaceAll(Message, "(-gt)"," > ");
+	}
+
+	if (IsIn(Message,"(-ne)"))
+	{
+		Message = replaceAll(Message, "(-ne)"," != ");
+	}
+
 	if (IsIn(Message,"(-spc)"))
 	{
 		Message = replaceAll(Message, "(-spc)"," ");
@@ -671,6 +711,13 @@ String CharTranslate(String Message)
 
 String TranslateTag(String Input)
 {
+	String TagName = "translate";
+	//layer 1 debugging
+	if (Debug1)
+	{
+		print(TagName+"[Input]:> "+Input);
+	}
+
 	String TheReturn = "";
 	String Action = Input;
 	String Value = "";
@@ -746,6 +793,15 @@ String TranslateTag(String Input)
 		Nest = "nest-"+Nest;
 	}
 
+	//layer 2 debugging
+	if (Debug2)
+	{
+		print(TagName+"[Parent]:>> "+Parent);
+		print(TagName+"[ContentFor]:>> "+ContentFor);
+		print(TagName+"[Nest]:>> "+Nest);
+		print(TagName+"[Action]:>> "+Action);
+	}
+
 	if (StartsWith(Action,"concat(") || StartsWith(Action,"incre(") || StartsWith(Action,"decre(") || StartsWith(Action,"equals(") || StartsWith(Action,"main("))
 	{
 		String Algo = AlgoTags(Action);
@@ -816,6 +872,27 @@ String TranslateTag(String Input)
 		Action = BeforeSplit(Action,':');
 		NewTag = "loop:"+Action;
 		Value = "loop-condition:"+Value;
+		TheReturn = Parent+ContentFor+Nest+NewTag+" "+Value;
+	}
+	//convert try and finally to the old tags
+	else if ((Action == "try") || (Action == "finally"))
+	{
+		NewTag = "errors:"+Action;
+		TheReturn = Parent+ContentFor+Nest+NewTag;
+	}
+	//convert try and finally to the old tags
+	else if ((Action == "throw") || (Action == "raise"))
+	{
+		NewTag = "errors:throw";
+		TheReturn = Parent+ContentFor+Nest+NewTag;
+	}
+	//convert catch to the old tags
+	else if ((StartsWith(Action, "catch:")) || (StartsWith(Action, "except:")))
+	{
+		Value = AfterSplit(Action,':');
+		Action = BeforeSplit(Action,':');
+		NewTag = "errors:"+Action;
+		Value = "errors-condition:"+Value;
 		TheReturn = Parent+ContentFor+Nest+NewTag+" "+Value;
 	}
 	//class or struct
@@ -914,6 +991,11 @@ String TranslateTag(String Input)
 
 		if (Value != "")
 		{
+			if (StartsWith(Value,"\""))
+			{
+				Value = "stmt:"+Value;
+			}
+
 			if (ContentFor == "logic-")
 			{
 				Value = "+-"+Nest+Value;
@@ -935,11 +1017,6 @@ String TranslateTag(String Input)
 			Value = TranslateTag(Value);
 //			Value = GenCode("",Value);
 //			TheReturn = Parent+ContentFor+Nest+"var:("+TheDataType+")"+Action+"= "+Value;
-
-			if (StartsWith(Value,"\""))
-			{
-				Value = "stmt:"+Value;
-			}
 
 			TheReturn = Parent+ContentFor+"var:("+TheDataType+")"+Action+"= "+Value;
 		}
@@ -1062,6 +1139,15 @@ String TranslateTag(String Input)
 		}
 	}
 
+	//layer 2 debugging
+	if (Debug2)
+	{
+		print(TagName+"[return]:>>");
+		print(TagName+"\t{");
+		print(TheReturn);
+		print(TagName+"\t}");
+	}
+
 	return TheReturn;
 }
 
@@ -1139,8 +1225,17 @@ String DataType(String Type, bool getNull)
 
 String Pointers(String Tabs, String Tag, String Content)
 {
+	String TagName = "point";
+
 	String PointerContent = "";
 	Tag = AfterSplit(Tag,':');
+
+	//layer 1 debugging
+	if (Debug1)
+	{
+		print(TagName+"[Tag]:> "+Tag);
+		print(TagName+"[Content]:> "+Content);
+	}
 
 	if (EndsWith(Tag,"="))
 	{
@@ -1154,42 +1249,16 @@ String Pointers(String Tabs, String Tag, String Content)
 //condition:
 String Conditions(String input)
 {
+	String TagName = "conditions";
+	//layer 1 debugging
+	if (Debug1)
+	{
+		print(TagName+"[input]:> "+input);
+	}
+
 	String Condit = AfterSplit(input,':');
 
-	if (IsIn(Condit,"(-eq)"))
-	{
-		Condit = replaceAll(Condit, "(-eq)"," == ");
-	}
-
-	if (IsIn(Condit,"(-le)"))
-	{
-		Condit = replaceAll(Condit, "(-le)"," <= ");
-	}
-
-	if (IsIn(Condit,"(-lt)"))
-	{
-		Condit = replaceAll(Condit, "(-lt)"," < ");
-	}
-
-	if (IsIn(Condit,"(-ge)"))
-	{
-		Condit = replaceAll(Condit, "(-ge)"," >= ");
-	}
-
-	if (IsIn(Condit,"(-gt)"))
-	{
-		Condit = replaceAll(Condit, "(-gt)"," > ");
-	}
-
-	if (IsIn(Condit,"(-ne)"))
-	{
-		Condit = replaceAll(Condit, "(-ne)"," != ");
-	}
-
-	if (IsIn(Condit,"(-spc)"))
-	{
-		Condit = replaceAll(Condit, "(-spc)"," ");
-	}
+	Condit = CharTranslate(Condit);
 
 	if (IsIn(Condit," "))
 	{
@@ -1284,7 +1353,15 @@ String Conditions(String input)
 //params:
 String Parameters(String input,String CalledBy)
 {
+	String TagName = "params";
 	String Params = AfterSplit(input,':');
+
+	//layer 1 debugging
+	if (Debug1)
+	{
+		print(TagName+"[Tag]:> "+Params);
+		print(TagName+"[Called by]:> "+CalledBy);
+	}
 
 	if ((CalledBy == "class") || (CalledBy == "method") || (CalledBy == "stmt"))
 	{
@@ -1302,7 +1379,9 @@ String Parameters(String input,String CalledBy)
 			Name = AfterSplit(Name,')');
 			Type = AfterSplit(Type,'(');
 			Type = DataType(Type,false);
+
 			more = Parameters("params:"+more,CalledBy);
+
 			if (Name == "")
 			{
 				Params = Type+", "+more;
@@ -1320,6 +1399,7 @@ String Parameters(String input,String CalledBy)
 
 			Type = AfterSplit(Type,'(');
 			Type = DataType(Type,false);
+
 			Params = Type+" "+Name;
 			if (Name == "")
 			{
@@ -1327,11 +1407,29 @@ String Parameters(String input,String CalledBy)
 			}
 		}
 	}
+
+	//layer 2 debugging
+	if (Debug2)
+	{
+		print(TagName+"[return]:>>");
+		print(TagName+"\t{");
+		print(Params);
+		print(TagName+"\t}");
+	}
+
 	return Params;
 }
 
 String Template(String Type, String Content)
 {
+	String TagName = "template";
+	//layer 1 debugging
+	if (Debug1)
+	{
+		print(TagName+"[Tag]:> "+Type);
+		print(TagName+"[Content]:> "+Content);
+	}
+
 	String TemplateContent = "";
 	String TheName = "";
 	String Params = "";
@@ -1346,11 +1444,22 @@ String Template(String Type, String Content)
 	TemplateContent = "template <typename "+DataType+">\n";
 	TemplateContent = TemplateContent + GenCode("",Content);
 
+	//layer 2 debugging
+	if (Debug2)
+	{
+		print(TagName+"[return]:>>");
+		print(TagName+"\t{");
+		print(TemplateContent);
+		print(TagName+"\t}");
+	}
+
 	return TemplateContent;
 }
 
 String Enum(String TheName, String Content)
 {
+	String TagName = "enum";
+
 	String Complete = "";
 	String EnumVar = "";
 	String TmpVar = "";
@@ -1358,6 +1467,14 @@ String Enum(String TheName, String Content)
 	String AutoTabs = "";
 
 	TheName = AfterSplit(TheName,':');
+
+	//layer 1 debugging
+	if (Debug1)
+	{
+		print(TagName+"[Tag]:> "+TheName);
+		print(TagName+"[Content]:> "+Content);
+	}
+
 	while ((StartsWith(Content, "enum-var")) || (StartsWith(Content, "enum-stmt")) || (StartsWith(Content, "var")) || (StartsWith(Content, "stmt")))
 	{
 		Content = ReplaceTag(Content, "enum-",true);
@@ -1395,17 +1512,37 @@ String Enum(String TheName, String Content)
 	}
 
 	Complete = "enum "+TheName+" {\n"+EnumVar+"\n};\n";
+
+	//layer 2 debugging
+	if (Debug2)
+	{
+		print(TagName+"[return]:>>");
+		print(TagName+"\t{");
+		print(Complete);
+		print(TagName+"\t}");
+	}
+
 	return Complete;
 }
 
 String Struct(String TheName, String Content)
 {
+	String TagName = "struct";
+
 	String Complete = "";
 	String StructVar = "";
 	String Process = "";
 	String AutoTabs = "";
 
 	TheName = AfterSplit(TheName,':');
+
+	//layer 1 debugging
+	if (Debug1)
+	{
+		print(TagName+"[Tag]:> "+TheName);
+		print(TagName+"[Content]:> "+Content);
+	}
+
 	while ((StartsWith(Content, "struct-var")) || (StartsWith(Content, "struct-stmt")) || (StartsWith(Content, "var")) || (StartsWith(Content, "stmt")))
 	{
 		Content = ReplaceTag(Content, "struct-",true);
@@ -1439,11 +1576,23 @@ String Struct(String TheName, String Content)
 		}
 	}
 	Complete = "struct {\n"+StructVar+"} "+TheName+";\n";
+
+	//layer 2 debugging
+	if (Debug2)
+	{
+		print(TagName+"[return]:>>");
+		print(TagName+"\t{");
+		print(Complete);
+		print(TagName+"\t}");
+	}
+
 	return Complete;
 }
 
 String Class(String TheName, String Content)
 {
+	String TagName = "class";
+
 	String Complete = "";
 	String ProtectedVars = "";
 	String PrivateVars = "";
@@ -1459,6 +1608,13 @@ String Class(String TheName, String Content)
 	String ClassContent = "";
 
 	TheName = AfterSplit(TheName,':');
+
+	//layer 1 debugging
+	if (Debug1)
+	{
+		print(TagName+"[Tag]:> "+TheName);
+		print(TagName+"[Content]:> "+Content);
+	}
 
 	if (IsIn(TheName,"-"))
 	{
@@ -1624,12 +1780,24 @@ String Class(String TheName, String Content)
 	}
 
 	Complete = "class "+TheName+Inheritance+" {\n\n"+ProtectedVars+PrivateVars+"public:"+PublicVars+"\n\t//class constructor\n"+Constructor+"\n"+ClassContent+"\n\t//class desctructor\n"+Destructor+"\n};\n";
+
+	//layer 2 debugging
+	if (Debug2)
+	{
+		print(TagName+"[return]:>>");
+		print(TagName+"\t{");
+		print(Complete);
+		print(TagName+"\t}");
+	}
+
 	return Complete;
 }
 
 //method:
 String Method(String Tabs, String Name, String Content)
 {
+	String TagName = "method";
+
 	bool Last = false;
 	bool CanSplit = true;
 	bool AssignDefault = false;
@@ -1672,6 +1840,13 @@ String Method(String Tabs, String Name, String Content)
 	{
 		//get method name
 		TheName = Name;
+	}
+
+	//layer 1 debugging
+	if (Debug1)
+	{
+		print(TagName+"[Tag]:> "+TheName);
+		print(TagName+"[Content]:> "+Content);
 	}
 
 	while (Content != "")
@@ -1726,6 +1901,11 @@ String Method(String Tabs, String Name, String Content)
 
 			if ((StartsWith(Content, "method-")) && (IsIn(Content, " method-l")))
 			{
+				//layer 2 debugging
+				if (Debug2)
+				{
+					print(TagName+"[Content]:>> Starts with \"method-\" and contains \"method-\"");
+				}
 
 				std::vector<String> all = split(Content," method-l");
 				int lp = 0;
@@ -1757,18 +1937,38 @@ String Method(String Tabs, String Name, String Content)
 				CanSplit = true;
 			}
 
+			//layer 2 debugging
+			if (Debug2)
+			{
+				print(TagName+"[OtherContent]:>> "+OtherContent);
+				print(TagName+"[NewContent]:>> "+NewContent);
+			}
+
 //			OtherContent = ReplaceTag(OtherContent, "method-");
 
 			String ParseContent = "";
 			String Corrected = "";
-			if (IsIn(OtherContent," method-"))
+			if (!(StartsWith(Content, "method-")) && (IsIn(Content, " method-")))
+//			if (IsIn(OtherContent," method-"))
 			{
+				//layer 2 debugging
+				if (Debug2)
+				{
+					print(TagName+"[Content]:>> Does not start with \"method-\" but it contains \"method-\"");
+				}
+
 				std::vector<String> cmds = split(OtherContent," method-");
 				int end = len(cmds);
 				int lp = 0;
 				while (lp != end)
 				{
 					Corrected = ReplaceTag(cmds[lp], "method-",false);
+
+					//layer 2 debugging
+					if (Debug2)
+					{
+						print(TagName+"[Corrected]:>> "+Corrected);
+					}
 
 					if (StartsWith(Corrected,"var:") || StartsWith(Corrected,"stmt:"))
 					{
@@ -1783,7 +1983,16 @@ String Method(String Tabs, String Name, String Content)
 
 						if ((Corrected == "stmt:newline") || (Corrected == "stmt:endline"))
 						{
-							AutoTabs = HandleTabs("method",Tabs+"\t",ParseContent);
+							//layer 2 debugging
+							if (Debug2)
+							{
+								print(TagName+"[PareseContent]:>> "+ParseContent);
+							}
+
+							if (!StartsWith(Corrected,"stmt:newline"))
+							{
+								AutoTabs = HandleTabs("method",Tabs+"\t",ParseContent);
+							}
 
 							if (AutoTabs != "")
 							{
@@ -1813,6 +2022,29 @@ String Method(String Tabs, String Name, String Content)
 			else
 			{
 				Corrected = ReplaceTag(OtherContent, "method-",false);
+
+				while (StartsWith(Corrected,"stmt:newline"))
+				{
+					//Generate the method content
+					MethodContent = MethodContent + GenCode("",BeforeSplit(Corrected,' '));
+					Corrected = AfterSplit(Corrected,' ');
+
+					//layer 2 debugging
+					if (Debug2)
+					{
+						print(TagName+"[Corrected]:>> "+Corrected);
+					}
+				}
+
+				//layer 2 debugging
+				if (Debug2)
+				{
+					print(TagName+"[HandleTabs]:>>");
+					print(TagName+"\t{");
+					print(Corrected);
+					print(TagName+"\t}");
+				}
+
 				AutoTabs = HandleTabs("method",Tabs+"\t",Corrected);
 
 				if (AutoTabs != "")
@@ -1821,7 +2053,7 @@ String Method(String Tabs, String Name, String Content)
 					MethodContent = MethodContent + GenCode(Tabs+"\t",AutoTabs);
 				}
 
-				//Generate the loop content
+				//Generate the method content
 				MethodContent = MethodContent + GenCode(Tabs+"\t",Corrected);
 			}
 			Content = NewContent;
@@ -1910,17 +2142,24 @@ String Method(String Tabs, String Name, String Content)
 			}
 		}
 	}
+
+	//layer 2 debugging
+	if (Debug2)
+	{
+		print(TagName+"[return]:>>");
+		print(TagName+"\t{");
+		print(Complete);
+		print(TagName+"\t}");
+	}
+
 	return Complete;
 }
 
 //loop:
 String Loop(String Tabs, String TheKindType, String Content)
 {
-/*
-	print(TheKindType);
-	print(Content);
-	print("");
-*/
+	String TagName = "loop";
+
 	bool Last = false;
 	String AutoTabs = "";
 	String Complete = "";
@@ -1936,6 +2175,13 @@ String Loop(String Tabs, String TheKindType, String Content)
 	{
 		//loop
 		TheKindType = AfterSplit(TheKindType,':');
+	}
+
+	//layer 1 debugging
+	if (Debug1)
+	{
+		print(TagName+"[Tag]:> "+TheKindType);
+		print(TagName+"[Content]:> "+Content);
 	}
 
 	//content for loop
@@ -2295,17 +2541,24 @@ String Loop(String Tabs, String TheKindType, String Content)
 	{
 		Complete = Tabs+"while ("+TheCondition+")\n"+Tabs+"{\n"+LoopContent+Tabs+"}\n";
 	}
+
+	//layer 2 debugging
+	if (Debug2)
+	{
+		print(TagName+"[return]:>>");
+		print(TagName+"\t{");
+		print(Complete);
+		print(TagName+"\t{");
+	}
+
 	return Complete;
 }
 
 //logic:
 String Logic(String Tabs, String TheKindType, String Content)
 {
-/*
-	print("[T] "+TheKindType);
-	print("[C] "+Content);
-	print("");
-*/
+	String TagName = "logic";
+
 	bool Last = false;
 	String Complete = "";
 	String RootTag = "";
@@ -2320,6 +2573,13 @@ String Logic(String Tabs, String TheKindType, String Content)
 	if (StartsWith(TheKindType, "logic:"))
 	{
 		TheKindType = AfterSplit(TheKindType,':');
+	}
+
+	//layer 1 debugging
+	if (Debug1)
+	{
+		print(TagName+"[Tag]:> "+TheKindType);
+		print(TagName+"[Content]:> "+Content);
 	}
 
 	while (Content != "")
@@ -2686,12 +2946,89 @@ String Logic(String Tabs, String TheKindType, String Content)
 */
 		Complete = Complete+LogicContent+Tabs+"\tdefault:\n"+Tabs+"\t\t//code here\n"+Tabs+"}\n";
 	}
+
+	//layer 2 debugging
+	if (Debug2)
+	{
+		print(TagName+"[return]:>>");
+		print(TagName+"\t{");
+		print(Complete);
+		print(TagName+"\t}");
+	}
+
+	return Complete;
+}
+
+String Errors(String Tabs, String TheKindType, String Content)
+{
+	String TagName = "errors";
+
+	String Complete = "";
+	String TheName = "";
+	String TheCondition = "";
+	String ErrorContent = "";
+
+	if (StartsWith(TheKindType, "errors:"))
+	{
+		TheKindType = AfterSplit(TheKindType,':');
+	}
+
+	TheName = TheKindType;
+
+	//layer 1 debugging
+	if (Debug1)
+	{
+		print(TagName+"[Tag]:> "+TheKindType);
+		print(TagName+"[Content]:> "+Content);
+	}
+
+
+	while (Content != "")
+	{
+		Content = ReplaceTag(Content, "errors-",false);
+//		Content = ReplaceTag(Content, "errors-",true);
+
+		if (StartsWith(Content, "condition"))
+		{
+			if (IsIn(Content," "))
+			{
+				TheCondition = BeforeSplit(Content,' ');
+				Content = AfterSplit(Content,' ');
+				//Content = ReplaceTag(Content, "logic-",false);
+			}
+			else
+			{
+				TheCondition = Content;
+			}
+			TheCondition = Conditions(TheCondition);
+		}
+
+//		ErrorContent = ErrorContent + GenCode(Tabs,Content);
+
+		Content = AfterSplit(Content,' ');
+	}
+
+	if (TheName == "try")
+	{
+		Complete = Tabs+"try\n{\n"+Tabs+ErrorContent+"\n"+Tabs+"}";
+	}
+	else if ((TheName == "catch") || (TheName == "except"))
+	{
+		Complete = Tabs+"catch ("+TheCondition+")\n"+Tabs+"{\n"+Tabs+ErrorContent+"\n"+Tabs+"}\n";
+	}
+	else if (TheName == "throw")
+	{
+		Complete = Tabs+"throw "+ErrorContent;
+	}
+
 	return Complete;
 }
 
 //stmt:
 String Statements(String Tabs, String TheKindType, String Content)
 {
+	String TagName = "stmt";
+
 	bool Last = false;
 	String AutoTabs = "";
 	String Complete = "";
@@ -2705,6 +3042,13 @@ String Statements(String Tabs, String TheKindType, String Content)
 	if (StartsWith(TheKindType, "stmt:"))
 	{
 		TheKindType = AfterSplit(TheKindType,':');
+	}
+
+	//layer 1 debugging
+	if (Debug1)
+	{
+		print(TagName+"[Tag]:> "+TheKindType);
+		print(TagName+"[Content]:> "+Content);
 	}
 
 	if ((!StartsWith(TheKindType, "\"")) && (IsIn(TheKindType,"-")))
@@ -2832,11 +3176,13 @@ String Statements(String Tabs, String TheKindType, String Content)
 	}
 	else if (TheName == "endline")
 	{
-		Complete = StatementContent+";\n";
+//		Complete = StatementContent+";\n";
+		Complete = ";\n"+StatementContent;
 	}
 	else if (TheName == "newline")
 	{
-		Complete = StatementContent+"\n";
+//		Complete = StatementContent+"\n";
+		Complete = "\n"+StatementContent;
 	}
 	else if (TheName == "tab")
 	{
@@ -2848,17 +3194,23 @@ String Statements(String Tabs, String TheKindType, String Content)
 		Complete = TheName;
 	}
 
+	//layer 2 debugging
+	if (Debug2)
+	{
+		print(TagName+"[return]:>>");
+		print(TagName+"\t{");
+		print(Complete);
+		print(TagName+"\t}");
+	}
+
 	return Complete;
 }
 
 //var:
 String Variables(String Tabs, String TheKindType, String Content)
 {
-/*
-	print("[T] "+TheKindType);
-	print("[C] "+Content);
-	print("");
-*/
+	String TagName = "var";
+
 	bool Last = false;
 	bool MakeEqual = false;
 	String NewVar = "";
@@ -2872,6 +3224,13 @@ String Variables(String Tabs, String TheKindType, String Content)
 	if (StartsWith(TheKindType, "var:"))
 	{
 		TheKindType = AfterSplit(TheKindType,':');
+	}
+
+	//layer 1 debugging
+	if (Debug1)
+	{
+		print(TagName+"[Tag]:> "+TheKindType);
+		print(TagName+"[Content]:> "+Content);
 	}
 
 	while (Content != "")
@@ -2992,6 +3351,15 @@ String Variables(String Tabs, String TheKindType, String Content)
 	}
 	NewVar = NewVar+VariableContent;
 
+	//layer 2 debugging
+	if (Debug2)
+	{
+		print(TagName+"[return]:>>");
+		print(TagName+"\t{");
+		print(NewVar);
+		print(TagName+"\t}");
+	}
+
 	return NewVar;
 }
 
@@ -3038,6 +3406,10 @@ String GenCode(String Tabs,String GetMe)
 	else if (StartsWith(Args[0], "logic:"))
 	{
 		TheCode = Logic(Tabs,Args[0],Args[1]);
+	}
+	else if (StartsWith(Args[0], "errors:"))
+	{
+		TheCode = Errors(Tabs,Args[0],Args[1]);
 	}
 	else if (StartsWith(Args[0], "var:"))
 	{
@@ -3122,24 +3494,69 @@ int main(int argc, char** argv)
 			for (int lp = 1; lp < argc; lp++)
 			{
 				Item = String(argv[lp]);
-				QuoteTotal += QuoteCount(Item);
-				//This all to handle quotes...consider writing this into a function instead of having this all messed around...still works though
-				//{
-				if (QuoteTotal != 0)
+				//layer 1 debugging
+				if (Item == "-v")
 				{
-					if (IsEvenNumber(QuoteTotal))
+					Debug1 = true;
+				}
+				//layer 2 debugging
+				else if (Item == "-vv")
+				{
+					Debug1 = true;
+					Debug2 = true;
+				}
+				//layer 3 debugging
+				else if (Item == "-vvv")
+				{
+					Debug1 = true;
+					Debug2 = true;
+					Debug3 = true;
+				}
+				else
+				{
+					QuoteTotal += QuoteCount(Item);
+					//This all to handle quotes...consider writing this into a function instead of having this all messed around...still works though
+					//{
+					if (QuoteTotal != 0)
 					{
-						QuoteTotal = 0;
-						if (QuotedMessage == "")
+						if (IsEvenNumber(QuoteTotal))
 						{
-							QuotedMessage = Item;
+							QuoteTotal = 0;
+							if (QuotedMessage == "")
+							{
+								QuotedMessage = Item;
+							}
+							else
+							{
+								QuotedMessage = QuotedMessage + "(-spc)" + Item;
+							}
+
+							Item = QuotedMessage;
+							if (UserIn == "")
+							{
+								UserIn = TranslateTag(Item);
+							}
+							else
+								{
+								UserIn = UserIn + " " + TranslateTag(Item);
+							}
+							QuotedMessage = "";
 						}
 						else
 						{
-							QuotedMessage = QuotedMessage + "(-spc)" + Item;
+							if (QuotedMessage == "")
+							{
+								QuotedMessage = Item;
+							}
+							else
+							{
+								QuotedMessage = QuotedMessage + "(-spc)" + Item;
+							}
 						}
-
-						Item = QuotedMessage;
+					}
+					//}
+					else
+					{
 						if (UserIn == "")
 						{
 							UserIn = TranslateTag(Item);
@@ -3148,30 +3565,6 @@ int main(int argc, char** argv)
 						{
 							UserIn = UserIn + " " + TranslateTag(Item);
 						}
-						QuotedMessage = "";
-					}
-					else
-					{
-						if (QuotedMessage == "")
-						{
-							QuotedMessage = Item;
-						}
-						else
-						{
-							QuotedMessage = QuotedMessage + "(-spc)" + Item;
-						}
-					}
-				}
-				//}
-				else
-				{
-					if (UserIn == "")
-					{
-						UserIn = TranslateTag(Item);
-					}
-					else
-					{
-						UserIn = UserIn + " " + TranslateTag(Item);
 					}
 				}
 			}
@@ -3182,7 +3575,87 @@ int main(int argc, char** argv)
 
 			if (IsIn(UserIn," "))
 			{
-				print("Note: This is where you need to handle quotes");
+				std::vector<String> AllArgs = split(UserIn, ' ');
+				UserIn = "";
+				int end = len(AllArgs);
+				for (int lp = 0; lp != end; lp++)
+				{
+					Item = AllArgs[lp];
+
+					//layer 1 debugging
+					if (Item == "-v")
+					{
+						Debug1 = true;
+					}
+					//layer 2 debugging
+					else if (Item == "-vv")
+					{
+						Debug1 = true;
+						Debug2 = true;
+					}
+					//layer 3 debugging
+					else if (Item == "-vvv")
+					{
+						Debug1 = true;
+						Debug2 = true;
+						Debug3 = true;
+					}
+					else
+					{
+						Item = AllArgs[lp];
+						QuoteTotal += QuoteCount(Item);
+						//This all to handle quotes...consider writing this into a function instead of having this all messed around...still works though
+						//{
+						if (QuoteTotal != 0)
+						{
+							if (IsEvenNumber(QuoteTotal))
+							{
+								QuoteTotal = 0;
+								if (QuotedMessage == "")
+								{
+									QuotedMessage = Item;
+								}
+								else
+								{
+									QuotedMessage = QuotedMessage + "(-spc)" + Item;
+								}
+
+								Item = QuotedMessage;
+								if (UserIn == "")
+								{
+									UserIn = TranslateTag(Item);
+								}
+								else
+								{
+									UserIn = UserIn + " " + TranslateTag(Item);
+								}
+								QuotedMessage = "";
+							}
+							else
+							{
+								if (QuotedMessage == "")
+								{
+									QuotedMessage = Item;
+								}
+								else
+								{
+									QuotedMessage = QuotedMessage + "(-spc)" + Item;
+								}
+							}
+						}
+						else
+						{
+							if (UserIn == "")
+							{
+								UserIn = TranslateTag(Item);
+							}
+							else
+							{
+								UserIn = UserIn + " " + TranslateTag(Item);
+							}
+						}
+					}
+				}
 			}
 
 			UserIn = TranslateTag(UserIn);
@@ -3196,7 +3669,7 @@ int main(int argc, char** argv)
 		{
 			clear();
 		}
-		else if (((UserIn == "-v") && (argc == 2)) || ((UserIn == "--version") && (argc == 2)) || ((UserIn == "version") && (argc == 1)))
+		else if (((UserIn == "--version") && (argc == 2)) || ((UserIn == "version") && (argc == 1)))
 		{
 			print(Version);
 		}

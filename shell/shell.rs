@@ -1,10 +1,12 @@
 use std::env;
 use std::process::Command;
 
-fn the_version() -> String
-{
-	return "0.1.22".to_string();
-}
+
+static mut DEBUG_1: bool = false;
+static mut DEBUG_2: bool = false;
+static mut DEBUG_3: bool = false;
+
+const SHELL_VERSION: &str = "0.1.25";
 
 fn get_os() -> String
 {
@@ -393,9 +395,9 @@ fn banner()
 {
 	let cpl_version = get_cpl_version();
 	let the_os = get_os();
-	let version = &the_version();
+//	let version = &the_version();
 	println!("{}",cpl_version);
-	println!("[Rust {}] on {}",version,the_os);
+	println!("[Rust {}] on {}",SHELL_VERSION,the_os);
 	println!("Type \"help\" for more information.");
 }
 
@@ -663,6 +665,20 @@ fn char_translate(message: &str) -> String
 
 fn translate_tag(input: &str) -> String
 {
+//	let debug_1 = DEBUG_1;
+//	let debug_2 = DEBUG_2;
+
+	let tag_name: String = "translate".to_string();
+
+	unsafe
+	{
+		//layer 1 debugging
+		if DEBUG_1
+		{
+			println!("{}[Input]:> {}",tag_name,input);
+		}
+	}
+
 	let mut the_return = String::new();
 	let mut action = String::from(input);
 	let mut value: String = "".to_string();
@@ -727,6 +743,18 @@ fn translate_tag(input: &str) -> String
 	{
 		action = after_split(&action,">");
 		the_nest.push_str("nest-");
+	}
+
+	unsafe
+	{
+		//layer 2 debugging
+		if DEBUG_2
+		{
+			println!("{}[Parent]:>> {}",tag_name,parent);
+			println!("{}[ContentFor]:>> {}",tag_name,content_for);
+			println!("{}[Nest]:>> {}",tag_name,the_nest);
+			println!("{}[Action]:>> {}",tag_name,action);
+		}
 	}
 
 	if starts_with(&action,"concat(") || starts_with(&action,"incre(") || starts_with(&action,"decre(") || starts_with(&action,"equals(") || starts_with(&action,"main(")
@@ -953,6 +981,11 @@ fn translate_tag(input: &str) -> String
 
 		if value.to_string() != ""
 		{
+			if starts_with(&value,"\"")
+			{
+				value = ["stmt:",&value].concat();
+			}
+
 			if content_for == "logic-"
 			{
 				value = ["+-",&the_nest.to_string(),&value].concat();
@@ -1148,6 +1181,18 @@ fn translate_tag(input: &str) -> String
 		}
 	}
 
+	unsafe
+	{
+		//layer 2 debugging
+		if DEBUG_2
+		{
+			println!("{}[return]:>>>",tag_name);
+			println!("{}\t{{",tag_name);
+			println!("{}",the_return.to_string());
+			println!("{}\t}}",tag_name);
+		}
+	}
+
 	return the_return.to_string();
 }
 
@@ -1292,6 +1337,20 @@ fn data_type(the_type: &str, get_null: bool) -> String
 
 fn gen_conditions(input: &str) -> String
 {
+//	let debug_1 = DEBUG_1;
+//	let debug_2 = DEBUG_2;
+
+	let tag_name: String = "conditions".to_string();
+
+	unsafe
+	{
+		//layer 1 debugging
+		if DEBUG_1
+		{
+			println!("{}[input]:> {}",tag_name,input);
+		}
+	}
+
 	let mut condit = handle_names(&after_split(&input,":"));
 
 	if is_in(&condit,"(-eq)")
@@ -1412,9 +1471,23 @@ fn gen_conditions(input: &str) -> String
 //params:
 fn gen_parameters(input: &str, called_by: &str) -> String
 {
+//	let debug_1 = DEBUG_1;
+//	let debug_2 = DEBUG_2;
+
+	let tag_name: String = "params".to_string();
 	let mut name: String;
 	let mut the_params = after_split(input,":");
 	let mut new_params = String::new();
+
+	unsafe
+	{
+		//layer 1 debugging
+		if DEBUG_1
+		{
+			println!("{}[Tag]:> {}",tag_name,new_params);
+			println!("{}[Called by]:> {}",tag_name,called_by);
+		}
+	}
 
 	if called_by == "class" || called_by == "method" || called_by == "stmt"
 	{
@@ -1470,16 +1543,44 @@ fn gen_parameters(input: &str, called_by: &str) -> String
 			new_params.push_str(&handle_names(&the_params));
 		}
 	}
-	return new_params;
+
+	unsafe
+	{
+		//layer 2 debugging
+		if DEBUG_2
+		{
+			println!("{}[return]:>>>",tag_name);
+			println!("{}\t{{",tag_name);
+			println!("{}",new_params.to_string());
+			println!("{}\t}}",tag_name);
+		}
+	}
+
+	return new_params.to_string();
 }
 
 fn gen_struct(the_name: &str, the_content: &str) -> String
 {
+//	let debug_1 = DEBUG_1;
+//	let debug_2 = DEBUG_2;
+
+	let tag_name: String = "struct".to_string();
 	let new_name = after_split(the_name,":");
 	let mut passed_content = the_content.to_string();
 	let mut the_complete = String::new();
 	let mut struct_var = String::from("");
 	let mut the_process: String;
+
+	unsafe
+	{
+		//layer 1 debugging
+		if DEBUG_1
+		{
+			println!("{}[Tag]:> {}",tag_name,new_name);
+			println!("{}[Content]:> {}",tag_name,passed_content);
+		}
+	}
+
 
 	while starts_with(&passed_content, "struct-var") || starts_with(&passed_content, "struct-stmt") || starts_with(&passed_content, "var") || starts_with(&passed_content, "stmt")
 	{
@@ -1522,12 +1623,27 @@ fn gen_struct(the_name: &str, the_content: &str) -> String
 	the_complete.push_str(&struct_var.to_string());
 	the_complete.push_str("}\n");
 
+	unsafe
+	{
+		//layer 2 debugging
+		if DEBUG_2
+		{
+			println!("{}[return]:>>>",tag_name);
+			println!("{}\t{{",tag_name);
+			println!("{}",the_complete);
+			println!("{}\t}}",tag_name);
+		}
+	}
+
 	return the_complete;
 }
 
 fn gen_class(the_name: &str, the_content: &str) -> String
 {
+//	let debug_1 = DEBUG_1;
+//	let debug_2 = DEBUG_2;
 
+	let tag_name: String = "class".to_string();
 	let mut passed_content = the_content.to_string();
 	let mut new_name = the_name.to_string();
 	let mut the_complete = String::new();
@@ -1542,6 +1658,16 @@ fn gen_class(the_name: &str, the_content: &str) -> String
 //	let inheritance: String = "".to_string();
 	let mut parent_class: String = "".to_string();
 	new_name = after_split(&new_name,":");
+
+	unsafe
+	{
+		//layer 1 debugging
+		if DEBUG_1
+		{
+			println!("{}[Tag]:> {}",tag_name,new_name);
+			println!("{}[Content]:> {}",tag_name,passed_content);
+		}
+	}
 
 	if is_in(&new_name,"-")
 	{
@@ -1835,12 +1961,28 @@ fn gen_class(the_name: &str, the_content: &str) -> String
 	the_complete.push_str(&class_content);
 	the_complete.push_str("}\n");
 
+	unsafe
+	{
+		//layer 2 debugging
+		if DEBUG_2
+		{
+			println!("{}[return]:>>>",tag_name);
+			println!("{}\t{{",tag_name);
+			println!("{}",the_complete);
+			println!("{}\t}}",tag_name);
+		}
+	}
+
 	return the_complete.to_string();
 }
 
 //method:
 fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 {
+//	let debug_1 = DEBUG_1;
+//	let debug_2 = DEBUG_2;
+
+	let tag_name: String = "method".to_string();
 	let mut the_last = false;
 	let mut can_split = true;
 	let mut assign_default = false;
@@ -1882,6 +2024,16 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 	{
 		//get method name
 		the_name = handle_names(&new_name.clone());
+	}
+
+	unsafe
+	{
+		//layer 1 debugging
+		if DEBUG_1
+		{
+			println!("{}[Tag]:> {}",tag_name,the_name);
+			println!("{}[Content]:> {}",tag_name,passed_content);
+		}
 	}
 
 	while passed_content != ""
@@ -1936,6 +2088,15 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 
 			if starts_with(&passed_content, "method-") && is_in(&passed_content, " method-l")
 			{
+				unsafe
+				{
+					//layer 2 debugging
+					if DEBUG_2
+					{
+						println!("{}[Content]:>> Starts with \"method-\" and contains \"method-\"",tag_name);
+					}
+				}
+
 				let all: Vec<&str> = passed_content.split(" method-l").collect();
 
 //				let mut no_more = false;
@@ -1968,16 +2129,45 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 				can_split = true;
 			}
 
+			unsafe
+			{
+				//layer 2 debugging
+				if DEBUG_2
+				{
+					println!("{}[OtherContent]:>> {}",tag_name,the_other_content);
+					println!("{}[NewContent]:>> {}",tag_name,new_content);
+				}
+			}
+
 //			the_other_content = replace_tag(&the_other_content, "method-");
 
 			let mut parse_content = String::from("");
 
-			if is_in(&the_other_content," method-")
+			if ! starts_with(&the_other_content, "method-") && is_in(&the_other_content, " method-")
+//			if is_in(&the_other_content," method-")
 			{
+				unsafe
+				{
+					//layer 2 debugging
+					if DEBUG_2
+					{
+						println!("{}[Content]:>> Does not start with \"method-\" but it contains \"method-\"",tag_name);
+					}
+				}
+
 				let cmds: Vec<&str> = the_other_content.split(" method-").collect();
 				for item in &cmds
 				{
 					let corrected = replace_tag(&item, "method-",false).clone();
+
+					unsafe
+					{
+						//layer 2 debugging
+						if DEBUG_2
+						{
+							println!("{}[Corrected]:>> {}",tag_name,corrected);
+						}
+					}
 
 					if starts_with(&corrected,"var:") || starts_with(&corrected,"stmt:")
 					{
@@ -1993,10 +2183,22 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 
 						if corrected == "stmt:newline" || corrected == "stmt:endline"
 						{
+							let mut auto_tabs = String::from("");
+							unsafe
+							{
+								//layer 2 debugging
+								if DEBUG_2
+								{
+									println!("{}[PareseContent]:>> {}",tag_name.to_string(),parse_content.to_string());
+								}
+							}
 
-							let auto_tabs = handle_tabs("method",&new_tabs,&parse_content.to_string());
+							if !starts_with(&corrected,"stmt:newline")
+							{
+								auto_tabs = handle_tabs("method",&new_tabs,&parse_content.to_string());
+							}
 
-							if auto_tabs != ""
+							if auto_tabs.to_string() != ""
 							{
 								//Generate the loop content
 								method_content.push_str(&gen_code(&new_tabs,&auto_tabs));
@@ -2024,7 +2226,35 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 			}
 			else
 			{
-				let corrected = replace_tag(&the_other_content, "method-",false).clone();
+				let mut corrected = replace_tag(&the_other_content, "method-",false).clone();
+
+				while starts_with(&corrected,"stmt:newline")
+				{
+					//Generate the method content
+					method_content.push_str(&gen_code("",&before_split(&corrected," ")));
+					corrected = after_split(&corrected," ");
+
+					unsafe
+					{
+						//layer 2 debugging
+						if DEBUG_2
+						{
+							println!("{}[Corrected]:>> {}",tag_name,the_complete.to_string());
+						}
+					}
+				}
+
+				unsafe
+				{
+					//layer 2 debugging
+					if DEBUG_2
+					{
+						println!("{}[HandleTabs]:>>",tag_name);
+						println!("{}\t{{",tag_name);
+						println!("{}",the_complete.to_string());
+						println!("{}\t}}",tag_name);
+					}
+				}
 
 				let auto_tabs = handle_tabs("method",&new_tabs,&corrected);
 
@@ -2204,12 +2434,29 @@ fn gen_method(the_tabs: &str, name: &str, the_content: &str) -> String
 			}
 		}
 	}
+
+	unsafe
+	{
+		//layer 2 debugging
+		if DEBUG_2
+		{
+			println!("{}[return]:>>>",tag_name);
+			println!("{}\t{{",tag_name);
+			println!("{}",the_complete.to_string());
+			println!("{}\t}}",tag_name);
+		}
+	}
+
 	return the_complete.to_string();
 }
 
 //loop:
 fn gen_loop(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 {
+//	let debug_1 = DEBUG_1;
+//	let debug_2 = DEBUG_2;
+
+	let tag_name: String = "loop".to_string();
 	let mut the_last = false;
 	let new_tabs = [the_tabs,"\t"].concat();
 	let mut new_kind: String = the_kind_type.to_string();
@@ -2226,6 +2473,16 @@ fn gen_loop(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 	if starts_with(&new_kind,"loop:")
 	{
 		new_kind = after_split(&new_kind,":");
+	}
+
+	unsafe
+	{
+		//layer 1 debugging
+		if DEBUG_1
+		{
+			println!("{}[Tag]:> {}",tag_name,new_kind);
+			println!("{}[Content]:> {}",tag_name,passed_content);
+		}
 	}
 
 	while passed_content != ""
@@ -2640,6 +2897,19 @@ fn gen_loop(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 		the_complete.push_str(the_tabs);
 		the_complete.push_str("}\n");
 	}
+
+	unsafe
+	{
+		//layer 2 debugging
+		if DEBUG_2
+		{
+			println!("{}[return]:>>>",tag_name);
+			println!("{}\t{{",tag_name);
+			println!("{}",the_complete);
+			println!("{}\t{{",tag_name);
+		}
+	}
+
 	return the_complete;
 }
 
@@ -2647,6 +2917,10 @@ fn gen_loop(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 //logic:
 fn gen_logic(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 {
+//	let debug_1 = DEBUG_1;
+//	let debug_2 = DEBUG_2;
+
+	let tag_name: String = "logic".to_string();
 	let mut the_last = false;
 	let new_tabs = [the_tabs,"\t"].concat();
 	let mut new_kind: String = the_kind_type.to_string();
@@ -2662,6 +2936,16 @@ fn gen_logic(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 	if starts_with(&new_kind,"logic:")
 	{
 		new_kind = after_split(&new_kind,":");
+	}
+
+	unsafe
+	{
+		//layer 1 debugging
+		if DEBUG_1
+		{
+			println!("{}[Tag]:> {}",tag_name,new_kind);
+			println!("{}[Content]:> {}",tag_name,passed_content);
+		}
 	}
 
 	while passed_content != ""
@@ -3103,12 +3387,28 @@ fn gen_logic(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 		the_complete.push_str("}\n");
 	}
 
+	unsafe
+	{
+		//layer 2 debugging
+		if DEBUG_2
+		{
+			println!("{}[return]:>>>",tag_name);
+			println!("{}\t{{",tag_name);
+			println!("{}",the_complete);
+			println!("{}\t}}",tag_name);
+		}
+	}
+
 	return the_complete;
 }
 
 //stmt:
 fn gen_statements(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 {
+//	let debug_1 = DEBUG_1;
+//	let debug_2 = DEBUG_2;
+
+	let tag_name: String = "stmt".to_string();
 	let mut the_last = false;
 	let mut new_kind = the_kind_type.to_string();
 	let mut the_complete = String::new();
@@ -3124,6 +3424,16 @@ fn gen_statements(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Str
 	if starts_with(&new_kind, "stmt:")
 	{
 		new_kind = after_split(&new_kind,":");
+	}
+
+	unsafe
+	{
+		//layer 1 debugging
+		if DEBUG_1
+		{
+			println!("{}[Tag]:> {}",tag_name,new_kind);
+			println!("{}[Content]:> {}",tag_name,passed_content);
+		}
 	}
 
 	if !starts_with(&new_kind, "\"") && is_in(&new_kind,"-")
@@ -3239,13 +3549,13 @@ fn gen_statements(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Str
 	}
 	else if the_name == "endline"
 	{
-		the_complete.push_str(&statement_content);
 		the_complete.push_str(";\n");
+		the_complete.push_str(&statement_content);
 	}
 	else if the_name == "newline"
 	{
-		the_complete.push_str(&statement_content);
 		the_complete.push_str("\n");
+		the_complete.push_str(&statement_content);
 	}
 	else if the_name == "tab"
 	{
@@ -3265,12 +3575,28 @@ fn gen_statements(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Str
 		}
 	}
 
+	unsafe
+	{
+		//layer 2 debugging
+		if DEBUG_2
+		{
+			println!("{}[return]:>>>",tag_name);
+			println!("{}\t{{",tag_name);
+			println!("{}",the_complete);
+			println!("{}\t}}",tag_name);
+		}
+	}
+
 	return the_complete;
 }
 
 //var:
 fn gen_variables(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 {
+//	let debug_1 = DEBUG_1;
+//	let debug_2 = DEBUG_2;
+
+	let tag_name: String = "var".to_string();
 	let mut no_add = false;
 	let mut the_last = false;
 	let mut make_equal = false;
@@ -3290,6 +3616,16 @@ fn gen_variables(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Stri
 	{
 		new_kind = after_split(&new_kind,":");
 		new_kind = handle_names(&new_kind);
+	}
+
+	unsafe
+	{
+		//layer 1 debugging
+		if DEBUG_1
+		{
+			println!("{}[Tag]:> {}",tag_name,new_kind);
+			println!("{}[Content]:> {}",tag_name,passed_content);
+		}
 	}
 
 	while passed_content != ""
@@ -3411,6 +3747,20 @@ fn gen_variables(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Stri
 	}
 	new_var.push_str(&variable_content);
 
+
+	unsafe
+	{
+		//layer 2 debugging
+		if DEBUG_2
+		{
+			println!("{}[return]:>>>",tag_name);
+			println!("{}\t{{",tag_name);
+			println!("{}",new_var.to_string());
+			println!("{}\t}}",tag_name);
+		}
+	}
+
+
 	return new_var.to_string();
 }
 
@@ -3508,7 +3858,7 @@ fn main()
 	let mut arg_count: i32 = 0;
 	let mut user_in = String::new();
 	let mut finished_content: String;
-	let version = &the_version();
+//	let version = &the_version();
 
 	loop
 	{
@@ -3516,78 +3866,92 @@ fn main()
 		for args in env::args().skip(1)
 		{
 			item = args.to_string();
-
-			quote_total += quote_count(&item);
-			//This all to handle quotes...consider writing this into a function instead of having this all messed around...still works though
-			//{
-			if quote_total != 0
+			if item == "-v"
 			{
-				if is_even_number(quote_total)
+				unsafe
 				{
-					quote_total = 0;
-					if quoted_message.to_string() == ""
+					DEBUG_1 = true;
+				}
+			}
+			else if item == "-vv"
+			{
+				unsafe
+				{
+					DEBUG_1 = true;
+					DEBUG_2 = true;
+				}
+			}
+			else if item == "-vvv"
+			{
+				unsafe
+				{
+					DEBUG_1 = true;
+					DEBUG_2 = true;
+					DEBUG_3 = true;
+				}
+			}
+			else
+			{
+				quote_total += quote_count(&item);
+				//This all to handle quotes...consider writing this into a function instead of having this all messed around...still works though
+				//{
+				if quote_total != 0
+				{
+					if is_even_number(quote_total)
 					{
-						quoted_message.push_str(&translate_tag(&item));
+						quote_total = 0;
+						if quoted_message.to_string() == ""
+						{
+							quoted_message.push_str(&translate_tag(&item));
+						}
+						else
+						{
+							quoted_message.push_str("(-spc)");
+							quoted_message.push_str(&translate_tag(&item));
+						}
+
+						item = quoted_message.to_string();
+
+						if user_in.to_string() == ""
+						{
+							user_in = translate_tag(&item);
+						}
+						else
+						{
+							user_in.push_str(" ");
+							user_in.push_str(&translate_tag(&item));
+						}
+						quoted_message = String::from("");
 					}
 					else
 					{
-						quoted_message.push_str("(-spc)");
-						quoted_message.push_str(&translate_tag(&item));
+						if quoted_message.to_string() == ""
+						{
+							quoted_message.push_str(&item);
+						}
+						else
+						{
+							quoted_message.push_str("(-spc)");
+							quoted_message.push_str(&translate_tag(&item));
+						}
 					}
-
-					item = quoted_message.to_string();
-
-					if user_in.to_string() == ""
+				//}
+				}
+				else
+				{
+					if user_in == ""
 					{
-						user_in = translate_tag(&item);
+						user_in.push_str(&translate_tag(&item));
 					}
 					else
 					{
 						user_in.push_str(" ");
 						user_in.push_str(&translate_tag(&item));
 					}
-					quoted_message = String::from("");
 				}
-				else
-				{
-					if quoted_message.to_string() == ""
-					{
-						quoted_message.push_str(&item);
-					}
-					else
-					{
-						quoted_message.push_str("(-spc)");
-						quoted_message.push_str(&translate_tag(&item));
-					}
-				}
-			//}
+
+				arg_count += 1;
 			}
-			else
-			{
-				if user_in == ""
-				{
-					user_in.push_str(&translate_tag(&item));
-				}
-				else
-				{
-					user_in.push_str(" ");
-					user_in.push_str(&translate_tag(&item));
-				}
-			}
-/*
-			if arg_count == 0
-			{ 
-//				user_in.push_str(&args);
-				user_in.push_str(&translate_tag(&args));
-			}
-			else
-			{
-				user_in.push_str(" ");
-//				user_in.push_str(&args);
-				user_in.push_str(&translate_tag(&args));
-			}
-*/
-			arg_count += 1;
 		}
 
 		if arg_count == 0
@@ -3602,7 +3966,98 @@ fn main()
 
 			if is_in(&user_in," ")
 			{
-				println!("Note: This is where you need to handle quotes");
+				let input_by_user = user_in.to_owned();
+				user_in = String::from("");
+
+				let all_args: Vec<&str> = input_by_user.split(" ").collect();
+				for for_item in &all_args
+				{
+					item = for_item.to_string();
+					if item == "-v"
+					{
+						unsafe
+						{
+							DEBUG_1 = true;
+						}
+					}
+					else if item == "-vv"
+					{
+						unsafe
+						{
+							DEBUG_1 = true;
+							DEBUG_2 = true;
+						}
+					}
+					else if item == "-vvv"
+					{
+						unsafe
+						{
+							DEBUG_1 = true;
+							DEBUG_2 = true;
+							DEBUG_3 = true;
+						}
+					}
+					else
+					{
+						quote_total += quote_count(&item);
+						//This all to handle quotes...consider writing this into a function instead of having this all messed around...still works though
+						//{
+						if quote_total != 0
+						{
+							if is_even_number(quote_total)
+							{
+								quote_total = 0;
+								if quoted_message.to_string() == ""
+								{
+									quoted_message.push_str(&translate_tag(&item));
+								}
+								else
+								{
+									quoted_message.push_str("(-spc)");
+									quoted_message.push_str(&translate_tag(&item));
+								}
+
+								item = quoted_message.to_string();
+
+								if user_in.to_string() == ""
+								{
+									user_in = translate_tag(&item);
+								}
+								else
+								{
+									user_in.push_str(" ");
+									user_in.push_str(&translate_tag(&item));
+								}
+								quoted_message = String::from("");
+							}
+							else
+							{
+								if quoted_message.to_string() == ""
+								{
+									quoted_message.push_str(&item);
+								}
+								else
+								{
+									quoted_message.push_str("(-spc)");
+									quoted_message.push_str(&translate_tag(&item));
+								}
+							}
+						//}
+						}
+						else
+						{
+							if user_in == ""
+							{
+								user_in.push_str(&translate_tag(&item));
+							}
+							else
+							{
+								user_in.push_str(" ");
+								user_in.push_str(&translate_tag(&item));
+							}
+						}
+					}
+				}
 			}
 
 			if user_in == "exit"
@@ -3617,7 +4072,7 @@ fn main()
 */
 			else if user_in == "version"
 			{
-				println!("{}",version);
+				println!("{}",SHELL_VERSION);
 			}
 			else if starts_with(&user_in, "help")
 			{
@@ -3629,9 +4084,9 @@ fn main()
 		{
 			the_help(&user_in);
 		}
-		else if user_in == "-v" || user_in == "--version"
+		else if user_in == "--version"
 		{
-			println!("{}",version);
+			println!("{}",SHELL_VERSION);
 		}
 		else
 		{

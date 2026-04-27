@@ -17,14 +17,14 @@ static String getMacros(bool* Conv, bool* getLen);
 static String getImports(bool* fcheck, bool* write, bool* read, bool* random, bool* pipe, bool* shell, bool* threads, bool* sleep, bool* prop, bool* Split, bool* Join, bool* Rev, bool* Vect, bool* Math, bool* getFS);
 static String getMethodDec(bool* rawinput, bool* rand, bool* fcheck, bool* write, bool* read, bool* isin, bool* shell, bool* sleep, bool* prop, bool* Split, bool* Join, bool* Rev, bool* Conv, bool* subStr, bool* getLen, bool* getUpper, bool* getLower, bool* getFS);
 static String getMethods(bool* rawinput, bool* rand, bool* fcheck, bool* write, bool* read, bool* isin, bool* shell, bool* sleep, bool* prop, bool* Split, bool* Join, bool* Rev, bool* Conv, bool* subStr, bool* getLen, bool* getUpper, bool* getLower, bool* getFS);
-static String getMain(bool* getArgs, bool* getRandom, bool* getPipe, bool* getThreads, bool* getVectors, bool* getMath);
+static String getMain(bool* getArgs, bool* getRandom, bool* getPipe, bool* getThreads, bool* getVectors, bool* getMath, bool* getHash, bool* handleErrors);
 static void CreateNew(String filename, String content, String ext);
 bool fexists(String aFile);
 bool IsIn(String Str, String Sub);
 
 static void help()
 {
-	String Version = "0.1.76";
+	String Version = "0.1.78";
 	print("Author: Joespider");
 	print("Program: \"" + ProgName + "\"");
 	print("Version: " + Version);
@@ -63,6 +63,7 @@ static void help()
 	print("\t--lower : enable lower case methods");
 	print("\t--math : enable math functions (Main file ONLY)");
 	print("\t--date-time : enable date and time");
+	print("\t--handle-errors : enable error handling");
 }
 
 static String getHelp(String TheUser)
@@ -445,7 +446,7 @@ static String getMethods(bool* rawinput, bool* rand, bool* fcheck, bool* write, 
 }
 
 //build main function
-static String getMain(bool* getArgs, bool* getRandom, bool* getPipe, bool* getThreads, bool* getVectors, bool* getMath, bool* getHash)
+static String getMain(bool* getArgs, bool* getRandom, bool* getPipe, bool* getThreads, bool* getVectors, bool* getMath, bool* getHash, bool* handleErrors)
 {
 	String Main = "";
 	String StartRandom = "";
@@ -454,6 +455,7 @@ static String getMain(bool* getArgs, bool* getRandom, bool* getPipe, bool* getTh
 	String UseVectors = "";
 	String UseMath = "";
 	String ShowHash = "";
+	String LetsHandleErrors = "";
 
 	if (*getRandom == true)
 	{
@@ -485,13 +487,18 @@ static String getMain(bool* getArgs, bool* getRandom, bool* getPipe, bool* getTh
 		ShowHash = "\tstd::unordered_map<String, int> MyHouse = {\n\t\t{ \"Living Room\", 1 },\n\t\t{ \"BedRoom\", 3 },\n\t\t{ \"TV Room\", 2 },\n\t\t{ \"Kitchen\", 1 },\n\t\t{ \"Doors\", 3 },\n\t\t{ \"BathRooms\", 2 },\n\t\t{ \"Basement\", 1 }\n\t}\n\n\tprint(\"My house has:\");\n\n\tfor (auto& [key, value] : MyHouse)\n\t{\n\t\tprint(\"\\t(\"+Str(value)+\") \"+key);\n\t}\n\n\tprint(\"\");\n\tprint(\"Removing \\\"Doors\\\"\");\n\t//Doors removed from dictionary\n\tMyHouse.erase(\"Doors\");\n\tprint(\"\");\n\n\tprint(\"My house (now) has:\");\n\tfor (auto& [key, value] : MyHouse)\n\t{\n\t\tprint(\"\\t(\"+Str(value)+\") \"+key);\n\t}\n\n";
 	}
 
+	if (*handleErrors == true)
+	{
+		LetsHandleErrors = "\ttry\n\t{\n\t\t//your code here\n\t}\n\tcatch (exception)\n\t{\n\t\t//your code here\n\t}\n";
+	}
+
 	if (*getArgs == true)
 	{
-		Main = "//C++ Main...with cli arguments\nint main(int argc, char** argv)\n{\n"+StartRandom+"\tString out = String(argv[0]);\n\n\t//Parsing program name\n\tstd::size_t pos = out.rfind('/');\n\tTheName = out.substr(pos + 1);\n\tout = \"\";\n\n\t//Args were given\n\tif (argc > 1)\n\t{\n\t\t//Loop through Args\n\t\tfor (int i = 1; i < argc; i++)\n\t\t{\n\t\t\tout = String(argv[i]);\n\t\t\tif (out == \"find\")\n\t\t\t{\n\t\t\t\tprint(\"Found\");\n\t\t\t\tbreak;\n\t\t\t}\n\t\t}\n\t}\n\telse\n\t{\n\t\thelp();\n\t}\n\n"+UsePipe+UseThreads+UseVectors+UseMath+ShowHash+"\treturn 0;\n}\n";
+		Main = "//C++ Main...with cli arguments\nint main(int argc, char** argv)\n{\n"+StartRandom+"\tString out = String(argv[0]);\n\n\t//Parsing program name\n\tstd::size_t pos = out.rfind('/');\n\tTheName = out.substr(pos + 1);\n\tout = \"\";\n\n\t//Args were given\n\tif (argc > 1)\n\t{\n\t\t//Loop through Args\n\t\tfor (int i = 1; i < argc; i++)\n\t\t{\n\t\t\tout = String(argv[i]);\n\t\t\tif (out == \"find\")\n\t\t\t{\n\t\t\t\tprint(\"Found\");\n\t\t\t\tbreak;\n\t\t\t}\n\t\t}\n\t}\n\telse\n\t{\n\t\thelp();\n\t}\n\n"+UsePipe+UseThreads+UseVectors+UseMath+ShowHash+LetsHandleErrors+"\treturn 0;\n}\n";
 	}
 	else
 	{
-		Main = "//C++ Main\nint main()\n{\n"+StartRandom+UsePipe+UseThreads+UseVectors+UseMath+ShowHash+"\n\treturn 0;\n}\n";
+		Main = "//C++ Main\nint main()\n{\n"+StartRandom+UsePipe+UseThreads+UseVectors+UseMath+ShowHash+LetsHandleErrors+"\n\treturn 0;\n}\n";
 	}
 	return Main;
 }
@@ -536,6 +543,8 @@ int main(int argc, char** argv)
 {
 	bool NameIsNotOk = true;
 	bool FileExists = false;
+//<<shell>> tab equals((bool)HandleErrors):false
+	bool HandleErrors = false;
 	bool getName = false;
 	bool dontSave = false;
 	bool getExt = false;
@@ -566,6 +575,7 @@ int main(int argc, char** argv)
 	bool IsMain = false;
 	bool getTheUser = false;
 	bool getHash = false;
+
 	String theUser = "";
 	String theDeclaration = "";
 	String theHelpMethod = "";
@@ -655,6 +665,11 @@ int main(int argc, char** argv)
 			{
 				getName = false;
 				getLength = true;
+			}
+//<<shell>> else-if:UserIn(-eq)"--handle-errors" equals(()HandleErrors):true
+			else if (UserIn == "--handle-errors")
+			{
+				HandleErrors = true;
 			}
 			//Enamble Sub String
 			else if (UserIn == "--sub-string")
@@ -840,7 +855,7 @@ int main(int argc, char** argv)
 						theHelpMethod = getHelp(theUser);
 					}
 					//generate main file
-					Main = getMain(&getArgs, &getRand, &getPipe, &getThreads, &getVect, &getMath, &getHash);
+					Main = getMain(&getArgs, &getRand, &getPipe, &getThreads, &getVect, &getMath, &getHash, &HandleErrors);
 				}
 				//This is not a main file
 				else
