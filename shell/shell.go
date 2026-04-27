@@ -9,7 +9,7 @@ import (
 	"strings"
 	)
 
-var Version string = "0.1.26"
+var Version string = "0.1.27"
 var Debug1 bool = false
 var Debug2 bool = false
 var Debug3 bool = false
@@ -37,8 +37,9 @@ func help(Type string) {
 		fmt.Println("{EXAMPLE}")
 		Example("{}pizza:(int)one,(bool)two,(float)three var(private):(int)toppings [String-mixture]cheese:(String)kind,(int)amount for: nest-for: [String]topping:(String)name,(int)amount if:good")
 	} else if Type == "struct" {
-		fmt.Println("(<type>)<name>")
+		fmt.Println("{struct}<name> {s}-<element>")
 		fmt.Println("")
+		Example("{struct}clock {s}-(int)time {s}-el {s}-(String)date {s}-el");
 	} else if Type == "method" {
 		fmt.Println("[<data>]<name>:<parameters>")
 		fmt.Println("[<data>-<return>]<name>:<parameters>")
@@ -55,7 +56,7 @@ func help(Type string) {
 		fmt.Println("")
 		fmt.Println("{EXAMPLE}")
 		fmt.Println("")
-		Example("while:Type(-spc)==(-spc)\"String\"")
+		Example("while:Type(-eq)\"String\"")
 		Example("do-while:Type(-eq)\"String\" o-[work]: o-el")
 		Example("while:true >if:[IsString]:drink(-eq)true [drink]: el >>if:drink(-eq)\"coke\" >>else nl >else-if:[IsInt]:drink(-eq)false nl >else >>if: nl >>else nl")
 		Example("while:true >if:[IsString]:drink(-eq)true >>if:drink(-eq)\"coke\" >>else nl >else-if:[IsInt]:drink(-eq)false nl >else >>if: >>nl >>else nl")
@@ -70,12 +71,12 @@ func help(Type string) {
 		fmt.Println("");
 		fmt.Println("{EXAMPLE}")
 		fmt.Println("")
-		Example("if:Type(-spc)==(-spc)\"String\"")
+		Example("if:Type(-eq)\"String\"")
 		Example("else-if:Type(-eq)\"String\"")
 		Example("else")
 		Example("if:true (String)drink:[Pop]:one,two el >if:[IsString]:drink(-eq)true [drink]: el >>if:drink(-eq)\"coke\" >>else nl >else-if:[IsInt]:drink(-eq)false nl >else >>if: nl >>else nl")
 		Example("if:true (String)drink:[Pop]:one,two el >if:[IsString]:drink(-eq)true >>if:drink(-eq)\"coke\" >>else nl >else-if:[IsInt]:drink(-eq)false nl >else >>if: nl >>else nl")
-		Example("if:Food(-ne)\"\" +->if:[IsDrink]:drink(-eq)true +-()Type=\"Drink\" +-el +->>if:[IsNotEmpty]:Food +-[Drink]:Food +-el +->>>if:mood(-ne)\"happy\" +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->>>>if:mood(-eq)\"unhappy\" +-[ChearUp]:mood +-el +-[print]:\"I(-spc)am(-spc)\"+mood +-el <<<<-+-[ImHappy]: <<<<-+-el <<<-+-[Refill]: <<<-+-el <<-+-[Complete]: <<-+-el <<-+-[NewLine]: <<-+-el +->else-if:[IsFood]:Food(-eq)true +-()Type=\"Food\" +-el +->>while:[IsNotEmpty]:Food o-[Eat]:Food o-el o->>if:mood(-ne)\"happy\" +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->>>do-while:mood(-eq)\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I(-spc)am(-spc)\"+mood o-el <<<<-+-[print]:\"I(-spc)am(-spc)\"+mood+\"(-spc)now\" <<<<-+-el +->else +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el")
+		Example("if:Food(-ne)\"\" +->if:[IsDrink]:drink(-eq)true +-()Type=\"Drink\" +-el +->>if:[IsNotEmpty]:Food +-[Drink]:Food +-el +->>>if:mood(-ne)\"happy\" +-[print]:\"I am \"+mood +-el +->>>>if:mood(-eq)\"unhappy\" +-[ChearUp]:mood +-el +-[print]:\"I am \"+mood +-el <<<<-+-[ImHappy]: <<<<-+-el <<<-+-[Refill]: <<<-+-el <<-+-[Complete]: <<-+-el <<-+-[NewLine]: <<-+-el +->else-if:[IsFood]:Food(-eq)true +-()Type=\"Food\" +-el +->>while:[IsNotEmpty]:Food o-[Eat]:Food o-el o->>if:mood(-ne)\"happy\" +-[print]:\"I am \"+mood +-el +->>>do-while:mood(-eq)\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I am \"+mood o-el <<<<-+-[print]:\"I am \"+mood+\" now\" <<<<-+-el +->else +-(Type)=\"Not Food or Drink\" +-el")
 	} else if Type == "var" {
 		Example("(std::string)name=\"\" var:(int)point=0 stmt:endline var:james-std::string=\"James\" stmt:endline var:help-int")
 		Example("(std::string)name=\"\" el (int)point=0 el (std::string)james=\"James\" el (int)help el help=0")
@@ -95,7 +96,7 @@ func help(Type string) {
 		fmt.Println("logic\t\t:\t\"Create a logic\"")
 		fmt.Println("var\t\t:\t\"Create a variable\"")
 		fmt.Println("stmt\t\t:\t\"Create a statment\"")
-		fmt.Println(">\t:\t\"next loop/logic element is nested in previous loop/logic\"")
+		fmt.Println(">\t\t:\t\"next loop/logic element is nested in previous loop/logic\"")
 		fmt.Println("[]-<type>\t:\t\"assigne the next element to method content only\"")
 		fmt.Println("+-<type>\t:\t\"assigne the next element to logic content only\"")
 		fmt.Println("o-<type>\t:\t\"assigne the next element to loop content only\"")
@@ -425,6 +426,14 @@ func CharTranslate(Message string) string {
 		Message = replaceAll(Message, "(-lt)"," < ")
 	}
 
+	if IsIn(Message,"(-ge)") {
+		Message = replaceAll(Message, "(-le)"," >= ")
+	}
+
+	if IsIn(Message,"(-gt)") {
+		Message = replaceAll(Message, "(-lt)"," > ")
+	}
+
 	if IsIn(Message,"(-ne)") {
 		Message = replaceAll(Message, "(-ne)"," != ")
 	}
@@ -505,6 +514,33 @@ func TranslateTag(Input string) string {
 		fmt.Println(TagName+"[Action]:>> "+Action)
 	}
 
+/*
+	//this was an idea to make the user experience better...didn't work
+	//logic condition translation
+	if IsIn(Action, "==") {
+		Action = replaceAll(Action, "==","(-eq)")
+	}
+
+	if IsIn(Action, "!=") {
+		Action = replaceAll(Action, "!=","(-ne)")
+	}
+
+	if IsIn(Action, "<=") {
+		Action = replaceAll(Action, "<=","(-le)")
+	}
+
+	if IsIn(Action, "<") {
+		Action = replaceAll(Action, "<","(-lt)")
+	}
+
+	if IsIn(Action, ">") {
+		Action = replaceAll(Action, ">","(-gt)")
+	}
+
+	if IsIn(Action, ">=") {
+		Action = replaceAll(Action, ">=","(-ge)")
+	}
+*/
 	if StartsWith(Action,"concat(") || StartsWith(Action,"incre(") || StartsWith(Action,"decre(") || StartsWith(Action,"equals(") || StartsWith(Action,"main(") {
 		var Algo string = AlgoTags(Action)
 		var NewAlgoTag string = ""
@@ -2566,17 +2602,64 @@ func GenCode(Tabs string, GetMe string) string {
 }
 
 func Example(tag string) {
+	var QuoteTotal int = 0
+	var QuotedMessage string = ""
+	var Item string = ""
 	var UserIn string = ""
 	if IsIn(tag," ") {
 		var all []string = split(tag," ")
 		var end int = len(all)
 		var lp int = 0
 		for lp != end {
+			Item = all[lp]
+			QuoteTotal += QuoteCount(Item)
+			//This all to handle quotes...consider writing this into a function instead of having this all messed around...still works though
+			//{
+			if QuoteTotal != 0 {
+				if IsEvenNumber(QuoteTotal) {
+					QuoteTotal = 0
+					if QuotedMessage == "" {
+						if IsIn(Item," ") {
+							Item = replaceAll(Item," ","(-spc)")
+						}
+						QuotedMessage = Item
+					} else {
+						QuotedMessage = QuotedMessage + "(-spc)" + Item
+					}
+
+					Item = QuotedMessage
+					if UserIn == "" {
+						UserIn = TranslateTag(Item)
+					} else {
+						UserIn = UserIn + " " + TranslateTag(Item)
+					}
+
+					QuotedMessage = ""
+				} else {
+					if QuotedMessage == "" {
+						if IsIn(Item," ") {
+							Item = replaceAll(Item," ","(-spc)")
+						}
+						QuotedMessage = Item
+					} else {
+						QuotedMessage = QuotedMessage + "(-spc)" + Item
+					}
+				}
+			//}
+			} else {
+				if UserIn == "" {
+					UserIn = TranslateTag(Item)
+				} else {
+					UserIn = UserIn + " " + TranslateTag(Item)
+				}
+			}
+/*
 			if UserIn == "" {
 				UserIn = TranslateTag(all[lp])
 			} else {
 				UserIn = UserIn + " " +TranslateTag(all[lp])
 			}
+*/
 			lp++
 		}
 	}
@@ -2590,7 +2673,6 @@ func Example(tag string) {
 func main() {
 
 	var QuoteTotal int = 0
-
 	var QuotedMessage string = ""
 	var Item string = ""
 	var UserIn string = ""
@@ -2630,6 +2712,9 @@ func main() {
 						if IsEvenNumber(QuoteTotal) {
 							QuoteTotal = 0
 							if QuotedMessage == "" {
+								if IsIn(Item," ") {
+									Item = replaceAll(Item," ","(-spc)")
+								}
 								QuotedMessage = Item
 							} else {
 								QuotedMessage = QuotedMessage + "(-spc)" + Item
@@ -2644,6 +2729,9 @@ func main() {
 								QuotedMessage = ""
 						} else {
 							if QuotedMessage == "" {
+								if IsIn(Item," ") {
+									Item = replaceAll(Item," ","(-spc)")
+								}
 								QuotedMessage = Item
 							} else {
 								QuotedMessage = QuotedMessage + "(-spc)" + Item
@@ -2688,6 +2776,9 @@ func main() {
 							if IsEvenNumber(QuoteTotal) {
 								QuoteTotal = 0
 								if QuotedMessage == "" {
+									if IsIn(Item," ") {
+										Item = replaceAll(Item," ","(-spc)")
+									}
 									QuotedMessage = Item
 								} else {
 									QuotedMessage = QuotedMessage + "(-spc)" + Item
@@ -2702,6 +2793,9 @@ func main() {
 									QuotedMessage = ""
 							} else {
 								if QuotedMessage == "" {
+									if IsIn(Item," ") {
+										Item = replaceAll(Item," ","(-spc)")
+									}
 									QuotedMessage = Item
 								} else {
 									QuotedMessage = QuotedMessage + "(-spc)" + Item
