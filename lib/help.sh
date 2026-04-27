@@ -333,6 +333,13 @@ MenuHelp()
 					echo -e "${Choice,,} --check\t\t\t: \"Check the install location of your code\""
 					echo -e "${Choice,,} --root-bin\t\t: \"Install your code into /usr/sbin/\""
 					echo -e "${Choice,,} --user-bin\t\t: \"Install your code into ~/bin/\""
+					case ${project} in
+						none)
+							;;
+						*)
+							echo -e "${Choice,,} dep <dependancy>\t: \"Install a depenancy for your project\""
+							;;
+					esac
 					echo -e "${Choice,,} --help\t\t\t: \"help page\""
 					echo "-----------------------------------------------"
 					echo ""
@@ -565,6 +572,10 @@ ProjectHelp()
 	echo -e "\tset <project> <lang>\t\t: \"Choose a project to make active with a given langauge\""
 	echo -e "\tselect <project>\t\t: \"Choose a project to make active\""
 	echo -e "\tselect <project> <lang>\t\t: \"Choose a project to make active with a given langauge\""
+	echo -e "\tdep edit\t\t\t: \"edit the dependancy file\""
+	echo -e "\tdependancy edit\t\t\t: \"Install a dependancy of a given langauge\""
+	echo -e "\tdep install <dependancy>\t: \"Install a dependancy of a given langauge\""
+	echo -e "\tdependancy install <dependancy>\t: \"Install a dependancy of a given langauge\""
 	echo -e "\ttitle\t\t\t\t: \"Make a title for a project\""
 	echo -e "\tremove, delete <project>\t: \"Choose a project to remove or delete\""
 	echo -e "\ttype\t\t\t\t: \"display the type of project\""
@@ -788,11 +799,11 @@ CliHelp()
 					echo -e "\t--list-cpl <lang>\t\t\t\t: \"List compiled code\""
 					echo -e "\t--lscpl <lang>\t\t\t\t\t: \"List compiled code\""
 					echo -e "\t--find <args>\t\t\t\t\t: \"Find the souce code\""
-					echo -e "\t--find-src <args>\t\t\t\t\t: \"Find the souce code\""
-					echo -e "\t--find-bin <args>\t\t\t\t\t: \"Find the executable\""
+					echo -e "\t--find-src <args>\t\t\t\t: \"Find the souce code\""
+					echo -e "\t--find-bin <args>\t\t\t\t: \"Find the executable\""
 					echo -e "\t--path <args>\t\t\t\t\t: \"Find the souce code\""
-					echo -e "\t--path-src <args>\t\t\t\t\t: \"Find the souce code\""
-					echo -e "\t--path-bin <args>\t\t\t\t\t: \"Find the executable\""
+					echo -e "\t--path-src <args>\t\t\t\t: \"Find the souce code\""
+					echo -e "\t--path-bin <args>\t\t\t\t: \"Find the executable\""
 					echo -e "\t-p, --project <args>\t\t\t\t: \"List or Load Clide Projects\""
 					echo -e "\t-l, --last, --load, --session <name>\t\t: \"Lets start back where we left; that is if you saved it\""
 					echo ""
@@ -1490,7 +1501,7 @@ main()
 		CliNotes|PathCliHelp|CliCopyOrRename)
 			${Call} $@
 			;;
-		ProjectCliHelp|PackageHelp|BuildCliHelp)
+		ProjectCliHelp|ProjectHelp|PackageHelp|BuildCliHelp)
 			${Call} $@
 			;;
 		ModesHelp|ModeHandler|RepoHelp)

@@ -275,6 +275,14 @@ errorCode()
 			shift
 			local thr=$1
 			case ${sec} in
+				no-dep)
+					shift
+					local four=$1
+					errorCode "ERROR"
+					errorCode "ERROR" "No package found"
+					echo ""
+					errorCode "HINT" "example: ${thr}" "${four}"
+					;;
 				missing-env)
 					shift
 					local four=$1

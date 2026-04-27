@@ -6,7 +6,7 @@ ProgramName = sys.argv[0]
 if "/" in ProgramName:
 	ProgramName = ProgramName.rsplit("/",1)[1]
 
-VersionNumver = "0.1.41"
+VersionNumver = "0.1.42"
 
 def Help():
 	print("Author: Joespider")
@@ -45,6 +45,7 @@ def Help():
 	print("\t--web : use web request")
 	print("\t--bs4 : use BeautifulSoup")
 	print("\t--json : use json")
+	print("\t--handle-errors : enable error handling")
 
 def GetArgs():
 	Args = sys.argv
@@ -81,6 +82,7 @@ def GetArgs():
 		   "web":False,
 		   "webSoup":False,
 		   "json":False,
+		   "handleErrors":False,
 		   "shell":False}
 	#
 	lp = 0
@@ -166,6 +168,9 @@ def GetArgs():
 			Returns["webSoup"] = True
 		elif now == "--json":
 			Returns["json"] = True
+		elif now == "--handle-errors":
+			Returns["handleErrors"] = True
+
 		lp += 1
 	return Returns
 
@@ -203,7 +208,7 @@ def Imports(getShell, getSys, getFiles, getRand, getThread, getPipe, getSleep, g
 	return TheImports
 
 #Get Methods
-def Methods(getMain, getRawInput, getShell, getFiles, getCLI, getCheckFile, getWrite, getRead, getRandom, getThread, getPipe, getSleep, getTime, getProp, getSplit, getJoin, getSubStr, getIsIn, getRev, getTypes, getUpper, getLower, getMath, getLength, getWeb, getWebSoup, getJson, getHash):
+def Methods(getMain, getRawInput, getShell, getFiles, getCLI, getCheckFile, getWrite, getRead, getRandom, getThread, getPipe, getSleep, getTime, getProp, getSplit, getJoin, getSubStr, getIsIn, getRev, getTypes, getUpper, getLower, getMath, getLength, getWeb, getWebSoup, getJson, getHash, getHandleErrors):
 	TheMethods = ""
 	#{
 	OSshellMethod = "def Shell(cmd):\n\tOutput = \"\"\n\tTheShell = os.popen(cmd)\n\tOutput = TheShell.read()\n\tTheShell.close()\n\treturn Output\n\n"
@@ -263,8 +268,12 @@ def Methods(getMain, getRawInput, getShell, getFiles, getCLI, getCheckFile, getW
 	WebRequestMethod = WebRequestMethod+"def GetWebContent(response):\n\treturn response.text\n\n"
 	WebSoupMethod = "def CleanPage(Content):\n\tsoup = BeautifulSoup(Content, 'html.parser')\n\treturn soup.prettify()\n\ndef PageHead(Content,GetContent=False):\n\tsoup = BeautifulSoup(Content, 'html.parser')\n\tif GetContent == True:\n\t\treturn soup.head.contents\n\telse:\n\t\treturn soup.head\n\ndef PageTitle(Content,GetContent=False):\n\tsoup = BeautifulSoup(Content, 'html.parser')\n\tif GetContent == True:\n\t\treturn soup.title.contents\n\telse:\n\t\treturn soup.title\n\ndef PageBody(Content,GetContent=False):\n\tsoup = BeautifulSoup(Content, 'html.parser')\n\tif GetContent == True:\n\t\treturn soup.body.contents\n\telse:\n\t\treturn soup.body\n\ndef GetContent(Content,Type,Id=\"\",Val=\"\",Num=None):\n\tAllContent = []\n\tsoup = BeautifulSoup(Content, 'html.parser')\n\tif Id == \"\" and Val == \"\":\n\t\tAllContent = soup.find_all(Type)\n\telse:\n\t\tAllContent = soup.find_all(Type, {Id: Val})\n\tif Num != None:\n\t\tif len(AllContent) != 0:\n\t\t\treturn AllContent[Num]\n\t\telse:\n\t\t\treturn AllContent\n\telse:\n\t\treturn AllContent\n\n"
 	JsonMethod = "def LoadJson(Data):\n\tJsonData = json.loads(Data)\n\treturn JsonData\n\n"
+	HandleErrorsExample = ""
 	LengthExample = ""
 	HashExample = ""
+
+	if getHandleErrors == True:
+		HandleErrorsExample = "\ttry:\n\t\t# Code that may throw an exception\n\texcept error:\n\t\tprint(\"Error occurred: \" + errorCode)\n\tfinally:\n\t\t# Code that may throw an exception\n"
 
 	if getThread == True:
 		ThreadMethod = "\t#TheThread = threading.Thread(target=<method>, args=(<arg>,<arg>,))\n\t#TheThread.start()\n\t#TheThread.join()\n"
@@ -275,9 +284,9 @@ def Methods(getMain, getRawInput, getShell, getFiles, getCLI, getCheckFile, getW
 		HashExample = "\tMyHouse = {}\n\n\tMyHouse.update({\"LivingRoom\" : 1})\n\tMyHouse.update({\"BedRoom\" : 3})\n\tMyHouse.update({\"TVRoom\" : 2})\n\tMyHouse.update({\"Kitchen\" : 1})\n\tMyHouse.update({\"Doors\" : 3})\n\tMyHouse.update({\"Bathrooms\" : 2})\n\tMyHouse.update({\"Basement\" : 1})\n\n\tAllKeys = MyHouse.keys()\n\n\tprint(\"My house has:\")\n\tfor Key in AllKeys:\n\t\tprint(\"\\t(\"+str(MyHouse[Key])+\") \"+Key)\n\n\tprint(\"\")\n\tprint(\"Removing \\\"Doors\\\"\")\n\t#Doors removed from dictionary\n\tdel MyHouse[\"Doors\"]\n\tprint(\"\")\n\n\tAllKeys = MyHouse.keys()\n\n\tprint(\"My house (now) has:\")\n\tfor Key in AllKeys:\n\t\tprint(\"\\t(\"+str(MyHouse[Key])+\") \"+Key)\n\n"
 
 	if getCLI == True:
-		MainMethod = "def Main():\n\t#Get User CLI Input\n\tUserArgs = Args()\n\tif UserArgs != []:\n\t\tprint(\"You have entered cli arguments\")\n\telse:\n\t\tHelp()\n"+ThreadMethod+LengthExample+HashExample+"\nif __name__ == '__main__':\n\tMain()"
+		MainMethod = "def Main():\n\t#Get User CLI Input\n\tUserArgs = Args()\n\tif UserArgs != []:\n\t\tprint(\"You have entered cli arguments\")\n\telse:\n\t\tHelp()\n"+ThreadMethod+LengthExample+HashExample+HandleErrorsExample+"\nif __name__ == '__main__':\n\tMain()"
 	else:
-		MainMethod = "def Main():\n\tprint(\"main\")\n"+ThreadMethod+LengthExample+HashExample+"\nif __name__ == '__main__':\n\tMain()"
+		MainMethod = "def Main():\n\tprint(\"main\")\n"+ThreadMethod+LengthExample+HashExample+HandleErrorsExample+"\nif __name__ == '__main__':\n\tMain()"
 	#}
 	#Get Write Method
 	if getWrite == True:
@@ -409,6 +418,7 @@ def Main():
 	GetWeb = UserArgs["web"]
 	GetWebSoup = UserArgs["webSoup"]
 	GetJson = UserArgs["json"]
+	HandleErrors = UserArgs["handleErrors"]
 	#}
 	#Ensure Name of program
 	if TheName != "" or noSave == True:
@@ -422,7 +432,7 @@ def Main():
 			#Get Imports
 			ProgImports = Imports(GetShell, IsCLI, GetFiles, GetRand, GetThreads, GetPipe, GetSleep, GetTime, GetProp, GetMath, GetCheckFile, GetWeb, GetWebSoup, GetJson)
 			#Get Methods
-			ProgMethods = Methods(IsMain, GetRawInput, GetShell, GetFiles, IsCLI, GetCheckFile, GetWrite, GetRead, GetRand, GetThreads, GetPipe, GetSleep, GetTime, GetProp, GetSplit, GetJoin, GetSubStr, GetIsIn, GetRev, GetTypes, GetUpper, GetLower, GetMath, GetLength, GetWeb, GetWebSoup, GetJson, GetHash)
+			ProgMethods = Methods(IsMain, GetRawInput, GetShell, GetFiles, IsCLI, GetCheckFile, GetWrite, GetRead, GetRand, GetThreads, GetPipe, GetSleep, GetTime, GetProp, GetSplit, GetJoin, GetSubStr, GetIsIn, GetRev, GetTypes, GetUpper, GetLower, GetMath, GetLength, GetWeb, GetWebSoup, GetJson, GetHash, HandleErrors)
 			if IsCLI == True:
 				TheHelpMethod = getHelp(TheName,TheUser)
 			#Manage Imports
