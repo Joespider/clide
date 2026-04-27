@@ -6,7 +6,7 @@ static mut DEBUG_1: bool = false;
 static mut DEBUG_2: bool = false;
 static mut DEBUG_3: bool = false;
 
-const SHELL_VERSION: &str = "0.1.25";
+const SHELL_VERSION: &str = "0.1.26";
 
 fn get_os() -> String
 {
@@ -76,7 +76,7 @@ fn the_help(the_type: &str)
 		example("else");
 		example("if:true (String)drink:[Pop]:one,two el >if:[IsString]:drink(-eq)true [drink]: el >>if:drink(-eq)\"coke\" >>else nl >else-if:[IsInt]:drink(-eq)false nl >else >>if: nl >>else nl");
 		example("if:true (String)drink:[Pop]:one,two el >if:[IsString]:drink(-eq)true >>if:drink(-eq)\"coke\" >>else nl >else-if:[IsInt]:drink(-eq)false nl >else >>if: nl >>else nl");
-		example("if:Food(-ne)\"\" +->if:[IsDrink]:drink(-eq)true +-()Type=\"Drink\" +-el +->>if:[IsNotEmpty]:Food +-[Drink]:Food +-el +->>>if:mood(-ne)\"happy\" +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->>>>if:mood(-eq)\"unhappy\" +-[ChearUp]:mood +-el +-[print]:\"I(-spc)am(-spc)\"+mood +-el <<<<-+-[ImHappy]: <<<<-+-el <<<-+-[Refill]: <<<-+-el <<-+-[Complete]: <<-+-el <<-+-[NewLine]: <<-+-el +->else-if:[IsFood]:Food(-eq)true +-()Type=\"Food\" +-el +->>while:[IsNotEmpty]:Food o-[Eat]:Food o-el o->>if:mood(-ne)\"happy\" +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->>>do-while:mood(-eq)\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I(-spc)am(-spc)\"+mood o-el <<<<-+-[print]:\"I(-spc)am(-spc)\"+mood+\"(-spc)now\" <<<<-+-el +->else +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el");
+		example("if:Food(-ne)\"\" +->if:[IsDrink]:drink(-eq)true +-()Type=\"Drink\" +-el +->>if:[IsNotEmpty]:Food +-[Drink]:Food +-el +->>>if:mood(-ne)\"happy\" +-[print]:\"I am \"+mood +-el +->>>>if:mood(-eq)\"unhappy\" +-[ChearUp]:mood +-el +-[print]:\"I am \"+mood +-el <<<<-+-[ImHappy]: <<<<-+-el <<<-+-[Refill]: <<<-+-el <<-+-[Complete]: <<-+-el <<-+-[NewLine]: <<-+-el +->else-if:[IsFood]:Food(-eq)true +-()Type=\"Food\" +-el +->>while:[IsNotEmpty]:Food o-[Eat]:Food o-el o->>if:mood(-ne)\"happy\" +-[print]:\"I am \"+mood +-el +->>>do-while:mood(-eq)\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I am \"+mood o-el <<<<-+-[print]:\"I am \"+mood+\" now\" <<<<-+-el +->else +-(Type)=\"Not Food or Drink\" +-el");
 	}
 	else if new_the_type == "var"
 	{
@@ -102,7 +102,7 @@ fn the_help(the_type: &str)
 		println!("logic\t\t:\t\"Create a logic\"");
 		println!("var\t\t:\t\"Create a variable\"");
 		println!("stmt\t\t:\t\"Create a statment\"");
-		println!(">\t:\t\"next loop/logic element is nested in previous loop/logic\"");
+		println!(">\t\t:\t\"next loop/logic element is nested in previous loop/logic\"");
 		println!("[]-<type>\t:\t\"assigne the next element to method content only\"");
 		println!("+-<type>\t:\t\"assigne the next element to logic content only\"");
 		println!("o-<type>\t:\t\"assigne the next element to loop content only\"");
@@ -3823,13 +3823,83 @@ fn gen_code(the_tabs: &str, get_me: &str) -> String
 
 fn example(tag: &str)
 {
+	let mut quoted_message = String::from("");
+	let mut item: String;
+	let mut quote_total: i32 = 0;
+
 	let mut user_in = String::new();
 //	let mut new_user_in = String::from("");
 	if is_in(tag, " ")
 	{
 		let all: Vec<&str> = tag.split(" ").collect();
-		for item in &all
+		for new_item in &all
 		{
+			item = new_item.to_string();
+			quote_total += quote_count(&item);
+			//This all to handle quotes...consider writing this into a function instead of having this all messed around...still works though
+			//{
+			if quote_total != 0
+			{
+				if is_even_number(quote_total)
+				{
+					quote_total = 0;
+					if quoted_message.to_string() == ""
+					{
+						if is_in(&item," ")
+						{
+							item = replace_all(&item, " ","(-spc)")
+						}
+						quoted_message.push_str(&translate_tag(&item));
+					}
+					else
+					{
+						quoted_message.push_str("(-spc)");
+						quoted_message.push_str(&translate_tag(&item));
+					}
+
+					item = quoted_message.to_string();
+					if user_in.to_string() == ""
+					{
+						user_in = translate_tag(&item);
+					}
+					else
+					{
+						user_in.push_str(" ");
+						user_in.push_str(&translate_tag(&item));
+					}
+					quoted_message = String::from("");
+				}
+				else
+				{
+					if quoted_message.to_string() == ""
+					{
+						if is_in(&item," ")
+						{
+							item = replace_all(&item, " ","(-spc)")
+						}
+						quoted_message.push_str(&item);
+					}
+					else
+					{
+						quoted_message.push_str("(-spc)");
+						quoted_message.push_str(&translate_tag(&item));
+					}
+				}
+			//}
+			}
+			else
+			{
+				if user_in == ""
+				{
+					user_in.push_str(&translate_tag(&item));
+				}
+				else
+				{
+					user_in.push_str(" ");
+					user_in.push_str(&translate_tag(&item));
+				}
+			}
+/*
 			if user_in == ""
 			{
 				user_in.push_str(&translate_tag(&item));
@@ -3839,6 +3909,7 @@ fn example(tag: &str)
 				user_in.push_str(&translate_tag(" "));
 				user_in.push_str(&translate_tag(&item));
 			}
+*/
 		}
 	}
 	println!("Command: {}",&tag);
@@ -3850,7 +3921,6 @@ fn example(tag: &str)
 fn main()
 {
 	let mut quoted_message = String::from("");
-
 	let mut item: String;
 	let mut quote_total: i32 = 0;
 
@@ -3902,6 +3972,10 @@ fn main()
 						quote_total = 0;
 						if quoted_message.to_string() == ""
 						{
+							if is_in(&item," ")
+							{
+								item = replace_all(&item, " ","(-spc)")
+							}
 							quoted_message.push_str(&translate_tag(&item));
 						}
 						else
@@ -3927,6 +4001,10 @@ fn main()
 					{
 						if quoted_message.to_string() == ""
 						{
+							if is_in(&item," ")
+							{
+								item = replace_all(&item, " ","(-spc)")
+							}
 							quoted_message.push_str(&item);
 						}
 						else
@@ -4009,6 +4087,10 @@ fn main()
 								quote_total = 0;
 								if quoted_message.to_string() == ""
 								{
+									if is_in(&item," ")
+									{
+										item = replace_all(&item, " ","(-spc)")
+									}
 									quoted_message.push_str(&translate_tag(&item));
 								}
 								else
@@ -4034,6 +4116,10 @@ fn main()
 							{
 								if quoted_message.to_string() == ""
 								{
+									if is_in(&item," ")
+									{
+										item = replace_all(&item, " ","(-spc)")
+									}
 									quoted_message.push_str(&item);
 								}
 								else

@@ -12,7 +12,7 @@ import java.io.IOException;
 
 //class name
 public class shell {
-	private static String Version = "0.1.23";
+	private static String Version = "0.1.24";
 
 	//layer 1 debugging
 	private static boolean Debug1 = false;
@@ -89,7 +89,7 @@ public class shell {
 			Example("else");
 			Example("if:true (String)drink:[Pop]:one,two el >if:[IsString]:drink(-eq)true [drink]: el >>if:drink(-eq)\"coke\" >>else nl >else-if:[IsInt]:drink(-eq)false nl >else >>if: nl >>else nl");
 			Example("if:true (String)drink:[Pop]:one,two el >if:[IsString]:drink(-eq)true >>if:drink(-eq)\"coke\" >>else nl >else-if:[IsInt]:drink(-eq)false nl >else >>if: nl >>else nl");
-			Example("if:Food(-ne)\"\" +->if:[IsDrink]:drink(-eq)true +-()Type=\"Drink\" +-el +->>if:[IsNotEmpty]:Food +-[Drink]:Food +-el +->>>if:mood(-ne)\"happy\" +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->>>>if:mood(-eq)\"unhappy\" +-[ChearUp]:mood +-el +-[print]:\"I(-spc)am(-spc)\"+mood +-el <<<<-+-[ImHappy]: <<<<-+-el <<<-+-[Refill]: <<<-+-el <<-+-[Complete]: <<-+-el <<-+-[NewLine]: <<-+-el +->else-if:[IsFood]:Food(-eq)true +-()Type=\"Food\" +-el +->>while:[IsNotEmpty]:Food o-[Eat]:Food o-el o->>if:mood(-ne)\"happy\" +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->>>do-while:mood(-eq)\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I(-spc)am(-spc)\"+mood o-el <<<<-+-[print]:\"I(-spc)am(-spc)\"+mood+\"(-spc)now\" <<<<-+-el +->else +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el");
+			Example("if:Food(-ne)\"\" +->if:[IsDrink]:drink(-eq)true +-()Type=\"Drink\" +-el +->>if:[IsNotEmpty]:Food +-[Drink]:Food +-el +->>>if:mood(-ne)\"happy\" +-[print]:\"I am \"+mood +-el +->>>>if:mood(-eq)\"unhappy\" +-[ChearUp]:mood +-el +-[print]:\"I am \"+mood +-el <<<<-+-[ImHappy]: <<<<-+-el <<<-+-[Refill]: <<<-+-el <<-+-[Complete]: <<-+-el <<-+-[NewLine]: <<-+-el +->else-if:[IsFood]:Food(-eq)true +-()Type=\"Food\" +-el +->>while:[IsNotEmpty]:Food o-[Eat]:Food o-el o->>if:mood(-ne)\"happy\" +-[print]:\"I am \"+mood +-el +->>>do-while:mood(-eq)\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I am \"+mood o-el <<<<-+-[print]:\"I am \"+mood+\" now\" <<<<-+-el +->else +-(Type)=\"Not Food or Drink\" +-el");
 //			print(Type+":switch");
 		}
 		else if (Type.equals("var"))
@@ -116,7 +116,7 @@ public class shell {
 			print("logic\t\t:\t\"Create a logic\"");
 			print("var\t\t:\t\"Create a variable\"");
 			print("stmt\t\t:\t\"Create a statment\"");
-			print(">\t:\t\"next loop/logic element is nested in previous loop/logic\"");
+			print(">\t\t:\t\"next loop/logic element is nested in previous loop/logic\"");
 			print("[]-<type>\t:\t\"assigne the next element to method content only\"");
 			print("+-<type>\t:\t\"assigne the next element to logic content only\"");
 			print("o-<type>\t:\t\"assigne the next element to loop content only\"");
@@ -3743,6 +3743,9 @@ public class shell {
 		print("\t{EXAMPLE}");
 		print("Command: "+tag);
 //		print("\t---or---");
+		int QuoteTotal = 0;
+		StringBuilder QuotedMessage = new StringBuilder("");
+		String Item = "";
 		String Result;
 		StringBuilder UserIn = new StringBuilder("");
 		if (IsIn(tag," "))
@@ -3752,6 +3755,73 @@ public class shell {
 			int lp = 0;
 			while (lp != end)
 			{
+				Item = all[lp];
+				QuoteTotal += QuoteCount(Item);
+				//This all to handle quotes...consider writing this into a function instead of having this all messed around...still works though
+				//{
+				if (QuoteTotal != 0)
+				{
+					if (IsEvenNumber(QuoteTotal))
+					{
+						QuoteTotal = 0;
+						if (QuotedMessage.toString().equals(""))
+						{
+							if (IsIn(Item," "))
+							{
+								Item = replaceAll(Item," ","(-spc)");
+							}
+							QuotedMessage.append(Item);
+						}
+						else
+						{
+							QuotedMessage.append("(-spc)");
+							QuotedMessage.append(Item);
+						}
+
+						Item = QuotedMessage.toString();
+						if (UserIn.toString().equals(""))
+						{
+							UserIn.append(TranslateTag(Item));
+						}
+						else
+						{
+							UserIn.append(TranslateTag(" "));
+							UserIn.append(TranslateTag(Item));
+						}
+						QuotedMessage = new StringBuilder("");
+					}
+					else
+					{
+						if (QuotedMessage.toString().equals(""))
+						{
+							if (IsIn(Item," "))
+							{
+								Item = replaceAll(Item," ","(-spc)");
+							}
+							QuotedMessage.append(Item);
+						}
+						else
+						{
+							QuotedMessage.append("(-spc)");
+							QuotedMessage.append(Item);
+						}
+					}
+				}
+				//}
+				else
+				{
+					if (UserIn.toString().equals(""))
+					{
+						UserIn.append(TranslateTag(Item));
+					}
+					else
+					{
+						UserIn.append(TranslateTag(" "));
+						UserIn.append(TranslateTag(Item));
+					}
+				}
+
+/*
 				if (UserIn.toString().equals(""))
 				{
 					UserIn.append(TranslateTag(all[lp]));
@@ -3761,6 +3831,7 @@ public class shell {
 					UserIn.append(" ");
 					UserIn.append(TranslateTag(all[lp]));
 				}
+*/
 				lp++;
 			}
 		}
@@ -3893,6 +3964,10 @@ public class shell {
 							QuoteTotal = 0;
 							if (QuotedMessage.toString().equals(""))
 							{
+								if (IsIn(Item," "))
+								{
+									Item = replaceAll(Item," ","(-spc)");
+								}
 								QuotedMessage.append(Item);
 							}
 							else
@@ -3917,6 +3992,11 @@ public class shell {
 						{
 							if (QuotedMessage.toString().equals(""))
 							{
+								if (IsIn(Item," "))
+								{
+									Item = replaceAll(Item," ","(-spc)");
+								}
+
 								QuotedMessage.append(Item);
 							}
 							else
@@ -3988,6 +4068,10 @@ public class shell {
 									QuoteTotal = 0;
 									if (QuotedMessage.toString().equals(""))
 									{
+										if (IsIn(Item," "))
+										{
+											Item = replaceAll(Item," ","(-spc)");
+										}
 										QuotedMessage.append(Item);
 									}
 									else
@@ -4012,6 +4096,10 @@ public class shell {
 								{
 									if (QuotedMessage.toString().equals(""))
 									{
+										if (IsIn(Item," "))
+										{
+											Item = replaceAll(Item," ","(-spc)");
+										}
 										QuotedMessage.append(Item);
 									}
 									else

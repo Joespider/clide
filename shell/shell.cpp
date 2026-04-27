@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.1.40";
+String Version = "0.1.41";
 
 //layer 1 debugging
 bool Debug1 = false;
@@ -167,7 +167,7 @@ void Help(String Type)
 		Example("else");
 		Example("if:true (String)drink:[Pop]:one,two el >if:[IsString]:drink(-eq)true [drink]: el >>if:drink(-eq)\"coke\" >>else nl >else-if:[IsInt]:drink(-eq)false nl >else >>if: nl >>else nl");
 		Example("if:true (String)drink:[Pop]:one,two el >if:[IsString]:drink(-eq)true >>if:drink(-eq)\"coke\" >>else nl >else-if:[IsInt]:drink(-eq)false nl >else >>if: nl >>else nl");
-		Example("if:Food(-ne)\"\" +->if:[IsDrink]:drink(-eq)true +-()Type=\"Drink\" +-el +->>if:[IsNotEmpty]:Food +-[Drink]:Food +-el +->>>if:mood(-ne)\"happy\" +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->>>>if:mood(-eq)\"unhappy\" +-[ChearUp]:mood +-el +-[print]:\"I(-spc)am(-spc)\"+mood +-el <<<<-+-[ImHappy]: <<<<-+-el <<<-+-[Refill]: <<<-+-el <<-+-[Complete]: <<-+-el <<-+-[NewLine]: <<-+-el +->else-if:[IsFood]:Food(-eq)true +-()Type=\"Food\" +-el +->>while:[IsNotEmpty]:Food o-[Eat]:Food o-el o->>if:mood(-ne)\"happy\" +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->>>do-while:mood(-eq)\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I(-spc)am(-spc)\"+mood o-el <<<<-+-[print]:\"I(-spc)am(-spc)\"+mood+\"(-spc)now\" <<<<-+-el +->else +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el");
+		Example("if:Food(-ne)\"\" +->if:[IsDrink]:drink(-eq)true +-()Type=\"Drink\" +-el +->>if:[IsNotEmpty]:Food +-[Drink]:Food +-el +->>>if:mood(-ne)\"happy\" +-[print]:\"I am \"+mood +-el +->>>>if:mood(-eq)\"unhappy\" +-[ChearUp]:mood +-el +-[print]:\"I am \"+mood +-el <<<<-+-[ImHappy]: <<<<-+-el <<<-+-[Refill]: <<<-+-el <<-+-[Complete]: <<-+-el <<-+-[NewLine]: <<-+-el +->else-if:[IsFood]:Food(-eq)true +-()Type=\"Food\" +-el +->>while:[IsNotEmpty]:Food o-[Eat]:Food o-el o->>if:mood(-ne)\"happy\" +-[print]:\"I am \"+mood +-el +->>>do-while:mood(-eq)\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I am \"+mood o-el <<<<-+-[print]:\"I am \"+mood+\" now\" <<<<-+-el +->else +-(Type)=\"Not Food or Drink\" +-el");
 	}
 	else if (Type == "var")
 	{
@@ -192,7 +192,7 @@ void Help(String Type)
 		print("logic\t\t:\t\"Create a logic\"");
 		print("var\t\t:\t\"Create a variable\"");
 		print("stmt\t\t:\t\"Create a statment\"");
-		print(">\t:\t\"next loop/logic element is nested in previous loop/logic\"");
+		print(">\t\t:\t\"next loop/logic element is nested in previous loop/logic\"");
 		print("[]-<type>\t:\t\"assigne the next element to method content only\"");
 		print("+-<type>\t:\t\"assigne the next element to logic content only\"");
 		print("o-<type>\t:\t\"assigne the next element to loop content only\"");
@@ -3438,6 +3438,9 @@ String GenCode(String Tabs,String GetMe)
 
 void Example(String tag)
 {
+	int QuoteTotal = 0;
+	String QuotedMessage = "";
+	String Item = "";
 	String UserIn = "";
 	print("\t{EXAMPLE}");
 	print("Command: "+tag);
@@ -3449,6 +3452,68 @@ void Example(String tag)
 		int lp = 0;
 		while (lp != end)
 		{
+			Item = all[lp];
+			QuoteTotal += QuoteCount(Item);
+			//This all to handle quotes...consider writing this into a function instead of having this all messed around...still works though
+			//{
+			if (QuoteTotal != 0)
+			{
+				if (IsEvenNumber(QuoteTotal))
+				{
+					QuoteTotal = 0;
+					if (QuotedMessage == "")
+					{
+						if (IsIn(Item," "))
+						{
+							Item = replaceAll(Item," ","(-spc)");
+						}
+						QuotedMessage = Item;
+					}
+					else
+					{
+						QuotedMessage = QuotedMessage + "(-spc)" + Item;
+					}
+
+					Item = QuotedMessage;
+					if (UserIn == "")
+					{
+						UserIn = TranslateTag(Item);
+					}
+					else
+					{
+						UserIn = UserIn + " " + TranslateTag(Item);
+					}
+					QuotedMessage = "";
+				}
+				else
+				{
+					if (QuotedMessage == "")
+					{
+						if (IsIn(Item," "))
+						{
+							Item = replaceAll(Item," ","(-spc)");
+						}
+						QuotedMessage = Item;
+					}
+					else
+					{
+						QuotedMessage = QuotedMessage + "(-spc)" + Item;
+					}
+				}
+			}
+			//}
+			else
+			{
+				if (UserIn == "")
+				{
+					UserIn = TranslateTag(Item);
+				}
+				else
+				{
+					UserIn = UserIn + " " + TranslateTag(Item);
+				}
+			}
+/*
 			if (UserIn == "")
 			{
 				UserIn = TranslateTag(all[lp]);
@@ -3457,6 +3522,7 @@ void Example(String tag)
 			{
 				UserIn = UserIn + " " + TranslateTag(all[lp]);
 			}
+*/
 			lp++;
 		}
 	}
@@ -3481,7 +3547,6 @@ int main(int argc, char** argv)
 	}
 
 	int QuoteTotal = 0;
-
 	String QuotedMessage = "";
 	String Item = "";
 	String UserIn = "";
@@ -3524,6 +3589,10 @@ int main(int argc, char** argv)
 							QuoteTotal = 0;
 							if (QuotedMessage == "")
 							{
+								if (IsIn(Item," "))
+								{
+									Item = replaceAll(Item," ","(-spc)");
+								}
 								QuotedMessage = Item;
 							}
 							else
@@ -3546,6 +3615,11 @@ int main(int argc, char** argv)
 						{
 							if (QuotedMessage == "")
 							{
+								if (IsIn(Item," "))
+								{
+									Item = replaceAll(Item," ","(-spc)");
+								}
+
 								QuotedMessage = Item;
 							}
 							else
@@ -3613,6 +3687,10 @@ int main(int argc, char** argv)
 								QuoteTotal = 0;
 								if (QuotedMessage == "")
 								{
+									if (IsIn(Item," "))
+									{
+										Item = replaceAll(Item," ","(-spc)");
+									}
 									QuotedMessage = Item;
 								}
 								else
@@ -3635,6 +3713,10 @@ int main(int argc, char** argv)
 							{
 								if (QuotedMessage == "")
 								{
+									if (IsIn(Item," "))
+									{
+										Item = replaceAll(Item," ","(-spc)");
+									}
 									QuotedMessage = Item;
 								}
 								else
