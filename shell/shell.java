@@ -12,7 +12,7 @@ import java.io.IOException;
 
 //class name
 public class shell {
-	private static String Version = "0.1.24";
+	private static String Version = "0.1.25";
 
 	//layer 1 debugging
 	private static boolean Debug1 = false;
@@ -97,6 +97,7 @@ public class shell {
 			Example("(std::string)name=\"\" var:(int)point=0 stmt:endline var:james-std::string=\"James\" stmt:endline var:help-int");
 			Example("(std::string)name=\"\" el (int)point=0 el (std::string)james=\"James\" el (int)help el help=0");
 			Example("(std::string)name=\"\" el (int)point=0 el (std::string)james=\"James\" el (int)help el help=0");
+			Example("(auto)drink:[Pop]:\"\" el");
 		}
 		else if (Type.equals("stmt"))
 		{
@@ -1392,6 +1393,10 @@ public class shell {
 		else if (((Type.equals("String")) || (Type.equals("string")) || (Type.equals("std::string"))) && (getNull == true))
 		{
 			return "\"\"";
+		}
+		else if (((Type.equals("auto")) || (Type.equals("Object"))) && (getNull == false))
+		{
+			return "Object";
 		}
 		else if (((Type.equals("boolean")) || (Type.equals("bool"))) && (getNull == false))
 		{
