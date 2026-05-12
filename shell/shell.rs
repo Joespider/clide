@@ -6,7 +6,7 @@ static mut DEBUG_1: bool = false;
 static mut DEBUG_2: bool = false;
 static mut DEBUG_3: bool = false;
 
-const SHELL_VERSION: &str = "0.1.26";
+const SHELL_VERSION: &str = "0.1.27";
 
 fn get_os() -> String
 {
@@ -1278,6 +1278,10 @@ fn data_type(the_type: &str, get_null: bool) -> String
 		if the_type == "String" || the_type == "string" || the_type == "std::string"
 		{
 			return "String".to_string();
+		}
+		else if the_type == "auto" || the_type == "Object" || the_type == "object"
+		{
+			return "auto".to_string();
 		}
 		else if the_type == "boolean" || the_type == "bool"
 		{
@@ -3718,12 +3722,19 @@ fn gen_variables(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Stri
 		the_value = after_split(&new_kind,"=");
 	}
 
-	if var_type != ""
+	if var_type != "" && var_type != "auto"
 	{
 		new_var.push_str("let ");
 		new_var.push_str(&the_name);
 		new_var.push_str(": ");
 		new_var.push_str(&var_type);
+	}
+	else if var_type != "" && var_type == "auto"
+	{
+		new_var.push_str("let ");
+		new_var.push_str(&the_name);
+//		new_var.push_str(": ");
+//		new_var.push_str(&var_type);
 	}
 	else
 	{

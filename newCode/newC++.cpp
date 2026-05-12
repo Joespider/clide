@@ -24,7 +24,7 @@ bool IsIn(String Str, String Sub);
 
 static void help()
 {
-	String Version = "0.1.78";
+	String Version = "0.1.79";
 	print("Author: Joespider");
 	print("Program: \"" + ProgName + "\"");
 	print("Version: " + Version);
@@ -332,7 +332,7 @@ static String getMethods(bool* rawinput, bool* rand, bool* fcheck, bool* write, 
 
 	if (*rawinput == true)
 	{
-		RawInput = "//User Input\nString raw_input(String message)\n{\n\tString UserIn;\n\tstd::cout << message;\n\tgetline (std::cin,UserIn);\n\treturn UserIn;\n}\n\n";
+		RawInput = "//User Input\nString raw_input(String message)\n{\n\tString UserIn;\n\tstd::cout << message;\n\tstd::getline (std::cin,UserIn);\n\treturn UserIn;\n}\n\n";
 	}
 	if (*fcheck == true)
 	{

@@ -9,7 +9,7 @@ import (
 	"strings"
 	)
 
-var Version string = "0.1.27"
+var Version string = "0.1.28"
 var Debug1 bool = false
 var Debug2 bool = false
 var Debug3 bool = false
@@ -81,6 +81,7 @@ func help(Type string) {
 		Example("(std::string)name=\"\" var:(int)point=0 stmt:endline var:james-std::string=\"James\" stmt:endline var:help-int")
 		Example("(std::string)name=\"\" el (int)point=0 el (std::string)james=\"James\" el (int)help el help=0")
 		Example("(std::string)name=\"\" el (int)point=0 el (std::string)james=\"James\" el (int)help el help=0")
+		Example("(auto)drink:[Pop]:\"\" el")
 	} else if Type == "stmt" {
 		fmt.Println(Type+":<type>")
 		fmt.Println(Type+":method\t\tcall a method")
@@ -822,14 +823,21 @@ func DataType(Type string, getNull bool) string {
 		return "string"
         } else if (Type == "String" || Type == "string" || Type == "std::string") && getNull == true {
 		return "\"\""
-	} else if (Type == "boolean" || Type == "bool") && getNull == false {
-		return "bool"
-	} else if (Type == "boolean" || Type == "bool") && getNull == true {
-		return "false"
+	//handle auto
+        } else if (Type == "auto" || Type == "Object") && getNull == false {
+		return "auto"
+        } else if (Type == "auto" || Type == "Object") && getNull == true {
+		return ""
+	//handle int
 	} else if (Type == "i32" || Type == "int") && getNull == false {
 		return "int"
 	} else if (Type == "i32" || Type == "int") && getNull == true {
 		return "0"
+	//handle bool
+	} else if (Type == "boolean" || Type == "bool") && getNull == false {
+		return "bool"
+	} else if (Type == "boolean" || Type == "bool") && getNull == true {
+		return "false"
 	} else if Type == "false" || Type == "False" {
 		return "false"
 	} else if Type == "true" || Type == "True" {
@@ -2464,6 +2472,7 @@ func Variables(Tabs string, TheKindType string, Content string) string {
 		VarType = AfterSplit(VarType,"(")
 		VarType = DataType(VarType,false)
 		TheKindType = AfterSplit(TheKindType,")")
+
 		if TheKindType == "" {
 			Name = VarType
 			VarType = ""
@@ -2518,19 +2527,27 @@ func Variables(Tabs string, TheKindType string, Content string) string {
 		NewVar = ""
 	}
 
+
 	if MakeEqual == true {
+
 		if IsIn(Value,"(-spc)") {
 			Value = replaceAll(Value, "(-spc)"," ")
 		}
 
-		if VarType != "" {
+		if VarType != "" && VarType != "auto" {
 			NewVar = "var "+Name+NewVar+" = "+Value
+		} else if VarType == "auto" {
+			NewVar = Name+" := "+Value
 		} else {
 			NewVar = Name+NewVar+" = "+Value
 		}
 	} else {
 		if NewVar != "" {
 			NewVar = "var "+Name+NewVar
+/*
+		} else if VarType == "auto" {
+			NewVar = Name+" := "+Value
+*/
 		} else {
 			NewVar = Name+NewVar
 		}

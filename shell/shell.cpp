@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.1.41";
+String Version = "0.1.42";
 
 //layer 1 debugging
 bool Debug1 = false;
@@ -173,6 +173,7 @@ void Help(String Type)
 	{
 		Example("(std::string)name:()\"\" el (int)point:()0 el (std::string)james=\"James\" el (int)help el help=0");
 		Example("(std::string)name:()\"\" el (int)point:()0 el (std::string)james=\"James\" el (int)help el help=0");
+		Example("(auto)drink:[Pop]:\"\" el");
 	}
 	else if (Type == "stmt")
 	{
@@ -1186,6 +1187,12 @@ String DataType(String Type, bool getNull)
 	{
 		return "\"\"";
 	}
+	//handle auto
+	else if (((Type == "auto") || (Type == "Object")) && (getNull == false))
+	{
+		return "auto";
+	}
+	//handle int
 	else if (((Type == "i32") || (Type == "int")) && (getNull == false))
 	{
 		return "int";
@@ -1194,6 +1201,7 @@ String DataType(String Type, bool getNull)
 	{
 		return "0";
 	}
+	//handle bool
 	else if (((Type == "boolean") || (Type == "bool")) && (getNull == false))
 	{
 		return "bool";
