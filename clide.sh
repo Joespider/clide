@@ -1951,7 +1951,7 @@ CopyOrRename()
 					if [ ! -z "${TheNewChosen}" ]; then
 						case ${TheSrcCode} in
 							*${chosen}*)
-								GetCount=$(echo -e ${TheSrcCode//,/\\n} | grep ${chosen} | wc -l)
+								GetCount=$(echo -e ${TheSrcCode//,/\\n} | grep -c ${chosen})
 								case ${GetCount} in
 									1)
 										chosen=$(echo -e ${TheSrcCode//,/\\n} | grep ${chosen})

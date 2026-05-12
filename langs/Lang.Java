@@ -3,7 +3,7 @@
 #https://stackoverflow.com/questions/10339637/java-import-cannot-find-symbol
 #https://www.codejava.net/java-core/tools/how-to-compile-package-and-run-a-java-program-using-command-line-tools-javac-jar-and-java
 
-SupportV="0.2.67"
+SupportV="0.2.68"
 Lang=Java
 LangExt=".java"
 ColorNum=1
@@ -704,7 +704,7 @@ UseJava()
 							if [ ! -d ${TheSrcDir}/main ] && [ ! -d ${TheSrcDir}/test ]; then
 								NumFound=$(UseJava "getProjSrc" ${LookFor} 2> /dev/null | wc -l)
 							else
-								NumFound=$(UseJava "getProjSrc" ${LookFor} 2> /dev/null | grep ${ProjectMode} | wc -l)
+								NumFound=$(UseJava "getProjSrc" ${LookFor} 2> /dev/null | grep -c ${ProjectMode})
 							fi
 						else
 							NumFound=$(UseJava "getProjSrc" ${LookFor} 2> /dev/null | wc -l)
@@ -991,7 +991,7 @@ UseJava()
 								if [ ! -d ${TheSrcDir}/main ] && [ ! -d ${TheSrcDir}/test ]; then
 									NumFound=$(UseJava "getProjSrc" ${TheFile} 2> /dev/null | wc -l)
 								else
-									NumFound=$(UseJava "getProjSrc" ${TheFile} 2> /dev/null | grep ${ProjectMode} | wc -l)
+									NumFound=$(UseJava "getProjSrc" ${TheFile} 2> /dev/null | grep -c ${ProjectMode})
 								fi
 							else
 								NumFound=$(UseJava "getProjSrc" ${TheFile} 2> /dev/null | wc -l)
@@ -1536,7 +1536,7 @@ UseJava()
 						if [ ! -d ${LangProject}/${project}/src/main/ ] && [ ! -d ${LangProject}/${project}/src/test/ ]; then
 							NumFound=$(find -L ${TheSrcDir} -name ${TheFile} 2> /dev/null | wc -l)
 						else
-							NumFound=$(find -L ${TheSrcDir} -name ${TheFile} 2> /dev/null | grep "${ProjectMode}" | wc -l)
+							NumFound=$(find -L ${TheSrcDir} -name ${TheFile} 2> /dev/null | grep -c "${ProjectMode}")
 						fi
 
 						case ${NumFound} in
