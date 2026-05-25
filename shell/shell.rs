@@ -6,7 +6,7 @@ static mut DEBUG_1: bool = false;
 static mut DEBUG_2: bool = false;
 static mut DEBUG_3: bool = false;
 
-const SHELL_VERSION: &str = "0.1.27";
+const SHELL_VERSION: &str = "0.1.28";
 
 fn get_os() -> String
 {
@@ -3725,6 +3725,7 @@ fn gen_variables(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Stri
 	if var_type != "" && var_type != "auto"
 	{
 		new_var.push_str("let ");
+		new_var.push_str("mut ");
 		new_var.push_str(&the_name);
 		new_var.push_str(": ");
 		new_var.push_str(&var_type);
@@ -3732,6 +3733,7 @@ fn gen_variables(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Stri
 	else if var_type != "" && var_type == "auto"
 	{
 		new_var.push_str("let ");
+		new_var.push_str("mut ");
 		new_var.push_str(&the_name);
 //		new_var.push_str(": ");
 //		new_var.push_str(&var_type);
