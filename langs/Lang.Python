@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.2.29"
+SupportV="0.2.30"
 Lang=Python
 LangExt=".py"
 #Color Yellow
@@ -146,7 +146,7 @@ UsePython()
 				do
 					ShellCode=$(sed -n "${line}p" ${TheCode} | grep "^<<shell>> ")
 					if [ ! -z "${ShellCode}" ]; then
-						echo ${ShellCode} | sed "s/^<<shell>> /\/\/<<shell>> /g"
+						echo ${ShellCode} | sed "s/^<<shell>> /#<<shell>> /g"
 						UsePython shell shell $(echo ${ShellCode} | sed "s/^<<shell>> //g")
 					fi
 					LastNum=${line}
@@ -200,7 +200,7 @@ UsePython()
 					fi
 					ShellCode=$(sed -n "${line}p" ${TheCode} | grep "^<<shell>> ")
 					if [ ! -z "${ShellCode}" ]; then
-						echo ${ShellCode} | sed "s/^<<shell>> /\/\/<<shell>> /g"
+						echo ${ShellCode} | sed "s/^<<shell>> /\#<<shell>> /g"
 						UsePython shell shell $(echo ${ShellCode} | sed "s/^<<shell>> //g")
 					else
 						sed -n "${line}p" ${TheCode}
