@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.1.42";
+String Version = "0.1.43";
 
 //layer 1 debugging
 bool Debug1 = false;
@@ -124,14 +124,14 @@ void Help(String Type)
 		print("(<type>)<name>");
 		print("");
 		Example("{template}vals [{t}-time]clock []-({t})time:[start]: []-el []-nl []-if:here +-[stop]: +-el []-nl []-[begin]: []-el []-nl []-if: +-[end]: +-el []-else +-[reset]: +-el []-for: o-[count]: o-el");
-		Example("{template}T [{t}-sum]Add:({t})a,({t})b []-()and:()a+b []-el []-()sum:()a+b []-el");
+		Example("{template}T [{t}-sum]Add:({t})a,({t})b []-(and):a+b []-el []-(sum):a+b []-el");
 	}
 	else if (Type == "method")
 	{
 		print("[<data>]<name>:<parameters>");
 		print("[<data>-<return>]<name>:<parameters>");
 		print("");
-		Example("[String-Type]FoodAndDrink:(String)Food []-if:Food(-ne)\"\" +->if:[IsDrink]:drink(-eq)true +-()Type=\"Drink\" +-el +->>if:[IsNotEmpty]:Food +-[Drink]:Food +-el +->>>if:mood(-ne)\"happy\" +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->>>>if:mood(-eq)\"unhappy\" +-[ChearUp]:mood +-el +-[print]:\"I(-spc)am(-spc)\"+mood +-el <<<<-+-[ImHappy]: <<<<-+-el <<<-+-[Refill]: <<<-+-el <<-+-[Complete]: <<-+-el <<-+-[NewLine]: <<-+-el +->else-if:[IsFood]:Food(-eq)true +-()Type=\"Food\" +-el +->>while:[IsNotEmpty]:Food o-[Eat]:Food o-el o->>if:mood(-ne)\"happy\" +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->>>do-while:mood(-eq)\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I(-spc)am(-spc)\"+mood o-el <<<<-+-[print]:\"I(-spc)am(-spc)\"+mood+\"(-spc)now\" <<<<-+-el +->else +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el []-else +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el []-nl []-[print]:\"It(-spc)works!!!\" []-el");
+		Example("[String-Type]FoodAndDrink:(String)Food []-if:Food(-ne)\"\" +->if:[IsDrink]:drink(-eq)true +-(Type):\"Drink\" +-el +->>if:[IsNotEmpty]:Food +-[Drink]:Food +-el +->>>if:mood(-ne)\"happy\" +-[print]:\"I am \"+mood +-el +->>>>if:mood(-eq)\"unhappy\" +-[ChearUp]:mood +-el +-[print]:\"I am \"+mood +-el <<<<-+-[ImHappy]: <<<<-+-el <<<-+-[Refill]: <<<-+-el <<-+-[Complete]: <<-+-el <<-+-[NewLine]: <<-+-el +->else-if:[IsFood]:Food(-eq)true +-(Type):\"Food\" +-el +->>while:[IsNotEmpty]:Food o-[Eat]:Food o-el o->>if:mood(-ne)\"happy\" +-[print]:\"I am \"+mood +-el +->>>do-while:mood(-eq)\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I am \"+mood o-el <<<<-+-[print]:\"I am \"+mood+\" now\" <<<<-+-el +->else +-(Type):\"Not Food or Drink\" +-el []-else +-(Type):\"Not Food or Drink\" +-el []-nl []-[print]:\"It works!!!\" []-el");
 		Example("[]clock []-(int)time:[start]: []-el []-nl []-if:here +-[stop]: +-el []-nl []-[begin]: []-el []-nl []-if: +-[end]: +-el []-else +-[reset]: +-el []-for: o-[count]: o-el");
 	}
 	else if (Type == "loop")
@@ -149,7 +149,7 @@ void Help(String Type)
 		Example("do-while:Type(-eq)\"String\" o-[work]: o-el");
 		Example("while:true >if:[IsString]:drink(-eq)true [drink]: el >>if:drink(-eq)\"coke\" >>else nl >else-if:[IsInt]:drink(-eq)false nl >else >>if: nl >>else nl");
 		Example("while:true >if:[IsString]:drink(-eq)true >>if:drink(-eq)\"coke\" >>else nl >else-if:[IsInt]:drink(-eq)false nl >else >>if: >>nl >>else nl");
-		Example("while:Food(-ne)\"\" o->if:[IsDrink]:drink(-eq)true +-()Type=\"Drink\" +-el +->>while:[IsNotEmpty]:Food o-[Drink]:Food o-el o->>>if:mood(-ne)\"happy\" +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->>>>do-while:mood(-eq)\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I(-spc)am(-spc)\"+mood o-el <<<<-+-[print]:\"I(-spc)am(-spc)\"+mood+\"(-spc)now\" <<<<-+-el o->else-if:[IsDrink]:drink(-eq)true +-()Type=\"Drink\" +-el +->>while:[IsNotEmpty]:Food o-[Drink]:Food o-el o->>>if:mood(-ne)\"happy\" +-[print]:\"I(-spc)am(-spc)\"+mood +-el +->>>>do-while:mood(-eq)\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I(-spc)am(-spc)\"+mood o-el <<<<-+-[print]:\"I(-spc)am(-spc)\"+mood+\"(-spc)now\" <<<<-+-el o->else +-(Type)=\"Not(-spc)Food(-spc)or(-spc)Drink\" +-el");
+		Example("while:Food(-ne)\"\" o->if:[IsDrink]:drink(-eq)true +-(Type):\"Drink\" +-el +->>while:[IsNotEmpty]:Food o-[Drink]:Food o-el o->>>if:mood(-ne)\"happy\" +-[print]:\"I am \"+mood +-el +->>>>do-while:mood(-eq)\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I am \"+mood o-el <<<<-+-[print]:\"I am \"+mood+\" now\" <<<<-+-el o->else-if:[IsDrink]:drink(-eq)true +-()Type=\"Drink\" +-el +->>while:[IsNotEmpty]:Food o-[Drink]:Food o-el o->>>if:mood(-ne)\"happy\" +-[print]:\"I am \"+mood +-el +->>>>do-while:mood(-eq)\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I am \"+mood o-el <<<<-+-[print]:\"I am \"+mood+\" now\" <<<<-+-el o->else +-(Type):\"Not Food or Drink\" +-el");
 	}
 	else if (Type == "logic")
 	{
@@ -162,17 +162,17 @@ void Help(String Type)
 		print("");
 		print("{EXAMPLE}");
 		print("");
-		Example("if:Type(-spc)==(-spc)\"String\"");
+		Example("if:Type(-eq)\"String\"");
 		Example("else-if:Type(-eq)\"String\"");
 		Example("else");
 		Example("if:true (String)drink:[Pop]:one,two el >if:[IsString]:drink(-eq)true [drink]: el >>if:drink(-eq)\"coke\" >>else nl >else-if:[IsInt]:drink(-eq)false nl >else >>if: nl >>else nl");
 		Example("if:true (String)drink:[Pop]:one,two el >if:[IsString]:drink(-eq)true >>if:drink(-eq)\"coke\" >>else nl >else-if:[IsInt]:drink(-eq)false nl >else >>if: nl >>else nl");
-		Example("if:Food(-ne)\"\" +->if:[IsDrink]:drink(-eq)true +-()Type=\"Drink\" +-el +->>if:[IsNotEmpty]:Food +-[Drink]:Food +-el +->>>if:mood(-ne)\"happy\" +-[print]:\"I am \"+mood +-el +->>>>if:mood(-eq)\"unhappy\" +-[ChearUp]:mood +-el +-[print]:\"I am \"+mood +-el <<<<-+-[ImHappy]: <<<<-+-el <<<-+-[Refill]: <<<-+-el <<-+-[Complete]: <<-+-el <<-+-[NewLine]: <<-+-el +->else-if:[IsFood]:Food(-eq)true +-()Type=\"Food\" +-el +->>while:[IsNotEmpty]:Food o-[Eat]:Food o-el o->>if:mood(-ne)\"happy\" +-[print]:\"I am \"+mood +-el +->>>do-while:mood(-eq)\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I am \"+mood o-el <<<<-+-[print]:\"I am \"+mood+\" now\" <<<<-+-el +->else +-(Type)=\"Not Food or Drink\" +-el");
+		Example("if:Food(-ne)\"\" +->if:[IsDrink]:drink(-eq)true +-(Type):\"Drink\" +-el +->>if:[IsNotEmpty]:Food +-[Drink]:Food +-el +->>>if:mood(-ne)\"happy\" +-[print]:\"I am \"+mood +-el +->>>>if:mood(-eq)\"unhappy\" +-[ChearUp]:mood +-el +-[print]:\"I am \"+mood +-el <<<<-+-[ImHappy]: <<<<-+-el <<<-+-[Refill]: <<<-+-el <<-+-[Complete]: <<-+-el <<-+-[NewLine]: <<-+-el +->else-if:[IsFood]:Food(-eq)true +-(Type):\"Food\" +-el +->>while:[IsNotEmpty]:Food o-[Eat]:Food o-el o->>if:mood(-ne)\"happy\" +-[print]:\"I am \"+mood +-el +->>>do-while:mood(-eq)\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I am \"+mood o-el <<<<-+-[print]:\"I am \"+mood+\" now\" <<<<-+-el +->else +-(Type):\"Not Food or Drink\" +-el");
 	}
 	else if (Type == "var")
 	{
-		Example("(std::string)name:()\"\" el (int)point:()0 el (std::string)james=\"James\" el (int)help el help=0");
-		Example("(std::string)name:()\"\" el (int)point:()0 el (std::string)james=\"James\" el (int)help el help=0");
+		Example("(Type):\"Not Food or Drink\" el");
+		Example("(std::string)name:\"\" el (int)point:0 el (std::string)james=\"James\" el (int)help el (help):0 el");
 		Example("(auto)drink:[Pop]:\"\" el");
 	}
 	else if (Type == "stmt")
@@ -588,21 +588,21 @@ String AlgoTags(String Algo)
 	{
 		ReturnKey = AfterSplit(Action,'(');
 		ReturnKey = BeforeSplit(ReturnKey,')');
-		ReturnValue = " ()- ()-";
+		ReturnValue = "--";
 		NewTags = "()"+ReturnKey+ReturnValue;
 	}
 	else if ((StartsWith(Algo,"decre(") && (IsIn(Algo,"):")) && (Args != "")))
 	{
 		ReturnKey = AfterSplit(Action,'(');
 		ReturnKey = BeforeSplit(ReturnKey,')');
-		ReturnValue = "(-spc) ()- (): ()"+Args;
+		ReturnValue = "(-scp) ()- ()= ()"+Args;
 		NewTags = "()"+ReturnKey+ReturnValue;
 	}
 	else if ((StartsWith(Algo,"incre(") && (IsIn(Algo,"):")) && (Args == "")))
 	{
 		ReturnKey = AfterSplit(Action,'(');
 		ReturnKey = BeforeSplit(ReturnKey,')');
-		ReturnValue = " ()+ ()+";
+		ReturnValue = "++";
 		NewTags = "()"+ReturnKey+ReturnValue;
 	}
 	else if ((StartsWith(Algo,"incre(") && (IsIn(Algo,"):")) && (Args != "")))
@@ -992,7 +992,8 @@ String TranslateTag(String Input)
 
 		if (Value != "")
 		{
-			if (StartsWith(Value,"\""))
+			//fix unknown values to statements
+			if ((!StartsWith(Value,"stmt:")) && (!StartsWith(Value,"[")))
 			{
 				Value = "stmt:"+Value;
 			}
@@ -3541,6 +3542,7 @@ void Example(String tag)
 //	print("Command: "+UserIn);
 	print("");
 	UserIn = GenCode("",UserIn);
+	UserIn = CharTranslate(UserIn);
 	print("\t{OUTPUT}");
 	print(UserIn);
 }
