@@ -6,7 +6,7 @@ static mut DEBUG_1: bool = false;
 static mut DEBUG_2: bool = false;
 static mut DEBUG_3: bool = false;
 
-const SHELL_VERSION: &str = "0.1.29";
+const SHELL_VERSION: &str = "0.1.30";
 
 fn get_os() -> String
 {
@@ -24,8 +24,18 @@ fn the_help(the_type: &str)
 
 	if new_the_type == "class"
 	{
+		println!("{{Purpose}}");
+		println!("This is the generate a class for Rust using nested elements");
+		println!("");
+		println!("{{Elements}}");
+		println!("{{class}}<name>:<param>\twhere \"<name>\" is the name of your class and <params> are the parameters for the class constructor");
+		println!("[]-<elements>\t\twhere, this called right after the class called, populates the class constructor");
+		println!("{{c}}-[]<name>:<params>\twhere \"<name>\" is the name of the class, for additional constructors");
+		println!("{{c}}-<element>\t\twhere \"<element>\" are to be called from class");
+		println!("");
 		println!("{{Usage}}");
-		println!("{{}}<name>:(<type>)<name> var(public/private):<vars> method:<name>-<type> param:<params>,<param>");
+		println!("{{class}}<name> {{c}}-<element>");
+		println!("{{class}}<name>:<params> []-<constructor> {{c}}-<element>");
 		println!("");
 		println!("{{EXAMPLE}}");
 		example("{class}clock []-equals(hr):0 []-equals(min):0 []-equals(date):\"00/00/0000\" []-[print]:\"ClockStarted\" []-el {c}-[]clock:(int)one,(int)two,(String)three []-equals(hr):one []-equals(min):two []-equals(date):three []-[print]:\"ClockStarted\" []-el {c}-var(protected):(bool)reset {c}-var(private):(int)hr {c}-var(private):(int)min {c}-var(private):(String)date {c}-nl {c}-[]Hr:(int)number []-equals((int)value):number []-if:number(-lt)25 +-equals(hr):Value {c}-nl {c}-[int-value]Hr: []-(int)value:()hr []-el {c}-nl {c}-[]Min:(int)number []-equals((int)value):number []-if:number(-lt)61 +-equals(min):Value {c}-nl {c}-[int-value]Min: []-equals((int)value):min {c}-nl {c}-[]Date:(String)TheDate []-equals((String)value):TheDate []-if:TheDate(-ne)\"0/0/0000\" +-equals(date):Value {c}-nl {c}-[String-value]Date: []-equals((String)value):date {c}-nl");
@@ -610,7 +620,7 @@ fn algo_tags(algo: &str) -> String
 				new_tags.push_str(&data_type);
 				new_tags.push_str(")");
 				new_tags.push_str(&return_key);
-				new_tags.push_str(":()");
+				new_tags.push_str(":");
 				new_tags.push_str(&return_value);
 			}
 		}
@@ -629,7 +639,7 @@ fn algo_tags(algo: &str) -> String
 			{
 				new_tags.push_str("()");
 				new_tags.push_str(&return_key);
-				new_tags.push_str(":()");
+				new_tags.push_str(":");
 				new_tags.push_str(&args);
 			}
 		}
@@ -1507,7 +1517,8 @@ fn gen_parameters(input: &str, called_by: &str) -> String
 		if starts_with(&the_params,"(") && is_in(&the_params,")") && is_in(&the_params,",")
 		{
 			//param
-			name = handle_names(&before_split(&the_params,","));
+//			name = handle_names(&before_split(&the_params,","));
+			name = before_split(&the_params,",");
 			let mut more = after_split(&the_params,",");
 			let mut the_type = before_split(&name,")");
 
@@ -1521,7 +1532,7 @@ fn gen_parameters(input: &str, called_by: &str) -> String
 			more = gen_parameters(&more_params.to_string(), &called_by);
 
 			//param: type, param: type, param: type
-			new_params.push_str(&name);
+			new_params.push_str(&handle_names(&name));
 			new_params.push_str(": ");
 //			new_params.push_str(&the_type);
 			new_params.push_str(&borrow_value(&the_type, &[called_by,"-params"].concat()));
@@ -1531,13 +1542,14 @@ fn gen_parameters(input: &str, called_by: &str) -> String
 		//param-type
 		else if starts_with(&the_params,"(") && is_in(&the_params,")")
 		{
-			name = handle_names(&after_split(&the_params,")"));
+//			name = handle_names(&after_split(&the_params,")"));
+			name = after_split(&the_params,")");
 			let mut the_type = before_split(&the_params,")");
 			the_type = after_split(&the_type,"(");
 			the_type = data_type(&the_type, false);
 
 			//param: type
-			new_params.push_str(&name);
+			new_params.push_str(&handle_names(&name));
 			new_params.push_str(": ");
 //			new_params.push_str(&the_type);
 			new_params.push_str(&borrow_value(&the_type, &[called_by,"-params"].concat()));
@@ -3442,8 +3454,10 @@ fn gen_statements(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Str
 
 	if !starts_with(&new_kind, "\"") && is_in(&new_kind,"-")
 	{
-		the_name = handle_names(&before_split(&new_kind,"-"));
-		name = handle_names(&after_split(&new_kind,"-"));
+//		the_name = handle_names(&before_split(&new_kind,"-"));
+		the_name = before_split(&new_kind,"-");
+//		name = handle_names(&after_split(&new_kind,"-"));
+		name = after_split(&new_kind,"-");
 	}
 	else
 	{
@@ -3545,7 +3559,8 @@ fn gen_statements(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Str
 	}
 	else if the_name == "method"
 	{
-		the_complete.push_str(&name);
+//		the_complete.push_str(&name);
+		the_complete.push_str(&handle_names(&name));
 		the_complete.push_str("(");
 		the_complete.push_str(&the_params);
 		the_complete.push_str(")");

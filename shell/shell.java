@@ -12,7 +12,7 @@ import java.io.IOException;
 
 //class name
 public class shell {
-	private static String Version = "0.1.26";
+	private static String Version = "0.1.27";
 
 	//layer 1 debugging
 	private static boolean Debug1 = false;
@@ -35,19 +35,29 @@ public class shell {
 		Type = AfterSplit(Type,":");
 		if (Type.equals("class"))
 		{
-			print("{Usage}");
-			print("{}<name>:(<type>)<name> var(public/private):<vars> method:<name>-<type> param:<params>,<param>");
+			print("{Purpose}");
+			print("This is the generate a class for Java using nested elements");
 			print("");
+			print("{Elements}");
+			print("{class}<name>:<param>\twhere \"<name>\" is the name of your class and <params> are the parameters for the class constructor");
+			print("[]-<elements>\t\twhere, this called right after the class called, populates the class constructor");
+			print("{c}-[]<name>:<params>\twhere \"<name>\" is the name of the class, for additional constructors");
+			print("{c}-<element>\t\twhere \"<element>\" are to be called from class");
+			print("");
+			print("{Usage}");
+			print("{class}<name> {c}-<element>");
+			print("{class}<name>:<params> []-<constructor> {c}-<element>");
+			print("");
+
 			print("{EXAMPLE}");
 			Example("{class}clock []-equals(hr):0 []-equals(min):0 []-equals(date):\"00/00/0000\" []-[print]:\"ClockStarted\" []-el {c}-[]clock:(int)one,(int)two,(String)three []-equals(hr):one []-equals(min):two []-equals(date):three []-[print]:\"ClockStarted\" []-el {c}-var(protected):(bool)reset {c}-var(private):(int)hr {c}-var(private):(int)min {c}-var(private):(String)date {c}-nl {c}-[]Hr:(int)number []-equals((int)value):number []-if:number(-lt)25 +-equals(hr):Value {c}-nl {c}-[int-value]Hr: []-(int)value:()hr []-el {c}-nl {c}-[]Min:(int)number []-equals((int)value):number []-if:number(-lt)61 +-equals(min):Value {c}-nl {c}-[int-value]Min: []-equals((int)value):min {c}-nl {c}-[]Date:(String)TheDate []-equals((String)value):TheDate []-if:TheDate(-ne)\"0/0/0000\" +-equals(date):Value {c}-nl {c}-[String-value]Date: []-equals((String)value):date {c}-nl");
 		}
-/*
 		else if (Type.equals("struct"))
 		{
-			print("(<type>)<name>");
-			print("");
+//			print("(<type>)<name>");
+//			print("");
+			print("Struct is not made just yet");
 		}
-*/
 		else if (Type.equals("method"))
 		{
 			print("[<data>]<name>:<parameters>");
@@ -692,7 +702,7 @@ public class shell {
 					NewTags.append(DataType);
 					NewTags.append(")");
 					NewTags.append(ReturnKey);
-					NewTags.append(":()");
+					NewTags.append(":");
 					NewTags.append(ReturnValue);
 				}
 			}
@@ -711,7 +721,7 @@ public class shell {
 				{
 					NewTags.append("()");
 					NewTags.append(ReturnKey);
-					NewTags.append(":()");
+					NewTags.append(":");
 					NewTags.append(ReturnValue);
 				}
 			}

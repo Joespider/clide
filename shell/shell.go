@@ -9,7 +9,7 @@ import (
 	"strings"
 	)
 
-var Version string = "0.1.29"
+var Version string = "0.1.30"
 var Debug1 bool = false
 var Debug2 bool = false
 var Debug3 bool = false
@@ -31,8 +31,18 @@ func getOS() string {
 func help(Type string) {
 	Type = AfterSplit(Type,":")
 	if Type == "class" {
+		fmt.Print("{Purpose}")
+		fmt.Println("This is the generate a class for Go using nested elements")
+		fmt.Println("")
+		fmt.Println("{Elements}")
+		fmt.Println("{class}<name>:<param>\twhere \"<name>\" is the name of your class and <params> are the parameters for the class constructor")
+		fmt.Println("[]-<elements>\t\twhere, this called right after the class called, populates the class constructor")
+		fmt.Println("{c}-[]<name>:<params>\twhere \"<name>\" is the name of the class, for additional constructors")
+		fmt.Println("{c}-<element>\t\twhere \"<element>\" are to be called from class")
+		fmt.Println("")
 		fmt.Println("{Usage}")
-		fmt.Println("{}<name>:(<type>)<name> var(public/private):<vars> method:<name>-<type> param:<params>,<param>")
+		fmt.Println("{class}<name> {c}-<element>")
+		fmt.Println("{class}<name>:<params> []-<constructor> {c}-<element>")
 		fmt.Println("")
 		fmt.Println("{EXAMPLE}")
 		Example("{class}clock []-equals(hr):0 []-equals(min):0 []-equals(date):\"00/00/0000\" []-[print]:\"ClockStarted\" []-el {c}-[]clock:(int)one,(int)two,(String)three []-equals(hr):one []-equals(min):two []-equals(date):three []-[print]:\"ClockStarted\" []-el {c}-var(protected):(bool)reset {c}-var(private):(int)hr {c}-var(private):(int)min {c}-var(private):(String)date {c}-nl {c}-[]Hr:(int)number []-equals((int)value):number []-if:number(-lt)25 +-equals(hr):Value {c}-nl {c}-[int-value]Hr: []-(int)value:()hr []-el {c}-nl {c}-[]Min:(int)number []-equals((int)value):number []-if:number(-lt)61 +-equals(min):Value {c}-nl {c}-[int-value]Min: []-equals((int)value):min {c}-nl {c}-[]Date:(String)TheDate []-equals((String)value):TheDate []-if:TheDate(-ne)\"0/0/0000\" +-equals(date):Value {c}-nl {c}-[String-value]Date: []-equals((String)value):date {c}-nl")
@@ -389,7 +399,7 @@ func AlgoTags(Algo string) string {
 			if IsCallMethod == true {
 				NewTags = "("+DataType+")"+ReturnKey+":"+ReturnValue
 			} else {
-				NewTags = "("+DataType+")"+ReturnKey+":()"+ReturnValue
+				NewTags = "("+DataType+")"+ReturnKey+":"+ReturnValue
 			}
 		} else {
 			ReturnKey = AfterSplit(Action,"(")
@@ -397,7 +407,7 @@ func AlgoTags(Algo string) string {
 			if IsCallMethod == true {
 				NewTags = "()"+ReturnKey+":"+ReturnValue
 			} else {
-				NewTags = "()"+ReturnKey+":()"+ReturnValue
+				NewTags = "()"+ReturnKey+":"+ReturnValue
 			}
 		}
 	} else if Algo == "concat():" || Algo == "decre():" || Algo == "incre():" || Algo == "equals():" {
