@@ -12,7 +12,7 @@ import java.io.IOException;
 
 //class name
 public class shell {
-	private static String Version = "0.1.27";
+	private static String Version = "0.1.28";
 
 	//layer 1 debugging
 	private static boolean Debug1 = false;
@@ -358,7 +358,7 @@ public class shell {
 
 		for (char c : Input.toCharArray())
 		{
-			if (c ==  checkCharacter)
+			if (c == checkCharacter)
 			{
 				count++;
 			}
@@ -746,7 +746,36 @@ public class shell {
 		return NewTags.toString();
 	}
 
-	public static String CharTranslate(String Message)
+	public static String CharTranslateFrom(String Message)
+	{
+		if (IsIn(Message,"==\""))
+		{
+			Message = replaceAll(Message, ".equals\\(\"","(-eq)\"");
+		}
+		else if (IsIn(Message,"=="))
+		{
+			Message = replaceAll(Message, "==","(-eq)");
+		}
+
+		if (IsIn(Message,"<="))
+		{
+			Message = replaceAll(Message, "<=","(-le)");
+		}
+
+		if (IsIn(Message,"<"))
+		{
+			Message = replaceAll(Message, "<","(-lt)");
+		}
+
+		if (IsIn(Message,"!="))
+		{
+			Message = replaceAll(Message, "!=","(-ne)");
+		}
+
+		return Message;
+	}
+
+	public static String CharTranslateTo(String Message)
 	{
 		if (IsIn(Message,"(-eq)\""))
 		{
@@ -937,6 +966,9 @@ public class shell {
 			Value = AfterSplit(Action,":");
 			Action = BeforeSplit(Action,":");
 			NewTag = "logic:"+Action;
+
+			Value = CharTranslateFrom(Value);
+
 			Value = "logic-condition:"+Value;
 
 			TheReturn.append(Parent);
@@ -951,6 +983,9 @@ public class shell {
 			Value = AfterSplit(Action,":");
 			Action = BeforeSplit(Action,":");
 			NewTag = "logic:"+Action;
+
+			Value = CharTranslateFrom(Value);
+
 			Value = "logic-condition:"+Value;
 			Nest.append("nest-");
 
@@ -976,6 +1011,9 @@ public class shell {
 			Value = AfterSplit(Action,":");
 			Action = BeforeSplit(Action,":");
 			NewTag = "loop:"+Action;
+
+			Value = CharTranslateFrom(Value);
+
 			Value = "loop-condition:"+Value;
 
 			TheReturn.append(Parent);
@@ -1448,7 +1486,7 @@ public class shell {
 		}
 
 		String Condit = AfterSplit(input,":");
-		Condit = CharTranslate(Condit);
+		Condit = CharTranslateTo(Condit);
 
 		if (IsIn(Condit," "))
 		{
@@ -1865,7 +1903,7 @@ public class shell {
 				{
 					Process = Content;
 				}
-				Params =  Parameters(Process,"method");
+				Params = Parameters(Process,"method");
 			}
 			//ignore content if calling a "method" or a "class"
 			else if ((StartsWith(Content, "method:")) || (StartsWith(Content, "class:")))
@@ -3852,7 +3890,7 @@ public class shell {
 //		print("Command: "+UserIn);
 		print("");
 		Result = GenCode("",UserIn.toString());
-		Result = CharTranslate(Result);
+		Result = CharTranslateTo(Result);
 		print("\t{OUTPUT}");
 		print(Result);
 	}
@@ -4168,7 +4206,7 @@ public class shell {
 				Content = GenCode("",UserIn);
 				if (!Content.equals(""))
 				{
-					Content = CharTranslate(Content);
+					Content = CharTranslateTo(Content);
 					print(Content);
 				}
 			}

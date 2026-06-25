@@ -2,7 +2,7 @@ import os
 import sys
 import platform
 
-Version = "0.1.26"
+Version = "0.1.27"
 
 Debug1 = False
 Debug2 = False
@@ -337,25 +337,36 @@ def AlgoTags(Algo):
 
 	return NewTags
 
-def CharTranslate(Message):
+def CharTranslateFrom(Message):
+	if IsIn(Message,"=="):
+		Message = replaceAll(Message, "==","(-eq)")
+	if IsIn(Message,"<="):
+		Message = replaceAll(Message, "<=","(-le)")
+	if IsIn(Message,"<"):
+		Message = replaceAll(Message, "<","(-lt)")
+	if IsIn(Message,">="):
+		Message = replaceAll(Message, ">=","(-ge)")
+	if IsIn(Message,">"):
+		Message = replaceAll(Message, ">","(-gt)")
+	if IsIn(Message,"!="):
+		Message = replaceAll(Message,"!=","(-ne)")
+	return Message
+
+def CharTranslateTo(Message):
 	if IsIn(Message,"(-eq)"):
 		Message = replaceAll(Message, "(-eq)"," == ")
-
 	if IsIn(Message,"(-le)"):
 		Message = replaceAll(Message, "(-le)"," <= ")
-
 	if IsIn(Message,"(-lt)"):
 		Message = replaceAll(Message, "(-lt)"," < ")
-
+	if IsIn(Message,"(-ge)"):
+		Message = replaceAll(Message, "(-ge)"," >= ")
+	if IsIn(Message,"(-gt)"):
+		Message = replaceAll(Message, "(-gt)"," > ")
 	if IsIn(Message,"(-ne)"):
 		Message = replaceAll(Message, "(-ne)"," != ")
-
 	if IsIn(Message,"(-spc)"):
 		Message = replaceAll(Message, "(-spc)"," ")
-
-	if IsIn(Message,"(-spc)"):
-		Message = replaceAll(Message, "(-spc)"," ")
-
 	return Message
 
 def TranslateTag(Input):
@@ -450,6 +461,7 @@ def TranslateTag(Input):
 		Value = AfterSplit(Action,":")
 		Action = BeforeSplit(Action,":")
 		NewTag = "logic:"+Action
+		Value = CharTranslateFrom(Value)
 		Value = "logic-condition:"+Value
 		TheReturn = Parent+ContentFor+Nest+NewTag+" "+Value
 	elif StartsWith(Action, "case:"):
@@ -457,6 +469,7 @@ def TranslateTag(Input):
 		Action = BeforeSplit(Action,":")
 		Nest = "nest-"+Nest
 		NewTag = "logic:"+Action
+		Value = CharTranslateFrom(Value)
 		Value = "logic-condition:"+Value
 		TheReturn = Parent+ContentFor+Nest+NewTag+" "+Value
 	#convert else to the old tags
@@ -468,6 +481,7 @@ def TranslateTag(Input):
 		Value = AfterSplit(Action,":")
 		Action = BeforeSplit(Action,":")
 		NewTag = "loop:"+Action
+		Value = CharTranslateFrom(Value)
 		Value = "loop-condition:"+Value
 		TheReturn = Parent+ContentFor+Nest+NewTag+" "+Value
 	#convert try and finally to the old tags
@@ -691,7 +705,7 @@ def Conditions(input):
 
 	Condit = AfterSplit(input,":")
 
-	Condit = CharTranslate(Condit)
+	Condit = CharTranslateTo(Condit)
 
 	if IsIn(Condit," "):
 		Conditions = split(Condit," ")
@@ -2069,7 +2083,7 @@ def Example(tag):
 #	print("Command: "+UserIn)
 	print("");
 	UserIn = GenCode("",UserIn)
-	UserIn = CharTranslate(UserIn)
+	UserIn = CharTranslateTo(UserIn)
 	print("\t{OUTPUT}")
 	print(UserIn)
 
@@ -2218,7 +2232,7 @@ def Main():
 		else:
 			Content = GenCode("",UserIn)
 			if Content != "":
-				Content = CharTranslate(Content)
+				Content = CharTranslateTo(Content)
 				print(Content)
 
 		#Args were given

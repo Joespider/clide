@@ -51,7 +51,8 @@ String replaceAll(String message, String sBy, String jBy);
 void banner();
 String VectAndArray(String Name, String DataType, String VectorOrArray, String Action, String TheValue);
 String AlgoTags(String Algo);
-String CharTranslate(String Message);
+String CharTranslateFrom(String Message);
+String CharTranslateTo(String Message);
 String TranslateTag(String Input);
 String HandleTabs(String CalledBy, String Tabs, String Content);
 bool IsDataType(String Type);
@@ -671,7 +672,42 @@ String AlgoTags(String Algo)
 	return NewTags;
 }
 
-String CharTranslate(String Message)
+String CharTranslateFrom(String Message)
+{
+	if (IsIn(Message,"=="))
+	{
+		Message = replaceAll(Message, "==","(-eq)");
+	}
+
+	if (IsIn(Message,"<="))
+	{
+		Message = replaceAll(Message, "<=","(-le)");
+	}
+
+	if (IsIn(Message,"<"))
+	{
+		Message = replaceAll(Message, "<","(-lt)");
+	}
+
+	if (IsIn(Message,">="))
+	{
+		Message = replaceAll(Message, ">=","(-ge)");
+	}
+
+	if (IsIn(Message,">"))
+	{
+		Message = replaceAll(Message, ">","(-gt)");
+	}
+
+	if (IsIn(Message,"!="))
+	{
+		Message = replaceAll(Message,"!=","(-ne)");
+	}
+
+	return Message;
+}
+
+String CharTranslateTo(String Message)
 {
 	if (IsIn(Message,"(-eq)"))
 	{
@@ -707,6 +743,7 @@ String CharTranslate(String Message)
 	{
 		Message = replaceAll(Message, "(-spc)"," ");
 	}
+
 	return Message;
 }
 
@@ -848,6 +885,10 @@ String TranslateTag(String Input)
 		Value = AfterSplit(Action,':');
 		Action = BeforeSplit(Action,':');
 		NewTag = "logic:"+Action;
+
+		//translate normal conditional chars to be translated later
+		Value = CharTranslateFrom(Value);
+
 		Value = "logic-condition:"+Value;
 		TheReturn = Parent+ContentFor+Nest+NewTag+" "+Value;
 	}
@@ -857,6 +898,10 @@ String TranslateTag(String Input)
 		Action = BeforeSplit(Action,':');
 		Nest = "nest-"+Nest;
 		NewTag = "logic:"+Action;
+
+		//translate normal conditional chars to be translated later
+		Value = CharTranslateFrom(Value);
+
 		Value = "logic-condition:"+Value;
 		TheReturn = Parent+ContentFor+Nest+NewTag+" "+Value;
 	}
@@ -872,6 +917,10 @@ String TranslateTag(String Input)
 		Value = AfterSplit(Action,':');
 		Action = BeforeSplit(Action,':');
 		NewTag = "loop:"+Action;
+
+		//translate normal conditional chars to be translated later
+		Value = CharTranslateFrom(Value);
+
 		Value = "loop-condition:"+Value;
 		TheReturn = Parent+ContentFor+Nest+NewTag+" "+Value;
 	}
@@ -1267,7 +1316,7 @@ String Conditions(String input)
 
 	String Condit = AfterSplit(input,':');
 
-	Condit = CharTranslate(Condit);
+	Condit = CharTranslateTo(Condit);
 
 	if (IsIn(Condit," "))
 	{
@@ -3542,7 +3591,7 @@ void Example(String tag)
 //	print("Command: "+UserIn);
 	print("");
 	UserIn = GenCode("",UserIn);
-	UserIn = CharTranslate(UserIn);
+	UserIn = CharTranslateTo(UserIn);
 	print("\t{OUTPUT}");
 	print(UserIn);
 }
@@ -3774,7 +3823,7 @@ int main(int argc, char** argv)
 			Content = GenCode("",UserIn);
 			if (Content != "")
 			{
-				Content = CharTranslate(Content);
+				Content = CharTranslateTo(Content);
 				print(Content);
 			}
 		}

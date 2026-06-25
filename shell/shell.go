@@ -9,7 +9,7 @@ import (
 	"strings"
 	)
 
-var Version string = "0.1.30"
+var Version string = "0.1.31"
 var Debug1 bool = false
 var Debug2 bool = false
 var Debug3 bool = false
@@ -209,7 +209,7 @@ func QuoteCount(Input string) int {
 
 func BeforeSplit(Str string, splitAt string) string {
 	if strings.Contains(Str,splitAt) {
-		var result []string  = strings.SplitAfterN(Str, splitAt,2)
+		var result []string = strings.SplitAfterN(Str, splitAt,2)
 		var newResult string = result[0]
 		newResult = newResult[:len(newResult)-1]
 		return newResult
@@ -220,7 +220,7 @@ func BeforeSplit(Str string, splitAt string) string {
 
 func AfterSplit(Str string, splitAt string) string {
 	if strings.Contains(Str,splitAt) {
-		var result []string  = strings.SplitAfterN(Str, splitAt,2)
+		var result []string = strings.SplitAfterN(Str, splitAt,2)
 		return result[1]
 	} else {
 		return ""
@@ -423,7 +423,35 @@ func AlgoTags(Algo string) string {
 	return NewTags
 }
 
-func CharTranslate(Message string) string {
+func CharTranslateFrom(Message string) string {
+	if IsIn(Message,"==") {
+		Message = replaceAll(Message, "==","(-eq)");
+	}
+
+	if IsIn(Message,"<=") {
+		Message = replaceAll(Message, "<=","(-le)")
+	}
+
+	if IsIn(Message,"<") {
+		Message = replaceAll(Message, "<","(-lt)")
+	}
+
+	if IsIn(Message,">=") {
+		Message = replaceAll(Message, ">=","(-ge)")
+	}
+
+	if IsIn(Message,">") {
+		Message = replaceAll(Message, ">","(-gt)")
+	}
+
+	if IsIn(Message,"!=") {
+		Message = replaceAll(Message,"!=","(-ne)")
+	}
+
+	return Message
+}
+
+func CharTranslateTo(Message string) string {
 	if IsIn(Message,"(-eq)") {
 		Message = replaceAll(Message, "(-eq)"," == ")
 	}
@@ -583,12 +611,20 @@ func TranslateTag(Input string) string {
 		Value = AfterSplit(Action,":")
 		Action = BeforeSplit(Action,":")
 		NewTag = "logic:"+Action
+
+		//translate normal conditional chars to be translated later
+		Value = CharTranslateFrom(Value)
+
 		Value = "logic-condition:"+Value
 		TheReturn = Parent+ContentFor+Nest+NewTag+" "+Value
 	} else if StartsWith(Action, "case:") {
 		Value = AfterSplit(Action,":")
 		Action = BeforeSplit(Action,":")
 		Nest = "nest-"+Nest
+
+		//translate normal conditional chars to be translated later
+		Value = CharTranslateFrom(Value)
+
 		NewTag = "logic:"+Action
 		Value = "logic-condition:"+Value
 		TheReturn = Parent+ContentFor+Nest+NewTag+" "+Value
@@ -601,6 +637,10 @@ func TranslateTag(Input string) string {
 		Value = AfterSplit(Action,":")
 		Action = BeforeSplit(Action,":")
 		NewTag = "loop:"+Action
+
+		//translate normal conditional chars to be translated later
+		Value = CharTranslateFrom(Value)
+
 		Value = "loop-condition:"+Value
 		TheReturn = Parent+ContentFor+Nest+NewTag+" "+Value
 	//convert try and finally to the old tags
@@ -832,12 +872,12 @@ func DataType(Type string, getNull bool) string {
 	//handle strings
 	if (Type == "String" || Type == "string" || Type == "std::string") && getNull == false {
 		return "string"
-        } else if (Type == "String" || Type == "string" || Type == "std::string") && getNull == true {
+	} else if (Type == "String" || Type == "string" || Type == "std::string") && getNull == true {
 		return "\"\""
 	//handle auto
-        } else if (Type == "auto" || Type == "Object") && getNull == false {
+	} else if (Type == "auto" || Type == "Object") && getNull == false {
 		return "auto"
-        } else if (Type == "auto" || Type == "Object") && getNull == true {
+	} else if (Type == "auto" || Type == "Object") && getNull == true {
 		return ""
 	//handle int
 	} else if (Type == "i32" || Type == "int") && getNull == false {
@@ -872,13 +912,13 @@ func Conditions(input string) string {
 
 	var Condit string = AfterSplit(input,":")
 
-	Condit = CharTranslate(Condit)
+	Condit = CharTranslateTo(Condit)
 
 	if IsIn(Condit," ") {
 		var Conditions []string = split(Condit," ")
-                var lp int = 0
-                var end int = len(Conditions)
-                var Keep string = ""
+		var lp int = 0
+		var end int = len(Conditions)
+		var Keep string = ""
 		for lp != end {
 			Conditions[lp] = TranslateTag(Conditions[lp])
 			Keep = Conditions[lp]
@@ -909,7 +949,7 @@ func Conditions(input string) string {
 		Condit = replaceAll(Condit, "(-or)"," || ")
 	}
 
-        if IsIn(Condit,"(-and)") {
+	if IsIn(Condit,"(-and)") {
 		Condit = replaceAll(Condit, "(-and)"," && ")
 	}
 /*
@@ -1265,21 +1305,21 @@ func Class(TheName string, Content string) string {
 func Method(Tabs string, Name string, Content string) string {
 	var TagName string = "method"
 	var Last bool = false
-        var CanSplit bool = true
+	var CanSplit bool = true
 	var AssignDefault bool = false
 	var PartOfStruct bool = false
-        var ReturnVar string = "TheReturn"
-        var DefaultValue string = ""
-        var Complete string = ""
-        Name = AfterSplit(Name,":")
-        var TheName string = ""
+	var ReturnVar string = "TheReturn"
+	var DefaultValue string = ""
+	var Complete string = ""
+	Name = AfterSplit(Name,":")
+	var TheName string = ""
 	var OldType string = "";
-        var Type string = ""
-        var Params string = ""
-        var MethodContent string = ""
-        var OtherContent string = ""
-        var NewContent string = ""
-        var Process string = ""
+	var Type string = ""
+	var Params string = ""
+	var MethodContent string = ""
+	var OtherContent string = ""
+	var NewContent string = ""
+	var Process string = ""
 	var AutoTabs string = ""
 	var StructName string = ""
 	var Struct string = ""
@@ -1333,7 +1373,7 @@ func Method(Tabs string, Name string, Content string) string {
 			} else {
 				Process = Content
 			}
-			Params =  Parameters(Process,"method")
+			Params = Parameters(Process,"method")
 
 		//ignore content if calling a "method" or a "class"
 		} else if StartsWith(Content, "method:") || StartsWith(Content, "class:") {
@@ -1535,7 +1575,7 @@ func Method(Tabs string, Name string, Content string) string {
 				Complete = Tabs+"funct New"+"("+Params+") "+StructName+" {\n"+MethodContent+"\n"+Tabs+"}\n"
 			}
 		} else {
-	                if DefaultValue == "" {
+			if DefaultValue == "" {
 				if AssignDefault == true {
 					Complete = Tabs+"func "+Struct+TheName+"("+Params+") "+Type+" {\n"+MethodContent+"\n"+Tabs+"\treturn "+ReturnVar+"\n"+Tabs+"}\n"
 				} else {
@@ -1909,18 +1949,18 @@ func HandleElse(LogicContent string, Content string) string {
 func Logic(Tabs string, TheKindType string, Content string) string {
 	var TagName string = "logic"
 	var Last bool = false
-        var Complete string = ""
-        var RootTag string = ""
-        var TheCondition string = ""
-        var LogicContent string = ""
-        var NewContent string = ""
-        var OtherContent string = ""
+	var Complete string = ""
+	var RootTag string = ""
+	var TheCondition string = ""
+	var LogicContent string = ""
+	var NewContent string = ""
+	var OtherContent string = ""
 	var ParentContent string = ""
 	var AutoTabs string = ""
 
-        if StartsWith(TheKindType, "logic:") {
+	if StartsWith(TheKindType, "logic:") {
 		TheKindType = AfterSplit(TheKindType,":")
-        }
+	}
 
 	//layer 1 debugging
 	if Debug1 {
@@ -1928,7 +1968,7 @@ func Logic(Tabs string, TheKindType string, Content string) string {
 		fmt.Println(TagName+"[Content]:> "+Content)
 	}
 
-        for Content != "" {
+	for Content != "" {
 		Content = ReplaceTag(Content, "logic-",false)
 //		Content = ReplaceTag(Content, "logic-",true)
 
@@ -1938,26 +1978,26 @@ func Logic(Tabs string, TheKindType string, Content string) string {
 				Content = AfterSplit(Content," ")
 				//Content = ReplaceTag(Content, "logic-",false)
 			} else {
-                                TheCondition = Content
-                        }
-                        TheCondition = Conditions(TheCondition)
+				TheCondition = Content
+			}
+			TheCondition = Conditions(TheCondition)
 		}
 
-                //This part of the code is meant to separate the nested content with the current content
-                if !StartsWith(Content, "nest-") && IsIn(Content," nest-") {
+		//This part of the code is meant to separate the nested content with the current content
+		if !StartsWith(Content, "nest-") && IsIn(Content," nest-") {
 			var all []string = split(Content," nest-")
-                        var end int = len(all)
-                        var lp int = 0
-                        for lp != end {
-                                if lp == 0 {
-                                        OtherContent = all[lp]
-                                } else if lp == 1 {
-                                        NewContent = "nest-"+all[lp]
-                                } else {
-                                        NewContent = NewContent + " nest-"+all[lp]
-                                }
-                                lp++
-                        }
+			var end int = len(all)
+			var lp int = 0
+			for lp != end {
+				if lp == 0 {
+					OtherContent = all[lp]
+				} else if lp == 1 {
+					NewContent = "nest-"+all[lp]
+				} else {
+					NewContent = NewContent + " nest-"+all[lp]
+				}
+				lp++
+			}
 
 			AutoTabs = HandleTabs("logic",Tabs+"\t",OtherContent)
 			if AutoTabs != "" {
@@ -2032,14 +2072,14 @@ func Logic(Tabs string, TheKindType string, Content string) string {
 					if (IsIn(cmds[lp],"stmt:") || IsIn(cmds[lp],"var:") || IsIn(cmds[lp],"params:")) && NewContent == "" {
 						if OtherContent == "" {
 							OtherContent = cmds[lp]
-                                                } else {
+						} else {
 							OtherContent = OtherContent+" "+cmds[lp]
 						}
 					//build the rest of the content
 					} else {
 						if NewContent == "" {
-                                                        NewContent = cmds[lp]
-                                                } else {
+							NewContent = cmds[lp]
+						} else {
 							NewContent = NewContent+" "+cmds[lp]
 						}
 					}
@@ -2107,29 +2147,29 @@ func Logic(Tabs string, TheKindType string, Content string) string {
 			//just process as is
 			} else {
 				if IsIn(OtherContent," parent-") {
-                                        //examine each tag
+					//examine each tag
 					var parent []string = split(OtherContent," parent-")
-                                        OtherContent = ""
-                                        var pEnd int = len(parent)
-                                        var pLp int = 0
-                                        for pLp != pEnd {
-                                                if ((pLp == 0) || (StartsWith(parent[pLp],"<-")) || (StartsWith(parent[pLp],"<<"))) {
-                                                        if (OtherContent == "") {
+					OtherContent = ""
+					var pEnd int = len(parent)
+					var pLp int = 0
+					for pLp != pEnd {
+						if ((pLp == 0) || (StartsWith(parent[pLp],"<-")) || (StartsWith(parent[pLp],"<<"))) {
+							if (OtherContent == "") {
 								OtherContent = parent[pLp]
 							} else {
 								OtherContent = OtherContent + " " + TranslateTag(parent[pLp])
 							}
 						} else {
-                                                        if ParentContent == "" {
-                                                                ParentContent = TranslateTag(parent[pLp])
-                                                        } else {
-                                                                ParentContent = ParentContent + " " + TranslateTag(parent[pLp])
-                                                        }
-                                                }
-                                                pLp++
-                                        }
-                                        ParentContent = ReplaceTag(ParentContent, "logic-",false)
-                                }
+							if ParentContent == "" {
+								ParentContent = TranslateTag(parent[pLp])
+							} else {
+								ParentContent = ParentContent + " " + TranslateTag(parent[pLp])
+							}
+						}
+						pLp++
+					}
+					ParentContent = ReplaceTag(ParentContent, "logic-",false)
+				}
 
 				AutoTabs = HandleTabs("logic",Tabs+"\t",OtherContent)
 				if AutoTabs != "" {
@@ -2151,9 +2191,9 @@ func Logic(Tabs string, TheKindType string, Content string) string {
 				}
 
 				LogicContent = HandleElse(LogicContent, ParentContent)
-                                LogicContent = LogicContent + GenCode(Tabs+"\t",ParentContent)
-                                ParentContent = ""
-                        }
+				LogicContent = LogicContent + GenCode(Tabs+"\t",ParentContent)
+				ParentContent = ""
+			}
 
 
 			//clear new content
@@ -2312,9 +2352,9 @@ func Statements(Tabs string, TheKindType string, Content string) string {
 	for Content != "" {
 		//This handles the parameters of the statements
 		if StartsWith(Content, "params:") && Params == "" {
-                        if IsIn(Content," ") {
+			if IsIn(Content," ") {
 				Process = BeforeSplit(Content," ")
-                        } else {
+			} else {
 				Process = Content
 			}
 			Params = Parameters(Process,"stmt")
@@ -2328,14 +2368,14 @@ func Statements(Tabs string, TheKindType string, Content string) string {
 			break
 		}
 
-                for StartsWith(Content, "nest-") {
+		for StartsWith(Content, "nest-") {
 			Content = AfterSplit(Content,"-")
 		}
 
 		if !IsIn(Content," ") {
 			StatementContent = StatementContent + GenCode(Tabs,Content)
 			Last = true
-                } else {
+		} else {
 			OtherContent = BeforeSplit(Content," ")
 			Content = AfterSplit(Content," ")
 			if StartsWith(Content, "params:") {
@@ -2441,13 +2481,13 @@ func Variables(Tabs string, TheKindType string, Content string) string {
 		fmt.Println(TagName+"[Content]:> "+Content)
 	}
 
-        for Content != "" {
+	for Content != "" {
 		//All params are removed
 		if Last {
 			break
 		}
 
-                for StartsWith(Content, "nest-") {
+		for StartsWith(Content, "nest-") {
 			Content = AfterSplit(Content,"-")
 		}
 
@@ -2693,7 +2733,7 @@ func Example(tag string) {
 	}
 	fmt.Println("Command: "+tag)
 	UserIn = GenCode("",UserIn)
-	UserIn = CharTranslate(UserIn)
+	UserIn = CharTranslateTo(UserIn)
 	fmt.Println(UserIn)
 }
 
@@ -2865,7 +2905,7 @@ func main() {
 		} else {
 			Content = GenCode("",UserIn)
 			if Content != "" {
-				Content = CharTranslate(Content)
+				Content = CharTranslateTo(Content)
 				fmt.Println(Content)
 			}
 		}

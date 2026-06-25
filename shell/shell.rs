@@ -6,7 +6,7 @@ static mut DEBUG_1: bool = false;
 static mut DEBUG_2: bool = false;
 static mut DEBUG_3: bool = false;
 
-const SHELL_VERSION: &str = "0.1.30";
+const SHELL_VERSION: &str = "0.1.31";
 
 fn get_os() -> String
 {
@@ -664,14 +664,87 @@ fn algo_tags(algo: &str) -> String
 	return new_tags.to_string();
 }
 
-fn char_translate(message: &str) -> String
+fn char_translate_from(message: &str) -> String
 {
 	let mut new_message: String = message.to_string();
-	if is_in(&new_message,"(-spc)") {
-		new_message = replace_all(&new_message, "(-spc)"," ")
+	if is_in(&new_message,"==")
+	{
+		new_message = replace_all(&new_message, "==", "(-eq)")
 	}
+
+	if is_in(&new_message,"!=")
+	{
+		new_message = replace_all(&new_message, "!=", "(-ne)")
+	}
+
+	if is_in(&new_message,"<=")
+	{
+		new_message = replace_all(&new_message, "<=", "(-le)")
+	}
+
+	if is_in(&new_message,"<")
+	{
+		new_message = replace_all(&new_message, "<", "(-lt)")
+	}
+
+	if is_in(&new_message,">=")
+	{
+		new_message = replace_all(&new_message, ">=", "(-ge)")
+	}
+
+	if is_in(&new_message,">")
+	{
+		new_message = replace_all(&new_message, ">", "(-gt)")
+	}
+
+	if is_in(&new_message," ")
+	{
+		new_message = replace_all(&new_message, " ", "(-spc)")
+	}
+
 	return new_message;
 }
+
+fn char_translate_to(message: &str) -> String
+{
+	let mut new_message: String = message.to_string();
+	if is_in(&new_message,"(-eq)")
+	{
+		new_message = replace_all(&new_message, "(-eq)"," == ")
+	}
+
+	if is_in(&new_message,"(-ne)")
+	{
+		new_message = replace_all(&new_message, "(-ne)"," != ")
+	}
+
+	if is_in(&new_message,"(-le)")
+	{
+		new_message = replace_all(&new_message, "(-le)"," <= ")
+	}
+
+	if is_in(&new_message,"(-lt)")
+	{
+		new_message = replace_all(&new_message, "(-lt)"," < ")
+	}
+
+	if is_in(&new_message,"(-ge)")
+	{
+		new_message = replace_all(&new_message, "(-ge)"," >= ")
+	}
+
+	if is_in(&new_message,"(-gt)")
+	{
+		new_message = replace_all(&new_message, "(-gt)"," > ")
+	}
+
+	if is_in(&new_message,"(-spc)")
+	{
+		new_message = replace_all(&new_message, "(-spc)"," ")
+	}
+
+	return new_message;
+}	
 
 fn translate_tag(input: &str) -> String
 {
@@ -824,6 +897,10 @@ fn translate_tag(input: &str) -> String
 		value = after_split(&action,":");
 		action = before_split(&action,":");
 		let new_tag = ["logic:",&action].concat();
+
+		//translate normal conditional chars to be translated later
+		value = char_translate_from(&value).to_string();
+
 		value = ["logic-condition:",&value].concat();
 		the_return.push_str(&parent);
 		the_return.push_str(&content_for);
@@ -837,6 +914,10 @@ fn translate_tag(input: &str) -> String
 		value = after_split(&action,":");
 		action = before_split(&action,":");
 		let new_tag = ["logic:",&action].concat();
+
+		//translate normal conditional chars to be translated later
+		value = char_translate_from(&value).to_string();
+
 		value = ["logic-condition:",&value].concat();
 		the_nest.push_str("nest-");
 		the_return.push_str(&parent);
@@ -861,6 +942,10 @@ fn translate_tag(input: &str) -> String
 		value = after_split(&action,":");
 		action = before_split(&action,":");
 		let new_tag = ["loop:",&action].concat();
+
+		//translate normal conditional chars to be translated later
+		value = char_translate_from(&value).to_string();
+
 		value = ["loop-condition:",&value].concat();
 		the_return.push_str(&parent);
 		the_return.push_str(&content_for);
@@ -3943,7 +4028,7 @@ fn example(tag: &str)
 	println!("Command: {}",&tag);
 	println!("");
 	println!("\t{{OUTPUT}}");
-	println!("{}",char_translate(&gen_code("", &user_in)));
+	println!("{}",char_translate_to(&gen_code("", &user_in)));
 //	println!("{}",gen_code("", &user_in));
 }
 
@@ -4208,7 +4293,7 @@ fn main()
 			finished_content = gen_code("",&user_in);
 			if finished_content != ""
 			{
-				finished_content = char_translate(&finished_content);
+				finished_content = char_translate_to(&finished_content);
 				println!("{}",finished_content);
 			}
 		}
