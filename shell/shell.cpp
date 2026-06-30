@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.1.44";
+String Version = "0.1.45";
 
 //layer 1 debugging
 bool Debug1 = false;
@@ -825,7 +825,7 @@ String TranslateTag(String Input)
 	}
 
 	// ">" becomes "nest-"
-	while (StartsWith(Action, ">"))
+	while ((StartsWith(Action, ">")) && (!StartsWith(Action, ">=")))
 	{
 		Action = AfterSplit(Action,'>');
 		Nest = "nest-"+Nest;
@@ -2978,7 +2978,8 @@ String Logic(String Tabs, String TheKindType, String Content)
 	else if (TheKindType == "case")
 //	else if (TheKindType == "switch-case")
 	{
-		Complete = Tabs+"case "+TheCondition+":\n"+Tabs+"\t"+LogicContent+"\n"+Tabs+"\tbreak;\n";
+//		Complete = Tabs+"case "+TheCondition+":\n"+Tabs+"\t"+LogicContent+"\n"+Tabs+"\tbreak;\n";
+		Complete = Tabs+"case "+TheCondition+":\n"+LogicContent+Tabs+"\tbreak;\n";
 	}
 	else if (TheKindType == "switch")
 //	else if (StartsWith(TheKindType, "switch"))

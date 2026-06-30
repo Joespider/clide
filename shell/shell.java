@@ -12,7 +12,7 @@ import java.io.IOException;
 
 //class name
 public class shell {
-	private static String Version = "0.1.28";
+	private static String Version = "0.1.29";
 
 	//layer 1 debugging
 	private static boolean Debug1 = false;
@@ -3270,9 +3270,10 @@ public class shell {
 			Complete.append("case ");
 			Complete.append(TheCondition);
 			Complete.append(":\n");
-			Complete.append(Tabs);
-			Complete.append("\t");
-			Complete.append("//code here\n");
+//			Complete.append(Tabs);
+//			Complete.append("\t");
+			Complete.append(LogicContent.toString());
+//			Complete.append("\n");
 			Complete.append(Tabs);
 			Complete.append("\t");
 			Complete.append("break;\n");

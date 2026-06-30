@@ -9,7 +9,7 @@ import (
 	"strings"
 	)
 
-var Version string = "0.1.31"
+var Version string = "0.1.33"
 var Debug1 bool = false
 var Debug2 bool = false
 var Debug3 bool = false
@@ -465,11 +465,11 @@ func CharTranslateTo(Message string) string {
 	}
 
 	if IsIn(Message,"(-ge)") {
-		Message = replaceAll(Message, "(-le)"," >= ")
+		Message = replaceAll(Message, "(-ge)"," >= ")
 	}
 
 	if IsIn(Message,"(-gt)") {
-		Message = replaceAll(Message, "(-lt)"," > ")
+		Message = replaceAll(Message, "(-gt)"," > ")
 	}
 
 	if IsIn(Message,"(-ne)") {
@@ -539,7 +539,7 @@ func TranslateTag(Input string) string {
 	}
 
 	// ">" becomes "nest-"
-	for StartsWith(Action, ">") {
+	for StartsWith(Action, ">") && !StartsWith(Action, ">=") {
 		Action = AfterSplit(Action,">")
 		Nest = "nest-"+Nest
 	}
@@ -2232,7 +2232,8 @@ func Logic(Tabs string, TheKindType string, Content string) string {
 		Complete = " else {\n"+LogicContent+Tabs+"}\n"
 //	} else if TheKindType == "switch-case" {
 	} else if TheKindType == "case" {
-		Complete = Tabs+"case "+TheCondition+":\n"+Tabs+"\t//code here\n"
+//		Complete = Tabs+"case "+TheCondition+":\n"+Tabs+"\t//code here\n"
+		Complete = Tabs+"case "+TheCondition+":\n"+LogicContent
 	} else if TheKindType == "switch" {
 //	} else if StartsWith(TheKindType, "switch") {
 //		var CaseContent string = TheKindType

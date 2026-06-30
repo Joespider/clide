@@ -2,7 +2,7 @@ import os
 import sys
 import platform
 
-Version = "0.1.27"
+Version = "0.1.28"
 
 Debug1 = False
 Debug2 = False
@@ -1684,7 +1684,8 @@ def Logic(Tabs, TheKindType, Content):
 		Complete = Tabs+"else:\n"+LogicContent
 #	elif TheKindType == "switch-case":
 	elif TheKindType == "case":
-		Complete = Tabs+"case "+TheCondition+":\n"+Tabs+"\t#code here\n"
+#		Complete = Tabs+"case "+TheCondition+":\n"+Tabs+"\t#code here\n"
+		Complete = Tabs+"case "+TheCondition+":\n"+LogicContent
 	elif TheKindType == "switch":
 #	elif StartsWith(TheKindType, "switch"):
 #		CaseContent = TheKindType

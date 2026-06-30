@@ -6,7 +6,7 @@ static mut DEBUG_1: bool = false;
 static mut DEBUG_2: bool = false;
 static mut DEBUG_3: bool = false;
 
-const SHELL_VERSION: &str = "0.1.31";
+const SHELL_VERSION: &str = "0.1.32";
 
 fn get_os() -> String
 {
