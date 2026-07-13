@@ -12,7 +12,7 @@ import java.io.IOException;
 
 //class name
 public class shell {
-	private static String Version = "0.1.29";
+	private static String Version = "0.1.30";
 
 	//layer 1 debugging
 	private static boolean Debug1 = false;
@@ -750,7 +750,24 @@ public class shell {
 	{
 		if (IsIn(Message,"==\""))
 		{
-			Message = replaceAll(Message, ".equals\\(\"","(-eq)\"");
+			int quoteCount = 0;
+			boolean IsEven = true;
+
+			String[] SplitMessage = split(Message,"==\"");
+			for (int lp = 0;lp != len(SplitMessage);lp++)
+			{
+				quoteCount = QuoteCount(SplitMessage[lp]);
+				IsEven = IsEvenNumber(quoteCount);
+				if ((IsEven == false) && (quoteCount > 0))
+				{
+					String[] newStr = {"",""};
+					newStr[0] = SplitMessage[lp].substring(0,SplitMessage[lp].lastIndexOf('"'))+"\")";
+					newStr[1] = SplitMessage[lp].substring(SplitMessage[lp].lastIndexOf('"') + 1);
+					SplitMessage[lp] = newStr[0]+newStr[1];
+				}
+			}
+			String NewMessage = join(SplitMessage,"==\"");
+			Message = replaceAll(NewMessage, "==\"","(-eq)\"");
 		}
 		else if (IsIn(Message,"=="))
 		{
