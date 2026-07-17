@@ -12,7 +12,7 @@ import java.io.IOException;
 
 //class name
 public class shell {
-	private static String Version = "0.1.26";
+	private static String Version = "0.1.33";
 
 	//layer 1 debugging
 	private static boolean Debug1 = false;
@@ -35,25 +35,35 @@ public class shell {
 		Type = AfterSplit(Type,":");
 		if (Type.equals("class"))
 		{
-			print("{Usage}");
-			print("{}<name>:(<type>)<name> var(public/private):<vars> method:<name>-<type> param:<params>,<param>");
+			print("{Purpose}");
+			print("This is the generate a class for Java using nested elements");
 			print("");
+			print("{Elements}");
+			print("{class}<name>:<param>\twhere \"<name>\" is the name of your class and <params> are the parameters for the class constructor");
+			print("[]-<elements>\t\twhere, this called right after the class called, populates the class constructor");
+			print("{c}-[]<name>:<params>\twhere \"<name>\" is the name of the class, for additional constructors");
+			print("{c}-<element>\t\twhere \"<element>\" are to be called from class");
+			print("");
+			print("{Usage}");
+			print("{class}<name> {c}-<element>");
+			print("{class}<name>:<params> []-<constructor> {c}-<element>");
+			print("");
+
 			print("{EXAMPLE}");
-			Example("{class}clock []-equals(hr):0 []-equals(min):0 []-equals(date):\"00/00/0000\" []-[print]:\"ClockStarted\" []-el {c}-[]clock:(int)one,(int)two,(String)three []-equals(hr):one []-equals(min):two []-equals(date):three []-[print]:\"ClockStarted\" []-el {c}-var(protected):(bool)reset {c}-var(private):(int)hr {c}-var(private):(int)min {c}-var(private):(String)date {c}-nl {c}-[]Hr:(int)number []-equals((int)value):number []-if:number(-lt)25 +-equals(hr):Value {c}-nl {c}-[int-value]Hr: []-(int)value:()hr []-el {c}-nl {c}-[]Min:(int)number []-equals((int)value):number []-if:number(-lt)61 +-equals(min):Value {c}-nl {c}-[int-value]Min: []-equals((int)value):min {c}-nl {c}-[]Date:(String)TheDate []-equals((String)value):TheDate []-if:TheDate(-ne)\"0/0/0000\" +-equals(date):Value {c}-nl {c}-[String-value]Date: []-equals((String)value):date {c}-nl");
+			Example("{class}clock []-equals(hr):0 []-equals(min):0 []-equals(date):\"00/00/0000\" []-[print]:\"ClockStarted\" []-el {c}-[]clock:(int)one,(int)two,(String)three []-equals(hr):one []-equals(min):two []-equals(date):three []-[print]:\"ClockStarted\" []-el {c}-var(protected):(bool)reset {c}-var(private):(int)hr {c}-var(private):(int)min {c}-var(private):(String)date {c}-nl {c}-[]Hr:(int)number []-equals((int)value):number []-if:number<25 +-equals(hr):Value {c}-nl {c}-[int-value]Hr: []-(int)value:()hr []-el {c}-nl {c}-[]Min:(int)number []-equals((int)value):number []-if:number<61 +-equals(min):Value {c}-nl {c}-[int-value]Min: []-equals((int)value):min {c}-nl {c}-[]Date:(String)TheDate []-equals((String)value):TheDate []-if:TheDate!=\"0/0/0000\" +-equals(date):Value {c}-nl {c}-[String-value]Date: []-equals((String)value):date {c}-nl");
 		}
-/*
 		else if (Type.equals("struct"))
 		{
-			print("(<type>)<name>");
-			print("");
+//			print("(<type>)<name>");
+//			print("");
+			print("Struct is not made just yet");
 		}
-*/
 		else if (Type.equals("method"))
 		{
 			print("[<data>]<name>:<parameters>");
 			print("[<data>-<return>]<name>:<parameters>");
 			print("");
-			Example("[String-Type]FoodAndDrink:(String)Food []-if:Food(-ne)\"\" +->if:[IsDrink]:drink(-eq)true +-(Type):\"Drink\" +-el +->>if:[IsNotEmpty]:Food +-[Drink]:Food +-el +->>>if:mood(-ne)\"happy\" +-[print]:\"I am \"+mood +-el +->>>>if:mood(-eq)\"unhappy\" +-[ChearUp]:mood +-el +-[print]:\"I am \"+mood +-el <<<<-+-[ImHappy]: <<<<-+-el <<<-+-[Refill]: <<<-+-el <<-+-[Complete]: <<-+-el <<-+-[NewLine]: <<-+-el +->else-if:[IsFood]:Food(-eq)true +-(Type):\"Food\" +-el +->>while:[IsNotEmpty]:Food o-[Eat]:Food o-el o->>if:mood(-ne)\"happy\" +-[print]:\"I am \"+mood +-el +->>>do-while:mood(-eq)\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I am \"+mood o-el <<<<-+-[print]:\"I am \"+mood+\" now\" <<<<-+-el +->else +-(Type):\"Not Food or Drink\" +-el []-else +-(Type):\"Not Food or Drink\" +-el []-nl []-[print]:\"It works!!!\" []-el");
+			Example("[String-Type]FoodAndDrink:(String)Food []-if:Food!=\"\" +->if:[IsDrink]:drink==true +-(Type):\"Drink\" +-el +->>if:[IsNotEmpty]:Food +-[Drink]:Food +-el +->>>if:mood!=\"happy\" +-[print]:\"I am \"+mood +-el +->>>>if:mood==\"unhappy\" +-[ChearUp]:mood +-el +-[print]:\"I am \"+mood +-el <<<<-+-[ImHappy]: <<<<-+-el <<<-+-[Refill]: <<<-+-el <<-+-[Complete]: <<-+-el <<-+-[NewLine]: <<-+-el +->else-if:[IsFood]:Food==true +-(Type):\"Food\" +-el +->>while:[IsNotEmpty]:Food o-[Eat]:Food o-el o->>if:mood!=\"happy\" +-[print]:\"I am \"+mood +-el +->>>do-while:mood==\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I am \"+mood o-el <<<<-+-[print]:\"I am \"+mood+\" now\" <<<<-+-el +->else +-(Type):\"Not Food or Drink\" +-el []-else +-(Type):\"Not Food or Drink\" +-el []-nl []-[print]:\"It works!!!\" []-el");
 			Example("[]clock []-(int)time:[start]: []-el []-nl []-if:here +-[stop]: +-el []-nl []-[begin]: []-el []-nl []-if: +-[end]: +-el []-else +-[reset]: +-el []-for: o-[count]: o-el");
 		}
 		else if (Type.equals("loop"))
@@ -68,10 +78,10 @@ public class shell {
 			print("{EXAMPLE}");
 			print("");
 			Example("while:Type(-spc)==(-spc)\"String\"");
-			Example("do-while:Type(-eq)\"String\" o-[work]: o-el");
-			Example("while:true >if:[IsString]:drink(-eq)true [drink]: el >>if:drink(-eq)\"coke\" >>else nl >else-if:[IsInt]:drink(-eq)false nl >else >>if: nl >>else nl");
-			Example("while:true >if:[IsString]:drink(-eq)true >>if:drink(-eq)\"coke\" >>else nl >else-if:[IsInt]:drink(-eq)false nl >else >>if: >>nl >>else nl");
-			Example("while:Food(-ne)\"\" o->if:[IsDrink]:drink(-eq)true +-(Type):\"Drink\" +-el +->>while:[IsNotEmpty]:Food o-[Drink]:Food o-el o->>>if:mood(-ne)\"happy\" +-[print]:\"I am \"+mood +-el +->>>>do-while:mood(-eq)\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I am \"+mood o-el <<<<-+-[print]:\"I am \"+mood+\" now\" <<<<-+-el o->else-if:[IsDrink]:drink(-eq)true +-()Type=\"Drink\" +-el +->>while:[IsNotEmpty]:Food o-[Drink]:Food o-el o->>>if:mood(-ne)\"happy\" +-[print]:\"I am \"+mood +-el +->>>>do-while:mood(-eq)\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I am \"+mood o-el <<<<-+-[print]:\"I am \"+mood+\" now\" <<<<-+-el o->else +-(Type):\"Not Food or Drink\" +-el");
+			Example("do-while:Type==\"String\" o-[work]: o-el");
+			Example("while:true >if:[IsString]:drink==true [drink]: el >>if:drink==\"coke\" >>else nl >else-if:[IsInt]:drink==false nl >else >>if: nl >>else nl");
+			Example("while:true >if:[IsString]:drink==true >>if:drink==\"coke\" >>else nl >else-if:[IsInt]:drink==false nl >else >>if: >>nl >>else nl");
+			Example("while:Food!=\"\" o->if:[IsDrink]:drink==true +-(Type):\"Drink\" +-el +->>while:[IsNotEmpty]:Food o-[Drink]:Food o-el o->>>if:mood!=\"happy\" +-[print]:\"I am \"+mood +-el +->>>>do-while:mood==\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I am \"+mood o-el <<<<-+-[print]:\"I am \"+mood+\" now\" <<<<-+-el o->else-if:[IsDrink]:drink==true +-()Type=\"Drink\" +-el +->>while:[IsNotEmpty]:Food o-[Drink]:Food o-el o->>>if:mood!=\"happy\" +-[print]:\"I am \"+mood +-el +->>>>do-while:mood==\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I am \"+mood o-el <<<<-+-[print]:\"I am \"+mood+\" now\" <<<<-+-el o->else +-(Type):\"Not Food or Drink\" +-el");
 		}
 		else if (Type.equals("logic"))
 		{
@@ -84,13 +94,13 @@ public class shell {
 			print("");
 			print("{EXAMPLE}");
 			print("");
-			Example("if:Type(-eq)\"String\"");
-			Example("else-if:Type(-eq)\"String\"");
+			Example("if:Type==\"String\"");
+			Example("else-if:Type==\"String\"");
 			Example("else");
-			Example("if:true (String)drink:[Pop]:one,two el >if:[IsString]:drink(-eq)true [drink]: el >>if:drink(-eq)\"coke\" >>else nl >else-if:[IsInt]:drink(-eq)false nl >else >>if: nl >>else nl");
-			Example("if:true (String)drink:[Pop]:one,two el >if:[IsString]:drink(-eq)true >>if:drink(-eq)\"coke\" >>else nl >else-if:[IsInt]:drink(-eq)false nl >else >>if: nl >>else nl");
-			Example("if:Food(-ne)\"\" +->if:[IsDrink]:drink(-eq)true +-(Type):\"Drink\" +-el +->>if:[IsNotEmpty]:Food +-[Drink]:Food +-el +->>>if:mood(-ne)\"happy\" +-[print]:\"I am \"+mood +-el +->>>>if:mood(-eq)\"unhappy\" +-[ChearUp]:mood +-el +-[print]:\"I am \"+mood +-el <<<<-+-[ImHappy]: <<<<-+-el <<<-+-[Refill]: <<<-+-el <<-+-[Complete]: <<-+-el <<-+-[NewLine]: <<-+-el +->else-if:[IsFood]:Food(-eq)true +-(Type):\"Food\" +-el +->>while:[IsNotEmpty]:Food o-[Eat]:Food o-el o->>if:mood(-ne)\"happy\" +-[print]:\"I am \"+mood +-el +->>>do-while:mood(-eq)\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I am \"+mood o-el <<<<-+-[print]:\"I am \"+mood+\" now\" <<<<-+-el +->else +-(Type):\"Not Food or Drink\" +-el");
-//			print(Type+":switch");
+			Example("if:true (String)drink:[Pop]:one,two el >if:[IsString]:drink==true [drink]: el >>if:drink==\"coke\" >>else nl >else-if:[IsInt]:drink==false nl >else >>if: nl >>else nl");
+			Example("if:true (String)drink:[Pop]:one,two el >if:[IsString]:drink==true >>if:drink==\"coke\" >>else nl >else-if:[IsInt]:drink==false nl >else >>if: nl >>else nl");
+			Example("if:Food!=\"\" +->if:[IsDrink]:drink==true +-(Type):\"Drink\" +-el +->>if:[IsNotEmpty]:Food +-[Drink]:Food +-el +->>>if:mood!=\"happy\" +-[print]:\"I am \"+mood +-el +->>>>if:mood==\"unhappy\" +-[ChearUp]:mood +-el +-[print]:\"I am \"+mood +-el <<<<-+-[ImHappy]: <<<<-+-el <<<-+-[Refill]: <<<-+-el <<-+-[Complete]: <<-+-el <<-+-[NewLine]: <<-+-el +->else-if:[IsFood]:Food==true +-(Type):\"Food\" +-el +->>while:[IsNotEmpty]:Food o-[Eat]:Food o-el o->>if:mood!=\"happy\" +-[print]:\"I am \"+mood +-el +->>>do-while:mood==\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I am \"+mood o-el <<<<-+-[print]:\"I am \"+mood+\" now\" <<<<-+-el +->else +-(Type):\"Not Food or Drink\" +-el");
+			Example("switch:code case:1 +-(answer):\"Nope\" +-el default: +-(answer):\"nope\" +-el");
 		}
 		else if (Type.equals("var"))
 		{
@@ -348,7 +358,7 @@ public class shell {
 
 		for (char c : Input.toCharArray())
 		{
-			if (c ==  checkCharacter)
+			if (c == checkCharacter)
 			{
 				count++;
 			}
@@ -692,7 +702,7 @@ public class shell {
 					NewTags.append(DataType);
 					NewTags.append(")");
 					NewTags.append(ReturnKey);
-					NewTags.append(":()");
+					NewTags.append(":");
 					NewTags.append(ReturnValue);
 				}
 			}
@@ -711,7 +721,7 @@ public class shell {
 				{
 					NewTags.append("()");
 					NewTags.append(ReturnKey);
-					NewTags.append(":()");
+					NewTags.append(":");
 					NewTags.append(ReturnValue);
 				}
 			}
@@ -736,7 +746,80 @@ public class shell {
 		return NewTags.toString();
 	}
 
-	public static String CharTranslate(String Message)
+	public static String CharTranslateFrom(String Message)
+	{
+		if (IsIn(Message,"==\""))
+		{
+			int quoteCount = 0;
+			boolean IsEven = true;
+
+			String[] SplitMessage = split(Message,"==\"");
+			for (int lp = 0;lp != len(SplitMessage);lp++)
+			{
+				quoteCount = QuoteCount(SplitMessage[lp]);
+				IsEven = IsEvenNumber(quoteCount);
+				if ((IsEven == false) && (quoteCount > 0))
+				{
+					String[] newStr = {"",""};
+					newStr[0] = SplitMessage[lp].substring(0,SplitMessage[lp].lastIndexOf('"'))+"\")";
+					newStr[1] = SplitMessage[lp].substring(SplitMessage[lp].lastIndexOf('"') + 1);
+					SplitMessage[lp] = newStr[0]+newStr[1];
+				}
+			}
+			String NewMessage = join(SplitMessage,"==\"");
+			Message = replaceAll(NewMessage, "==\"","(-eq)\"");
+		}
+		else if (IsIn(Message,"=="))
+		{
+			Message = replaceAll(Message, "==","(-eq)");
+		}
+
+		if (IsIn(Message,"||"))
+		{
+			Message = replaceAll(Message, "\\|\\|","(-or)");
+		}
+
+		if (IsIn(Message,"<="))
+		{
+			Message = replaceAll(Message, "<=","(-le)");
+		}
+
+		if (IsIn(Message,"<"))
+		{
+			Message = replaceAll(Message, "<","(-lt)");
+		}
+
+		if (IsIn(Message,"!=\""))
+		{
+			int quoteCount = 0;
+			boolean IsEven = true;
+
+			String[] SplitMessage = split(Message,"!=\"");
+			SplitMessage[0] = "!"+SplitMessage[0];
+			for (int lp = 0;lp != len(SplitMessage);lp++)
+			{
+				quoteCount = QuoteCount(SplitMessage[lp]);
+				IsEven = IsEvenNumber(quoteCount);
+				if ((IsEven == false) && (quoteCount > 0))
+				{
+					String[] newStr = {"",""};
+					newStr[0] = SplitMessage[lp].substring(0,SplitMessage[lp].lastIndexOf('"'))+"\")";
+					newStr[1] = SplitMessage[lp].substring(SplitMessage[lp].lastIndexOf('"') + 1);
+					SplitMessage[lp] = newStr[0]+newStr[1];
+				}
+			}
+			String NewMessage = join(SplitMessage,"!=\"");
+			Message = replaceAll(NewMessage, "!=\"","(-ne)\"");
+		}
+		else if (IsIn(Message,"!="))
+		{
+			Message = replaceAll(Message, "!=","(-ne)");
+		}
+
+		return Message;
+	}
+
+	public static String CharTranslateTo(String Message)
 	{
 		if (IsIn(Message,"(-eq)\""))
 		{
@@ -757,16 +840,20 @@ public class shell {
 			Message = replaceAll(Message, "\\(-lt\\)"," < ");
 		}
 
-		if (IsIn(Message,"(-ne)"))
+		if (IsIn(Message,"(-ne)\""))
+		{
+			Message = replaceAll(Message, "\\(-ne\\)\"",".equals(\"");
+		}
+		else if (IsIn(Message,"(-ne)"))
 		{
 			Message = replaceAll(Message, "\\(-ne\\)"," != ");
 		}
-
+/*
 		if (IsIn(Message,"(-spc)"))
 		{
 			Message = replaceAll(Message, "\\(-spc\\)"," ");
 		}
-
+*/
 		if (IsIn(Message,"(-spc)"))
 		{
 			Message = replaceAll(Message, "\\(-spc\\)"," ");
@@ -927,6 +1014,9 @@ public class shell {
 			Value = AfterSplit(Action,":");
 			Action = BeforeSplit(Action,":");
 			NewTag = "logic:"+Action;
+
+			Value = CharTranslateFrom(Value);
+
 			Value = "logic-condition:"+Value;
 
 			TheReturn.append(Parent);
@@ -936,11 +1026,14 @@ public class shell {
 			TheReturn.append(" ");
 			TheReturn.append(Value);
 		}
-		else if (StartsWith(Action, "case:"))
+		else if ((StartsWith(Action, "case:")) || (StartsWith(Action,"default:")))
 		{
 			Value = AfterSplit(Action,":");
 			Action = BeforeSplit(Action,":");
 			NewTag = "logic:"+Action;
+
+			Value = CharTranslateFrom(Value);
+
 			Value = "logic-condition:"+Value;
 			Nest.append("nest-");
 
@@ -966,6 +1059,9 @@ public class shell {
 			Value = AfterSplit(Action,":");
 			Action = BeforeSplit(Action,":");
 			NewTag = "loop:"+Action;
+
+			Value = CharTranslateFrom(Value);
+
 			Value = "loop-condition:"+Value;
 
 			TheReturn.append(Parent);
@@ -1438,7 +1534,7 @@ public class shell {
 		}
 
 		String Condit = AfterSplit(input,":");
-		Condit = CharTranslate(Condit);
+		Condit = CharTranslateTo(Condit);
 
 		if (IsIn(Condit," "))
 		{
@@ -1855,7 +1951,7 @@ public class shell {
 				{
 					Process = Content;
 				}
-				Params =  Parameters(Process,"method");
+				Params = Parameters(Process,"method");
 			}
 			//ignore content if calling a "method" or a "class"
 			else if ((StartsWith(Content, "method:")) || (StartsWith(Content, "class:")))
@@ -3214,7 +3310,6 @@ public class shell {
 			Complete.append(Tabs);
 			Complete.append("}\n");
 		}
-//		else if (TheKindType.equals("switch-case"))
 		else if (TheKindType.equals("case"))
 		{
 			Complete.append(Tabs);
@@ -3222,20 +3317,31 @@ public class shell {
 			Complete.append("case ");
 			Complete.append(TheCondition);
 			Complete.append(":\n");
+//			Complete.append(Tabs);
+//			Complete.append("\t");
+			Complete.append(LogicContent.toString());
+//			Complete.append("\n");
 			Complete.append(Tabs);
 			Complete.append("\t");
-			Complete.append("//code here\n");
+			Complete.append("break;\n");
+
+		}
+		else if (TheKindType.equals("default"))
+		{
+			Complete.append(Tabs);
+//			Complete.append("\t");
+			Complete.append("default:\n");
+//			Complete.append(Tabs);
+//			Complete.append("\t");
+			Complete.append(LogicContent.toString());
+//			Complete.append("\n");
 			Complete.append(Tabs);
 			Complete.append("\t");
 			Complete.append("break;\n");
 
 		}
 		else if (TheKindType.equals("switch"))
-//		else if (StartsWith(TheKindType, "switch"))
 		{
-//			String CaseContent = TheKindType;
-//			String CaseVal;
-
 			Complete.append(Tabs);
 //			Complete.append("\t");
 			Complete.append("switch (");
@@ -3244,38 +3350,7 @@ public class shell {
 			Complete.append(Tabs);
 //			Complete.append("\t");
 			Complete.append("{\n");
-/*
-			while (!CaseContent.equals(""))
-			{
-				CaseVal = BeforeSplit(CaseContent,"-");
-				if (CaseVal.equals("switch"))
-				{
-					Complete.append(Tabs);
-					Complete.append("\tcase ");
-					Complete.append(CaseVal);
-					Complete.append(":\n");
-					Complete.append(Tabs);
-					Complete.append("\t\t//code here\n");
-					Complete.append(Tabs);
-					Complete.append("\t\tbreak;\n");
-				}
-
-				if (IsIn(CaseContent,"-"))
-				{
-					CaseContent = AfterSplit(CaseContent,"-");
-				}
-			}
-*/
 			Complete.append(LogicContent.toString());
-			Complete.append(Tabs);
-			Complete.append("\t");
-			Complete.append("default:\n");
-			Complete.append(Tabs);
-			Complete.append("\t\t");
-			Complete.append("//code here\n");
-			Complete.append(Tabs);
-			Complete.append("\t\t");
-			Complete.append("break;\n");
 			Complete.append(Tabs);
 //			Complete.append("\t");
 			Complete.append("}\n");
@@ -3566,6 +3641,7 @@ public class shell {
 		else
 		{
 			Complete.append(TheName);
+			Complete.append(StatementContent.toString());
 		}
 
 		//layer 2 debugging
@@ -3842,7 +3918,7 @@ public class shell {
 //		print("Command: "+UserIn);
 		print("");
 		Result = GenCode("",UserIn.toString());
-		Result = CharTranslate(Result);
+		Result = CharTranslateTo(Result);
 		print("\t{OUTPUT}");
 		print(Result);
 	}
@@ -4158,7 +4234,7 @@ public class shell {
 				Content = GenCode("",UserIn);
 				if (!Content.equals(""))
 				{
-					Content = CharTranslate(Content);
+					Content = CharTranslateTo(Content);
 					print(Content);
 				}
 			}

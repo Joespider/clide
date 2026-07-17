@@ -6,7 +6,7 @@ static mut DEBUG_1: bool = false;
 static mut DEBUG_2: bool = false;
 static mut DEBUG_3: bool = false;
 
-const SHELL_VERSION: &str = "0.1.29";
+const SHELL_VERSION: &str = "0.1.33";
 
 fn get_os() -> String
 {
@@ -24,11 +24,21 @@ fn the_help(the_type: &str)
 
 	if new_the_type == "class"
 	{
+		println!("{{Purpose}}");
+		println!("This is the generate a class for Rust using nested elements");
+		println!("");
+		println!("{{Elements}}");
+		println!("{{class}}<name>:<param>\twhere \"<name>\" is the name of your class and <params> are the parameters for the class constructor");
+		println!("[]-<elements>\t\twhere, this called right after the class called, populates the class constructor");
+		println!("{{c}}-[]<name>:<params>\twhere \"<name>\" is the name of the class, for additional constructors");
+		println!("{{c}}-<element>\t\twhere \"<element>\" are to be called from class");
+		println!("");
 		println!("{{Usage}}");
-		println!("{{}}<name>:(<type>)<name> var(public/private):<vars> method:<name>-<type> param:<params>,<param>");
+		println!("{{class}}<name> {{c}}-<element>");
+		println!("{{class}}<name>:<params> []-<constructor> {{c}}-<element>");
 		println!("");
 		println!("{{EXAMPLE}}");
-		example("{class}clock []-equals(hr):0 []-equals(min):0 []-equals(date):\"00/00/0000\" []-[print]:\"ClockStarted\" []-el {c}-[]clock:(int)one,(int)two,(String)three []-equals(hr):one []-equals(min):two []-equals(date):three []-[print]:\"ClockStarted\" []-el {c}-var(protected):(bool)reset {c}-var(private):(int)hr {c}-var(private):(int)min {c}-var(private):(String)date {c}-nl {c}-[]Hr:(int)number []-equals((int)value):number []-if:number(-lt)25 +-equals(hr):Value {c}-nl {c}-[int-value]Hr: []-(int)value:()hr []-el {c}-nl {c}-[]Min:(int)number []-equals((int)value):number []-if:number(-lt)61 +-equals(min):Value {c}-nl {c}-[int-value]Min: []-equals((int)value):min {c}-nl {c}-[]Date:(String)TheDate []-equals((String)value):TheDate []-if:TheDate(-ne)\"0/0/0000\" +-equals(date):Value {c}-nl {c}-[String-value]Date: []-equals((String)value):date {c}-nl");
+		example("{class}clock []-equals(hr):0 []-equals(min):0 []-equals(date):\"00/00/0000\" []-[print]:\"ClockStarted\" []-el {c}-[]clock:(int)one,(int)two,(String)three []-equals(hr):one []-equals(min):two []-equals(date):three []-[print]:\"ClockStarted\" []-el {c}-var(protected):(bool)reset {c}-var(private):(int)hr {c}-var(private):(int)min {c}-var(private):(String)date {c}-nl {c}-[]Hr:(int)number []-equals((int)value):number []-if:number<25 +-equals(hr):Value {c}-nl {c}-[int-value]Hr: []-(int)value:()hr []-el {c}-nl {c}-[]Min:(int)number []-equals((int)value):number []-if:number<61 +-equals(min):Value {c}-nl {c}-[int-value]Min: []-equals((int)value):min {c}-nl {c}-[]Date:(String)TheDate []-equals((String)value):TheDate []-if:TheDate!=\"0/0/0000\" +-equals(date):Value {c}-nl {c}-[String-value]Date: []-equals((String)value):date {c}-nl");
 	}
 	else if new_the_type == "struct"
 	{
@@ -41,7 +51,7 @@ fn the_help(the_type: &str)
 		println!("[<data>]<name>:<parameters>");
 		println!("[<data>-<return>]<name>:<parameters>");
 		println!("");
-		example("[String-Type]FoodAndDrink:(String)Food []-if:Food(-ne)\"\" +->if:[IsDrink]:drink(-eq)true +-(Type):\"Drink\" +-el +->>if:[IsNotEmpty]:Food +-[Drink]:Food +-el +->>>if:mood(-ne)\"happy\" +-[print]:\"I am \"+mood +-el +->>>>if:mood(-eq)\"unhappy\" +-[ChearUp]:mood +-el +-[print]:\"I am \"+mood +-el <<<<-+-[ImHappy]: <<<<-+-el <<<-+-[Refill]: <<<-+-el <<-+-[Complete]: <<-+-el <<-+-[NewLine]: <<-+-el +->else-if:[IsFood]:Food(-eq)true +-(Type):\"Food\" +-el +->>while:[IsNotEmpty]:Food o-[Eat]:Food o-el o->>if:mood(-ne)\"happy\" +-[print]:\"I am \"+mood +-el +->>>do-while:mood(-eq)\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I am \"+mood o-el <<<<-+-[print]:\"I am \"+mood+\" now\" <<<<-+-el +->else +-(Type):\"Not Food or Drink\" +-el []-else +-(Type):\"Not Food or Drink\" +-el []-nl []-[print]:\"It works!!!\" []-el");
+		example("[String-Type]FoodAndDrink:(String)Food []-if:Food!=\"\" +->if:[IsDrink]:drink==true +-(Type):\"Drink\" +-el +->>if:[IsNotEmpty]:Food +-[Drink]:Food +-el +->>>if:mood!=\"happy\" +-[print]:\"I am \"+mood +-el +->>>>if:mood==\"unhappy\" +-[ChearUp]:mood +-el +-[print]:\"I am \"+mood +-el <<<<-+-[ImHappy]: <<<<-+-el <<<-+-[Refill]: <<<-+-el <<-+-[Complete]: <<-+-el <<-+-[NewLine]: <<-+-el +->else-if:[IsFood]:Food==true +-(Type):\"Food\" +-el +->>while:[IsNotEmpty]:Food o-[Eat]:Food o-el o->>if:mood!=\"happy\" +-[print]:\"I am \"+mood +-el +->>>do-while:mood==\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I am \"+mood o-el <<<<-+-[print]:\"I am \"+mood+\" now\" <<<<-+-el +->else +-(Type):\"Not Food or Drink\" +-el []-else +-(Type):\"Not Food or Drink\" +-el []-nl []-[print]:\"It works!!!\" []-el");
 		example("[]clock []-(int)time:[start]: []-el []-nl []-if:here +-[stop]: +-el []-nl []-[begin]: []-el []-nl []-if: +-[end]: +-el []-else +-[reset]: +-el []-for: o-[count]: o-el");
 	}
 	else if new_the_type == "loop"
@@ -55,11 +65,11 @@ fn the_help(the_type: &str)
 		println!("");
 		println!("{{EXAMPLE}}");
 		println!("");
-		example("while:Type(-spc)==(-spc)\"String\"");
-		example("do-while:Type(-eq)\"String\" o-[work]: o-el");
-		example("while:true >if:[IsString]:drink(-eq)true [drink]: el >>if:drink(-eq)\"coke\" >>else nl >else-if:[IsInt]:drink(-eq)false nl >else >>if: nl >>else nl");
-		example("while:true >if:[IsString]:drink(-eq)true >>if:drink(-eq)\"coke\" >>else nl >else-if:[IsInt]:drink(-eq)false nl >else >>if: >>nl >>else nl");
-		example("while:Food(-ne)\"\" o->if:[IsDrink]:drink(-eq)true +-(Type):\"Drink\" +-el +->>while:[IsNotEmpty]:Food o-[Drink]:Food o-el o->>>if:mood(-ne)\"happy\" +-[print]:\"I am \"+mood +-el +->>>>do-while:mood(-eq)\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I am \"+mood o-el <<<<-+-[print]:\"I am \"+mood+\" now\" <<<<-+-el o->else-if:[IsDrink]:drink(-eq)true +-()Type=\"Drink\" +-el +->>while:[IsNotEmpty]:Food o-[Drink]:Food o-el o->>>if:mood(-ne)\"happy\" +-[print]:\"I am \"+mood +-el +->>>>do-while:mood(-eq)\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I am \"+mood o-el <<<<-+-[print]:\"I am \"+mood+\" now\" <<<<-+-el o->else +-(Type):\"Not Food or Drink\" +-el");
+		example("while:Type==\"String\"");
+		example("do-while:Type==\"String\" o-[work]: o-el");
+		example("while:true >if:[IsString]:drink==true [drink]: el >>if:drink==\"coke\" >>else nl >else-if:[IsInt]:drink==false nl >else >>if: nl >>else nl");
+		example("while:true >if:[IsString]:drink==true >>if:drink==\"coke\" >>else nl >else-if:[IsInt]:drink==false nl >else >>if: >>nl >>else nl");
+		example("while:Food!=\"\" o->if:[IsDrink]:drink==true +-(Type):\"Drink\" +-el +->>while:[IsNotEmpty]:Food o-[Drink]:Food o-el o->>>if:mood!=\"happy\" +-[print]:\"I am \"+mood +-el +->>>>do-while:mood==\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I am \"+mood o-el <<<<-+-[print]:\"I am \"+mood+\" now\" <<<<-+-el o->else-if:[IsDrink]:drink==true +-()Type=\"Drink\" +-el +->>while:[IsNotEmpty]:Food o-[Drink]:Food o-el o->>>if:mood!=\"happy\" +-[print]:\"I am \"+mood +-el +->>>>do-while:mood==\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I am \"+mood o-el <<<<-+-[print]:\"I am \"+mood+\" now\" <<<<-+-el o->else +-(Type):\"Not Food or Drink\" +-el");
 	}
 	else if new_the_type == "logic"
 	{
@@ -72,12 +82,13 @@ fn the_help(the_type: &str)
 		println!("");
 		println!("{{EXAMPLE}}");
 		println!("");
-		example("if:Type(-eq)\"String\"");
-		example("else-if:Type(-eq)\"String\"");
+		example("if:Type==\"String\"");
+		example("else-if:Type==\"String\"");
 		example("else");
-		example("if:true (String)drink:[Pop]:one,two el >if:[IsString]:drink(-eq)true [drink]: el >>if:drink(-eq)\"coke\" >>else nl >else-if:[IsInt]:drink(-eq)false nl >else >>if: nl >>else nl");
-		example("if:true (String)drink:[Pop]:one,two el >if:[IsString]:drink(-eq)true >>if:drink(-eq)\"coke\" >>else nl >else-if:[IsInt]:drink(-eq)false nl >else >>if: nl >>else nl");
-		example("if:Food(-ne)\"\" +->if:[IsDrink]:drink(-eq)true +-(Type):\"Drink\" +-el +->>if:[IsNotEmpty]:Food +-[Drink]:Food +-el +->>>if:mood(-ne)\"happy\" +-[print]:\"I am \"+mood +-el +->>>>if:mood(-eq)\"unhappy\" +-[ChearUp]:mood +-el +-[print]:\"I am \"+mood +-el <<<<-+-[ImHappy]: <<<<-+-el <<<-+-[Refill]: <<<-+-el <<-+-[Complete]: <<-+-el <<-+-[NewLine]: <<-+-el +->else-if:[IsFood]:Food(-eq)true +-(Type):\"Food\" +-el +->>while:[IsNotEmpty]:Food o-[Eat]:Food o-el o->>if:mood(-ne)\"happy\" +-[print]:\"I am \"+mood +-el +->>>do-while:mood(-eq)\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I am \"+mood o-el <<<<-+-[print]:\"I am \"+mood+\" now\" <<<<-+-el +->else +-(Type):\"Not Food or Drink\" +-el");
+		example("if:true (String)drink:[Pop]:one,two el >if:[IsString]:drink==true [drink]: el >>if:drink==\"coke\" >>else nl >else-if:[IsInt]:drink==false nl >else >>if: nl >>else nl");
+		example("if:true (String)drink:[Pop]:one,two el >if:[IsString]:drink==true >>if:drink==\"coke\" >>else nl >else-if:[IsInt]:drink==false nl >else >>if: nl >>else nl");
+		example("if:Food!=\"\" +->if:[IsDrink]:drink==true +-(Type):\"Drink\" +-el +->>if:[IsNotEmpty]:Food +-[Drink]:Food +-el +->>>if:mood!=\"happy\" +-[print]:\"I am \"+mood +-el +->>>>if:mood==\"unhappy\" +-[ChearUp]:mood +-el +-[print]:\"I am \"+mood +-el <<<<-+-[ImHappy]: <<<<-+-el <<<-+-[Refill]: <<<-+-el <<-+-[Complete]: <<-+-el <<-+-[NewLine]: <<-+-el +->else-if:[IsFood]:Food==true +-(Type):\"Food\" +-el +->>while:[IsNotEmpty]:Food o-[Eat]:Food o-el o->>if:mood!=\"happy\" +-[print]:\"I am \"+mood +-el +->>>do-while:mood==\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I am \"+mood o-el <<<<-+-[print]:\"I am \"+mood+\" now\" <<<<-+-el +->else +-(Type):\"Not Food or Drink\" +-el");
+		example("switch:code case:1 +-(answer):\"Nope\" +-el default: +-(answer):\"nope\" +-el");
 	}
 	else if new_the_type == "var"
 	{
@@ -610,7 +621,7 @@ fn algo_tags(algo: &str) -> String
 				new_tags.push_str(&data_type);
 				new_tags.push_str(")");
 				new_tags.push_str(&return_key);
-				new_tags.push_str(":()");
+				new_tags.push_str(":");
 				new_tags.push_str(&return_value);
 			}
 		}
@@ -629,7 +640,7 @@ fn algo_tags(algo: &str) -> String
 			{
 				new_tags.push_str("()");
 				new_tags.push_str(&return_key);
-				new_tags.push_str(":()");
+				new_tags.push_str(":");
 				new_tags.push_str(&args);
 			}
 		}
@@ -654,14 +665,92 @@ fn algo_tags(algo: &str) -> String
 	return new_tags.to_string();
 }
 
-fn char_translate(message: &str) -> String
+fn char_translate_from(message: &str) -> String
 {
 	let mut new_message: String = message.to_string();
-	if is_in(&new_message,"(-spc)") {
-		new_message = replace_all(&new_message, "(-spc)"," ")
+	if is_in(&new_message,"==")
+	{
+		new_message = replace_all(&new_message, "==", "(-eq)")
 	}
+
+	if is_in(&new_message,"!=")
+	{
+		new_message = replace_all(&new_message, "!=", "(-ne)")
+	}
+
+	if is_in(&new_message,"<=")
+	{
+		new_message = replace_all(&new_message, "<=", "(-le)")
+	}
+
+	if is_in(&new_message,"<")
+	{
+		new_message = replace_all(&new_message, "<", "(-lt)")
+	}
+
+	if is_in(&new_message,">=")
+	{
+		new_message = replace_all(&new_message, ">=", "(-ge)")
+	}
+
+	if is_in(&new_message,">")
+	{
+		new_message = replace_all(&new_message, ">", "(-gt)")
+	}
+
+	if is_in(&new_message,"||")
+	{
+		new_message = replace_all(&new_message, "||", "(-or)")
+	}
+
+	if is_in(&new_message," ")
+	{
+		new_message = replace_all(&new_message, " ", "(-spc)")
+	}
+
 	return new_message;
 }
+
+fn char_translate_to(message: &str) -> String
+{
+	let mut new_message: String = message.to_string();
+	if is_in(&new_message,"(-eq)")
+	{
+		new_message = replace_all(&new_message, "(-eq)"," == ")
+	}
+
+	if is_in(&new_message,"(-ne)")
+	{
+		new_message = replace_all(&new_message, "(-ne)"," != ")
+	}
+
+	if is_in(&new_message,"(-le)")
+	{
+		new_message = replace_all(&new_message, "(-le)"," <= ")
+	}
+
+	if is_in(&new_message,"(-lt)")
+	{
+		new_message = replace_all(&new_message, "(-lt)"," < ")
+	}
+
+	if is_in(&new_message,"(-ge)")
+	{
+		new_message = replace_all(&new_message, "(-ge)"," >= ")
+	}
+
+	if is_in(&new_message,"(-gt)")
+	{
+		new_message = replace_all(&new_message, "(-gt)"," > ")
+	}
+
+	if is_in(&new_message,"(-spc)")
+	{
+		new_message = replace_all(&new_message, "(-spc)"," ")
+	}
+
+	return new_message;
+}	
 
 fn translate_tag(input: &str) -> String
 {
@@ -814,6 +903,10 @@ fn translate_tag(input: &str) -> String
 		value = after_split(&action,":");
 		action = before_split(&action,":");
 		let new_tag = ["logic:",&action].concat();
+
+		//translate normal conditional chars to be translated later
+		value = char_translate_from(&value).to_string();
+
 		value = ["logic-condition:",&value].concat();
 		the_return.push_str(&parent);
 		the_return.push_str(&content_for);
@@ -822,11 +915,33 @@ fn translate_tag(input: &str) -> String
 		the_return.push_str(" ");
 		the_return.push_str(&value);
 	}
-	else if starts_with(&action, "case:")
+	else if starts_with(&action, "case:") || starts_with(&action, "default:")
 	{
 		value = after_split(&action,":");
 		action = before_split(&action,":");
 		let new_tag = ["logic:",&action].concat();
+
+		//translate normal conditional chars to be translated later
+		value = char_translate_from(&value).to_string();
+
+		value = ["logic-condition:",&value].concat();
+		the_nest.push_str("nest-");
+		the_return.push_str(&parent);
+		the_return.push_str(&content_for);
+		the_return.push_str(&the_nest.to_string());
+		the_return.push_str(&new_tag);
+		the_return.push_str(" ");
+		the_return.push_str(&value);
+	}
+	else if starts_with(&action, "default:")
+	{
+		value = after_split(&action,":");
+		action = before_split(&action,":");
+		let new_tag = ["logic:",&action].concat();
+
+		//translate normal conditional chars to be translated later
+		value = char_translate_from(&value).to_string();
+
 		value = ["logic-condition:",&value].concat();
 		the_nest.push_str("nest-");
 		the_return.push_str(&parent);
@@ -845,12 +960,16 @@ fn translate_tag(input: &str) -> String
 		the_return.push_str(&the_nest.to_string());
 		the_return.push_str(&new_tag);
 	}
-	//convert while, for, and do-while, to the old tags
+	//convert while, for, and do-while to the old tags
 	else if starts_with(&action, "while:") || starts_with(&action, "for:") || starts_with(&action, "do-while:")
 	{
 		value = after_split(&action,":");
 		action = before_split(&action,":");
 		let new_tag = ["loop:",&action].concat();
+
+		//translate normal conditional chars to be translated later
+		value = char_translate_from(&value).to_string();
+
 		value = ["loop-condition:",&value].concat();
 		the_return.push_str(&parent);
 		the_return.push_str(&content_for);
@@ -1507,7 +1626,8 @@ fn gen_parameters(input: &str, called_by: &str) -> String
 		if starts_with(&the_params,"(") && is_in(&the_params,")") && is_in(&the_params,",")
 		{
 			//param
-			name = handle_names(&before_split(&the_params,","));
+//			name = handle_names(&before_split(&the_params,","));
+			name = before_split(&the_params,",");
 			let mut more = after_split(&the_params,",");
 			let mut the_type = before_split(&name,")");
 
@@ -1521,7 +1641,7 @@ fn gen_parameters(input: &str, called_by: &str) -> String
 			more = gen_parameters(&more_params.to_string(), &called_by);
 
 			//param: type, param: type, param: type
-			new_params.push_str(&name);
+			new_params.push_str(&handle_names(&name));
 			new_params.push_str(": ");
 //			new_params.push_str(&the_type);
 			new_params.push_str(&borrow_value(&the_type, &[called_by,"-params"].concat()));
@@ -1531,13 +1651,14 @@ fn gen_parameters(input: &str, called_by: &str) -> String
 		//param-type
 		else if starts_with(&the_params,"(") && is_in(&the_params,")")
 		{
-			name = handle_names(&after_split(&the_params,")"));
+//			name = handle_names(&after_split(&the_params,")"));
+			name = after_split(&the_params,")");
 			let mut the_type = before_split(&the_params,")");
 			the_type = after_split(&the_type,"(");
 			the_type = data_type(&the_type, false);
 
 			//param: type
-			new_params.push_str(&name);
+			new_params.push_str(&handle_names(&name));
 			new_params.push_str(": ");
 //			new_params.push_str(&the_type);
 			new_params.push_str(&borrow_value(&the_type, &[called_by,"-params"].concat()));
@@ -2505,7 +2626,11 @@ fn gen_loop(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 			{
 				the_condition = passed_content.clone();
 			}
-			the_condition = gen_conditions(&the_condition,);
+
+			if new_kind != "do-while"
+			{
+				the_condition = gen_conditions(&the_condition);
+			}
 		}
 
 		//nest-<type> <other content>
@@ -2864,9 +2989,28 @@ fn gen_loop(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 		the_complete.push_str(the_tabs);
 		the_complete.push_str("}\n");
 	}
-	//loop:do/while
+	//loop:do-while
 	else if new_kind == "do-while"
 	{
+//		let escape_loop = ["loop-nest-logic:if logic-condition:",&the_condition," logic-stmt:break logic-stmt:endline"].concat();
+		let escape_loop = ["logic:if logic-",&the_condition," logic-stmt:break stmt:endline"].concat();
+
+		the_complete.push_str(the_tabs);
+		the_complete.push_str("loop\n");
+		the_complete.push_str(the_tabs);
+		the_complete.push_str("{\n");
+		the_complete.push_str(&loop_content);
+		the_complete.push_str("\n");
+		println!("{}",&escape_loop);
+		the_complete.push_str(&gen_code(&new_tabs,&escape_loop));
+		the_complete.push_str(the_tabs);
+		the_complete.push_str("}\n");
+//		the_complete.push_str(the_tabs);
+//		the_complete.push_str("while ");
+//		the_complete.push_str(&the_condition);
+//		the_complete.push_str(";\n");
+
+/*
 		the_complete.push_str(the_tabs);
 		the_complete.push_str("do\n");
 		the_complete.push_str(the_tabs);
@@ -2878,8 +3022,9 @@ fn gen_loop(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 		the_complete.push_str("while ");
 		the_complete.push_str(&the_condition);
 		the_complete.push_str(";\n");
+*/
 	}
-	//loop:do-while
+	//loop:while
 	else if new_kind == "while"
 	{
 		the_complete.push_str(the_tabs);
@@ -3340,53 +3485,27 @@ fn gen_logic(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 		the_complete.push_str("}\n");
 
 	}
-//	else if new_kind == "switch-case"
 	else if new_kind == "case"
 	{
 		the_complete.push_str(the_tabs);
 		the_complete.push_str(&the_condition);
 		the_complete.push_str(" => code,\n");
 	}
-	else if new_kind == "switch"
-//	else if starts_with(&new_kind, "switch")
+	else if new_kind == "default"
 	{
-//		let mut the_case_content = new_kind;
-//		let mut the_case_val: String;
-
+		the_complete.push_str(the_tabs);
+		the_complete.push_str(&the_condition);
+		the_complete.push_str("_ => code,\n");
+	}
+	else if new_kind == "switch"
+	{
 		the_complete.push_str(the_tabs);
 		the_complete.push_str("match ");
 		the_complete.push_str(&the_condition);
 		the_complete.push_str(" {\n");
-/*
-		loop
-		{
-			the_case_val = before_split(&the_case_content,"-");
-			if the_case_val != "switch"
-			{
-				the_complete.push_str(the_tabs);
-				the_complete.push_str("\tcase ");
-				the_complete.push_str(&the_case_val);
-				the_complete.push_str(":\n");
-				the_complete.push_str(the_tabs);
-				the_complete.push_str("\t\t//code here\n");
-				the_complete.push_str(the_tabs);
-				the_complete.push_str("\t\tbreak;\n");
-			}
-
-			if is_in(&the_case_content,"-")
-			{
-				the_case_content = after_split(&the_case_content,"-");
-			}
-
-			if the_case_content != ""
-			{
-				break;
-			}
-		}
-*/
 		the_complete.push_str(&logic_content);
-		the_complete.push_str(the_tabs);
-		the_complete.push_str("\t_ => code,\n");
+//		the_complete.push_str(the_tabs);
+//		the_complete.push_str("\t_ => code,\n");
 		the_complete.push_str(the_tabs);
 		the_complete.push_str("}\n");
 	}
@@ -3442,8 +3561,10 @@ fn gen_statements(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Str
 
 	if !starts_with(&new_kind, "\"") && is_in(&new_kind,"-")
 	{
-		the_name = handle_names(&before_split(&new_kind,"-"));
-		name = handle_names(&after_split(&new_kind,"-"));
+//		the_name = handle_names(&before_split(&new_kind,"-"));
+		the_name = before_split(&new_kind,"-");
+//		name = handle_names(&after_split(&new_kind,"-"));
+		name = after_split(&new_kind,"-");
 	}
 	else
 	{
@@ -3545,7 +3666,8 @@ fn gen_statements(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Str
 	}
 	else if the_name == "method"
 	{
-		the_complete.push_str(&name);
+//		the_complete.push_str(&name);
+		the_complete.push_str(&handle_names(&name));
 		the_complete.push_str("(");
 		the_complete.push_str(&the_params);
 		the_complete.push_str(")");
@@ -3576,6 +3698,7 @@ fn gen_statements(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Str
 		else
 		{
 			the_complete.push_str(&the_name);
+			the_complete.push_str(&statement_content);
 		}
 	}
 
@@ -3928,7 +4051,7 @@ fn example(tag: &str)
 	println!("Command: {}",&tag);
 	println!("");
 	println!("\t{{OUTPUT}}");
-	println!("{}",char_translate(&gen_code("", &user_in)));
+	println!("{}",char_translate_to(&gen_code("", &user_in)));
 //	println!("{}",gen_code("", &user_in));
 }
 
@@ -4193,7 +4316,7 @@ fn main()
 			finished_content = gen_code("",&user_in);
 			if finished_content != ""
 			{
-				finished_content = char_translate(&finished_content);
+				finished_content = char_translate_to(&finished_content);
 				println!("{}",finished_content);
 			}
 		}

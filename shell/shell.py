@@ -2,7 +2,7 @@ import os
 import sys
 import platform
 
-Version = "0.1.25"
+Version = "0.1.31"
 
 Debug1 = False
 Debug2 = False
@@ -15,16 +15,28 @@ def Help(Type):
 	if IsIn(Type,":"):
 		Type = AfterSplit(Type,":")
 	if Type == "class":
+		print("{Purpose}")
+		print("This is the generate a class for Python using nested elements")
+		print("")
+		print("{Elements}")
+		print("{class}<name>:<param>\twhere \"<name>\" is the name of your class and <params> are the parameters for the class constructor")
+		print("[]-<elements>\t\twhere, this called right after the class called, populates the class constructor")
+		print("{c}-[]<name>:<params>\twhere \"<name>\" is the name of the class, for additional constructors")
+		print("{c}-<element>\t\twhere \"<element>\" are to be called from class")
+		print("")
 		print("{Usage}")
-		print("{}<name>:(<type>)<name> var(public/private):<vars> method:<name>-<type> param:<params>,<param>")
+		print("{class}<name> {c}-<element>")
+		print("{class}<name>:<params> []-<constructor> {c}-<element>")
 		print("")
 		print("{EXAMPLE}")
-		Example("{class}clock []-equals(hr):0 []-equals(min):0 []-equals(date):\"00/00/0000\" []-[print]:\"ClockStarted\" []-el {c}-[]clock:(int)one,(int)two,(String)three []-equals(hr):one []-equals(min):two []-equals(date):three []-[print]:\"ClockStarted\" []-el {c}-var(protected):(bool)reset {c}-var(private):(int)hr {c}-var(private):(int)min {c}-var(private):(String)date {c}-nl {c}-[]Hr:(int)number []-equals((int)value):number []-if:number(-lt)25 +-equals(hr):Value {c}-nl {c}-[int-value]Hr: []-(int)value:()hr []-el {c}-nl {c}-[]Min:(int)number []-equals((int)value):number []-if:number(-lt)61 +-equals(min):Value {c}-nl {c}-[int-value]Min: []-equals((int)value):min {c}-nl {c}-[]Date:(String)TheDate []-equals((String)value):TheDate []-if:TheDate(-ne)\"0/0/0000\" +-equals(date):Value {c}-nl {c}-[String-value]Date: []-equals((String)value):date {c}-nl")
+		Example("{class}clock []-equals(hr):0 []-equals(min):0 []-equals(date):\"00/00/0000\" []-[print]:\"ClockStarted\" []-el {c}-[]clock:(int)one,(int)two,(String)three []-equals(hr):one []-equals(min):two []-equals(date):three []-[print]:\"ClockStarted\" []-el {c}-var(protected):(bool)reset {c}-var(private):(int)hr {c}-var(private):(int)min {c}-var(private):(String)date {c}-nl {c}-[]Hr:(int)number []-equals((int)value):number []-if:number<25 +-equals(hr):Value {c}-nl {c}-[int-value]Hr: []-(int)value:()hr []-el {c}-nl {c}-[]Min:(int)number []-equals((int)value):number []-if:number<61 +-equals(min):Value {c}-nl {c}-[int-value]Min: []-equals((int)value):min {c}-nl {c}-[]Date:(String)TheDate []-equals((String)value):TheDate []-if:TheDate!=\"0/0/0000\" +-equals(date):Value {c}-nl {c}-[String-value]Date: []-equals((String)value):date {c}-nl")
+	elif Type == "struct":
+		print("Struct is not made just yet")
 	elif Type == "method":
 		print("[<data>]<name>:<parameters>")
 		print("[<data>-<return>]<name>:<parameters>")
 		print("")
-		Example("[String-Type]FoodAndDrink:(String)Food []-if:Food(-ne)\"\" +->if:[IsDrink]:drink(-eq)true +-(Type):\"Drink\" +-el +->>if:[IsNotEmpty]:Food +-[Drink]:Food +-el +->>>if:mood(-ne)\"happy\" +-[print]:\"I am \"+mood +-el +->>>>if:mood(-eq)\"unhappy\" +-[ChearUp]:mood +-el +-[print]:\"I am \"+mood +-el <<<<-+-[ImHappy]: <<<<-+-el <<<-+-[Refill]: <<<-+-el <<-+-[Complete]: <<-+-el <<-+-[NewLine]: <<-+-el +->else-if:[IsFood]:Food(-eq)true +-(Type):\"Food\" +-el +->>while:[IsNotEmpty]:Food o-[Eat]:Food o-el o->>if:mood(-ne)\"happy\" +-[print]:\"I am \"+mood +-el +->>>do-while:mood(-eq)\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I am \"+mood o-el <<<<-+-[print]:\"I am \"+mood+\" now\" <<<<-+-el +->else +-(Type):\"Not Food or Drink\" +-el []-else +-(Type):\"Not Food or Drink\" +-el []-nl []-[print]:\"It works!!!\" []-el")
+		Example("[String-Type]FoodAndDrink:(String)Food []-if:Food!=\"\" +->if:[IsDrink]:drink==true +-(Type):\"Drink\" +-el +->>if:[IsNotEmpty]:Food +-[Drink]:Food +-el +->>>if:mood!=\"happy\" +-[print]:\"I am \"+mood +-el +->>>>if:mood==\"unhappy\" +-[ChearUp]:mood +-el +-[print]:\"I am \"+mood +-el <<<<-+-[ImHappy]: <<<<-+-el <<<-+-[Refill]: <<<-+-el <<-+-[Complete]: <<-+-el <<-+-[NewLine]: <<-+-el +->else-if:[IsFood]:Food==true +-(Type):\"Food\" +-el +->>while:[IsNotEmpty]:Food o-[Eat]:Food o-el o->>if:mood!=\"happy\" +-[print]:\"I am \"+mood +-el +->>>do-while:mood==\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I am \"+mood o-el <<<<-+-[print]:\"I am \"+mood+\" now\" <<<<-+-el +->else +-(Type):\"Not Food or Drink\" +-el []-else +-(Type):\"Not Food or Drink\" +-el []-nl []-[print]:\"It works!!!\" []-el")
 		Example("[]clock []-(int)time:[start]: []-el []-nl []-if:here +-[stop]: +-el []-nl []-[begin]: []-el []-nl []-if: +-[end]: +-el []-else +-[reset]: +-el []-for: o-[count]: o-el")
 	elif Type == "loop":
 		print("<loop>:<condition>")
@@ -36,11 +48,11 @@ def Help(Type):
 		print("")
 		print("{EXAMPLE}")
 		print("")
-		Example("while:Type(-spc)==(-spc)\"String\"")
-		Example("do-while:Type(-eq)\"String\" o-[work]: o-el")
-		Example("while:true >if:[IsString]:drink(-eq)true [drink]: el >>if:drink(-eq)\"coke\" >>else nl >else-if:[IsInt]:drink(-eq)false nl >else >>if: nl >>else nl")
-		Example("while:true >if:[IsString]:drink(-eq)true >>if:drink(-eq)\"coke\" >>else nl >else-if:[IsInt]:drink(-eq)false nl >else >>if: >>nl >>else nl")
-		Example("while:Food(-ne)\"\" o->if:[IsDrink]:drink(-eq)true +-(Type):\"Drink\" +-el +->>while:[IsNotEmpty]:Food o-[Drink]:Food o-el o->>>if:mood(-ne)\"happy\" +-[print]:\"I am \"+mood +-el +->>>>do-while:mood(-eq)\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I am \"+mood o-el <<<<-+-[print]:\"I am \"+mood+\" now\" <<<<-+-el o->else-if:[IsDrink]:drink(-eq)true +-()Type=\"Drink\" +-el +->>while:[IsNotEmpty]:Food o-[Drink]:Food o-el o->>>if:mood(-ne)\"happy\" +-[print]:\"I am \"+mood +-el +->>>>do-while:mood(-eq)\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I am \"+mood o-el <<<<-+-[print]:\"I am \"+mood+\" now\" <<<<-+-el o->else +-(Type):\"Not Food or Drink\" +-el")
+		Example("while:Type==\"String\"")
+		Example("do-while:Type==\"String\" o-[work]: o-el")
+		Example("while:true >if:[IsString]:drink==true [drink]: el >>if:drink==\"coke\" >>else nl >else-if:[IsInt]:drink==false nl >else >>if: nl >>else nl")
+		Example("while:true >if:[IsString]:drink==true >>if:drink==\"coke\" >>else nl >else-if:[IsInt]:drink==false nl >else >>if: >>nl >>else nl")
+		Example("while:Food!=\"\" o->if:[IsDrink]:drink==true +-(Type):\"Drink\" +-el +->>while:[IsNotEmpty]:Food o-[Drink]:Food o-el o->>>if:mood!=\"happy\" +-[print]:\"I am \"+mood +-el +->>>>do-while:mood==\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I am \"+mood o-el <<<<-+-[print]:\"I am \"+mood+\" now\" <<<<-+-el o->else-if:[IsDrink]:drink==true +-()Type=\"Drink\" +-el +->>while:[IsNotEmpty]:Food o-[Drink]:Food o-el o->>>if:mood!=\"happy\" +-[print]:\"I am \"+mood +-el +->>>>do-while:mood==\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I am \"+mood o-el <<<<-+-[print]:\"I am \"+mood+\" now\" <<<<-+-el o->else +-(Type):\"Not Food or Drink\" +-el")
 	elif Type == "logic":
 		print("<logic>:<condition>")
 		print("")
@@ -51,12 +63,13 @@ def Help(Type):
 		print("")
 		print("{EXAMPLE}")
 		print("")
-		Example("if:Type(-eq)\"String\"")
-		Example("else-if:Type(-eq)\"String\"")
+		Example("if:Type==\"String\"")
+		Example("else-if:Type==\"String\"")
 		Example("else")
-		Example("if:true (String)drink:[Pop]:one,two el >if:[IsString]:drink(-eq)true [drink]: el >>if:drink(-eq)\"coke\" >>else nl >else-if:[IsInt]:drink(-eq)false nl >else >>if: nl >>else nl")
-		Example("if:true (String)drink:[Pop]:one,two el >if:[IsString]:drink(-eq)true >>if:drink(-eq)\"coke\" >>else nl >else-if:[IsInt]:drink(-eq)false nl >else >>if: nl >>else nl")
-		Example("if:Food(-ne)\"\" +->if:[IsDrink]:drink(-eq)true +-(Type):\"Drink\" +-el +->>if:[IsNotEmpty]:Food +-[Drink]:Food +-el +->>>if:mood(-ne)\"happy\" +-[print]:\"I am \"+mood +-el +->>>>if:mood(-eq)\"unhappy\" +-[ChearUp]:mood +-el +-[print]:\"I am \"+mood +-el <<<<-+-[ImHappy]: <<<<-+-el <<<-+-[Refill]: <<<-+-el <<-+-[Complete]: <<-+-el <<-+-[NewLine]: <<-+-el +->else-if:[IsFood]:Food(-eq)true +-(Type):\"Food\" +-el +->>while:[IsNotEmpty]:Food o-[Eat]:Food o-el o->>if:mood(-ne)\"happy\" +-[print]:\"I am \"+mood +-el +->>>do-while:mood(-eq)\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I am \"+mood o-el <<<<-+-[print]:\"I am \"+mood+\" now\" <<<<-+-el +->else +-(Type):\"Not Food or Drink\" +-el")
+		Example("if:true (String)drink:[Pop]:one,two el >if:[IsString]:drink==true [drink]: el >>if:drink==\"coke\" >>else nl >else-if:[IsInt]:drink==false nl >else >>if: nl >>else nl")
+		Example("if:true (String)drink:[Pop]:one,two el >if:[IsString]:drink==true >>if:drink==\"coke\" >>else nl >else-if:[IsInt]:drink==false nl >else >>if: nl >>else nl")
+		Example("if:Food!=\"\" +->if:[IsDrink]:drink==true +-(Type):\"Drink\" +-el +->>if:[IsNotEmpty]:Food +-[Drink]:Food +-el +->>>if:mood!=\"happy\" +-[print]:\"I am \"+mood +-el +->>>>if:mood==\"unhappy\" +-[ChearUp]:mood +-el +-[print]:\"I am \"+mood +-el <<<<-+-[ImHappy]: <<<<-+-el <<<-+-[Refill]: <<<-+-el <<-+-[Complete]: <<-+-el <<-+-[NewLine]: <<-+-el +->else-if:[IsFood]:Food==true +-(Type):\"Food\" +-el +->>while:[IsNotEmpty]:Food o-[Eat]:Food o-el o->>if:mood!=\"happy\" +-[print]:\"I am \"+mood +-el +->>>do-while:mood==\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I am \"+mood o-el <<<<-+-[print]:\"I am \"+mood+\" now\" <<<<-+-el +->else +-(Type):\"Not Food or Drink\" +-el")
+		Example("switch:code case:1 +-(answer):\"Nope\" +-el default: +-(answer):\"nope\" +-el")
 	elif Type == "var":
 		Example("(Type):\"Not Food or Drink\" el")
 		Example("(std::string)name:\"\" el (int)point:0 el (std::string)james=\"James\" el (int)help el (help):0 el")
@@ -306,14 +319,14 @@ def AlgoTags(Algo):
 			if IsCallMethod == True:
 				NewTags = "("+DataType+")"+ReturnKey+":"+ReturnValue
 			else:
-				NewTags = "("+DataType+")"+ReturnKey+":()"+ReturnValue
+				NewTags = "("+DataType+")"+ReturnKey+":"+ReturnValue
 		else:
 			ReturnKey = AfterSplit(Action,"(")
 			ReturnKey = BeforeSplit(ReturnKey,")")
 			if IsCallMethod == True:
 				NewTags = "()"+ReturnKey+":"+ReturnValue
 			else:
-				NewTags = "()"+ReturnKey+":()"+ReturnValue
+				NewTags = "()"+ReturnKey+":"+ReturnValue
 	elif Algo == "concat():" or Algo == "decre():" or Algo == "incre():" or Algo == "equals():":
 		NewTags = ""
 	elif Algo == "main():":
@@ -325,25 +338,38 @@ def AlgoTags(Algo):
 
 	return NewTags
 
-def CharTranslate(Message):
+def CharTranslateFrom(Message):
+	if IsIn(Message,"=="):
+		Message = replaceAll(Message, "==","(-eq)")
+	if IsIn(Message,"<="):
+		Message = replaceAll(Message, "<=","(-le)")
+	if IsIn(Message,"<"):
+		Message = replaceAll(Message, "<","(-lt)")
+	if IsIn(Message,">="):
+		Message = replaceAll(Message, ">=","(-ge)")
+	if IsIn(Message,">"):
+		Message = replaceAll(Message, ">","(-gt)")
+	if IsIn(Message,"||"):
+		Message = replaceAll(Message, "||","(-or)")
+	if IsIn(Message,"!="):
+		Message = replaceAll(Message,"!=","(-ne)")
+	return Message
+
+def CharTranslateTo(Message):
 	if IsIn(Message,"(-eq)"):
 		Message = replaceAll(Message, "(-eq)"," == ")
-
 	if IsIn(Message,"(-le)"):
 		Message = replaceAll(Message, "(-le)"," <= ")
-
 	if IsIn(Message,"(-lt)"):
 		Message = replaceAll(Message, "(-lt)"," < ")
-
+	if IsIn(Message,"(-ge)"):
+		Message = replaceAll(Message, "(-ge)"," >= ")
+	if IsIn(Message,"(-gt)"):
+		Message = replaceAll(Message, "(-gt)"," > ")
 	if IsIn(Message,"(-ne)"):
 		Message = replaceAll(Message, "(-ne)"," != ")
-
 	if IsIn(Message,"(-spc)"):
 		Message = replaceAll(Message, "(-spc)"," ")
-
-	if IsIn(Message,"(-spc)"):
-		Message = replaceAll(Message, "(-spc)"," ")
-
 	return Message
 
 def TranslateTag(Input):
@@ -438,13 +464,15 @@ def TranslateTag(Input):
 		Value = AfterSplit(Action,":")
 		Action = BeforeSplit(Action,":")
 		NewTag = "logic:"+Action
+		Value = CharTranslateFrom(Value)
 		Value = "logic-condition:"+Value
 		TheReturn = Parent+ContentFor+Nest+NewTag+" "+Value
-	elif StartsWith(Action, "case:"):
+	elif StartsWith(Action, "case:") or StartsWith(Action, "default:"):
 		Value = AfterSplit(Action,":")
 		Action = BeforeSplit(Action,":")
 		Nest = "nest-"+Nest
 		NewTag = "logic:"+Action
+		Value = CharTranslateFrom(Value)
 		Value = "logic-condition:"+Value
 		TheReturn = Parent+ContentFor+Nest+NewTag+" "+Value
 	#convert else to the old tags
@@ -456,6 +484,7 @@ def TranslateTag(Input):
 		Value = AfterSplit(Action,":")
 		Action = BeforeSplit(Action,":")
 		NewTag = "loop:"+Action
+		Value = CharTranslateFrom(Value)
 		Value = "loop-condition:"+Value
 		TheReturn = Parent+ContentFor+Nest+NewTag+" "+Value
 	#convert try and finally to the old tags
@@ -679,7 +708,7 @@ def Conditions(input):
 
 	Condit = AfterSplit(input,":")
 
-	Condit = CharTranslate(Condit)
+	Condit = CharTranslateTo(Condit)
 
 	if IsIn(Condit," "):
 		Conditions = split(Condit," ")
@@ -1656,23 +1685,13 @@ def Logic(Tabs, TheKindType, Content):
 		Complete = Tabs+"elif "+TheCondition+":\n"+LogicContent
 	elif TheKindType == "else":
 		Complete = Tabs+"else:\n"+LogicContent
-#	elif TheKindType == "switch-case":
 	elif TheKindType == "case":
-		Complete = Tabs+"case "+TheCondition+":\n"+Tabs+"\t#code here\n"
+		Complete = Tabs+"case "+TheCondition+":\n"+LogicContent
+	elif TheKindType == "default":
+		Complete = Tabs+"case _:\n"+LogicContent
 	elif TheKindType == "switch":
-#	elif StartsWith(TheKindType, "switch"):
-#		CaseContent = TheKindType
-#		CaseVal
-
-		Complete = Tabs+"match "+TheCondition+":\n"
-#		while CaseContent != "":
-#			CaseVal = BeforeSplit(CaseContent,"-")
-#			if CaseVal != "switch":
-#				Complete = Complete+Tabs+"\tcase "+CaseVal+":\n"+Tabs+"\t\t#code here\n"+Tabs+"\t\tbreak;\n"
-#
-#			if IsIn(CaseContent,"-"):
-#				CaseContent = AfterSplit(CaseContent,"-")
-		Complete = Complete+LogicContent+Tabs+"\tcase _:\n"+Tabs+"\t\t#code here\n"
+		Complete = Tabs+"match "+TheCondition+":\n"+LogicContent
+#		Complete = Complete+LogicContent+Tabs+"\tcase _:\n"+Tabs+"\t\t#code here\n"
 
 	#layer 2 debugging
 	if Debug2:
@@ -1844,7 +1863,7 @@ def Statements(Tabs, TheKindType, Content):
 	elif TheName == "tab":
 		Complete = "\t"+StatementContent
 	else:
-		Complete = TheName
+		Complete = TheName+StatementContent
 
 	#layer 2 debugging
 	if Debug2:
@@ -2057,7 +2076,7 @@ def Example(tag):
 #	print("Command: "+UserIn)
 	print("");
 	UserIn = GenCode("",UserIn)
-	UserIn = CharTranslate(UserIn)
+	UserIn = CharTranslateTo(UserIn)
 	print("\t{OUTPUT}")
 	print(UserIn)
 
@@ -2206,7 +2225,7 @@ def Main():
 		else:
 			Content = GenCode("",UserIn)
 			if Content != "":
-				Content = CharTranslate(Content)
+				Content = CharTranslateTo(Content)
 				print(Content)
 
 		#Args were given
