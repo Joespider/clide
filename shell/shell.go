@@ -444,6 +444,10 @@ func CharTranslateFrom(Message string) string {
 		Message = replaceAll(Message, ">","(-gt)")
 	}
 
+	if IsIn(Message,"||") {
+		Message = replaceAll(Message, "||","(-or)")
+	}
+
 	if IsIn(Message,"!=") {
 		Message = replaceAll(Message,"!=","(-ne)")
 	}

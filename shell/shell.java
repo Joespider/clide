@@ -12,7 +12,7 @@ import java.io.IOException;
 
 //class name
 public class shell {
-	private static String Version = "0.1.30";
+	private static String Version = "0.1.31";
 
 	//layer 1 debugging
 	private static boolean Debug1 = false;
@@ -774,6 +774,11 @@ public class shell {
 			Message = replaceAll(Message, "==","(-eq)");
 		}
 
+		if (IsIn(Message,"||"))
+		{
+			Message = replaceAll(Message, "\\|\\|","(-or)");
+		}
+
 		if (IsIn(Message,"<="))
 		{
 			Message = replaceAll(Message, "<=","(-le)");
@@ -817,12 +822,12 @@ public class shell {
 		{
 			Message = replaceAll(Message, "\\(-ne\\)"," != ");
 		}
-
+/*
 		if (IsIn(Message,"(-spc)"))
 		{
 			Message = replaceAll(Message, "\\(-spc\\)"," ");
 		}
-
+*/
 		if (IsIn(Message,"(-spc)"))
 		{
 			Message = replaceAll(Message, "\\(-spc\\)"," ");

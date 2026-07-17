@@ -2,7 +2,7 @@ import os
 import sys
 import platform
 
-Version = "0.1.28"
+Version = "0.1.29"
 
 Debug1 = False
 Debug2 = False
@@ -348,6 +348,8 @@ def CharTranslateFrom(Message):
 		Message = replaceAll(Message, ">=","(-ge)")
 	if IsIn(Message,">"):
 		Message = replaceAll(Message, ">","(-gt)")
+	if IsIn(Message,"||"):
+		Message = replaceAll(Message, "||","(-or)")
 	if IsIn(Message,"!="):
 		Message = replaceAll(Message,"!=","(-ne)")
 	return Message
