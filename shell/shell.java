@@ -12,7 +12,7 @@ import java.io.IOException;
 
 //class name
 public class shell {
-	private static String Version = "0.1.33";
+	private static String Version = "0.1.34";
 
 	//layer 1 debugging
 	private static boolean Debug1 = false;
@@ -766,8 +766,9 @@ public class shell {
 					SplitMessage[lp] = newStr[0]+newStr[1];
 				}
 			}
-			String NewMessage = join(SplitMessage,"==\"");
-			Message = replaceAll(NewMessage, "==\"","(-eq)\"");
+			Message = join(SplitMessage,"(-eq)\"");
+//			String NewMessage = join(SplitMessage,"==\"");
+//			Message = replaceAll(NewMessage, "==\"","(-eq)\"");
 		}
 		else if (IsIn(Message,"=="))
 		{
@@ -776,7 +777,14 @@ public class shell {
 
 		if (IsIn(Message,"||"))
 		{
-			Message = replaceAll(Message, "\\|\\|","(-or)");
+			String[] SplitMessage = split(Message,"\\|\\|");
+			for (int lp = 0;lp != len(SplitMessage);lp++)
+			{
+				SplitMessage[lp] = CharTranslateFrom(SplitMessage[lp]);
+			}
+			Message = join(SplitMessage,"(-or)");
+//			String NewMessage = join(SplitMessage,"(-or)");
+//			Message = replaceAll(Message, "\\|\\|","(-or)");
 		}
 
 		if (IsIn(Message,"<="))
