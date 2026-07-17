@@ -9,7 +9,7 @@ import (
 	"strings"
 	)
 
-var Version string = "0.1.33"
+var Version string = "0.1.34"
 var Debug1 bool = false
 var Debug2 bool = false
 var Debug3 bool = false
@@ -87,6 +87,7 @@ func help(Type string) {
 		Example("if:true (String)drink:[Pop]:one,two el >if:[IsString]:drink==true [drink]: el >>if:drink==\"coke\" >>else nl >else-if:[IsInt]:drink==false nl >else >>if: nl >>else nl")
 		Example("if:true (String)drink:[Pop]:one,two el >if:[IsString]:drink==true >>if:drink==\"coke\" >>else nl >else-if:[IsInt]:drink==false nl >else >>if: nl >>else nl")
 		Example("if:Food!=\"\" +->if:[IsDrink]:drink==true +-(Type):\"Drink\" +-el +->>if:[IsNotEmpty]:Food +-[Drink]:Food +-el +->>>if:mood!=\"happy\" +-[print]:\"I am \"+mood +-el +->>>>if:mood==\"unhappy\" +-[ChearUp]:mood +-el +-[print]:\"I am \"+mood +-el <<<<-+-[ImHappy]: <<<<-+-el <<<-+-[Refill]: <<<-+-el <<-+-[Complete]: <<-+-el <<-+-[NewLine]: <<-+-el +->else-if:[IsFood]:Food==true +-(Type):\"Food\" +-el +->>while:[IsNotEmpty]:Food o-[Eat]:Food o-el o->>if:mood!=\"happy\" +-[print]:\"I am \"+mood +-el +->>>do-while:mood==\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I am \"+mood o-el <<<<-+-[print]:\"I am \"+mood+\" now\" <<<<-+-el +->else +-(Type):\"Not Food or Drink\" +-el")
+		Example("switch:code case:1 +-(answer):\"Nope\" +-el default: +-(answer):\"nope\" +-el")
 	} else if Type == "var" {
 		Example("(Type):\"Not Food or Drink\" el")
 		Example("(std::string)name:\"\" el (int)point:0 el (std::string)james=\"James\" el (int)help el (help):0 el")
@@ -621,7 +622,7 @@ func TranslateTag(Input string) string {
 
 		Value = "logic-condition:"+Value
 		TheReturn = Parent+ContentFor+Nest+NewTag+" "+Value
-	} else if StartsWith(Action, "case:") {
+	} else if StartsWith(Action, "case:") || StartsWith(Action, "default:") {
 		Value = AfterSplit(Action,":")
 		Action = BeforeSplit(Action,":")
 		Nest = "nest-"+Nest
@@ -2234,29 +2235,13 @@ func Logic(Tabs string, TheKindType string, Content string) string {
 		Complete = " else if "+TheCondition+" {\n"+LogicContent+Tabs+"}\n"
 	} else if TheKindType == "else" {
 		Complete = " else {\n"+LogicContent+Tabs+"}\n"
-//	} else if TheKindType == "switch-case" {
 	} else if TheKindType == "case" {
-//		Complete = Tabs+"case "+TheCondition+":\n"+Tabs+"\t//code here\n"
 		Complete = Tabs+"case "+TheCondition+":\n"+LogicContent
+	} else if TheKindType == "default" {
+		Complete = Tabs+"default:\n"+LogicContent
 	} else if TheKindType == "switch" {
-//	} else if StartsWith(TheKindType, "switch") {
-//		var CaseContent string = TheKindType
-//		var CaseVal string
-
-		Complete = Tabs+"switch "+TheCondition+" {\n"
-/*
-		for CaseContent != "" {
-			CaseVal = BeforeSplit(CaseContent,"-")
-			if CaseVal != "switch" {
-				Complete = Complete+Tabs+"\tcase "+CaseVal+":\n"+Tabs+"\t\t//code here\n"+Tabs+"\t\tbreak\n"
-			}
-
-			if IsIn(CaseContent,"-") {
-				CaseContent = AfterSplit(CaseContent,"-")
-			}
-		}
-*/
-		Complete = Complete+LogicContent+Tabs+"\tdefault:\n"+Tabs+"\t\t//code here\n"+Tabs+"}\n"
+		Complete = Tabs+"switch "+TheCondition+" {\n"+LogicContent+Tabs+"}\n"
+//		Complete = Complete+LogicContent+Tabs+"\tdefault:\n"+Tabs+"\t\t//code here\n"+Tabs+"}\n"
 	}
 
 	//layer 2 debugging
@@ -2449,7 +2434,7 @@ func Statements(Tabs string, TheKindType string, Content string) string {
 	} else if TheName == "tab" {
 		Complete = "\t"+StatementContent
 	} else {
-		Complete = TheName;
+		Complete = TheName+StatementContent
 	}
 
 	//layer 2 debugging

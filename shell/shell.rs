@@ -88,6 +88,7 @@ fn the_help(the_type: &str)
 		example("if:true (String)drink:[Pop]:one,two el >if:[IsString]:drink==true [drink]: el >>if:drink==\"coke\" >>else nl >else-if:[IsInt]:drink==false nl >else >>if: nl >>else nl");
 		example("if:true (String)drink:[Pop]:one,two el >if:[IsString]:drink==true >>if:drink==\"coke\" >>else nl >else-if:[IsInt]:drink==false nl >else >>if: nl >>else nl");
 		example("if:Food!=\"\" +->if:[IsDrink]:drink==true +-(Type):\"Drink\" +-el +->>if:[IsNotEmpty]:Food +-[Drink]:Food +-el +->>>if:mood!=\"happy\" +-[print]:\"I am \"+mood +-el +->>>>if:mood==\"unhappy\" +-[ChearUp]:mood +-el +-[print]:\"I am \"+mood +-el <<<<-+-[ImHappy]: <<<<-+-el <<<-+-[Refill]: <<<-+-el <<-+-[Complete]: <<-+-el <<-+-[NewLine]: <<-+-el +->else-if:[IsFood]:Food==true +-(Type):\"Food\" +-el +->>while:[IsNotEmpty]:Food o-[Eat]:Food o-el o->>if:mood!=\"happy\" +-[print]:\"I am \"+mood +-el +->>>do-while:mood==\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I am \"+mood o-el <<<<-+-[print]:\"I am \"+mood+\" now\" <<<<-+-el +->else +-(Type):\"Not Food or Drink\" +-el");
+		example("switch:code case:1 +-(answer):\"Nope\" +-el default: +-(answer):\"nope\" +-el");
 	}
 	else if new_the_type == "var"
 	{
@@ -914,7 +915,25 @@ fn translate_tag(input: &str) -> String
 		the_return.push_str(" ");
 		the_return.push_str(&value);
 	}
-	else if starts_with(&action, "case:")
+	else if starts_with(&action, "case:") || starts_with(&action, "default:")
+	{
+		value = after_split(&action,":");
+		action = before_split(&action,":");
+		let new_tag = ["logic:",&action].concat();
+
+		//translate normal conditional chars to be translated later
+		value = char_translate_from(&value).to_string();
+
+		value = ["logic-condition:",&value].concat();
+		the_nest.push_str("nest-");
+		the_return.push_str(&parent);
+		the_return.push_str(&content_for);
+		the_return.push_str(&the_nest.to_string());
+		the_return.push_str(&new_tag);
+		the_return.push_str(" ");
+		the_return.push_str(&value);
+	}
+	else if starts_with(&action, "default:")
 	{
 		value = after_split(&action,":");
 		action = before_split(&action,":");
@@ -941,7 +960,7 @@ fn translate_tag(input: &str) -> String
 		the_return.push_str(&the_nest.to_string());
 		the_return.push_str(&new_tag);
 	}
-	//convert while, for, and do-while, to the old tags
+	//convert while, for, and do-while to the old tags
 	else if starts_with(&action, "while:") || starts_with(&action, "for:") || starts_with(&action, "do-while:")
 	{
 		value = after_split(&action,":");
@@ -2607,7 +2626,11 @@ fn gen_loop(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 			{
 				the_condition = passed_content.clone();
 			}
-			the_condition = gen_conditions(&the_condition,);
+
+			if new_kind != "do-while"
+			{
+				the_condition = gen_conditions(&the_condition);
+			}
 		}
 
 		//nest-<type> <other content>
@@ -2966,9 +2989,28 @@ fn gen_loop(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 		the_complete.push_str(the_tabs);
 		the_complete.push_str("}\n");
 	}
-	//loop:do/while
+	//loop:do-while
 	else if new_kind == "do-while"
 	{
+//		let escape_loop = ["loop-nest-logic:if logic-condition:",&the_condition," logic-stmt:break logic-stmt:endline"].concat();
+		let escape_loop = ["logic:if logic-",&the_condition," logic-stmt:break stmt:endline"].concat();
+
+		the_complete.push_str(the_tabs);
+		the_complete.push_str("loop\n");
+		the_complete.push_str(the_tabs);
+		the_complete.push_str("{\n");
+		the_complete.push_str(&loop_content);
+		the_complete.push_str("\n");
+		println!("{}",&escape_loop);
+		the_complete.push_str(&gen_code(&new_tabs,&escape_loop));
+		the_complete.push_str(the_tabs);
+		the_complete.push_str("}\n");
+//		the_complete.push_str(the_tabs);
+//		the_complete.push_str("while ");
+//		the_complete.push_str(&the_condition);
+//		the_complete.push_str(";\n");
+
+/*
 		the_complete.push_str(the_tabs);
 		the_complete.push_str("do\n");
 		the_complete.push_str(the_tabs);
@@ -2980,8 +3022,9 @@ fn gen_loop(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 		the_complete.push_str("while ");
 		the_complete.push_str(&the_condition);
 		the_complete.push_str(";\n");
+*/
 	}
-	//loop:do-while
+	//loop:while
 	else if new_kind == "while"
 	{
 		the_complete.push_str(the_tabs);
@@ -3442,53 +3485,27 @@ fn gen_logic(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 		the_complete.push_str("}\n");
 
 	}
-//	else if new_kind == "switch-case"
 	else if new_kind == "case"
 	{
 		the_complete.push_str(the_tabs);
 		the_complete.push_str(&the_condition);
 		the_complete.push_str(" => code,\n");
 	}
-	else if new_kind == "switch"
-//	else if starts_with(&new_kind, "switch")
+	else if new_kind == "default"
 	{
-//		let mut the_case_content = new_kind;
-//		let mut the_case_val: String;
-
+		the_complete.push_str(the_tabs);
+		the_complete.push_str(&the_condition);
+		the_complete.push_str("_ => code,\n");
+	}
+	else if new_kind == "switch"
+	{
 		the_complete.push_str(the_tabs);
 		the_complete.push_str("match ");
 		the_complete.push_str(&the_condition);
 		the_complete.push_str(" {\n");
-/*
-		loop
-		{
-			the_case_val = before_split(&the_case_content,"-");
-			if the_case_val != "switch"
-			{
-				the_complete.push_str(the_tabs);
-				the_complete.push_str("\tcase ");
-				the_complete.push_str(&the_case_val);
-				the_complete.push_str(":\n");
-				the_complete.push_str(the_tabs);
-				the_complete.push_str("\t\t//code here\n");
-				the_complete.push_str(the_tabs);
-				the_complete.push_str("\t\tbreak;\n");
-			}
-
-			if is_in(&the_case_content,"-")
-			{
-				the_case_content = after_split(&the_case_content,"-");
-			}
-
-			if the_case_content != ""
-			{
-				break;
-			}
-		}
-*/
 		the_complete.push_str(&logic_content);
-		the_complete.push_str(the_tabs);
-		the_complete.push_str("\t_ => code,\n");
+//		the_complete.push_str(the_tabs);
+//		the_complete.push_str("\t_ => code,\n");
 		the_complete.push_str(the_tabs);
 		the_complete.push_str("}\n");
 	}
@@ -3681,6 +3698,7 @@ fn gen_statements(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Str
 		else
 		{
 			the_complete.push_str(&the_name);
+			the_complete.push_str(&statement_content);
 		}
 	}
 

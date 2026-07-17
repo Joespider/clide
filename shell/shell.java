@@ -12,7 +12,7 @@ import java.io.IOException;
 
 //class name
 public class shell {
-	private static String Version = "0.1.31";
+	private static String Version = "0.1.33";
 
 	//layer 1 debugging
 	private static boolean Debug1 = false;
@@ -100,7 +100,7 @@ public class shell {
 			Example("if:true (String)drink:[Pop]:one,two el >if:[IsString]:drink==true [drink]: el >>if:drink==\"coke\" >>else nl >else-if:[IsInt]:drink==false nl >else >>if: nl >>else nl");
 			Example("if:true (String)drink:[Pop]:one,two el >if:[IsString]:drink==true >>if:drink==\"coke\" >>else nl >else-if:[IsInt]:drink==false nl >else >>if: nl >>else nl");
 			Example("if:Food!=\"\" +->if:[IsDrink]:drink==true +-(Type):\"Drink\" +-el +->>if:[IsNotEmpty]:Food +-[Drink]:Food +-el +->>>if:mood!=\"happy\" +-[print]:\"I am \"+mood +-el +->>>>if:mood==\"unhappy\" +-[ChearUp]:mood +-el +-[print]:\"I am \"+mood +-el <<<<-+-[ImHappy]: <<<<-+-el <<<-+-[Refill]: <<<-+-el <<-+-[Complete]: <<-+-el <<-+-[NewLine]: <<-+-el +->else-if:[IsFood]:Food==true +-(Type):\"Food\" +-el +->>while:[IsNotEmpty]:Food o-[Eat]:Food o-el o->>if:mood!=\"happy\" +-[print]:\"I am \"+mood +-el +->>>do-while:mood==\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I am \"+mood o-el <<<<-+-[print]:\"I am \"+mood+\" now\" <<<<-+-el +->else +-(Type):\"Not Food or Drink\" +-el");
-//			print(Type+":switch");
+			Example("switch:code case:1 +-(answer):\"Nope\" +-el default: +-(answer):\"nope\" +-el");
 		}
 		else if (Type.equals("var"))
 		{
@@ -789,7 +789,29 @@ public class shell {
 			Message = replaceAll(Message, "<","(-lt)");
 		}
 
-		if (IsIn(Message,"!="))
+		if (IsIn(Message,"!=\""))
+		{
+			int quoteCount = 0;
+			boolean IsEven = true;
+
+			String[] SplitMessage = split(Message,"!=\"");
+			SplitMessage[0] = "!"+SplitMessage[0];
+			for (int lp = 0;lp != len(SplitMessage);lp++)
+			{
+				quoteCount = QuoteCount(SplitMessage[lp]);
+				IsEven = IsEvenNumber(quoteCount);
+				if ((IsEven == false) && (quoteCount > 0))
+				{
+					String[] newStr = {"",""};
+					newStr[0] = SplitMessage[lp].substring(0,SplitMessage[lp].lastIndexOf('"'))+"\")";
+					newStr[1] = SplitMessage[lp].substring(SplitMessage[lp].lastIndexOf('"') + 1);
+					SplitMessage[lp] = newStr[0]+newStr[1];
+				}
+			}
+			String NewMessage = join(SplitMessage,"!=\"");
+			Message = replaceAll(NewMessage, "!=\"","(-ne)\"");
+		}
+		else if (IsIn(Message,"!="))
 		{
 			Message = replaceAll(Message, "!=","(-ne)");
 		}
@@ -818,7 +840,11 @@ public class shell {
 			Message = replaceAll(Message, "\\(-lt\\)"," < ");
 		}
 
-		if (IsIn(Message,"(-ne)"))
+		if (IsIn(Message,"(-ne)\""))
+		{
+			Message = replaceAll(Message, "\\(-ne\\)\"",".equals(\"");
+		}
+		else if (IsIn(Message,"(-ne)"))
 		{
 			Message = replaceAll(Message, "\\(-ne\\)"," != ");
 		}
@@ -1000,7 +1026,7 @@ public class shell {
 			TheReturn.append(" ");
 			TheReturn.append(Value);
 		}
-		else if (StartsWith(Action, "case:"))
+		else if ((StartsWith(Action, "case:")) || (StartsWith(Action,"default:")))
 		{
 			Value = AfterSplit(Action,":");
 			Action = BeforeSplit(Action,":");
@@ -3284,7 +3310,6 @@ public class shell {
 			Complete.append(Tabs);
 			Complete.append("}\n");
 		}
-//		else if (TheKindType.equals("switch-case"))
 		else if (TheKindType.equals("case"))
 		{
 			Complete.append(Tabs);
@@ -3301,12 +3326,22 @@ public class shell {
 			Complete.append("break;\n");
 
 		}
-		else if (TheKindType.equals("switch"))
-//		else if (StartsWith(TheKindType, "switch"))
+		else if (TheKindType.equals("default"))
 		{
-//			String CaseContent = TheKindType;
-//			String CaseVal;
+			Complete.append(Tabs);
+//			Complete.append("\t");
+			Complete.append("default:\n");
+//			Complete.append(Tabs);
+//			Complete.append("\t");
+			Complete.append(LogicContent.toString());
+//			Complete.append("\n");
+			Complete.append(Tabs);
+			Complete.append("\t");
+			Complete.append("break;\n");
 
+		}
+		else if (TheKindType.equals("switch"))
+		{
 			Complete.append(Tabs);
 //			Complete.append("\t");
 			Complete.append("switch (");
@@ -3315,38 +3350,7 @@ public class shell {
 			Complete.append(Tabs);
 //			Complete.append("\t");
 			Complete.append("{\n");
-/*
-			while (!CaseContent.equals(""))
-			{
-				CaseVal = BeforeSplit(CaseContent,"-");
-				if (CaseVal.equals("switch"))
-				{
-					Complete.append(Tabs);
-					Complete.append("\tcase ");
-					Complete.append(CaseVal);
-					Complete.append(":\n");
-					Complete.append(Tabs);
-					Complete.append("\t\t//code here\n");
-					Complete.append(Tabs);
-					Complete.append("\t\tbreak;\n");
-				}
-
-				if (IsIn(CaseContent,"-"))
-				{
-					CaseContent = AfterSplit(CaseContent,"-");
-				}
-			}
-*/
 			Complete.append(LogicContent.toString());
-			Complete.append(Tabs);
-			Complete.append("\t");
-			Complete.append("default:\n");
-			Complete.append(Tabs);
-			Complete.append("\t\t");
-			Complete.append("//code here\n");
-			Complete.append(Tabs);
-			Complete.append("\t\t");
-			Complete.append("break;\n");
 			Complete.append(Tabs);
 //			Complete.append("\t");
 			Complete.append("}\n");
@@ -3637,6 +3641,7 @@ public class shell {
 		else
 		{
 			Complete.append(TheName);
+			Complete.append(StatementContent.toString());
 		}
 
 		//layer 2 debugging

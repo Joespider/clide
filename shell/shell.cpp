@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.1.46";
+String Version = "0.1.48";
 
 //layer 1 debugging
 bool Debug1 = false;
@@ -169,6 +169,7 @@ void Help(String Type)
 		Example("if:true (String)drink:[Pop]:one,two el >if:[IsString]:drink==true [drink]: el >>if:drink==\"coke\" >>else nl >else-if:[IsInt]:drink==false nl >else >>if: nl >>else nl");
 		Example("if:true (String)drink:[Pop]:one,two el >if:[IsString]:drink==true >>if:drink==\"coke\" >>else nl >else-if:[IsInt]:drink==false nl >else >>if: nl >>else nl");
 		Example("if:Food!=\"\" +->if:[IsDrink]:drink==true +-(Type):\"Drink\" +-el +->>if:[IsNotEmpty]:Food +-[Drink]:Food +-el +->>>if:mood!=\"happy\" +-[print]:\"I am \"+mood +-el +->>>>if:mood==\"unhappy\" +-[ChearUp]:mood +-el +-[print]:\"I am \"+mood +-el <<<<-+-[ImHappy]: <<<<-+-el <<<-+-[Refill]: <<<-+-el <<-+-[Complete]: <<-+-el <<-+-[NewLine]: <<-+-el +->else-if:[IsFood]:Food==true +-(Type):\"Food\" +-el +->>while:[IsNotEmpty]:Food o-[Eat]:Food o-el o->>if:mood!=\"happy\" +-[print]:\"I am \"+mood +-el +->>>do-while:mood==\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I am \"+mood o-el <<<<-+-[print]:\"I am \"+mood+\" now\" <<<<-+-el +->else +-(Type):\"Not Food or Drink\" +-el");
+		Example("switch:code case:1 +-(answer):\"Nope\" +-el default: +-(answer):\"nope\" +-el");
 	}
 	else if (Type == "var")
 	{
@@ -884,7 +885,6 @@ String TranslateTag(String Input)
 
 	}
 	//convert if, else-if, or switch to the old tags
-//	else if ((StartsWith(Action, "if:")) || (StartsWith(Action, "else-if:")) || (StartsWith(Action, "switch:")) || (StartsWith(Action, "switch-case:")))
 	else if ((StartsWith(Action, "if:")) || (StartsWith(Action, "else-if:")) || (StartsWith(Action, "switch:")))
 	{
 		Value = AfterSplit(Action,':');
@@ -897,7 +897,7 @@ String TranslateTag(String Input)
 		Value = "logic-condition:"+Value;
 		TheReturn = Parent+ContentFor+Nest+NewTag+" "+Value;
 	}
-	else if (StartsWith(Action, "case:"))
+	else if ((StartsWith(Action, "case:")) || (StartsWith(Action, "default:")))
 	{
 		Value = AfterSplit(Action,':');
 		Action = BeforeSplit(Action,':');
@@ -2981,34 +2981,17 @@ String Logic(String Tabs, String TheKindType, String Content)
 		Complete = Tabs+"else\n"+Tabs+"{\n"+LogicContent+Tabs+"}\n";
 	}
 	else if (TheKindType == "case")
-//	else if (TheKindType == "switch-case")
 	{
-//		Complete = Tabs+"case "+TheCondition+":\n"+Tabs+"\t"+LogicContent+"\n"+Tabs+"\tbreak;\n";
 		Complete = Tabs+"case "+TheCondition+":\n"+LogicContent+Tabs+"\tbreak;\n";
 	}
-	else if (TheKindType == "switch")
-//	else if (StartsWith(TheKindType, "switch"))
+	else if (TheKindType == "default")
 	{
-//		String CaseContent = TheKindType;
-//		String CaseVal;
-
-		Complete = Tabs+"switch ("+TheCondition+")\n"+Tabs+"{\n";
-/*
-		while (CaseContent != "")
-		{
-			CaseVal = BeforeSplit(CaseContent,'-');
-			if (CaseVal != "switch")
-			{
-				Complete = Complete+Tabs+"\tcase "+CaseVal+":\n"+Tabs+"\t\t//code here\n"+Tabs+"\t\tbreak;\n";
-			}
-
-			if (IsIn(CaseContent,"-"))
-			{
-				CaseContent = AfterSplit(CaseContent,'-');
-			}
-		}
-*/
-		Complete = Complete+LogicContent+Tabs+"\tdefault:\n"+Tabs+"\t\t//code here\n"+Tabs+"}\n";
+		Complete = Tabs+"default:\n"+LogicContent;
+	}
+	else if (TheKindType == "switch")
+	{
+		Complete = Tabs+"switch ("+TheCondition+")\n"+Tabs+"{\n"+LogicContent+"\n"+Tabs+"}\n";
+//		Complete = Complete+LogicContent+Tabs+"\tdefault:\n"+Tabs+"\t\t//code here\n"+Tabs+"}\n";
 	}
 
 	//layer 2 debugging
@@ -3255,7 +3238,7 @@ String Statements(String Tabs, String TheKindType, String Content)
 	else
 	{
 //		TheName = replaceAll(TheKindType, "(-spc)"," ");
-		Complete = TheName;
+		Complete = TheName+StatementContent;
 	}
 
 	//layer 2 debugging

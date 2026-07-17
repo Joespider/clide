@@ -2,7 +2,7 @@ import os
 import sys
 import platform
 
-Version = "0.1.29"
+Version = "0.1.31"
 
 Debug1 = False
 Debug2 = False
@@ -69,6 +69,7 @@ def Help(Type):
 		Example("if:true (String)drink:[Pop]:one,two el >if:[IsString]:drink==true [drink]: el >>if:drink==\"coke\" >>else nl >else-if:[IsInt]:drink==false nl >else >>if: nl >>else nl")
 		Example("if:true (String)drink:[Pop]:one,two el >if:[IsString]:drink==true >>if:drink==\"coke\" >>else nl >else-if:[IsInt]:drink==false nl >else >>if: nl >>else nl")
 		Example("if:Food!=\"\" +->if:[IsDrink]:drink==true +-(Type):\"Drink\" +-el +->>if:[IsNotEmpty]:Food +-[Drink]:Food +-el +->>>if:mood!=\"happy\" +-[print]:\"I am \"+mood +-el +->>>>if:mood==\"unhappy\" +-[ChearUp]:mood +-el +-[print]:\"I am \"+mood +-el <<<<-+-[ImHappy]: <<<<-+-el <<<-+-[Refill]: <<<-+-el <<-+-[Complete]: <<-+-el <<-+-[NewLine]: <<-+-el +->else-if:[IsFood]:Food==true +-(Type):\"Food\" +-el +->>while:[IsNotEmpty]:Food o-[Eat]:Food o-el o->>if:mood!=\"happy\" +-[print]:\"I am \"+mood +-el +->>>do-while:mood==\"unhappy\" o-[ChearUp]:mood o-el o-[print]:\"I am \"+mood o-el <<<<-+-[print]:\"I am \"+mood+\" now\" <<<<-+-el +->else +-(Type):\"Not Food or Drink\" +-el")
+		Example("switch:code case:1 +-(answer):\"Nope\" +-el default: +-(answer):\"nope\" +-el")
 	elif Type == "var":
 		Example("(Type):\"Not Food or Drink\" el")
 		Example("(std::string)name:\"\" el (int)point:0 el (std::string)james=\"James\" el (int)help el (help):0 el")
@@ -466,7 +467,7 @@ def TranslateTag(Input):
 		Value = CharTranslateFrom(Value)
 		Value = "logic-condition:"+Value
 		TheReturn = Parent+ContentFor+Nest+NewTag+" "+Value
-	elif StartsWith(Action, "case:"):
+	elif StartsWith(Action, "case:") or StartsWith(Action, "default:"):
 		Value = AfterSplit(Action,":")
 		Action = BeforeSplit(Action,":")
 		Nest = "nest-"+Nest
@@ -1684,24 +1685,13 @@ def Logic(Tabs, TheKindType, Content):
 		Complete = Tabs+"elif "+TheCondition+":\n"+LogicContent
 	elif TheKindType == "else":
 		Complete = Tabs+"else:\n"+LogicContent
-#	elif TheKindType == "switch-case":
 	elif TheKindType == "case":
-#		Complete = Tabs+"case "+TheCondition+":\n"+Tabs+"\t#code here\n"
 		Complete = Tabs+"case "+TheCondition+":\n"+LogicContent
+	elif TheKindType == "default":
+		Complete = Tabs+"case _:\n"+LogicContent
 	elif TheKindType == "switch":
-#	elif StartsWith(TheKindType, "switch"):
-#		CaseContent = TheKindType
-#		CaseVal
-
-		Complete = Tabs+"match "+TheCondition+":\n"
-#		while CaseContent != "":
-#			CaseVal = BeforeSplit(CaseContent,"-")
-#			if CaseVal != "switch":
-#				Complete = Complete+Tabs+"\tcase "+CaseVal+":\n"+Tabs+"\t\t#code here\n"+Tabs+"\t\tbreak;\n"
-#
-#			if IsIn(CaseContent,"-"):
-#				CaseContent = AfterSplit(CaseContent,"-")
-		Complete = Complete+LogicContent+Tabs+"\tcase _:\n"+Tabs+"\t\t#code here\n"
+		Complete = Tabs+"match "+TheCondition+":\n"+LogicContent
+#		Complete = Complete+LogicContent+Tabs+"\tcase _:\n"+Tabs+"\t\t#code here\n"
 
 	#layer 2 debugging
 	if Debug2:
@@ -1873,7 +1863,7 @@ def Statements(Tabs, TheKindType, Content):
 	elif TheName == "tab":
 		Complete = "\t"+StatementContent
 	else:
-		Complete = TheName
+		Complete = TheName+StatementContent
 
 	#layer 2 debugging
 	if Debug2:
