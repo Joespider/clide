@@ -9,7 +9,7 @@ import (
 	"strings"
 	)
 
-var Version string = "0.1.34"
+var Version string = "0.1.35"
 var Debug1 bool = false
 var Debug2 bool = false
 var Debug3 bool = false
@@ -1645,7 +1645,10 @@ func Loop(Tabs string, TheKindType string, Content string) string {
 			} else {
 				TheCondition = Content
 			}
-			TheCondition = Conditions(TheCondition)
+
+			if TheKindType != "do-while" {
+				TheCondition = Conditions(TheCondition)
+			}
 		}
 
 		//nest-<type> <other content>
@@ -1915,8 +1918,10 @@ func Loop(Tabs string, TheKindType string, Content string) string {
 	if TheKindType == "for" {
 		Complete = Tabs+"for "+TheCondition+" {\n"+LoopContent+Tabs+"}\n"
 	//loop:do/while
-	} else if TheKindType == "do/while" {
-		Complete = Tabs+"for "+TheCondition+" {\n"+LoopContent+Tabs+"}\n"
+	} else if TheKindType == "do-while" {
+		var EscapeLoop string = "logic:if logic-"+TheCondition+" logic-stmt:break stmt:endline"
+		EscapeLoop = GenCode(Tabs+"\t", EscapeLoop)
+		Complete = Tabs+"for {\n"+LoopContent+"\n"+EscapeLoop+Tabs+"}\n"
 	//loop:while
 	} else {
 		Complete = Tabs+"for "+TheCondition+" {\n"+LoopContent+Tabs+"}\n"
