@@ -6,7 +6,7 @@ static mut DEBUG_1: bool = false;
 static mut DEBUG_2: bool = false;
 static mut DEBUG_3: bool = false;
 
-const SHELL_VERSION: &str = "0.1.33";
+const SHELL_VERSION: &str = "0.1.34";
 
 fn get_os() -> String
 {
@@ -3001,7 +3001,6 @@ fn gen_loop(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 		the_complete.push_str("{\n");
 		the_complete.push_str(&loop_content);
 		the_complete.push_str("\n");
-		println!("{}",&escape_loop);
 		the_complete.push_str(&gen_code(&new_tabs,&escape_loop));
 		the_complete.push_str(the_tabs);
 		the_complete.push_str("}\n");

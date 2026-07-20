@@ -2,7 +2,7 @@ import os
 import sys
 import platform
 
-Version = "0.1.31"
+Version = "0.1.32"
 
 Debug1 = False
 Debug2 = False
@@ -1214,7 +1214,8 @@ def Loop(Tabs, TheKindType, Content):
 				#Content = ReplaceTag(Content, "loop-",False)
 			else:
 				TheCondition = Content
-			TheCondition = Conditions(TheCondition)
+			if TheKindType != "do-while":
+				TheCondition = Conditions(TheCondition)
 
 		#nest-<type> <other content>
 		#{or}
@@ -1435,9 +1436,11 @@ def Loop(Tabs, TheKindType, Content):
 	if TheKindType == "for":
 		Complete = Tabs+"for "+TheCondition+":\n"+LoopContent
 
-#	#loop:do-while
-#	elif TheKindType == "do-while":
-#		Complete = Tabs+"do\n"+Tabs+"{\n"+LoopContent+Tabs+"}\n"+Tabs+"while ("+TheCondition+");\n"
+	#loop:do-while
+	elif TheKindType == "do-while":
+		EscapeLoop = "logic:if logic-"+TheCondition+" logic-stmt:break stmt:endline"
+		EscapeLoop = GenCode(Tabs+"\t", EscapeLoop)
+		Complete = Tabs+"while True:\n"+LoopContent+"\n"+EscapeLoop
 	#loop:while
 	else:
 		Complete = Tabs+"while "+TheCondition+":\n"+LoopContent
