@@ -58,6 +58,7 @@ String HandleTabs(String CalledBy, String Tabs, String Content);
 bool IsDataType(String Type);
 String DataType(String Type, bool getNull);
 String ReplaceTag(String Content, String Tag, bool All);
+String Imports(String Tabs, String Tag, String Content);
 String Pointers(String Tabs, String Tag, String Content);
 String Conditions(String input);
 String Parameters(String input,String CalledBy);
@@ -1286,6 +1287,24 @@ String DataType(String Type, bool getNull)
 	}
 }
 
+//imports:
+String Imports(String Tabs, String Tag, String Content)
+{
+	String ToImport = "";
+	String TagName = "import";
+	String Library = AfterSplit(Tag,':');
+
+	if (Debug1)
+	{
+		print(TagName+"[Content]:>"+Library);
+	}
+
+	ToImport = "import "+Library + GenCode(Tabs,Content);
+
+	return ToImport;
+}
+
+
 String Pointers(String Tabs, String Tag, String Content)
 {
 	String TagName = "point";
@@ -1652,6 +1671,7 @@ String Struct(String TheName, String Content)
 	return Complete;
 }
 
+//class:
 String Class(String TheName, String Content)
 {
 	String TagName = "class";
@@ -3465,6 +3485,10 @@ String GenCode(String Tabs,String GetMe)
 	else if (StartsWith(Args[0], "stmt:"))
 	{
 		TheCode = Statements(Tabs, Args[0], Args[1]);
+	}
+	else if (StartsWith(Args[0], "import:"))
+	{
+		TheCode = Imports(Tabs, Args[0], Args[1]);
 	}
 	else if (StartsWith(Args[0], "point:"))
 	{
