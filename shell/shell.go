@@ -9,7 +9,7 @@ import (
 	"strings"
 	)
 
-var Version string = "0.1.35"
+var Version string = "0.1.36"
 var Debug1 bool = false
 var Debug2 bool = false
 var Debug3 bool = false
@@ -447,6 +447,10 @@ func CharTranslateFrom(Message string) string {
 
 	if IsIn(Message,"||") {
 		Message = replaceAll(Message, "||","(-or)")
+	}
+
+	if IsIn(Message,"&&") {
+		Message = replaceAll(Message, "&&","(-and)")
 	}
 
 	if IsIn(Message,"!=") {

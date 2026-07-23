@@ -6,7 +6,7 @@ static mut DEBUG_1: bool = false;
 static mut DEBUG_2: bool = false;
 static mut DEBUG_3: bool = false;
 
-const SHELL_VERSION: &str = "0.1.34";
+const SHELL_VERSION: &str = "0.1.35";
 
 fn get_os() -> String
 {
@@ -701,6 +701,11 @@ fn char_translate_from(message: &str) -> String
 	if is_in(&new_message,"||")
 	{
 		new_message = replace_all(&new_message, "||", "(-or)")
+	}
+
+	if is_in(&new_message,"&&")
+	{
+		new_message = replace_all(&new_message, "&&", "(-and)")
 	}
 
 	if is_in(&new_message," ")

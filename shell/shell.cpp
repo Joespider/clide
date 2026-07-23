@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.1.48";
+String Version = "0.1.49";
 
 //layer 1 debugging
 bool Debug1 = false;
@@ -704,6 +704,11 @@ String CharTranslateFrom(String Message)
 	if (IsIn(Message,"||"))
 	{
 		Message = replaceAll(Message, "||","(-or)");
+	}
+
+	if (IsIn(Message,"&&"))
+	{
+		Message = replaceAll(Message, "&&","(-and)");
 	}
 
 	if (IsIn(Message,"!="))

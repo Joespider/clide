@@ -2,7 +2,7 @@ import os
 import sys
 import platform
 
-Version = "0.1.32"
+Version = "0.1.33"
 
 Debug1 = False
 Debug2 = False
@@ -225,6 +225,7 @@ def banner():
 	print("Type \"help\" for more information.")
 
 def VectAndArray(Name, TheDataType, VectorOrArray, Action, TheValue):
+	print("\""+str(Name)+"\" \""+str(TheDataType)+"\" \""+str(VectorOrArray)+"\" \""+str(Action)+"\" \""+str(TheValue)+"\"")
 	TheReturn = ""
 	if VectorOrArray == "vector":
 		if Action == "variable":
@@ -351,6 +352,8 @@ def CharTranslateFrom(Message):
 		Message = replaceAll(Message, ">","(-gt)")
 	if IsIn(Message,"||"):
 		Message = replaceAll(Message, "||","(-or)")
+	if IsIn(Message,"&&"):
+		Message = replaceAll(Message, "&&","(-and)")
 	if IsIn(Message,"!="):
 		Message = replaceAll(Message,"!=","(-ne)")
 	return Message
@@ -1943,14 +1946,29 @@ def Variables(Tabs, TheKindType, Content):
 		VarType = BeforeSplit(TheKindType,">")
 		VarType = AfterSplit(VarType,"<")
 		VarType = AfterSplit(VarType,":")
+
+		#layer 2 debugging
+		if Debug2:
+			print(TagName+"[VarType]:> "+VarType)
+
 		VarType = DataType(VarType,False)
 
 		#vector or array
 		VorA = BeforeSplit(TheKindType,":")
 		VorA = AfterSplit(VorA,"<")
 
+		#layer 2 debugging
+		if Debug2:
+			print(TagName+"[VorA]:> "+VorA)
+
 		#name of array
 		Name = AfterSplit(TheKindType,">")
+
+		#layer 2 debugging
+		if Debug2:
+			print(TagName+"[TheKindType]:> "+TheKindType)
+			print(TagName+"[Name]:> "+Name)
+
 
 		if IsIn(Name,":"):
 			TheValue = AfterSplit(Name,":")
