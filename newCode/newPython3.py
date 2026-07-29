@@ -6,7 +6,7 @@ ProgramName = sys.argv[0]
 if "/" in ProgramName:
 	ProgramName = ProgramName.rsplit("/",1)[1]
 
-VersionNumver = "0.1.42"
+VersionNumver = "0.1.43"
 
 def Help():
 	print("Author: Joespider")
@@ -230,7 +230,7 @@ def Methods(getMain, getRawInput, getShell, getFiles, getCLI, getCheckFile, getW
 	SplitMethod = SplitMethod + "def AfterSplit(Str, splitAt):\n\tif splitAt in Str:\n\t\treturn Str.split(splitAt,1)[1]\n\telse:\n\t\treturn \"\"\n"
 	JoinMethod = "def Join(SplitMessage, jBy):\n\tmessage = jBy.join(SplitMessage)\n\treturn message\n"
 	IsInStringMethod = "def IsIn(Str, Sub):\n\tif Sub in Str:\n\t\treturn True\n\telse:\n\t\treturn False\n\n"
-	IsInStringMethod = IsInStringMethod + "def StartsWith(Str, Start):\n\tif Str.startswith(Sub):\n\t\treturn True\n\telse:\n\t\treturn False\n\n"
+	IsInStringMethod = IsInStringMethod + "def StartsWith(Str, Start):\n\tif Str.startswith(Start):\n\t\treturn True\n\telse:\n\t\treturn False\n\n"
 	IsInStringMethod = IsInStringMethod + "def EndsWith(Str, End):\n\tif Str.endswith(Sub):\n\t\treturn True\n\telse:\n\t\treturn False\n"
 	SubStringMethod = "def removeFirstChars(value, length):\n\treturn value[length:]\n\n"
 	SubStringMethod = SubStringMethod + "def removeLastChars(value, length):\n\tlast = len(value)\n\treturn value[:last-length]\n"
