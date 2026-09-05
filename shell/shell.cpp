@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.1.49";
+String Version = "0.1.50";
 
 //layer 1 debugging
 bool Debug1 = false;
@@ -3207,26 +3207,39 @@ String Statements(String Tabs, String TheKindType, String Content)
 		String VarType = "";
 		String TheValue = "";
 
-		//grab data type
 		VarType = BeforeSplit(TheKindType,'>');
 		VarType = AfterSplit(VarType,'<');
-		VarType = AfterSplit(VarType,':');
+		VarType = BeforeSplit(VarType,':');
+
+		//layer 2 debugging
+		if (Debug2)
+		{
+			print(TagName+"[VarType]:> "+VarType);
+		}
+
 		VarType = DataType(VarType,false);
 
 		//vector or array
-		VorA = BeforeSplit(TheKindType,':');
-		VorA = AfterSplit(VorA,'<');
-
-		TheName = VorA;
+		VorA = AfterSplit(TheKindType,':');
+		VorA = BeforeSplit(VorA,'>');
 
 		//name of array
 		Name = AfterSplit(TheKindType,'>');
 
-		if (IsIn(Name,":"))
+		TheName = VorA;
+/*
+		//name of array
+		Name = BeforeSplit(TheKindType,'>');
+		Name = AfterSplit(Name,'<');
+*/
+
+		if (StartsWith(Name,":"))
 		{
+			Name = AfterSplit(Name,':');
 			TheValue = AfterSplit(Name,':');
 			Name = BeforeSplit(Name,':');
-			Complete = VectAndArray(Name, VarType, VorA, "statement",GenCode("",TranslateTag(TheValue)))+StatementContent;
+
+			Complete = VectAndArray(Name, VarType, VorA, "statement",GenCode("",TranslateTag("stmt:"+TheValue)))+StatementContent;
 		}
 		else
 		{
@@ -3308,7 +3321,6 @@ String Variables(String Tabs, String TheKindType, String Content)
 	while (Content != "")
 	{
 		//All params are removed
-
 		if (Last)
 		{
 			break;
@@ -3370,20 +3382,30 @@ String Variables(String Tabs, String TheKindType, String Content)
 		//grab data type
 		VarType = BeforeSplit(TheKindType,'>');
 		VarType = AfterSplit(VarType,'<');
-		VarType = AfterSplit(VarType,':');
+		VarType = BeforeSplit(VarType,':');
+
+		//layer 2 debugging
+		if (Debug2)
+		{
+			print(TagName+"[VarType]:> "+VarType);
+		}
+
 		VarType = DataType(VarType,false);
 
 		//vector or array
-		VorA = BeforeSplit(TheKindType,':');
-		VorA = AfterSplit(VorA,'<');
+		VorA = AfterSplit(TheKindType,':');
+		VorA = BeforeSplit(VorA,'>');
 
 		//name of array
 		Name = AfterSplit(TheKindType,'>');
 
-		if (IsIn(Name,":"))
+		if (StartsWith(Name,":"))
 		{
+/*
 			TheValue = AfterSplit(Name,':');
 			Name = BeforeSplit(Name,':');
+*/
+			Name = AfterSplit(Name,':');
 			NewVar = VectAndArray(Name, VarType, VorA, "variable",GenCode("",TranslateTag(TheValue)));
 		}
 		else

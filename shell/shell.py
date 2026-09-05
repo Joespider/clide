@@ -2,7 +2,7 @@ import os
 import sys
 import platform
 
-Version = "0.1.33"
+Version = "0.1.34"
 
 Debug1 = False
 Debug2 = False
@@ -1945,7 +1945,7 @@ def Variables(Tabs, TheKindType, Content):
 		#grab data type
 		VarType = BeforeSplit(TheKindType,">")
 		VarType = AfterSplit(VarType,"<")
-		VarType = AfterSplit(VarType,":")
+		VarType = BeforeSplit(VarType,":")
 
 		#layer 2 debugging
 		if Debug2:
@@ -1954,8 +1954,8 @@ def Variables(Tabs, TheKindType, Content):
 		VarType = DataType(VarType,False)
 
 		#vector or array
-		VorA = BeforeSplit(TheKindType,":")
-		VorA = AfterSplit(VorA,"<")
+		VorA = AfterSplit(TheKindType,":")
+		VorA = BeforeSplit(VorA,"<")
 
 		#layer 2 debugging
 		if Debug2:
