@@ -2,7 +2,7 @@ import os
 import sys
 import platform
 
-Version = "0.1.34"
+Version = "0.1.35"
 
 Debug1 = False
 Debug2 = False
@@ -225,7 +225,7 @@ def banner():
 	print("Type \"help\" for more information.")
 
 def VectAndArray(Name, TheDataType, VectorOrArray, Action, TheValue):
-	print("\""+str(Name)+"\" \""+str(TheDataType)+"\" \""+str(VectorOrArray)+"\" \""+str(Action)+"\" \""+str(TheValue)+"\"")
+#	print("\""+str(Name)+"\" \""+str(TheDataType)+"\" \""+str(VectorOrArray)+"\" \""+str(Action)+"\" \""+str(TheValue)+"\"")
 	TheReturn = ""
 	if VectorOrArray == "vector":
 		if Action == "variable":
@@ -261,7 +261,6 @@ def VectAndArray(Name, TheDataType, VectorOrArray, Action, TheValue):
 			else:
 #				TheReturn = Name+"["+plc+"]"
 				TheReturn = Name
-#	print(TheReturn)
 	return TheReturn
 
 def AlgoTags(Algo):
@@ -1824,7 +1823,6 @@ def Statements(Tabs, TheKindType, Content):
 				if AutoTabs != "":
 					StatementContent = StatementContent + GenCode(Tabs,AutoTabs)
 					AutoTabs = ""
-
 	#Pull Vector or Array Type
 	if StartsWith(TheKindType,"<") and IsIn(TheKindType,">"):
 		VorA = ""
@@ -1834,22 +1832,32 @@ def Statements(Tabs, TheKindType, Content):
 		#grab data type
 		VarType = BeforeSplit(TheKindType,">")
 		VarType = AfterSplit(VarType,"<")
-		VarType = AfterSplit(VarType,":")
+		VarType = BeforeSplit(VarType,":")
+
+		#layer 2 debugging
+		if Debug2:
+			print(TagName+"[VarType]:> "+VarType)
+
 		VarType = DataType(VarType,False)
 
 		#vector or array
-		VorA = BeforeSplit(TheKindType,":")
-		VorA = AfterSplit(VorA,"<")
+		VorA = AfterSplit(TheKindType,":")
+		VorA = BeforeSplit(VorA,">")
 
 		TheName = VorA
+
+		#layer 2 debugging
+		if Debug2:
+			print(TagName+"[VorA]:> "+VorA)
 
 		#name of array
 		Name = AfterSplit(TheKindType,">")
 
-		if IsIn(Name,":"):
+		if StartsWith(Name,":"):
+			Name = AfterSplit(Name,":")
 			TheValue = AfterSplit(Name,":")
 			Name = BeforeSplit(Name,":")
-			Complete = VectAndArray(Name, VarType, VorA, "statement",GenCode("",TranslateTag(TheValue)))+StatementContent
+			Complete = VectAndArray(Name, VarType, VorA, "statement",GenCode("",TranslateTag("stmt:"+TheValue)))+StatementContent
 		else:
 			Complete = VectAndArray(Name, VarType, VorA, "statement","")+StatementContent
 		#pull value
@@ -1955,7 +1963,7 @@ def Variables(Tabs, TheKindType, Content):
 
 		#vector or array
 		VorA = AfterSplit(TheKindType,":")
-		VorA = BeforeSplit(VorA,"<")
+		VorA = BeforeSplit(VorA,">")
 
 		#layer 2 debugging
 		if Debug2:
@@ -1969,10 +1977,10 @@ def Variables(Tabs, TheKindType, Content):
 			print(TagName+"[TheKindType]:> "+TheKindType)
 			print(TagName+"[Name]:> "+Name)
 
-
-		if IsIn(Name,":"):
-			TheValue = AfterSplit(Name,":")
-			Name = BeforeSplit(Name,":")
+		if StartsWith(Name,":"):
+#			Name = AfterSplit(Name,":")
+#			TheValue = AfterSplit(Name,":")
+			Name = AfterSplit(Name,":")
 			NewVar = VectAndArray(Name, VarType, VorA, "variable",GenCode("",TranslateTag(TheValue)))
 		else:
 			NewVar = VectAndArray(Name, VarType, VorA, "variable","")
@@ -1987,9 +1995,12 @@ def Variables(Tabs, TheKindType, Content):
 		Name = BeforeSplit(TheKindType,"=")
 		Value = AfterSplit(TheKindType,"=")
 
-	if VarType != "" and Name == "":
-#		NewVar = VarType+" "
-		Name = VarType
+	if VarType != "":
+		NewVar = VarType+" "
+
+#I am not sure if this code works anymore
+#	if VarType != "" and Name == "":
+#		Name = VarType
 
 	if MakeEqual == True:
 		if IsIn(Value,"(-spc)"):
@@ -1998,8 +2009,8 @@ def Variables(Tabs, TheKindType, Content):
 #		NewVar = NewVar+Name+" = "+Value
 		NewVar = Name+" = "+Value
 	else:
-#		NewVar = NewVar+Name
-		NewVar = Name
+		NewVar = NewVar+Name
+#		NewVar = Name
 	NewVar = NewVar+VariableContent
 
 	#layer 2 debugging

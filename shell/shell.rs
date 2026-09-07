@@ -6,7 +6,7 @@ static mut DEBUG_1: bool = false;
 static mut DEBUG_2: bool = false;
 static mut DEBUG_3: bool = false;
 
-const SHELL_VERSION: &str = "0.1.35";
+const SHELL_VERSION: &str = "0.1.36";
 
 fn get_os() -> String
 {
@@ -414,28 +414,39 @@ fn banner()
 
 fn gen_vect_and_array(name: &str, the_data_type: &str, new_vector_or_array: &str, action: &str, the_value: &str) -> String
 {
+/*
+	println!("name: {}",name);
+	println!("the_data_type: {}",the_data_type);
+	println!("new_vector_or_array: {}",new_vector_or_array);
+	println!("action: {}",action);
+	println!("the_value: {}",the_value);
+*/
 	let mut new_name = String::from(name);
 	let mut the_return = String::from("");
 	let mut new_data_type = String::from(the_data_type);
+
 	if new_vector_or_array == "vector"
 	{
 		if action == "variable"
 		{
 			if the_value != ""
 			{
-				the_return.push_str("std::vector<");
-				the_return.push_str(&new_data_type);
-				the_return.push_str("> ");
+				the_return.push_str("let ");
 				the_return.push_str(&new_name);
-				the_return.push_str(" = ");
+				the_return.push_str(" = vec![");
 				the_return.push_str(the_value);
+				the_return.push_str("]");
 			}
 			else
 			{
-				the_return.push_str("std::vector<");
-				the_return.push_str(&new_data_type);
-				the_return.push_str("> ");
+				the_return.push_str("let ");
 				the_return.push_str(&new_name);
+				the_return.push_str(" = vec![");
+				if the_data_type == "String"
+				{
+					the_return.push_str("\"\"");
+				}
+				the_return.push_str("]");
 			}
 		}
 		else
@@ -443,7 +454,7 @@ fn gen_vect_and_array(name: &str, the_data_type: &str, new_vector_or_array: &str
 			if !is_in(&new_name,"[") && !is_in(&new_name,"]")
 			{
 				the_return.push_str(&new_name);
-				the_return.push_str(".push_back(");
+				the_return.push_str(".push(");
 				the_return.push_str(the_value);
 				the_return.push_str(")");
 			}
@@ -3532,16 +3543,12 @@ fn gen_logic(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 //stmt:
 fn gen_statements(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 {
-//	let debug_1 = DEBUG_1;
-//	let debug_2 = DEBUG_2;
-
 	let tag_name: String = "stmt".to_string();
 	let mut the_last = false;
 	let mut new_kind = the_kind_type.to_string();
 	let mut the_complete = String::new();
 	let mut statement_content = String::new();
 	let mut the_other_content: String;
-//	let mut the_other_content: &str;
 	let the_name: String;
 	let mut name = String::from("");
 	let mut the_process: String;
@@ -3653,18 +3660,39 @@ fn gen_statements(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Str
 	//Pull Vector or Array Type
 	if starts_with(&new_kind,"<") && is_in(&new_kind,">")
 	{
+		let mut var_type = before_split(&new_kind,">");
+		var_type = after_split(&var_type,"<");
+		var_type = before_split(&var_type,":");
+
+		unsafe
+		{
+			//layer 2 debugging
+			if DEBUG_2
+			{
+				println!("{}[VarType]:> {}",tag_name,var_type);
+			}
+		}
+
+		var_type = data_type(&var_type,false);
+
+		//vector or array
+		let mut v_or_a = after_split(&new_kind,":");
+		v_or_a = before_split(&v_or_a,">");
+
 		//name of array
 		name = after_split(&new_kind,">");
-		if is_in(&name,":")
-		{
-			name = before_split(&name,":");
 
-			the_complete.push_str(&gen_vect_and_array(&name, &data_type(&after_split(&after_split(&before_split(&new_kind,">"),"<"),":"),false), &after_split(&before_split(&new_kind,":"),"<"), "statement",&gen_code("",&translate_tag(&after_split(&name,":")))));
+		if starts_with(&name,":")
+		{
+			let the_value = after_split(&after_split(&name,":"),":");
+			name = before_split(&after_split(&name,":"),":");
+			let new_value = ["stmt:",&the_value].concat();
+			the_complete.push_str(&gen_vect_and_array(&name, &var_type, &v_or_a, "statement",&gen_code("",&translate_tag(&new_value))));
 			the_complete.push_str(&statement_content);
 		}
 		else
 		{
-			the_complete.push_str(&gen_vect_and_array(&name, &data_type(&after_split(&after_split(&before_split(&new_kind,">"),"<"),":"),false), &after_split(&before_split(&new_kind,":"),"<"), "statement",""));
+			the_complete.push_str(&gen_vect_and_array(&the_name, &var_type, &v_or_a, "statement",""));
 			the_complete.push_str(&statement_content);
 		}
 	}
@@ -3724,9 +3752,6 @@ fn gen_statements(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Str
 //var:
 fn gen_variables(the_tabs: &str, the_kind_type: &str, the_content: &str) -> String
 {
-//	let debug_1 = DEBUG_1;
-//	let debug_2 = DEBUG_2;
-
 	let tag_name: String = "var".to_string();
 	let mut no_add = false;
 	let mut the_last = false;
@@ -3825,17 +3850,37 @@ fn gen_variables(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Stri
 	//Pull Vector or Array Type
 	else if starts_with(&new_kind,"<") && is_in(&new_kind,">")
 	{
+//		let mut the_value: String = "".to_string();
+//		let mut v_or_a: String = "".to_string();
+
+		var_type = before_split(&new_kind,">");
+		var_type = after_split(&var_type,"<");
+		var_type = before_split(&var_type,":");
+
+		unsafe
+		{
+			//layer 2 debugging
+			if DEBUG_2
+			{
+				println!("{}[var_type]:> {}",tag_name,var_type);
+			}
+		}
+
+		var_type = data_type(&var_type,false);
+
+		let mut v_or_a: String = after_split(&new_kind,":");
+		v_or_a = before_split(&v_or_a,">");
+
 		//name of array
 		the_name = after_split(&new_kind,">");
-		if is_in(&the_name,":")
+		if starts_with(&the_name,":")
 		{
-			the_name = before_split(&the_name,":");
-
-			new_var.push_str(&gen_vect_and_array(&the_name, &data_type(&after_split(&after_split(&before_split(&new_kind,">"),"<"),":"),false), &after_split(&before_split(&new_kind,":"),"<"), "variable",&gen_code("",&translate_tag(&after_split(&the_name,":")))));
+			the_name = after_split(&the_name,":");
+			new_var.push_str(&gen_vect_and_array(&the_name, &var_type, &v_or_a, "variable",&gen_code("",&translate_tag(&after_split(&the_name,":")))));
 		}
 		else
 		{
-			new_var.push_str(&gen_vect_and_array(&the_name, &data_type(&after_split(&after_split(&before_split(&new_kind,">"),"<"),":"),false), &after_split(&before_split(&new_kind,":"),"<"), "varaible",""));
+			new_var.push_str(&gen_vect_and_array(&the_name, &var_type, &v_or_a, "variable",""));
 		}
 		
 		no_add = true;
@@ -3849,7 +3894,7 @@ fn gen_variables(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Stri
 		the_value = after_split(&new_kind,"=");
 	}
 
-	if var_type != "" && var_type != "auto"
+	if var_type != "" && var_type != "auto" && no_add == false
 	{
 		new_var.push_str("let ");
 		new_var.push_str("mut ");
@@ -3857,7 +3902,7 @@ fn gen_variables(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Stri
 		new_var.push_str(": ");
 		new_var.push_str(&var_type);
 	}
-	else if var_type != "" && var_type == "auto"
+	else if var_type != "" && var_type == "auto" && no_add == false
 	{
 		new_var.push_str("let ");
 		new_var.push_str("mut ");
@@ -3871,6 +3916,7 @@ fn gen_variables(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Stri
 		{
 			new_var.push_str(&the_name);
 		}
+
 	}
 
 	if make_equal == true
@@ -3886,7 +3932,6 @@ fn gen_variables(the_tabs: &str, the_kind_type: &str, the_content: &str) -> Stri
 		}
 	}
 	new_var.push_str(&variable_content);
-
 
 	unsafe
 	{
