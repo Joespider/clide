@@ -425,6 +425,7 @@ fn gen_vect_and_array(name: &str, the_data_type: &str, new_vector_or_array: &str
 	let mut the_return = String::from("");
 	let mut new_data_type = String::from(the_data_type);
 
+	//https://www.w3schools.com/rust/rust_vectors.php
 	if new_vector_or_array == "vector"
 	{
 		if action == "variable"
@@ -460,6 +461,7 @@ fn gen_vect_and_array(name: &str, the_data_type: &str, new_vector_or_array: &str
 			}
 		}
 	}
+	//https://www.w3schools.com/rust/rust_arrays.php
 	else if new_vector_or_array == "array"
 	{
 		let mut plc = String::from("");
