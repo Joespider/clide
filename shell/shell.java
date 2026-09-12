@@ -12,7 +12,7 @@ import java.io.IOException;
 
 //class name
 public class shell {
-	private static String Version = "0.1.36";
+	private static String Version = "0.1.37";
 
 	//layer 1 debugging
 	private static boolean Debug1 = false;
@@ -488,7 +488,9 @@ public class shell {
 	}
 
 	//https://www.geeksforgeeks.org/java/java-util-vector-class-java/
-	private static String VectAndArray(String Name, String TheDataType, String VectorOrArray, String Action, String TheValue)
+	private static String VectAndArray(
+String Name, String TheDataType, String VectorOrArray, String Action, String TheValue
+)
 	{
 		StringBuilder TheReturn = new StringBuilder("");
 		if (VectorOrArray.equals("vector"))
@@ -3601,23 +3603,28 @@ public class shell {
 			{
 				print(TagName+"[VarType]:> "+VarType);
 			}
+
 			VarType = DataType(VarType,false);
 
 			//vector or array
 			VorA = AfterSplit(TheKindType,":");
 			VorA = BeforeSplit(VorA,">");
 
-			TheName = VorA;
-
 			//name of array
 			Name = AfterSplit(TheKindType,">");
 
-			if (StartsWith(Name,":"))
-			{
+			TheName = VorA;
+/*
+			//name of array
+			Name = BeforeSplit(TheKindType,">");
+			Name = AfterSplit(Name,"<");
+*/
+
+        	        if (StartsWith(Name,":"))
+	                {
 				Name = AfterSplit(Name,":");
 				TheValue = AfterSplit(Name,":");
 				Name = BeforeSplit(Name,":");
-
 				Complete.append(VectAndArray(Name, VarType, VorA, "statement",GenCode("",TranslateTag("stmt:"+TheValue))));
 				Complete.append(StatementContent);
 			}
@@ -3773,7 +3780,7 @@ public class shell {
 			//grab data type
 			VarType = BeforeSplit(TheKindType,">");
 			VarType = AfterSplit(VarType,"<");
-			VarType = AfterSplit(VarType,":");
+			VarType = BeforeSplit(VarType,":");
 
 			//layer 2 debugging
 			if (Debug2)

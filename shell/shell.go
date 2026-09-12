@@ -9,7 +9,7 @@ import (
 	"strings"
 	)
 
-var Version string = "0.1.36"
+var Version string = "0.1.38"
 var Debug1 bool = false
 var Debug2 bool = false
 var Debug3 bool = false
@@ -2410,22 +2410,29 @@ func Statements(Tabs string, TheKindType string, Content string) string {
 		//grab data type
 		VarType = BeforeSplit(TheKindType,">")
 		VarType = AfterSplit(VarType,"<")
-		VarType = AfterSplit(VarType,":")
+		VarType = BeforeSplit(VarType,":")
+
+		//layer 2 debugging
+		if Debug2 {
+			fmt.Println(TagName+"[VarType]:> "+VarType)
+		}
+
 		VarType = DataType(VarType,false)
 
 		//vector or array
-		VorA = BeforeSplit(TheKindType,":")
-		VorA = AfterSplit(VorA,"<")
-
-		TheName = VorA
+		VorA = AfterSplit(TheKindType,":")
+		VorA = BeforeSplit(VorA,">")
 
 		//name of array
 		Name = AfterSplit(TheKindType,">")
 
-		if IsIn(Name,":") {
+		TheName = VorA
+
+		if StartsWith(Name,":") {
+			Name = AfterSplit(Name,":")
 			TheValue = AfterSplit(Name,":")
 			Name = BeforeSplit(Name,":")
-			Complete = VectAndArray(Name, VarType, VorA, "statement",GenCode("",TranslateTag(TheValue)))+StatementContent
+			Complete = VectAndArray(Name, VarType, VorA, "statement",GenCode("",TranslateTag("stmt:"+TheValue)))+StatementContent
 		} else {
 			Complete = VectAndArray(Name, VarType, VorA, "statement","")+StatementContent
 		}
@@ -2539,19 +2546,28 @@ func Variables(Tabs string, TheKindType string, Content string) string {
 		//grab data type
 		VarType = BeforeSplit(TheKindType,">")
 		VarType = AfterSplit(VarType,"<")
-		VarType = AfterSplit(VarType,":")
+		VarType = BeforeSplit(VarType,":")
+
+		//layer 2 debugging
+		if Debug2 {
+			fmt.Println(TagName+"[VarType]:> "+VarType)
+		}
+
 		VarType = DataType(VarType,false)
 
 		//vector or array
-		VorA = BeforeSplit(TheKindType,":")
-		VorA = AfterSplit(VorA,"<")
+		VorA = AfterSplit(TheKindType,":")
+		VorA = BeforeSplit(VorA,">")
 
 		//name of array
 		Name = AfterSplit(TheKindType,">")
 
-		if IsIn(Name,":") {
+		if StartsWith(Name,":") {
+/*
 			TheValue = AfterSplit(Name,":")
 			Name = BeforeSplit(Name,":")
+*/
+			Name = AfterSplit(Name,":")
 			NewVar = VectAndArray(Name, VarType, VorA, "variable",GenCode("",TranslateTag(TheValue)))
 		} else {
 			NewVar = VectAndArray(Name, VarType, VorA, "variable","")
