@@ -12,7 +12,7 @@ import java.io.IOException;
 
 //class name
 public class shell {
-	private static String Version = "0.1.35";
+	private static String Version = "0.1.36";
 
 	//layer 1 debugging
 	private static boolean Debug1 = false;
@@ -487,6 +487,7 @@ public class shell {
 		print("Type \"help\" for more information.");
 	}
 
+	//https://www.geeksforgeeks.org/java/java-util-vector-class-java/
 	private static String VectAndArray(String Name, String TheDataType, String VectorOrArray, String Action, String TheValue)
 	{
 		StringBuilder TheReturn = new StringBuilder("");
@@ -496,19 +497,19 @@ public class shell {
 			{
 				if (!TheValue.equals(""))
 				{
-					TheReturn.append("std::vector<");
+					TheReturn.append("Vector<");
 					TheReturn.append(TheDataType);
 					TheReturn.append("> ");
 					TheReturn.append(Name);
-					TheReturn.append(" = ");
-					TheReturn.append(TheValue);
+					TheReturn.append(" = new Vector<>()");
 				}
 				else
 				{
-					TheReturn.append("std::vector<");
+					TheReturn.append("Vector<");
 					TheReturn.append(TheDataType);
 					TheReturn.append("> ");
 					TheReturn.append(Name);
+					TheReturn.append(" = new Vector<>()");
 				}
 			}
 			else
@@ -516,7 +517,7 @@ public class shell {
 				if ((!IsIn(Name,"[")) && (!IsIn(Name,"]")))
 				{
 					TheReturn.append(Name);
-					TheReturn.append(".push_back(");
+					TheReturn.append(".add(");
 					TheReturn.append(TheValue);
 					TheReturn.append(")");
 				}
@@ -3593,23 +3594,31 @@ public class shell {
 			//grab data type
 			VarType = BeforeSplit(TheKindType,">");
 			VarType = AfterSplit(VarType,"<");
-			VarType = AfterSplit(VarType,":");
+			VarType = BeforeSplit(VarType,":");
+
+			//layer 2 debugging
+			if (Debug2)
+			{
+				print(TagName+"[VarType]:> "+VarType);
+			}
 			VarType = DataType(VarType,false);
 
 			//vector or array
-			VorA = BeforeSplit(TheKindType,":");
-			VorA = AfterSplit(VorA,"<");
+			VorA = AfterSplit(TheKindType,":");
+			VorA = BeforeSplit(VorA,">");
 
 			TheName = VorA;
 
 			//name of array
 			Name = AfterSplit(TheKindType,">");
 
-			if (IsIn(Name,":"))
+			if (StartsWith(Name,":"))
 			{
+				Name = AfterSplit(Name,":");
 				TheValue = AfterSplit(Name,":");
 				Name = BeforeSplit(Name,":");
-				Complete.append(VectAndArray(Name, VarType, VorA, "statement",GenCode("",TranslateTag(TheValue))));
+
+				Complete.append(VectAndArray(Name, VarType, VorA, "statement",GenCode("",TranslateTag("stmt:"+TheValue))));
 				Complete.append(StatementContent);
 			}
 			else
@@ -3765,19 +3774,29 @@ public class shell {
 			VarType = BeforeSplit(TheKindType,">");
 			VarType = AfterSplit(VarType,"<");
 			VarType = AfterSplit(VarType,":");
+
+			//layer 2 debugging
+			if (Debug2)
+			{
+				print(TagName+"[VarType]:> "+VarType);
+			}
+
 			VarType = DataType(VarType,false);
 
 			//vector or array
-			VorA = BeforeSplit(TheKindType,":");
-			VorA = AfterSplit(VorA,"<");
+			VorA = AfterSplit(TheKindType,":");
+			VorA = BeforeSplit(VorA,">");
 
 			//name of array
 			Name = AfterSplit(TheKindType,">");
 
-			if (IsIn(Name,":"))
+			if (StartsWith(Name,":"))
 			{
+/*
 				TheValue = AfterSplit(Name,":");
 				Name = BeforeSplit(Name,":");
+*/
+				Name = AfterSplit(Name,":");
 				NewVar.append(VectAndArray(Name, VarType, VorA, "variable",GenCode("",TranslateTag(TheValue))));
 			}
 			else
