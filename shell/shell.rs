@@ -6,7 +6,7 @@ static mut DEBUG_1: bool = false;
 static mut DEBUG_2: bool = false;
 static mut DEBUG_3: bool = false;
 
-const SHELL_VERSION: &str = "0.1.36";
+const SHELL_VERSION: &str = "0.1.37";
 
 fn get_os() -> String
 {
@@ -432,7 +432,7 @@ fn gen_vect_and_array(name: &str, the_data_type: &str, new_vector_or_array: &str
 		{
 			if the_value != ""
 			{
-				the_return.push_str("let ");
+				the_return.push_str("let mut ");
 				the_return.push_str(&new_name);
 				the_return.push_str(" = vec![");
 				the_return.push_str(the_value);
@@ -440,7 +440,7 @@ fn gen_vect_and_array(name: &str, the_data_type: &str, new_vector_or_array: &str
 			}
 			else
 			{
-				the_return.push_str("let ");
+				the_return.push_str("let mut ");
 				the_return.push_str(&new_name);
 				the_return.push_str(" = vec![");
 				if the_data_type == "String"
