@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SupportV="0.2.10"
+SupportV="0.2.11"
 Lang=Bash
 LangExt=".sh"
 ColorNum=2
@@ -832,6 +832,7 @@ UseBash()
 				*${LangExt})
 					#Check if Bash Script does NOT exist
 					if [ ! -f "${TheBinDir}/${src}" ]; then
+
 						#Change to Bash Binary dir
 						cd ${TheBinDir}
 						case ${CodeProject} in
@@ -846,6 +847,8 @@ UseBash()
 									0)
 										;;
 									1)
+										#NOTE:	Here is where you might want to consider making ALL .sh files executable
+										#	If <project>.sh does not exist, consider making pre-selecting the base script for execution.
 										src=$(UseBash "getProjSrc" ${src})
 										chmod +x ${src} 2> /dev/null
 										ERROR=$(ln -s ${src} ${CodeProject}${LangExt} 2>&1 | tr '\n' '|')
@@ -857,11 +860,22 @@ UseBash()
 						esac
 						#Change to Bash Source dir
 						cd - > /dev/null
-						if [ -f "${TheBinDir}/${src}" ]; then
-							UseBash compileCode-message
-						else
-							errorCode "cpl" "ERROR" "${ERROR}"
-						fi
+						case ${CodeProject} in
+							none)
+								if [ -f "${TheBinDir}/${src}" ]; then
+									UseBash compileCode-message
+								else
+									errorCode "cpl" "ERROR" "${ERROR}"
+								fi
+								;;
+							*)
+								if [ -f "${src}" ]; then
+									UseBash compileCode-message
+								else
+									errorCode "cpl" "ERROR" "${ERROR}"
+								fi
+								;;
+						esac
 						#Code is already found
 					else
 						UseBash compileCode-message
@@ -1261,7 +1275,7 @@ UseBash()
 						UseProjectTemplate=$(ProjectTemplateHandler ${ProjectType} --check ${Type})
 						TheBinDir="${LangProject}/${project}/bin"
 						TheSrcDir="${LangProject}/${project}/src"
-						TheBin="${project}"
+						TheBin="${project}.sh"
 					else
 						TheBin=""
 					fi
@@ -1326,6 +1340,13 @@ UseBash()
 				#release protection
 				chmod u+w ${TheBinDir}/${TheBin} 2> /dev/null
 			else
+#				case ${project} in
+#					none)
+#						;;
+#					*)
+#						echo "${TheBin} is not found or set to execute"
+#						;;
+#				esac
 				errorCode "cpl" "need" "${name}"
 			fi
 			;;
