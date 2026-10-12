@@ -9,7 +9,7 @@ import (
 	"strings"
 	)
 
-var Version string = "0.1.38"
+var Version string = "0.1.39"
 var Debug1 bool = false
 var Debug2 bool = false
 var Debug3 bool = false
@@ -728,6 +728,12 @@ func TranslateTag(Input string) string {
 		TheDataType = AfterSplit(TheDataType,"(")
 		Action = AfterSplit(Action,")")
 
+		if StartsWith(TheDataType,"v:") {
+			TheDataType = AfterSplit(TheDataType,":")
+			TheDataType = TheDataType+":vector"
+			Action = AfterSplit(Action,":")
+		}
+
 		//replacing data type to represent the variable
 		if StartsWith(Action,":") {
 			Action = TheDataType+Action
@@ -766,8 +772,12 @@ func TranslateTag(Input string) string {
 
 			TheReturn = Parent+ContentFor+"var:("+TheDataType+")"+Action+"= "+Value
 		} else {
-//			TheReturn = Parent+ContentFor+Nest+"var:("+TheDataType+")"+Action
-			TheReturn = Parent+ContentFor+"var:("+TheDataType+")"+Action
+			if EndsWith(TheDataType,":vector") {
+				TheReturn = Parent+ContentFor+"var:<"+TheDataType+">:"+Action
+			} else {
+	//			TheReturn = Parent+ContentFor+Nest+"var:("+TheDataType+")"+Action
+				TheReturn = Parent+ContentFor+"var:("+TheDataType+")"+Action
+			}
 		}
 	//This is an example of handling vecotors and arrays
 	//	<type>name:value

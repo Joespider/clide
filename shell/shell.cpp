@@ -17,7 +17,7 @@
 //Convert std::string to String
 #define String std::string
 
-String Version = "0.1.50";
+String Version = "0.1.51";
 
 //layer 1 debugging
 bool Debug1 = false;
@@ -1037,6 +1037,13 @@ String TranslateTag(String Input)
 		TheDataType = AfterSplit(TheDataType,'(');
 		Action = AfterSplit(Action,')');
 
+		if (StartsWith(TheDataType,"v:"))
+		{
+			TheDataType = AfterSplit(TheDataType,':');
+			TheDataType = TheDataType+":vector";
+			Action = AfterSplit(Action,':');
+		}
+
 		//replacing data type to represent the variable
 		if (StartsWith(Action,":"))
 		{
@@ -1084,8 +1091,16 @@ String TranslateTag(String Input)
 		}
 		else
 		{
-//			TheReturn = Parent+ContentFor+Nest+"var:("+TheDataType+")"+Action;
-			TheReturn = Parent+ContentFor+"var:("+TheDataType+")"+Action;
+
+			if (EndsWith(TheDataType,":vector"))
+			{
+				TheReturn = Parent+ContentFor+"var:<"+TheDataType+">:"+Action;
+			}
+			else
+			{
+//				TheReturn = Parent+ContentFor+Nest+"var:("+TheDataType+")"+Action;
+				TheReturn = Parent+ContentFor+"var:("+TheDataType+")"+Action;
+			}
 		}
 	}
 

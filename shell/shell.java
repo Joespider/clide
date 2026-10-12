@@ -12,7 +12,7 @@ import java.io.IOException;
 
 //class name
 public class shell {
-	private static String Version = "0.1.37";
+	private static String Version = "0.1.38";
 
 	//layer 1 debugging
 	private static boolean Debug1 = false;
@@ -1227,6 +1227,13 @@ String Name, String TheDataType, String VectorOrArray, String Action, String The
 			TheDataType = AfterSplit(TheDataType,"(");
 			Action = AfterSplit(Action,")");
 
+			if (StartsWith(TheDataType,"v:"))
+			{
+				TheDataType = AfterSplit(TheDataType,":");
+				TheDataType = TheDataType+":vector";
+				Action = AfterSplit(Action,":");
+			}
+
 			//replacing data type to represent the variable
 			if (StartsWith(Action,":"))
 			{
@@ -1293,9 +1300,18 @@ String Name, String TheDataType, String VectorOrArray, String Action, String The
 				TheReturn.append(Parent);
 				TheReturn.append(ContentFor);
 				TheReturn.append(Nest.toString());
-				TheReturn.append("var:(");
-				TheReturn.append(TheDataType);
-				TheReturn.append(")");
+				if (EndsWith(TheDataType,":vector"))
+				{
+					TheReturn.append("var:<");
+					TheReturn.append(TheDataType);
+					TheReturn.append(">:");
+				}
+				else
+				{
+					TheReturn.append("var:(");
+					TheReturn.append(TheDataType);
+					TheReturn.append(")");
+				}
 				TheReturn.append(Action);
 			}
 		}

@@ -6,7 +6,7 @@ static mut DEBUG_1: bool = false;
 static mut DEBUG_2: bool = false;
 static mut DEBUG_3: bool = false;
 
-const SHELL_VERSION: &str = "0.1.37";
+const SHELL_VERSION: &str = "0.1.38";
 
 fn get_os() -> String
 {
@@ -1103,6 +1103,13 @@ fn translate_tag(input: &str) -> String
 		the_data_type = after_split(&the_data_type,"(");
 		action = after_split(&action,")");
 
+		if starts_with(&the_data_type,"v:")
+		{
+			the_data_type = after_split(&the_data_type,":");
+			the_data_type = [&the_data_type,":vector"].concat();
+			action = after_split(&action,":");
+		}
+
 		//replacing data type to represent the variable
 		if starts_with(&action,":")
 		{
@@ -1159,9 +1166,18 @@ fn translate_tag(input: &str) -> String
 		{
 			the_return.push_str(&parent);
 			the_return.push_str(&content_for);
-			the_return.push_str("var:(");
-			the_return.push_str(&the_data_type);
-			the_return.push_str(")");
+			if ends_with(&the_data_type,":vector")
+			{
+				the_return.push_str("var:<");
+				the_return.push_str(&the_data_type);
+				the_return.push_str(">:");
+			}
+			else
+			{
+				the_return.push_str("var:(");
+				the_return.push_str(&the_data_type);
+				the_return.push_str(")");
+			}
 			the_return.push_str(&action);
 		}
 	}
@@ -1330,6 +1346,7 @@ fn translate_tag(input: &str) -> String
 		}
 	}
 
+	println!("{}",the_return.to_string());
 	return the_return.to_string();
 }
 

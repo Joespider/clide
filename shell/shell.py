@@ -2,7 +2,7 @@ import os
 import sys
 import platform
 
-Version = "0.1.35"
+Version = "0.1.36"
 
 Debug1 = False
 Debug2 = False
@@ -556,6 +556,11 @@ def TranslateTag(Input):
 		TheDataType = AfterSplit(TheDataType,"(")
 		Action = AfterSplit(Action,")")
 
+		if StartsWith(TheDataType,"v:"):
+			TheDataType = AfterSplit(TheDataType,":")
+			TheDataType = TheDataType+":vector"
+			Action = AfterSplit(Action,":")
+
 		#replacing data type to represent the variable
 		if StartsWith(Action,":"):
 			Action = TheDataType+Action
@@ -586,8 +591,11 @@ def TranslateTag(Input):
 				Value = "stmt:"+Value
 			TheReturn = Parent+ContentFor+"var:("+TheDataType+")"+Action+"= "+Value
 		else:
-#			TheReturn = Parent+ContentFor+Nest+"var:("+TheDataType+")"+Action
-			TheReturn = Parent+ContentFor+"var:("+TheDataType+")"+Action
+			if EndsWith(TheDataType,":vector"):
+				TheReturn = Parent+ContentFor+"var:<"+TheDataType+">:"+Action
+			else:
+#				TheReturn = Parent+ContentFor+Nest+"var:("+TheDataType+")"+Action
+				TheReturn = Parent+ContentFor+"var:("+TheDataType+")"+Action
 
 	#This is an example of handling vecotors and arrays
 	#	<type>name:value
