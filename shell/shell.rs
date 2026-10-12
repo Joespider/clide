@@ -6,7 +6,7 @@ static mut DEBUG_1: bool = false;
 static mut DEBUG_2: bool = false;
 static mut DEBUG_3: bool = false;
 
-const SHELL_VERSION: &str = "0.1.38";
+const SHELL_VERSION: &str = "0.1.39";
 
 fn get_os() -> String
 {
@@ -1346,7 +1346,6 @@ fn translate_tag(input: &str) -> String
 		}
 	}
 
-	println!("{}",the_return.to_string());
 	return the_return.to_string();
 }
 
